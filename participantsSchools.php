@@ -1,0 +1,262 @@
+<?php
+/*******************************************************************************
+	Add/Edit Schools
+	
+	Page where administrators can add/edit schools in the database
+	LOGIN
+		- ADMIN or higher can add new schools
+		- SUPER ADMIN can edit existing schools
+
+*******************************************************************************/
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+$pageName = 'Event Roster';
+include('includes/header.php');
+
+if(USER_TYPE < USER_ADMIN){
+	displayAnyErrors("Not Logged In",1);
+} else {
+	$schools = getSchoolListLong();
+	
+// PAGE DISPLAY ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+?>
+	
+	<form method='POST' action='participantsRoster.php'>
+	<input type='hidden' name='on' value='1'>
+	<button class='button' value='addEventParticipantsMode' name='formName'>
+		- Return To Add Participants -
+	</button>
+	<BR><BR>
+	</form>
+	
+<!-- Add New School -->
+	<?php 
+	if(isset($_SESSION['editSchoolID'])){
+		editExistingSchool();
+	} else {
+		addNewSchoolInput();
+	}
+	
+	
+	?>
+	
+<!-- Display Existing Schools -->
+	<HR><h5>Schools in Database</h5>
+	
+	<form method='POST'>
+	<input type='hidden' name='formName' value='editExistingSchool'>
+	<input type='hidden' name='enableEditing' value='true'>
+	
+	<table>
+	<?php displaySchoolHeaders(); ?>
+	
+	<?php foreach($schools as $school): ?>
+		<tr>
+			<td>
+			<?php if(USER_TYPE == USER_SUPER_ADMIN):
+				$displayID = intToString($school['schoolID'],3); ?>
+				<button class='button tiny hollow' name='schoolID' value='<?= $school['schoolID'] ?>'>
+					Edit #<?= $displayID ?>
+				</button>
+			<?php endif ?>
+			</td>
+			<td><?= $school['schoolFullName'] ?></td>
+			<td><?= $school['schoolShortName'] ?></td>
+			<td><?= $school['schoolAbreviation'] ?></td>
+			<td><?= $school['schoolBranch'] ?></td>
+			<td><?= $school['schoolCountry'] ?></td>
+			<td><?= $school['schoolProvince'] ?></td>
+			<td><?= $school['schoolCity'] ?></td>
+		</tr>
+		
+		
+	<?php endforeach ?>	
+		
+	</table>
+
+<?php }
+
+
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displaySchoolHeaders(){
+	?>
+	<tr>
+		<td></td>
+		<th>School Full Name</th>
+		<th>School Short Name</th>
+		<th>Abreviation</th>
+		<th>Branch</th>
+		<th>Country</th>
+		<th>State/Province</th>
+		<th>City</th>
+	</tr>
+<?php }
+
+/******************************************************************************/
+
+function editExistingSchool(){
+	
+	if(USER_TYPE < USER_SUPER_ADMIN){return;}
+	$schoolID = $_SESSION['editSchoolID'];
+	unset($_SESSION['editSchoolID']);
+	$schoolInfo = getSchoolInfo($schoolID); ?>
+	
+	<h5>Edit School (ID: <?= $schoolID ?>)</h5>
+	
+	<form method='POST'>
+	<input type='hidden' name='formName' value='editExistingSchool'>
+	<input type='hidden' name='schoolID' value='<?= $schoolID ?>'>
+	
+	<table>
+	<tr>
+		<td>School Full Name</td>
+		<td>
+			<input type='text' name='schoolFullName' required
+			value='<?= $schoolInfo['schoolFullName'] ?>'>
+		</td>
+	</tr>
+	<tr>
+		<td>School Short Name </td>
+		<td>
+			<input type='text' name='schoolShortName' 
+			value='<?= $schoolInfo['schoolShortName'] ?>' size='10'>
+		</td>
+	</tr>
+	<tr>
+		<td>School Abreviation </td>
+		<td>
+			<input type='text' name='schoolAbreviation' required
+			value='<?= $schoolInfo['schoolAbreviation'] ?>' size='1'>
+		</td>
+	</tr>
+	<tr>
+		<td>School Branch </td>
+		<td>
+			<input type='text' name='schoolBranch' 
+			value='<?= $schoolInfo['schoolBranch'] ?>' size='10'>
+		</td>
+	</tr>
+	<tr>
+		<td>School Country </td>
+		<td>
+			<input type='text' name='schoolCountry' 
+			value='<?= $schoolInfo['schoolCountry'] ?>'>
+		</td>
+	</tr>
+	<tr>
+		<td>School Province </td>
+		<td>
+			<input type='text' name='schoolProvince' 
+			value='<?= $schoolInfo['schoolProvince'] ?>'>
+		</td>
+	</tr>
+	<tr>
+		<td>School City </td>
+		<td>
+			<input type='text' name='schoolCity' 
+			value='<?= $schoolInfo['schoolCity'] ?>'>
+		</td>
+	</tr>
+	</table>
+	
+	<div class='grid-x grid-padding-x row'>
+		<div class='small-12 medium-3 large-2 cell'>
+			<button class='button primary expanded'>Update School</button>
+		</div>
+		<div class='small-12 medium-3 large-2 cell'>
+			<a class='button secondary expanded' href='participantsSchools.php'>
+				Cancel Update
+			</a>
+		</div>
+	</div>
+	</form>
+	
+	
+<?php }
+
+
+ 
+/******************************************************************************/
+
+function addNewSchoolInput(){
+?>
+	<h5>Add School:</h5>
+		
+	<div class='grid-x grid-margin-x'>
+	<div class='medium-6 cell'>
+		
+		<form method='POST'>
+		<input type='hidden' name='formName' value='addNewSchool'>
+		<div class='grid-x cell'>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>Full Name</span>
+			<input class='input-group-field' type='text' name='schoolFullName' required
+				 onkeyup="schoolInputPlaceholders()" id='schoolFull' placeholder='- Mandatory -'>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School Short Name </span>
+			<input class='input-group-field' type='text' name='schoolShortName'
+				id='schoolShort'>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School Abreviation</span>
+			<input class='input-group-field' type='text' name='schoolAbreviation'
+				id='schoolAbreviation'>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School Branch</span>
+			<input class='input-group-field' type='text' name='schoolBranch'>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School Country</span>
+			<input class='input-group-field' type='text' name='schoolCountry'
+				id='schoolCountry' placeholder='- Mandatory -' required>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School Province</span>
+			<input class='input-group-field' type='text' name='schoolProvince'>
+		</div>
+		<div class='input-group grid-x cell'>
+			<span class='input-group-label small-5'>School City</span>
+			<input class='input-group-field' type='text' name='schoolCity'>
+		</div>
+
+		</div>
+		<button class='button success'>Add New School</button>
+		</form>
+	</div>
+	
+	<div class='hide-for-small-only medium-6 cell'>
+		The school's short name is the name that will mostly show up.<BR>
+		The school's full name is the full title of the school.
+
+		<ul>Example:
+		<li>Full Name: <em>Blood and Iron Martial Arts</em>
+		<li>Short Name: <em>Blood and Iron</em>
+		<li>Branch: <em>Burnaby</em></li>
+		<li>Abreviation: <em>BnI</em></ul>
+		The school's branch will show up after the schools full name<BR>
+		
+		<em>Blood and Iron Martial Arts, <u>Burnaby</u></em><BR><BR>
+		If you don't fill in the short name the software will use the full name. 
+		If you don't fill in an abreviation the software will make one up 
+		of all the capital letters in the name.
+	</div>
+	
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
+// END OF DOCUMENT /////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
