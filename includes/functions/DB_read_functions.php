@@ -2167,10 +2167,10 @@ function getTournamentName($tournamentID = null){
 	} else {
 		$name = $weaponName;
 		if(isset($prefixName) || isset($genderName) || isset($materialName)){
-			$name .= " - ";
-			if(isset($prefixName)){$name .= $prefixName." ";};
-			if(isset($genderName)){$name .= $genderName." ";};
-			if(isset($materialName)){$name .= $materialName." ";};
+			$name .= " -";
+			if(isset($prefixName)){$name .= " ".$prefixName;};
+			if(isset($genderName)){$name .= " ".$genderName;};
+			if(isset($materialName)){$name .= " ".$materialName;};
 		}
 	}
 		
