@@ -99,6 +99,9 @@ function processPostData(){
 		case 'editEventParticipant':
 			editEventParticipant();
 			break;
+		case 'importRosterCSV':
+			importRosterCSV();
+			break;
 		
 	
 // Pool Management Cases

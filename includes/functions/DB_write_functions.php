@@ -1546,6 +1546,131 @@ function insertNewEventParticipant($firstName, $lastName, $schoolID, $tournament
 
 /******************************************************************************/
 
+function importRosterCSV(){
+	if(USER_TYPE < USER_ADMIN){return;}
+	
+	$csv_mimetypes = array(
+		'text/csv',
+		'text/plain',
+		'application/csv',
+		'text/comma-separated-values',
+		'application/excel',
+		'application/vnd.ms-excel',
+		'application/vnd.msexcel',
+		'text/anytext',
+		'application/octet-stream',
+		'application/txt',
+	);
+	
+	if (!in_array($_FILES['csv_file']['type'], $csv_mimetypes)
+		|| substr($_FILES['csv_file']['name'], -4) != '.csv') {
+		$_SESSION['errorMessage'] .= "<p>That's not a .csv file!</p>";
+		return;
+	}
+	
+
+	if(isset($_FILES['csv_file']) && is_uploaded_file($_FILES['csv_file']['tmp_name'])){
+		//upload directory
+		$upload_dir = "exports/";
+		$tmpName = date("YmdHis").".csv";
+
+		//create file name
+		$filePath = $upload_dir . $tmpName;
+		
+		
+		//move uploaded file to upload dir
+		if (!move_uploaded_file($_FILES['csv_file']['tmp_name'], $filePath)) {  
+			//error moving upload file
+			$_SESSION['errorMessage'] .= "<p>Error moving file upload</p>";
+			return;
+		}
+	}
+	
+	$file = fopen($filePath, 'r');
+	
+	$standardFormat = array('firstName', 'lastName', 'school');
+	
+	$a = fgetcsv($file, 1000, ',');
+	foreach($a as $index => $name){
+		if($index < sizeof($standardFormat)){
+			// If it's a name or school header
+			
+			if($name != $standardFormat[$index]){
+				$errorMsg = "<strong>File could not be loaded</strong><BR>
+					Incorrect file header row<BR>
+					Use 'firstName','lastName','school'";
+			}
+		} else {
+			//If it's a tournament
+			
+			if(is_numeric($name)){
+				$tournamentID = (int)$name;
+				$sql = "SELECT eventID
+						FROM eventTournaments
+						WHERE tournamentID = {$tournamentID}";
+				$eventID = mySqlQuery($sql, SINGLE, 'eventID');
+				if($eventID != $_SESSION['eventID']){
+					$errorMsg = "<strong>File could not be loaded</strong><BR>
+						tournamentID $tournamentID is not valid for this event.";
+				}
+				$tournamentName = getTournamentName($tournamentID);
+				
+			} else {
+				$allTournaments = getEventTournaments();
+				$tournamentName = $name;
+				foreach($allTournaments as $checkID){
+					$checkName = getTournamentName($checkID);
+					
+					if($tournamentName === $checkName){
+						
+						$tournamentID = $checkID;
+						$tournamentFound = true;
+					}
+				}
+				
+				if($tournamentFound != true){
+					$errorMsg = "<strong>File could not be loaded</strong><BR>
+						<strong>'$tournamentName'</strong> does not match any tournament in the event.<BR>
+						The spelling must be <u>exact</u> for a match.";
+				}
+			}
+			
+			
+			
+			$tournamentList[$tournamentID] = $tournamentName;
+			$name = $tournamentID;
+		}
+		
+		
+		if($errorMsg != null){
+			fclose($file);
+			unlink($filePath);
+			$_SESSION['errorMessage'] .= "<p>$errorMsg</p>";
+			return;
+		}
+	
+		$fields[$index] = $name;
+	}
+
+
+    while (($data = fgetcsv($file, 1000, ',')) !== FALSE) {
+		unset($fighter);
+		foreach($data as $index => $fieldData){
+			$fighter[$fields[$index]] = $fieldData;
+		}
+		$roster[] = $fighter;
+	}
+	
+	fclose($file);
+	unlink($filePath);
+	
+	$_SESSION['csvRosterAdditions'] = $roster;
+	$_SESSION['csvTournamentList'] = $tournamentList;
+
+}
+
+/******************************************************************************/
+
 function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = null){
 	
 	if(USER_TYPE < USER_STAFF){return;}

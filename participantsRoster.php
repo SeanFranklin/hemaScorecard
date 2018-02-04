@@ -91,7 +91,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 		?>
 		
 		<tr class='pointer' id='divFor<?=$rosterID?>'
-			onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
+			>
 		
 		<!-- Deletion checkboxes -->
 			<?php if(USER_TYPE >= USER_ADMIN): ?>
@@ -106,12 +106,14 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 			<?php endif?>
 			
 		<!-- Participant info -->
-			<td>
+			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
 				<?=getFighterName($rosterID)?>
 			</td>
 		
 			
-			<td><?=$person['schoolShortName']?>, <?=$person['schoolBranch']?></td>
+			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
+				<?=$person['schoolShortName']?>, <?=$person['schoolBranch']?>
+			</td>
 
 		</tr>
 		<tr id='tList-<?=$rosterID?>' class='hidden'>
