@@ -67,6 +67,59 @@ function activateLivestream($eventID = null){
 
 /******************************************************************************/
 
+function addAttacksToTournament($tournamentID = null){
+	
+	if(USER_TYPE < USER_ADMIN){ return; }
+	if($tournamentID == null){ $tournamentID = $_SESSION['tournamentID']; }
+	if($tournamentID == null){return;}
+	
+	$sql = "DELETE FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}";
+	mysqlQuery($sql, SEND);
+	
+
+	foreach($_POST['newAttack'] as $a){
+		$i++;
+		if($a['attackPoints'] == ''){
+			continue;
+		}
+		if($a['attackType'] == ''){
+			$aType = 'NULL';
+		} else {
+			$aType = $a['attackType'];
+		}
+		
+		if($a['attackTarget'] == ''){
+			$aTarget = 'NULL';
+		} else {
+			$aTarget = $a['attackTarget'];
+		}
+		
+		if($a['attackPrefix'] == ''){
+			$aPrefix = 'NULL';
+		} else {
+			$aPrefix = $a['attackPrefix'];
+		}
+		
+		if(((int)$a['attackNumber']) <= 0){
+			$aNum = $i;
+		} else {
+			$aNum = $a['attackNumber'];
+		}
+
+		
+		$sql = "INSERT INTO eventAttacks
+				(tournamentID, attackTarget, attackType, attackPoints, attackNumber, attackPrefix)
+				VALUES
+				({$tournamentID}, {$aTarget}, {$aType}, {$a['attackPoints']}, {$aNum}, {$aPrefix})";
+		mysqlQuery($sql, SEND);
+	}
+	
+	
+}
+
+/******************************************************************************/
+
 function addEventParticipantsByID(){
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
@@ -1052,6 +1105,29 @@ function editEvent(){
 
 /******************************************************************************/
 
+function editEventStatus(){
+	
+	if(USER_TYPE < USER_ADMIN){ return; }
+	$eventID = $_SESSION['eventID'];
+	if($eventID == null){return;}
+	
+	$eventStatus = $_POST['eventStatus'];
+	
+	$sql = "UPDATE systemEvents SET eventStatus = ?
+			WHERE eventID = {$eventID}";
+	
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "s", $eventStatus);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	
+	$_SESSION['errorMessage'] .= "<p>Event Status updated</p>";
+	
+}
+
+/******************************************************************************/
+
 function editEventParticipant(){
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
 	if($eventID == null){return;}
@@ -1463,7 +1539,8 @@ function generateTournamentPlacings_bracket($tournamentID){
 
 /******************************************************************************/
 
-function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn, $scoreDeductionIn){
+function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn, $scoreDeductionIn, 
+							$refPrefix = null, $refType = null, $refTarget = null){
 // records a new exchange into the match	
 	
 	if(USER_TYPE < USER_STAFF){return;}
@@ -1486,12 +1563,24 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 	} else {
 		$exchangeTime = 'NULL';
 	}
-		
+	
+	if($refPrefix == null){
+		$refPrefix = 'NULL';
+	}
+	if($refType == null){
+		$refType = 'NULL';
+	}
+	if($refTarget == null){
+		$refTarget = 'NULL';
+	}
+	
 	
 	$sql = "INSERT INTO eventExchanges
-			(matchID, exchangeType, scoringID, recievingID, scoreValue, scoreDeduction, exchangeTime)
+			(matchID, exchangeType, scoringID, recievingID, scoreValue, 
+			scoreDeduction, exchangeTime, refPrefix, refType, refTarget)
 			VALUES
-			({$matchID}, '{$exchangeType}', {$rosterID}, {$recievingID}, {$scoreValue}, {$scoreDeduction}, {$exchangeTime})";
+			({$matchID}, '{$exchangeType}', {$rosterID}, {$recievingID}, {$scoreValue}, 
+			{$scoreDeduction}, {$exchangeTime}, {$refPrefix}, {$refType}, {$refTarget})";
 	mysqlQuery($sql, SEND);
 	
 }
@@ -1687,6 +1776,7 @@ function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = nul
 		return; 
 	}
 	
+
 // Find out what exists in the DB so it is known what needs to be updated vs inserted
 	$sql = "SELECT standingID
 			FROM eventStandings
@@ -1699,7 +1789,7 @@ function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = nul
 	$numStandingsNew = count($fighterScores);
 	
 	$standingsToEdit = min($numStandingsNew, $numStandingsExisting);
-	
+
 // Re-write existing rankings
 	for($i = 0; $i < $standingsToEdit; $i++){
 		$standingID = $standingsExisting[$i]['standingID'];
@@ -1716,7 +1806,6 @@ function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = nul
 				{$updateString}
 				WHERE standingID = $standingID";
 				
-		
 		mysqlQuery($sql, SEND);		
 	}
 	

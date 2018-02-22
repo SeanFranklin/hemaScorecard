@@ -20,10 +20,7 @@
 
 // Database Connection
 
-	define("PRIMARY_DATABASE","ScorecardV5");
-	define("DATABASE_HOST","127.0.0.1");
-	define("DATABASE_USER","webPortal");
-	define("DATABASE_PASSWORD","access");
+	include('includes/database.php');
 
 // Program Related Constants
 

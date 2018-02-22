@@ -27,7 +27,6 @@ function processPostData(){
 	//define(SHOW_SESSION, true);
 	/////////////////////////////*/
 	
-
 	$formName = $_POST['formName'];
 	unset($_POST['formName']);
 
@@ -231,6 +230,9 @@ function processPostData(){
 		case 'editEvent':
 			editEvent();
 			break;
+		case 'eventStatusUpdate':
+			editEventStatus();
+			break;
 		case 'addTournamentType':
 			addTournamentType();
 			break;
@@ -244,14 +246,18 @@ function processPostData(){
 				generateTournamentPlacings($_POST['tournamentID']);
 			}
 			break;
-		case 'resultsDump':
-			$_SESSION['resultsDump'] = $_POST;
+		case 'addAttackTypes':
+			addAttacksToTournament();
 			break;
+			
 			
 			
 // Stats Cases
 		case 'dataFilters':
 			setDataFilters();
+			break;
+		case 'resultsDump':
+			$_SESSION['resultsDump'] = $_POST;
 			break;
 			
 			
@@ -473,7 +479,7 @@ function updatePoolStandings($tournamentID = null){
 		// Calculate Scores
 		$fighterScores = pool_ScoreFighters($poolExchanges, $tournamentID, $setNumber);
 		$fighterRanks = pool_RankFighters($fighterScores, $tournamentID);
-		
+
 		// Save List
 		recordScores($fighterRanks, $tournamentID, 'pool', $setNumber);
 	}
@@ -582,6 +588,9 @@ function addNewExchange(){
 		case 'scoringHit':
 			calculateLastExchange($matchInfo,$scoring);
 			break;
+		case 'penalty':
+			insertPenalty($matchInfo,$scoring);
+			break;
 		case 'noQuality':
 			if($scoring[$f1ID]['hit'] == 'noQuality'){	$id = $f1ID;}
 			if($scoring[$f2ID]['hit'] == 'noQuality'){	$id = $f2ID;}
@@ -672,38 +681,64 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
 	
-	//doesn't do anything if a score was entered in both boxes
+	
+// Doesn't do anything if a score was entered in both boxes
 	if($scoring[$id1]['hit'] && $scoring[$id2]['hit']){
 		return;
 	}
 	
-	// records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id2]['hit'] < 0){
+// Records the exchange as a penalty if the score is negative
+	if($scoring[$id1]['hit'] < 0 OR $scoring[$id1]['hit'] < 0){
 		insertPenalty($matchInfo, $scoring);
 		return;
-	} 
+	}
+
+// Determine which fighter hit
+	if($scoring[$id1]['hit']){
+		if($scoring[$id2]['hit']){
+			// Score entered for both fighters. Not a valid exchange.
+			return;
+		} else {
+			$rosterID = $id1;
+		}
+	} elseif($scoring[$id2]['hit']){
+		$rosterID = $id2;
+	} else {
+		return;
+	}
 	
+
+// Base score value
+	if($_POST['scoreLookupMode'] == 'rawPoints'){
+		$scoreValue = $scoring[$rosterID]['hit'];
+	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+		$at = getAttackAttributes($scoring[$rosterID]['hit']);
+		$scoreValue = $at['attackPoints'];
+		$rType = $at['attackType'];
+		$rTarget = $at['attackTarget'];
+		$rPrefix = $at['attackPrefix'];
+	} else {
+		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		return;
+	}
+	
+	if($_POST['attackModifier'] == 9){
+		$rPrefix = (int)$_POST['attackModifier'];
+		$scoreValue += getControlPointValue();
+	}
+
+// Afterblow deduction
+	$scoreDeduction = 0;
 	// checks for clean or afterblow
-	if($scoring[$id1]['afterblow'] == null && $scoring[$id2]['afterblow'] == null){
-		$exchangeType = 'clean';		
+	if($scoring[$rosterID]['afterblow'] == null){
+		$exchangeType = 'clean';	
 	} else {
 		$exchangeType = 'afterblow';
+		$scoreDeduction = $scoring[$rosterID]['afterblow'];
 	}
 	
-	
-	if($scoring[$id1]['hit']){
-		$rosterID = $id1;
-	} else {
-		$rosterID = $id2;
-	}
-	
-	$scoreValue = $scoring[$rosterID]['hit'];
-	$scoreDeduction = $scoring[$rosterID]['afterblow'];
-	
-	// sets the score deduction to the string 'null' for SQL storage
-	if($scoreDeduction == ""){$scoreDeduction = 'null';}
-	
-	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, $scoreDeduction);
+	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, 
+					$scoreDeduction, $rPrefix, $rType, $rTarget);
 }
 
 /******************************************************************************/
@@ -717,15 +752,20 @@ function insertPenalty($matchInfo, $scoring){
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
 	
-	if($scoring[$id1]['hit'] < 0){
-		$scoreValue = $scoring[$id1]['hit'];
+	if ($scoring[$id1]['penalty'] < 0 && $scoring[$id2]['penalty'] < 0){
+		$_SESSION['errorMessage'] .= "<p><span class='red-text'>Exchange can not be added.</span><BR>
+				You can not apply a penalty to both fighters in the same exchange.</p>";
+	}
+	
+	if($scoring[$id1]['penalty'] < 0){
+		$scoreValue = $scoring[$id1]['penalty'];
 		$rosterID = $id1;
 		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0);
 		return;
 	}
 	
-	if($scoring[$id2]['hit'] < 0){
-		$scoreValue = $scoring[$id2]['hit'];
+	if($scoring[$id2]['penalty'] < 0){
+		$scoreValue = $scoring[$id2]['penalty'];
 		$rosterID = $id2;
 		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0);
 		return;
@@ -744,15 +784,33 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
 	
+	
+	// If raw score
+	if($_POST['scoreLookupMode'] == 'rawPoints'){
+		$score1 = $scoring[$id1]['hit'];
+		$score2 = $scoring[$id2]['hit'];
+	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+		$at1 = getAttackAttributes($scoring[$id1]['hit']);
+		$score1 = $at1['attackPoints'];
+		$scoring[$id1]['hit'] = $score1;
+		
+		$at2 = getAttackAttributes($scoring[$id2]['hit']);
+		$score2 = $at2['attackPoints'];
+		$score2 = $scoring[$id2]['hit'] = $score2;
+	} else {
+		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		return;
+	}
+
 	// records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id2]['hit'] < 0){
+	if($score1 < 0 OR $score2 < 0){
 		insertPenalty($matchInfo, $scoring);
 		return;
 	} 
 	
 	//checks if only one fighter hit
-	if(xorWithZero($scoring[$id1]['hit'],$scoring[$id2]['hit'])){//only one hitter
-		if($scoring[$id1]['hit']){
+	if(xorWithZero($score1,$score2)){//only one hitter
+		if($score1){
 			$rosterID = $id1;
 		} else {
 			$rosterID = $id2;
@@ -764,10 +822,10 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	} else {//both hit
 		
 		//attributes the strike to the fighter with the higher value hit
-		if($scoring[$id1]['hit'] > $scoring[$id2]['hit']){
+		if($score1 > $score2){
 			$rosterID = $id1;
 			$otherID = $id2;
-		} else if($scoring[$id2]['hit'] > $scoring[$id1]['hit']){
+		} else if($score2 > $score1){
 			$rosterID = $id2;
 			$otherID = $id1;
 		} else {
@@ -810,22 +868,49 @@ function noAfterblowScoring($matchInfo,$scoring){
 		insertPenalty($matchInfo, $scoring);
 		return;
 	} 
-	
-	// checks if one or both fighters hit
-	if($scoring[$id1]['hit'] xor $scoring[$id2]['hit']){
-		if($scoring[$id1]['hit']){
-			$rosterID = $id1;
-		} else {
-			$rosterID = $id2;
-		}
-		$scoreValue = 	$scoring[$rosterID]['hit'];
-		
-		insertLastExchange($matchInfo, 'clean', $rosterID, $scoreValue, 'null');
-		
-	} else {
+
+	// Checks if points are entered for both fighters
+	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
 		insertLastExchange($matchInfo, 'double', 'null', 'null', 'null');
-		
+		return;
 	}
+	
+	// Determine which fighter hit
+	if($scoring[$id1]['hit']){
+		if($scoring[$id2]['hit']){
+			// Score entered for both fighters. Not a valid exchange.
+			return;
+		} else {
+			$rosterID = $id1;
+		}
+	} elseif($scoring[$id2]['hit']){
+		$rosterID = $id2;
+	} else {
+		return;
+	}
+	
+	// Base score value
+	if($_POST['scoreLookupMode'] == 'rawPoints'){
+		$scoreValue = $scoring[$rosterID]['hit'];
+	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+		$at = getAttackAttributes($scoring[$rosterID]['hit']);
+		$scoreValue = $at['attackPoints'];
+		$rType = $at['attackType'];
+		$rTarget = $at['attackTarget'];
+		$rPrefix = $at['attackPrefix'];
+	} else {
+		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		return;
+	}
+	
+	if($_POST['attackModifier'] == 9){
+		$rPrefix = (int)$_POST['attackModifier'];
+		$scoreValue += getControlPointValue();
+	}
+	
+	insertLastExchange($matchInfo, 'clean', $rosterID, $scoreValue,
+						$scoreDeduction, $rPrefix, $rType, $rTarget);
+
 }
 
 /******************************************************************************/

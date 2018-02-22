@@ -58,6 +58,56 @@ function getAllPoolScores($tournamentID = null, $poolSet = 1){
 
 /******************************************************************************/
 
+function getAllAttackTargets(){
+	
+	$sql = "SELECT attackID, attackText
+			FROM systemAttacks
+			WHERE attackClass = 'target'";
+	return mysqlQuery($sql, ASSOC);
+	
+}
+
+/******************************************************************************/
+
+function getAllAttackPrefixes(){
+	
+	$sql = "SELECT attackID, attackText
+			FROM systemAttacks
+			WHERE attackClass = 'prefix'";
+	return mysqlQuery($sql, ASSOC);
+	
+}
+
+/******************************************************************************/
+
+function getAllAttackTypes(){
+	
+	$sql = "SELECT attackID, attackText
+			FROM systemAttacks
+			WHERE attackClass = 'type'";
+	
+	return mysqlQuery($sql, ASSOC);
+	
+}
+
+/******************************************************************************/
+
+function getAttackAttributes($tableID){
+
+	$tableID = (int)$tableID;
+	if($tableID == 0){
+		return null;
+	}
+	
+	$sql = "SELECT attackPrefix, attackType, attackTarget, attackPoints
+			FROM eventAttacks
+			WHERE tableID = {$tableID}";
+	return mysqlQuery($sql, SINGLE);
+	
+}
+
+/******************************************************************************/
+
 function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poolSet = 1){
 //gets all the exchanges in a tournament by fighter
 		
@@ -308,6 +358,20 @@ function getCuttingStandard($tournamentID = null){
 			INNER JOIN cuttingStandards USING(standardID)
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE);
+	
+}
+
+/******************************************************************************/
+
+function getControlPointValue($tournamentID = null){
+	
+	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == null){return;}	
+	
+	$sql = "SELECT useControlPoint
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	return mysqlQuery($sql, SINGLE, 'useControlPoint');
 	
 }
 
@@ -1816,6 +1880,9 @@ function getSetName($setNumber, $tournamentID = null){
 		return "Pool Set {$setNumber}";
 
 	}
+	if($elimID == POOL_BRACKET){
+		return "Pool Matches";
+	}
 	
 	return "Set {$setNumber}";
 }
@@ -2120,6 +2187,75 @@ function getNumNoWinners($groupID){
 	
 }
 	
+/******************************************************************************/
+
+function getTournamentAttacks($tournamentID = null){
+// Get the unique attacks attributed to a tournament
+
+	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == null){return;}
+	
+	$sql = "SELECT attackTarget, attackType, attackPoints, attackPrefix, tableID
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			ORDER BY attackNumber ASC";
+			
+	$data = mysqlQuery($sql, ASSOC);
+	
+	
+	foreach($data as $index => $attack){
+		
+		$text = '';
+		
+		if($attack['attackPrefix'] != null){
+			$sql = "SELECT attackText
+					FROM systemAttacks
+					WHERE attackID = {$attack['attackPrefix']}";
+			$name = mysqlQuery($sql, SINGLE, 'attackText');
+			
+			$text .= $name;
+		}
+		
+		if($attack['attackType'] != null){
+			$sql = "SELECT attackText
+					FROM systemAttacks
+					WHERE attackID = {$attack['attackType']}";
+			$name = mysqlQuery($sql, SINGLE, 'attackText');
+			
+			if($text != null){
+				$text .= "  ";
+			}
+			$text .= $name;
+		}
+		if($attack['attackTarget'] != null){
+			$sql = "SELECT attackText
+					FROM systemAttacks
+					WHERE attackID = {$attack['attackTarget']}";
+			$name = mysqlQuery($sql, SINGLE, 'attackText');
+			
+			if($text != null){
+				$text .= " to ";
+			}
+			$text .= $name;
+		}
+		if($text != null){
+			$text .= ": ";
+		}
+		
+		$text .= $attack['attackPoints'];
+		if($attack['attackPoints'] == 1){
+			$text .= " Point";
+		} else {
+			$text .= " Points";
+		}
+		
+		$data[$index]['attackText'] = $text;
+	}
+	
+	return $data;
+
+}
+
 /******************************************************************************/
 
 function getTournamentAttributeName($ID = null){

@@ -15,6 +15,16 @@ function show($array){
 
 /******************************************************************************/
 
+function plrl($num){
+// Returns an 's' if the number is not 1.
+// Used for writing things like 1 Point vs 2 Points
+	
+	if(abs($num) != 1){
+		return 's';
+	}
+}
+
+/******************************************************************************/
 function redirect($url){
 // redirects the page to the given url
 
