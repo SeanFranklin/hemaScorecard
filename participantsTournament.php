@@ -50,8 +50,8 @@ if($tournamentID == null){
 <!-- Table headers -->
 	<thead>
 	<tr>
-		<th><a onclick="changeRosterOrderType('name')">Name</a></th>
-		<th><a onclick="changeRosterOrderType('school')">School</a></th>
+		<th onclick="changeRosterOrderType('name')"><a>Name</a></th>
+		<th onclick="changeRosterOrderType('school')"><a>School</a></th>
 		<?php if(USER_TYPE >= USER_ADMIN): //only admins can delete participants ?>
 			<th>Remove</th>
 		<?php endif ?>

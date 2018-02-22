@@ -408,15 +408,8 @@ function fighterDataEntryBox($matchInfo,$num){
 			<!-- Hit score select -->
 				<div class='input-group grid-x'>
 					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
-					<select class='input-group-field ' name='score[<?=$id?>][hit]' 
-						id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
-						<option value=''></option>
-						<option value='noQuality'>No Quality</option>
-						<option value='1'>1 Point</option>
-						<?php for($i = 2; $i<=$maxPoints;$i++): ?>
-							<option value='<?=$i?>'><?=$i?> Points</option>
-						<?php endfor ?>	
-					</select>
+					<?php scoreSelectDropDown($id, $pre); ?>
+					
 				</div>
 			
 			<!-- Afterblow score select -->
@@ -438,11 +431,78 @@ function fighterDataEntryBox($matchInfo,$num){
 						</select>
 					</div>
 				</div>
+				
+			<!-- Penalty score select -->	
+				<div id='<?=$pre?>_penalty_div' class='hidden'>
+					<div class='input-group grid-x'>
+						<span class='input-group-label large-4 medium-6 small-12'>
+							Penalty
+						</span>
+						
+						<select class='input-group-field'
+							name='score[<?=$id?>][penalty]' 
+							id='<?=$pre?>_penalty_dropdown' 
+							onchange="penaltyDropDownChange(this)">
+							<option value=''></option>
+							<option value='-1'>-1 Point</option>
+							<?php for($i = 2; $i<=$maxPoints;$i++): ?>
+								<option value='-<?=$i?>'>-<?=$i?> Points</option>
+							<?php endfor ?>
+						</select>
+					</div>
+				</div>
+			
+			<?php $cVal = getControlPointValue();
+					if($cVal != 0): ?>
+			<!-- Control point select -->	
+				<div class='input-group'>
+					<span class='input-group-label'>
+						Control (+<?=$cVal?> Point): 
+					</span>
+					<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
+					<input class='switch-input' type='checkbox' name='attackModifier' 
+						value=9 id='control_check<?=$pre?>'>
+					<label class='switch-paddle' for='control_check<?=$pre?>'>
+					</label>
+					</div>
+				</div>
+			<?php endif ?>
 			</div>
 		</div>
 	</div>
 
 <?php }
+
+/******************************************************************************/
+
+function scoreSelectDropDown($id, $pre){
+	
+	$maxPoints = 10;
+	$attacks = getTournamentAttacks();
+	$scoreMode = 'ID';
+	
+	
+	if($attacks == null){
+		for($i = 1; $i<=$maxPoints; $i++){
+			$attacks[$i]['tableID'] = $i;
+			$attacks[$i]['attackText'] = $i." Point".plrl($i);
+		}
+		$scoreMode = 'rawPoints';
+	}
+
+	?>
+	<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
+	<select class='input-group-field ' name='score[<?=$id?>][hit]' 
+		id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
+		<option value=''></option>
+		<option value='noQuality'>No Quality</option>
+		<?php foreach((array)$attacks as $a):
+			 ?>
+			<option value='<?=$a['tableID']?>'><?=$a['attackText']?></option>
+		<?php endforeach ?>
+	</select>
+<?php					
+}
 
 /******************************************************************************/
 

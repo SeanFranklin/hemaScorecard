@@ -62,21 +62,24 @@ if($_SESSION['eventID'] == null){
 		
 		
 		
-		<?php foreach($importData as $k => $fighter): ?>
+		<?php foreach($importData as $k => $fighter): 
+			$fName = htmlspecialchars($fighter['firstName'], ENT_QUOTES);
+			$lName = htmlspecialchars($fighter['lastName'], ENT_QUOTES);
+			?>
 			<tr>
 				<td>
 					<div class='input-group no-margin shrink'>
 					<?php if(NAME_MODE == 'firstName'): ?>
 					<input type='text' name='newParticipants[new][<?=$k?>][firstName]' 
-						class='input-group-field no-margin' value='<?=$fighter['firstName']?>'
+						class='input-group-field no-margin' value='<?=$fName?>'
 						placeholder='First Name'>
 					<?php endif ?>
 					<input type='text' name='newParticipants[new][<?=$k?>][lastName]' 
-						class='input-group-field no-margin' value='<?=$fighter['lastName']?>'
+						class='input-group-field no-margin' value='<?=$lName?>'
 						placeholder='Last Name'>
 					<?php if(NAME_MODE != 'firstName'): ?>
 					<input type='text' name='newParticipants[new][<?=$k?>][firstName]' 
-						class='input-group-field no-margin' value='<?=$fighter['firstName']?>'
+						class='input-group-field no-margin' value='<?=$fName?>'
 						placeholder='First Name'>
 					<?php endif ?>
 					</div>

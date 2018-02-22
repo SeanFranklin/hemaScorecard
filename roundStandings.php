@@ -22,6 +22,8 @@ if(!isRounds($tournamentID)){
 		if(isBrackets($tournamentID)){redirect('finalsBracket1.php');}
 	}
 	displayAnyErrors('This is not a scored event<BR>Please navigate to a pool or bracket');
+} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+	displayAnyErrors("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	
 	$numGroupSets = getNumGroupSets($tournamentID);

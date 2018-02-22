@@ -92,6 +92,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentMaxDoubles($tournamentID);
 				edit_tournamentMaxPoolSize($tournamentID);
 				edit_tournamentNormalization($tournamentID);
+				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentTies($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
@@ -107,6 +108,10 @@ if($_SESSION['eventID'] == null){
 				<button class='button secondary' name='formName' <?=$isLocked?>>
 					Cancel
 				</button>
+				<a class='button' href='adminPoints.php'
+					style='float:middle' <?=$isLocked?>>
+					Change Point Values
+				</a>
 				<a class='button alert' data-open='boxFor-<?=$tournamentID?>' 
 					style='float:right' <?=$isLocked?>>
 					Delete Tournament
