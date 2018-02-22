@@ -296,6 +296,217 @@ function _Franklin2014_scores($fighterStats){
 
 /******************************************************************************/
 
+function _Flowerpoint_advancements(){
+// Calculate advancements to move onto the next pool set using the 'Flowerpoint'
+// algorithm. Attempts to balance the pool size while minimizing the number 
+// of times people fight people in the pool they have already fought
+	
+	$maxPoolSize = maxPoolSize();
+	$poolsInTier = $_POST['poolsInTier'];
+	if($poolsInTier == 0 || $poolsInTier == null){
+		$poolsInTier = 9999;
+	}
+	
+	$poolSet = $_SESSION['groupSet'];
+	$lastPoolSet = $poolSet - 1;
+	
+	$standings = getTournamentStandings($tournamentID, $lastPoolSet, 'pool', 'advance');
+
+	$poolNum = 1;
+	$poolPosition = 0;
+	
+	$tierSize = $poolsInTier * $maxPoolSize;
+	
+	// Generate Tiers
+	$tier = 1;
+	$numFightersInTier = 0;
+	foreach($standings as $fighter){
+		$numFightersInTier++;
+		if($numFightersInTier > $tierSize){
+			$tier++;
+			$numFightersInTier = 1;
+		}
+		$poolTier[$tier][$numFightersInTier] = $fighter['rosterID'];
+	}
+	
+	if($poolTier == null){ return; }
+	$tournamentID = $_SESSION['tournamentID'];
+	
+
+	// Split Tiers into Pools
+	foreach($poolTier as $tier => $fightersInTier){
+		
+		// Get list of how many times each fighter has fought each other
+		foreach($fightersInTier as $rosterID1){
+			foreach($fightersInTier as $rosterID2){
+				$numberOfFightsTogether[$rosterID1][$rosterID2] = 
+					getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID);
+			}
+		}
+
+		$tierRank = 1;
+		$startPoolNum = 1 + $poolsInTier*($tier-1);
+		$maxPoolNum = $startPoolNum + $poolsInTier - 1;
+		$MAX = count(getPools($tournamentID, $_SESSION['groupSet']));
+		if($maxPoolNum > $MAX){
+			$maxPoolNum = $MAX;
+		}
+		
+		
+		foreach($fightersInTier as $rosterIDtoAdd){
+			
+			// Determine which pools are eligible on account of not being full
+			unset($eligiblePools_Size);
+			for($i = $startPoolNum; $i <= $maxPoolNum; $i++){
+				$fightersInPool = count($_SESSION['poolSeeds'][$i]);
+				if($fightersInPool < $maxPoolSize){
+					$eligiblePools_Size[$i] = $fightersInPool;
+				}
+			}
+			if($eligiblePools_Size == null){continue;}
+
+			// Check for conflict levels in each pool
+			unset($possiblePoolRefights);
+			foreach($eligiblePools_Size as $poolNum => $fightersInPool){
+				for($i=1;$i <= $fightersInPool; $i++){
+					$existingRosterID = $_SESSION['poolSeeds'][$poolNum][$i];
+					$possiblePoolRefights[$poolNum] += $numberOfFightsTogether[$rosterIDtoAdd][$existingRosterID];
+				}
+				$possiblePoolRefights[$poolNum] += $poolRefights[$poolNum];
+			}
+			
+			
+			
+			// Find possible pools with lowest total refights
+			$minRefights = 9999;
+			unset($eligiblePools_Conflicts);
+			foreach($possiblePoolRefights as $poolNum => $numRefights){
+				if($numRefights == $minRefights){
+					$eligiblePools_Conflicts[$poolNum] = $possiblePoolRefights[$poolNum];
+				} else if($numRefights < $minRefights){
+					unset($eligiblePools_Conflicts);
+					$eligiblePools_Conflicts[$poolNum] = $possiblePoolRefights[$poolNum];
+					$minRefights = $numRefights;
+				}
+			}
+			
+			// Chose Most Empty Pools
+			$mostEmptyPool = 9999;
+			unset($eligiblePools_Combined);
+			foreach($eligiblePools_Conflicts as $poolNum => $possibleRefights){
+				$fightersInPool = $eligiblePools_Size[$poolNum];
+				if($fightersInPool == $mostEmptyPool){
+					$eligiblePools_Combined[] = $poolNum;
+				} else if($fightersInPool < $mostEmptyPool){
+					unset($eligiblePools_Combined);
+					$eligiblePools_Combined[] = $poolNum;
+					$mostEmptyPool = $fightersInPool;
+				}
+			}
+			
+			
+			// Stick in first pool if not resolved
+			$poolNum = $eligiblePools_Combined[0];
+			$poolRefights[$poolNum] += $possiblePoolRefights[$poolNum];
+			$poolPosition = $eligiblePools_Size[$poolNum]+1;
+		
+			$_SESSION['poolSeeds'][$poolNum][$poolPosition] = $rosterIDtoAdd;
+		}
+			
+	}
+	
+}
+
+/******************************************************************************/
+
+function _Flowerpoint_display($entry, $class = null){
+// Displays an a fighter's score for tournaments using 'Flowerpoint' scoring
+// A request to generate a header may be passed instead of an exchange
+	?>
+	
+<!-- Headers -->
+	<?php if($entry == 'headers'): ?>
+		<tr>
+			<th>Rank</th>
+			<th>Name</th>
+			<th>Number of Times Hit</th>
+			<th>Doubles</th>
+			<th>Score</th>
+		</tr>
+		<?php return; ?>
+	<?php endif ?>
+	
+<!-- Data -->
+	<tr class='text-center <?=$class?>'>
+		<td><?=$entry['rank']?></td>
+		<td class='text-left'>
+			<?=getFighterName($entry['rosterID']);?>
+		</td>
+		<td><?=$entry['hitsAgainst']?></td>
+		<td><?=$entry['doubles']?></td>
+		<td><?=$entry['score']?></td>
+	</tr>
+	
+<?php }
+
+/******************************************************************************/
+
+function _Flowerpoint_scores($fighterStats, $poolSet = 1){
+// Calculate scores for tournaments using the 'Flowerpoint' algorthm.
+// Cumulative scoring across all pools unless it has been specified as not
+
+	unset($fighterStats);
+
+	$tournamentID = TOURNAMENT_ID;
+// Check if it is cumulative or not
+	$sql = "SELECT attributeBool
+			FROM eventAttributes
+			WHERE tournamentID = {$tournamentID}
+			AND attributeType = 'cumulative'
+			AND attributeGroupSet = {$poolSet}";
+	$res = mysqlQuery($sql, SINGLE, 'attributeBool');
+	
+	if($res === '0'){
+		$lowBound = $poolSet;
+	} else {
+		$lowBound = 1;
+	}
+		
+	for($i = $poolSet; $i >= $lowBound; $i--){
+
+		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
+		$exchangesInSet = pool_normalizeSizes($poolExchanges,$tournamentID, $poolSet);
+		
+		foreach((array)$exchangesInSet as $fighterID => $fighter){
+			// only calculate score if fighter has exchanges in the current pool set
+			if($i < $poolSet AND $fighterStats[$fighterID]['rosterID'] == null){
+				continue;
+			}
+			
+			$score = 0;
+			$score -= $fighter['hitsAgainst'];
+			$score -= $fighter['doubles'];
+			
+			foreach($fighter as $index => $value){
+				if($index == 'score' || $index == 'rosterID'){continue;}
+				$fighterStats[$fighterID][$index] += $value;
+			}
+
+			$fighterStats[$fighterID]['score'] += $score;
+			$fighterStats[$fighterID]['rosterID'] = $fighterID;
+			
+		}
+		
+	}
+	
+	return $fighterStats;
+	
+}
+
+/******************************************************************************/
+
+/******************************************************************************/
+
 function _FNY2017_advancements(){
 // Calculate advancements to move onto the next pool set using the 'FNY 2017'
 // algorithm. Attempts to balance the pool size while minimizing the number 
@@ -793,8 +1004,6 @@ function _ScoreHitRatio_display($entry, $class = null){
 			<th>Name</th>
 			<th>Points For</th>
 			<th>Times Hit</th>
-			<th>Wins</th>
-			<th>Doubles</th>
 			<th>Score</th>
 		</tr>
 		<?php return; ?>
@@ -813,8 +1022,6 @@ function _ScoreHitRatio_display($entry, $class = null){
 		</td>
 		<td><?=$entry['pointsFor']?></td>
 		<td><?=$timesHit?></td>
-		<td><?=$entry['wins']?></td>
-		<td><?=$entry['doubles']?></td>
 		<td><?=$entry['score']?></td>
 	</tr>
 	

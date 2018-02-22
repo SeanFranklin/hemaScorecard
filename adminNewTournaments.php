@@ -63,6 +63,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentMaxDoubles();
 			edit_tournamentMaxPoolSize();
 			edit_tournamentNormalization();
+			edit_tournamentControlPoints();
 			edit_tournamentTies();
 			edit_tournamentCuttingQual();
 			edit_tournamentMaxExchanges();

@@ -26,6 +26,59 @@ if($_SESSION['eventID'] == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
+
+<!--  Event Settings  -------------------------------->
+	<fieldset class='fieldset'>
+	<legend><h4>Event Status</h4></legend>
+	<form method='POST'>
+	
+		<div class='grid-x grid-margin-x'>
+			<div class='medium-6 large-4 cell input-group'>
+			<span class='input-group-label'>
+				Event Status&nbsp;<img src='includes/images/help.png' data-open="statusTypes">
+			</span>
+			<select class='input-group-field' type='text' name='eventStatus'>
+				<?php				
+				
+				$selected = isSelected('hidden', getEventStatus());?>
+				<option value='hidden'<?=$selected?>>Hidden</option>
+				<?php $selected = isSelected('upcoming', getEventStatus());?>
+				<option value='upcoming' <?=$selected?>>Upcoming</option>
+				<?php $selected = isSelected('active', getEventStatus());?>
+				<option value='active'<?=$selected?>>Active</option>
+			</select>
+			</div>
+			
+			<div class='large-3 medium-4 small-12 text-center'>
+			<button class='button success expanded' name='formName' value='eventStatusUpdate'>
+				Update Status
+			</button>
+			</div>
+		</div>
+	</form>
+	</fieldset>
+	
+	<div class='reveal' id='statusTypes' data-reveal>
+		<ul>
+			<li>
+				<strong>Hidden</strong> - 
+				No one can see event details without logging in as event staff/organizer.
+			</li>
+			<li>
+				<strong>Upcomming</strong> - 
+				Everyone can see the event tournaments and roster, only event staff/organizers can see pools/matches.
+			</li>
+			<li>
+				<strong>Active</strong> - 
+				Everyone can see all results.
+			</li>
+		</ul>
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+		<span aria-hidden='true'>&times;</span>
+		</button>
+	</div>
+	
+
 <!--  Tournament Defaults  -------------------------------->
 	<fieldset class='fieldset'>
 	<legend><h4>Tournament Defaults</h4></legend>

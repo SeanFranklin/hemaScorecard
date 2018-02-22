@@ -30,6 +30,8 @@ if($tournamentID == null){
 		redirect('roundStandings.php');
 	}
 	displayAnyErrors("There are no pools for this tournament");
+} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+	displayAnyErrors("Event is still upcoming<BR>Pools not yet released");
 } else {
 	poolSetNavigation();
 	

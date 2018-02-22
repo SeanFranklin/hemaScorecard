@@ -121,6 +121,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = 'none';
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = 'none';
 			document.getElementById('useTimer_div'+tournamentID).style.display = 'none';
+			document.getElementById('controlPoint_div'+tournamentID).style.display = 'none';
 			break;
 		case 2: // Pool & Bracket
 			document.getElementById('doubleID_div'+tournamentID).style.display = displayOn;
@@ -140,6 +141,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = displayOn;
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = displayOn;
 			document.getElementById('useTimer_div'+tournamentID).style.display = displayOn;
+			document.getElementById('controlPoint_div'+tournamentID).style.display = displayOn;
 			break;
 		case 3: // Direct Bracket
 			document.getElementById('doubleID_div'+tournamentID).style.display = displayOn;
@@ -158,6 +160,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = displayOn;
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = displayOn;
 			document.getElementById('useTimer_div'+tournamentID).style.display = displayOn;
+			document.getElementById('controlPoint_div'+tournamentID).style.display = displayOn;
 			break;
 		case 4: // Pool Sets
 			document.getElementById('doubleID_div'+tournamentID).style.display = displayOn;
@@ -176,6 +179,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = displayOn;
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = displayOn;
 			document.getElementById('useTimer_div'+tournamentID).style.display = displayOn;
+			document.getElementById('controlPoint_div'+tournamentID).style.display = displayOn;
 			break;
 		case 5: // Scored Event
 			document.getElementById('doubleID_div'+tournamentID).style.display = 'none';
@@ -192,6 +196,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = displayOn;
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = 'none';
 			document.getElementById('useTimer_div'+tournamentID).style.display = 'none';
+			document.getElementById('controlPoint_div'+tournamentID).style.display = 'none';
 			break;
 		default: // No Selection
 			document.getElementById('doubleID_div'+tournamentID).style.display = 'none';
@@ -206,6 +211,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 			document.getElementById('isCuttingQual_div'+tournamentID).style.display = displayOn;
 			document.getElementById('maxExchanges_div'+tournamentID).style.display = 'none';
 			document.getElementById('useTimer_div'+tournamentID).style.display = 'none';
+			document.getElementById('controlPoint_div'+tournamentID).style.display = 'none';
 	}
 }
 

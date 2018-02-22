@@ -22,6 +22,8 @@ if($tournamentID == null){
 	displayAnyErrors('No Tournament Selected', 'CENTER');
 } elseif(!isBrackets($tournamentID)){
 	displayAnyErrors("There are no brackets for this tournament");
+} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+	displayAnyErrors("Event is still upcoming<BR>Bracket not yet released");
 } else {
 	
 	$allBracketInfo = getBracketInformation($tournamentID);

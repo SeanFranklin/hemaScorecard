@@ -37,6 +37,8 @@ if($tournamentID == null){
 		displayAnyErrors("No Pools Created");
 		poolManagement(); 
 	}
+} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+	displayAnyErrors("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
 	
 //fetch information from tables

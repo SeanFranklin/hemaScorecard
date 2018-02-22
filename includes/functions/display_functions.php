@@ -511,6 +511,64 @@ function edit_tournamentBasePoints($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentControlPoints($tournamentID = 'new'){
+// Configures if a control point is used in the tournament
+// Acts as a boolean flag (0=false) and the value of the control point
+	
+	$display = "hidden"; 			// Hidden for most cases
+	$maxSize = 4;					// Arbitrary
+	
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT tournamentElimID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$info = mysqlQuery($sql, SINGLE);
+		
+		$sql = "SELECT useControlPoint
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$value = mysqlQuery($sql, SINGLE, 'useControlPoint');
+		
+		if(in_array($info['tournamentElimID'], array(2,3,4)) ){
+			unset($display);
+		}
+	}
+	
+	if($value == null){
+		$sql = "SELECT useControlPoint
+				FROM eventDefaults
+				WHERE eventID = {$_SESSION['eventID']}";
+		$value = mysqlQuery($sql, SINGLE, 'useControlPoint');
+		if($value == null){$value = 0;}
+	}
+	?>
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='controlPoint_div<?=$tournamentID?>'>
+			
+		Use Control Point
+
+		<select name='updateTournament[useControlPoint]'
+			id='controlPoint_select<?=$tournamentID?>'>
+			
+				<?php 
+					$selected = isSelected(0, $value);
+					echo "<option value=0 {$selected}>No</option>";
+					for($i = 1; $i <= $maxSize; $i++):
+					$selected = isSelected($i, $value);
+					?>
+					<option value=<?=$i?> <?=$selected?>><?=$i?> Point<?=plrl($i)?></option>
+				<?php endfor ?>
+			
+		</select>		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentMaxDoubles($tournamentID = 'new'){
 // Select menu for the maximum doubles allowed in a tournament
 // Appears or disapears as controled by javascript

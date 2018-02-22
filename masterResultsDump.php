@@ -127,6 +127,56 @@ function exportRoster(){
 
 /******************************************************************************/
 
+function getMatchStageName($matchID){
+	
+	$sql = "SELECT groupType, groupSet, groupName, bracketLevel, groupID, tournamentID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE matchID = {$matchID}";
+	$groupInfo = mysqlQuery($sql, SINGLE);
+	
+	if($groupInfo['groupType'] == 'pool'){
+		return getSetName($groupInfo['groupSet'], $groupInfo['tournamentID']);
+	}
+	if($groupInfo['groupType'] == 'elim'){
+		if($groupInfo['groupName'] == 'winner'){
+			switch($groupInfo['bracketLevel']){
+				case 1:
+					return 'Gold Medal Match';
+					break;
+				case 2:
+					return 'Semifinals';
+					break;
+				case 3:
+					return 'Quarterfinals';
+					break;
+				case 4:
+					return 'Eighth-Finals';
+					break;
+				default:
+					return 'Elimination Bracket';
+					break;
+			}
+			
+		} elseif ($groupInfo['groupName'] == 'loser'){
+			switch($groupInfo['bracketLevel']){
+				case 1:
+					return 'Bronze Medal Match';
+					break;
+				case 2:
+					return 'Consolation Semifinals';
+					break;
+				default:
+					return 'Consolation Bracket';
+					break;
+			}
+		}
+	}
+	
+}
+
+/******************************************************************************/
+
 function exportTournament($tournamentID){
 
 	if($tournamentID == null){
@@ -134,7 +184,7 @@ function exportTournament($tournamentID){
 		return;
 	}
 	
-	$sql = "SELECT scoringID, recievingID, exchangeType
+	$sql = "SELECT scoringID, recievingID, exchangeType, matchID
 			FROM eventExchanges
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
@@ -153,6 +203,7 @@ function exportTournament($tournamentID){
 		$f1ID = $match['scoringID'];
 		$f2ID = $match['recievingID'];
 		$type = $match['exchangeType'];
+		$stageName = getMatchStageName($match['matchID']);
 
 		$fighter1 = getFighterName($f1ID, null, 'first');
 		$fighter2 = getFighterName($f2ID, null, 'first');
@@ -165,13 +216,12 @@ function exportTournament($tournamentID){
 			$f2Result = 'Draw';
 		}
 		
-		$fields = [$fighter1, $fighter2, $f1Result, $f2Result];
-		$numFields = 4;
+		$fields = [$fighter1, $fighter2, $f1Result, $f2Result, $stageName];
 		
 		$comma = ',';
 		
 		foreach($fields as $index => $field){
-			if ($index == $numFields-1){
+			if ($index == sizeof($fields)-1){
 				$comma = null;
 			}
 			fputs($fp, $field.$comma);

@@ -572,13 +572,13 @@ function tableHeaders($tournamentList, $removeDisabled = false){
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
-		<th>
-			<a onclick="changeRosterOrderType('name')">
-				Name
-			</a>
+		<th onclick="changeRosterOrderType('name')" class='text-center'>
+			<a>Name</a>
 		</th>	
 
-		<th><a onclick="changeRosterOrderType('school')">School</a></th>
+		<th onclick="changeRosterOrderType('school')"  class='text-center'>
+			<a>School</a>
+		</th>
 	</tr>
 	</thead>
 <?php }
