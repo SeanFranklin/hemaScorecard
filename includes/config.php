@@ -19,8 +19,10 @@
 	date_default_timezone_set("UTC");
 
 // Database Connection
-
-	include('includes/database.php');
+	if(!defined('BASE_URL')){
+		define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/v6/');
+	}
+	include(BASE_URL.'includes/database.php');
 
 // Program Related Constants
 
