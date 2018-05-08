@@ -341,7 +341,7 @@ function dataEntryBox($matchInfo){
 	
 	<!-- Submit button -->
 	<div class='medium-6 cell '>
-		<button class='button success large expanded' id='New_Exchange_Button'
+		<button class='button large expanded' id='New_Exchange_Button'
 			name='lastExchange' value='noExchange' <?=LOCK_TOURNAMENT?>>
 			Add: No Exchange
 		</button>

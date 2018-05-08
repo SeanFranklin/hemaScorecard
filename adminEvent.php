@@ -181,9 +181,9 @@ if($_SESSION['eventID'] == null){
 			<div class='input-group'>
 				<span class='input-group-label'>Tournament Names:</span>
 				<select class='input-group-field' name='displaySettings[tournamentDisplay]'>
-					<option value='weapon'>Weapon - Devision Gender Material</option>
+					<option value='weapon'>Weapon - Division Gender Material</option>
 					<?php $selected = isSelected('prefix', $defaults['tournamentDisplay']); ?>
-					<option value='prefix' <?=$selected?>>Devision Gender Material Weapon</option>
+					<option value='prefix' <?=$selected?>>Division Gender Material Weapon</option>
 				</select>
 			</div>
 		</div>
