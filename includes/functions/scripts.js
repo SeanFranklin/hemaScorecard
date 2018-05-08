@@ -234,18 +234,30 @@ function modifiersRadioButtons(){
 		case 'noExch':
 			exchButton.value = "noExchange";
 			exchButton.innerHTML = "Add: No Exchange";
+			$(exchButton).removeClass();
+			$(exchButton).addClass("button large expanded");
+			$(exchButton).addClass("");
 			break;
 		case 'doubleHit':
 			exchButton.value = "doubleHit";
 			exchButton.innerHTML = "Add: Double Hit";
+			$(exchButton).removeClass();
+			$(exchButton).addClass("button large expanded");
+			$(exchButton).addClass("alert");
 			break;
 		case 'clearLast':
 			exchButton.value = "clearLastExchange";
 			exchButton.innerHTML = "Remove: Last Exchange";
+			$(exchButton).removeClass();
+			$(exchButton).addClass("button large expanded");
+			$(exchButton).addClass("warning");
 			break;
 		case 'clearAll':
 			exchButton.value = "clearAllExchanges";
 			exchButton.innerHTML = "Remove: All Exchanges";
+			$(exchButton).removeClass();
+			$(exchButton).addClass("button large expanded");
+			$(exchButton).addClass("alert hollow");
 			break;
 		case 'penalty':
 			penaltyDropDownChange();
@@ -298,14 +310,23 @@ function scoreDropdownChange(selectID){
 		document.getElementById('No_Exchange_Radio').checked = 'checked';
 		exchButton.value = "noExchange";
 		exchButton.innerHTML = "Add: No Exchange";
+		$(exchButton).removeClass();
+		$(exchButton).addClass("button large expanded");
+		$(exchButton).addClass("");
 	} else {
 		if(fighter1Score.value == "noQuality" || fighter2Score.value == "noQuality"){
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
+				$(exchButton).removeClass();
+				$(exchButton).addClass("button large expanded");
+				$(exchButton).addClass("hollow");
 		} else if(fighter1Penalty.value !== "" && fighter2Penalty.value !== ""){
 			
 		} else {
-			exchButton.value = "scoringHit";	
+			exchButton.value = "scoringHit";
+			$(exchButton).removeClass();
+			$(exchButton).addClass("button large expanded");
+			$(exchButton).addClass("success");		
 			if(fighter1Afterblow.value != "" || fighter2Afterblow.value != ""){
 				exchButton.innerHTML = "Add: Afterblow";
 			} else {
@@ -345,6 +366,10 @@ function penaltyDropDownChange(){
 	
 	document.getElementById('fighter1_penalty_div').classList.remove('hidden');
 	document.getElementById('fighter2_penalty_div').classList.remove('hidden');
+
+	$(exchButton).removeClass();
+	$(exchButton).addClass("button large expanded");
+	$(exchButton).addClass("alert");
 	
 	if(fighter1Penalty.value != "" || fighter2Penalty.value != ""){
 		document.getElementById('Penalty_Radio').checked = 'checked';
