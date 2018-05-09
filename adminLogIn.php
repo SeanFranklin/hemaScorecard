@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Log In';
+$jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 $eventList = getEventList();

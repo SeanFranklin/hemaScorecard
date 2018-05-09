@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Manage Tournaments';
+$jsIncludes[] = 'tournament_management_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -34,7 +35,7 @@ if($_SESSION['eventID'] == null){
 
 	<!-- Mandatory fields -->
 		<?php edit_tournamentName(); ?>
-		<div class='grid-x grid-padding-x text-center'>
+		<div id='requiredFields_new' class='grid-x grid-padding-x text-center'>
 			<?php
 			edit_tournamentElimType();
 			edit_tournamentDoubleType();
@@ -55,7 +56,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 		
 	<!-- Optional fields -->
-		<div class='grid-x grid-padding-x text-center'>
+		<div id='optionalFields_new' class='grid-x grid-padding-x text-center'>
 			<?php
 			edit_tournamentTimer();
 			edit_tournamentColors('new', 1);

@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Event Roster';
+$jsIncludes[] = 'roster_management_scripts.js';
 include('includes/header.php');
 
 $tournamentList = getEventTournaments();

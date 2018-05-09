@@ -16,6 +16,7 @@ $pageName = 'Match Score';
 $hideEventNav = true;
 $hidePageTitle = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = 'score_scripts.js';
 include('includes/header.php');
 
 $matchID = $_SESSION['matchID'];
@@ -289,20 +290,7 @@ function dataEntryBox($matchInfo){
 		</tr>
 	<?php endif ?>
 		
-	<!-- Penalty -->
-	<tr>
-		<td>Penalty</td>
-		<td>
-			<div class='switch no-bottom'>
-			<input class='switch-input' type='radio' name='mod' 
-				value='penalty' id='Penalty_Radio'
-				onchange="modifiersRadioButtons()" >
-			<label class='switch-paddle' for='Penalty_Radio'>
-			</label>
-			</div>
-		</td>
-	</tr>
-	
+		
 	<!-- Clear last exchange -->
 	<tr>
 		<td>Clear Last Exchange</td>
@@ -312,6 +300,19 @@ function dataEntryBox($matchInfo){
 				value='clearLast' id='Clear_Last_Radio'
 				onchange="modifiersRadioButtons()">
 			<label class='switch-paddle' for='Clear_Last_Radio'>
+			</label>
+			</div>
+		</td>
+	</tr>
+	<!-- Penalty -->
+	<tr>
+		<td>Penalty</td>
+		<td>
+			<div class='switch no-bottom'>
+			<input class='switch-input' type='radio' name='mod' 
+				value='penalty' id='Penalty_Radio'
+				onchange="modifiersRadioButtons()" >
+			<label class='switch-paddle' for='Penalty_Radio'>
 			</label>
 			</div>
 		</td>
@@ -566,15 +567,14 @@ function createSideBar($matchInfo){
 		<?php if(USER_TYPE >= USER_STAFF): ?>
 		<!-- Timer -->
 			
-			<script>
 			
-			
-			window.onload = function(){ updateTimerDisplay(); };
-			
-			</script>
 			
 			
 			<?php if(IS_TIMER): ?>
+				<script>
+					window.onload = function(){ updateTimerDisplay(); };
+				</script>
+			
 				<input type='hidden' class='matchTime' id='matchTime' 
 					name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 				

@@ -13,6 +13,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Event Roster';
+$jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 if(USER_TYPE < USER_ADMIN){

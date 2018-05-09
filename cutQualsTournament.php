@@ -13,6 +13,7 @@
 
 $pageName = 'Cutting Qualification';
 $includeTournament = true;
+$jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['tournamentID'] == null){

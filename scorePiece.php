@@ -16,6 +16,7 @@ $pageName = 'Round Scoring';
 $hideEventNav = true;
 $hidePageTitle = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = 'score_scripts.js';
 include('includes/header.php');
 
 $matchID = $_SESSION['matchID'];
@@ -27,8 +28,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 } elseif(!isRounds($tournamentID)){
 	displayAnyErrors("So close and yet so far. <BR>Perhaps <a href='scoreMatch.php'>this</a> is what you're looking for? :)");
 } else {
-
-	
 
 	define(EXCHANGES, 'Cuts');
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
