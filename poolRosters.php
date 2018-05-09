@@ -16,6 +16,7 @@
 $pageName = 'Pool Rosters';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = 'group_management_scripts.js';
 include('includes/header.php');
 
 $pools = getPools($tournamentID, $_SESSION['groupSet']);

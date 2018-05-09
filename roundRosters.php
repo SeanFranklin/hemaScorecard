@@ -17,6 +17,7 @@
 $pageName = 'Round Rosters';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = 'group_management_scripts.js';
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -175,13 +176,13 @@ function displayRounds($rounds, $ownDiv = true){
 		</legend>
 		
 		<div class='grid-x grid-padding-x grid-margin-x'>
-			
-		
-	<!-- Option to add multiple at a time ----------------------------------------------------------------->
-		<?php if(USER_TYPE >= USER_STAFF && $numInRound < 1 &&
-			((count($sortedRoster) > 0) ||
-			($groupNumber > 1 && count($oldRoster) > 1 ))
-			&& !defined('LOCK_TOURNAMENT') ): 
+
+	<!-- Option to add multiple at a time ----------------------------------------------------->
+		<?php if(USER_TYPE >= USER_STAFF 
+				&& $numInRound < 1 
+				&& ((count($sortedRoster) > 0) ||
+					($groupNumber > 1 && count($oldRoster) > 1 ))
+				&& LOCK_TOURNAMENT == ''): 
 			?>	
 
 			<div class='input-group cell'>

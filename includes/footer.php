@@ -16,11 +16,15 @@
     <script src="includes/foundation/js/vendor/what-input.js"></script>
     <script src="includes/foundation/js/vendor/foundation.js"></script>
     <script src="includes/foundation/js/app.js"></script>
-	<script type='text/javascript' src='includes/functions/scripts.js'></script>
-	<script type='text/javascript' src='includes/functions/scripts_Validation.js'></script>
-	<script type='text/javascript' src='includes/functions/scripts_Timer.js'></script>
-	<script type='text/javascript' src='includes/functions/scripts_Livestream.js'></script>
+	<script type='text/javascript' src='includes/scripts/general_scripts.js'></script>
+	<script type='text/javascript' src='includes/scripts/delete_checking_scripts.js'></script>
 	
+	<?php
+		foreach((array)$jsIncludes as $includePath){
+			echo "<script type='text/javascript' src='includes/scripts/{$includePath}'></script>";
+		}
+	?>
+
 </body>
 
 

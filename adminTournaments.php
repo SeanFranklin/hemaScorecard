@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Manage Tournaments';
+$jsIncludes[] = 'tournament_management_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){

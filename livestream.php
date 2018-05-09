@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Livestream";
+$jsIncludes[] = 'livestream_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){

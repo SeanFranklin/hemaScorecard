@@ -14,6 +14,7 @@
 $pageName = 'Tournament Roster';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = 'roster_management_scripts.js';
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
