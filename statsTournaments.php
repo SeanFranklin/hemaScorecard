@@ -13,9 +13,9 @@ $pageName = 'Tournament Summary';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN && USER_TYPE != USER_STATS){
-	displayAnyErrors('Please log in to view event information');
+	pageError('user');
 } else {
 	
 	$exchangesByTournament = getEventExchanges();

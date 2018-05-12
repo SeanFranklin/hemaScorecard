@@ -17,9 +17,9 @@ $pageName = 'HEMA Rankings Exporter';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){
-	displayAnyErrors('Not logged in');
+	pageError('user');
 } else {
 	$tournamentList_unsorted = getTournamentsFull();
 	

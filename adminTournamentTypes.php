@@ -15,7 +15,7 @@ $pageName = 'Add Tournament Types';
 include('includes/header.php');
 
 if(USER_TYPE < USER_SUPER_ADMIN){
-	displayAnyErrors("Please login to edit");
+	pageError('user');
 } else {
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

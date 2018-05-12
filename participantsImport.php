@@ -16,9 +16,9 @@ $hideEventNav = true;
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN){
-	displayAnyErrors('Not logged in');
+	pageError('user');
 } else {
 	$importData = $_SESSION['csvRosterAdditions'];
 	unset($_SESSION['csvRosterAdditions']);

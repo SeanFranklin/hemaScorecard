@@ -15,9 +15,9 @@ $pageName = "Livestream Management";
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');;
 } elseif(USER_TYPE < USER_ADMIN){
-	displayAnyErrors('Please login to edit');
+	pageError('user');
 } else {
 	
 	$info = getLivestreamInfo();

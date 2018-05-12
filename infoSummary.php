@@ -15,7 +15,7 @@ $pageName = "Final Results";
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } else {
 
 	$tournamentList = getTournamentsFull();
@@ -29,10 +29,18 @@ if($_SESSION['eventID'] == null){
 	<?php foreach((array)$tournamentList as $tournamentID => $data):
 		
 		$placings = getTournamentPlacings($tournamentID);
+		
 		$name = getTournamentName($tournamentID); 
+		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
+			$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'";
+		} else {
+			$link = null;
+		}
 		?>
 		
-		<fieldset class='large-7 medium-10 small-12 fieldset'>
+		
+		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$link?>>
+			
 			<a name='anchor<?=$tournamentID?>'></a>
 			<legend><h4><?= $name ?></h4></legend>
 		
@@ -61,8 +69,14 @@ if($_SESSION['eventID'] == null){
 						</button>
 						</form>
 					<?php endif ?>
+				<?php else: ?>
+					<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
+					<input type='hidden' name='formName' value='changeTournament'>
+					<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
+					</form>
 				<?php endif ?>
 				</fieldset>
+				
 				<?php continue; ?>
 			<?php endif ?>
 			
@@ -70,7 +84,21 @@ if($_SESSION['eventID'] == null){
 			
 		<!-- Display tournament placings -->
 			<table>
-				<?php for($i=0;$i<=3;$i++):
+				<?php 
+				$i = 0;
+				define("NUM_FINALISTS_DISPLAYED",4);
+				$placingsToShow = sizeof($placings);
+
+				while($i < $placingsToShow):
+					
+					if($placings[$i]['lowBound'] != null){
+						if($placings[$i]['lowBound'] > 4){
+							break;
+						}
+					} elseif ($placings[$i]['placing'] > NUM_FINALISTS_DISPLAYED){
+						break;
+					}
+
 					$rosterID = $placings[$i]['rosterID'];
 					if($rosterID == null){continue;}
 					$name = getFighterName($rosterID);
@@ -79,7 +107,9 @@ if($_SESSION['eventID'] == null){
 					if($placings[$i]['schoolBranch'] != null){
 						$school .= ", ".$placings[$i]['schoolBranch'];
 					}
-					$num = $i+1; ?>
+					$num = $placings[$i]['lowBound'];
+					if($num == null){ $num = $placings[$i]['placing']; }
+					$i++;?>
 					
 					<tr>
 						<td class='text-center'><?= $num ?></td>
@@ -87,7 +117,7 @@ if($_SESSION['eventID'] == null){
 						<td><em><?= $school ?></em></td>
 					</tr>
 					
-				<?php endfor ?>
+				<?php endwhile ?>
 			</table>
 			
 		<!-- Button to remove results -->
@@ -151,7 +181,13 @@ function manualTournamentPlacing($tournamentID){
 				<?php foreach($roster as $person):
 					$rosterID = $person['rosterID'];
 					$name = getFighterName($rosterID);
-					$selected = isSelected($rosterID, $_SESSION['overallScores'][$i-1]);
+					
+					if(isset($_SESSION['lastManualPlacingAttempt'])){
+						$selectedID = $_SESSION['lastManualPlacingAttempt'][$i];
+					} else {
+						$selectedID = $_SESSION['overallScores'][$i-1];
+					}
+					$selected = isSelected($rosterID, $selectedID);
 					 ?>
 					<option value='<?= $rosterID ?>' <?=$selected?>><?= $name ?></option>";
 				<?php endforeach ?>
@@ -185,7 +221,8 @@ function manualTournamentPlacing($tournamentID){
 	
 	</form>
 	
-<?php 
+<?php
+	unset($_SESSION['lastManualPlacingAttempt']); 
 	unset($_SESSION['overallScores']);
 	unset($_SESSION['ties']);
 }

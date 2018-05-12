@@ -18,7 +18,7 @@ $tournamentList = getEventTournaments();
 $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
-	displayAnyErrors("No Event Selected");
+	pageError('event');;
 } else {
 	
 // Get information
@@ -282,7 +282,7 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			<option></option>
 		<?php endif?>
 		
-		<option value='1' <?=$s1?>>*Unkonwn</option>
+		<option value='1' <?=$s1?>>*Unknown</option>
 		<option value='2' <?=$s2?>>*Unafiliated</option>
 		
 		<?php foreach($schoolList as $school):

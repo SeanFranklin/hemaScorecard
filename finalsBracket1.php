@@ -21,7 +21,7 @@ include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	displayAnyErrors('No Tournament Selected', 'CENTER');
+	pageError('tournament');
 } elseif(!isBrackets($tournamentID)){
 	displayAnyErrors("There are no brackets for this tournament");
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){

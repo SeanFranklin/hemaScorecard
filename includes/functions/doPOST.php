@@ -124,7 +124,7 @@ function processPostData(){
 			pool_generateNextPools();  //scoringFunctions.php
 			break;
 		case 'changeGroupOrder':
-			reOrderGroups();
+			reOrderGroups($_POST['newGroupNumber']);
 			break;
 		case 'updatePoolSets':
 			updatePoolSets();
@@ -755,6 +755,7 @@ function insertPenalty($matchInfo, $scoring){
 	if ($scoring[$id1]['penalty'] < 0 && $scoring[$id2]['penalty'] < 0){
 		$_SESSION['errorMessage'] .= "<p><span class='red-text'>Exchange can not be added.</span><BR>
 				You can not apply a penalty to both fighters in the same exchange.</p>";
+		return;
 	}
 	
 	if($scoring[$id1]['penalty'] < 0){
@@ -787,8 +788,8 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
-		$score1 = $scoring[$id1]['hit'];
-		$score2 = $scoring[$id2]['hit'];
+		$score1 = (int)$scoring[$id1]['hit'];
+		$score2 = (int)$scoring[$id2]['hit'];
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
 		$score1 = $at1['attackPoints'];
@@ -796,7 +797,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = $at2['attackPoints'];
-		$score2 = $scoring[$id2]['hit'] = $score2;
+		$scoring[$id2]['hit'] = $score2;
 	} else {
 		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
 		return;
@@ -820,7 +821,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$exchangeType = 'clean';
 		
 	} else {//both hit
-		
+
 		//attributes the strike to the fighter with the higher value hit
 		if($score1 > $score2){
 			$rosterID = $id1;

@@ -208,11 +208,7 @@ include_once('includes/config.php');
 			
 		<!-- Event Name -->
 		<h1> 
-		<?php if($_SESSION['eventID'] != null): ?> 
-			<?= $_SESSION['eventName'] ?>
-		<?php else: ?>
-			No Event Selected
-		<?php endif ?>
+		<?php eventNameForHeader(); ?>
 		</h1>
 		
 		
@@ -372,6 +368,29 @@ function eventNameForHeader(){
 // Add the event name or prompty to select an event
 
 	$eventID = $_SESSION['eventID'];
+	if(USER_TYPE == USER_SUPER_ADMIN || USERR_TYPE == USER_STATS){
+		$eventList = getEventList();
+		?>
+		<form method='POST'>
+		<input type='hidden' name='formName' value='selectEvent'>	
+		<div class='grid-x align-center'>
+		<select class='shrink' name='changeEventTo' onchange='this.form.submit()'>
+			<?php if($eventID == null): ?>
+				<option selected disabled></option>
+			<?php endif ?>
+			<?php foreach($eventList as $listEventID => $data): 
+				$selected = isSelected($eventID, $listEventID);
+			?>
+				<option value=<?=$listEventID?> <?=$selected?>>
+					<?=$data['eventName']?> <?=$data['eventYear']?>
+				</option>
+			<?php endforeach ?>
+		</select>
+		</div>
+		</form>
+		<?php
+		return;
+	}
 
 	if($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
 		echo $_SESSION['eventName'];

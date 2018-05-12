@@ -893,22 +893,22 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null){
 		$result = mysqlQuery($sql, SINGLE);
 		
 		if($nameMode == 'first'){
-			return $result['firstName']." ".$result['lastName'];
+			$name = $result['firstName']." ".$result['lastName'];
 		} elseif(NAME_MODE == 'lastName' || $nameMode == 'last'){
-			return $result['lastName'].", ".$result['firstName'];
+			$name = $result['lastName'].", ".$result['firstName'];
 		} else {
-			return $result['firstName']." ".$result['lastName'];
+			$name = $result['firstName']." ".$result['lastName'];
 		}
 		
 	} else {
 		$sql = "SELECT systemRoster.firstName, systemRoster.lastName
 				FROM eventRoster
 				INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
-				WHERE eventRoster.rosterID = {$rosterID}";
-		$result = mysqlQuery($sql, SINGLE);
-		
-		return $result;
+				WHERE eventRoster.rosterID = {$rosterID}";	
+		$name = mysqlQuery($sql, SINGLE);
 	}
+	
+	return $name;
 }
 
 /******************************************************************************/
@@ -1557,8 +1557,9 @@ function getEventDefaults($eventID = null){
 		$defaults['tournamentDisplay'] = 'weapon';
 		$defaults['tournamentSorting'] = 'numGrouped';
 		$defaults['useTimer'] = 0;
+		$defaults['useControlPoint'] = 0;
 	}
-	
+
 	return $defaults;
 	
 }
@@ -1830,6 +1831,7 @@ function getNormalization($tournamentID, $groupSet = null){
 	if($value < 2){
 		$value = 2;
 	}
+
 	return $value;
 	
 }
@@ -2273,17 +2275,15 @@ function getTournamentAttributeName($ID = null){
 function getTournamentName($tournamentID = null){
 	//generates the tournament name give the ID
 	
-	if($_SESSION['eventID'] == null){ return; }
-	$eventID = $_SESSION['eventID'];
-	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	$weaponID = selectTournamentIdItem('tournamentWeaponID',$eventID,$tournamentID);
-	$prefixID = selectTournamentIdItem('tournamentPrefixID',$eventID,$tournamentID);
-	$suffixID = selectTournamentIdItem('tournamentSuffixID',$eventID,$tournamentID);
-	$genderID = selectTournamentIdItem('tournamentGenderID',$eventID,$tournamentID);
-	$materialID = selectTournamentIdItem('tournamentMaterialID',$eventID,$tournamentID);
+
+	$weaponID = selectTournamentIdItem('tournamentWeaponID',$tournamentID);
+	$prefixID = selectTournamentIdItem('tournamentPrefixID',$tournamentID);
+	$suffixID = selectTournamentIdItem('tournamentSuffixID',$tournamentID);
+	$genderID = selectTournamentIdItem('tournamentGenderID',$tournamentID);
+	$materialID = selectTournamentIdItem('tournamentMaterialID',$tournamentID);
 	
 	$weaponName = getTournamentAttributeName($weaponID);
 	$prefixName = getTournamentAttributeName($prefixID);
@@ -2292,7 +2292,6 @@ function getTournamentName($tournamentID = null){
 	$materialName = getTournamentAttributeName($materialID);
 	
 	$name = "";
-	
 	
 	if(TOURNAMENT_DISPLAY_MODE == 'prefix'){
 		if(isset($prefixName)){$name = $prefixName." ";};
@@ -3063,20 +3062,16 @@ function maxPoolSize($tournamentID = null){
 
 /******************************************************************************/
 
-function selectTournamentIdItem($item,$eventID = null, $tournamentID = null){
+function selectTournamentIdItem($item, $tournamentID = null){
 	//returns the attribute of a specified field for a tournament
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null || $tournamentID == null){return;};
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
 	$sql = "SELECT {$item}
 			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}
-			AND eventID = {$eventID}";
-	$out = mysqlQuery($sql, SINGLE);
-	return $out[$item];
+			WHERE tournamentID = {$tournamentID}";
+	return mysqlQuery($sql, SINGLE, $item);
 }
 
 /******************************************************************************/

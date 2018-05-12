@@ -23,7 +23,7 @@ $pools = getPools($tournamentID, $_SESSION['groupSet']);
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	displayAnyErrors("No Tournament Selected",1);
+	pageError('tournament');
 	
 } elseif($pools == null){
 	poolSetNavigation();
@@ -102,7 +102,7 @@ if($tournamentID == null){
 <!-- Pool Displays -->
 	<form method='POST' name='poolRosterForm' id='poolRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	<div class='grid-x grid-padding-x'>
+	<div class='grid-x grid-padding-x' id='list-of-pools'>
 	<?php foreach($pools as $pool): ?>
 		<?php 
 			$groupID = $pool['groupID'];

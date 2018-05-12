@@ -1271,6 +1271,15 @@ function generateTournamentPlacings($tournamentID){
 			if($inPlace[$rosterID] == true){
 				$_SESSION['manualPlacingMessage'][$tournamentID] = "The same fighter is entered in more than on place. Can not finalize results.";
 				$_SESSION['errorMessage'] .= "<p>Fighters entered in more than on location. Can not finalize results.</p>";
+				$_SESSION['lastManualPlacingAttempt'] = $_POST['placing'];
+				if(isBrackets($tournamentID)){
+					generateTournamentPlacings_bracket($tournamentID);
+				} elseif (isRounds($tournamentID)){
+					generateTournamentPlacings_round($tournamentID);
+				} else{
+					generateTournamentPlacings_set($tournamentID);
+				}
+				
 				return;
 			} else {
 				$inPlace[$rosterID] = true;
@@ -1346,14 +1355,8 @@ function generateTournamentPlacings_set($tournamentID){
 			
 			// Check if the fighter is tied with the previous fighter
 			if($score == $oldScore){
-				$ties[count($overallScores)] = true;
+				$ties[count($overallScores)] = 'end';
 				$ties[count($overallScores)-1] = true;
-				$lastFighterTied = true;
-			} else {
-				if($lastFighterTied){
-					$ties[count($overallScores)-1] = 'end';
-					$lastFighterTied = false;
-				}
 			}
 			$oldScore = $score;
 		}
@@ -1428,14 +1431,8 @@ function generateTournamentPlacings_round($tournamentID){
 				foreach($roundScores as $rosterID => $score){
 					$overallScores[] = $rosterID;
 					if($score == $oldScore){
-						$ties[count($overallScores)] = true;
+						$ties[count($overallScores)] = 'end';
 						$ties[count($overallScores)-1] = true;
-						$lastFighterTied = true;
-					} else {
-						if($lastFighterTied){
-							$ties[count($overallScores)-1] = 'end';
-							$lastFighterTied = false;
-						}
 					}
 					$oldScore = $score;
 				}
@@ -1464,7 +1461,7 @@ function generateTournamentPlacings_round($tournamentID){
 	mysqlQuery($sql, SEND);
 	
 	$place=0;
-	foreach($overallScores as $rosterID){
+	foreach((array)$overallScores as $rosterID){
 		++$place;
 		writeTournamentPlacing($rosterID,$tournamentID,$place);
 	}
@@ -1865,7 +1862,25 @@ function removeTournamentPlacings($tournamentID){
 
 /******************************************************************************/
 
-function renameGroups(){
+function renameGroup($renameData){
+	
+	$groupName = $renameData['groupName'];
+	$groupID = $renameData['groupID'];
+	
+	$sql = "UPDATE eventGroups SET groupName = ?
+			WHERE groupID = ?";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "si", $groupName,$groupID);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	
+}
+
+/******************************************************************************/
+
+function renameGroups($maxGroupSets = null){
 	
 	foreach((array)$_POST['renameGroup'] as $groupID => $groupName){
 		
@@ -1899,21 +1914,31 @@ function renameGroups(){
 		$_SESSION['errorMessage'] = "No tournamentID in renameGroups() in DB_write_functions.php";
 		return;
 	}
+	
+	if($maxGroupSets == null){
+		$maxGroupSets = getNumGroupSets($tournamentID);
+	}
 		
 	foreach((array)$_POST['renameSet'] as $setNumber => $newName){
+		if($setNumber > $maxGroupSets){ continue; }
+		
 		if($newName == null){
+			
 			$sql = "DELETE FROM eventAttributes
 					WHERE tournamentID = {$tournamentID}
 					AND attributeType = 'setName'
 					AND attributeGroupSet = {$setNumber}";
 			mysqlQuery($sql, SEND);
+			
 		} else {
+			
 			$sql = "SELECT attributeID
 					FROM eventAttributes
 					WHERE tournamentID = {$tournamentID}
 					AND attributeType = 'setName'
 					AND attributeGroupSet = {$setNumber}";
 			$attributeID = mysqlQuery($sql, SINGLE, 'attributeID');
+			
 			if($attributeID == null){
 				// Insert
 				$sql = "INSERT INTO eventAttributes
@@ -1925,7 +1950,9 @@ function renameGroups(){
 				$bind = mysqli_stmt_bind_param($stmt, "s", $newName);
 				$exec = mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				
 			} else {
+				
 				// Update
 				$sql = "UPDATE eventAttributes
 						SET attributeText = ?
@@ -1944,9 +1971,13 @@ function renameGroups(){
 
 /******************************************************************************/
 
-function reOrderGroups(){
+function reOrderGroups($groupList = null){
 	
-	foreach($_POST['newGroupNumber'] as $groupID => $groupNumber){
+	if($groupList == null){
+		$groupList = $_POST['newGroupNumber'];
+	}
+	
+	foreach($groupList as $groupID => $groupNumber){
 		$sql = "SELECT groupName, groupNumber, groupType
 				FROM eventGroups
 				WHERE groupID = {$groupID}";
@@ -1981,7 +2012,11 @@ function reOrderGroups(){
 				WHERE groupID = {$groupID}";
 		mysqlQuery($sql, SEND);
 		
+		$namesList[$groupID] = $name;
+		
 	}
+	
+	return $namesList;
 	
 }
 
@@ -2078,18 +2113,20 @@ function updateEventDefaults(){
 	$maxPoolSize = $_POST['maxPoolSize'];
 	$allowTies = $_POST['allowTies'];
 	$useTimer = $_POST['useTimer'];
+	$controlPoint = $_POST['controlPoint'];
 	
 	$sql = "DELETE FROM eventDefaults
 			WHERE eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 	
 	$sql = "INSERT INTO eventDefaults
-			(eventID, color1ID, color2ID, maxPoolSize, 
+			(eventID, color1ID, color2ID, maxPoolSize, useControlPoint,
 			maxDoubleHits, normalizePoolSize, allowTies, useTimer)
 			VALUES
-			($eventID, $color1ID, $color2ID, $maxPoolSize, 
+			($eventID, $color1ID, $color2ID, $maxPoolSize, $controlPoint,
 			$maxDoubles, $normPoolSize, $allowTies, $useTimer)";
 	mysqlQuery($sql, SEND);
+
 	$_SESSION['errorMessage'] .= "<p>Event Defaults Updated</p>";
 }
 
@@ -2159,7 +2196,7 @@ function updateEventTournaments(){
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
-					maximumExchanges, isCuttingQual, useTimer
+					maximumExchanges, isCuttingQual, useTimer, useControlPoint
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2176,7 +2213,8 @@ function updateEventTournaments(){
 					{$info['tournamentRankingID']},
 					{$info['maximumExchanges']},
 					{$info['isCuttingQual']},
-					{$info['useTimer']}
+					{$info['useTimer']},
+					{$info['useControlPoint']}
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
@@ -2966,21 +3004,6 @@ function updatePoolSets(){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if(isset($_POST['numPoolSets'])){
-		$sql = "UPDATE eventTournaments
-				SET numGroupSets = {$_POST['numPoolSets']}
-				WHERE tournamentID = {$tournamentID}";
-		mysqlQuery($sql, SEND);
-		
-		if($_SESSION['groupSet'] > $_POST['numPoolSets']){
-			$_SESSION['groupSet'] = 1;
-		}
-		
-		$sql = "DELETE FROM eventGroups
-				WHERE tournamentID = {$tournamentID}
-				AND groupSet > {$_POST['numPoolSets']}";
-		mysqlQuery($sql, SEND);
-	}
 	
 // Cumulative sets
 	$sql = "DELETE FROM eventAttributes
@@ -3016,8 +3039,31 @@ function updatePoolSets(){
 		$_SESSION['updatePoolStandings'][$tournamentID] = true;	
 	}
 	
+// Change number of pool sets
+	if(isset($_POST['numPoolSets'])){
+		$sql = "UPDATE eventTournaments
+				SET numGroupSets = {$_POST['numPoolSets']}
+				WHERE tournamentID = {$tournamentID}";
+		mysqlQuery($sql, SEND);
+		
+		if($_SESSION['groupSet'] > $_POST['numPoolSets']){
+			$_SESSION['groupSet'] = 1;
+		}
+		
+		$sql = "DELETE FROM eventGroups
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet > {$_POST['numPoolSets']}";
+		mysqlQuery($sql, SEND);
+		
+		$sql = "DELETE FROM eventAttributes
+				WHERE tournamentID = {$tournamentID}
+				AND attributeGroupSet > {$_POST['numPoolSets']}";
+		mysqlQuery($sql, SEND);
+		show($sql);
+	}
+	
 // Set names
-	renameGroups();
+	renameGroups($_POST['numPoolSets']);
 		
 }
 

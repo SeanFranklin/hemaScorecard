@@ -28,6 +28,9 @@ function displayAnyErrors ($text = null){
 	if($text == null){return;}
 	
 	echo"	<div class='cell callout secondary text-center' data-closable>
+	<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
+	<span aria-hidden='true'>&times;</span>
+	</button>	
 				{$text}
 				{$text2}
 				
@@ -35,6 +38,26 @@ function displayAnyErrors ($text = null){
 	
 	unset($_SESSION['errorMessage']);
 
+}
+
+/******************************************************************************/
+
+function pageError($type){
+	
+	if(strcasecmp($type, 'event') == 0){
+		$str = "<strong>No Event Selected</strong><BR>
+				<a href='infoSelect.php'>Select Event</a>";
+	} elseif(strcasecmp($type, 'tournament') == 0){
+		$str = "<strong>No Tournament Selected</strong><BR>
+				Select a tournament in the upper left menu";
+	} elseif(strcasecmp($type, 'user') == 0 || strcasecmp($type, 'login') == 0){
+		$str = "<strong>Not Logged In</strong><BR>
+				<a href='adminLogin.php'>Login</a>";
+	} else {
+		$str = "Page can not be displayed";
+	}
+	
+	displayAnyErrors($str);
 }
 
 /******************************************************************************/
@@ -1564,54 +1587,54 @@ function matchHistoryBar($matchInfo){
 		switch ($exchange['exchangeType']){
 			case "penalty":
 				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = "P";
-					$exchanges[$i][1][2] = $exchange['scoreValue'];	
+					$exchanges[$i][1][1] = "<b>P</b>";
+					$exchanges[$i][1][2] = "<b>".$exchange['scoreValue']."</b>";	
 				} else {
-					$exchanges[$i][2][1] = "P";
-					$exchanges[$i][2][2] = $exchange['scoreValue'];
+					$exchanges[$i][2][1] = "<b>P</b>";
+					$exchanges[$i][2][2] = "<b>".$exchange['scoreValue']."</b>";
 				}
 				break;
 			case "noQuality":
 				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = "No";
-					$exchanges[$i][1][2] = "Q";
+					$exchanges[$i][1][1] = "<b>No</b>";
+					$exchanges[$i][1][2] = "<b>Q</b>";
 				} else {
-					$exchanges[$i][2][1] = "No";
-					$exchanges[$i][2][2] = "Q";
+					$exchanges[$i][2][1] = "<b>No</b>";
+					$exchanges[$i][2][2] = "<b>Q</b>";
 				}
 				break;
 
 			case "double":
 				$doubles++;
-				$exchanges[$i][1][1] = "D";
-				$exchanges[$i][1][2] = "#".$doubles;
-				$exchanges[$i][2][1] = "D";
-				$exchanges[$i][2][2] = "#".$doubles;
+				$exchanges[$i][1][1] = "<b>D</b>";
+				$exchanges[$i][1][2] = "<b>#".$doubles."</b>";
+				$exchanges[$i][2][1] = "<b>D</b>";
+				$exchanges[$i][2][2] = "<b>#".$doubles."</b>";
 				break;
 				
 			case "noExchange":
-				$exchanges[$i][1][2] = "/";
-				$exchanges[$i][2][1] = "/";
+				$exchanges[$i][1][2] = "<b>/</b>";
+				$exchanges[$i][2][1] = "<b>/</b>";
 				break;
 				
 			case "afterblow":
 				if($doubleTypes['afterblowType'] == 'deductive'){
 					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = $exchange['scoreValue'];
-						$exchanges[$i][1][2] = -$exchange['scoreDeduction'];	
+						$exchanges[$i][1][1] = "<b>".$exchange['scoreValue']."</b>";
+						$exchanges[$i][1][2] = "(".(-$exchange['scoreDeduction']).")";	
 					} else {
-						$exchanges[$i][2][1] = $exchange['scoreValue'];
-						$exchanges[$i][2][2] = -$exchange['scoreDeduction'];	
+						$exchanges[$i][2][1] = "<b>".$exchange['scoreValue']."</b>";
+						$exchanges[$i][2][2] = "(".(-$exchange['scoreDeduction']).")";	
 					}	
 					
 				} else if ($doubleTypes['afterblowType'] == 'full'){
 					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = $exchange['scoreValue'] - $exchange['scoreDeduction'];
+						$exchanges[$i][1][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
 						$exchanges[$i][1][2] = "(".$exchange['scoreValue'].")";
 						$exchanges[$i][2][1] = "(".$exchange['scoreDeduction'].")";
 					} else {
 						$exchanges[$i][1][1] = "(".$exchange['scoreDeduction'].")";
-						$exchanges[$i][2][1] = $exchange['scoreValue'] - $exchange['scoreDeduction'];
+						$exchanges[$i][2][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
 						$exchanges[$i][2][2] = "(".$exchange['scoreValue'].")";
 					}
 				}
@@ -1619,9 +1642,9 @@ function matchHistoryBar($matchInfo){
 				
 			case "clean":
 				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = $exchange['scoreValue'];
+					$exchanges[$i][1][1] = "<b>".$exchange['scoreValue']."</b>";
 				} else {
-					$exchanges[$i][2][1] = $exchange['scoreValue'];
+					$exchanges[$i][2][1] = "<b>".$exchange['scoreValue']."</b>";
 				}
 				break;
 			default:

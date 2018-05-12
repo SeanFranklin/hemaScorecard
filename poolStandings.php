@@ -22,7 +22,7 @@ include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	displayAnyErrors("No Tournament Selected",1);
+	pageError('tournament');
 } elseif(!isPools($tournamentID)){
 	if(isRounds($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
 		// redirects to the rounds if they happen to go to the pools

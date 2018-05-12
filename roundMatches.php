@@ -14,8 +14,11 @@ $pageName = 'Round Scores';
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
-
-if(!isRounds($tournamentID)){
+if($_SESSION['eventID'] == null){
+	pageError('event');
+} elseif($tournamentID == null){
+	pageError('tournament');
+} elseif(!isRounds($tournamentID)){
 	if(isPools($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
 		redirect('poolMatches.php');
 	}

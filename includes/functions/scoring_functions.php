@@ -471,11 +471,14 @@ function _Flowerpoint_scores($fighterStats, $poolSet = 1){
 	} else {
 		$lowBound = 1;
 	}
-		
+	
+	
+	$poolSize = getNormalization($tournamentID, $poolSet);
+
 	for($i = $poolSet; $i >= $lowBound; $i--){
 
 		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
-		$exchangesInSet = pool_normalizeSizes($poolExchanges,$tournamentID, $poolSet);
+		$exchangesInSet = pool_normalizeSizes_static($poolExchanges,$poolSize);
 		
 		foreach((array)$exchangesInSet as $fighterID => $fighter){
 			// only calculate score if fighter has exchanges in the current pool set
@@ -695,11 +698,13 @@ function _FNY2017_scores($fighterStats, $poolSet = 1){
 	} else {
 		$lowBound = 1;
 	}
-		
+	
+	$poolSize = getNormalization($tournamentID, $poolSet);
+
 	for($i = $poolSet; $i >= $lowBound; $i--){
 
 		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
-		$exchangesInSet = pool_normalizeSizes($poolExchanges,$tournamentID, $poolSet);
+		$exchangesInSet = pool_normalizeSizes_static($poolExchanges,$poolSize);
 		
 		foreach((array)$exchangesInSet as $fighterID => $fighter){
 			// only calculate score if fighter has exchanges in the current pool set
@@ -1216,6 +1221,29 @@ function pool_normalizeSizes($fighterStats, $tournamentID, $groupSet = null){
 		}
 	}
 
+	return $fighterStats;
+	
+}
+
+/******************************************************************************/
+
+function pool_normalizeSizes_static($fighterStats, $poolSize){
+// Normalizes the raw exchange data of all fighters to the
+// number of matches that the given pool size has	
+	
+	$numberOfMatches = $poolSize - 1;
+
+	foreach((array)$fighterStats as $rosterID => $fighterData){
+
+		$matchesFought = $fighterData['matches'];
+		$correction = $numberOfMatches/$matchesFought;
+		if($correction == 1){ continue; }
+
+		foreach($fighterData as $dataIndex => $data){
+			$fighterStats[$rosterID][$dataIndex] = round($data * $correction,1);
+			
+		}
+	}
 
 	return $fighterStats;
 	
