@@ -111,7 +111,7 @@ include_once('includes/config.php');
 						<ul class='menu vertical'>
 							<li><a href='participantsRoster.php'>Event Roster</a></li>
 							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
-							<li><a href='participantsImport.php'>Import Roster</a></li>
+							<!--<li><a href='participantsImport.php'>Import Roster</a></li>-->
 						</ul>
 					</li>
 					<li><a href='#'>Manage Event</a>
@@ -306,7 +306,7 @@ include_once('includes/config.php');
 	
 	livestreamAlert($livestreamInfo, $pageName);
 	tournamentLockedAlert($lockedTournamentWarning);
-	displayAnyErrors();
+	displayPageAlerts();
 
 
 // FUNCTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////

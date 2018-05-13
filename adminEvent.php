@@ -148,17 +148,18 @@ if($_SESSION['eventID'] == null){
 				<option value=1 <?=$selected?>>Yes</option>
 			</select>
 		</div>
-		
+
 	<!-- Default Use Control Point -->	
 		<div class='medium-6 large-4 cell input-group'>
 			<span class='input-group-label'>Use Control Points:</span>
 			<select class='input-group-field' type='text' name='controlPoint'>
 				<?php 
+
 				$maxSize = 4;
-					$selected = isSelected(0, $value);
+					$selected = isSelected(0, $defaults['useControlPoint']);
 					echo "<option value=0 {$selected}>No</option>";
 					for($i = 1; $i <= $maxSize; $i++):
-					$selected = isSelected($i, $value);
+					$selected = isSelected($i, $defaults['useControlPoint']);
 					?>
 					<option value=<?=$i?> <?=$selected?>><?=$i?> Point<?=plrl($i)?></option>
 				<?php endfor ?>
@@ -303,7 +304,7 @@ function colorSelectDropdown($number, $colorID){
 	
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){
-		displayAnyErrors('colorSelectDropdown()','center');
+		displayAlert('colorSelectDropdown()','center');
 		return;
 	}
 
@@ -313,7 +314,7 @@ function colorSelectDropdown($number, $colorID){
 	} else if ($number == 2){
 		$name = 'color2ID';
 	} else {
-		displayAnyErrors('colorSelectDropdown()','center');
+		displayAlert('colorSelectDropdown()','center');
 		return;
 	}
 

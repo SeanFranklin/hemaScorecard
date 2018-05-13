@@ -24,9 +24,9 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	displayAnyErrors("No Round Selected");
+	displayAlert("No Round Selected");
 } elseif(!isRounds($tournamentID)){
-	displayAnyErrors("So close and yet so far. <BR>Perhaps <a href='scoreMatch.php'>this</a> is what you're looking for? :)");
+	displayAlert("So close and yet so far. <BR>Perhaps <a href='scoreMatch.php'>this</a> is what you're looking for? :)");
 } else {
 
 	define(EXCHANGES, 'Cuts');

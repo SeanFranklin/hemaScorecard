@@ -257,7 +257,7 @@ function processPostData(){
 			setDataFilters();
 			break;
 		case 'resultsDump':
-			$_SESSION['resultsDump'] = $_POST;
+			exportResultsToCSV($_POST['CsvDump']);
 			break;
 			
 			
@@ -433,7 +433,7 @@ function toggleBracketHelper(){
 	// Error checking
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){
-		displayAnyErrors("Error in toggleBracketHelper in doPOST.php");
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in toggleBracketHelper()";
 		return;
 	}
 	
@@ -526,7 +526,7 @@ function createTournamentBrackets($tournamentID, $numWinnerBracketFighters){
 
 	if($numWinnerBracketFighters == null){$numWinnerBracketFighters = (int)$_POST['numWinnerBracketFighters'];}
 	if($numWinnerBracketFighters < 2){ 
-		$_SESSION['errorMessage'] .= "<p>Invalid number for bracket creation</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Can not create a bracket with less than 2 people";
 		return;
 	}
 	
@@ -566,9 +566,8 @@ function addNewExchange(){
 	// Easter egg for anyone who gets the the Score Match page while they are in
 	// event that has rounds and pieces rather than matches
 	if(isRounds($tournamentID)){
-		$_SESSION['errorMessage'] .= "<p>If you go against yourself with a";
-		$_SESSION['errorMessage'] .= "sharp sword and come out alive,"; 
-		$_SESSION['errorMessage'] .= "are you a winner or a loser?</p>";
+		$_SESSION['alertMessages']['userAlerts'][] = "<p>If you go against yourself with a 
+			sharp sword and come out alive, are you a winner or a loser?</p>";
 		return;
 	}
 	
@@ -610,7 +609,7 @@ function addNewExchange(){
 			clearExchanges($matchID,'all');
 			break;
 		default:
-			displayAnyErrors("Error in 'doUpdateMatch.php'");
+			$_SESSION['alertMessages']['systemErrors'][] = "Could not figure out the exchange type in doUpdateMatch.php()";
 			break;
 		
 	} 
@@ -718,7 +717,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 		$rTarget = $at['attackTarget'];
 		$rPrefix = $at['attackPrefix'];
 	} else {
-		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode set in deductiveAfterblowScoring()";
 		return;
 	}
 	
@@ -753,8 +752,8 @@ function insertPenalty($matchInfo, $scoring){
 	$id2 = $matchInfo['fighter2ID'];
 	
 	if ($scoring[$id1]['penalty'] < 0 && $scoring[$id2]['penalty'] < 0){
-		$_SESSION['errorMessage'] .= "<p><span class='red-text'>Exchange can not be added.</span><BR>
-				You can not apply a penalty to both fighters in the same exchange.</p>";
+		$_SESSION['alertMessages']['userErrors'][] =  "<span class='red-text'>Exchange can not be added.</span><BR>
+				You can not apply a penalty to both fighters in the same exchange.";
 		return;
 	}
 	
@@ -799,7 +798,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$score2 = $at2['attackPoints'];
 		$scoring[$id2]['hit'] = $score2;
 	} else {
-		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode in fullAfterblowScoring()";
 		return;
 	}
 
@@ -900,7 +899,7 @@ function noAfterblowScoring($matchInfo,$scoring){
 		$rTarget = $at['attackTarget'];
 		$rPrefix = $at['attackPrefix'];
 	} else {
-		$_SESSION['errorMessage'] .= "<p>Internal error, no score mode set.</p>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode set in noAfterblowScoring()";
 		return;
 	}
 	
@@ -1057,7 +1056,7 @@ function logUserIn(){
 		//define("USER_TYPE", $_SESSION['userType']);
 		changeEvent($eventID, true);
 	} else {
-		$_SESSION['errorMessage'] .= "<p>Incorrect Password<BR>Failed to Log In</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Failed to Log In";
 	}
 	
 	return;

@@ -29,9 +29,9 @@ if($tournamentID == null){
 		// page while in a rounds tournament
 		redirect('roundStandings.php');
 	}
-	displayAnyErrors("There are no pools for this tournament");
+	displayAlert("There are no pools for this tournament");
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Pools not yet released");
+	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
 	poolSetNavigation();
 	

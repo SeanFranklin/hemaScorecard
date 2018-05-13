@@ -33,13 +33,13 @@ if($tournamentID == null){
 			// page while in a rounds tournament
 			redirect('roundRosters.php');
 		}
-		displayAnyErrors("There are no pools for this tournament");
+		displayAlert("There are no pools for this tournament");
 	} else {
-		displayAnyErrors("No Pools Created");
+		displayAlert("No Pools Created");
 		poolManagement(); 
 	}
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Pools not yet released");
+	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
 	
 //fetch information from tables

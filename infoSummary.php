@@ -32,7 +32,8 @@ if($_SESSION['eventID'] == null){
 		
 		$name = getTournamentName($tournamentID); 
 		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
-			$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'";
+			$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
+					style='cursor: pointer;'";
 		} else {
 			$link = null;
 		}

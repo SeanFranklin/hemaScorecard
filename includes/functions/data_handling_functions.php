@@ -425,8 +425,8 @@ function getBracketPositionByRank($rank, $numPositions){
 	}
 	
 	// Error message 
-	displayAnyErrors("Could Not Find Bracket Position For Values: <BR>
-	Rank: {$rank}, Bracket Level: {$bracketLevels}<BR>");
+	$_SESSION['alertMessages']['systemErrors'][] = "getBracketPositionByRank() - Could Not Find Bracket Position For Values: <BR>
+	Rank: {$rank}, Bracket Level: {$bracketLevels}<BR>";
 	return;
 
 }

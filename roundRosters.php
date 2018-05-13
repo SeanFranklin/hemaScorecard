@@ -30,9 +30,9 @@ if($_SESSION['eventID'] == null){
 	if(isPools($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
 		redirect('poolMatches.php');
 	}
-	displayAnyErrors('This is not a scored event<BR>Please navigate to a pool or bracket');
+	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Rounds not yet released");
+	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	
 	$numGroupSets = getNumGroupSets($tournamentID);
@@ -76,7 +76,7 @@ if($_SESSION['eventID'] == null){
 		<?php endif ?>
 		
 		<?php if($rounds == null):
-			displayAnyErrors("Stage {$groupSet}<BR>No Rounds Created");
+			displayAlert("Stage {$groupSet}<BR>No Rounds Created");
 		else:
 			displayRounds($rounds, $showMultiple);	
 		endif ?>

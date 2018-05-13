@@ -291,7 +291,32 @@ function _Franklin2014_scores($fighterStats){
 
 	return $fighterStats;
 
+}
+
+/******************************************************************************/
+
+function _Franklin2014x25_scores($fighterStats){
+// Calculate scores using 'Franklin 2014' algorithm
 	
+	foreach((array)$fighterStats as $fighterID => $fighter){
+		$doubles = $fighter['doubles'];
+		$doublesPenalty = ($doubles * ($doubles+1))/2;
+		
+		$score = 0;
+		$score += $fighter['pointsFor'];
+		$score -= $fighter['pointsAgainst'];
+		$score -= $fighter['penaltiesAgainst'];
+		$score += 5*$fighter['wins'];
+		$score -= ($doublesPenalty*1.25);
+		
+		$score = round($score,1);
+		
+		$fighterStats[$fighterID]['score'] = $score;
+		$fighterStats[$fighterID]['rosterID'] = $fighterID;
+	}
+
+	return $fighterStats;
+
 }
 
 /******************************************************************************/

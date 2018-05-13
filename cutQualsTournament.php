@@ -19,7 +19,7 @@ include('includes/header.php');
 if($_SESSION['tournamentID'] == null){
 	pageError('tournament');
 }elseif(!isCuttingQual()){
-	displayAnyErrors('No Cutting Qualification required for this tournament');
+	displayAlert('No Cutting Qualification required for this tournament');
 } else {
 
 	$thisStandard = getCuttingStandard();
@@ -81,11 +81,11 @@ if($_SESSION['tournamentID'] == null){
 		<strong><?=$thisStandard['standardName']?></strong> 
 		since <strong><?=$thisStandard['date']?></strong><BR>
 	<?php else: ?>
-		<?=displayAnyErrors("No Cutting Quallification Standards Set<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>")?>
+		<?=displayAlert("No Cutting Quallification Standards Set<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>")?>
 	<?php endif ?>
 	
 
-	<?php if(USER_TYPE >= USER_SUPER_ADMIN || $_SESSION['eventID'] == 23): ?>
+	<?php if(USER_TYPE >= USER_SUPER_ADMIN): ?>
 		<a class='button small-expanded hollow' href='cutQuals.php'>
 			Master Quallification List
 		</a>
@@ -237,7 +237,7 @@ if($_SESSION['tournamentID'] == null){
 	
 	</table>
 	<?php else: ?>
-		<?php displayAnyErrors('Qualification Standard not yet applied'); ?>
+		<?php displayAlert('Qualification Standard not yet applied'); ?>
 	<?php endif ?>
 	</div>
 	</div>

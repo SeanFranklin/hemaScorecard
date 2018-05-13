@@ -19,7 +19,13 @@ if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN){
 	pageError('user');
-} else {
+
+	///////// This has been temporarialy disabled
+} elseif(USER_TYPE < USER_SUPER_ADMIN) {
+	displayAlert('This functionality has been disabled<BR>Sorry for any inconvenience');
+	/////////
+
+}else {
 	$importData = $_SESSION['csvRosterAdditions'];
 	unset($_SESSION['csvRosterAdditions']);
 	$tournamentList = $_SESSION['csvTournamentList'];

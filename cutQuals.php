@@ -15,7 +15,7 @@
 $pageName = 'Cutting Quallifications';
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN && $_SESSION['eventID'] != 23){
+if(USER_TYPE < USER_SUPER_ADMIN){
 	pageError('user');
 } else {
 	if(isSet($_SESSION['cuttingQualDate'])){
@@ -93,7 +93,7 @@ include('includes/footer.php');
 function addToQualList($standards){
 // Interface to add new cutting qualifications
 	
-	if(USER_TYPE < USER_SUPER_ADMIN && $_SESSION['eventID'] != 23){return;}
+	if(USER_TYPE < USER_SUPER_ADMIN){return;}
 	$listMode = $_SESSION['newCutQualMode'];
 	
 	if($listMode != 'all'){

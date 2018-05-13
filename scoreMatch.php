@@ -24,11 +24,11 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	displayAnyErrors("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
+	displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
 } else {
 	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
-	
+
 // If it is the last match in the tournament the staff is asked to finalize the event
 	askForFinalization($tournamentID); 
 	

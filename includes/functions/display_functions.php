@@ -10,33 +10,65 @@
 
 /******************************************************************************/
 
-function displayAnyErrors ($text = null){
-// Displays a large callout box containing the text parameter
-// If there is no text provided it will attempt to display anything contained
-// in $_SESSION['errorMessage']. This error message is written to by many 
-// data processing functions. displayAnyErrors is called at the top of every
-// page by the header to display error messages created in processing POST data.
+function displayPageAlerts(){
+// This function will display any messages which have been added to 
+// $_SESSION['alertMessages']. These alert messages are written to by many 
+// data processing functions, either as errors or completion confirmations.
+// This function is called at the top of every page by the header
+// to display error messages created in processing POST data.
 
-	if($text == null){
-		$text = $_SESSION['errorMessage'];
-		$text2 = "<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
-					<span aria-hidden='true'>&times;</span>
-				</button>	";
-		unset($_SESSION['errorMessage']);
+// Only displays diagnostic errors for the Software Administrator
+	if(USER_TYPE >= USER_SUPER_ADMIN){
+		foreach((array)$_SESSION['alertMessages']['systemErrors'] as $message){
+			displayAlert("<strong>Error: </strong>".$message, 'alert');
+		}
+	} else {
+		// If it is a normal user, alert them that there was an error.
+		if(sizeof($_SESSION['alertMessages']['systemErrors']) > 0){
+			displayAlert("Appologies, but it seems we have encountered some sort of internal error.",'alert');
+		}
 	}
 
-	if($text == null){return;}
+// Error messages for the user.
+	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
+		displayAlert("<stron>Error: </strong>".$message,'warning');
+	}
+
+// Alert messages for the user (ie confirmation messages)
+	$alertMessage = '';
+	if(sizeof($_SESSION['userAlerts']) < 1){
+		$alertMessage = $_SESSION['alertMessages']['userAlerts'][0];
+	} else {
+		$alertMessage = "<ul>";
+		foreach((array)$_SESSION['alertMessages']['userAlerts'] as $message){
+			$alertMessage .= "<li>{$message}</li>";
+		}
+		$alertMessage .= "</ul>";
+	}
+	displayAlert($alertMessage);
 	
-	echo"	<div class='cell callout secondary text-center' data-closable>
-	<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
-	<span aria-hidden='true'>&times;</span>
-	</button>	
-				{$text}
-				{$text2}
-				
-			</div>";
+	unset($_SESSION['alertMessages']);
+}
+
+/******************************************************************************/
+
+function displayAlert ($text = null, $class = 'secondary'){
+// Displays a large callout box containing the text parameter
+
+
+	if($text == null){
+		return;
+	}
+
+	echo"
+	<div class='cell callout {$class} text-center' data-closable>
+		<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+		{$text}	
+	</div>";
 	
-	unset($_SESSION['errorMessage']);
 
 }
 
@@ -57,7 +89,7 @@ function pageError($type){
 		$str = "Page can not be displayed";
 	}
 	
-	displayAnyErrors($str);
+ displayAlert($str);
 }
 
 /******************************************************************************/
@@ -1082,7 +1114,7 @@ function poolSetNavigation(){
 // Check that the tournament has pool sets
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){
-		displayAnyErrors('No Tournament selected for poolSetNavigation in display_functions.php');
+	 displayAlert('No Tournament selected for poolSetNavigation in display_functions.php');
 		return;
 	}
 	
@@ -1165,7 +1197,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		$fighterID = 'fighter2ID';
 		$color = COLOR_CODE_2; 
 	}else { 
-		displayAnyErrors("Error in 'finalistEntry' !!!!!!");
+	 displayAlert("Error in 'finalistEntry' !!!!!!");
 	}
 	?>
 	
