@@ -16,9 +16,9 @@ $jsIncludes[] = 'tournament_management_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN) {
-	displayAnyErrors("Please Log In to Edit");
+	pageError('user');
 } else {
 	
 	$tournamentIDs = getEventTournaments();

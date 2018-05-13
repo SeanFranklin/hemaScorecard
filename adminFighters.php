@@ -18,11 +18,11 @@ include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 
 if(USER_TYPE < USER_ADMIN){
-	displayAnyErrors("Please Log In to Edit");
+	pageError('user');
 } else if($tournamentID == null){
-	displayAnyErrors("No Tournament Selected");
+	pageError('tournament');
 } else if(!isRounds($tournamentID) && !isPools($tournamentID)){
-	displayAnyErrors("No need to withdraw fighters from this tournament format");
+	displayAlert("No need to withdraw fighters from this tournament format");
 } else {
 
 	$roster = getTournamentRoster($tournamentID,'rosterID','full');

@@ -17,7 +17,7 @@ $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 if(USER_TYPE < USER_ADMIN){
-	displayAnyErrors("Not Logged In",1);
+	pageError('user');
 } else {
 	$schools = getSchoolListLong();
 	

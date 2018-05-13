@@ -15,7 +15,7 @@ $pageName = "Software Password Management";
 include('includes/header.php');
 
 if(USER_TYPE < USER_SUPER_ADMIN){
-	displayAnyErrors("Go Away!");
+	pageError('user');
 } else {
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

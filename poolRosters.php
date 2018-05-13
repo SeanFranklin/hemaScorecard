@@ -23,7 +23,7 @@ $pools = getPools($tournamentID, $_SESSION['groupSet']);
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	displayAnyErrors("No Tournament Selected",1);
+	pageError('tournament');
 	
 } elseif($pools == null){
 	poolSetNavigation();
@@ -33,13 +33,13 @@ if($tournamentID == null){
 			// page while in a rounds tournament
 			redirect('roundRosters.php');
 		}
-		displayAnyErrors("There are no pools for this tournament");
+		displayAlert("There are no pools for this tournament");
 	} else {
-		displayAnyErrors("No Pools Created");
+		displayAlert("No Pools Created");
 		poolManagement(); 
 	}
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Pools not yet released");
+	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
 	
 //fetch information from tables
@@ -102,7 +102,7 @@ if($tournamentID == null){
 <!-- Pool Displays -->
 	<form method='POST' name='poolRosterForm' id='poolRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	<div class='grid-x grid-padding-x'>
+	<div class='grid-x grid-padding-x' id='list-of-pools'>
 	<?php foreach($pools as $pool): ?>
 		<?php 
 			$groupID = $pool['groupID'];

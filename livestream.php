@@ -16,7 +16,7 @@ $jsIncludes[] = 'livestream_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } else {
 	$info = getLivestreamInfo();
 	
@@ -47,7 +47,7 @@ if($_SESSION['eventID'] == null){
 	?>
 		
 	<? else: ?>
-		<?php displayAnyErrors("Sorry, there is no active livestream for this event"); ?>
+		<?php displayAlert("Sorry, there is no active livestream for this event"); ?>
 	<?php endif ?>
 
 	
