@@ -1615,8 +1615,32 @@ function matchHistoryBar($matchInfo){
 		}
 
 		$exchanges[$i]['time'] = "{$m}:{$s}";
-		
+
 		switch ($exchange['exchangeType']){
+			case "doubleOut":
+				$exchanges[$i][1][1] = "<em>D/</em>";
+				$exchanges[$i][1][2] = "<em>Out</em>";
+				$exchanges[$i][2][1] = "<em>D/</em>";
+				$exchanges[$i][2][2] = "<em>Out</em>";
+				break;
+
+			case "tie":
+				$exchanges[$i][1][2] = "<em>Tie</em>";
+				$exchanges[$i][2][2] = "<em>Tie</em>";
+				break;
+
+			case "winner":
+				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
+					$winIndex = 1;
+					$loseIndex = 2;
+				} else {
+					$winIndex = 2;
+					$loseIndex = 1;
+				}
+				$exchanges[$i][$winIndex][2] = "<em>Win</em>";
+
+				break;
+
 			case "penalty":
 				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
 					$exchanges[$i][1][1] = "<b>P</b>";
@@ -1626,6 +1650,7 @@ function matchHistoryBar($matchInfo){
 					$exchanges[$i][2][2] = "<b>".$exchange['scoreValue']."</b>";
 				}
 				break;
+
 			case "noQuality":
 				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
 					$exchanges[$i][1][1] = "<b>No</b>";

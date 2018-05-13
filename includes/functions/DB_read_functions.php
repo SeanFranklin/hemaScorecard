@@ -1652,9 +1652,14 @@ function getPasswords($eventID = null){
 
 function getPoolMatchOrder($groupID, $groupRoster){
 
-	if(($groupID == null) || ($groupRoster== null)){
+	if($groupID == null ){
 		$_SESSION['alertMessages']['systemErrors'][] = "Invalid inputs to getPoolMatchOrder()";
 		return;
+	}
+
+	if ($groupRoster== null){
+		// This is not an error, it may be an empty group.
+		return null;
 	}
 
 	$numFighters = count($groupRoster);
