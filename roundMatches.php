@@ -14,14 +14,17 @@ $pageName = 'Round Scores';
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
-
-if(!isRounds($tournamentID)){
+if($_SESSION['eventID'] == null){
+	pageError('event');
+} elseif($tournamentID == null){
+	pageError('tournament');
+} elseif(!isRounds($tournamentID)){
 	if(isPools($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
 		redirect('poolMatches.php');
 	}
-	displayAnyErrors('This is not a scored event<BR>Please navigate to a pool or bracket');
+	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Rounds not yet released");
+	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	
 	$numGroupSets = getNumGroupSets($tournamentID);
@@ -66,7 +69,7 @@ if(!isRounds($tournamentID)){
 		
 	<!-- Display the pieces -->
 		<?php if($rounds == null):
-			displayAnyErrors('No Rounds Created');
+			displayAlert('No Rounds Created');
 		else:
 			if($showMultiple): ?>
 				<div class='large-12 cell'>

@@ -16,9 +16,9 @@ $jsIncludes[] = 'tournament_management_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN) {
-	displayAnyErrors("Please Log In to Edit");
+	pageError('user');
 } else {
 
 	$tournamentList = getTournamentsFull();
@@ -73,7 +73,7 @@ if($_SESSION['eventID'] == null){
 			<?php edit_tournamentName($tournamentID); ?>
 
 
-			<div class='grid-x grid-padding-x text-center'>
+			<div id='requiredFields_<?=$tournamentID?>' class='grid-x grid-padding-x text-center'>
 				<?php
 				edit_tournamentElimType($tournamentID);
 				edit_tournamentDoubleType($tournamentID);
@@ -85,7 +85,7 @@ if($_SESSION['eventID'] == null){
 				<BR>Optional Fields:
 			</div>
 				
-			<div class='grid-x grid-padding-x text-center'>
+			<div id='optionalFields_<?=$tournamentID?>' class='grid-x grid-padding-x text-center'>
 				<?php
 				edit_tournamentTimer($tournamentID);
 				edit_tournamentColors($tournamentID, 1);

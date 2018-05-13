@@ -21,11 +21,11 @@ include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	displayAnyErrors('No Tournament Selected', 'CENTER');
+	pageError('tournament');
 } elseif(!isBrackets($tournamentID)){
-	displayAnyErrors("There are no brackets for this tournament");
+	displayAlert("There are no brackets for this tournament");
 } elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
-	displayAnyErrors("Event is still upcoming<BR>Bracket not yet released");
+	displayAlert("Event is still upcoming<BR>Bracket not yet released");
 } else {
 	
 // Bracket Information
@@ -42,7 +42,7 @@ bracketHelperToggleButton($allBracketInfo, $finalists);
 
 // Bracket Display
 	if($allBracketInfo == null){
-		displayAnyErrors("No Brackets Created", 'CENTER');
+		displayAlert("No Brackets Created", 'CENTER');
 	} else {
 		$bracketAdvancements = getBracketAdvancements($allBracketInfo, $finalists);
 		

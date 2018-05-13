@@ -15,8 +15,8 @@
 $pageName = 'Cutting Quallifications';
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN && $_SESSION['eventID'] != 23){
-	displayAnyErrors("Please login to edit");
+if(USER_TYPE < USER_SUPER_ADMIN){
+	pageError('user');
 } else {
 	if(isSet($_SESSION['cuttingQualDate'])){
 		$date = $_SESSION['cuttingQualDate'];
@@ -92,17 +92,21 @@ include('includes/footer.php');
 
 function addToQualList($standards){
 // Interface to add new cutting qualifications
-
-	$qualsToAdd	= 1;	// Arbitrary
 	
-	if(USER_TYPE < USER_SUPER_ADMIN && $_SESSION['eventID'] != 23){return;}
+	if(USER_TYPE < USER_SUPER_ADMIN){return;}
 	$listMode = $_SESSION['newCutQualMode'];
+	
+	if($listMode != 'all'){
+		$qualsToAdd = 5;
+	} else {
+		$qualsToAdd = 1;
+	}
 
 	switch($listMode){
 		case 'all':
 			$roster = getSystemRoster();
 			break;
-		case 'school': // Not implemented yet
+		case 'school': // Not implemented
 		case 'tournament':
 		default:
 			$roster = getSystemRoster($_SESSION['tournamentID']);
@@ -116,18 +120,22 @@ function addToQualList($standards){
 	<legend><h5>Add New Quallification</h5></legend>
 	
 	<form method='POST'>
+		
 	<input type='hidden' name='formName' value='newCutQualMode'>
+	
+	<!-- By tournament entry -->
 	<?php $hollow = isNotSelected($listMode == 'tournament', 'hollow'); ?>
 	<button class='button secondary <?=$hollow?>' name='newCutQualMode' value='tournament'>
 		By Tournament Entry
 	</button>
 	
-	<!--
+	<!-- By school name --
 	<?php $hollow = isNotSelected($listMode == 'school', 'hollow'); ?>
 	<button class='button secondary <?=$hollow?>' name='newCutQualMode' value='school'>
 		By School
 	</button> -->
 	
+	<!-- List all fighters -->
 	<?php $hollow = isNotSelected($listMode == 'all', 'hollow'); ?>
 	<button class='button secondary <?=$hollow?>' name='newCutQualMode' value='all'>
 		All System Fighters

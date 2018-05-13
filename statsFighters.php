@@ -19,7 +19,7 @@ $hidePageTitle = true;
 include('includes/header.php');
 
 if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
-	displayAnyErrors('Not logged in');
+	pageError('user');
 } else {
 	
 	DEFINE(DEFAULT_THRESHOLD, 60);

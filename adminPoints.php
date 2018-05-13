@@ -16,11 +16,11 @@ $hideEventNav = true;
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
-	displayAnyErrors('No Event Selected');
+	pageError('event');
 } elseif(USER_TYPE < USER_ADMIN) {
-	displayAnyErrors("Please Log In to Edit");
+	pageError('user');
 } elseif($_SESSION['tournamentID'] == null){
-	displayAnyErrors('No Tournament Selected');
+	pageError('tournament');
 } else{
 
 	$targets = getAllAttackTargets();

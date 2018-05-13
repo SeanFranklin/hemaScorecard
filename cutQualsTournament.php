@@ -17,9 +17,9 @@ $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['tournamentID'] == null){
-	displayAnyErrors('No Tournament Selected');
+	pageError('tournament');
 }elseif(!isCuttingQual()){
-	displayAnyErrors('No Cutting Qualification required for this tournament');
+	displayAlert('No Cutting Qualification required for this tournament');
 } else {
 
 	$thisStandard = getCuttingStandard();
@@ -76,11 +76,16 @@ if($_SESSION['tournamentID'] == null){
 ?>
 
 <!-- Select tournament standard -->
-	Fighters who have completed 
-	<strong><?=$thisStandard['standardName']?></strong> 
-	since <strong><?=$thisStandard['date']?></strong><BR>
+	<?php if($thisStandard != null): ?>
+		Fighters who have completed 
+		<strong><?=$thisStandard['standardName']?></strong> 
+		since <strong><?=$thisStandard['date']?></strong><BR>
+	<?php else: ?>
+		<?=displayAlert("No Cutting Quallification Standards Set<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>")?>
+	<?php endif ?>
+	
 
-	<?php if(USER_TYPE >= USER_SUPER_ADMIN || $_SESSION['eventID'] == 23): ?>
+	<?php if(USER_TYPE >= USER_SUPER_ADMIN): ?>
 		<a class='button small-expanded hollow' href='cutQuals.php'>
 			Master Quallification List
 		</a>
@@ -169,6 +174,7 @@ if($_SESSION['tournamentID'] == null){
 	
 	
 <!-- Display List of Fighters -->
+	<?php if($thisStandard != null): ?>
 	<table>
 		
 	<!-- Header -->
@@ -184,6 +190,10 @@ if($_SESSION['tournamentID'] == null){
 			<th>
 				<button name='cutQualDisplayMode' value='quall'><a><strong>
 					Qualled
+					<?=tooltip('<u>Add</u><BR>Fighter has not met quall standard.<BR>
+								<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-quallified on this date.<BR>
+								<u>Remove</u><BR>Remove quallification achieved at this event.'
+								)?>
 				</strong></a></button>
 			</th>
 		</tr>
@@ -206,7 +216,10 @@ if($_SESSION['tournamentID'] == null){
 								Remove
 							</button>
 						<?php else: ?>	
-							X 
+							<button class='button tiny hollow no-bottom' 
+								name='formName' value='addQualledFighterEvent'>
+								Update
+							</button>
 						<?php endif ?>
 					 <?php else: ?>
 						 <?php if(USER_TYPE >= USER_STAFF): ?>
@@ -223,6 +236,9 @@ if($_SESSION['tournamentID'] == null){
 		
 	
 	</table>
+	<?php else: ?>
+		<?php displayAlert('Qualification Standard not yet applied'); ?>
+	<?php endif ?>
 	</div>
 	</div>
 	

@@ -29,9 +29,9 @@ function deleteFromEvent(){
 				$name = getFighterName($rosterID);
 				$tName = getTournamentName($tournamentID);
 				
-				$_SESSION['errorMessage'] .= "<p><span class='red-text'>Event Deletion Failed</span>
+				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Event Deletion Failed</span>
 				 - Tournament has already been finalized<BR>
-				 <strong>{$name}</strong> is a part of <strong>{$tName}</strong> and can not be removed</p>";
+				 <strong>{$name}</strong> is a part of <strong>{$tName}</strong> and can not be removed";
 				continue 2;
 			}
 			
@@ -158,8 +158,8 @@ function addEventParticipantsByID(){
 				$name = getFighterName($rosterID);
 				$tName = getTournamentName($tournamentID);
 				
-				$_SESSION['errorMessage'] .= "<p><span class='red-text'>Tournament Addition Failed</span> - Tournament has already been finalized<BR>
-				 <strong>{$name}</strong> can not be added to <strong>{$tName}</strong></p>";
+				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Tournament Addition Failed</span> - Tournament has already been finalized<BR>
+				 <strong>{$name}</strong> can not be added to <strong>{$tName}</strong>";
 				continue;
 			}
 			
@@ -727,7 +727,7 @@ function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
 		$_POST['matchWinnerID'] = 'doubleOut';
 	} elseif($matchInfo['fighter1score'] == $matchInfo['fighter2score']){
 		if(!isTies()){
-			$_SESSION['errorMessage'] .= "<p>Tie match, can't conclude.</p>";
+			$_SESSION['alertMessages']['userErrors'][] = "Tie match, can't conclude.";
 			return;
 		}
 		$_POST['matchWinnerID'] = 'tie';
@@ -736,7 +736,7 @@ function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
 	} elseif($matchInfo['fighter2score'] > $matchInfo['fighter1score']){
 		$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
 	} else {
-		$_SESSION['errorMessage'] .= "<p>Sorry, I was unable to automatically conclude this match for you.</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Unable to determine how to conclude match";
 		return;
 	}
 	
@@ -957,7 +957,7 @@ function deleteFromGroups(){
 	$eventID = $_SESSION['eventID'];
 	$tournamentID = $_SESSION['tournamentID'];
 	if($eventID == null || $tournamentID == null ){
-		displayAnyErrors("Error in deleteFromGroup() in DB_write_functions.php");
+		$_SESSION['alertMessages']['systemErrors'][] = "No eventID in deleteFromGroup()";
 		return;
 	}
 
@@ -1066,10 +1066,10 @@ function editEvent(){
 			$sql = "DELETE FROM systemEvents
 					WHERE eventID = {$eventID}";
 			mysqlQuery($sql, SEND);
-			$_SESSION['errorMessage'] .= "\"{$name}\" deleted";
+			$_SESSION['alertMessages']['userAlerts'][] = "\"{$name}\" deleted";
 			
 		} else {
-			$_SESSION['errorMessage'] .= "\"{$name}\" not deleted<BR>Confirmation number incorrect";
+			$_SESSION['alertMessages']['userErrors'][] = "\"{$name}\" not deleted<BR>Confirmation number incorrect";
 		}
 		return;
 	}
@@ -1099,7 +1099,7 @@ function editEvent(){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
-	$_SESSION['errorMessage'] .= "\"{$name}\" updated";
+	$_SESSION['alertMessages']['userAlerts'][] = "\"{$name}\" updated";
 	
 }
 
@@ -1122,7 +1122,7 @@ function editEventStatus(){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
-	$_SESSION['errorMessage'] .= "<p>Event Status updated</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "Event Status updated";
 	
 }
 
@@ -1130,12 +1130,15 @@ function editEventStatus(){
 
 function editEventParticipant(){
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){return;}
+	if($eventID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "No eventID in editEventParticipant";
+		return;}
 	if(USER_TYPE < USER_ADMIN){return;}
 	
 	// If the editing mode needs to be enabled
 	if(!isset($_POST['editParticipantData'])){
 		$_SESSION['editParticipant'] = $_POST['rosterID'];
+		$_SESSION['alertMessages']['systemErrors'][] = "Editing mode not enables in editEventParticipant()";
 		return;
 	}	
 
@@ -1144,7 +1147,7 @@ function editEventParticipant(){
 	
 	$rosterID = $_POST['editParticipantData']['rosterID'];
 	if($rosterID == null){
-		$_SESSION['errorMessage'] .= "<p>Can not make changes, no fighter specified</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Can not make changes, no fighter specified";
 		return;
 	}
 
@@ -1193,8 +1196,9 @@ function editEventParticipant(){
 					$name = getFighterName($rosterID);
 					$tName = getTournamentName($tournamentID);
 					
-					$_SESSION['errorMessage'] .= "<p><span class='red-text'>Edit Failed</span> - Tournament has already been finalized<BR>
-					 <strong>{$name}</strong> can not be added to <strong>{$tName}</strong></p>";
+					$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Edit Failed</span>
+						- Tournament has already been finalized<BR>
+					 	<strong>{$name}</strong> can not be added to <strong>{$tName}</strong>";
 					continue;
 				}
 				
@@ -1216,8 +1220,9 @@ function editEventParticipant(){
 					$name = getFighterName($rosterID);
 					$tName = getTournamentName($tournamentID);
 					
-					$_SESSION['errorMessage'] .= "<p><span class='red-text'>Edit Failed</span> - Tournament has already been finalized<BR>
-					 <strong>{$name}</strong> can not be removed from <strong>{$tName}</strong></p>";
+					$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Edit Failed</span> 
+						- Tournament has already been finalized<BR>
+						<strong>{$name}</strong> can not be removed from <strong>{$tName}</strong>";
 					continue;
 				}
 				
@@ -1245,7 +1250,7 @@ function generateTournamentPlacings($tournamentID){
 	if(USER_TYPE < USER_STAFF){return;}
 	
 	if($tournamentID == null){
-		displayAnyErrors("No tournamentID in generateTournamentPlacings()");
+		displayAlert("No tournamentID in generateTournamentPlacings()");
 		return;
 	}
 	if($tournamentID == 'cancel'){
@@ -1270,7 +1275,16 @@ function generateTournamentPlacings($tournamentID){
 			if($rosterID == null || $tournamentID == null || $place== null){ continue;}
 			if($inPlace[$rosterID] == true){
 				$_SESSION['manualPlacingMessage'][$tournamentID] = "The same fighter is entered in more than on place. Can not finalize results.";
-				$_SESSION['errorMessage'] .= "<p>Fighters entered in more than on location. Can not finalize results.</p>";
+				$_SESSION['alertMessages']['userErrors'][] = "Fighters entered in more than on location. Can not finalize results.";
+				$_SESSION['lastManualPlacingAttempt'] = $_POST['placing'];
+				if(isBrackets($tournamentID)){
+					generateTournamentPlacings_bracket($tournamentID);
+				} elseif (isRounds($tournamentID)){
+					generateTournamentPlacings_round($tournamentID);
+				} else{
+					generateTournamentPlacings_set($tournamentID);
+				}
+				
 				return;
 			} else {
 				$inPlace[$rosterID] = true;
@@ -1346,14 +1360,8 @@ function generateTournamentPlacings_set($tournamentID){
 			
 			// Check if the fighter is tied with the previous fighter
 			if($score == $oldScore){
-				$ties[count($overallScores)] = true;
+				$ties[count($overallScores)] = 'end';
 				$ties[count($overallScores)-1] = true;
-				$lastFighterTied = true;
-			} else {
-				if($lastFighterTied){
-					$ties[count($overallScores)-1] = 'end';
-					$lastFighterTied = false;
-				}
 			}
 			$oldScore = $score;
 		}
@@ -1364,10 +1372,10 @@ function generateTournamentPlacings_set($tournamentID){
 		$_SESSION['overallScores'] = $overallScores;
 		$_SESSION['ties'] = $ties;
 		$_SESSION['manualTournamentPlacing'] = $tournamentID;
-		$_SESSION['errorMessage'] .= "<p><span class='red-text'>Error finalizing results.</span><BR>
+		$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Results could not be finalized.</span><BR>
 			Ties detected, please 
 			<a href='infoSummary.php#{$_SESSION['jumpTo']}'>
-			confirm results manualy</a></p>";
+			confirm results manualy</a>";
 		$_SESSION['manualPlacingMessage'][$tournamentID] = "Detected ties in the scoring. 
 			Please confirm this list represents the final rankings. Fighters with tie scores are displayed in red.";
 		return false;
@@ -1428,14 +1436,8 @@ function generateTournamentPlacings_round($tournamentID){
 				foreach($roundScores as $rosterID => $score){
 					$overallScores[] = $rosterID;
 					if($score == $oldScore){
-						$ties[count($overallScores)] = true;
+						$ties[count($overallScores)] = 'end';
 						$ties[count($overallScores)-1] = true;
-						$lastFighterTied = true;
-					} else {
-						if($lastFighterTied){
-							$ties[count($overallScores)-1] = 'end';
-							$lastFighterTied = false;
-						}
 					}
 					$oldScore = $score;
 				}
@@ -1449,7 +1451,7 @@ function generateTournamentPlacings_round($tournamentID){
 		$_SESSION['overallScores'] = $overallScores;
 		$_SESSION['ties'] = $ties;
 		$_SESSION['manualTournamentPlacing'] = $tournamentID;
-		$_SESSION['errorMessage'] .= "<p><span class='red-text'>Error finalizing results.</span><BR>
+		$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Results could not be finalized.</span><BR>
 			Ties detected, please 
 			<a href='infoSummary.php#{$_SESSION['jumpTo']}'>
 			confirm results manualy</a></p>";
@@ -1464,7 +1466,7 @@ function generateTournamentPlacings_round($tournamentID){
 	mysqlQuery($sql, SEND);
 	
 	$place=0;
-	foreach($overallScores as $rosterID){
+	foreach((array)$overallScores as $rosterID){
 		++$place;
 		writeTournamentPlacing($rosterID,$tournamentID,$place);
 	}
@@ -1594,7 +1596,7 @@ function insertNewEventParticipant($firstName, $lastName, $schoolID, $tournament
 	$eventID = $_SESSION['eventID'];
 	
 	if($eventID == null || $schoolID == null){
-		echo "<h4>Error in insertNewEventParticipant()</h4>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No eventID in insertNewEventParticipant()";
 		return;
 	}
 
@@ -1653,7 +1655,7 @@ function importRosterCSV(){
 	
 	if (!in_array($_FILES['csv_file']['type'], $csv_mimetypes)
 		|| substr($_FILES['csv_file']['name'], -4) != '.csv') {
-		$_SESSION['errorMessage'] .= "<p>That's not a .csv file!</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "That's not a .csv file!";
 		return;
 	}
 	
@@ -1670,7 +1672,7 @@ function importRosterCSV(){
 		//move uploaded file to upload dir
 		if (!move_uploaded_file($_FILES['csv_file']['tmp_name'], $filePath)) {  
 			//error moving upload file
-			$_SESSION['errorMessage'] .= "<p>Error moving file upload</p>";
+			$_SESSION['alertMessages']['systemErrors'][] = "Could not move uploaded file in importRosterCSV()";
 			return;
 		}
 	}
@@ -1685,9 +1687,10 @@ function importRosterCSV(){
 			// If it's a name or school header
 			
 			if($name != $standardFormat[$index]){
-				$errorMsg = "<strong>File could not be loaded</strong><BR>
+				$_SESSION['alertMessages']['userErrors'][] = "<strong>File could not be loaded</strong><BR>
 					Incorrect file header row<BR>
 					Use 'firstName','lastName','school'";
+				$errorFlag = true;
 			}
 		} else {
 			//If it's a tournament
@@ -1699,8 +1702,9 @@ function importRosterCSV(){
 						WHERE tournamentID = {$tournamentID}";
 				$eventID = mySqlQuery($sql, SINGLE, 'eventID');
 				if($eventID != $_SESSION['eventID']){
-					$errorMsg = "<strong>File could not be loaded</strong><BR>
-						tournamentID $tournamentID is not valid for this event.";
+					$_SESSION['alertMessages']['userErrors'][] = "<strong>File could not be loaded</strong><BR>
+						tournamentID $tournamentID is not a tournament in this event.";
+					$errorFlag = true;
 				}
 				$tournamentName = getTournamentName($tournamentID);
 				
@@ -1718,9 +1722,10 @@ function importRosterCSV(){
 				}
 				
 				if($tournamentFound != true){
-					$errorMsg = "<strong>File could not be loaded</strong><BR>
+					$_SESSION['alertMessages']['userErrors'][] = "<strong>File could not be loaded</strong><BR>
 						<strong>'$tournamentName'</strong> does not match any tournament in the event.<BR>
 						The spelling must be <u>exact</u> for a match.";
+					$errorFlag = true;
 				}
 			}
 			
@@ -1731,10 +1736,9 @@ function importRosterCSV(){
 		}
 		
 		
-		if($errorMsg != null){
+		if($errorFlag == true){
 			fclose($file);
 			unlink($filePath);
-			$_SESSION['errorMessage'] .= "<p>$errorMsg</p>";
 			return;
 		}
 	
@@ -1772,7 +1776,7 @@ function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = nul
 	}
 	if($groupSet == null){ $groupSet = $_SESSION['groupSet']; }
 	if($groupSet == null){
-		$_SESSION['errorMessage'] .= "<p>No group set provided in recordScores()</p>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No groupSet in recordScores()";
 		return; 
 	}
 	
@@ -1865,7 +1869,25 @@ function removeTournamentPlacings($tournamentID){
 
 /******************************************************************************/
 
-function renameGroups(){
+function renameGroup($renameData){
+	
+	$groupName = $renameData['groupName'];
+	$groupID = $renameData['groupID'];
+	
+	$sql = "UPDATE eventGroups SET groupName = ?
+			WHERE groupID = ?";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "si", $groupName,$groupID);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	
+}
+
+/******************************************************************************/
+
+function renameGroups($maxGroupSets = null){
 	
 	foreach((array)$_POST['renameGroup'] as $groupID => $groupName){
 		
@@ -1896,24 +1918,34 @@ function renameGroups(){
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){
-		$_SESSION['errorMessage'] = "No tournamentID in renameGroups() in DB_write_functions.php";
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in renameGroups()";
 		return;
+	}
+	
+	if($maxGroupSets == null){
+		$maxGroupSets = getNumGroupSets($tournamentID);
 	}
 		
 	foreach((array)$_POST['renameSet'] as $setNumber => $newName){
+		if($setNumber > $maxGroupSets){ continue; }
+		
 		if($newName == null){
+			
 			$sql = "DELETE FROM eventAttributes
 					WHERE tournamentID = {$tournamentID}
 					AND attributeType = 'setName'
 					AND attributeGroupSet = {$setNumber}";
 			mysqlQuery($sql, SEND);
+			
 		} else {
+			
 			$sql = "SELECT attributeID
 					FROM eventAttributes
 					WHERE tournamentID = {$tournamentID}
 					AND attributeType = 'setName'
 					AND attributeGroupSet = {$setNumber}";
 			$attributeID = mysqlQuery($sql, SINGLE, 'attributeID');
+			
 			if($attributeID == null){
 				// Insert
 				$sql = "INSERT INTO eventAttributes
@@ -1925,7 +1957,9 @@ function renameGroups(){
 				$bind = mysqli_stmt_bind_param($stmt, "s", $newName);
 				$exec = mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				
 			} else {
+				
 				// Update
 				$sql = "UPDATE eventAttributes
 						SET attributeText = ?
@@ -1944,9 +1978,13 @@ function renameGroups(){
 
 /******************************************************************************/
 
-function reOrderGroups(){
+function reOrderGroups($groupList = null){
 	
-	foreach($_POST['newGroupNumber'] as $groupID => $groupNumber){
+	if($groupList == null){
+		$groupList = $_POST['newGroupNumber'];
+	}
+	
+	foreach($groupList as $groupID => $groupNumber){
 		$sql = "SELECT groupName, groupNumber, groupType
 				FROM eventGroups
 				WHERE groupID = {$groupID}";
@@ -1981,7 +2019,11 @@ function reOrderGroups(){
 				WHERE groupID = {$groupID}";
 		mysqlQuery($sql, SEND);
 		
+		$namesList[$groupID] = $name;
+		
 	}
+	
+	return $namesList;
 	
 }
 
@@ -1998,7 +2040,7 @@ function setLivestreamMatch($eventID = null){
 			WHERE eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 	
-	$_SESSION['errorMessage'] .= "<p>This event is now showing on the livestream</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "This event is now showing on the livestream.";
 		
 }
 
@@ -2010,8 +2052,9 @@ function switchMatchFighters($matchID = null){
 
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){
-		displayAnyErrors('Error in switchMatchFighters()','center');
-		return;}
+		$_SESSION['alertMessages']['systemErrors'][] = "No matchID in switchMatchFighters()";
+		return;
+	}
 		
 	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score, reversedColors
 			FROM eventMatches
@@ -2078,19 +2121,21 @@ function updateEventDefaults(){
 	$maxPoolSize = $_POST['maxPoolSize'];
 	$allowTies = $_POST['allowTies'];
 	$useTimer = $_POST['useTimer'];
+	$controlPoint = $_POST['controlPoint'];
 	
 	$sql = "DELETE FROM eventDefaults
 			WHERE eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 	
 	$sql = "INSERT INTO eventDefaults
-			(eventID, color1ID, color2ID, maxPoolSize, 
+			(eventID, color1ID, color2ID, maxPoolSize, useControlPoint,
 			maxDoubleHits, normalizePoolSize, allowTies, useTimer)
 			VALUES
-			($eventID, $color1ID, $color2ID, $maxPoolSize, 
+			($eventID, $color1ID, $color2ID, $maxPoolSize, $controlPoint,
 			$maxDoubles, $normPoolSize, $allowTies, $useTimer)";
 	mysqlQuery($sql, SEND);
-	$_SESSION['errorMessage'] .= "<p>Event Defaults Updated</p>";
+
+	$_SESSION['alertMessages']['userAlerts'][] = "Event Defaults Updated";
 }
 
 
@@ -2107,7 +2152,7 @@ function updateEventPasswords(){
 	$isSuperAdmin = checkPassword($_POST['passwordVerification'], USER_SUPER_ADMIN, $eventID);
 	
 	if(!$isAdmin && !$isSuperAdmin){
-		$_SESSION['errorMessage'] .= "<p>Incorrect Password<BR>Passwords not changed</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Passwords not changed";
 		return;	
 	}
 	
@@ -2129,7 +2174,7 @@ function updateEventPasswords(){
 		mysqlQuery($sql, SEND);
 	}
 	
-	$_SESSION['errorMessage'] .= "<p>Passwords Updated</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "Passwords Updated";
 }
 
 /******************************************************************************/
@@ -2159,7 +2204,7 @@ function updateEventTournaments(){
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
-					maximumExchanges, isCuttingQual, useTimer
+					maximumExchanges, isCuttingQual, useTimer, useControlPoint
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2176,13 +2221,14 @@ function updateEventTournaments(){
 					{$info['tournamentRankingID']},
 					{$info['maximumExchanges']},
 					{$info['isCuttingQual']},
-					{$info['useTimer']}
+					{$info['useTimer']},
+					{$info['useControlPoint']}
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 			
 			$newName = getTournamentName($tournamentID);
-			$_SESSION['errorMessage'] .= "<p>Created tournament: '{$newName}'</p>";
+			$_SESSION['alertMessages']['userAlerts'][] = "Created tournament: '{$newName}'";
 			
 			break;
 	
@@ -2235,7 +2281,7 @@ function updateEventTournaments(){
 			}
 			
 			$name = getTournamentName($tournamentID);
-			$_SESSION['errorMessage'] .= "<p>{$name} Updated</p>";
+			$_SESSION['alertMessages']['userAlerts'][] = "{$name} Updated";
 			
 			break;
 		default:
@@ -2400,7 +2446,7 @@ function updateIgnoredFighters(){
 	$groupSet = $_POST['groupSet'];
 	
 	if($tournamentID == null){
-		$_SESSION['errorMessage'] .= "<p>Error in 'updateIgnoredFighters()'</p>";
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in 'updateIgnoredFighters()'";
 		return;
 	}
 	
@@ -2489,7 +2535,7 @@ function updateIgnoredFighters(){
 
 	$_SESSION['updatePoolStandings'][$tournamentID] = true;
 	
-	$_SESSION['errorMessage'] .= "<p>Updated</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "Updated";
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2564,7 +2610,7 @@ function updateIgnoredFighters(){
 
 	$_SESSION['updatePoolStandings'][$tournamentID] = true;
 	
-	$_SESSION['errorMessage'] .= "<p>Updated</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "Updated";
 }
 
 /******************************************************************************/
@@ -2597,13 +2643,13 @@ function updateLivestreamInfo(){
 			} 
 
 			if($exists != true){
-				$_SESSION['errorMessage'] .= "<p><span class='red-text'>Invalid url</span>. 
-									Make sure you include the https://</p>";
+				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Invalid url</span>. 
+									Make sure you include the https://";
 				return;
 			}*/
 			break;
 		default:
-			$_SESSION['errorMessage'] .= "<p><span class='red-text'>Invalid platform.</span> 
+			$_SESSION['alertMessages']['userErrors'][] = "<p><span class='red-text'>Invalid platform.</span> 
 					Not updated</p>";
 			return;
 	}
@@ -2638,7 +2684,7 @@ function updateLivestreamInfo(){
 		mysqli_stmt_close($stmt);
 	}
 	
-	$_SESSION['errorMessage'] .= "<p>Updated</p>";		
+	$_SESSION['alertMessages']['userAlerts'][] = "Updated";		
 
 }
 
@@ -2966,21 +3012,6 @@ function updatePoolSets(){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if(isset($_POST['numPoolSets'])){
-		$sql = "UPDATE eventTournaments
-				SET numGroupSets = {$_POST['numPoolSets']}
-				WHERE tournamentID = {$tournamentID}";
-		mysqlQuery($sql, SEND);
-		
-		if($_SESSION['groupSet'] > $_POST['numPoolSets']){
-			$_SESSION['groupSet'] = 1;
-		}
-		
-		$sql = "DELETE FROM eventGroups
-				WHERE tournamentID = {$tournamentID}
-				AND groupSet > {$_POST['numPoolSets']}";
-		mysqlQuery($sql, SEND);
-	}
 	
 // Cumulative sets
 	$sql = "DELETE FROM eventAttributes
@@ -3016,8 +3047,31 @@ function updatePoolSets(){
 		$_SESSION['updatePoolStandings'][$tournamentID] = true;	
 	}
 	
+// Change number of pool sets
+	if(isset($_POST['numPoolSets'])){
+		$sql = "UPDATE eventTournaments
+				SET numGroupSets = {$_POST['numPoolSets']}
+				WHERE tournamentID = {$tournamentID}";
+		mysqlQuery($sql, SEND);
+		
+		if($_SESSION['groupSet'] > $_POST['numPoolSets']){
+			$_SESSION['groupSet'] = 1;
+		}
+		
+		$sql = "DELETE FROM eventGroups
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet > {$_POST['numPoolSets']}";
+		mysqlQuery($sql, SEND);
+		
+		$sql = "DELETE FROM eventAttributes
+				WHERE tournamentID = {$tournamentID}
+				AND attributeGroupSet > {$_POST['numPoolSets']}";
+		mysqlQuery($sql, SEND);
+		show($sql);
+	}
+	
 // Set names
-	renameGroups();
+	renameGroups($_POST['numPoolSets']);
 		
 }
 
@@ -3051,19 +3105,19 @@ function updateStageOptions(){
 function updateSystemPasswords(){
 	
 	if(USER_TYPE < USER_SUPER_ADMIN){
-		$_SESSION['errorMessage'] .= "<p>Not Logged in as SUPER_ADMIN</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Not Logged in as Software Administrator";
 		return;
 	}
 	
 	if(checkPassword($_POST['adminPassword'], USER_SUPER_ADMIN, null) == false){
-		$_SESSION['errorMessage'] .= "<p>Incorrect Admin Password</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Admin Password";
 		return;
 	}
 	
 	$type = $_POST['passwordType'];
 	
 	if($type == 'USER_SUPER_ADMIN' && $_POST[$type] != $_POST[$type.'_2']){
-		$_SESSION['errorMessage'] .= "<p>Unable to update <BR><BR>Two passwords do not match</p>";
+		$_SESSION['alertMessages']['userErrors'][] = "Unable to update <BR><BR>Two passwords do not match";
 		return;
 	}
 	
@@ -3078,7 +3132,7 @@ function updateSystemPasswords(){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
-	$_SESSION['errorMessage'] .= "<p>Password updated sucessfully</p>";
+	$_SESSION['alertMessages']['userAlerts'][] = "Password updated sucessfully";
 	
 }
 
@@ -3116,8 +3170,7 @@ function updateTournamentCuttingStandard(){
 		
 		$date = $date->format('Y-m-d');
 	} else {
-		$_SESSION['errorMessage'] .= "
-			<p>Invalid date mode in updateTournamentCuttingStandard()</p>";
+		$_SESSION['alertMessages']['systemErrors'][] =  "Invalid date mode in updateTournamentCuttingStandard()";
 		return;
 	}
 	
@@ -3189,7 +3242,7 @@ function updateNumberOfGroupSets(){
 function updateYouTubeLink($matchID = null){
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){
-		displayAnyErrors('Error in updateYourTubeLink()','center');
+		$_SESSION['alertMessages']['systemErrors'][] = "No matchID in updateYourTubeLink()";
 		return;
 	}
 	
@@ -3213,7 +3266,7 @@ function writeTournamentPlacing($rosterID, $tournamentID, $placing, $type = 'fin
 	if(USER_TYPE < USER_STAFF){return;}
 	
 	if($rosterID == null || $tournamentID == null || $placing == null){
-		echo "<BR>Error in writeTournamentPlacing()<BR>";
+		$_SESSION['alertMessages']['systemErrors'][] = "Invalid parameters passed in writeTournamentPlacing()";
 		return;
 	}
 		

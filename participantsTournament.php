@@ -19,7 +19,7 @@ include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
 if($tournamentID == null){
-	displayAnyErrors("No Tournament Selected",1);
+	pageError('tournament');
 } else{
 
 	toggleFighterListSort();

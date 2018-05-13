@@ -16,6 +16,7 @@
     <script src="includes/foundation/js/vendor/what-input.js"></script>
     <script src="includes/foundation/js/vendor/foundation.js"></script>
     <script src="includes/foundation/js/app.js"></script>
+    <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 	<script type='text/javascript' src='includes/scripts/general_scripts.js'></script>
 	<script type='text/javascript' src='includes/scripts/delete_checking_scripts.js'></script>
 	

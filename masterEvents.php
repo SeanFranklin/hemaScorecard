@@ -14,7 +14,7 @@ $pageName = "Manage System Events";
 include('includes/header.php');
 
 if(USER_TYPE < USER_SUPER_ADMIN){
-	displayAnyErrors("Please Log In to Edit");
+	pageError('user');
 } else {
 
 	$eventList = getEventListFull();
