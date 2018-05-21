@@ -96,6 +96,9 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	$("#requiredFields_"+tournamentID).children().each(toggleTournamentEntryDiv);
 	$("#optionalFields_"+tournamentID).children().each(toggleTournamentEntryDiv);
 	
+
+// Check for fields which are just toggled by double hits
+	edit_doubleType(tournamentID);
 	
 }
 
@@ -117,6 +120,15 @@ function enableTournamentButton(tournamentID){
 			button.disabled = true;
 			return;
 		}
+
+		if(doubleID == 3){
+			netScoreMode = document.getElementById('notNetScore_select'+tournamentID).value;
+			if(netScoreMode.length == 0){
+				button.disabled = true;
+				return;
+			}
+		}
+
 	}
 
 	if(elimID == 2 || elimID == 4 || elimID == 5){
@@ -134,6 +146,8 @@ function enableTournamentButton(tournamentID){
 			return;
 		}
 	}
+
+
 	
 	button.disabled = false;
 	
@@ -145,16 +159,18 @@ function edit_doubleType(tournamentID){
 
 	doubleID = document.getElementById('doubleID_select'+tournamentID).value;
 	
-	if(doubleID == 3){
+	if(doubleID == 3){ // Full Afterblow
 		$('#maxDoubles_div'+tournamentID).hide('fast');
+		$('#notNetScore_div'+tournamentID).show('fast');
 	} else {
 		$('#maxDoubles_div'+tournamentID).show('fast');
+		$('#notNetScore_div'+tournamentID).hide('fast');
+		$("#notNetScore_select"+tournamentID)[0].selectedIndex = 0
 	}
-	
+
 	enableTournamentButton(tournamentID);
 
 }
-
 
 /**********************************************************************/
 

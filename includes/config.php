@@ -64,6 +64,10 @@
 	define("DIRECT_BRACKET",3);
 	define("POOL_SETS",4);
 	define("SCORED_EVENT",5);
+
+	define("NO_AFTERBLOW",1);
+	define("DEDUCTIVE_AFTERBLOW",2);
+	define("FULL_AFTERBLOW",3);
 	
 	// More defaults show up in getEventDefaults() in DB_read_functions.php
 	

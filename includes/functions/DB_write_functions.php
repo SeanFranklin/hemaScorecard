@@ -1542,7 +1542,7 @@ function generateTournamentPlacings_bracket($tournamentID){
 /******************************************************************************/
 
 function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn, $scoreDeductionIn, 
-							$refPrefix = null, $refType = null, $refTarget = null){
+							$refPrefix = null, $refType = null, $refTarget = null, $exchangeID = null){
 // records a new exchange into the match	
 	
 	if(USER_TYPE < USER_STAFF){return;}
@@ -1575,14 +1575,34 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 	if($refTarget == null){
 		$refTarget = 'NULL';
 	}
-	
-	
-	$sql = "INSERT INTO eventExchanges
-			(matchID, exchangeType, scoringID, recievingID, scoreValue, 
-			scoreDeduction, exchangeTime, refPrefix, refType, refTarget)
-			VALUES
-			({$matchID}, '{$exchangeType}', {$rosterID}, {$recievingID}, {$scoreValue}, 
-			{$scoreDeduction}, {$exchangeTime}, {$refPrefix}, {$refType}, {$refTarget})";
+
+	if($exchangeID == null){
+		$sql = "SELECT COUNT(exchangeID) AS numExchanges
+				FROM eventExchanges
+				WHERE matchID = {$matchID}";
+		$exchangeNumber = mysqlQuery($sql, SINGLE, 'numExchanges');
+		$exchangeNumber++;
+
+		$sql = "INSERT INTO eventExchanges
+				(matchID, exchangeType, scoringID, recievingID, scoreValue, 
+				scoreDeduction, exchangeTime, refPrefix, refType, refTarget, exchangeNumber)
+				VALUES
+				({$matchID}, '{$exchangeType}', {$rosterID}, {$recievingID}, {$scoreValue}, 
+				{$scoreDeduction}, {$exchangeTime}, {$refPrefix}, {$refType}, {$refTarget}, {$exchangeNumber})";
+	} else {
+		$sql = "UPDATE eventExchanges
+				SET matchID 	= {$matchID}, 
+				exchangeType	= '{$exchangeType}', 
+				scoringID		= {$rosterID}, 
+				recievingID		= {$recievingID}, 
+				scoreValue 		= {$scoreValue}, 
+				scoreDeduction  = {$scoreDeduction}, 
+				exchangeTime	= {$exchangeTime}, 
+				refPrefix		= {$refPrefix}, 
+				refType			= {$refType}, 
+				refTarget		= {$refTarget}
+				WHERE exchangeID = {$exchangeID}";
+	}
 	mysqlQuery($sql, SEND);
 	
 }
@@ -1979,7 +1999,7 @@ function renameGroups($maxGroupSets = null){
 /******************************************************************************/
 
 function reOrderGroups($groupList = null){
-	
+
 	if($groupList == null){
 		$groupList = $_POST['newGroupNumber'];
 	}
@@ -2204,7 +2224,8 @@ function updateEventTournaments(){
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
-					maximumExchanges, isCuttingQual, useTimer, useControlPoint
+					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
+					isNotNetScore
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2222,7 +2243,9 @@ function updateEventTournaments(){
 					{$info['maximumExchanges']},
 					{$info['isCuttingQual']},
 					{$info['useTimer']},
-					{$info['useControlPoint']}
+					{$info['useControlPoint']},
+					{$info['isNotNetScore']}
+
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
@@ -2279,7 +2302,18 @@ function updateEventTournaments(){
 				$sql = "UPDATE eventTournaments SET numGroupSets = 1 WHERE tournamentID = {$tournamentID}";
 				mysqlQuery($sql, SEND);
 			}
-			
+
+			$sql = "SELECT matchID
+					FROM eventMatches
+					INNER JOIN eventGroups USING(groupID)
+					WHERE tournamentID = {$tournamentID}";
+			$matchList = mysqlQuery($sql, SINGLES);
+
+			foreach($matchList as $match){
+				$matchInfo = getMatchInfo($match);
+				updateMatch($matchInfo);
+			}
+
 			$name = getTournamentName($tournamentID);
 			$_SESSION['alertMessages']['userAlerts'][] = "{$name} Updated";
 			
@@ -2706,6 +2740,8 @@ function updateMatch($matchInfo){
 	if($matchID == null){return;}
 	
 	
+	$doubleTypes = getDoubleTypes($tournamentID);
+
 	$sql = "SELECT scoringID, scoreValue, scoreDeduction
 			FROM eventExchanges
 			WHERE matchID = {$matchID}
@@ -2714,12 +2750,30 @@ function updateMatch($matchInfo){
 	
 	$fighter1Score = 0;
 	$fighter2Score = 0;
-	
+
 	foreach($result as $exchange){
 		if($exchange['scoringID'] == $matchInfo['fighter1ID']){
-			$fighter1Score += ($exchange['scoreValue'] - $exchange['scoreDeduction']);
+
+			$fighter1Score += $exchange['scoreValue'];
+			if($doubleTypes['isNotNetScore'] == 1
+				&& $doubleTypes['afterblowType'] == 'full') {
+				
+				$fighter2Score += $exchange['scoreDeduction'];
+			} else {
+				$fighter1Score -= $exchange['scoreDeduction'];
+			}
+			
 		} else if($exchange['scoringID'] == $matchInfo['fighter2ID']){
-			$fighter2Score += ($exchange['scoreValue'] - $exchange['scoreDeduction']);
+
+			$fighter2Score += $exchange['scoreValue'];
+			if($doubleTypes['isNotNetScore'] == 1
+				&& $doubleTypes['afterblowType'] == 'full') {
+
+				$fighter1Score += $exchange['scoreDeduction'];
+			} else {
+				$fighter2Score -= $exchange['scoreDeduction'];
+			}
+
 		}
 	}
 	
@@ -2857,13 +2911,14 @@ function updatePoolMatchList($ID = null, $type = null){
 		}
 			
 		$poolRosters = getPoolRosters($tournamentID, 'all');
+
 		unset($goodMatchesInPool);
 		
 		foreach($pools as $pool){
 			
 			$groupID = $pool['groupID'];
 			$poolRoster = $poolRosters[$groupID];
-			
+
 			$numFightersInPool = count($poolRoster);
 			$sql = "UPDATE eventGroups
 						SET numFighters = {$numFightersInPool}
@@ -3067,7 +3122,6 @@ function updatePoolSets(){
 				WHERE tournamentID = {$tournamentID}
 				AND attributeGroupSet > {$_POST['numPoolSets']}";
 		mysqlQuery($sql, SEND);
-		show($sql);
 	}
 	
 // Set names

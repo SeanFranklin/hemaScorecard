@@ -28,6 +28,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 } else {
 	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
+	$exchangeInfo = getMatchExchanges($matchID);
+
 
 // If it is the last match in the tournament the staff is asked to finalize the event
 	askForFinalization($tournamentID); 
@@ -37,12 +39,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 
 //Passes data to Javascript
-	if(isFullAfterblow()){
-		$isFAB = 1;
-	} else { 
-		$isFAB = 0; 
-	}
-	echo "<input type='hidden' value='{$isFAB}' id='isFullAfterblow'>";
+	echo "<input type='hidden' value='{$matchInfo['doubleType']}' id='doubleType'>";
 	
 // Auto refresh if match is in progress
 	if($matchInfo['lastExchange'] != null && $matchInfo['matchComplete'] == 0 
@@ -66,6 +63,12 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		</div>	
 		
 	<?php endif ?>
+
+	<div class='callout alert text-center hidden editExchangeWarningDiv'>
+		<strong>Warning!</strong><BR>
+		You are editing an old exchange, not inserting a new one!<BR>
+		<a class='button alert hollow' onclick="editExchange('')">Cancel Editing</a>
+	</div>
 	
 
 	<div class='grid-x grid-margin-x'>
@@ -81,6 +84,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					<input type='hidden' name='formName' value='newExchange'>
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
+						<input type='hidden' class='exchangeID' name='score[exchangeID]'>
 					<?php dataEntryBox($matchInfo);	?>	
 				</fieldset>		
 				</form>
@@ -99,7 +103,58 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		</div>
 		<!-- Exchange history -->
 			
-		<?php matchHistoryBar($matchInfo); ?>
+		<?php $exchangesNotNumbered = matchHistoryBar($matchInfo); ?>
+		<?php
+		if(USER_TYPE > USER_STAFF 
+		   && $exchangesNotNumbered == false 
+		   && LOCK_TOURNAMENT ==''
+		   && $matchInfo['matchComplete'] == false){
+			?>
+			<div class='large-12 cell'>	
+			<BR>
+			<button class='button' id='editExchangeButton' data-open='poolSetBox'>
+				Edit Exchange
+			</button>
+			<button class='button hidden warning' id='cancelEditExchangeButton' onclick="editExchange('')">
+				Cancel Editing
+			</button>
+
+			<div class='reveal tiny' id='poolSetBox' data-reveal>
+				
+				
+				<h5>Edit Exchange</h5>
+				
+				<?php foreach($exchangeInfo as $exchange): 
+
+					if($exchange['exchangeType'] == 'winner'
+					   || $exchange['exchangeType'] == 'tie'
+					   || $exchange['exchangeType'] == 'doubleOut'){
+						break;
+					}
+					?>
+					<a class='button hollow small-6 cell' data-close aria-label='Close modal' 
+					type='button' onclick="editExchange('<?=$exchange['exchangeID']?>')">
+						[Edit #<?=$exchange['exchangeNumber']?>] 
+						<?=convertExchangeIntoText($exchange, $matchInfo['fighter1ID'])?>
+					</a>
+				<?php endforeach ?>
+
+				<a class='button secondary small-6 cell' data-close aria-label='Close modal' 
+					type='button' onclick="editExchange('')">
+					Cancel
+				</a>
+
+				<!-- Close button -->
+				<button class='close-button' data-close aria-label='Close modal' type='button'>
+					<span aria-hidden='true'>&times;</span>
+				</button>
+			</div>
+		</div>
+			<?php
+		}
+
+
+		?>
 			
 	</div>
 	
@@ -346,6 +401,11 @@ function dataEntryBox($matchInfo){
 			name='lastExchange' value='noExchange' <?=LOCK_TOURNAMENT?>>
 			Add: No Exchange
 		</button>
+			<div class='callout alert text-center hidden editExchangeWarningDiv'>
+		<strong>Warning: </strong>
+		You are editing an old exchange, not inserting a new one!<BR>
+		<a class='button alert hollow' onclick="editExchange('')">Cancel Editing</a>
+	</div>
 	</div>
 	
 	</div>
@@ -414,7 +474,8 @@ function fighterDataEntryBox($matchInfo,$num){
 				</div>
 			
 			<!-- Afterblow score select -->
-				<div <?=$hideAfterblow?>>
+				<?php if($doubleTypes['afterblowType'] == 'deductive'): ?>
+					
 					<div class='input-group grid-x'>
 						<span class='input-group-label large-4 medium-6 small-12'>
 							Afterblow
@@ -431,7 +492,25 @@ function fighterDataEntryBox($matchInfo,$num){
 							<?php endfor ?>
 						</select>
 					</div>
-				</div>
+					
+				<?php endif ?>
+
+			<!-- Control point select -->	
+				<?php $cVal = getControlPointValue();
+					if($cVal != 0): ?>
+					<div class='input-group'>
+						<span class='input-group-label large-4 medium-6 small-12'>
+							Control <BR class='show-for-small-only'>(+<?=$cVal?> Point): 
+						</span>
+						<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
+							<input class='switch-input' type='checkbox' name='attackModifier' 
+							value=9 id='<?=$pre?>_control_check' onclick="scoreDropdownChange()">
+							<label class='switch-paddle' for='<?=$pre?>_control_check'>
+							</label>
+						</div>
+					</div>
+				<?php endif ?>
+
 				
 			<!-- Penalty score select -->	
 				<div id='<?=$pre?>_penalty_div' class='hidden'>
@@ -453,21 +532,6 @@ function fighterDataEntryBox($matchInfo,$num){
 					</div>
 				</div>
 			
-			<?php $cVal = getControlPointValue();
-					if($cVal != 0): ?>
-			<!-- Control point select -->	
-				<div class='input-group'>
-					<span class='input-group-label'>
-						Control (+<?=$cVal?> Point): 
-					</span>
-					<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
-					<input class='switch-input' type='checkbox' name='attackModifier' 
-						value=9 id='control_check<?=$pre?>'>
-					<label class='switch-paddle' for='control_check<?=$pre?>'>
-					</label>
-					</div>
-				</div>
-			<?php endif ?>
 			</div>
 		</div>
 	</div>

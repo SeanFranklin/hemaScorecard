@@ -79,6 +79,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentDoubleType($tournamentID);
 				edit_tournamentRankingType($tournamentID);
 				edit_tournamentBasePoints($tournamentID);
+				edit_tournamentNetScore($tournamentID);
 				?>
 			</div>
 			<div class='grid-x grid-padding-x text-center'>

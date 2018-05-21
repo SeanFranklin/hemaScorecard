@@ -1,12 +1,16 @@
 /************************************************************************************/
 
+const NO_AFTERBLOW = 1;
+const DEDUCTIVE_AFTERBLOW = 2;
+const FULL_AFTERBLOW = 3;
+const DOUBLE_TYPE = $('#doubleType').val();
+
 function isValidExchange(){
 	var exchButton = document.getElementById('New_Exchange_Button');
 	
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
+	
 	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
 	var radioValOverlap = false;
@@ -17,31 +21,58 @@ function isValidExchange(){
 	}
 	
 	var invalidText = "Invalid Exchange";
-	
-	if(fighter1Score.value != "" && (fighter2Score.value != "" || fighter2Afterblow.value != "") ){
-		if(document.getElementById('isFullAfterblow').value != 1){
+
+// Two scores are selected	
+	if(DOUBLE_TYPE != FULL_AFTERBLOW)
+	{
+		if(fighter1Score.value != "" && fighter2Score.value != ""){
 			isValid = false;
 		}
 	}
-	if(fighter2Score.value != "" && (fighter1Score.value != "" || fighter1Afterblow.value != "") ){
-		if(document.getElementById('isFullAfterblow').value != 1){
+
+// An afterblow is selected with no score
+	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
+		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
+
+		if( (fighter1Score.value == "" && fighter1Afterblow.value != "")
+			|| (fighter2Score.value == "" && fighter2Afterblow.value != "")){
 			isValid = false;
 		}
 	}
-	if(fighter1Afterblow.value != "" && fighter1Score.value == ""){
+
+
+// A radio button and a score is checked
+	if(    (fighter1Score.value != "" || fighter2Score.value != "") 
+		&& (radioValOverlap == false))
+		{
 		isValid = false;
 	}
-	if(fighter2Afterblow.value != "" && fighter2Score.value == ""){
-		isValid = false;
+
+// Penalty mode
+	if(radioVal == "penalty"){
+		var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
+		var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
+
+		if( fighter1Score.value != "" || fighter2Score.value != ""){
+			isValid = false;
+		}
+		if( (fighter1Penalty.value == "" && fighter2Penalty.value == "")
+			|| (fighter1Penalty.value != "" && fighter2Penalty.value != ""))
+			{
+			isValid = false;
+		}
 	}
-	
-	if( (fighter1Score.value != "" || fighter2Score.value != "") && radioValOverlap == false){
-		isValid = false;
-	}
-	
-	if((fighter1Score.value == "" && fighter2Score.value == "") && radioVal == 'penalty'){
-		 isValid = false;
-		 invalidText = "Select Penalty Value";
+
+// Control Points
+	fighter1Control = document.getElementById('fighter1_control_check');
+	fighter2Control = document.getElementById('fighter2_control_check');
+	if(fighter1Control != null && fighter2Control != null){
+		if($(fighter1Control).is(':checked') || $(fighter2Control).is(':checked')){
+			if(exchButton.value != 'scoringHit'){
+				isValid = false;
+			}
+		}
 	}
 	
 	if(isValid){
@@ -56,32 +87,31 @@ function isValidExchange(){
 /************************************************************************************/
 
 function penaltyDropDownChange(){
+
 	var exchButton = document.getElementById('New_Exchange_Button');
-	
-	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
-	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
-	
-	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
-	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
-	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
+
+	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
+	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
+
 	
-	fighter1Score.selectedIndex = 0;
-	fighter1Afterblow.selectedIndex = 0;
-	fighter1Afterblow.disabled = "disabled";
-	
-	fighter2Score.selectedIndex = 0;
-	fighter2Afterblow.selectedIndex = 0;
-	fighter2Afterblow.disabled = "disabled";
-	
+	$('#fighter1_score_dropdown').prop('selectedIndex',0);
+	$('#fighter2_score_dropdown').prop('selectedIndex',0);
+
+	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
+		fighter1Afterblow.selectedIndex = 0;
+		fighter1Afterblow.disabled = "disabled";
+
+		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
+		fighter2Afterblow.selectedIndex = 0;
+		fighter2Afterblow.disabled = "disabled";
+	}
+
 	document.getElementById('fighter1_penalty_div').classList.remove('hidden');
 	document.getElementById('fighter2_penalty_div').classList.remove('hidden');
 
-	$(exchButton).removeClass();
-	$(exchButton).addClass("button large expanded");
-	$(exchButton).addClass("alert");
+	setExchButtonClasses("alert");
 	
 	if(fighter1Penalty.value != "" || fighter2Penalty.value != ""){
 		document.getElementById('Penalty_Radio').checked = 'checked';
@@ -97,6 +127,8 @@ function penaltyDropDownChange(){
 		exchButton.innerHTML = "Invalid Input";
 		exchButton.value = "";
 	}
+
+	isValidExchange();
 	
 }
 
@@ -105,12 +137,11 @@ function penaltyDropDownChange(){
 function scoreDropdownChange(selectID){
 	var exchButton = document.getElementById('New_Exchange_Button');
 	
+
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
 	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
 	
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
 	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
 	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
@@ -121,73 +152,115 @@ function scoreDropdownChange(selectID){
 	fighter2Penalty.selectedIndex = 0;
 	
 	document.getElementById('NA_Radio').checked = 'checked';
-	
 
-// Disable Afterblow if there is no initial hit for a fighter
-	if(fighter1Score.value == ""){
-		fighter1Afterblow.selectedIndex=0;
-		fighter1Afterblow.disabled = "disabled";
-	} else {fighter1Afterblow.disabled = null;}
-	
-	if(fighter2Score.value == ""){
-		fighter2Afterblow.selectedIndex=0;
-		fighter2Afterblow.disabled = "disabled";
-	} else {
-		fighter2Afterblow.disabled = null;}
+	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
+		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
 
-// Check if it is a full afterblow scoring
-	var isFAB = $('#isFullAfterblow').attr('value');
+		// Disable Afterblow if there is no initial hit for a fighter
+		if(fighter1Score.value == "" || fighter1Score.value == "noQuality"){
+			fighter1Afterblow.selectedIndex=0;
+			fighter1Afterblow.disabled = "disabled";
+		} else {fighter1Afterblow.disabled = null;}
+		
+		if(fighter2Score.value == "" || fighter2Score.value == "noQuality"){
+			fighter2Afterblow.selectedIndex=0;
+			fighter2Afterblow.disabled = "disabled";
+		} else {
+			fighter2Afterblow.disabled = null;
+		}
+	}
+
+// Toggle Control Point Button
+	fighter1Control = document.getElementById('fighter1_control_check');
+	fighter2Control = document.getElementById('fighter2_control_check');
+	if(fighter1Control != null && fighter2Control != null){
+		if(fighter1Score.value != ""){
+			$(fighter2Control).prop('checked', false);
+			$(fighter2Control).prop('disabled', true);
+			$(fighter1Control).prop('disabled', false);
+		} 
+		if(fighter2Score.value != ""){
+			$(fighter1Control).prop('checked', false);
+			$(fighter1Control).prop('disabled', true);
+			$(fighter2Control).prop('disabled', false);
+		}
+		if(fighter1Score.value != "" && fighter2Score.value != ""){
+			$(fighter1Control).prop('disabled', true);
+			$(fighter2Control).prop('disabled', true);
+		}
+		if(fighter1Score.value == "" && fighter2Score.value == ""){
+			$(fighter1Control).prop('checked', false);
+			$(fighter2Control).prop('checked', false);
+			$(fighter1Control).prop('disabled', false);
+			$(fighter2Control).prop('disabled', false);
+		}
+
+	}
+
 	
 // Select no exchange if no scores are selected
 	if(fighter1Score.value === "" && fighter2Score.value == ""){
 		document.getElementById('No_Exchange_Radio').checked = 'checked';
 		exchButton.value = "noExchange";
 		exchButton.innerHTML = "Add: No Exchange";
-		$(exchButton).removeClass();
-		$(exchButton).addClass("button large expanded");
-		$(exchButton).addClass("");
-	} else if(isFAB == 1) {
+		setExchButtonClasses("");
+	} else if(DOUBLE_TYPE == FULL_AFTERBLOW) {
+
 		if(		(fighter1Score.value == "noQuality" && fighter2Score.value == "")
 			||  (fighter1Score.value == "" && fighter2Score.value == "noQuality"))
 		{
 			exchButton.value = "noQuality";
-			exchButton.innerHTML = "Add: No Quality";	
+			exchButton.innerHTML = "Add: No Quality";
+			setExchButtonClasses("hollow");	
 		} else {
 			exchButton.value = "scoringHit";
 			if(fighter1Score.value !== "" && fighter2Score.value !== ""){
+				setExchButtonClasses("alert");	
 				exchButton.innerHTML = "Add: Double Hit";
 			} else {
+				setExchButtonClasses("success");	
 				exchButton.innerHTML = "Add: Clean Hit";
 			}
 		}
-		
 		
 	} else {	
 		if(fighter1Score.value == "noQuality" || fighter2Score.value == "noQuality"){
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
-				$(exchButton).removeClass();
-				$(exchButton).addClass("button large expanded");
-				$(exchButton).addClass("hollow");
+
+			setExchButtonClasses("hollow");
 		} else if(fighter1Penalty.value !== "" && fighter2Penalty.value !== ""){
 			
 		} else {
 			exchButton.value = "scoringHit";
-			$(exchButton).removeClass();
-			$(exchButton).addClass("button large expanded");
-			$(exchButton).addClass("success");		
-			if(fighter1Afterblow.value != "" || fighter2Afterblow.value != ""){
-				exchButton.innerHTML = "Add: Afterblow";
-			} else {
+
+			setExchButtonClasses("success");
+			if( DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+				if(fighter1Afterblow.value != "" || fighter2Afterblow.value != ""){
+					exchButton.innerHTML = "Add: Afterblow";
+				} else {
+					exchButton.innerHTML = "Add: Clean Hit";
+				}
+
+			}else {
+
 				exchButton.innerHTML = "Add: Clean Hit";
+				
 			}
 		}
-		
-		
 	}
 
 	isValidExchange();
 	
+}
+
+/************************************************************************************/
+
+function setExchButtonClasses(classes){
+	$("#New_Exchange_Button").removeClass();
+	$("#New_Exchange_Button").addClass("button large expanded");
+	$("#New_Exchange_Button").addClass(classes);
 }
 
 /************************************************************************************/
@@ -197,21 +270,24 @@ function modifiersRadioButtons(){
 	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
 	
-	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
-	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
-	
-	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
-	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');		
-	
-	fighter1Score.selectedIndex = 0;
-	fighter1Afterblow.selectedIndex = 0;
-	fighter1Penalty.selectedIndex = 0;
-	fighter2Score.selectedIndex = 0;
-	fighter2Afterblow.selectedIndex = 0;
-	fighter2Penalty.selectedIndex = 0;
-	
+	$('#fighter1_score_dropdown').prop('selectedIndex',0);
+	$('#fighter2_score_dropdown').prop('selectedIndex',0);
+	$('#fighter1_penalty_dropdown').prop('selectedIndex',0);
+	$('#fighter2_penalty_dropdown').prop('selectedIndex',0);
+	fighter1Control = document.getElementById('fighter1_control_check');
+	fighter2Control = document.getElementById('fighter2_control_check');
+	if(fighter1Control != null && fighter2Control != null){
+		$(fighter1Control).prop('checked', false);
+		$(fighter2Control).prop('checked', false);
+		$(fighter1Control).prop('disabled', true);
+		$(fighter2Control).prop('disabled', true);
+	}
+
+	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+		$('#fighter1_afterblow_dropdown').prop('selectedIndex',0);
+		$('#fighter2_afterblow_dropdown').prop('selectedIndex',0);
+	}
+
 	document.getElementById('fighter1_penalty_div').classList.add('hidden');
 	document.getElementById('fighter2_penalty_div').classList.add('hidden');
 	
@@ -219,30 +295,22 @@ function modifiersRadioButtons(){
 		case 'noExch':
 			exchButton.value = "noExchange";
 			exchButton.innerHTML = "Add: No Exchange";
-			$(exchButton).removeClass();
-			$(exchButton).addClass("button large expanded");
-			$(exchButton).addClass("");
+			setExchButtonClasses("");
 			break;
 		case 'doubleHit':
 			exchButton.value = "doubleHit";
 			exchButton.innerHTML = "Add: Double Hit";
-			$(exchButton).removeClass();
-			$(exchButton).addClass("button large expanded");
-			$(exchButton).addClass("alert");
+			setExchButtonClasses("alert");
 			break;
 		case 'clearLast':
 			exchButton.value = "clearLastExchange";
 			exchButton.innerHTML = "Remove: Last Exchange";
-			$(exchButton).removeClass();
-			$(exchButton).addClass("button large expanded");
-			$(exchButton).addClass("warning");
+			setExchButtonClasses("warning");
 			break;
 		case 'clearAll':
 			exchButton.value = "clearAllExchanges";
 			exchButton.innerHTML = "Remove: All Exchanges";
-			$(exchButton).removeClass();
-			$(exchButton).addClass("button large expanded");
-			$(exchButton).addClass("alert hollow");
+			setExchButtonClasses("alert hollow");
 			break;
 		case 'penalty':
 			penaltyDropDownChange();
@@ -255,7 +323,28 @@ function modifiersRadioButtons(){
 
 /**********************************************************************/
 
+function editExchange(exchangeID){
+
+	$('.exchangeID').val(exchangeID);
+
+	if(exchangeID == ''){
+		$('#editExchangeButton').show();
+		$('#cancelEditExchangeButton').hide();
+		$('.editExchangeWarningDiv').hide();
+		 $('body').css('background-color', '');
+	} else {
+		$('#editExchangeButton').hide();
+		$('#cancelEditExchangeButton').show();
+		$('.editExchangeWarningDiv').show();
+		$('body').css('background-color', '#ddd');
+	}
+
+}
+
+/**********************************************************************/
+
 function validateYoutube(){
+
 	var buttons = document.getElementsByClassName('youtubeSubmitButton');
 	
 	var url = document.getElementById('youtubeField').value;
