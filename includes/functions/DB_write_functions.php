@@ -1999,7 +1999,7 @@ function renameGroups($maxGroupSets = null){
 /******************************************************************************/
 
 function reOrderGroups($groupList = null){
-	
+
 	if($groupList == null){
 		$groupList = $_POST['newGroupNumber'];
 	}
@@ -2245,6 +2245,7 @@ function updateEventTournaments(){
 					{$info['useTimer']},
 					{$info['useControlPoint']},
 					{$info['isNotNetScore']}
+
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);

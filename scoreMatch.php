@@ -30,6 +30,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
 	$exchangeInfo = getMatchExchanges($matchID);
 
+
 // If it is the last match in the tournament the staff is asked to finalize the event
 	askForFinalization($tournamentID); 
 	

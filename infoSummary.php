@@ -41,7 +41,6 @@ if($_SESSION['eventID'] == null){
 		
 		
 		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
-		
 			<a name='anchor<?=$tournamentID?>'></a>
 			<legend><h4><a <?=$link?>><?= $name ?></a></h4></legend>
 
