@@ -31,19 +31,24 @@ if($_SESSION['eventID'] == null){
 		$placings = getTournamentPlacings($tournamentID);
 		
 		$name = getTournamentName($tournamentID); 
-		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
-			$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
+		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
 					style='cursor: pointer;'";
-		} else {
-			$link = null;
-		}
+		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
+			$fieldsetLink = $link;
+		} 
+		
 		?>
 		
 		
-		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$link?>>
-			
+		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
+		
 			<a name='anchor<?=$tournamentID?>'></a>
-			<legend><h4><?= $name ?></h4></legend>
+			<legend><h4><a <?=$link?>><?= $name ?></a></h4></legend>
+
+			<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
+			<input type='hidden' name='formName' value='changeTournament'>
+			<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
+			</form>	
 		
 		<!-- If no tournament results -->	
 			 <?php if(!isFinalized($tournamentID)): ?>
@@ -69,12 +74,7 @@ if($_SESSION['eventID'] == null){
 							Manually Finalize Tournament
 						</button>
 						</form>
-					<?php endif ?>
-				<?php else: ?>
-					<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
-					<input type='hidden' name='formName' value='changeTournament'>
-					<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
-					</form>
+					<?php endif ?>					
 				<?php endif ?>
 				</fieldset>
 				

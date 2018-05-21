@@ -9,17 +9,56 @@
 
 /******************************************************************************/
 
-function loadCuttingQuallificationList(){
-// Loads the cutting quallification list
-//https://docs.google.com/spreadsheets/d/1h1_wCgS-ESrcJdZRxa-gXXl7V7Rldwz0rMlLx3J2dA4/pubhtml
+function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 
+	if($exchangeInfo['rosterID'] == $fighter1ID){
+		$fighter1 = true;
+	} else {
+		$fighter1 = false;
+	}
 
-// NOT USED ANYMORE - reference on how to load from google docs
-	$url="https://docs.google.com/spreadsheet/pub?key=1h1_wCgS-ESrcJdZRxa-gXXl7V7Rldwz0rMlLx3J2dA4&single=true&gid=0&output=csv";
-	$headers = ['firstName', 'lastName', 'quallLevel', 'quallDate'];
-	return getGoogleSpreadsheet($url,$headers);
-	
+	switch($exchangeInfo['exchangeType']){
+		case 'double':
+			$text = 'Double Hit';
+			break;
+		case 'noExchange':
+			$text = 'No Exchange';
+			break;
+		case 'noQuality':
+			$text = 'No Quality';
+			$appendName = true;
+			break;
+		case 'afterblow':
+			$text = "Afterblow: {$exchangeInfo['scoreValue']} - {$exchangeInfo['scoreDeduction']}";
+			$appendName = true;
+			break;
+		case 'clean':
+			$text = "Clean Hit: {$exchangeInfo['scoreValue']}";
+			$appendName = true;
+			break;
+		case 'penalty':
+			$text = "Penalty: {$exchangeInfo['scoreValue']}";
+			$appendName = true;
+			break;
+		default:
+			$text = '';
+			break;
+
+	}
+
+	if($appendName == true){
+		if($exchangeInfo['rosterID'] == $fighter1ID){
+			$color = COLOR_NAME_1;
+		} else {
+			$color = COLOR_NAME_2;
+		}
+		$text .= " for {$color}";
+
+	}
+
+	return $text;
 }
+
 
 /******************************************************************************/
 

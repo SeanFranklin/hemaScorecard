@@ -650,7 +650,7 @@ function getDoubleTypes($tournamentID = null){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}	
 
-	$sql = "SELECT doublesDisabled, afterblowDisabled, afterblowType
+	$sql = "SELECT doublesDisabled, afterblowDisabled, afterblowType, isNotNetScore
 			FROM systemDoubleTypes
 			INNER JOIN eventTournaments USING(doubleTypeID)
 			WHERE tournamentID = {$tournamentID}";
@@ -1249,11 +1249,11 @@ function getMatchExchanges($matchID = null){
 		
 	$sql = "SELECT eventExchanges.exchangeType, eventExchanges.exchangeID,
 			eventExchanges.scoreValue, eventExchanges.scoreDeduction,
-			eventRoster.rosterID, exchangeTime
+			eventRoster.rosterID, exchangeTime, exchangeNumber
 			FROM eventExchanges
 			INNER JOIN eventRoster ON eventRoster.rosterID = eventExchanges.scoringID
 			WHERE eventExchanges.matchID = {$matchID}
-			ORDER BY exchangeID ASC"; 
+			ORDER BY exchangeNumber ASC, exchangeID ASC"; 
 			
 	$result = mysqlQuery($sql, ASSOC);
 
@@ -1327,6 +1327,13 @@ function getMatchInfo($matchID = null){
 			FROM eventExchanges
 			WHERE matchID = {$matchID}";	
 	$matchInfo['lastExchange'] = mysqlQuery($sql, SINGLE, 'MAX(exchangeID)');
+
+	$sql = "SELECT doubleTypeID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE matchID = {$matchID}";	
+	$matchInfo['doubleType'] = mysqlQuery($sql, SINGLE, 'doubleTypeID');
 	
 	
 	if($matchInfo['matchComplete'] == 1){

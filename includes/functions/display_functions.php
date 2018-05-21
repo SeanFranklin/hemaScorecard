@@ -927,6 +927,65 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentNetScore($tournamentID = 'new'){
+// Select menu for whether or not the tournament uses net score for Full Afterblow
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a box to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(isPools($tournamentID) || isBrackets($tournamentID)){
+			
+			$sql = "SELECT isNotNetScore
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$noNetScore = (int)mysqlQuery($sql, SINGLE, 'isNotNetScore');
+
+			$doubleType = getDoubleTypes($tournamentID);
+			if($doubleType['afterblowType'] == 'full'){
+				unset($display);
+			}
+			$selected0 = isSelected($noNetScore,0);	
+			$selected1 = isSelected($noNetScore,1);	
+
+		}
+	} elseif($tournamentID == 'new') {
+
+		$nullOptionSelected = 'selected';
+	}
+
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='notNetScore_div<?=$tournamentID?>' >
+			
+		Use Net Points
+		<?php tooltip("<strong>Net Points</strong><BR>
+						Only the higher scoring fighter recieves points.<BR>
+						[High Score] - [Low Score]<BR><BR>
+						<strong>No Net Points</strong><BR>
+						Both fighters recieve their score"); ?>
+		
+		<select name='updateTournament[isNotNetScore]'
+			onchange="enableTournamentButton('<?=$tournamentID?>')"
+			id='notNetScore_select<?=$tournamentID?>'>
+			
+			<option <?=$nullOptionSelected?> disabled></option>
+			<option value='0' <?=$selected0?> >Yes</option>
+			<option value='1' <?=$selected1?> >No</option>
+			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentTimer($tournamentID = 'new'){
 // Select menu for whether or not the tournament uses a timer
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1603,8 +1662,15 @@ function matchHistoryBar($matchInfo){
 	
 	$colorCode1 = COLOR_CODE_1;
 	$colorCode2 = COLOR_CODE_2;
+	$isZeroNumberedExchanges = false;
 	
 	foreach($exchangeInfo as $exchange){
+	// Check if there are old exchanges in the system which don't have an exchange order assigned.
+		if($exchange['exchangeNumber'] == 0){
+			$isZeroNumberedExchanges = true;
+		}
+
+
 	// Create a list of exchanges with appropriate text for each
 		$i++;
 		$t = $exchange['exchangeTime'];
@@ -1616,57 +1682,49 @@ function matchHistoryBar($matchInfo){
 
 		$exchanges[$i]['time'] = "{$m}:{$s}";
 
+		if($exchange['rosterID'] == $matchInfo['fighter1ID']){
+			$index1 = 1;
+			$index2 = 2; 
+		} else {
+			$index1 = 2;
+			$index2 = 1; 
+		}
+
 		switch ($exchange['exchangeType']){
 			case "doubleOut":
 				$exchanges[$i][1][1] = "<em>D/</em>";
 				$exchanges[$i][1][2] = "<em>Out</em>";
-				$exchanges[$i][2][1] = "<em>D/</em>";
-				$exchanges[$i][2][2] = "<em>Out</em>";
+				$exchanges[$i][2][1] = $exchanges[$i][1][1];
+				$exchanges[$i][2][2] = $exchanges[$i][1][2];
 				break;
 
 			case "tie":
 				$exchanges[$i][1][2] = "<em>Tie</em>";
-				$exchanges[$i][2][2] = "<em>Tie</em>";
+				$exchanges[$i][2][2] = $exchanges[$i][1][2];
 				break;
 
 			case "winner":
-				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$winIndex = 1;
-					$loseIndex = 2;
-				} else {
-					$winIndex = 2;
-					$loseIndex = 1;
-				}
-				$exchanges[$i][$winIndex][2] = "<em>Win</em>";
-
+				$exchanges[$i][$index1][2] = "<em>Win</em>";
 				break;
 
 			case "penalty":
-				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = "<b>P</b>";
-					$exchanges[$i][1][2] = "<b>".$exchange['scoreValue']."</b>";	
-				} else {
-					$exchanges[$i][2][1] = "<b>P</b>";
-					$exchanges[$i][2][2] = "<b>".$exchange['scoreValue']."</b>";
-				}
+				$exchanges[$i][$index1][1] = "<b>P</b>";
+				$exchanges[$i][$index1][2] = "<b>".$exchange['scoreValue']."</b>";	
+
 				break;
 
 			case "noQuality":
-				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = "<b>No</b>";
-					$exchanges[$i][1][2] = "<b>Q</b>";
-				} else {
-					$exchanges[$i][2][1] = "<b>No</b>";
-					$exchanges[$i][2][2] = "<b>Q</b>";
-				}
+				$exchanges[$i][$index1][1] = "<b>No</b>";
+				$exchanges[$i][$index1][2] = "<b>Q</b>";
+
 				break;
 
 			case "double":
 				$doubles++;
 				$exchanges[$i][1][1] = "<b>D</b>";
 				$exchanges[$i][1][2] = "<b>#".$doubles."</b>";
-				$exchanges[$i][2][1] = "<b>D</b>";
-				$exchanges[$i][2][2] = "<b>#".$doubles."</b>";
+				$exchanges[$i][2][1] = $exchanges[$i][1][1];
+				$exchanges[$i][2][2] = $exchanges[$i][1][2];
 				break;
 				
 			case "noExchange":
@@ -1675,34 +1733,36 @@ function matchHistoryBar($matchInfo){
 				break;
 				
 			case "afterblow":
-				if($doubleTypes['afterblowType'] == 'deductive'){
-					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = "<b>".$exchange['scoreValue']."</b>";
-						$exchanges[$i][1][2] = "(".(-$exchange['scoreDeduction']).")";	
+				if($doubleTypes['afterblowType'] == 'deductive'){	
+
+					$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
+					$exchanges[$i][$index1][2] = "(".(-$exchange['scoreDeduction']).")";	
+
+				} else {
+
+					if ($doubleTypes['isNotNetScore'] == 0){
+
+						$exchanges[$i][$index1][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
+						$exchanges[$i][$index1][2] = "(".$exchange['scoreValue'].")";
+						$exchanges[$i][$index2][2] = "(".$exchange['scoreDeduction'].")";
+
+						if(($exchange['scoreValue'] - $exchange['scoreDeduction']) == 0){
+							unset($exchanges[$i][$index1][1]);
+						}
+						
 					} else {
-						$exchanges[$i][2][1] = "<b>".$exchange['scoreValue']."</b>";
-						$exchanges[$i][2][2] = "(".(-$exchange['scoreDeduction']).")";	
-					}	
-					
-				} else if ($doubleTypes['afterblowType'] == 'full'){
-					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
-						$exchanges[$i][1][2] = "(".$exchange['scoreValue'].")";
-						$exchanges[$i][2][1] = "(".$exchange['scoreDeduction'].")";
-					} else {
-						$exchanges[$i][1][1] = "(".$exchange['scoreDeduction'].")";
-						$exchanges[$i][2][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
-						$exchanges[$i][2][2] = "(".$exchange['scoreValue'].")";
+
+						$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
+						$exchanges[$i][$index2][1] = "<b>".$exchange['scoreDeduction']."</b>";
+
 					}
+
 				}
 				break;
 				
 			case "clean":
-				if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-					$exchanges[$i][1][1] = "<b>".$exchange['scoreValue']."</b>";
-				} else {
-					$exchanges[$i][2][1] = "<b>".$exchange['scoreValue']."</b>";
-				}
+				$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
+
 				break;
 			default:
 				break;
@@ -1832,7 +1892,10 @@ function matchHistoryBar($matchInfo){
 	</div>
 
 
-<?php }
+<?php 
+	return $isZeroNumberedExchanges;
+
+}
 
 /******************************************************************************/
 

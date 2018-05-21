@@ -180,7 +180,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Headers -->
 			<tr>
 				<th colspan='100%'>
-					Cumulative
+					Round Total
 				</th>
 			</tr>
 			<tr>
