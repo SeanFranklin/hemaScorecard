@@ -97,6 +97,7 @@ function pageError($type){
 function confirmDeleteReveal($formID, $formName){
 	
 	?>
+
 	
 	<script>
 	function submitThisForm(){
@@ -1755,31 +1756,14 @@ function matchHistoryBar($matchInfo){
 						$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
 						$exchanges[$i][$index2][1] = "<b>".$exchange['scoreDeduction']."</b>";
 
-				if($doubleTypes['afterblowType'] == 'deductive'){
-					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = "<b>".$exchange['scoreValue']."</b>";
-						$exchanges[$i][1][2] = "(".(-$exchange['scoreDeduction']).")";	
-					} else {
-						$exchanges[$i][2][1] = "<b>".$exchange['scoreValue']."</b>";
-						$exchanges[$i][2][2] = "(".(-$exchange['scoreDeduction']).")";	
-					}	
-					
-				} else if ($doubleTypes['afterblowType'] == 'full'){
-					if($exchange['rosterID'] == $matchInfo['fighter1ID']){
-						$exchanges[$i][1][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
-						$exchanges[$i][1][2] = "(".$exchange['scoreValue'].")";
-						$exchanges[$i][2][1] = "(".$exchange['scoreDeduction'].")";
-					} else {
-						$exchanges[$i][1][1] = "(".$exchange['scoreDeduction'].")";
-						$exchanges[$i][2][1] = "<b>".($exchange['scoreValue'] - $exchange['scoreDeduction'])."</b>";
-						$exchanges[$i][2][2] = "(".$exchange['scoreValue'].")";
 					}
 
 				}
 				break;
 				
-        case "clean":
-				    $exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
+			case "clean":
+				$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
+
 				break;
 			default:
 				break;

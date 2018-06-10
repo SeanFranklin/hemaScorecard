@@ -275,9 +275,11 @@ function sortFighters($fighters){
 /******************************************************************************/
 
 function calculateFighterStats($weaponID){
-	for($i=1;$i<=300;$i++){
+
+	$systemRosterIDs = getSystemRoster();
+
+	foreach($systemRosterIDs as $systemRosterID){
 	
-		$systemRosterID = $i;
 		$isScoringFighter = true;
 		$a = getFighterExchanges($systemRosterID,$weaponID);
 		foreach($a as $ex){
@@ -416,6 +418,7 @@ function calculateFighterStats($weaponID){
 	
 		}
 	}
+
 	
 	return $fighters;
 }

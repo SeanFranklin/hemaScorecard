@@ -475,7 +475,7 @@ function updatePoolStandings($tournamentID = null){
 	for($setNumber = 1; $setNumber <= $numberOfPoolSets; $setNumber++){
 		
 		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
-		
+	
 		// Calculate Scores
 		$fighterScores = pool_ScoreFighters($poolExchanges, $tournamentID, $setNumber);
 		$fighterRanks = pool_RankFighters($fighterScores, $tournamentID);

@@ -34,7 +34,7 @@ if($_SESSION['eventID'] == null){
 	
 		<div class='grid-x grid-margin-x'>
 			<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>
+			<span class='input-group-label pointer'>
 				Event Status&nbsp;<img src='includes/images/help.png' data-open="statusTypes">
 			</span>
 			<select class='input-group-field' type='text' name='eventStatus'>
@@ -66,7 +66,7 @@ if($_SESSION['eventID'] == null){
 			</li>
 			<li>
 				<strong>Upcomming</strong> - 
-				Everyone can see the event tournaments and roster, only event staff/organizers can see pools/matches.
+				Everyone can see the event tournaments and roster. Only event staff/organizers can see pools/matches.
 			</li>
 			<li>
 				<strong>Active</strong> - 

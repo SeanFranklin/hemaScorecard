@@ -18,6 +18,8 @@ function mysqlConn(){
 	checkMySQL();
 }
 
+
+
 // Function to submit query and return the result object
 function mysqlQuery($query, $type, $key = null, $key2 = null){
 

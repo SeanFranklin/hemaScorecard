@@ -349,6 +349,8 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 			AND ignoreMatch != 1";
 	$rawExchangeData = (array)mysqlQuery($sql, ASSOC);
 	
+	$isFullAfterblow = isFullAfterblow($tournamentID);
+
 	foreach($rawExchangeData as $exchange){
 		$matchID = $exchange['matchID'];
 
@@ -362,13 +364,25 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 			case 'clean':
 			case 'afterblow':
 				$fighterStats[$scoringID]['pointsFor'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
+				$fighterStats[$scoringID]['AbsPointsFor'] += $exchange['scoreValue'];
+				$fighterStats[$scoringID]['AbsPointsAgainst'] += $exchange['scoreDeduction'];
 				$fighterStats[$scoringID]['hitsFor']++;
 				
 				$fighterStats[$recievingID]['pointsAgainst'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
+				$fighterStats[$recievingID]['AbsPointsFor'] += $exchange['scoreDeduction'];
+				$fighterStats[$recievingID]['AbsPointsAgainst'] += $exchange['scoreValue'];
 				$fighterStats[$recievingID]['hitsAgainst']++;
+				
 				if($exchange['exchangeType'] == 'afterblow'){
 					$fighterStats[$scoringID]['afterblowsAgainst']++;
 					$fighterStats[$recievingID]['afterblowsFor']++;
+
+					if(($exchange['scoreValue'] == $exchange['scoreDeduction'])
+						&& $isFullAfterblow){
+						$fighterStats[$scoringID]['hitsFor']--;
+						$fighterStats[$scoringID]['hitsAgainst']++;
+					}
+
 				}
 				break;
 			case 'double':
@@ -848,7 +862,6 @@ function getEventName($eventID = null){
 	$sql = "SELECT eventName, eventYear
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
-			
 	
 	$result = mysqlQuery($sql, SINGLE);
 	$eventName = $result['eventName']." ".$result['eventYear'];
