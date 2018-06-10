@@ -48,6 +48,17 @@ if($eventID == null){
 		if($_SESSION['addEventParticipantsMode'] == 'school'){
 			addNewParticipantsBySchool($tournamentList,$schoolList);
 		}
+		
+		confirmDeleteReveal('eventRosterForm', 'deleteFromEvent', 'large');
+			?>
+	<div style='display:inline'>
+	<span id='deleteButtonContainer'>
+		<button class='button alert hollow' name='formName' value='deleteFromEvent' id='deleteButton'>
+			Delete Selected
+		</button>
+	</span>
+	</div><?php
+		
 	}
 
 // Display roster
@@ -108,6 +119,22 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 			
 		<!-- Participant info -->
 			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
+				
+				<?php
+					$sql = "SELECT systemRosterID
+							FROM eventRoster
+							WHERE rosterID = {$rosterID}";
+					$systemRosterID = mysqlQuery($sql, SINGLE, 'systemRosterID');		
+					$sql = "SELECT count(rosterID) AS num
+							FROM eventRoster
+							WHERE systemRosterID = {$systemRosterID}";
+					$num = mysqlQuery($sql, SINGLE, 'num');
+
+
+
+				?>
+
+
 				<?=getFighterName($rosterID)?>
 			</td>
 		
@@ -147,7 +174,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 	</table>
 
 	<?php if(USER_TYPE >= USER_ADMIN): ?>
-		<?php confirmDeleteReveal('eventRosterForm', 'deleteFromEvent', 'large'); ?>
+		
 		<span id='deleteButtonContainer'>
 			<button class='button alert hollow' name='formName' value='deleteFromEvent' id='deleteButton'>
 				Delete Selected
@@ -163,6 +190,7 @@ function addNewParticipantsButtons(){
 	if($_SESSION['userType'] < USER_ADMIN){ return; }
 	?>
 
+	<div style='display:inline-block'>
 	<form method='POST'><input type='hidden' name='formName' value='addEventParticipantsMode'>
 	
 		<?php if($_SESSION['addEventParticipantsMode'] != 'school'):?>
@@ -180,6 +208,7 @@ function addNewParticipantsButtons(){
 		</a>
 		<BR>
 	</form>
+	</div>
 	
 <?php }
 

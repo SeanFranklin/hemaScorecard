@@ -482,6 +482,7 @@ function _Flowerpoint_scores($fighterStats, $poolSet = 1){
 	unset($fighterStats);
 
 	$tournamentID = TOURNAMENT_ID;
+
 // Check if it is cumulative or not
 	$sql = "SELECT attributeBool
 			FROM eventAttributes
@@ -804,6 +805,99 @@ function _PointsFor_scores($fighterStats){
 
 /******************************************************************************/
 
+function _SimpleRankOrder_advancements(){
+// Calculate advancements to move onto the next pools
+// Throws fighters in by order of rank until all positions have been filled
+
+	$tournamentID = $_SESSION['tournamentID'];
+	$poolSet = $_SESSION['groupSet'];
+	$lastPoolSet = $poolSet - 1;
+
+
+	$maxPoolSize = maxPoolSize($tournamentID);
+	$standings = getTournamentStandings($tournamentID, $lastPoolSet, 'pool', 'advance');
+	$groupSet = $_SESSION['groupSet'];
+	$numberOfPools = getNumPools($groupSet, $tournamentID);
+
+	$poolNumber = 1;
+	$poolPosition = 1;
+
+	foreach($standings as $fighter){
+
+		$_SESSION['poolSeeds'][$poolNumber][$poolPosition] = $fighter['rosterID'];
+		$poolPosition++;
+
+		if($poolPosition > $maxPoolSize){
+			$poolPosition = 1;
+			$poolNumber++;
+
+		}
+		if($poolNumber > $numberOfPools){
+			break;
+		}
+	}
+	
+
+}
+
+/******************************************************************************/
+
+function _Thokk_display($entry, $class = null){
+// Displays an a fighter's score for tournaments using 'Thokk' scoring
+// A request to generate a header may be passed instead of an exchange
+	?>
+	
+<!-- Headers -->
+	<?php if($entry == 'headers'): ?>
+		<tr>
+			<th>Rank</th>
+			<th>Name</th>
+			<th>Bouts Won</th>
+			<th>Bouts Lost</th>
+			<th>Points Against</th>
+		</tr>
+		<?php return; ?>
+	<?php endif ?>
+	
+	<?php
+		$pushes = $entry['matches'] - $entry['hitsFor'];
+		$pushes += (-$entry['losses'] - $entry['doubles']);
+		$pushes = round($pushes,1);
+		if($pushes <= 0.2) {$pushes = 0; }
+	?>
+
+<!-- Data -->
+	<tr class='text-center <?=$class?>'>
+		<td><?=$entry['rank']?></td>
+		<td class='text-left'>
+			<?=getFighterName($entry['rosterID']);?>
+		</td>
+		<td><?=$entry['hitsFor']?></td>
+		<td><?=$entry['hitsAgainst']?></td>
+		<td><?=$entry['score']?></td>
+	</tr>
+	
+<?php 
+}
+
+/******************************************************************************/
+
+function _Thokk_scores($fighterStats){
+	foreach($fighterStats as $fighterID => $fighter){
+		$score = 0;
+		$score -= $fighter['AbsPointsAgainst'];
+		
+		$score = round($score,1);
+		
+		$fighterStats[$fighterID]['score'] = $score;
+		$fighterStats[$fighterID]['rosterID'] = $fighterID;
+	}
+	
+	return $fighterStats;
+}
+
+/******************************************************************************/
+
 function _RSScutting_addExchanges($numToAdd, $matchInfo){
 // Adds cuts to a piece using the 'RSS Cutting' format
 
@@ -1092,6 +1186,12 @@ function _ranking_PoolScoreWins($fighterStats){
 
 /******************************************************************************/
 
+function _ranking_Thokk($fighterStats){
+	return sort_simple($fighterStats,'hitsAgainst',SORT_ASC,'hitsFor',SORT_DESC,'AbsPointsAgainst',SORT_ASC);
+}
+
+/******************************************************************************/
+
 function _ranking_ByScore($fighterStats){
 	return sort_Simple($fighterStats,'score',SORT_DESC,'wins',SORT_DESC,'doubles',SORT_ASC);
 }
@@ -1138,7 +1238,7 @@ function pool_ScoreFighters($fighterStats,$tournamentID, $groupSet = 1){
 	$funcName = getScoringFunctionName($tournamentID);
 	if($funcName == null){return;}
 	$funcName = "_".$funcName."_scores";
-	$fighterScores = call_user_func($funcName,$fighterStats, $groupSet);
+	$fighterScores = call_user_func($funcName,$fighterStats, $groupSet, $tournamentID);
 	
 	return $fighterScores;
 	

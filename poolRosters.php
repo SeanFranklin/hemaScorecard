@@ -425,13 +425,16 @@ function renamePoolsBox(){
 
 /******************************************************************************/
 
-function autoPopluateButton(){
+function autoPopluateButton($tournamentID = null){
 // Generate pool seedings based on the previous pool sets and the
 // scoring algorithm of the tournament
 	
+	if($tournamentID == ''){$tournamentID = $_SESSION['tournamentID'];}
+
 	if(USER_TYPE < USER_STAFF){ 				return;}
 	if($_SESSION['groupSet'] <= 1){				return;}
-	if(!isPoolSets($_SESSION['tournamentID'])){	return;}
+	if(!isPoolSets($tournamentID)){	return;}
+	if(getAdvancementFunctionName($tournamentID) == ''){	return;}
 	?>
 
 	<form method='POST'>
@@ -440,7 +443,7 @@ function autoPopluateButton(){
 			Pools per tier: 
 		</div>
 		<div class='shrink'>
-			<input type='text' size='1' name='poolsInTier' value='3'> 
+			<input type='text' size='1' name='poolsInTier' value='' placeholder='all'> 
 		</div>
 		<div class='shrink align-self-middle'>
 			 <button class='button secondary hollow' name='formName' value='generateNextPoolSet'>

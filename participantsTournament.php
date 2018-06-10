@@ -32,18 +32,22 @@ if($tournamentID == null){
 	}
 
 	$tournamentRoster = getTournamentRoster($tournamentID,$sortString);
+	$numFighters = count($tournamentRoster);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Page Structure -->
+	
+
+
 	<form method='POST' id='tournamentRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	
 	<div class='grid-x grid-padding-x'>
 	<div class='large-6 medium-8 cell'>
-							
+	<h4>Number of Fighters: <?=$numFighters?></h4>					
 	<input type='hidden' name='tournamentID' value=<?= $tournamentID ?> id='tournamentID'>
 
 	<table>

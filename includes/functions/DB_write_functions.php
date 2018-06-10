@@ -31,7 +31,8 @@ function deleteFromEvent(){
 				
 				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Event Deletion Failed</span>
 				 - Tournament has already been finalized<BR>
-				 <strong>{$name}</strong> is a part of <strong>{$tName}</strong> and can not be removed";
+				 <strong>{$name}</strong> is a part of <strong>{$tName}</strong> and can not be removed<BR>
+				 The tournament must be <a href='infoSummary.php'>re-opened</a> to make changes";
 				continue 2;
 			}
 			
@@ -1604,7 +1605,7 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 				WHERE exchangeID = {$exchangeID}";
 	}
 	mysqlQuery($sql, SEND);
-	
+
 }
 
 /******************************************************************************/
@@ -1999,7 +2000,7 @@ function renameGroups($maxGroupSets = null){
 /******************************************************************************/
 
 function reOrderGroups($groupList = null){
-
+	
 	if($groupList == null){
 		$groupList = $_POST['newGroupNumber'];
 	}
@@ -2215,7 +2216,8 @@ function updateEventTournaments(){
 			if(!isset($info['tournamentRankingID'])){ $info['tournamentRankingID'] = 'null'; }
 			if(!isset($info['doubleTypeID'])){ $info['doubleTypeID'] = 'null'; }
 			if($info['maximumExchanges'] == ''){$info['maximumExchanges'] = 'null';}
-			
+			if($info['isNotNetScore'] == ''){$info['isNotNetScore'] = 0;}
+		
 			if(isset($info['color1ID'])){ $defaults['color1ID'] = $info['color1ID'];}
 			if(isset($info['color2ID'])){ $defaults['color2ID'] = $info['color2ID'];}
 			
@@ -2245,7 +2247,6 @@ function updateEventTournaments(){
 					{$info['useTimer']},
 					{$info['useControlPoint']},
 					{$info['isNotNetScore']}
-
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
