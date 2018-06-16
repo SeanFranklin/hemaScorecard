@@ -98,7 +98,9 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	
 
 // Check for fields which are just toggled by double hits
-	edit_doubleType(tournamentID);
+	if(fieldsToDisplay[elimID]['maxDoubles'] == 'show'){
+		edit_doubleType(tournamentID);
+	}
 	
 }
 

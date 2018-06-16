@@ -821,16 +821,20 @@ function getEventIncompletes($eventID = null){
 
 /******************************************************************************/
 
-function getEventList(){
+function getEventList($order = 'DESC'){
 // returns an unsorted array of all events in the software
 // indexed by eventID
+
+	if($order != 'ASC'){
+		$order = 'DESC';
+	}
 
 	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
 			eventEndDate, eventCountry, eventProvince, eventCity, 
 			eventStatus 
 			FROM 
 			systemEvents
-			ORDER BY eventStartDate DESC";
+			ORDER BY eventStartDate {$order}";
 	return mysqlQuery($sql, KEY, 'eventID');
 
 }

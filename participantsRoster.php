@@ -291,6 +291,15 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 	
 	if($schoolID == 1){$s1 = 'selected';}
 	if($schoolID == 2){$s2 = 'selected';}
+
+	// If there is only one tournament make it selected by default
+	if(count($tournamentList) == 1){
+			$applyBackground = "style='background:#3adb76'";
+			$applyChecked = "checked";
+	} else {
+		$applyBackground = null;
+		$applyChecked = null;
+	}
 	?>
 	
 	
@@ -395,9 +404,10 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			
 		<!-- Tournaments -->
 			<?php foreach((array)$tournamentNames as $tournamentID => $tName):?>
-				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this)">
+				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this)"
+					<?=$applyBackground?>>
 				<input type='checkbox' name='newParticipants[byID][<?=$k?>][tournamentIDs][<?=$i?>]' 
-					value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden'>
+					value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden' <?=$applyChecked?>>
 				<?=$tName?>
 				</div>
 				<?php $i++;?>
@@ -439,9 +449,10 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 		<!-- Tournaments -->	
 			<td>
 			<?php foreach((array)$tournamentNames as $tournamentID => $tName):?>
-				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this)">
+				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this)"
+					<?=$applyBackground?>>
 				<input type='checkbox' name='newParticipants[new][<?=$k?>][tournamentIDs][<?=$i?>]' 
-				value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden'>
+				value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden' <?=$applyChecked?>>
 					<?=$tName?>
 				</div>
 				<?php $i++;?>
