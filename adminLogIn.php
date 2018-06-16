@@ -14,7 +14,7 @@ $pageName = 'Log In';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-$eventList = getEventList();
+$eventList = getEventList('ASC');
 $eventList = sortEventList($eventList);
 $eventTypes = ['default','active','upcoming', 'hidden']; 
 

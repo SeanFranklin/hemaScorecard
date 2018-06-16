@@ -45,34 +45,54 @@ ac.nilknarfnaes@ameh
 <HR>
 <a name='math'></a>
 <h4>Skip the Math</h4>
-Tournament management
-HEMA Scorecard supports all sorts of tournament formats. Deductive or Full Afterblows, Pools or Brackets, 
-or even crazy one hit tournaments with several rounds of pools. The program was designed to be as versitile
-as possible and run as many types of tournaments as possible.
+<p>
+	HEMA Scorecard supports all sorts of tournament formats. Deductive or Full Afterblows, Pools or Brackets, 
+	or even crazy one hit tournaments with several rounds of pools. The program was designed to be as versitile
+	as possible and run as many types of tournaments as possible.
+</p>
 
-<BR><BR><i>Have something so crazy HEMA Scorecard can't even handle it?</i> Great! We want to
-hear about it and may make changes to allow you to realize your dream (or nightmare).
+<p>
+	<img src='includes/images/promo_table_s.jpg' style="border: 1px solid black;">
+</p>
+
+<p>
+	<i>Have something so crazy HEMA Scorecard can't even handle it?</i> Great! We want to
+	hear about it and may make changes to allow you to realize your dream (or nightmare).
+</p>
 
 <HR>
 <a name='show'></a>
 <h4>Show the World</h4>
-HEMA Scorecard lives online, which means that your participants and spectators are no longer in the dark.
+<p>
+	HEMA Scorecard lives online, which means that your participants and spectators are no longer in the dark.
+	<BR>
+	This also means that you don't have to take the time to print pool results, and make brackets for people to follow.
+	Why? Because it's right there at their fingertips, with no effort on your part.
+</p>
 
 
+<img src='includes/images/promo_phone_s.jpg' style="border: 1px solid black;">
 
 <HR>
 <a name='stats'></a>
 <h4>See the Big Picture</h4>
-Maybe you've run the event, partied your heart out, and you are done until next year. Or maybe you want more?
-<BR>HEMA Scorecard keeps track of events exchange by exchange, allowing you to get
-a good look under the hood at your event.
+<p>
+	Maybe you've run the event, partied your heart out, and you are done until next year. Or maybe you want more?
+	<BR>
+	HEMA Scorecard keeps track of events exchange by exchange, allowing you to get
+	a good look under the hood at your event.
+</p>
 
-<BR><BR><strong>Event Summary</strong> - Have a quick look at how all of your tournaments stacked up:
-<img src='includes/images/tournamentSummary.jpg'  class='black-border'>
+<p>
+	<strong>Event Summary</strong> - Have a quick look at how all of your tournaments stacked up:<BR>
+	<img src='includes/images/tournamentSummary.jpg'  class='black-border'>
+</p>
 
 
-<BR><BR><strong>Fighter Histories</strong> - Have a look at how fighters have performed over their careers:
-<img src='includes/images/fighterSummary.jpg' class='black-border'>
+<p>
+	<strong>Fighter Histories</strong> - Have a look at how fighters have performed over their careers:<BR>
+	<img src='includes/images/fighterSummary.jpg' class='black-border'>
+</p>
 
 
 <?php include('includes/footer.php');
