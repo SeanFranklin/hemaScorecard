@@ -117,7 +117,7 @@ function processPostData(){
 			$_SESSION['groupSet'] = $_POST['groupSet'];
 			break;
 		case 'generateNextPoolSet':
-			pool_generateNextPools();
+			pool_GenerateNextPools($_POST['advancementsForSetNum']);
 			break;
 		case 'changeGroupOrder':
 			reOrderGroups($_POST['newGroupNumber']);
@@ -471,7 +471,7 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
 		
 		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
-		$fighterStats = pool_normalizeSizes($fighterStats, $tournamentID, $setNumber);
+		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
 
 		recordScores($fighterStats, $tournamentID, 'pool', $setNumber);
 		unset($fighterStats);

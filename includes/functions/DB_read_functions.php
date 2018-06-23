@@ -218,26 +218,6 @@ function getMatchStageName($matchID){
 	
 }
 
-
-/******************************************************************************/
-
-function getAdvancementFunctionName($tournamentID){
-	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
-		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getAdvancementFunctionName();";
-		return;
-	}
-	
-	$sql = "SELECT advancementFunction
-			FROM systemRankings
-			INNER JOIN eventTournaments USING(tournamentRankingID)
-			WHERE tournamentID = {$tournamentID}";
-				
-	$name = mysqlQuery($sql, SINGLE, 'advancementFunction');
-	return $name;
-}
-
 /******************************************************************************/
 
 function getAllPoolScores($tournamentID = null, $poolSet = 1){
