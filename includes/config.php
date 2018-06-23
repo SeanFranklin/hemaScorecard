@@ -50,6 +50,8 @@
 	
 	define("DEFAULT_NAME_MODE", 'firstName');
 
+	define("ALL_GROUP_SETS",0);
+
 // Tournament Related Constants
 
 	define("DEFAULT_COLOR_NAME_1",'RED');

@@ -231,7 +231,7 @@ function getAdvancementFunctionName($tournamentID){
 	
 	$sql = "SELECT advancementFunction
 			FROM systemRankings
-			INNER JOIN eventTournaments ON eventTournaments.tournamentRankingID = systemRankings.rankingID
+			INNER JOIN eventTournaments USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 				
 	$name = mysqlQuery($sql, SINGLE, 'advancementFunction');
@@ -339,7 +339,7 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 	}
 	
 	$sql = "SELECT exchangeID, exchangeType, scoringID, recievingID, 
-			scoreValue, scoreDeduction, matchID
+			scoreValue, scoreDeduction, matchID, groupID
 			FROM eventExchanges
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
@@ -359,6 +359,10 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 		
 		$matchesForFighter[$scoringID][$matchID] = true;
 		$matchesForFighter[$recievingID][$matchID] = true;
+
+
+		$fighterStats[$scoringID]['groupID'] = $exchange['groupID'];
+		$fighterStats[$recievingID]['groupID'] = $exchange['groupID'];
 		
 		switch($exchange['exchangeType']){
 			case 'clean':
@@ -2048,7 +2052,7 @@ function getLivestreamMatchOrder($eventID = null){
 
 /******************************************************************************/
 
-function getNormalization($tournamentID, $groupSet = null){
+function getNormalization($tournamentID, $groupSet = 1){
 	if($tournamentID == null){ return; }
 	
 	// Checks to see if the set has it's own normalization size
@@ -2062,6 +2066,7 @@ function getNormalization($tournamentID, $groupSet = null){
 		$value = mysqlQuery($sql, SINGLE, 'attributeValue');
 	}
 	
+	
 	// Default size for the tournament
 	if($value === null){
 		$sql = "SELECT normalizePoolSize
@@ -2069,8 +2074,7 @@ function getNormalization($tournamentID, $groupSet = null){
 				WHERE tournamentID = {$tournamentID}";
 		$value =  mysqlQuery($sql, SINGLE, 'normalizePoolSize');
 	}
-	
-	
+
 	
 	// A value of 0 means the normalization is set to auto detect
 	if($value < 2 && $groupSet != null){
@@ -2099,6 +2103,28 @@ function getNormalization($tournamentID, $groupSet = null){
 	}
 
 	return $value;
+	
+}
+
+/******************************************************************************/
+
+function getNormalizationCumulative($tournamentID, $groupSet = 1){
+	
+	$sql = "SELECT MAX(attributeGroupSet) as groupSet
+			FROM eventAttributes
+			WHERE tournamentID = {$tournamentID}
+			AND attributeGroupSet < {$groupSet}
+			AND attributeType = 'cumulative'
+			AND attributeBool = FALSE ";
+	$startAtSet = (int)mysqlQuery($sql, SINGLE, 'groupSet');
+	if($startAtSet < 1){
+		$startAtSet = 1;
+	}
+
+echo "Set: $groupSet starts at $startAtSet <BR>";
+	
+	return getNormalization($tournamentID, $groupSet);
+
 	
 }
 
@@ -2354,14 +2380,14 @@ function getSchoolRosterNotInEvent($schoolID, $eventID = null){
 
 function getScoringAlgorithimsByType(){
 	
-	$sql = "SELECT rankingID, name,
+	$sql = "SELECT tournamentRankingID, name,
 			Pool_Bracket, Pool_Sets, Scored_Event
 			FROM systemRankings
 			ORDER BY numberOfInstances DESC";
 	$result = mysqlQuery($sql, ASSOC);
 	
 	foreach($result as $rankType){
-		$info['rankingID'] =  $rankType['rankingID'];
+		$info['tournamentRankingID'] =  $rankType['tournamentRankingID'];
 		$info['name'] = $rankType['name'];
 		
 		if($rankType['Pool_Bracket'] == 1){
@@ -2382,22 +2408,20 @@ function getScoringAlgorithimsByType(){
 
 /******************************************************************************/
 
-function getScoringAlgorithim($tournamentID = null, $useID = null){
+function getScoreFormula($tournamentID = null){
+
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
-	
-	$sql = "SELECT tournamentType, tournamentTypeID
-			FROM systemTournaments, eventTournaments
-			WHERE eventTournaments.tournamentID = {$tournamentID}
-			AND eventTournaments.tournamentRankingID = systemTournaments.tournamentTypeID";
-	$result = mysqlQuery($sql, SINGLE);
-	
-	
-	if($useID == null){
-		return $result['tournamentType'];
-	} else {
-		return $result['tournamentTypeID'];
+	if($tournamentID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getScoreFormula()";
+		return;
 	}
+
+	$sql = "SELECT scoreFormula
+			FROM eventTournaments
+			INNER JOIN systemRankings USING(tournamentRankingID)
+			WHERE tournamentID = {$tournamentID}";
+
+	return mysqlQuery($sql,SINGLE, 'scoreFormula');
 
 }
 
@@ -2908,7 +2932,8 @@ function isCumulative($groupSet, $tournamentID = null){
 	$sql = "SELECT attributeBool
 			FROM eventAttributes
 			WHERE tournamentID = {$tournamentID}
-			AND attributeGroupSet = {$groupSet}";
+			AND attributeGroupSet = {$groupSet}
+			AND attributeType = 'cumulative'";
 	return mysqlQuery($sql, SINGLE, 'attributeBool');
 }
 
@@ -3354,7 +3379,7 @@ function getScoringFunctionName($tournamentID){
 	
 	$sql = "SELECT scoringFunction
 			FROM systemRankings
-			INNER JOIN eventTournaments ON eventTournaments.tournamentRankingID = systemRankings.rankingID
+			INNER JOIN eventTournaments USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'scoringFunction');
 	return $name;
@@ -3366,13 +3391,13 @@ function getRankingFunctionName($tournamentID){
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){
-		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getRoundScoringFunctionName();";
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getRankingFunctionName();";
 		return;
 	}
 	
 	$sql = "SELECT rankingFunction
 			FROM systemRankings
-			INNER JOIN eventTournaments ON eventTournaments.tournamentRankingID = systemRankings.rankingID
+			INNER JOIN eventTournaments USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'rankingFunction');
 	return $name;
@@ -3381,7 +3406,7 @@ function getRankingFunctionName($tournamentID){
 /******************************************************************************/
 
 function getRankingTypeDescriptions(){
-	$sql = "SELECT rankingID, name, description
+	$sql = "SELECT tournamentRankingID, name, description
 			FROM systemRankings
 			ORDER BY name ASC";
 	return mysqlQuery($sql, ASSOC);
@@ -3393,13 +3418,13 @@ function getDisplayFunctionName($tournamentID){
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){
-		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getRoundScoringFunctionName();";
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in getDisplayFunctionName();";
 		return;
 	}
 	
 	$sql = "SELECT displayFunction
 			FROM systemRankings
-			INNER JOIN eventTournaments ON eventTournaments.tournamentRankingID = systemRankings.rankingID
+			INNER JOIN eventTournaments USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'displayFunction');
 	return $name;

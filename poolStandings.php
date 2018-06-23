@@ -57,7 +57,7 @@ if($tournamentID == null){
 
 <?php 	
 // creates the table to display the results 
-		pool_displayResults(); // 
+		pool_displayResults($tournamentID, $_SESSION['groupSet']); // 
 		
 }
 

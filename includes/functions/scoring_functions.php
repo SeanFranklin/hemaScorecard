@@ -8,128 +8,7 @@
 
 *******************************************************************************/
 
-/******************************************************************************/
 
-function _2point_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'FNY 2017' scoring
-// A request to generate a header may be passed instead of an exchange
-// In this algorithm a win is denoted as a 'pointFor' and 
-// 'pushes' are wins with pointFor = 0
-	?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Wins</th>
-			<th>Ties</th>
-			<th>Losses</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-
-<!-- Data -->
-	<tr class='text-center <?=$class?>'>
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['wins']?></td>
-		<td><?=$entry['ties']?></td>
-		<td><?=$entry['losses']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
-
-/******************************************************************************/
-
-function _2point_scores($fighterStats, $poolSet = 1){
-// Calculate scores for tournaments using the 'FNY 2017' algorthm.
-// Cumulative scoring across all pools unless it has been specified as not
-
-	unset($fighterStats);
-
-	$tournamentID = TOURNAMENT_ID;
-// Check if it is cumulative or not
-	$sql = "SELECT attributeBool
-			FROM eventAttributes
-			WHERE tournamentID = {$tournamentID}
-			AND attributeType = 'cumulative'
-			AND attributeGroupSet = {$poolSet}";
-	$res = mysqlQuery($sql, SINGLE, 'attributeBool');
-	
-	if($res === '0'){
-		$lowBound = $poolSet;
-	} else {
-		$lowBound = 1;
-	}
-		
-	for($i = $poolSet; $i >= $lowBound; $i--){
-
-		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
-		$exchangesInSet = pool_normalizeSizes($poolExchanges,$tournamentID, $poolSet);
-		
-		foreach((array)$exchangesInSet as $fighterID => $fighter){
-			// only calculate score if fighter has exchanges in the current pool set
-			if($i < $poolSet AND $fighterStats[$fighterID]['rosterID'] == null){
-				continue;
-			}
-
-			$score = 0;
-			$score += 2*$fighter['wins'];
-			$score += $fighter['ties'];
-			
-			foreach($fighter as $index => $value){
-				if($index == 'score' || $index == 'rosterID'){continue;}
-				$fighterStats[$fighterID][$index] += $value;
-			}
-
-			$fighterStats[$fighterID]['score'] += $score;
-			$fighterStats[$fighterID]['rosterID'] = $fighterID;
-			
-		}
-		
-	}
-	
-	return $fighterStats;
-	
-}
-
-/******************************************************************************/
-
-function _BasicStats_display($entry, $class = null){
-// Simple display of tournament standings
-	?>
-	
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Wins</th>
-			<th>For</th>
-			<th>Against</th>
-			<th>Doubles</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-	<tr class='text-center <?=$class?>'>
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['wins']?></td>
-		<td><?=$entry['pointsFor']?></td>
-		<td><?=$entry['pointsAgainst']?></td>
-		<td><?=$entry['doubles']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
 
 /*******************************************************************************/
 
@@ -269,57 +148,6 @@ function _DeductionBased_updateExchanges(){
 
 /******************************************************************************/
 
-function _Franklin2014_scores($fighterStats){
-// Calculate scores using 'Franklin 2014' algorithm
-	
-	foreach((array)$fighterStats as $fighterID => $fighter){
-
-		$doubles = $fighter['doubles'];
-		$doublesPenalty = ($doubles * ($doubles+1))/2;
-		
-		$score = 0;
-		$score += $fighter['pointsFor'];
-		$score -= $fighter['pointsAgainst'];
-		$score += 5*$fighter['wins'];
-		$score -= $doublesPenalty;
-		
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-
-	return $fighterStats;
-
-}
-
-/******************************************************************************/
-
-function _Franklin2014x25_scores($fighterStats){
-// Calculate scores using 'Franklin 2014' algorithm
-	
-	foreach((array)$fighterStats as $fighterID => $fighter){
-		$doubles = $fighter['doubles'];
-		$doublesPenalty = ($doubles * ($doubles+1))/2;
-		
-		$score = 0;
-		$score += $fighter['pointsFor'];
-		$score -= $fighter['pointsAgainst'];
-		$score += 5*$fighter['wins'];
-		$score -= ($doublesPenalty*1.25);
-		
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-
-	return $fighterStats;
-
-}
-
-/******************************************************************************/
-
 function _Flowerpoint_advancements(){
 // Calculate advancements to move onto the next pool set using the 'Flowerpoint'
 // algorithm. Attempts to balance the pool size while minimizing the number 
@@ -440,98 +268,6 @@ function _Flowerpoint_advancements(){
 	}
 	
 }
-
-/******************************************************************************/
-
-function _Flowerpoint_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'Flowerpoint' scoring
-// A request to generate a header may be passed instead of an exchange
-	?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Number of Times Hit</th>
-			<th>Doubles</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-<!-- Data -->
-	<tr class='text-center <?=$class?>'>
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['hitsAgainst']?></td>
-		<td><?=$entry['doubles']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
-
-/******************************************************************************/
-
-function _Flowerpoint_scores($fighterStats, $poolSet = 1){
-// Calculate scores for tournaments using the 'Flowerpoint' algorthm.
-// Cumulative scoring across all pools unless it has been specified as not
-
-	unset($fighterStats);
-
-	$tournamentID = TOURNAMENT_ID;
-
-// Check if it is cumulative or not
-	$sql = "SELECT attributeBool
-			FROM eventAttributes
-			WHERE tournamentID = {$tournamentID}
-			AND attributeType = 'cumulative'
-			AND attributeGroupSet = {$poolSet}";
-	$res = mysqlQuery($sql, SINGLE, 'attributeBool');
-	
-	if($res === '0'){
-		$lowBound = $poolSet;
-	} else {
-		$lowBound = 1;
-	}
-	
-	
-	$poolSize = getNormalization($tournamentID, $poolSet);
-
-	for($i = $poolSet; $i >= $lowBound; $i--){
-
-		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
-		$exchangesInSet = pool_normalizeSizes_static($poolExchanges,$poolSize);
-		
-		foreach((array)$exchangesInSet as $fighterID => $fighter){
-			// only calculate score if fighter has exchanges in the current pool set
-			if($i < $poolSet AND $fighterStats[$fighterID]['rosterID'] == null){
-				continue;
-			}
-			
-			$score = 0;
-			$score -= $fighter['hitsAgainst'];
-			$score -= $fighter['doubles'];
-			
-			foreach($fighter as $index => $value){
-				if($index == 'score' || $index == 'rosterID'){continue;}
-				$fighterStats[$fighterID][$index] += $value;
-			}
-
-			$fighterStats[$fighterID]['score'] += $score;
-			$fighterStats[$fighterID]['rosterID'] = $fighterID;
-			
-		}
-		
-	}
-	
-	return $fighterStats;
-	
-}
-
-/******************************************************************************/
 
 /******************************************************************************/
 
@@ -656,152 +392,6 @@ function _FNY2017_advancements(){
 	
 }
 
-/******************************************************************************/
-
-function _FNY2017_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'FNY 2017' scoring
-// A request to generate a header may be passed instead of an exchange
-// In this algorithm a win is denoted as a 'pointFor' and 
-// 'pushes' are wins with pointFor = 0
-	?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Wins</th>
-			<th>Pushes</th>
-			<th>Losses</th>
-			<th>Doubles</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-	<?php
-		$pushes = $entry['matches'] - $entry['hitsFor'];
-		$pushes += (-$entry['losses'] - $entry['doubles']);
-		$pushes = round($pushes,1);
-		if($pushes <= 0.2) {$pushes = 0; }
-	?>
-
-<!-- Data -->
-	<tr class='text-center <?=$class?>'>
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['hitsFor']?></td>
-		<td><?=$pushes?></td>
-		<td><?=$entry['losses']?></td>
-		<td><?=$entry['doubles']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
-
-/******************************************************************************/
-
-function _FNY2017_scores($fighterStats, $poolSet = 1){
-// Calculate scores for tournaments using the 'FNY 2017' algorthm.
-// Cumulative scoring across all pools unless it has been specified as not
-
-	unset($fighterStats);
-
-	$tournamentID = TOURNAMENT_ID;
-// Check if it is cumulative or not
-	$sql = "SELECT attributeBool
-			FROM eventAttributes
-			WHERE tournamentID = {$tournamentID}
-			AND attributeType = 'cumulative'
-			AND attributeGroupSet = {$poolSet}";
-	$res = mysqlQuery($sql, SINGLE, 'attributeBool');
-	
-	if($res === '0'){
-		$lowBound = $poolSet;
-	} else {
-		$lowBound = 1;
-	}
-	
-	$poolSize = getNormalization($tournamentID, $poolSet);
-
-	for($i = $poolSet; $i >= $lowBound; $i--){
-
-		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $i);
-		$exchangesInSet = pool_normalizeSizes_static($poolExchanges,$poolSize);
-		
-		foreach((array)$exchangesInSet as $fighterID => $fighter){
-			// only calculate score if fighter has exchanges in the current pool set
-			if($i < $poolSet AND $fighterStats[$fighterID]['rosterID'] == null){
-				continue;
-			}
-
-			$score = 0;
-			$score += $fighter['pointsFor'];
-			$score -= 2*$fighter['losses'];
-			$score -= 2*$fighter['doubles'];
-			
-			foreach($fighter as $index => $value){
-				if($index == 'score' || $index == 'rosterID'){continue;}
-				$fighterStats[$fighterID][$index] += $value;
-			}
-
-			$fighterStats[$fighterID]['score'] += $score;
-			$fighterStats[$fighterID]['rosterID'] = $fighterID;
-			
-		}
-		
-	}
-	
-	return $fighterStats;
-	
-}
-
-/******************************************************************************/
-
-function _PlusMinus_scores($fighterStats){ 
-// Calculate scores using 'Plus Minus' scoring algorithm
-// pointsFor - pointsAgains - doublesPenalty
-	
-	foreach($fighterStats as $fighterID => $fighter){
-		$doubles = $fighter['doubles'];
-		$doublesPenalty = ($doubles * ($doubles+1))/2;
-		
-		$score = 0;
-		$score += $fighter['pointsFor'];
-		$score -= $fighter['pointsAgainst'];
-		$score -= $fighter['penaltiesAgainst'];
-		$score -= $doublesPenalty;
-		
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-	
-	return $fighterStats;
-	
-}
-
-/******************************************************************************/
-
-function _PointsFor_scores($fighterStats){
-// Returns the points for each fighter
-
-	foreach($fighterStats as $fighterID => $fighter){
-		$score = 0;
-		$score += $fighter['pointsFor'];
-		
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-	
-	return $fighterStats;
-	
-}
 
 /******************************************************************************/
 
@@ -838,62 +428,6 @@ function _SimpleRankOrder_advancements(){
 	}
 	
 
-}
-
-/******************************************************************************/
-
-function _Thokk_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'Thokk' scoring
-// A request to generate a header may be passed instead of an exchange
-	?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Bouts Won</th>
-			<th>Bouts Lost</th>
-			<th>Points Against</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-	<?php
-		$pushes = $entry['matches'] - $entry['hitsFor'];
-		$pushes += (-$entry['losses'] - $entry['doubles']);
-		$pushes = round($pushes,1);
-		if($pushes <= 0.2) {$pushes = 0; }
-	?>
-
-<!-- Data -->
-	<tr class='text-center <?=$class?>'>
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['hitsFor']?></td>
-		<td><?=$entry['hitsAgainst']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php 
-}
-
-/******************************************************************************/
-
-function _Thokk_scores($fighterStats){
-	foreach($fighterStats as $fighterID => $fighter){
-		$score = 0;
-		$score -= $fighter['AbsPointsAgainst'];
-		
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-	
-	return $fighterStats;
 }
 
 /******************************************************************************/
@@ -1048,228 +582,105 @@ function _RSScutting_updateExchanges(){
 
 /******************************************************************************/
 
-function _Sandstorm_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'Sandstorm 2017' scoring
-// A request to generate a header may be passed instead of an exchange
-	?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Control Wins</th>
-			<th>Wins</th>
-			<th>Afterblow Wins</th>
-			<th>Doubles</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-	<?php
-	$wins = (3* $entry['wins'])-(2*$entry['afterblowsAgainst']);
-	$wins -= ($entry['score'] + $entry['doubles']);
-	$wins = round($wins,1); 
-	$control = $entry['wins'] - $entry['afterblowsAgainst'] - $wins;
-	
-	if($control < 0.2 AND $control > -0.2){
-		$control = 0;
-	}
-	?>
-	
-<!-- Data -->
-	<tr class='text-center <?=$class?>' >
-		<td><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$control?></td>
-		<td><?=$wins?></td>
-		<td><?=$entry['afterblowsAgainst']?></td>
-		<td><?=$entry['doubles']?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
-
-/******************************************************************************/
-
-function _Sandstorm_scores($fighterStats){
-// Calculate scores using the 'Sandstorm 2017' algorithm	
-
-	foreach((array)$fighterStats as $fighterID => $fighter){
-		$score = 0;
-		$score += $fighter['pointsFor'];
-		$score -= $fighter['doubles'];
-
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-
-	return $fighterStats;
-
-}
-
-/******************************************************************************/
-
-function _ScoreHitRatio_display($entry, $class = null){
-// Displays an a fighter's score for tournaments using 'Hit Ratio' scoring
-// A request to generate a header may be passed instead of an exchange
-?>
-	
-<!-- Headers -->
-	<?php if($entry == 'headers'): ?>
-		<tr>
-			<th>Rank</th>
-			<th>Name</th>
-			<th>Points For</th>
-			<th>Times Hit</th>
-			<th>Score</th>
-		</tr>
-		<?php return; ?>
-	<?php endif ?>
-	
-	<?php
-		$timesHit = $entry['hitsAgainst'] + $entry['afterblowsAgainst'];
-		$timesHit += ($entry['doubles'])*($entry['doubles']+1)/2;
-	?>
-	
-<!-- Data -->	
-	<tr class='<?=$class?>'>
-		<td class='text-center'><?=$entry['rank']?></td>
-		<td class='text-left'>
-			<?=getFighterName($entry['rosterID']);?>
-		</td>
-		<td><?=$entry['pointsFor']?></td>
-		<td><?=$timesHit?></td>
-		<td><?=$entry['score']?></td>
-	</tr>
-	
-<?php }
-
-/******************************************************************************/
-
-function _ScoreHitRatio_scores($fighterStats){
-// Calculates scores for the 'Hit Ratio' algorithm
-// Total points earned devided by number of times hit
-	
-	foreach((array)$fighterStats as $fighterID => $fighter){
-		
-		$doubles = ($fighter['doubles'])*($fighter['doubles']+1)/2;
-		
-		$totalTimesHit = $fighter['hitsAgainst'] + $fighter['afterblowsAgainst'] + $doubles;
-		$pointsFor = $fighter['pointsFor'];
-		
-		if($totalTimesHit > 0 ){
-			$score = $pointsFor/$totalTimesHit;
-		} else {
-			$score = 9001;
-		}
-
-		$score = round($score,1);
-		
-		$fighterStats[$fighterID]['score'] = $score;
-		$fighterStats[$fighterID]['rosterID'] = $fighterID;
-	}
-	
-	return $fighterStats;
-}
-
-/******************************************************************************/
-
-function _ranking_PoolScoreWins($fighterStats){
-	return sort_PoolWinnersFirst($fighterStats,1,'score',SORT_DESC,'wins',SORT_DESC,'doubles',SORT_ASC);
-}
-
-/******************************************************************************/
-
-function _ranking_Thokk($fighterStats){
-	return sort_simple($fighterStats,'hitsAgainst',SORT_ASC,'hitsFor',SORT_DESC,'AbsPointsAgainst',SORT_ASC);
-}
-
-/******************************************************************************/
-
-function _ranking_ByScore($fighterStats){
-	return sort_Simple($fighterStats,'score',SORT_DESC,'wins',SORT_DESC,'doubles',SORT_ASC);
-}
-
-/******************************************************************************/
-
-function _ranking_SeededPool($fighterStats){
-	return sort_SeededPool($fighterStats,1,1,'wins',SORT_DESC,'score',SORT_DESC,'doubles',SORT_ASC);
-}
-
-/******************************************************************************/
-
-function _ranking_WinsScore($fighterStats){
-	return sort_Simple($fighterStats,'wins',SORT_DESC,'score',SORT_DESC,'doubles',SORT_ASC);
-}
-
-/******************************************************************************/
-
-function pool_RankFighters($fighterStats,$tournamentID){
-// Calls the appropriate funciton to rank fighters given the tournament
-// ranking priority
-	
-	$funcName = getRankingFunctionName($tournamentID);
-	if($funcName == null){return;}
-	$funcName = "_ranking_".$funcName; 
-	
-	$fighterScores = call_user_func($funcName,$fighterStats);
-	
-	return $fighterScores;
-}
-
-/******************************************************************************/
-
-function pool_ScoreFighters($fighterStats,$tournamentID, $groupSet = 1){
+function pool_ScoreFighters($tournamentID, $groupSet = 1){
 // Calls the appropriate funciton to score fighters given the tournament
 // scoring algorithm
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
+	if($tournamentID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_ScoreFighters()";
+		return;
+	}
 	
-	$fighterStats = pool_normalizeSizes($fighterStats, $tournamentID, $groupSet);
-	
-// Call appropriate scoring function
-	$funcName = getScoringFunctionName($tournamentID);
-	if($funcName == null){return;}
-	$funcName = "_".$funcName."_scores";
-	$fighterScores = call_user_func($funcName,$fighterStats, $groupSet, $tournamentID);
-	
-	return $fighterScores;
+	$formula = getScoreFormula($tournamentID);
+
+	$sql = "UPDATE eventStandings
+			SET score = ($formula)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}";
+
+	mysqlQuery($sql, SEND);
 	
 }
 
+
 /******************************************************************************/
 
-function pool_displayResults(){
+function pool_displayResults($tournamentID, $groupSet = 1){
 // Calls the appropriate funciton to display the fighters pool standings 
 // given the tournament scoring algorithm
 
-	$orderedList = getTournamentStandings($tournamentID, $_SESSION['groupSet']);
-	$bracketInfo = getBracketInformation();
+	$bracketInfo = getBracketInformation($tournamentID);
 	$numToElims = $bracketInfo['winner']['numFighters'];
-	
-	$funcName = getDisplayFunctionName($tournamentID);
-	if($funcName == null){return;}
-	$funcName = "_".$funcName."_display"; 
-	
-	echo "<table>";
-	
-	call_user_func($funcName,'headers');
-	
-	foreach((array)$orderedList as $entry){
-				
-		$class = isSelected($entry['rank'], $numToElims, "last-to-elims");	
-		call_user_func($funcName,$entry, $class);
+	$maxNumFields = 5;
+
+	$sql = "SELECT displayTitle1, displayField1,
+			displayTitle2, displayField2,
+			displayTitle3, displayField3,
+			displayTitle4, displayField4,
+			displayTitle5, displayField5
+			FROM eventTournaments
+			INNER JOIN systemRankings USING(tournamentRankingID)
+			WHERE tournamentID = {$tournamentID}";
+	$displayMeta = mysqlQuery($sql, SINGLE);
+
+	// Check to see which fields are used
+	for($i = 1; $i <= $maxNumFields; $i++){
+		if($displayMeta['displayTitle'.$i] == '' || $displayMeta['displayField'.$i] == ''){
+			$maxNumFields = $i - 1;
+			break;
+		}
+		$tmpStr = $displayMeta['displayField'.$i];
+		$selectStr .= ", {$tmpStr}";
 	}
-	
+
+	$sql = "SELECT rank, rosterID {$selectStr}
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}
+			ORDER BY rank ASC";
+	$displayInfo = mysqlQuery($sql, ASSOC);
+
+
+	echo "<table>";
+
+	// Header row
+	echo "<tr>";
+	echo "<th>Rank</th>";
+	echo "<th>Name</th>";
+	for($i = 1; $i <= $maxNumFields; $i++){
+		$index = "displayTitle".$i;
+		$name = $displayMeta[$index];
+
+		echo "<th>{$name}</th>";	
+	}
+	echo "</tr>";
+
+	foreach($displayInfo as $fighter){
+		if($fighter['rank'] == $numToElims){
+			$class = 'last-to-elims';
+		} else {
+			$class = null;
+		}
+
+		echo "<tr class='text-center {$class}'>";
+		echo "<td>".$fighter['rank']."</td>";
+		echo "<td  class='text-left'>".getFighterName($fighter['rosterID'])."</td>";
+		for($i = 1; $i <= $maxNumFields; $i++){
+			$index = $displayMeta["displayField".$i];
+			$value = round($fighter[$index],1) + 0;
+
+			echo "<td>{$value}</td>";
+		}
+
+		echo "</tr>";
+	}
+
+
 	echo"</table>";
-	
+
 }
 
 /******************************************************************************/
@@ -1291,47 +702,23 @@ function pool_generateNextPools(){
 
 }
 
-/******************************************************************************/
-
-function pool_getWinners($stats, $number){
-// Returns the winner of the pool
-// May return the top $number placings	
-	
-	if($number == null){$number = 1;};
-
-	$i = 0;
-	if($stats!=null){
-		foreach($stats as $rosterID => $data){
-			$wins[$i] = $data['wins'];
-			$score[$i] = $data['score'];
-			$doubles[$i] = $data['doubles'];
-			$sortStats[$i] = $data;
-			$sortStats[$i++]['rosterID'] = $rosterID;
-		}
-	}
-
-	array_multisort($wins, SORT_DESC, $score, SORT_DESC, $doubles, SORT_ASC, $sortStats);
-	
-	$i = 1;
-	if($sortStats!=null)
-	{
-		foreach($sortStats as $data){
-			$returnValues[$i++] = $data['rosterID'];
-			if($i > $number){return $returnValues;}
-		}
-	}
-}
 
 /******************************************************************************/
 
-function pool_normalizeSizes($fighterStats, $tournamentID, $groupSet = null){
+function pool_normalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 // Normalizes the raw exchange data of all fighters to the
 // value that the normalize pool size has been set to	
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	$numberOfMatches = getNormalization($tournamentID, $groupSet) - 1;
+	if(isCumulative($groupSet, $tournamentID)){
+		$numberOfMatches = getNormalizationCumulative($tournamentID, $groupSet) - 1;
+	} else {
+		$numberOfMatches = getNormalization($tournamentID, $groupSet) - 1;
+	}
+	
+
 
 	foreach((array)$fighterStats as $rosterID => $fighterData){
 
@@ -1340,7 +727,9 @@ function pool_normalizeSizes($fighterStats, $tournamentID, $groupSet = null){
 		if($correction == 1){ continue; }
 
 		foreach($fighterData as $dataIndex => $data){
-			$fighterStats[$rosterID][$dataIndex] = round($data * $correction,1);
+			if($dataIndex == 'groupID'){ continue; }
+
+			$fighterStats[$rosterID][$dataIndex] = round($data * $correction,3);
 			
 		}
 	}
@@ -1474,64 +863,100 @@ function scored_UpdateExchanges($tournamentID = null){
 
 /******************************************************************************/
 
-function sort_PoolWinnersFirst($fighterStats,$numWinners,$param1,$order1,$param2,$order2,$param3,$order3){
-// Sorts the pool results giving precedence to the winners of each pool
-// Precedence can be given to the top $numWinners fighters of a pool
-// Parameters define which sort criteria should be used, order is ASC or DESC
-	
-	$poolRosters = getPoolRosters(null);
+function pool_RankFighters($tournamentID, $groupSet = 1){
+// Assigns a rank to all fighters in the given group set
 
-	foreach((array)$poolRosters as $groupID => $groupFighters){
-		foreach($groupFighters as $groupFighter){
-			$rosterID = $groupFighter['rosterID'];
-			$fighterStatsByPool[$groupID][$rosterID]['wins'] = $fighterStats[$rosterID]['wins'];
-			$fighterStatsByPool[$groupID][$rosterID]['score'] = $fighterStats[$rosterID]['score'];
-			$fighterStatsByPool[$groupID][$rosterID]['doubles'] = $fighterStats[$rosterID]['doubles'];
-		}
-		$poolWinners = pool_getWinners($fighterStatsByPool[$groupID],$numWinners);
-		
-		foreach($poolWinners as $rosterID){
-			$isGroupWinner[$rosterID] = true;
-		}
+	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_RankFighters()";
+		return;
 	}
 
-	// Creates two separate arrays, one of pool winners, the other of everybody else
+// Load meta data on how to rank fighters
+	$sql = "SELECT groupWinnersFirst, 
+			orderByField1, orderBySort1,
+			orderByField2, orderBySort2,
+			orderByField3, orderBySort3
+			FROM eventTournaments
+			INNER JOIN systemRankings USING(tournamentRankingID)
+			WHERE tournamentID = {$tournamentID}";
 
-	foreach((array)$fighterStats AS $rosterID => $fighter){
-		if($isGroupWinner[$rosterID] == true){
-			$winnersGroup[$rosterID] = $fighter;
+	$meta = mysqlQuery($sql, SINGLE);
+
+// Check which of the ORDER BY fields are valid/used	
+	if($meta['orderByField1'] == '' 
+		|| ($meta['orderBySort1'] != 'ASC' && $meta['orderBySort1'] != 'DESC')){
+		$_SESSION['alertMessages']['systemErrors'][] = "Invalid sort data in sort_Simple()";
+		return;
+	}
+
+	$orderBy = "ORDER BY {$meta['orderByField1']} {$meta['orderBySort1']}";
+
+	if($meta['orderByField2'] != '' 
+		&& ($meta['orderBySort2'] == 'ASC' || $meta['orderBySort2'] == 'DESC')){
+			$orderBy .= ", {$meta['orderByField2']} {$meta['orderBySort2']}";
+
+	}
+
+	if($meta['orderByField3'] != '' 
+		&& ($meta['orderBySort3'] == 'ASC' || $meta['orderBySort3'] == 'DESC')){
+			$orderBy .= ", {$meta['orderByField3']} {$meta['orderBySort3']}";
+
+	}
+
+// Retrieve List
+	$sql = "SELECT standingID, groupID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}
+			{$orderBy}";
+
+	$rankedList = mysqlQuery($sql, ASSOC);
+
+	$numWinners = (int)$meta['groupWinnersFirst'];
+	$winnerPlacing = 1;
+	$loserPlacing = 1;
+
+// Initialize variables for placing pool winners first (if used)
+	if($numWinners >= 1){
+		$sql = "SELECT COUNT(DISTINCT(groupID)) AS numGroups
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}";
+
+		$numGroups = mysqlQuery($sql, SINGLE, 'numGroups');
+
+		$loserPlacing = 1 + ($numGroups * $numWinners);
+	}
+
+	
+// Update each fighter with their placing
+	foreach($rankedList as $standing){
+		$groupID = $standing['groupID'];
+		$standingID = $standing['standingID'];
+
+		if($winnersInGroup[$groupID] < $numWinners){
+			$winnersInGroup[$groupID]++;
+			$placing = $winnerPlacing;
+			$winnerPlacing++;
 		} else {
-			$notWinnersGroup[$rosterID] = $fighter;
+			$placing = $loserPlacing;
+			$loserPlacing++;
 		}
-	}
 
+		$sql = "UPDATE eventStandings
+				SET rank = {$placing}
+				WHERE standingID = {$standingID}";
+			
+		mysqlQuery($sql, SEND);
+
+	}
 	
-	// Sort the two groups
-	$winnersGroup = sort_Simple($winnersGroup,$param1,$order1,$param2,$order2,$param3,$order3);
-	$notWinnersGroup = sort_Simple($notWinnersGroup,$param1, $order1,$param2,$order2,$param3,$order3);
-
-	// Recombine the two groups
-	unset($fighterStats);
-	$i=0;
-
-	foreach((array)$winnersGroup as $fighterData){
-		$fighterStats[$i] = $fighterData;
-		$fighterStats[$i]['rank'] = $i+1;
-		$i++;
-	}
-
-
-	foreach((array)$notWinnersGroup as $fighterData){
-		$fighterStats[$i] = $fighterData;
-		$fighterStats[$i]['rank'] = $i+1;
-		$i++;
-	}
-
-	
-	return $fighterStats;
 }
 
-/******************************************************************************/
+/******************************************************************************
 
 function sort_SeededPool($fighterStats,$numSeededPools,$numWinners,$param1,$order1,$param2,$order2,$param3,$order3){
 // Sorts the pool results giving precedence all fighters from seeded pools,
@@ -1609,38 +1034,6 @@ function sort_SeededPool($fighterStats,$numSeededPools,$numWinners,$param1,$orde
 	}
 
 	
-	return $fighterStats;
-}
-
-/******************************************************************************/
-
-function sort_Simple($fighterStats,$param1,$order1,$param2 = null,$order2 = null,$param3 = null,$order3 = null){
-// Sorts fighters only based on the parameters supplied
-
-	if($fighterStats==null){ return; }
-	
-	foreach($fighterStats as $key => $entry){
-		$sort1[$key] = $entry[$param1];
-		$sort2[$key] = $entry[$param2];
-		$sort3[$key] = $entry[$param3];
-	}
-	
-	if(isset($param1) && isset($order1)){
-		if(isset($param2) && isset($order2)){
-			if(isset($param3) && isset($order3)){
-				array_multisort($sort1, $order1, $sort2, $order2, $sort3, $order3, $fighterStats);
-			} else {
-				array_multisort($sort1, $order1, $sort2, $order2, $fighterStats);
-			}
-		} else {
-			array_multisort($sort1, $order1, $fighterStats);
-		}
-	}
-		
-	foreach($fighterStats as $key => $entry){
-		$fighterStats[$key]['rank'] = ++$i;
-	}
-
 	return $fighterStats;
 }
 

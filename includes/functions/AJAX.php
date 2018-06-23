@@ -159,11 +159,11 @@ case 'getRankingTypes': {
 			return;
 	}
 	
-	$sql = "SELECT rankingID, name
+	$sql = "SELECT tournamentRankingID, name
 			FROM systemRankings
 			{$where}
 			ORDER BY numberOfInstances DESC";
-	$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'rankingID', 'name');
+	$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
 	
 	echo json_encode($rankingTypes);
 

@@ -437,8 +437,8 @@ function addMatchWinner(){
 	if(isLastMatch($tournamentID)){
 		$_SESSION['askForFinalization'] = true;
 	}
-	
-	$_SESSION['updatePoolStandings'][$tournamentID] = true;
+
+	$_SESSION['updatePoolStandings'][$tournamentID] = getGroupSetOfMatch($matchID);
 	
 }
 
@@ -997,7 +997,7 @@ function deleteFromGroups(){
 	
 // Re-Calculate Scores
 	if(isPools($_SESSION['tournamentID'])){
-		$_SESSION['updatePoolStandings'][$tournamentID] = true;
+		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;
 	}
 	
 }
@@ -1020,7 +1020,7 @@ function deleteFromTournament(){
 		
 		$_SESSION['checkEvent'][$tournamentID]['all'] = true;
 		// Re-calculate the pool scores if a fighter who has alread fought it removed
-		$_SESSION['updatePoolStandings'][$tournamentID] = true;   /// Pass confirmation variable
+		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS; 
 	}
 	
 	updateTournamentFighterCounts($tournamentID);
@@ -1785,7 +1785,7 @@ function importRosterCSV(){
 
 /******************************************************************************/
 
-function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = null){
+function recordScores($allFighterStats, $tournamentID, $groupType, $groupSet = null){
 	
 	if(USER_TYPE < USER_STAFF){return;}
 	
@@ -1800,68 +1800,128 @@ function recordScores($fighterScores, $tournamentID, $groupType, $groupSet = nul
 		$_SESSION['alertMessages']['systemErrors'][] = "No groupSet in recordScores()";
 		return; 
 	}
-	
+
 
 // Find out what exists in the DB so it is known what needs to be updated vs inserted
-	$sql = "SELECT standingID
+	$sql = "SELECT standingID, rosterID
 			FROM eventStandings
 			WHERE tournamentID = {$tournamentID}
 			AND groupType = '{$groupType}'
 			AND groupSet = {$groupSet}";
-	$standingsExisting = mysqlQuery($sql, ASSOC);
+	$existingStandings = mysqlQuery($sql, ASSOC);
 	
-	$numStandingsExisting = count($standingsExisting);
-	$numStandingsNew = count($fighterScores);
-	
-	$standingsToEdit = min($numStandingsNew, $numStandingsExisting);
-
-// Re-write existing rankings
-	for($i = 0; $i < $standingsToEdit; $i++){
-		$standingID = $standingsExisting[$i]['standingID'];
-		
-		$updateString = null;
-		foreach($fighterScores[$i] as $field => $value){
-			$updateString .= "{$field} = {$value}, ";
+	foreach((array)$existingStandings as $standing){
+		$rosterID = $standing['rosterID'];
+		if(isset($allFighterStats[$rosterID])){
+			$standingsToUpdate[$rosterID] = $standing['standingID'];
+		} else{
+			$standingsToDelete[] = $standing['standingID'];
 		}
-		
-		$updateString= rtrim($updateString,', \t\n');
-		
-		$sql = "UPDATE eventStandings
-				SET
-				{$updateString}
-				WHERE standingID = $standingID";
-				
-		mysqlQuery($sql, SEND);		
 	}
-	
-// Add new rankings if there are more than the amount already there
-	for($i = $standingsToEdit; $i < $numStandingsNew ; $i++){
-		
-		$fieldString = $valueString = null;
-		foreach($fighterScores[$i] as $field => $value){
-			$fieldString .= "{$field}, ";
-			$valueString .= "{$value}, ";
-		}
-		
-		$fieldString = rtrim($fieldString,', \t\n');
-		$valueString = rtrim($valueString,', \t\n');
-		
-		$sql = "INSERT INTO eventStandings
-				(groupType, tournamentID, groupSet,{$fieldString})
-				VALUES
-				('{$groupType}', {$tournamentID}, {$groupSet},{$valueString})";
-			
+
+
+
+// Delete old standings
+	foreach((array)$standingsToDelete as $standingID){
+		$sql = "DELETE FROM eventStandings
+				WHERE standingID = {$standingID}";
 		mysqlQuery($sql, SEND);
 	}
 
-// Delete old rankings that did not get re-written
-	$sql = "DELETE FROM eventStandings
-			WHERE tournamentID = {$tournamentID}
-			AND groupType = '{$groupType}'
-			AND groupSet = {$groupSet}
-			AND rank > {$numStandingsNew}";
-	mysqlQuery($sql, SEND);
-	
+// Go through each fighter and record their stats
+	foreach((array)$allFighterStats as $rosterID => $fighterStats){
+
+		// If the standings already exist
+		if(isset($standingsToUpdate[$rosterID])){
+
+			$standingID = $standingsToUpdate[$rosterID];
+			$updateString = null;
+
+			foreach($fighterStats as $field => $value){
+				$updateString .= "{$field} = {$value}, ";
+			}
+			
+			$updateString= rtrim($updateString,', \t\n');
+			
+			$sql = "UPDATE eventStandings
+					SET
+					{$updateString}
+					WHERE standingID = $standingID";
+			mysqlQuery($sql, SEND);
+
+		// Insert new standing
+		} else {
+
+			$fieldString = "rosterID,";
+			$valueString = "{$rosterID},";
+
+
+			foreach($fighterStats as $field => $value){
+				$fieldString .= "{$field}, ";
+				$valueString .= "{$value}, ";
+			}
+			
+			$fieldString = rtrim($fieldString,', \t\n');
+			$valueString = rtrim($valueString,', \t\n');
+			
+			$sql = "INSERT INTO eventStandings
+					(groupType, tournamentID, groupSet,{$fieldString})
+					VALUES
+					('{$groupType}', {$tournamentID}, {$groupSet},{$valueString})";
+				
+			mysqlQuery($sql, SEND);
+		}
+	}
+
+	if(isCumulative($groupSet, $tournamentID) && $groupSet > 1){
+		$lastGroupSet = $groupSet - 1;
+
+
+		$sql = "SELECT rosterID, matches, wins, losses, ties, pointsFor, pointsAgainst,
+					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst, doubles,
+					noExchanges, AbsPointsFor, AbsPointsAgainst, numPenalties, 
+					penaltiesAgainstOpponents, penaltiesAgainst, doubleOuts
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$lastGroupSet}";
+
+		$lastSetScores = mysqlQuery($sql, ASSOC);
+
+		foreach($lastSetScores as $score){
+			
+			$sql = "UPDATE eventStandings
+					SET 
+						matches 			= matches + {$score['matches']},
+						wins 				= wins + {$score['wins']},
+						losses 				= losses + {$score['losses']},
+						ties 				= ties + {$score['ties']},
+						pointsFor 			= pointsFor + {$score['pointsFor']},
+						pointsAgainst 		= pointsAgainst + {$score['pointsAgainst']},
+						hitsFor				= hitsFor + {$score['hitsFor']},
+						hitsAgainst 		= hitsAgainst + {$score['hitsAgainst']},
+						afterblowsFor 		= afterblowsFor + {$score['afterblowsFor']},
+						afterblowsAgainst 	= afterblowsAgainst + {$score['afterblowsAgainst']},
+						doubles 			= doubles + {$score['doubles']},
+						noExchanges 		= noExchanges + {$score['noExchanges']},
+						AbsPointsFor 		= AbsPointsFor + {$score['AbsPointsFor']},
+						AbsPointsAgainst 	= AbsPointsAgainst + {$score['AbsPointsAgainst']},
+						numPenalties 		= numPenalties + {$score['numPenalties']},
+						penaltiesAgainstOpponents = penaltiesAgainstOpponents + {$score['penaltiesAgainstOpponents']},
+						penaltiesAgainst	= penaltiesAgainst + {$score['penaltiesAgainst']},
+						doubleOuts 			= doubleOuts + {$score['doubleOuts']}
+					WHERE tournamentID = {$tournamentID}
+					AND groupType = 'pool'
+					AND groupSet = {$groupSet}
+					AND rosterID = {$score['rosterID']}";
+
+			mysqlQuery($sql, SEND);
+
+		}
+
+	}
+
+
 
 }
 
@@ -2217,7 +2277,8 @@ function updateEventTournaments(){
 			if(!isset($info['doubleTypeID'])){ $info['doubleTypeID'] = 'null'; }
 			if($info['maximumExchanges'] == ''){$info['maximumExchanges'] = 'null';}
 			if($info['isNotNetScore'] == ''){$info['isNotNetScore'] = 0;}
-		
+			if($info['basePointValue'] == ''){$info['basePointValue'] = 0;}
+
 			if(isset($info['color1ID'])){ $defaults['color1ID'] = $info['color1ID'];}
 			if(isset($info['color2ID'])){ $defaults['color2ID'] = $info['color2ID'];}
 			
@@ -2227,7 +2288,7 @@ function updateEventTournaments(){
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
 					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
-					isNotNetScore
+					isNotNetScore, basePointValue
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2246,7 +2307,8 @@ function updateEventTournaments(){
 					{$info['isCuttingQual']},
 					{$info['useTimer']},
 					{$info['useControlPoint']},
-					{$info['isNotNetScore']}
+					{$info['isNotNetScore']},
+					{$info['basePointValue']}
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
@@ -2260,7 +2322,7 @@ function updateEventTournaments(){
 		case 'update':
 		
 			$tournamentID = $_POST['modifyTournamentID'];
-			$_SESSION['updatePoolStandings'][$tournamentID] = true;	
+			$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;	
 		
 		// Delete groups if the elim type has changed		
 			$elimTypeID = $_POST['updateTournament']['tournamentElimID'];
@@ -2353,7 +2415,7 @@ function updateEventTournaments(){
 		if($ID == $null){ continue; }
 		$sql = "UPDATE systemRankings
 				SET numberOfInstances = {$num}
-				WHERE rankingID = {$ID}";
+				WHERE tournamentRankingID = {$ID}";
 		mysqlQuery($sql, SEND);
 	}
 	
@@ -2568,7 +2630,7 @@ function updateIgnoredFighters(){
 		mysqlQuery($sql, SEND);
 	}
 
-	$_SESSION['updatePoolStandings'][$tournamentID] = true;
+	$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;
 	
 	$_SESSION['alertMessages']['userAlerts'][] = "Updated";
 	
@@ -2643,7 +2705,7 @@ function updateIgnoredFighters(){
 		mysqlQuery($sql, SEND);
 	}
 
-	$_SESSION['updatePoolStandings'][$tournamentID] = true;
+	$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;
 	
 	$_SESSION['alertMessages']['userAlerts'][] = "Updated";
 }
@@ -2926,34 +2988,10 @@ function updatePoolMatchList($ID = null, $type = null){
 						WHERE groupID = {$groupID}";
 			mysqlQuery($sql, SEND);
 			$matchOrder = getPoolMatchOrder($groupID, $poolRoster);
-			
-			// Does not do pool operations for Combat Con Invitational
-			if(isCCInvitational($tournamentID) && $_SESSION['manualMatchSet'] != true){
-				continue;
-			}
 		
 			foreach((array)$matchOrder as $matchNumber => $matchInfo){
 				$fighter1ID = $matchInfo['fighter1ID'];
 				$fighter2ID = $matchInfo['fighter2ID'];
-					
-			{// Combat Con Invitational ---------------
-				if(isCCInvitational($tournamentID) && $_SESSION['manualMatchSet'] == true){
-					
-					$sql = "DELETE FROM eventMatches
-							WHERE groupID = {$groupID};";
-					
-					for($i=1;$i<=3;$i++){
-						$thisMatchNumber = ($matchNumber * 10) + $i;
-						$sql = "INSERT INTO eventMatches
-								(groupID, matchNumber, fighter1ID, fighter2ID)
-								VALUES
-								({$groupID}, {$thisMatchNumber}, {$fighter1ID}, {$fighter2ID})";
-						$matchID = mysqlQuery($sql, INDEX);
-						$goodMatchesInPool[$groupID][] = $matchID;
-					}
-					continue;
-				}
-			} // -------------------------------------
 				
 			//Check if match already exists
 				$sql = "SELECT matchID, matchNumber, winnerID
@@ -3056,9 +3094,7 @@ function updatePoolMatchList($ID = null, $type = null){
 
 		}
 	}
-	
-	// If the program was manualy set to delete and re-make matches
-	unset($_SESSION['manualMatchSet']);
+
 	
 }
 
@@ -3082,7 +3118,7 @@ function updatePoolSets(){
 				VALUES 
 				({$tournamentID}, 'cumulative', {$groupSet}, {$bool})";
 		mysqlQuery($sql, SEND);
-		$_SESSION['updatePoolStandings'][$tournamentID] = true;	
+		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;	
 	}
 
 // Set normalization
@@ -3100,7 +3136,7 @@ function updatePoolSets(){
 				VALUES 
 				({$tournamentID}, 'normalization', {$groupSet}, {$normalization})";
 		mysqlQuery($sql, SEND);
-		$_SESSION['updatePoolStandings'][$tournamentID] = true;	
+		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;	
 	}
 	
 // Change number of pool sets

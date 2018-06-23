@@ -59,7 +59,6 @@ if($tournamentID == null){
 		}
 	}
 	
-	
 //gets list of fighters already in a pool
 	foreach($poolRosters as $poolEntry){
 		foreach($poolEntry as $assignedFighter){
@@ -74,15 +73,7 @@ if($tournamentID == null){
 			$freeFighters[] = $fighter;
 		}
 	}
-	
-//form submit and validation
-	if(isCCInvitational() AND USER_TYPE>=USER_ADMIN){
-		echo"
-		<form method='POST'>
-			<input type='hidden' name='formName' value='manualMatchSet'>
-			<button class='button' name='manualMatchSet' value='true'>Erase Pools and Create New</button>
-		</form>";
-	}
+
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -318,7 +309,10 @@ function poolSetBox($tournamentID){
 		
 	<!-- Is cumulative -->
 		<div class='input-group medium-6 small-12 no-bottom'> 
-			<span class='input-group-label'>Is Cumulative:</span>
+			<span class='input-group-label'>
+				Is Cumulative &nbsp;
+				<?php tooltip("A cumulative pool will combine the stats of all prior cumulative pools, and the first non-cumulative pool preceding a block of cumulative pools")?>:
+			</span>
 			<div class='switch input-group-button large no-bottom'>
 				<input type='hidden' name='cumulativeSet[<?=$setNumber?>]' value='0'>
 				<input class='switch-input' type='checkbox' id='cumulativeSet-<?=$setNumber?>' 
@@ -330,7 +324,10 @@ function poolSetBox($tournamentID){
 		
 	<!-- Normalization size -->
 		<div class='input-group medium-6 small-12 no-bottom'> 
-			<span class='input-group-label'>Normalization Size:</span>
+			<span class='input-group-label'>
+				Normalization Size &nbsp;
+				<?php tooltip("Regardless of the option selected, cumulative pools will all have the same normalization as the first pool that they combine results from.")?>:
+			</span>
 			<select type='number' class='input-group-field' 
 				 name='normalizeSet[<?=$setNumber?>]'>
 				 <option value=0>Auto</option>
@@ -440,7 +437,11 @@ function autoPopluateButton($tournamentID = null){
 	<form method='POST'>
 	<div class='grid-x grid-margin-x grid-padding-x'>
 		<div class='shrink align-self-middle opacity-toggle'>
-			Pools per tier: 
+			Pools per tier:
+			<?php tooltip("Specifying a number allows you to create &#39;groupings&#39; of fighters.<BR>
+				Leave blank to distribute fighters between all the pools.
+				<BR><BR>
+				eg: 2 Pools per tier will fill the first 2 pools up with the highest ranked, and so on."); ?>
 		</div>
 		<div class='shrink'>
 			<input type='text' size='1' name='poolsInTier' value='' placeholder='all'> 

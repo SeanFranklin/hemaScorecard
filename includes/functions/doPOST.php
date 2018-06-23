@@ -113,15 +113,11 @@ function processPostData(){
 		case 'deleteFromPools':
 			deleteFromGroups();
 			break;
-		case 'manualMatchSet':
-			$_SESSION['manualMatchSet'] = $_POST['manualMatchSet'];
-			updatePoolMatchList();
-			break;
 		case 'changePoolSet':
 			$_SESSION['groupSet'] = $_POST['groupSet'];
 			break;
 		case 'generateNextPoolSet':
-			pool_generateNextPools();  //scoringFunctions.php
+			pool_generateNextPools();
 			break;
 		case 'changeGroupOrder':
 			reOrderGroups($_POST['newGroupNumber']);
@@ -317,8 +313,9 @@ function processPostData(){
 	}
 	
 	if(isset($_SESSION['updatePoolStandings'])){
-		foreach($_SESSION['updatePoolStandings'] as $tournamentID => $data){
-			updatePoolStandings($tournamentID);   //doPOST.php
+		
+		foreach($_SESSION['updatePoolStandings'] as $tournamentID => $groupSet){
+			updatePoolStandings($tournamentID, $groupSet);   //doPOST.php
 		}
 		unset($_SESSION['updatePoolStandings']);
 	}
@@ -356,7 +353,7 @@ function checkEvent(){
 		$tournamentIDs = getEventTournaments();
 		foreach((array)$tournamentIDs as $tournamentID){
 			checkGroupOrders($tournamentID);
-			updatePoolStandings($tournamentID);
+			updatePoolStandings($tournamentID, ALL_GROUP_SETS);
 			if(isRounds($tournamentID)){
 				updateRoundMatchList();
 			}
@@ -377,7 +374,6 @@ function checkEvent(){
 				if(isPools($tournamentID)){
 					checkGroupOrders($tournamentID);
 					updatePoolMatchList($tournamentID, 'tournament');
-					updatePoolStandings($tournamentID);
 				}
 				if(isRounds($tournamentID)){
 					
@@ -405,7 +401,7 @@ function checkEvent(){
 				}
 			}	
 			
-			updatePoolStandings($tournamentID);
+			updatePoolStandings($tournamentID, ALL_GROUP_SETS);
 		}
 	}
 	unset($_SESSION['checkEvent']);
@@ -453,36 +449,40 @@ function toggleBracketHelper(){
 
 /******************************************************************************/
 
-function updatePoolStandings($tournamentID = null){
+function updatePoolStandings($tournamentID, $groupSet = 1){
 // Calls the functions in poolScoring.php required to update the pool standings
+// If called with groupSet == 0 it does them all
+// If called with a groupSet number it does that set and all the ones after
 		
 	if(USER_TYPE < USER_STAFF){return;}
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
-	define("TOURNAMENT_ID", $tournamentID);
 	
 	// Check to catch non-pool events
 	$elimID = getElimID($tournamentID);
 	if($elimID != POOL_BRACKET && $elimID != POOL_SETS){
 		return; 
 	}	
-	
-	$sql = "SELECT numGroupSets
-			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}";
-	$numberOfPoolSets = mysqlQuery($sql, SINGLE, 'numGroupSets');
-	
-	for($setNumber = 1; $setNumber <= $numberOfPoolSets; $setNumber++){
-		
-		$poolExchanges = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
-	
-		// Calculate Scores
-		$fighterScores = pool_ScoreFighters($poolExchanges, $tournamentID, $setNumber);
-		$fighterRanks = pool_RankFighters($fighterScores, $tournamentID);
 
-		// Save List
-		recordScores($fighterRanks, $tournamentID, 'pool', $setNumber);
+	$setNumber = $groupSet;
+	$numberOfGroupSets = getNumGroupSets($tournamentID);
+	if($setNumber < 1){ $setNumber = 1;}
+
+	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
+		
+		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
+		$fighterStats = pool_normalizeSizes($fighterStats, $tournamentID, $setNumber);
+
+		recordScores($fighterStats, $tournamentID, 'pool', $setNumber);
+		unset($fighterStats);
+
+		pool_ScoreFighters($tournamentID, $setNumber);
+
+		pool_RankFighters($tournamentID, $setNumber);
+	
 	}
+
+	unset($_SESSION['updatePoolStandings'][$tournamentID]);
 	
 }
 

@@ -97,50 +97,6 @@ function autoRefreshTime($poolsInProgress){
 
 /******************************************************************************/
 
-function isCCInvitational($tournamentID = null){
-// Checks if a tournament is the Combat Con invitational, a multi-weapon tournament
-// which required some special case management. Should theoretically not be in
-// use anymore.	
-	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
-	
-	$sql = "SELECT tournamentType FROM eventTournaments tournaments
-				INNER JOIN systemTournaments types ON types.tournamentTypeID = tournaments.tournamentRankingID
-				WHERE tournamentID = {$tournamentID}";
-	$type = mysqlQuery($sql, SINGLE, 'tournamentType');
-	if($type == 'CC Invitational'){
-		return true;
-	} else {
-		return false;
-	}
-
-}
-
-
-/******************************************************************************/
-
-function CCInvitationalWeapon($matchNumber,$type){
-// Used for Combat Con Invitational 2015. See note in isCCInvitational.
-
-	$weapons[1] = 'Longsword';
-	$weapons[2] = 'Rapier';
-	$weapons[3] = 'Sword & Buckler';
-	
-	if(!isCCInvitational()){ return; }
-	$num = substr($matchNumber, -1);
-	$weapon = $weapons[$num];
-
-	if ($type == 'print'){
-		echo $weapon;
-	}
-	
-	return $weapon;
-	
-}
-
-/******************************************************************************/
-
 function getBracketAdvancements($allBracketInfo, $finalists){
 // Determines which fighters should be advanced into which spots in the bracket
 

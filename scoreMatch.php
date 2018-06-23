@@ -28,6 +28,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 } else {
 	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
+
 	$exchangeInfo = getMatchExchanges($matchID);
 
 // If it is the last match in the tournament the staff is asked to finalize the event
@@ -44,10 +45,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	if($matchInfo['lastExchange'] != null && $matchInfo['matchComplete'] == 0 
 		&& $matchInfo['ignoreMatch'] != 1 && USER_TYPE < USER_STAFF){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
-	}
-	
-	if($matchInfo['matchType'] == 'pool'){
-		CCInvitationalWeapon($matchInfo['matchNumber'],'print');
 	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
