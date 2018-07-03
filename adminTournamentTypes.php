@@ -32,7 +32,6 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 		<select name='tournamentTypeMeta' class='input-group-field'>
 			<option value='weapon'>Weapon</option>
 			<option value='prefix'>Prefix</option>
-			<option value='ranking'>Ranking Method</option>
 			<option value='material'>Material</option>
 			<option value='suffix'>Suffix</option>
 			<option value='gender'>Gender</option>

@@ -172,6 +172,10 @@ function processPostData(){
 		case 'YouTubeLink':
 			updateYouTubeLink();
 			break;
+		case 'ignorePastIncompletes':
+			$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
+			if(isset($_POST['matchID'])){$_SESSION['matchID'] = $_POST['matchID'];}
+			break;
 		
 				
 // Finals
@@ -195,9 +199,12 @@ function processPostData(){
 			break;
 			
 			
-// Admin Cases
-		case 'newSystemPasswords':
-			updateSystemPasswords();
+// Event Organzer Cases
+		case 'ignoreFightersInTournament':
+			updateIgnoredFighters();
+			break;
+		case 'addNewSchool':
+			addNewSchool();
 			break;
 		case 'newPasswords':
 			updateEventPasswords();
@@ -210,31 +217,7 @@ function processPostData(){
 			break;
 		case 'deleteTournament':
 			deleteEventTournament();
-			break;
-		case 'ignoreFightersInTournament':
-			updateIgnoredFighters();
-			break;
-		case 'addNewSchool':
-			addNewSchool();
-			break;
-		case 'editExistingSchool':
-			updateExistingSchool();
-			break;
-		case 'addNewEvent':
-			addNewEvent();
-			break;
-		case 'editEvent':
-			editEvent();
-			break;
-		case 'eventStatusUpdate':
-			editEventStatus();
-			break;
-		case 'addTournamentType':
-			addTournamentType();
-			break;
-		case 'displaySettings':
-			updateDisplaySettings();
-			break;
+			break;	
 		case 'finalizeTournament':
 			if($_POST['finalizeTournament'] == 'revoke'){
 				removeTournamentPlacings($_POST['tournamentID']);
@@ -245,8 +228,41 @@ function processPostData(){
 		case 'addAttackTypes':
 			addAttacksToTournament();
 			break;
-			
-			
+
+
+// Admin Cases
+		case 'newSystemPasswords':
+			updateSystemPasswords();
+			break;
+		case 'eventStatusUpdate':
+			editEventStatus();
+			break;
+		case 'displaySettings':
+			updateDisplaySettings();
+			break;
+		
+		case 'editExistingSchool':
+			updateExistingSchool();
+			break;
+		case 'addNewEvent':
+			addNewEvent();
+			break;
+		case 'editEvent':
+			editEvent();
+			break;
+		case 'addTournamentType':
+			addTournamentType();
+			break;
+		case 'addNewDuplicateException':
+			addNewDuplicateException();
+			break;
+		case 'combineDuplicateFighters':
+			combineSystemRosterIDs($_POST['combineInto'],$_POST['rosterIDs']);
+			break;
+		case 'duplicateNameSearchType':
+			$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
+			break;
+	
 			
 // Stats Cases
 		case 'dataFilters':
@@ -1060,15 +1076,17 @@ function logUserIn(){
 	if($type == USER_STATS || $type == USER_VIDEO || $type == USER_SUPER_ADMIN){
 		$eventID = null;
 	}
+
 	
 	if(checkPassword($passwordInput, $type, $eventID)){
 		$_SESSION['userType'] = $type;
-		//define("USER_TYPE", $_SESSION['userType']);
+		unset($_SESSION['clearOnLogOut']);
+
 		changeEvent($eventID, true);
 	} else {
 		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Failed to Log In";
 	}
-	
+
 	return;
 }
 

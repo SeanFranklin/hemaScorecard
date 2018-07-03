@@ -31,7 +31,7 @@ function displayPageAlerts(){
 
 // Error messages for the user.
 	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
-		displayAlert("<stron>Error: </strong>".$message,'warning');
+		displayAlert("<strong>Error: </strong>".$message,'warning');
 	}
 
 // Alert messages for the user (ie confirmation messages)
@@ -605,6 +605,10 @@ function edit_tournamentControlPoints($tournamentID = 'new'){
 		id='controlPoint_div<?=$tournamentID?>'>
 			
 		Use Control Point
+		<?php 
+		tooltip("This gives the scorekeeper the option to assign additional points <u>on top of</u> 
+			the normal point value for an exchange.");
+		?>
 
 		<select name='updateTournament[useControlPoint]'
 			id='controlPoint_select<?=$tournamentID?>'>

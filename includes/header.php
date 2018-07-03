@@ -147,6 +147,7 @@ include_once('includes/config.php');
 							<li><a href='masterResultsDump.php'>Export Results</a></li>
 							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
+							<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
 						</ul>
 					</li>";
 				$videoManager = "

@@ -1145,6 +1145,8 @@ function getFighterNameSystem($systemRosterID, $nameMode = null){
 		return $result['firstName']." ".$result['lastName'];
 	} elseif(NAME_MODE == 'lastName' || $nameMode == 'last'){
 		return $result['lastName'].", ".$result['firstName'];
+	} elseif($nameMode == 'array'){
+		return $result;
 	} else {
 		return $result['firstName']." ".$result['lastName'];
 	}
@@ -3311,6 +3313,30 @@ function isFullAfterblow($tournamentID = null){
 		return false;
 	}
 	
+}
+
+/******************************************************************************/
+
+function isUnconcludedMatchWarning($matchInfo){
+
+	$sql = "SELECT count(matchID) AS numMatches
+			FROM eventMatches
+			WHERE groupID = {$matchInfo['groupID']}
+			AND matchComplete = 0
+			AND ( (matchNumber = {$matchInfo['matchNumber']} - 1)
+				OR (matchNumber = {$matchInfo['matchNumber']} - 2)
+				)";
+			
+	$numPastIncompletes = mysqlQuery($sql, SINGLE, 'numMatches');
+
+	if($numPastIncompletes >= 2 
+		&& $_SESSION['clearOnLogOut']['ignorePastIncompletes'] != true
+		&& USER_TYPE < USER_SUPER_ADMIN){
+		return true;
+	}
+
+	return false;
+
 }
 
 /******************************************************************************/

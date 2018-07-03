@@ -592,6 +592,28 @@ function addTournamentType(){
 
 /******************************************************************************/
 
+function addNewDuplicateException(){
+// Adds a new name to the table of fighters who are not the same person.
+// These are names tha the sort algorithm identifies incorrectly.
+
+	if(USER_TYPE < USER_SUPER_ADMIN){ return;}
+	$rosterID1 = $_POST['rosterIDs'][0];
+	$rosterID2 = $_POST['rosterIDs'][1];
+
+
+
+	$sql = "INSERT INTO systemRosterNotDuplicate
+			(rosterID1, rosterID2)
+			VALUES
+			({$rosterID1}, {$rosterID2})";
+
+
+	mysqlQuery($sql, SEND);		
+
+}
+
+/******************************************************************************/
+
 function checkRoundRoster($tournamentID, $groupID = null){
 // Checks that all fighters are numbered sequentialy in the round roster
 // Can only check one round if the groupID is provided	
@@ -695,6 +717,32 @@ function clearExchanges($matchID, $code){
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
 	
+}
+
+/******************************************************************************/
+
+function combineSystemRosterIDs($baseID, $rosterIDs){
+
+
+	if($baseID == null){
+		$_SESSION['alertMessages']['userErrors'][] = "No Fighter Selected<BR>No Changes Made";
+		return;
+	}
+
+	foreach($rosterIDs as $systemRosterID){
+		if($systemRosterID == $baseID){ continue; }
+
+		$sql = "UPDATE eventRoster
+				SET systemRosterID = {$baseID}
+				WHERE systemRosterID = {$systemRosterID}";
+		mysqlQuery($sql, SEND);
+		$sql = "DELETE FROM systemRoster
+				WHERE systemRosterID = {$systemRosterID}";
+		mysqlQuery($sql, SEND);		
+
+	}
+	$_SESSION['alertMessages']['userAlerts'][] = "Fighters combined successfully";
+
 }
 
 /******************************************************************************/
