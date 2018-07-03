@@ -28,6 +28,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 } else {
 	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
+
 	$exchangeInfo = getMatchExchanges($matchID);
 
 // If it is the last match in the tournament the staff is asked to finalize the event
@@ -35,8 +36,10 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 // If the livestream is active it asks to make this the displayed match
 	livestreamMatchSet($matchID);
-	
 
+// Checks if the user has left unconcluded matches, and warns them
+	$matchInfo['unconcludedMatchWarning'] = unconcludedMatchWarning($matchInfo);
+	
 //Passes data to Javascript
 	echo "<input type='hidden' value='{$matchInfo['doubleType']}' id='doubleType'>";
 	
@@ -44,10 +47,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	if($matchInfo['lastExchange'] != null && $matchInfo['matchComplete'] == 0 
 		&& $matchInfo['ignoreMatch'] != 1 && USER_TYPE < USER_STAFF){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
-	}
-	
-	if($matchInfo['matchType'] == 'pool'){
-		CCInvitationalWeapon($matchInfo['matchNumber'],'print');
 	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -736,17 +735,73 @@ function createSideBar($matchInfo){
 <!-- Go to next match buttons -->
 	<?php if(isset($nextMatchInfo)): ?>
 		<HR>
-		<form method='POST'>
-		<input type='hidden' name='formName' value='goToMatch'>
+
+		
 		Next Match: <BR>
-		<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
-			<?=getFighterName($nextMatchInfo['fighter1ID'])?>
-			<BR> <?=$name1?>
-			<BR><BR> vs.<BR>
-			<BR> <?=getFighterName($nextMatchInfo['fighter2ID'])?>
-			<BR> <?=$name2?>
-		</button>
+
+		<?php if($matchInfo['unconcludedMatchWarning']): ?>
+
+
+			<a class='button hollow expanded' data-open='confirmNextPoolNavigation'>
+				<?=getFighterName($nextMatchInfo['fighter1ID'])?>
+				<BR> <?=$name1?>
+				<BR><BR> vs.<BR>
+				<BR> <?=getFighterName($nextMatchInfo['fighter2ID'])?>
+				<BR> <?=$name2?>
+			</a>
+
+			<div class='reveal tiny' id='confirmNextPoolNavigation' data-reveal>
+			
+			<h5>Alert</h5>
+			You haven't closed this match yet. The software doesn't know if it is done or still running.<BR>
+			Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
+			<i>If a match is not fought due to injury/disqualification, be sure that an event organizer removes them from the pool scoring calculations.</i>
+
+			<form method='POST'>
+			<input type='hidden' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
+				
+		<!-- Submit buttons -->
+			<div class='grid-x grid-margin-x'>
+				<button class='success button small-6 cell' name='formName' value='goToMatch'>
+					Go To The Next Match
+				</button>
+				<button class='secondary button small-6 cell' data-close aria-label='Close modal' type='button'>
+					Stay Here
+				</button>
+				<button class='warning button small-12 cell' name='formName' value='ignorePastIncompletes'>
+					Go To The Next Match And Dont' Warn Me Again
+				</button>
+			</div>
+			</form>
+			
+			
+		<!-- Reveal close button -->
+			<button class='close-button' data-close aria-label='Close modal' type='button'>
+				<span aria-hidden='true'>&times;</span>
+			</button>
+			
+			</div>
+
+		<?php else: ?>
+
+			<form method='POST'>
+			<input type='hidden' name='formName' value='goToMatch'>
+			
+			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
+				<?=getFighterName($nextMatchInfo['fighter1ID'])?>
+				<BR> <?=$name1?>
+				<BR><BR> vs.<BR>
+				<BR> <?=getFighterName($nextMatchInfo['fighter2ID'])?>
+				<BR> <?=$name2?>
+			</button>
+
+			</form>
+			
+
+		<?php endif ?>
+
 		</form>
+
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
 		<HR><BR>
 		<a class='button warning large' href='poolMatches.php'>
@@ -803,6 +858,30 @@ function doublesText($doubles, $max, $complete){
 	<?php endif ?>
 	
 <?php }
+
+/******************************************************************************/
+
+function unconcludedMatchWarning($matchInfo){
+
+	$useWarning = isUnconcludedMatchWarning($matchInfo);
+
+	if($useWarning){
+		$string = "<strong>The last two matches have not been concluded.</strong><BR>
+		Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
+		<i>If a match is not fought due to injury/disqualification, be sure that an event organizer removes them from the pool scoring calculations.</i>
+		<form method='POST'>
+			<input type='hidden' name='formName' value='ignorePastIncompletes'>
+			<button class='button hollow no-bottom'>Don't Warn Me Again</button>
+		</form>
+
+		";
+		displayAlert($string,'warning');
+
+	}
+
+	return $useWarning;
+
+}
 
 /******************************************************************************/
 

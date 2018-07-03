@@ -1,12 +1,11 @@
 /* Added By Sean **************************************************************/
 
 
-/*
-font-size  = calc(ZZ + ((1vw - XX) * YY))
-Where   XX = viewport_Width_Minimum / 100
-        YY = 100 * font_Size_Difference / viewport_Width_Difference
-        ZZ = Minimum font-size stated in REM   
-*/
+.strike-through{
+  text-decoration: line-through;
+}
+
+
 
 @media (min-width: 200px) {
   .overlay-score {

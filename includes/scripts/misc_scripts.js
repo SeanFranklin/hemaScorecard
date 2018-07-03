@@ -9,6 +9,15 @@
 *******************************************************************************/
 
 
+/******************************************************************************/
+
+function strikeOutDuplicateFighters(indexToClear, buttonToActivate){
+
+	$('.combineFighersRow').addClass('strike-through');
+	$('#'+indexToClear).removeClass('strike-through');
+	$('#'+buttonToActivate).removeAttr("disabled");
+}
+
 
 /******************************************************************************/
 

@@ -31,7 +31,7 @@ function displayPageAlerts(){
 
 // Error messages for the user.
 	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
-		displayAlert("<stron>Error: </strong>".$message,'warning');
+		displayAlert("<strong>Error: </strong>".$message,'warning');
 	}
 
 // Alert messages for the user (ie confirmation messages)
@@ -405,11 +405,11 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 			$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');
 			
 			
-			$sql = "SELECT rankingID, name
+			$sql = "SELECT tournamentRankingID, name
 					FROM systemRankings
 					{$where}
 					ORDER BY numberOfInstances DESC";
-			$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'rankingID', 'name');
+			$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
 		}		
 	}
 	?>
@@ -459,7 +459,7 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 			<div class='large-3 callout cell'>
 				<ul class='menu medium-vertical show-for-medium'>
 				<?php foreach($rankingTypeDescriptions as $type): ?>
-					<li onclick="rankingDescriptionToggle('<?=$type['rankingID']?>')">
+					<li onclick="rankingDescriptionToggle('<?=$type['tournamentRankingID']?>')">
 						<a><?=$type['name']?></a>
 					</li>
 				<?php endforeach ?>
@@ -472,7 +472,7 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 						<a href='#'>Ranking Algorithms</a>
 						<ul class='menu'>
 							<?php foreach($rankingTypeDescriptions as $type): ?>
-									<li onclick="rankingDescriptionToggle('<?=$type['rankingID']?>')">
+									<li onclick="rankingDescriptionToggle('<?=$type['trounamentRankingID']?>')">
 										<a><?=$type['name']?></a>
 									</li>
 							<?php endforeach ?>
@@ -484,7 +484,7 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 			</div>
 			<div class='large-9 cell' id='rankingDescriptionContainer'>
 				<?php foreach($rankingTypeDescriptions as $type): ?>
-					<div id='rankingID<?=$type['rankingID']?>' class='hidden rankingDescription'>
+					<div id='rankingID<?=$type['tournamentRankingID']?>' class='hidden rankingDescription'>
 						<h5><?=$type['name']?></h5>
 						<div style="white-space: pre-wrap;"><?=$type['description']?>
 						</div>
@@ -558,7 +558,7 @@ function edit_tournamentBasePoints($tournamentID = 'new'){
 		?>
 			
 		<input type='number' name='updateTournament[basePointValue]' value='<?=$value?>' 
-			onchange="enableTournamentButton('<?=$tournamentID?>')"
+			onkeyup="enableTournamentButton('<?=$tournamentID?>')"
 			id='baseValue_select<?=$tournamentID?>'>
 
 	</div>
@@ -605,6 +605,10 @@ function edit_tournamentControlPoints($tournamentID = 'new'){
 		id='controlPoint_div<?=$tournamentID?>'>
 			
 		Use Control Point
+		<?php 
+		tooltip("This gives the scorekeeper the option to assign additional points <u>on top of</u> 
+			the normal point value for an exchange.");
+		?>
 
 		<select name='updateTournament[useControlPoint]'
 			id='controlPoint_select<?=$tournamentID?>'>
