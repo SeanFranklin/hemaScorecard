@@ -20,7 +20,7 @@
 
 // Database Connection
 	if(!defined('BASE_URL')){
-		define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/v6/');
+		define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/');
 	}
 	include(BASE_URL.'includes/database.php');
 
