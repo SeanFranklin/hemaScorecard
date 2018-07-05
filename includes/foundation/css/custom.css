@@ -1,0 +1,399 @@
+/* Added By Sean **************************************************************/
+
+
+.strike-through{
+  text-decoration: line-through;
+}
+
+
+
+@media (min-width: 200px) {
+  .overlay-score {
+    font-size: calc(0.9375rem + ((1vw - 4px) * 3.2864));
+    padding-right: calc(0.6rem + ((1vw - 4px) * 1.2864));
+  }
+  .overlay-name {
+    font-size: calc(0.625rem + ((1vw - 4px) * 1.8779));
+	padding-right: calc(0.6rem + ((1vw - 4px) * 1.2864));
+  }
+  .overlay-school {
+    font-size: calc(0.3125rem + ((1vw - 4px) * 1.4085));
+    padding-right: calc(0.6rem + ((1vw - 4px) * 1.2864));
+  }
+  
+  .overlay-left {
+	padding-left: calc(0.6rem + ((1vw - 4px) * 1.2864));
+  }
+}
+
+@media (min-width: 1465px) {
+  .overlay-score {
+    font-size: 50px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+  .overlay-name {
+    font-size: 30px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+  .overlay-school {
+    font-size: 20px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+
+.match-winner-button{
+	padding-right: 2px;
+	padding-left: 2px;
+}
+
+.youtube-container {
+	position:relative;
+	padding-bottom:56.25%;
+	padding-top:30px;
+	height:0;
+	overflow:hidden;
+	border: solid black 1px;
+}
+
+.youtube-container iframe, .video-container object, .video-container embed {
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+}
+
+.faq-list li{
+	margin-bottom: 15px;
+}
+
+.faq-list em {
+	display: block;
+	text-decoration: underline;
+	font-style: normal;
+}
+
+.match-incomplete{
+	opacity: 0.5;
+}
+
+.match-ignore{
+	color:grey;
+}
+
+.match-doubleOut{
+	color: #800000;
+}
+	
+.last-to-elims{
+	border-bottom: 1px solid black;
+}
+
+.match-winner-name{
+	border: solid 1px black;
+	padding: 5px;
+	text-align: center;
+}
+
+.tournament-edit-box{
+	border-top:1px solid; 
+	padding-top: 10px;
+	margin-bottom: 10px;
+}
+
+.tournament-edit-name{
+	padding-top: 10px;
+	margin-bottom: 10px;
+}
+
+.accordion-title {
+	padding-top:10px; 
+	padding-bottom:1px;
+}
+
+.fighter-score-box{
+	padding: 15px 2% 15px 2%;
+	border: solid 1px black;
+}
+
+.old-exch-odd{
+	background-color: #E8E8E8;
+}
+
+.old-exch-large-first{
+	padding-left: 5px;
+	margin-right: 5px;
+}
+
+.old-exch-mini td{
+	border-top: 1px solid black;
+	padding: 0px;
+	width: 20%;
+	text-align: center;
+}
+
+.old-exch-mini-right {
+	border-bottom: 1px solid black;
+	border-right: 1px solid black;
+}
+
+.hidden{
+	display: none;
+}
+
+select {
+	margin-bottom: 0px;
+}
+
+.black-border {
+	border:solid 1px black;
+}
+
+.bottom-border {
+	border-bottom:solid 1px black;
+}
+
+.no-margin {
+	margin: 0px;
+}
+
+.no-bottom {
+	margin-bottom: 0px;
+}
+
+.tournament-box {
+  border: solid 1px;
+  display:inline-block;
+  cursor:pointer;
+  padding-right: 4px;
+  padding-left: 4px;
+}
+
+.pointer {
+  cursor:pointer;
+}
+
+.red-text {
+  color: red;
+}
+
+/* Jayson Stuff ***************************************************************/
+
+.top-bar, .top-bar ul {
+  background-color:black;
+  color:white;
+}
+
+.title-bar-title {
+  Color:white;
+}
+
+a, a:visited {
+  color:#2D9CDB;
+}
+
+/**#page-wrapper {
+  margin-top:1rem;
+}**/
+
+/**Match Styling **/
+
+.match-item {
+  display:block;
+  border-style:solid;
+  border-width:1px;
+  border-color:#DDDDDD;
+  margin-bottom:1rem;
+}
+
+/**.match-item:hover {
+  border-color:#2D9CDB;
+}**/
+
+.match-item a, .match-item a:visited {
+  font-size:.875rem;
+  font-weight:Bold;
+  display:inline-block;
+  width:100%;
+  text-align:center;
+height:1.5rem;
+line-height:1.6rem;
+margin-bottom:.25rem;
+}
+
+.match-item a:hover {
+  background-color:#2D9CDB;
+  color:white;
+}
+
+.current-match a, current-match a:visited {
+background-color:black;
+color:white;
+}
+
+.current-match {
+border-color:black;
+}
+
+.match-item ul {
+  margin:0;
+}
+
+.match-item li {
+  display:block;
+  list-style: none;
+  float:left;
+  width:47%;
+  text-align:center;
+  border-bottom:4px solid;
+  padding-bottom:.5rem;
+  height:100%;
+}
+
+li.versus-item {
+  width:6%;
+  border-bottom:none;
+  font-size:.75rem;
+  color:grey;
+  height:100%;
+  display:inline-block;
+}
+
+
+.match-item li:last-child {
+  float:right;
+}
+
+li h5, li h6 {
+  font-size:.75rem;
+  margin:0;
+}
+
+li h5 {
+  font-weight: bold;
+}
+
+.lost {
+  opacity:.4;
+  text-decoration:line-through;
+}
+
+
+.hero-title {
+  background-color:#F2F2F2;
+  margin-bottom:1rem;
+  padding:1rem;
+  text-align:center;
+  height:5rem;
+}
+
+.hero-title h1, .hero-title h2 {
+    width:100%;
+  font-weight:bold;
+}
+
+h1 {
+  font-size:1.25rem;
+  margin:0;
+}
+
+h2 {
+  font-size:1rem;
+}
+
+.tourney-menu-large {
+  border-bottom:1px solid #2D9CDB;
+  margin-bottom:1rem;
+  font-size:1rem;
+}
+
+.tourney-menu-large li {
+  border-bottom:4px solid white;
+}
+
+.tourney-menu-large li.is-active a {
+  Background-color:white;
+  color:black;
+}
+
+
+.tourney-menu-large li.is-active {
+
+  border-bottom-color:#2D9CDB;
+}
+
+.dropdown .is-current a {
+  color:black;
+  font-weight:bold;
+}
+
+.tourney-menu-mobile {
+   border-bottom:1px solid #2D9CDB;
+     margin-bottom:1.5rem;
+  font-size:1rem;
+
+}
+
+.title-bar {
+  display:block;
+}
+
+.title-bar .login-link {
+  display:inline-block;
+  float:right;
+  color:white;
+  margin: 0 .5rem;
+}
+
+label {
+  margin-bottom:.5rem;
+}
+
+label span {
+  display:inline-block;
+  font-weight:bold;
+  padding-bottom:.365rem;
+}
+
+.login-button {
+  font-weight:bold;
+}
+
+.pool-switcher {
+  margin-bottom:1rem;
+}
+
+.fencer {
+  width:50%;
+  padding:2rem 1rem;
+  text-align: center;
+  color:white;
+}
+
+.fencer h4, .fencer h5, .fencer h6 {
+  margin-bottom:0;
+}
+
+.fencer h1 {
+  font-size:8rem;
+  font-weight:bold;
+}
+
+@media (max-width: 480px) {
+.fencer h1 {
+  font-size:4rem;
+}
+
+}
+
+.red {
+background-color:#EB5757;
+}
+
+.blue {
+  background-color:#1C6CD8;
+}
