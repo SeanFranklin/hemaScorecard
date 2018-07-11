@@ -26,7 +26,7 @@ $categorizedEventList = sortEventList($eventList);
 ?>
 
 <div class='grid-x grid-padding-x'>
-	<div class='large-6 medium-8 small-12 cell' id='eventListContainer'>
+	<div class='large-7 medium-10 small-12 cell' id='eventListContainer'>
 		
 	<h4 class='text-center'>Change Event</h4>
 		
@@ -41,7 +41,7 @@ $categorizedEventList = sortEventList($eventList);
  
 				<?php if($categorizedEventList['active'] != null || $categorizedEventList['default'] != null):?>
 					<h5>Active Events</h5>
-					<?php displayEventsInCategory($categorizedEventList['default'],null, 'isDefault'); ?>
+					<?php displayEventsInCategory($categorizedEventList['default']); ?>
 					<?php displayEventsInCategory($categorizedEventList['active']); ?>
 				<?php endif ?>
 	
@@ -87,72 +87,11 @@ function displayArchivedEvents($eventList){
 			$oldYear = $year;
 			
 		}
-		displayEvent($eventID, $eventInfo);
+		displayEventButton($eventID, $eventInfo);
 	}
 	echo "</div></li>";
 	
 }
-
-/******************************************************************************/
-
-function displayEvent($eventID, $eventInfo){
-//Creates a button for the event
-	
-// Format location string
-	unset($location);
-	if($eventInfo['eventCity'] != null){
-		$location = $eventInfo['eventCity'];
-	}
-	if($eventInfo['eventProvince'] != null){
-		if(isset($location)){ $location .= ', '; }
-		$location .= $eventInfo['eventProvince'];
-	}
-	if($eventInfo['eventCountry'] != null){
-		if(isset($location)){ $location .= ', '; }
-		$location .= $eventInfo['eventCountry'];
-	}
-	$location = rtrim($location,', \t\n');
-	
-// Format year and date string
-	$name = $eventInfo['eventName'];
-	$year = $eventInfo['eventYear'];
-	
-	$startDate = sqlDateToString($eventInfo['eventStartDate']);
-	$endDate = sqlDateToString($eventInfo['eventEndDate']);
-	
-	if($startDate != null){
-		if($endDate == null OR $endDate == $startDate){
-			$dateString = $startDate;
-		} else {
-			$dateString = $startDate." - ".$endDate;
-		}
-	} else if($endDate != null){
-		$dateString = $endDate;
-	}
-	
-// Displays current event in red
-	if($eventID == $_SESSION['eventID']){
-		$isActive = "alert";
-	} else { 
-		unset($isActive); 
-	} 
-	
-	?>
-
-	
-	<div class='large-12 cell'>
-		<button value='<?= $eventID ?>' style='width:100%'
-			class='button hollow <?= $isActive ?>' name='changeEventTo' >
-			<?= $name ?>, <?= $year ?>
-			<span class='hide-for-small-only'> - </span>
-			<BR class='show-for-small-only'>
-			<?= $location ?>
-			<BR>
-			<?= $dateString ?>
-		</button>
-	</div>
-	
-<?php }
 
 /**********************************************************************/
 
@@ -160,7 +99,7 @@ function displayEventsInCategory($eventList,$numToDisplay = null){
 
 	foreach((array)$eventList as $eventID => $eventInfo){
 
-		displayEvent($eventID, $eventInfo);
+		displayEventButton($eventID, $eventInfo);
 
 		$numDisplayed++;
 		if($numToDisplay != null && $numDisplayed >= $numToDisplay){

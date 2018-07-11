@@ -70,10 +70,6 @@
 	define("NO_AFTERBLOW",1);
 	define("DEDUCTIVE_AFTERBLOW",2);
 	define("FULL_AFTERBLOW",3);
-	
-	// More defaults show up in getEventDefaults() in DB_read_functions.php
-	
-	define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/v6/');
 
 // Includes ////////////////////////////////////////////////////////////////////
 

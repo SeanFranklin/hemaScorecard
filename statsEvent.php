@@ -55,7 +55,7 @@ if($_SESSION['eventID'] == null){
 	<table>
 	<caption>Participant Numbers</caption>
 	
-	<?php foreach($tournamentList as $ID => $tournament): 
+	<?php foreach((array)$tournamentList as $ID => $tournament): 
 		$name = getTournamentName($ID);
 		$numbers = $tournament['numParticipants'];
 		$total += $numbers;

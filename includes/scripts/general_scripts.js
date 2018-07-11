@@ -1,5 +1,5 @@
 
-AJAX_LOCATION = "/v6/includes/functions/AJAX.php";
+AJAX_LOCATION = "/includes/functions/AJAX.php";
 
 /************************************************************************************/
 

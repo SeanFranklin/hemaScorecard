@@ -42,7 +42,7 @@ if($_SESSION['eventID'] == null){
 <!--Accordion start -->
 	<?php if($showMultiple): ?>
 		<ul class='accordion' data-accordion  data-allow-all-closed='true'>
-	<? else: ?>
+	<?php else: ?>
 		<div class='grid-x grid-padding-x grid-margin-x' >
 	<?php endif ?>
 

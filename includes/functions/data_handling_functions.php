@@ -59,6 +59,38 @@ function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 	return $text;
 }
 
+/******************************************************************************/
+
+function uploadCsvFile($fileName){
+// Uploads a csv file to the user
+// The file is deleted after upload.
+
+// Provide the file to the user
+	if($fileName == ''){
+		$_SESSION['alertMessages']['systemErrors'][] =  'Invalid fileName in uploadCsvFile()';
+		return;
+
+	} else {
+
+		// Upload the file to user
+		header('Content-type: application/csv');
+		header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
+		header('Content-Transfer-Encoding: binary');
+		readfile($fileName);
+
+		// Delete the file from the server
+		ignore_user_abort(true);
+		if (connection_aborted()) {
+			unlink($fileName);
+		}
+
+		unlink($fileName);
+
+		exit;
+
+	}
+
+}
 
 /******************************************************************************/
 

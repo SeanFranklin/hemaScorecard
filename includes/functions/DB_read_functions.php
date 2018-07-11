@@ -8,56 +8,7 @@
 
 /******************************************************************************/
 
-function exportResultsToCSV($informationType){
-// Creates a .csv file with the desired information and uploads it to the user
-// The file is deleted after upload.
-
-
-// Process the request type and generate the CSV file
-	if($informationType == 'roster'){
-		
-		$fileName = createEventRosterCsv($_SESSION['eventID'], "exports/");
-
-	} elseif(is_numeric($informationType)){
-
-		$fileName = createTournamentResultsCsv($informationType,"exports/");
-
-	} else{
-
-		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to exportResutsToCSV()';
-		return;
-	}
-
-// Provide the file to the user
-	if($fileName == ''){
-		$_SESSION['alertMessages']['systemErrors'][] =  'Invalid fileName generated in exportResutsToCSV()';
-		return;
-
-	} else {
-
-		// Upload the file to user
-		header('Content-type: application/csv');
-		header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
-		header('Content-Transfer-Encoding: binary');
-		readfile($fileName);
-
-		// Delete the file from the server
-		ignore_user_abort(true);
-		if (connection_aborted()) {
-			unlink($fileName);
-		}
-
-		unlink($fileName);
-
-		exit;
-
-	}
-
-}
-
-/******************************************************************************/
-
-function createEventRosterCsv($eventID = null, $dir = "exports/"){
+function createEventRoster_HemaRatings($eventID = null, $dir = "exports/"){
 // Creates a .csv file with the eventRoster
 // Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
@@ -78,12 +29,12 @@ function createEventRosterCsv($eventID = null, $dir = "exports/"){
 
 	foreach ($eventRoster as $fields) {
 
-		foreach($fields as $index => $field){
-			if($index == 'systemRosterID'){
-				$field = getFighterNameSystem($field, 'first');
-			}
-			fputs($fp, $field.",");
-		}
+		fputs($fp, getFighterNameSystem($fields['systemRosterID'], 'first').",");
+		fputs($fp, $fields['schoolFullName'].",");
+		fputs($fp, $fields['schoolCountry'].",");
+		fputs($fp, ",");
+		fputs($fp, $fields['HemaRatingsID']);	
+		
 		fputs($fp, '');
 		
 		fputs($fp, PHP_EOL);
@@ -95,7 +46,7 @@ function createEventRosterCsv($eventID = null, $dir = "exports/"){
 
 /******************************************************************************/
 
-function createTournamentResultsCsv($tournamentID, $dir = "exports/"){
+function createTournamentResults_HemaRatings($tournamentID, $dir = "exports/"){
 // Creates a .csv file with the results of all tournament matches
 // Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
@@ -728,6 +679,22 @@ function getElimType($tournamentID = null){
 	
 	
 }
+/******************************************************************************/
+
+function getEventEmail($eventID = null){
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "No eventID in getEventEmail";
+		return;
+	}
+
+	$sql = "SELECT organizerEmail
+			FROM systemEvents
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE, 'organizerEmail');
+
+
+}
 
 /******************************************************************************/
 
@@ -985,7 +952,7 @@ function getEventRosterForExport($eventID){
 	// The schoolID in eventRoster and systemRoste may not be the same
 	// School in event is what they were at the time of the event, in
 	// the system it is the school from the latest appearance
-	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.schoolCountry
+	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.schoolCountry, sys.HemaRatingsID
 			FROM eventRoster ev
 			INNER JOIN systemRoster sys ON sys.systemRosterID = ev.systemRosterID
 			INNER JOIN systemSchools sch ON ev.schoolID = sch.schoolID
@@ -1010,7 +977,7 @@ function getFighterInfoFromSystem($systemRosterID = null){
 /******************************************************************************/
 
 function getFighterExchanges($rosterID, $weaponID){
-	
+
 	// Exchanges with the fighter scoring
 	$sql = "SELECT exchangeType, scoreValue
 			FROM eventExchanges
@@ -1140,16 +1107,32 @@ function getFighterNameSystem($systemRosterID, $nameMode = null){
 			FROM systemRoster
 			WHERE systemRosterID = {$systemRosterID}";
 	$result = mysqlQuery($sql, SINGLE);
-	
-	if($nameMode == 'first'){
-		return $result['firstName']." ".$result['lastName'];
-	} elseif(NAME_MODE == 'lastName' || $nameMode == 'last'){
-		return $result['lastName'].", ".$result['firstName'];
-	} elseif($nameMode == 'array'){
-		return $result;
-	} else {
-		return $result['firstName']." ".$result['lastName'];
+
+	if($nameMode == null){
+		$nameMode = NAME_MODE;
 	}
+	if($nameMode == null){
+		$nameMode = first;
+	}
+
+
+	switch($nameMode){
+		case 'first':
+		case 'firstName':
+			$retVal = $result['firstName']." ".$result['lastName'];
+			break;
+		case 'last':
+		case 'lastName':
+			$retVal = $result['lastName'].", ".$result['firstName'];
+			break;
+		case 'array':
+			$retVal = $result;
+			break;
+		default:
+			break;
+	}
+
+	return $retVal;
 	
 }
 
@@ -1473,6 +1456,50 @@ function getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID){
 	$result = mysqlQuery($sql, ASSOC);
 	return count($result);
 	
+}
+
+/******************************************************************************/
+
+function getNumberOfFightersInSystem(){
+
+	$sql = "SELECT COUNT(systemRosterID) AS numTotalFighters,
+			COUNT(HemaRatingsID) AS numRatedFighters
+			FROM systemRoster";
+	return mysqlQuery($sql, SINGLE);
+}
+
+/******************************************************************************/
+
+function getHemaRatingsInfo($bounds){
+	$lowBound = (int)$bounds['lowBound'] - 1;
+	$numRecords = (int)$bounds['highBound'] - $lowBound;
+
+	$searchIDs = isset($bounds['searchIDs']);
+	$searchNoIDs = isset($bounds['searchNoIDs']);
+
+	if($searchIDs && !$searchNoIDs){
+		$where = "WHERE HemaRatingsID IS NOT NULL";
+	} elseif(!$searchIDs && $searchNoIDs){
+		$where = "WHERE HemaRatingsID IS NULL";
+	} elseif(!$searchIDs && !$searchNoIDs){
+		// Would return no results
+		return null;
+	} else {
+		// No need for where clause
+		$where = '';
+	}
+
+	if($numRecords < 1){
+		return null;
+	}
+
+	$sql = "SELECT systemRosterID, HemaRatingsID, schoolID
+			FROM systemRoster
+			{$where}
+			ORDER BY systemRosterID DESC
+			LIMIT $lowBound, $numRecords";
+	return mysqlQuery($sql, ASSOC);
+
 }
 
 /******************************************************************************/
@@ -2413,17 +2440,18 @@ function getSystemRoster($tournamentID = null){
 	
 // return a sorted array of all fighters in the system
 
-	
+
 	$orderName = NAME_MODE;
 	$sortString = "ORDER BY {$orderName} ASC";
-	
+
 	if($tournamentID == null){
 		$sql = "SELECT systemRosterID
 				FROM systemRoster
 				{$sortString}";
+				
 		return mysqlQuery($sql, SINGLES, 'systemRosterID');
 	}
-	
+
 	$sql = "SELECT systemRoster.systemRosterID
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
@@ -3125,7 +3153,6 @@ function isInLosersBracket($matchID){
 function isEventArchived($eventID = null){
 			
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
-
 	if($eventID == null){return;}
 	$sql = "SELECT eventStatus
 			FROM systemEvents
@@ -3138,6 +3165,20 @@ function isEventArchived($eventID = null){
 		return false;
 	}
 	
+}
+
+/******************************************************************************/
+
+function isEventTermsAccepted($eventID = null){
+
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){return 0;}
+
+	$sql = "SELECT termsOfUseAccepted
+			FROM systemEvents
+			WHERE eventID = {$eventID}";
+	return (bool)mysqlQuery($sql, SINGLE, 'termsOfUseAccepted');
+
 }
 
 /******************************************************************************/
@@ -3313,6 +3354,23 @@ function isFullAfterblow($tournamentID = null){
 		return false;
 	}
 	
+}
+
+/******************************************************************************/
+
+function isTournamentPrivate($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		$_SESSION['alertMessages']['systemErrors'][] = "Invalid tournamentID in isTournamentPrivate";
+		return;
+	}
+
+	$sql = "SELECT isPrivate
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	return (bool)mysqlQuery($sql, SINGLE, 'isPrivate');
+
 }
 
 /******************************************************************************/

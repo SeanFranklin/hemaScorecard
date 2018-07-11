@@ -6,6 +6,6 @@
 		
 *******************************************************************************/
 
-header('Location: infoSelect.php');
+header('Location: infoWelcome.php');
 exit;
 ?>

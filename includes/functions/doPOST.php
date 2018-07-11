@@ -228,17 +228,23 @@ function processPostData(){
 		case 'addAttackTypes':
 			addAttacksToTournament();
 			break;
-
-
-// Admin Cases
-		case 'newSystemPasswords':
-			updateSystemPasswords();
-			break;
 		case 'eventStatusUpdate':
 			editEventStatus();
 			break;
 		case 'displaySettings':
 			updateDisplaySettings();
+			break;
+		case 'setContactEmail':
+			updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
+			break;
+		case 'SubmitToS':
+			processToS($_POST['ToS']);
+			break;
+
+
+// Admin Cases
+		case 'newSystemPasswords':
+			updateSystemPasswords();
 			break;
 		
 		case 'editExistingSchool':
@@ -262,14 +268,20 @@ function processPostData(){
 		case 'duplicateNameSearchType':
 			$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
 			break;
+		case 'HemaRatingsList':
+			$_SESSION['HemaRatingsBounds'] = $_POST['HemaRatingsBounds'];
+			break;
+		case 'HemaRatingsUpdate':
+			updateHemaRatingsInfo($_POST['systemRosterID']);
+			break;
 	
 			
 // Stats Cases
 		case 'dataFilters':
 			setDataFilters();
 			break;
-		case 'resultsDump':
-			exportResultsToCSV($_POST['CsvDump']);
+		case 'HemaRatingsExport':
+			exportHemaRatings($_POST['HemaRatingsExport']);
 			break;
 			
 			
@@ -345,7 +357,10 @@ function processPostData(){
 		header('Location: '.$url);
 		exit;
 	}
-	
+
+// Check that terms of use have been signed
+	checkForTermsOfUse();
+
 }
 
 
@@ -422,6 +437,64 @@ function checkEvent(){
 	}
 	unset($_SESSION['checkEvent']);
 	
+}
+
+/******************************************************************************/
+
+function exportHemaRatings($informationType){
+	if($informationType == 'roster'){
+		
+		$fileName = createEventRoster_HemaRatings($_SESSION['eventID'], "exports/");
+
+	} elseif(is_numeric($informationType)){
+
+		$fileName = createTournamentResults_HemaRatings($informationType,"exports/");
+
+	} else{
+
+		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to exportHemaRatings()';
+		return;
+	}
+
+	uploadCsvFile($fileName);
+
+}
+
+/******************************************************************************/
+
+function processToS($ToS){
+
+	if(USER_TYPE != USER_ADMIN){ return;}
+
+	if(count($ToS['checkboxes']) < $ToS['numCheckboxes']){
+		$_SESSION['alertMessages']['userErrors'][] = "Please completely fill in the Terms of Service agreement";
+		return;
+	}
+
+	if(!filter_var($ToS['email'], FILTER_VALIDATE_EMAIL)){
+		$_SESSION['alertMessages']['userErrors'][] = "That does not appear to be a valid e-mail";
+		return;
+	}
+
+	$eventID = $_SESSION['eventID'];
+
+
+	$sql = "UPDATE systemEvents
+			SET termsOfUseAccepted = 1, organizerEmail = ?
+			WHERE eventID = {$eventID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "s", $ToS['email']);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	
+
+	$_SESSION['tosConfirmed'] = true;
+	header("Location: adminEvent.php");
+	exit;
+
+
 }
 
 
@@ -1055,7 +1128,7 @@ function changeEvent($eventID = null, $loggingIn = false){
 			$landingPage = 'statsFighters.php';
 			break;
 		default:
-			if($_SESSION['eventID'] == null){$landingPage = 'infoSelect.php';
+			if($_SESSION['eventID'] == null){$landingPage = 'infoWelcome.php';
 			} else {$landingPage = 'infoSummary.php';}
 			break;
 	}

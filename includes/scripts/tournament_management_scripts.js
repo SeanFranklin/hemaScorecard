@@ -28,7 +28,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		isCuttingQual: 'show',
 		maxExchanges: 'show',
 		useTimer: 'show',
-		controlPoint: 'show'
+		controlPoint: 'show',
+		isPrivate: 'show'
 	};
 	
 	// Direct Bracket
@@ -42,7 +43,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		isCuttingQual: 'show',
 		maxExchanges: 'show',
 		useTimer: 'show',
-		controlPoint: 'show'
+		controlPoint: 'show',
+		isPrivate: 'show'
 	};
 	
 	// Pool Sets
@@ -59,7 +61,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		isCuttingQual: 'show',
 		maxExchanges: 'show',
 		useTimer: 'show',
-		controlPoint: 'show'
+		controlPoint: 'show',
+		isPrivate: 'show'
 	};
 	
 	// Scored Event
@@ -68,6 +71,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		rankingID: 'refresh',
 		baseValue: 'show',
 		isCuttingQual: 'show',
+		isPrivate: 'show'
 	};
 	
 	function toggleTournamentEntryDiv(){

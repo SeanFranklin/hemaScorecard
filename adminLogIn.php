@@ -17,10 +17,12 @@ include('includes/header.php');
 $eventList = getEventList('ASC');
 $eventList = sortEventList($eventList);
 $eventTypes = ['default','active','upcoming', 'hidden']; 
+$eventNameForLogin = null;
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
+
 
 	<div class='grid-x grid-margin-x'>
 		<div id='login-form' class='small-12 medium-6 large-4 cell'>
@@ -29,7 +31,7 @@ $eventTypes = ['default','active','upcoming', 'hidden'];
 		<!-- User type -->
 			<label>
 				<span>User Type</span>
-				<select name='logInType' onchange="logInEventToggle(this)">
+				<select id='logInType' name='logInType' autocomplete='username' onchange="logInTypeToggle(this)">
 					<option value='3'>Event Staff</option>
 					<option value='4'>Event Organizer</option>
 					<option value='5'>Software Administrator</option>
@@ -38,21 +40,27 @@ $eventTypes = ['default','active','upcoming', 'hidden'];
 				</select>
 			</label>
 			
+
+
 		<!-- Event list -->
 			<label id='logInEventList'>
 				<span>Event to Log Into</span>
-				<select name='logInEventID'>	
-				<?php foreach($eventTypes as $type):
-					foreach($eventList[$type] as $eventID => $eventInfo):
-					
-						$eventName = $eventInfo['eventName']." ".$eventInfo['eventYear'];		
+				<select id='logInEventID' name='logInEventID'  onchange="logInEventToggle('logInEventID')">	
+				<?php foreach((array)$eventTypes as $type):
+
+					foreach((array)$eventList[$type] as $eventID => $eventInfo):
+						$eventName = $eventInfo['eventName']." ".$eventInfo['eventYear'];
+						if($eventNameForLogin == null){
+							$eventNameForLogin = $eventName;
+						}		
 						if($eventID == $_SESSION['eventID']){
+							$eventNameForLogin = $eventName;
 							$selected = "selected";
 						} else {
 							unset($selected);
 						} ?>
 							
-						<option value='<?=$eventID?>' <?=$selected?>>
+						<option value='<?=$eventID?>' <?=$selected?> id='eventName<?=$eventID?>'>
 							<?=$eventName?>
 						</option>";
 						
@@ -60,6 +68,10 @@ $eventTypes = ['default','active','upcoming', 'hidden'];
 				<?php endforeach ?>	
 				</select>
 			</label>
+
+		<!-- This exists to give a username to password manager functionality of the browser
+			It is hidden from the user. -->
+			<input id='LogInUserName' type='text' name='userName' value='Event Staff: <?=$eventNameForLogin?>' style='display:none'>
 			
 		<!-- Password -->	
 			<label>

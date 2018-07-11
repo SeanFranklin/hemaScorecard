@@ -22,6 +22,7 @@ if($_SESSION['eventID'] == null){
 	
 	$defaults = getEventDefaults();
 	define(MAX_VAL,10);  	// Maximum value for most tournament parameters, arbitrary
+	$contactEmail = getEventEmail();
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +246,30 @@ if($_SESSION['eventID'] == null){
 	</div>
 	</form>
 	</fieldset>
-		
+
+
+<!--  Contact information -------------------------------->
+	<fieldset class='fieldset'>
+	<legend><h4>Contact Information</h4></legend>
+	<form method='POST'>
+	
+	<div class='grid-x grid-margin-x'>
+	
+	<!-- Tournament name order -->
+		<div class='large-6 input-group cell'>
+			<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
+			<input class='input-group-field' type='text' name='contactEmail' 
+				value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
+			<button class='button success input-group-button' name='formName'
+				value='setContactEmail'>
+				Update
+			</button>
+		</div>
+	
+	</div>
+	</form>
+	</fieldset>
+	
 		
 <!-- Change Passwords ----------------------------------->
 	<form method='POST'>
@@ -272,7 +296,7 @@ if($_SESSION['eventID'] == null){
 		<div class='large-12 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
 			<input class='input-group-field' type='password' name='passwordVerification'>
-			<button class='button input-group-button hide-for-small-only' 
+			<button class='button success input-group-button hide-for-small-only' 
 				name='updateEventPasswords' value='Update Passwords'>
 				Update Passwords
 			</button>
@@ -280,7 +304,7 @@ if($_SESSION['eventID'] == null){
 		
 	<!-- Submit button -->
 		<div class='cell'>
-			<button class='button expanded show-for-small-only' 
+			<button class='button success expanded show-for-small-only' 
 				name='updateEventPasswords' value='Update Passwords'>
 				Update Passwords
 			</button>

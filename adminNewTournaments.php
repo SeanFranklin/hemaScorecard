@@ -69,6 +69,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentTies();
 			edit_tournamentCuttingQual();
 			edit_tournamentMaxExchanges();
+			edit_tournamentKeepPrivate();
 			?>
 		</div>
 			

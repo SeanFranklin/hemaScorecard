@@ -2218,6 +2218,36 @@ function switchMatchFighters($matchID = null){
 
 /******************************************************************************/
 
+function updateContactEmail($email, $eventID = null){
+
+	if(USER_TYPE < USER_ADMIN){return;}
+
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "Invalid eventID in updateContactEmail";
+		return;
+	}
+
+	if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+		$_SESSION['alertMessages']['userErrors'][] = "That does not appear to be a valid e-mail";
+		return;
+	}
+
+	$sql = "UPDATE systemEvents
+			SET organizerEmail = ?
+			WHERE eventID = {$eventID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	$bind = mysqli_stmt_bind_param($stmt, "s", $email);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+	$_SESSION['alertMessages']['userAlerts'][] = "Contact E-mail updated";
+}
+
+
+/******************************************************************************/
+
 function updateDisplaySettings(){
 	
 	$eventID = $_SESSION['eventID'];
@@ -2336,7 +2366,7 @@ function updateEventTournaments(){
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
 					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
-					isNotNetScore, basePointValue
+					isNotNetScore, basePointValue, isPrivate
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2356,7 +2386,8 @@ function updateEventTournaments(){
 					{$info['useTimer']},
 					{$info['useControlPoint']},
 					{$info['isNotNetScore']},
-					{$info['basePointValue']}
+					{$info['basePointValue']},
+					{$info['isPrivate']}
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
@@ -2578,6 +2609,57 @@ function updateFinalsBracket(){
 		}
 	}
 	
+}
+
+/******************************************************************************/
+
+function updateHemaRatingsInfo($fighters){
+
+	if(USER_TYPE < USER_SUPER_ADMIN){ return;}
+
+	foreach($fighters as $systemRosterID => $fighter){
+		$HemaRatingsID = (int)$fighter['HemaRatingsID'];
+		if($HemaRatingsID == 0){
+			$HemaRatingsID = "NULL";
+		}
+
+		$sql = "SELECT systemRosterID
+				FROM systemRoster
+				WHERE HemaRatingsID = {$HemaRatingsID}
+				AND systemRosterID != {$systemRosterID}";
+		$duplicates = mysqlQuery($sql, ASSOC);
+
+		if(count($duplicates) == 0){
+
+			$sql = "UPDATE systemRoster
+					SET HemaRatingsID = {$HemaRatingsID}, 
+					firstName = ?,
+					lastName = ?
+					WHERE systemRosterID = ?";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			// "s" means the database expects a string
+			$bind = mysqli_stmt_bind_param($stmt, "ssi", 
+				$fighter['firstName'], $fighter['lastName'],$systemRosterID);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+		} else {
+			// If someone with that Rating ID exists in the system.
+			$errStr = "Can't add ".getFighterNameSystem($systemRosterID);
+			$errStr .= "($systemRosterID)";
+			$errStr .= " with HEMA Rating ID: {$HemaRatingsID}<BR>";
+
+			$errStr .= "Conflicts with:";
+			foreach($duplicates as $duplicate){
+				$errStr .= getFighterNameSystem($duplicate['systemRosterID']);
+				$errStr .= "({$duplicate['systemRosterID']})<BR>";
+			}
+			$_SESSION['alertMessages']['userErrors'][] = $errStr;
+		}
+
+
+	}
 }
 
 /******************************************************************************/

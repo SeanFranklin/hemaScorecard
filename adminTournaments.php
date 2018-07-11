@@ -98,7 +98,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentTies($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
-				
+				edit_tournamentKeepPrivate($tournamentID);
 				?>
 			</div>
 			<BR>

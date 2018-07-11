@@ -46,8 +46,9 @@ if($_SESSION['eventID'] == null){
 	
 	<form method='POST' id='roundRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	<!-- Accordion start -->
+	
 	<?php if($showMultiple): ?>
+<!-- Accordion start -->
 		<ul class='accordion' data-accordion data-allow-all-closed='true'>
 	<?php else: ?>
 		<div class='grid-x grid-padding-x grid-margin-x' >
@@ -63,8 +64,9 @@ if($_SESSION['eventID'] == null){
 		}	
 		?>
 
-		<!-- Accordion item start -->
+		
 		<?php if($showMultiple):
+		// Accordion item start
 			$setName = getSetName($groupSet, $tournamentID);
 			?>
 		
@@ -81,8 +83,9 @@ if($_SESSION['eventID'] == null){
 			displayRounds($rounds, $showMultiple);	
 		endif ?>
 		
-		<!-- Accordion item end -->
+		
 		<?php if($showMultiple): ?>
+		<!-- Accordion item end -->
 			</div>
 			</li>
 		<?php  endif ?>

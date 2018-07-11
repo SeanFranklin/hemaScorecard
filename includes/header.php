@@ -36,9 +36,11 @@ include_once('includes/config.php');
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
     <title>HEMA Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="includes/foundation/css/foundation.css">
+    <!--<link rel="stylesheet" href="includes/foundation/css/foundation.css">-->
     <link rel="stylesheet" href="includes/foundation/css/app.css">
     <link rel="stylesheet" href="includes/foundation/css/custom.css">
+
+    <link rel='icon' href='includes\images\favicon.png'>
     
     <!-- Jumps to section on page if $_SESSION['jumpTo'] is set -->
 	<?php if(isset($_SESSION['jumpTo'])): ?>
@@ -69,9 +71,7 @@ include_once('includes/config.php');
  
 	<?php debugging(); ?>
 
-	
 
- 
 	<!-- Mobile Navigation -->
     <div class="title-bar" data-responsive-toggle="tourney-animated-menu" data-hide-for="large" style='display:none'>
 		<form method='POST' name='logOutForm1'>
@@ -136,7 +136,7 @@ include_once('includes/config.php');
 					<li><a href='#'>Analytics</a>
 						<ul class='menu vertical'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
-							<li><a href='masterResultsDump.php'>Export Results</a></li>
+							<li><a href='statsResultsDump.php'>Export Results</a></li>
 						</ul>
 					</li>";
 				$masterAdmin = "
@@ -144,7 +144,8 @@ include_once('includes/config.php');
 						<ul class='menu vertical'>
 							<li><a href='masterEvents.php'>Manage Events</a></li>
 							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
-							<li><a href='masterResultsDump.php'>Export Results</a></li>
+							<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
+							<HR>
 							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
 							<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
@@ -196,7 +197,7 @@ include_once('includes/config.php');
 				<input type='hidden' name='formName' value='logUserIn'>
 				<a href='javascript:document.logOutForm2.submit();' style='color:white'>Log Out</a>
 				</form>	
-			<? endif ?>
+			<?php endif ?>
 		</div>
         
     </div>
@@ -298,7 +299,7 @@ include_once('includes/config.php');
 			</li>
 		</ul>
 		
-	<? endif ?>	
+	<?php endif ?>	
 
 
 	<!-- END Lower Navigation ----------------------------------------->

@@ -29,7 +29,7 @@ function toggleRadio(radioID){
 
 /******************************************************************************/
 
-function logInEventToggle(selectElement){
+function logInTypeToggle(selectElement){
 // Toggles the event field on or off depending on the log in type.
 // Certain types of log ins are tied to event, and others are system wide.
 // Used in adminLogIn.php
@@ -39,6 +39,48 @@ function logInEventToggle(selectElement){
 	} else {
 		document.getElementById('logInEventList').style.display='none';
 	}
+
+
+	logInEventToggle();
+
+}
+
+/******************************************************************************/
+
+function logInEventToggle(){
+// Appends the event name to the user name field
+// Helps facilitate password managers
+// Used in adminLogIn.php
+
+
+	eventName = $("#logInEventID option:selected").text();
+	console.log(eventName);
+	eventName = eventName.trim();
+	
+	switch($('#logInType').val()){
+		case '-1':
+			$('#LogInUserName').val('Video Manager');
+			break;
+		case '1':
+			$('#LogInUserName').val('Guest');
+			break;
+		case '2':
+			$('#LogInUserName').va('Analytics User');
+			break;
+		case '3':
+			$('#LogInUserName').val('Event Staff: '+eventName);
+			break;
+		case '4':
+			$("#LogInUserName").val("Event Organizer: "+eventName);
+			break;
+		case '5':
+			$('#LogInUserName').val('#System Administrator');
+			break;;
+		default:
+			$('#LogInUserName').val('Event Staff');
+			break;
+	}
+	
 }
 
 /******************************************************************************/

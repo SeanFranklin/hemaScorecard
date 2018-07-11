@@ -360,15 +360,17 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 
 		$schoolRoster = getSchoolRosterNotInEvent($schoolID);
 		$tournamentNames = getTournamentsAlphabetical();
+		$numInSchool = count($schoolRoster);
+		$numSpotsToDisplay = 6;
 		$i=1; 	//counter to make each list item unique
-		
+
 		if($schoolID == 1 || $schoolID == 2){
 			// Number of each type of field more spaces to add new fighters if Unafiliated/Unknown
 			$numID = 2;
 			$numNew = 4;
 		} else {
-			$numID = 4;
-			$numNew = 2;
+			$numID = min($numInSchool,4);
+			$numNew = $numSpotsToDisplay - $numID;
 		}
 		
 		?>
@@ -381,6 +383,9 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 		</tr>
 		
 	<!-- Existing fighters from systemRoster -->
+		<?php if($numID < 1): ?>
+			<tr colspan='100%'><td>There are no more fighters from this club left in the database</td></tr>
+		<?php endif ?>
 		<?php for ($k = 1 ; $k <= $numID; $k++):?>
 			<tr>
 		<!-- Name -->
