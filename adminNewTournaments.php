@@ -48,7 +48,9 @@ if($_SESSION['eventID'] == null){
 	<!-- Submit button -->
 		<div class='grid-x grid-padding-x text-center'>
 			<div class=' cell'>	
-			<BR>
+			<div id='tournamentWarnings'>
+				<BR>
+			</div>
 			<button class='button success expanded'
 				name='updateType' value='add' disabled id='editTournamentButtonnew'>
 				Add New Tournament
@@ -60,18 +62,20 @@ if($_SESSION['eventID'] == null){
 		<div id='optionalFields_new' class='grid-x grid-padding-x text-center'>
 			<?php
 			edit_tournamentTimer();
+			edit_tournamentTies();
 			edit_tournamentColors('new', 1);
 			edit_tournamentColors('new', 2);
 			edit_tournamentMaxDoubles();
 			edit_tournamentMaxPoolSize();
 			edit_tournamentNormalization();
-			edit_tournamentControlPoints();
-			edit_tournamentTies();
-			edit_tournamentCuttingQual();
+
 			edit_tournamentMaxExchanges();
+			edit_tournamentNegativeScore();
+			edit_tournamentControlPoints();
+			edit_tournamentCuttingQual();
+			edit_tournamentKeepPrivate();
 			?>
-		</div>
-			
+		</div>			
 		
 		</form>
 	</fieldset>

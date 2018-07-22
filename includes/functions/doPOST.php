@@ -228,17 +228,23 @@ function processPostData(){
 		case 'addAttackTypes':
 			addAttacksToTournament();
 			break;
-
-
-// Admin Cases
-		case 'newSystemPasswords':
-			updateSystemPasswords();
-			break;
 		case 'eventStatusUpdate':
 			editEventStatus();
 			break;
 		case 'displaySettings':
 			updateDisplaySettings();
+			break;
+		case 'setContactEmail':
+			updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
+			break;
+		case 'SubmitToS':
+			processToS($_POST['ToS']);
+			break;
+
+
+// Admin Cases
+		case 'newSystemPasswords':
+			updateSystemPasswords();
 			break;
 		
 		case 'editExistingSchool':
@@ -262,14 +268,20 @@ function processPostData(){
 		case 'duplicateNameSearchType':
 			$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
 			break;
+		case 'HemaRatingsList':
+			$_SESSION['HemaRatingsBounds'] = $_POST['HemaRatingsBounds'];
+			break;
+		case 'HemaRatingsUpdate':
+			updateHemaRatingsInfo($_POST['systemRosterID']);
+			break;
 	
 			
 // Stats Cases
 		case 'dataFilters':
 			setDataFilters();
 			break;
-		case 'resultsDump':
-			exportResultsToCSV($_POST['CsvDump']);
+		case 'HemaRatingsExport':
+			exportHemaRatings($_POST['HemaRatingsExport']);
 			break;
 			
 			
@@ -345,7 +357,10 @@ function processPostData(){
 		header('Location: '.$url);
 		exit;
 	}
-	
+
+// Check that terms of use have been signed
+	checkForTermsOfUse();
+
 }
 
 
@@ -422,6 +437,64 @@ function checkEvent(){
 	}
 	unset($_SESSION['checkEvent']);
 	
+}
+
+/******************************************************************************/
+
+function exportHemaRatings($informationType){
+	if($informationType == 'roster'){
+		
+		$fileName = createEventRoster_HemaRatings($_SESSION['eventID'], "exports/");
+
+	} elseif(is_numeric($informationType)){
+
+		$fileName = createTournamentResults_HemaRatings($informationType,"exports/");
+
+	} else{
+
+		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to exportHemaRatings()';
+		return;
+	}
+
+	uploadCsvFile($fileName);
+
+}
+
+/******************************************************************************/
+
+function processToS($ToS){
+
+	if(USER_TYPE != USER_ADMIN){ return;}
+
+	if(count($ToS['checkboxes']) < $ToS['numCheckboxes']){
+		$_SESSION['alertMessages']['userErrors'][] = "Please completely fill in the Terms of Service agreement";
+		return;
+	}
+
+	if(!filter_var($ToS['email'], FILTER_VALIDATE_EMAIL)){
+		$_SESSION['alertMessages']['userErrors'][] = "That does not appear to be a valid e-mail";
+		return;
+	}
+
+	$eventID = $_SESSION['eventID'];
+
+
+	$sql = "UPDATE systemEvents
+			SET termsOfUseAccepted = 1, organizerEmail = ?
+			WHERE eventID = {$eventID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "s", $ToS['email']);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	
+
+	$_SESSION['tosConfirmed'] = true;
+	header("Location: adminEvent.php");
+	exit;
+
+
 }
 
 
@@ -703,31 +776,26 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 	if($scoring[$id1]['hit'] && $scoring[$id2]['hit']){
 		return;
 	}
-	
-// Records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id1]['hit'] < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	}
 
 // Determine which fighter hit
-	if($scoring[$id1]['hit']){
-		if($scoring[$id2]['hit']){
+	if($scoring[$id1]['hit'] != ''){
+		if($scoring[$id2]['hit'] != ''){
 			// Score entered for both fighters. Not a valid exchange.
 			return;
 		} else {
 			$rosterID = $id1;
+			$otherID = $id2;
 		}
 	} elseif($scoring[$id2]['hit']){
 		$rosterID = $id2;
+		$otherID = $id1;
 	} else {
 		return;
 	}
 	
-
 // Base score value
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
-		$scoreValue = $scoring[$rosterID]['hit'];
+		$scoreValue = abs($scoring[$rosterID]['hit']);
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
 		$at = getAttackAttributes($scoring[$rosterID]['hit']);
 		$scoreValue = $at['attackPoints'];
@@ -821,18 +889,14 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		return;
 	}
 
-	// records the exchange as a penalty if the score is negative
-	if($score1 < 0 OR $score2 < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	} 
-	
 	//checks if only one fighter hit
 	if(xorWithZero($score1,$score2)){//only one hitter
 		if($score1){
 			$rosterID = $id1;
+			$otherID = $id2;
 		} else {
 			$rosterID = $id2;
+			$otherID = $id1;
 		}
 		$scoreValue = 	$scoring[$rosterID]['hit'];
 		$scoreDeduction = 'null';
@@ -871,6 +935,13 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		if($scoreDeduction == ""){$scoreDeduction = 'null';}
 		
 	}
+
+	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
+		$temp = $scoreValue;
+		$scoreValue *= -1;
+		$scoreDeduction *= -1;
+		$rosterID = $otherID;
+	}
 	
 	
 	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, $scoreDeduction, $rPrefix, null,null,$exchangeID);
@@ -889,12 +960,6 @@ function noAfterblowScoring($matchInfo,$scoring){
 
 	$exchangeID = $scoring['exchangeID'];
 	
-	// records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id2]['hit'] < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	} 
-
 	// Checks if points are entered for both fighters
 	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
 		insertLastExchange($matchInfo, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
@@ -908,9 +973,11 @@ function noAfterblowScoring($matchInfo,$scoring){
 			return;
 		} else {
 			$rosterID = $id1;
+			$otherID = $id2;
 		}
 	} elseif($scoring[$id2]['hit']){
 		$rosterID = $id2;
+		$otherID = $id1;
 	} else {
 		return;
 	}
@@ -932,6 +999,11 @@ function noAfterblowScoring($matchInfo,$scoring){
 	if($_POST['attackModifier'] == 9){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
+	}
+
+	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
+		$scoreValue *= -1;
+		$rosterID = $otherID;
 	}
 	
 	insertLastExchange($matchInfo, 'clean', $rosterID, $scoreValue,
@@ -1055,7 +1127,7 @@ function changeEvent($eventID = null, $loggingIn = false){
 			$landingPage = 'statsFighters.php';
 			break;
 		default:
-			if($_SESSION['eventID'] == null){$landingPage = 'infoSelect.php';
+			if($_SESSION['eventID'] == null){$landingPage = 'infoWelcome.php';
 			} else {$landingPage = 'infoSummary.php';}
 			break;
 	}
@@ -1085,6 +1157,8 @@ function logUserIn(){
 		changeEvent($eventID, true);
 	} else {
 		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Failed to Log In";
+		$_SESSION['failedLogIn']['type'] = $type;
+		$_SESSION['failedLogIn']['eventID'] = $eventID;
 	}
 
 	return;

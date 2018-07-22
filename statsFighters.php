@@ -27,8 +27,7 @@ if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
 
 	$filterFields = getFilterFields();
 	filterBoxes($filterFields);
-	
-	
+
 	$name = getTournamentAttributeName($weaponID);
 	
 	$order = $_SESSION['dataFilters']['sortOrder'];
@@ -41,6 +40,7 @@ if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
 	
 	$isNew = $_SESSION['dataFilters']['newQuery'];
 	unset($_SESSION['dataFilters']['newQuery']);
+	
 	?>
 	
 	<div class='grid-x'>
@@ -64,10 +64,9 @@ if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
 		if($_SESSION['dataFilters']['threshold'] == null){
 			$_SESSION['dataFilters']['threshold'] = DEFAULT_THRESHOLD;
 		}
-		
+
 		$fighters = calculateFighterStats($weaponID); // Needs to know how many fighters to search
 		$fighters = sortFighters($fighters);
-	
 		displayFighters($fighters, $weaponID);
 	}
 	
@@ -200,7 +199,7 @@ function filterBoxes($filterFields){
 	
 	</div>
 	
-	
+
 	
 <?php }
 

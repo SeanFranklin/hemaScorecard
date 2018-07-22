@@ -15,6 +15,19 @@ function show($array){
 
 /******************************************************************************/
 
+function optionValue($value, $selectValue = null){
+// Writes the value line to an option in a select statement
+// If the value is equal to the optional second parameter then the option is selected
+
+	echo "value='{$value}'";
+	if($value == $selectValue){
+		echo " selected";
+	}
+
+}
+
+/******************************************************************************/
+
 function plrl($num){
 // Returns an 's' if the number is not 1.
 // Used for writing things like 1 Point vs 2 Points

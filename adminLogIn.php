@@ -18,6 +18,20 @@ $eventList = getEventList('ASC');
 $eventList = sortEventList($eventList);
 $eventTypes = ['default','active','upcoming', 'hidden']; 
 
+if(isset($_SESSION['failedLogIn'])){
+	$defaultEventID = $_SESSION['failedLogIn']['eventID'];
+	$typeSelect = $_SESSION['failedLogIn']['type'];
+	unset($_SESSION['failedLogIn']);
+} else {
+	$typeSelect = USER_STAFF;
+	$defaultEventID = $_SESSION['eventID'];
+}
+
+if($typeSelect != USER_STAFF && $typeSelect != USER_ADMIN){
+	$logInEventListClass = "style='display:none'";
+}
+$eventNameForLogin = getEventName($defaultEventID);
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
@@ -29,30 +43,46 @@ $eventTypes = ['default','active','upcoming', 'hidden'];
 		<!-- User type -->
 			<label>
 				<span>User Type</span>
-				<select name='logInType' onchange="logInEventToggle(this)">
-					<option value='3'>Event Staff</option>
-					<option value='4'>Event Organizer</option>
-					<option value='5'>Software Administrator</option>
-					<option value='2'>Video Manager</option>
-					<option value='-1'>Analytics User</option>
+				<select id='logInType' name='logInType' autocomplete='username' 
+					onchange="logInTypeToggle(this)" <?=$typeSelect?>>
+
+					<option <?=optionValue(USER_STAFF, $typeSelect)?>>
+						Event Staff
+					</option>
+					<option <?=optionValue(USER_ADMIN, $typeSelect)?>>
+						Event Organizer
+					</option>
+					<option <?=optionValue(USER_SUPER_ADMIN, $typeSelect)?>>
+						Software Administrator
+					</option>
+					<option <?=optionValue(USER_VIDEO, $typeSelect)?>>
+						Video Manager
+					</option>
+					<option <?=optionValue(USER_STATS, $typeSelect)?>>
+						Analytics User
+					</option>
+
 				</select>
 			</label>
 			
+
+
 		<!-- Event list -->
-			<label id='logInEventList'>
+		
+			<label id='logInEventList' <?=$logInEventListClass?> >
 				<span>Event to Log Into</span>
-				<select name='logInEventID'>	
-				<?php foreach($eventTypes as $type):
-					foreach($eventList[$type] as $eventID => $eventInfo):
-					
-						$eventName = $eventInfo['eventName']." ".$eventInfo['eventYear'];		
-						if($eventID == $_SESSION['eventID']){
-							$selected = "selected";
-						} else {
-							unset($selected);
-						} ?>
+				<select id='logInEventID' name='logInEventID'  onchange="logInEventToggle('logInEventID')">	
+				<?php foreach((array)$eventTypes as $type):
+
+					foreach((array)$eventList[$type] as $eventID => $eventInfo):
+						$eventName = getEventName($eventID);
+						if($eventNameForLogin == null){
+							$eventNameForLogin = $eventName;
+						}
+						$selected = isSelected($eventID, $defaultEventID);		
+						?>
 							
-						<option value='<?=$eventID?>' <?=$selected?>>
+						<option value='<?=$eventID?>' <?=$selected?> id='eventName<?=$eventID?>'>
 							<?=$eventName?>
 						</option>";
 						
@@ -60,6 +90,11 @@ $eventTypes = ['default','active','upcoming', 'hidden'];
 				<?php endforeach ?>	
 				</select>
 			</label>
+		
+
+		<!-- This exists to give a username to password manager functionality of the browser
+			It is hidden from the user. -->
+			<input id='LogInUserName' type='text' name='userName' value='Event Staff: <?=$eventNameForLogin?>' style='display:none'>
 			
 		<!-- Password -->	
 			<label>
@@ -79,6 +114,8 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
 
 /******************************************************************************
 

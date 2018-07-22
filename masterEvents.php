@@ -111,7 +111,7 @@ function addNewEventMenu(){
 					<select name='eventStatus'>
 						<option value='active'>Active</option>
 						<option value='upcoming'>Upcoming</option>
-						<option value='hidden'>Hidden</option>
+						<option value='hidden' selected>Hidden</option>
 						<option value='default'>Default</option>
 						<option value='archived'>Archived</option>
 					</select>

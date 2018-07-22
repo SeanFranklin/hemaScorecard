@@ -36,9 +36,11 @@ include_once('includes/config.php');
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
     <title>HEMA Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="includes/foundation/css/foundation.css">
+    <!--<link rel="stylesheet" href="includes/foundation/css/foundation.css">-->
     <link rel="stylesheet" href="includes/foundation/css/app.css">
     <link rel="stylesheet" href="includes/foundation/css/custom.css">
+
+    <link rel='icon' href='includes\images\favicon.png'>
     
     <!-- Jumps to section on page if $_SESSION['jumpTo'] is set -->
 	<?php if(isset($_SESSION['jumpTo'])): ?>
@@ -69,9 +71,6 @@ include_once('includes/config.php');
  
 	<?php debugging(); ?>
 
-	
-
- 
 	<!-- Mobile Navigation -->
     <div class="title-bar" data-responsive-toggle="tourney-animated-menu" data-hide-for="large" style='display:none'>
 		<form method='POST' name='logOutForm1'>
@@ -136,7 +135,7 @@ include_once('includes/config.php');
 					<li><a href='#'>Analytics</a>
 						<ul class='menu vertical'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
-							<li><a href='masterResultsDump.php'>Export Results</a></li>
+							<li><a href='statsResultsDump.php'>Export Results</a></li>
 						</ul>
 					</li>";
 				$masterAdmin = "
@@ -144,7 +143,9 @@ include_once('includes/config.php');
 						<ul class='menu vertical'>
 							<li><a href='masterEvents.php'>Manage Events</a></li>
 							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
-							<li><a href='masterResultsDump.php'>Export Results</a></li>
+							<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
+							<HR>
+							<li><a href='participantsSchools.php'>Edit School List</a></li>
 							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
 							<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
@@ -196,7 +197,7 @@ include_once('includes/config.php');
 				<input type='hidden' name='formName' value='logUserIn'>
 				<a href='javascript:document.logOutForm2.submit();' style='color:white'>Log Out</a>
 				</form>	
-			<? endif ?>
+			<?php endif ?>
 		</div>
         
     </div>
@@ -238,7 +239,7 @@ include_once('includes/config.php');
 	
 	<?php 
 	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)
-		&& ($hideEventNav !== true || USER_TYPE == USER_SUPER_ADMIN)):
+		&& (!isset($hideEventNav) || USER_TYPE == USER_SUPER_ADMIN)):
 		/* This is the lower navigational bar
 		 * It will not show up if there is no event or tournament selected,  
 		 * or if the pagerequests it to be hidden. It will always be shown
@@ -285,20 +286,22 @@ include_once('includes/config.php');
 
 		?>
  
-		<ul class='menu align-left tourney-menu-large show-for-medium'>
-			<?= $navBarString ?>
-		</ul>
-		<ul class='dropdown menu tourney-menu-mobile 
-			show-for-small-only align-center' data-dropdown-menu>
-			<li>
-				<a href='#'>Browse Tournament</a>
-				<ul class='menu'>
-					<?= $navBarString ?>
-				</ul>
-			</li>
-		</ul>
+ 		<?php if(isset($navBarString)): ?>
+			<ul class='menu align-left tourney-menu-large show-for-medium'>
+				<?= $navBarString ?>
+			</ul>
+			<ul class='dropdown menu tourney-menu-mobile 
+				show-for-small-only align-center' data-dropdown-menu>
+				<li>
+					<a href='#'>Browse Tournament</a>
+					<ul class='menu'>
+						<?= $navBarString ?>
+					</ul>
+				</li>
+			</ul>
+		<?php endif ?>
 		
-	<? endif ?>	
+	<?php endif ?>	
 
 
 	<!-- END Lower Navigation ----------------------------------------->
@@ -369,7 +372,7 @@ function eventNameForHeader(){
 // Add the event name or prompty to select an event
 
 	$eventID = $_SESSION['eventID'];
-	if(USER_TYPE == USER_SUPER_ADMIN || USERR_TYPE == USER_STATS){
+	/*if(USER_TYPE == USER_SUPER_ADMIN || USER_TYPE == USER_STATS){
 		$eventList = getEventList();
 		?>
 		<form method='POST'>
@@ -379,19 +382,23 @@ function eventNameForHeader(){
 			<?php if($eventID == null): ?>
 				<option selected disabled></option>
 			<?php endif ?>
-			<?php foreach($eventList as $listEventID => $data): 
+			<?php foreach((array)$eventList as $listEventID => $data): 
 				$selected = isSelected($eventID, $listEventID);
 			?>
-				<option value=<?=$listEventID?> <?=$selected?>>
+			<!--
+				<option value='<?=$listEventID?>' <?=$selected?>>
 					<?=$data['eventName']?> <?=$data['eventYear']?>
-				</option>
-			<?php endforeach ?>
+				</option>-->
+			<?php endforeach ?> 
 		</select>
 		</div>
 		</form>
 		<?php
-		return;
-	}
+	} elseif($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
+		echo $_SESSION['eventName'];
+	} else {
+		echo "No Event Selected";
+	}*/
 
 	if($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
 		echo $_SESSION['eventName'];

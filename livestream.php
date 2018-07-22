@@ -46,7 +46,7 @@ if($_SESSION['eventID'] == null){
 
 	?>
 		
-	<? else: ?>
+	<?php else: ?>
 		<?php displayAlert("Sorry, there is no active livestream for this event"); ?>
 	<?php endif ?>
 

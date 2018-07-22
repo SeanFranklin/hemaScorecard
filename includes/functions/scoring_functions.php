@@ -41,8 +41,6 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 		insertLastExchange($matchInfo, 'pending', 'null', 0, 0);	
 	}
 	
-	
-	
 }
 
 /******************************************************************************/
@@ -148,11 +146,140 @@ function _DeductionBased_updateExchanges(){
 
 /******************************************************************************/
 
+function _PureScore_addExchanges($numToAdd, $matchInfo){
+// Adds cuts to a piece using the 'Pure Score' format
+
+	$groupSet = getGroupSetOfMatch($matchInfo['matchID']);
+	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
+
+	for($i=1;$i<=$numToAdd;$i++){
+		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
+	}
+	
+}
+
+/******************************************************************************/
+
+function _PureScore_displayExchange($exchange,$exchangeNum){
+// Displays an exchange for pieces using 'Pure Score' scoring
+// A request to generate a header may be passed instead of an exchange
+
+	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	?>
+	
+<!--  Table Headers -->
+	<?php if($exchangeNum == 'header'): ?>
+		<tr>
+			<th>
+				<?php if(USER_TYPE < USER_STAFF): ?>
+					<strong>Cut Num</strong>
+				<?php endif ?>
+			</th>
+		
+		
+			<th class='text-center' style='padding: 1px;'>
+				Score
+			</th>
+			<th class='text-center' style='padding: 1px;'>
+				Deduction
+			</th>
+
+			<th class='text-center'>
+				Points
+			</th>
+		</tr>
+		
+		<?php return; ?>
+	<?php endif ?>
+<?php
+
+// Calculations
+	$exchangeID = $exchange['exchangeID'];
+	
+	if($exchange['exchangeType'] == 'scored'){
+		$for = $exchange['scoreValue'];
+		$against = $exchange['scoreDeduction'];
+		$total = $for - $against;
+		$zeroVal = '';
+		$placeholder = "placeholder='No Change'";
+	} else {
+		if(USER_TYPE < USER_STAFF){ return;}
+		$for = $exchange['scoreValue'];
+		$total = 'N/A';
+		$against = 'N/A';
+		$zeroVal = '';
+		$placeholder = "placeholder='0'";
+	}
+	?>
+	
+<!-- Table Row -->
+	<tr class='text-center'>
+	
+		<td>
+		<strong><?=$exchangeNum?></strong>
+		<?php if(USER_TYPE >= USER_STAFF): ?>
+			<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
+		<?php endif ?>
+		</td>
+	
+
+		<?php if(USER_TYPE >= USER_STAFF): ?>
+			<td style='padding: 1px;'>
+				<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
+					value='<?=$for?>' name='scores[<?=$exchangeID?>][scoreValue]' >
+			</td>
+			<td style='padding: 1px;'>
+				<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
+					value='<?=$against?>' name='scores[<?=$exchangeID?>][scoreDeduction]''>
+			</td>
+		<?php else: ?>
+			<td>
+				<?php if($for < 0): ?> 
+					- <!-- Points against are displayed as negative-->
+				<?php endif ?>
+				<?=$for;?>
+			</td>
+			<td>
+				<?php if($against > 0): ?> 
+					- <!-- Points against are displayed as negative-->
+				<?php endif ?>
+				<?=$against;?>
+			</td>
+
+		<?php endif ?>
+
+		<td>
+			<?=$total?>
+		</td>
+	</tr>
+<?php }
+
+/******************************************************************************/
+
+function _PureScore_updateExchanges(){
+// Calculates the score of each cut for pieces using 'Pure Score'	
+	
+	foreach((array)$_POST['scores'] as $exchangeID => $data){
+		
+		$exchangesToUpdate[$exchangeID]['scoreValue'] = (float)$data['scoreValue'];
+		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = (float)$data['scoreDeduction'];
+
+	}
+
+	return $exchangesToUpdate;
+	
+}
+
+/******************************************************************************/
+
 function _RSScutting_addExchanges($numToAdd, $matchInfo){
 // Adds cuts to a piece using the 'RSS Cutting' format
 
+	$groupSet = getGroupSetOfMatch($matchInfo['matchID']);
+	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
+
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, 'pending', 'null', 20, 0);	
+		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
 	}
 	
 }
@@ -466,7 +593,6 @@ function pool_GenerateNextPools($poolSet){
 		$poolNum = $startPoolNum;
 		$poolPosition = 1;
 		$poolNumIncrement = 1;
-		show($avoidRefights);
 		
 		foreach($fightersInTier as $rosterIDtoAdd){
 			

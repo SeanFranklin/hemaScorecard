@@ -27,6 +27,7 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 		return false;
 	}
 	
+	$retVal = null;
 	$res = mysqli_query($GLOBALS["___mysqli_ston"], $query);
 	
 	checkMySQL();

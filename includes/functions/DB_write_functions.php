@@ -448,27 +448,29 @@ function addNewEvent(){
 	if(USER_TYPE < USER_SUPER_ADMIN){return;}
 	
 	$eventYear = substr($_POST['eventStartDate'],0,4);
+	$num = mt_rand(100,999);
+	$password = "temp{$num}";
+	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
 	
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbreviation, eventYear, eventStartDate,
 			eventEndDate, eventCountry, eventProvince, eventCity,
-			eventStatus)
+			eventStatus, USER_STAFF, USER_ADMIN)
 			VALUES
-			(?,?,?,?,?,?,?,?,?)";
+			(?,?,?,?,?,?,?,?,?,?,?)";
 	
 	$eventStartDate = $_POST['eventStartDate'];
 	if($eventStartDate == null){$eventStartDate = date('Y-m-d H:i:s');}
 	$eventEndDate = $_POST['eventEndDate'];
 	if($eventEndDate == null){$eventEndDate = date('Y-m-d H:i:s');}
 		
-
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "sssssssss", 
+	$bind = mysqli_stmt_bind_param($stmt, "sssssssssss", 
 			$_POST['eventName'], $_POST['eventAbreviation'],
 			$eventYear, $eventStartDate,
 			$eventEndDate, $_POST['eventCountry'], 
 			$_POST['eventProvince'], $_POST['eventCity'],
-			$_POST['eventStatus']);
+			$_POST['eventStatus'],$passwordHash,$passwordHash);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
@@ -479,6 +481,10 @@ function addNewEvent(){
 			VALUES
 			($eventID)";
 	mysqlQuery($sql, SEND);
+
+	$name = getEventName($eventID);
+	$_SESSION['alertMessages']['userAlerts'][] = "
+		Created event: {$name}<BR>with passwords: '<strong>{$password}</strong>'";
 		
 }
 
@@ -2218,6 +2224,36 @@ function switchMatchFighters($matchID = null){
 
 /******************************************************************************/
 
+function updateContactEmail($email, $eventID = null){
+
+	if(USER_TYPE < USER_ADMIN){return;}
+
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){
+		$_SESSION['alertMessages']['systemErrors'][] = "Invalid eventID in updateContactEmail";
+		return;
+	}
+
+	if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+		$_SESSION['alertMessages']['userErrors'][] = "That does not appear to be a valid e-mail";
+		return;
+	}
+
+	$sql = "UPDATE systemEvents
+			SET organizerEmail = ?
+			WHERE eventID = {$eventID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	$bind = mysqli_stmt_bind_param($stmt, "s", $email);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+	$_SESSION['alertMessages']['userAlerts'][] = "Contact E-mail updated";
+}
+
+
+/******************************************************************************/
+
 function updateDisplaySettings(){
 	
 	$eventID = $_SESSION['eventID'];
@@ -2315,11 +2351,11 @@ function updateEventTournaments(){
 	if($eventID == null){return;}
 	
 	$defaults = getEventDefaults($eventID);
+	$info = $_POST['updateTournament'];
 
 	switch($_POST['updateType']){
 	// Add a new tournament
 		case 'add':
-			$info = $_POST['updateTournament'];
 			
 			if(!isset($info['tournamentRankingID'])){ $info['tournamentRankingID'] = 'null'; }
 			if(!isset($info['doubleTypeID'])){ $info['doubleTypeID'] = 'null'; }
@@ -2330,13 +2366,29 @@ function updateEventTournaments(){
 			if(isset($info['color1ID'])){ $defaults['color1ID'] = $info['color1ID'];}
 			if(isset($info['color2ID'])){ $defaults['color2ID'] = $info['color2ID'];}
 			
+			if($info['isNegativeScore'] == 1){
+				if($info['doubleTypeID'] == DEDUCTIVE_AFTERBLOW){
+					$info['doubleTypeID'] = FULL_AFTERBLOW;
+					$info['isNotNetScore'] = 1;
+					$_SESSION['alertMessages']['userErrors'][] = "Negative score mode is not compatable
+					 with deductive afterblow scoring. 
+					 <BR>Afterblow type has been changed to <u>Full Afterblow</u>
+					 with <u>Use Net Points</u> option set to <i>No</i>.";
+				} elseif ($info['doubleTypeID'] == FULL_AFTERBLOW){
+					$info['isNotNetScore'] = 1;
+					$_SESSION['alertMessages']['userErrors'][] = "Negative score mode only functions without
+					<u>Use Net Points</u> enabled. <BR><u>Use Net Points</u> has been set to <i>No</i>.";
+				}
+
+			}
+
 			$sql = "INSERT INTO eventTournaments (
 					eventID, tournamentWeaponID, tournamentPrefixID, 
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
 					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
-					isNotNetScore, basePointValue
+					isNotNetScore, basePointValue, isPrivate, isNegativeScore
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2356,7 +2408,9 @@ function updateEventTournaments(){
 					{$info['useTimer']},
 					{$info['useControlPoint']},
 					{$info['isNotNetScore']},
-					{$info['basePointValue']}
+					{$info['basePointValue']},
+					{$info['isPrivate']},
+					{$info['isNegativeScore']}
 					)";
 			mysqlQuery($sql, SEND);
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
@@ -2364,16 +2418,35 @@ function updateEventTournaments(){
 			$newName = getTournamentName($tournamentID);
 			$_SESSION['alertMessages']['userAlerts'][] = "Created tournament: '{$newName}'";
 			
+			$_SESSION['tournamentID'] = $tournamentID;
 			break;
 	
 	// Update an existing tournament		
 		case 'update':
 		
 			$tournamentID = $_POST['modifyTournamentID'];
+			$_SESSION['tournamentID'] = $tournamentID;
 			$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;	
-		
+
+			if($info['isNegativeScore'] == 1){
+				if($info['doubleTypeID'] == DEDUCTIVE_AFTERBLOW){
+					$info['doubleTypeID'] = FULL_AFTERBLOW;
+					$info['isNotNetScore'] = 1;
+					$_SESSION['alertMessages']['userErrors'][] = "Negative score mode is not compatable
+					 with deductive afterblow scoring. 
+					 <BR>Afterblow type has been changed to <u>Full Afterblow</u>
+					 with <u>Use Net Points</u> option set to <i>No</i>.";
+				} elseif ($info['doubleTypeID'] == FULL_AFTERBLOW && $info['isNotNetScore'] == 0){
+					$info['isNotNetScore'] = 1;
+					$_SESSION['alertMessages']['userErrors'][] = "Negative score mode only functions without
+					<u>Use Net Points</u> enabled. <BR><u>Use Net Points</u> has been set to <i>No</i>.";
+				}
+
+			}
+
+
 		// Delete groups if the elim type has changed		
-			$elimTypeID = $_POST['updateTournament']['tournamentElimID'];
+			$elimTypeID = $info['tournamentElimID'];
 			switch ($elimTypeID){
 				case POOL_BRACKET:
 					$whereStatement = "AND (groupType != 'pool' OR groupSet > 1) AND groupType != 'elim'";
@@ -2397,15 +2470,14 @@ function updateEventTournaments(){
 			mysqlQuery($sql, SEND);
 			
 		// Construct SQL statement to do all updates
-		
+
 			$sql = "UPDATE eventTournaments SET ";
-			foreach($_POST['updateTournament'] as $field => $data){
+			foreach($info as $field => $data){
 				if($data == null){continue;}
 				$sql .= "{$field} = {$data}, ";
 			}
 			$sql = rtrim($sql,', \t\n');
 			$sql .= " WHERE tournamentID = {$tournamentID}";
-			
 			mysqlQuery($sql, SEND);
 			
 			if($elimTypeID != POOL_SETS && $elimTypeID != SCORED_EVENT){
@@ -2578,6 +2650,57 @@ function updateFinalsBracket(){
 		}
 	}
 	
+}
+
+/******************************************************************************/
+
+function updateHemaRatingsInfo($fighters){
+
+	if(USER_TYPE < USER_SUPER_ADMIN){ return;}
+
+	foreach($fighters as $systemRosterID => $fighter){
+		$HemaRatingsID = (int)$fighter['HemaRatingsID'];
+		if($HemaRatingsID == 0){
+			$HemaRatingsID = "NULL";
+		}
+
+		$sql = "SELECT systemRosterID
+				FROM systemRoster
+				WHERE HemaRatingsID = {$HemaRatingsID}
+				AND systemRosterID != {$systemRosterID}";
+		$duplicates = mysqlQuery($sql, ASSOC);
+
+		if(count($duplicates) == 0){
+
+			$sql = "UPDATE systemRoster
+					SET HemaRatingsID = {$HemaRatingsID}, 
+					firstName = ?,
+					lastName = ?
+					WHERE systemRosterID = ?";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			// "s" means the database expects a string
+			$bind = mysqli_stmt_bind_param($stmt, "ssi", 
+				$fighter['firstName'], $fighter['lastName'],$systemRosterID);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+		} else {
+			// If someone with that Rating ID exists in the system.
+			$errStr = "Can't add ".getFighterNameSystem($systemRosterID);
+			$errStr .= "($systemRosterID)";
+			$errStr .= " with HEMA Rating ID: {$HemaRatingsID}<BR>";
+
+			$errStr .= "Conflicts with:";
+			foreach($duplicates as $duplicate){
+				$errStr .= getFighterNameSystem($duplicate['systemRosterID']);
+				$errStr .= "({$duplicate['systemRosterID']})<BR>";
+			}
+			$_SESSION['alertMessages']['userErrors'][] = $errStr;
+		}
+
+
+	}
 }
 
 /******************************************************************************/
@@ -2868,7 +2991,6 @@ function updateMatch($matchInfo){
 			$fighter1Score += $exchange['scoreValue'];
 			if($doubleTypes['isNotNetScore'] == 1
 				&& $doubleTypes['afterblowType'] == 'full') {
-				
 				$fighter2Score += $exchange['scoreDeduction'];
 			} else {
 				$fighter1Score -= $exchange['scoreDeduction'];
@@ -2891,6 +3013,12 @@ function updateMatch($matchInfo){
 	if($fighter1Score == 0 AND $fighter2Score == 0 AND count($result) == 0 AND isRounds($tournamentID)){
 		$fighter1Score = 'null';
 		$fighter2Score = 'null';
+	}
+
+	if(isNegativeScore($matchInfo['tournamentID'])){
+		$temp = $fighter1Score;
+		$fighter1Score = $fighter2Score * -1;
+		$fighter2Score = $temp * -1;
 	}
 	
 	$sql = "UPDATE eventMatches

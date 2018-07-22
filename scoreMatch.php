@@ -417,6 +417,7 @@ function fighterDataEntryBox($matchInfo,$num){
 // box with data entry fields for each fighter	
 	
 	$isFinished = $matchInfo['winnerID'];
+	$tournamentID = $matchInfo['tournamentID'];
 	$event = EVENT;
 
 	if($num == 1){
@@ -438,7 +439,6 @@ function fighterDataEntryBox($matchInfo,$num){
 	
 	$doubleTypes = getDoubleTypes($tournamentID);
 	$maxPoints = 8;
-	
 	if($doubleTypes['afterblowType'] != 'deductive'){
 		$hideAfterblow = "class='hidden'";
 	}
@@ -467,7 +467,7 @@ function fighterDataEntryBox($matchInfo,$num){
 			<!-- Hit score select -->
 				<div class='input-group grid-x'>
 					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
-					<?php scoreSelectDropDown($id, $pre); ?>
+					<?php scoreSelectDropDown($id, $pre, isNegativeScore($tournamentID)); ?>
 					
 				</div>
 			
@@ -538,19 +538,27 @@ function fighterDataEntryBox($matchInfo,$num){
 
 /******************************************************************************/
 
-function scoreSelectDropDown($id, $pre){
+function scoreSelectDropDown($id, $pre, $isNegativeScore){
 	
-	$maxPoints = 10;
 	$attacks = getTournamentAttacks();
-	$scoreMode = 'ID';
-	
 	
 	if($attacks == null){
-		for($i = 1; $i<=$maxPoints; $i++){
+		$minPoints = 1;
+		$maxPoints = 10;
+
+		if($isNegativeScore == false){
+			$dir = 1;
+		} else {
+			$dir = -1;
+		}
+
+		for($i = $minPoints * $dir; abs($i)<=abs($maxPoints); $i += $dir){
 			$attacks[$i]['tableID'] = $i;
 			$attacks[$i]['attackText'] = $i." Point".plrl($i);
 		}
 		$scoreMode = 'rawPoints';
+	} else {
+		$scoreMode = 'ID';
 	}
 
 	?>

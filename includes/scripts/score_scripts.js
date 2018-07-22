@@ -373,7 +373,7 @@ function refreshOnNewExchange(matchID, exchangeID){
 		query = query + "&exchangeID=" + exchangeID.toString();
 		
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/v6/includes/functions/AJAX.php?"+query, true);
+		xhr.open("POST", AJAX_LOCATION+"?"+query, true);
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		xhr.send();
 
@@ -460,7 +460,7 @@ function updateTimerDisplay(){
 	query = query + "&matchTime="+time.toString();
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "/v6/includes/functions/AJAX.php?"+query, true);
+	xhr.open("POST", AJAX_LOCATION+"?"+query, true);
 	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 	xhr.send();
 

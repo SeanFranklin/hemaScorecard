@@ -17,9 +17,10 @@ function displayPageAlerts(){
 // This function is called at the top of every page by the header
 // to display error messages created in processing POST data.
 
+
 // Only displays diagnostic errors for the Software Administrator
 	if(USER_TYPE >= USER_SUPER_ADMIN){
-		foreach((array)$_SESSION['alertMessages']['systemErrors'] as $message){
+		foreach($_SESSION['alertMessages']['systemErrors'] as $message){
 			displayAlert("<strong>Error: </strong>".$message, 'alert');
 		}
 	} else {
@@ -30,6 +31,7 @@ function displayPageAlerts(){
 	}
 
 // Error messages for the user.
+
 	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
 		displayAlert("<strong>Error: </strong>".$message,'warning');
 	}
@@ -38,16 +40,19 @@ function displayPageAlerts(){
 	$alertMessage = '';
 	if(sizeof($_SESSION['userAlerts']) < 1){
 		$alertMessage = $_SESSION['alertMessages']['userAlerts'][0];
-	} else {
+	} elseif(sizeof($_SESSION['userAlerts']) > 1) {
 		$alertMessage = "<ul>";
 		foreach((array)$_SESSION['alertMessages']['userAlerts'] as $message){
 			$alertMessage .= "<li>{$message}</li>";
 		}
 		$alertMessage .= "</ul>";
 	}
+
 	displayAlert($alertMessage);
 	
-	unset($_SESSION['alertMessages']);
+	$_SESSION['alertMessages']['systemErrors'] = [];
+	$_SESSION['alertMessages']['userErrors'] = [];
+	$_SESSION['alertMessages']['userAlerts'] = [];
 }
 
 /******************************************************************************/
@@ -89,8 +94,195 @@ function pageError($type){
 		$str = "Page can not be displayed";
 	}
 	
- displayAlert($str);
+ 	displayAlert($str);
 }
+
+/******************************************************************************/
+
+function checkForTermsOfUse(){
+
+	$pageName = basename($_SERVER['PHP_SELF']);
+
+// Just Signed ToS
+	if($_SESSION['tosConfirmed'] === true){
+		unset($_SESSION['tosConfirmed']);
+		?>
+		<div class='reveal medium' id='termsOfUseModal' data-reveal>
+		<form method='POST'>
+			<h3>Welcome to HEMA Scorecard</h3>
+			<p>You are now good to go!</p>
+			<p>This is the Event Settings page. Make sure everything here is set to what you want, and then you can start setting up your tournaments.</p>
+			<p>I <strong>strongly</strong> suggest that the first things you do are:
+				<ul>
+				<li>Set the event passwords <i>(Bottom of this page)</i></li>
+				<li>Set your event status <i>(Top of this page)</i></li>
+			</ul>
+
+			<!-- Reveal close button -->
+			<button class='close-button' data-close aria-label='Close modal' type='button'>
+				<span aria-hidden='true'>&times;</span>
+			</button>
+
+		</div>
+
+		<?php
+		return;
+
+// Don't need to sign ToS
+	} elseif(USER_TYPE != USER_ADMIN
+			|| isEventTermsAccepted()
+			){
+
+		return;
+
+// If they need to sign ToS, kicks them back to the log in page. 
+//This won't let them leave the log-in screen until they sign the ToS or log out
+	} elseif($pageName != 'adminLogIn.php'){
+		header('Location: adminLogIn.php');
+		exit;
+	}
+
+	$email = getEventEmail();
+
+	?>
+
+	<div class='reveal large' id='termsOfUseModal' data-reveal>
+		<form method='POST'>
+			<h3>Terms of Use</h3>
+			<div class='grid-x grid-margin-x'>
+
+			<div class='cell' style='margin-bottom:1em;'>
+				Before using HEMA Scorecard please make sure you are cool with the following:
+			</div>
+
+		<!-- Public -->
+			<div class='cell' style='margin-bottom:1em;'>
+				<strong>All information in the software is public</strong>
+				<BR>
+				<div style='margin-left: 20px;'>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][1]'>
+					I understand that anyone can look at and have access to all the results/data from any tournament.
+				</div>
+			</div>
+
+		<!-- Exchange Info -->
+			<div class='cell' style='margin-bottom:1em;'>
+				<strong>All data from a tournament must be recorded accurately and un-abridged</strong>
+				<BR>
+				<i>You may feel this is stupid, but it is important to us. We've put in hundreds of hours developing this for your benefit. At lest humor us. ;)</i>
+				<BR>
+				<div style='margin-left: 20px;'>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][2]'>
+					I will make sure that all directors & staff enter 'No Exchange' and 'No Quality' exchanges as the judges call it.
+				<BR>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][3]'>
+					I will make sure that all directors & staff enter the original score and the afterblow value, not just the overall points awarded.
+				<BR>
+			
+					<i>(eg: 3 points with a -1 afterblow is not a 2 point clean hit)</i>
+				</div>
+			</div>
+
+		<!-- Volunteer -->
+			<div class='cell' style='margin-bottom:1em;'>
+				<strong>HEMA Scorecard is made, maintained, and improved by volunteers</strong>
+				<BR>
+				<div style='margin-left: 20px;'>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][4]'>
+					I understand that the HEMA Scorecard team is delighted to receive constructive feedback on improvements but are in no way obligated to put up with any crap from me.
+				</div>
+			</div>
+			
+		<!-- Contact Info -->
+			<div class='cell' style='margin-bottom:1em;'>
+				<strong>The following person should be contacted with questions about the tournaments</strong>
+				<div class='input-group'>
+					<span class='input-group-label'>Contact E-mail</span>
+					<input type='text' class='input-group-field' name='ToS[email]' value='<?=$email?>'>
+				</div>
+	
+			</div>
+
+		<!-- Submit -->
+			<input type='hidden' name='ToS[numCheckboxes]' value='4'>
+			<button class='button success small-6 cell' name='formName' value='SubmitToS'>
+				Got it!<BR> I checked and agreed to all 4 boxes and filled in the e-mail.
+			</button>
+
+			<input type='hidden' name='logInType' value='1'>
+			<button class='button alert small-6 cell' name='formName' value='logUserIn'>
+				Not cool.<BR>I'll go back to pen and paper like a cave man.
+			</button>
+
+
+			</div>
+
+		</form>
+		
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function displayEventButton($eventID, $eventInfo){
+//Creates a button to navigate to an event
+	
+// Format location string
+	unset($location);
+	if($eventInfo['eventCity'] != null){
+		$location = $eventInfo['eventCity'];
+	}
+	if($eventInfo['eventProvince'] != null){
+		if(isset($location)){ $location .= ', '; }
+		$location .= $eventInfo['eventProvince'];
+	}
+	if($eventInfo['eventCountry'] != null){
+		if(isset($location)){ $location .= ', '; }
+		$location .= $eventInfo['eventCountry'];
+	}
+	$location = rtrim($location,', \t\n');
+	
+// Format year and date string
+	$name = $eventInfo['eventName'];
+	$year = $eventInfo['eventYear'];
+	
+	$startDate = sqlDateToString($eventInfo['eventStartDate']);
+	$endDate = sqlDateToString($eventInfo['eventEndDate']);
+	
+	if($startDate != null){
+		if($endDate == null OR $endDate == $startDate){
+			$dateString = $startDate;
+		} else {
+			$dateString = $startDate." - ".$endDate;
+		}
+	} else if($endDate != null){
+		$dateString = $endDate;
+	}
+	
+// Displays current event in red
+	if($eventID == $_SESSION['eventID']){
+		$isActive = "alert";
+	} else { 
+		unset($isActive); 
+	} 
+	
+	?>
+
+
+	<button value='<?= $eventID ?>' style='width:100%'
+		class='button hollow <?= $isActive ?>' name='changeEventTo' >
+		<?= $name ?>, <?= $year ?>
+		<span class='hide-for-small-only'> - </span>
+		<BR class='show-for-small-only'>
+		<?= $location ?>
+		<BR>
+		<?= $dateString ?>
+	</button>
+
+	
+<?php }
 
 /******************************************************************************/
 
@@ -932,6 +1124,54 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentNegativeScore($tournamentID = 'new'){
+// Select menu for whether or not the tournament uses negative scores
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a box to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(isPools($tournamentID) || isBrackets($tournamentID)){
+			
+			$sql = "SELECT isNegativeScore
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$isNegativeScore = (int)mysqlQuery($sql, SINGLE, 'isNegativeScore');
+		}
+		unset($display);
+	} elseif($tournamentID == 'new') {
+		$isNegativeScore = 0;
+	}
+
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='negativeScore_div<?=$tournamentID?>' >
+			
+		Use Negative Score
+		<?php tooltip("<strong>Negative Points</strong><BR>
+						Deducts points from fighters when they are hit, rather than awarding 
+						points to fighters for hitting their opponents"); ?>
+		
+		<select name='updateTournament[isNegativeScore]'
+			onchange="enableTournamentButton('<?=$tournamentID?>')"
+			id='negativeScore_select<?=$tournamentID?>'>
+			
+			<option <?=optionValue(0,$isNegativeScore)?> >No</option>
+			<option <?=optionValue(1,$isNegativeScore)?> >Yes</option>
+			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentNetScore($tournamentID = 'new'){
 // Select menu for whether or not the tournament uses net score for Full Afterblow
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1076,10 +1316,55 @@ function edit_tournamentCuttingQual($tournamentID = 'new'){
 		Cutting Qualification
 		
 		<select name='updateTournament[isCuttingQual]'
-			id='allowTies_select<?=$tournamentID?>'>
+			id='isCuttingQual_select<?=$tournamentID?>'>
 			<option value='0'>No</option>
 			<option value='1' <?=$selected?>>Yes</option>
 			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/**********************************************************(*******************/
+
+function edit_tournamentKeepPrivate($tournamentID = 'new'){
+// Select menu for whether or not the tournament has a cutting qualification
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	//$display = "hidden"; // Hidden for most cases
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(isPools($tournamentID) || isBrackets($tournamentID) || isRounds($tournamentID)){
+			unset($display);
+			
+			$sql = "SELECT isPrivate
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$isPrivate = (int)mysqlQuery($sql, SINGLE, 'isPrivate');
+
+		}
+	}
+	$selected = isSelected(1 == $isPrivate);	
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='isPrivate_div<?=$tournamentID?>' >
+			
+		Sharing Preference <?=tooltip("
+			This expresses your preference for your data being used by organizations like HEMA Ratings.
+			<BR><strong>YOU HAVE ALREADY AGREED THAT THIS INFORMATION IS PUBLIC</strong>
+			<BR>This just expresses your preference. How people use the information is up to them.")?>
+		
+		<select name='updateTournament[isPrivate]'
+			id='isPrivate_select<?=$tournamentID?>'>
+			<option value='0'>Normal</option>
+			<option value='1' <?=$selected?>>I prefer if people don't use.</option>
 		</select>
 		
 	</div>
@@ -1693,6 +1978,16 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$index1 = 2;
 			$index2 = 1; 
+		}
+
+		if(isNegativeScore($matchInfo['tournamentID'])
+			&& ($exchange['exchangeType'] == 'clean' 
+				|| $exchange['exchangeType'] == 'afterblow')){
+			$temp = $index1;
+			$index1 = $index2;
+			$index2 = $temp;
+			$exchange['scoreValue'] *= -1;
+			$exchange['scoreDeduction'] *= -1;
 		}
 
 		switch ($exchange['exchangeType']){
