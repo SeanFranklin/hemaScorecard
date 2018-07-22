@@ -806,12 +806,11 @@ function getEventListFULL(){
 
 /******************************************************************************/
 
-function getEventName($eventID = null){
+function getEventName($eventID){
 	//return the event name in form 'Test Event 1999'
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
 	if($eventID == null){ //if no event is selected
-		return "No Event Selected";
+		return null;
 	}
 	
 	$sql = "SELECT eventName, eventYear
@@ -2505,7 +2504,7 @@ function getTournamentAttacks($tournamentID = null){
 	$data = mysqlQuery($sql, ASSOC);
 	
 	
-	foreach($data as $index => $attack){
+	foreach((array)$data as $index => $attack){
 		
 		$text = '';
 		
@@ -2562,7 +2561,9 @@ function getTournamentAttacks($tournamentID = null){
 
 function getTournamentAttributeName($ID = null){
 	//the name of any tournament attribute given it's ID
-	if($ID == null){return null;}
+	if($ID == null){
+		return null;
+	}
 	
 	$sql = "SELECT tournamentType FROM systemTournaments
 			WHERE tournamentTypeID = {$ID}";
@@ -2624,6 +2625,7 @@ function getTournamentRoster($tournamentID = null, $sortType = null, $excluded =
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
 	if($eventID == null){return;}
 	
+	$excludeTheDiscounted = null;
 	/*
 	if($excluded == 'ignore'){
 		$excludeTheDiscounted = "AND eventTournamentRoster.participantStatus != 'ignore'";
@@ -3295,6 +3297,21 @@ function isLastMatch($tournamentID){
 	return false;
 	
 	
+}
+
+/******************************************************************************/
+
+function isNegativeScore($tournamentID){
+	
+	if($tournamentID == null){
+		return null;
+	}
+
+
+	$sql = "SELECT isNegativeScore
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	return (bool)mysqlQuery($sql, SINGLE, 'isNegativeScore');
 }
 
 /******************************************************************************/

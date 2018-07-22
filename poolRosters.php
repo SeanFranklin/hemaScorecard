@@ -23,8 +23,7 @@ $pools = getPools($tournamentID, $_SESSION['groupSet']);
 $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
-	pageError('tournament');
-	
+	pageError('tournament');	
 } elseif($pools == null){
 	poolSetNavigation();
 	if(!isPools($tournamentID)){
@@ -127,7 +126,9 @@ if($tournamentID == null){
 	
 <?php }
 
-unset($_SESSION['poolSeeds']);
+if(isset($_SESSION['poolSeeds'])){
+	unset($_SESSION['poolSeeds']);
+}
 
 include('includes/footer.php');
 
@@ -521,19 +522,24 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 <!-- Pool fighters -->	
 	<div class='large-11 medium-12 cell'>
 	<div class='grid-x grid-padding-x'>
-	
+
 	
 	<?php for($i=1;$i<=$maxPoolSize;$i++): ?>
 
 		<!-- Empty pool position -->
-		<?php if($poolRoster[$i] == 0): ?>
+		<?php if(!isset($poolRoster[$i])): ?>
 			<?php if(USER_TYPE >= USER_ADMIN):?>
 			<div class='large-2 medium-3 small-6'>	
 				<select name='groupAdditions[<?=$groupID?>][<?=$i?>]' class='opacity-toggle'>
 					<option value=''></option>
 					<?php foreach((array)$tournamentRoster as $entry):
-						$selected = isSelected($_SESSION['poolSeeds'][$poolNum][$i],
-													$entry['rosterID']);
+						if(isset($_SESSION['poolSeeds'][$poolNum][$i])){
+							$seedID = $_SESSION['poolSeeds'][$poolNum][$i];
+						} else {
+							$seedID = false;
+						}
+						$selected = isSelected($seedID,$entry['rosterID']);
+
 						?>
 						<option value='<?=$entry['rosterID']?>' <?=$selected?>>
 							<?=getFighterName($entry['rosterID'])?> (<?=$entry['schoolAbreviation']?>)

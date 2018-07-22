@@ -49,12 +49,12 @@ $categorizedEventList = sortEventList($eventList);
 
 <?php if($categorizedEventList['active'] != null || $categorizedEventList['default'] != null):?>
 	<h5>Active Events</h5>
-	<?php displayEventsInCategory($categorizedEventList['active']); ?>
+	<?php displayEventsInCategory(array_reverse($categorizedEventList['active'],true)); ?>
 <?php endif ?>
 
 <?php if($categorizedEventList['upcoming'] != null): ?>
 	<h5>Upcoming Events</h5>
-	<?php displayEventsInCategory($categorizedEventList['upcoming']); ?>
+	<?php displayEventsInCategory(array_reverse($categorizedEventList['upcoming'],true)); ?>
 <?php endif ?>
 <h5>Recent Events</h5>
 	<?php displayEventsInCategory($categorizedEventList['archived'],4);?>
@@ -70,6 +70,7 @@ include('includes/footer.php');
 /**********************************************************************/
 
 function displayEventsInCategory($eventList,$numToDisplay = null){
+
 
 	echo "<div class='grid-x grid-padding-x'>";
 

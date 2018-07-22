@@ -180,7 +180,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Headers -->
 			<tr>
 				<th colspan='100%'>
-					Round Total
+					Stage Total
 				</th>
 			</tr>
 			<tr>

@@ -22,13 +22,16 @@ if($_SESSION['eventID'] == null){
 } else {
 
 	$tournamentList = getTournamentsFull();
+	if(count($tournamentList) == 1){
+		$isActiveItem = 'is-active';
+	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<ul class='accordion' data-accordion data-allow-all-closed='true'>
-	
+
 	<?php foreach((array)$tournamentList as $tournamentID => $tournament):
 
 		$numParticipants = $tournament['numParticipants'];
@@ -42,7 +45,7 @@ if($_SESSION['eventID'] == null){
 		?>
 		
 		
-		<li class='accordion-item' data-accordion-item>
+		<li class='accordion-item <?=$isActiveItem?>' data-accordion-item>
 		<a class='accordion-title'>
 			<div class='grid-x'>
 				<div class='medium-10 small-12'>
@@ -89,15 +92,17 @@ if($_SESSION['eventID'] == null){
 			<div id='optionalFields_<?=$tournamentID?>' class='grid-x grid-padding-x text-center'>
 				<?php
 				edit_tournamentTimer($tournamentID);
+				edit_tournamentTies($tournamentID);
 				edit_tournamentColors($tournamentID, 1);
 				edit_tournamentColors($tournamentID, 2);
 				edit_tournamentMaxDoubles($tournamentID);
 				edit_tournamentMaxPoolSize($tournamentID);
 				edit_tournamentNormalization($tournamentID);
-				edit_tournamentControlPoints($tournamentID);
-				edit_tournamentTies($tournamentID);
-				edit_tournamentCuttingQual($tournamentID);
+
 				edit_tournamentMaxExchanges($tournamentID);
+				edit_tournamentNegativeScore($tournamentID);
+				edit_tournamentControlPoints($tournamentID);
+				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				?>
 			</div>
@@ -133,8 +138,9 @@ if($_SESSION['eventID'] == null){
 		</li>
 		
 	<?php endforeach ?>
-	
+
 	</ul>
+
 
 <?php }
 include('includes/footer.php');

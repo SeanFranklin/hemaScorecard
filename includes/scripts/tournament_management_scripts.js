@@ -29,7 +29,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		maxExchanges: 'show',
 		useTimer: 'show',
 		controlPoint: 'show',
-		isPrivate: 'show'
+		isPrivate: 'show',
+		negativeScore: 'show'
 	};
 	
 	// Direct Bracket
@@ -44,7 +45,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		maxExchanges: 'show',
 		useTimer: 'show',
 		controlPoint: 'show',
-		isPrivate: 'show'
+		isPrivate: 'show',
+		negativeScore: 'show'
 	};
 	
 	// Pool Sets
@@ -62,7 +64,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		maxExchanges: 'show',
 		useTimer: 'show',
 		controlPoint: 'show',
-		isPrivate: 'show'
+		isPrivate: 'show',
+		negativeScore: 'show'
 	};
 	
 	// Scored Event
@@ -112,50 +115,65 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 
 function enableTournamentButton(tournamentID){
 
-	elimID = document.getElementById('elimID_select'+tournamentID).value;
-	button = document.getElementById('editTournamentButton'+tournamentID);
+	var elimID = document.getElementById('elimID_select'+tournamentID).value;
+	var button = document.getElementById('editTournamentButton'+tournamentID);
+	var warrningMessages = [];
 
 	if(elimID.length == 0){
-		button.disabled = true;
-		return;
+		warrningMessages.push('No Elim Type selected');
 	}
 
 	if(elimID == 2 || elimID == 3 || elimID == 4){
 		doubleID = document.getElementById('doubleID_select'+tournamentID).value;
 		if(doubleID.length == 0){
-			button.disabled = true;
-			return;
+			warrningMessages.push('Please select Double/Afterblow Type');
 		}
 
 		if(doubleID == 3){
 			netScoreMode = document.getElementById('notNetScore_select'+tournamentID).value;
 			if(netScoreMode.length == 0){
-				button.disabled = true;
-				return;
+				warrningMessages.push('Please select Net Score preference');
 			}
 		}
-
 	}
 
 	if(elimID == 2 || elimID == 4 || elimID == 5){
 		rankingID = document.getElementById('rankingID_select'+tournamentID).value;
 		if(rankingID.length == 0){
-			button.disabled = true;
-			return;
+			warrningMessages.push('Please select No Ranking Type');
 		}
 	}
 
 	if(elimID == 5){
 		baseValue = document.getElementById('baseValue_select'+tournamentID).value;
 		if(baseValue == '' || baseValue < 0 || baseValue > 100){
-			button.disabled = true;
-			return;
+			warrningMessages.push('Please input a Base Score Value');
 		}
 	}
 
+	// Check if the negative score option is selected
+	if($('#negativeScore_select'+tournamentID).val() == 1){
+		if($('#doubleID_select'+tournamentID).val() == 2){
+			warrningMessages.push('Negative Score can not be used with Deductive Afterblow');
+		}
+		if($('#doubleID_select'+tournamentID).val() == 3 && $('#notNetScore_select'+tournamentID).val() == 0){
+			warrningMessages.push('Negative Score can not be used with No Net Points');
+		}
+	}
 
-	
-	button.disabled = false;
+	if(warrningMessages.length == 0){
+		$('#tournamentWarnings').html('<BR>');
+		button.disabled = false;
+	} else {
+		$('#tournamentWarnings').html("<ul>");
+		$.each(warrningMessages, function( index, value ) {
+			var warningText = "<li class='red-text'>"+value+"</li>";
+			$('#tournamentWarnings').append(warningText);
+		});
+		$('#tournamentWarnings').append("</ul>");
+		button.disabled = true;
+	}
+
 	
 }
 

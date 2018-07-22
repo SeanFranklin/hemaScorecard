@@ -34,19 +34,23 @@ if($_SESSION['eventID'] == null){
 	<form method='POST'>
 	
 		<div class='grid-x grid-margin-x'>
-			<div class='medium-6 large-4 cell input-group'>
+			<div class='medium-8 large-4 cell input-group'>
 			<span class='input-group-label pointer'>
 				Event Status&nbsp;<img src='includes/images/help.png' data-open="statusTypes">
 			</span>
 			<select class='input-group-field' type='text' name='eventStatus'>
-				<?php				
 				
-				$selected = isSelected('hidden', getEventStatus());?>
-				<option value='hidden'<?=$selected?>>Hidden</option>
-				<?php $selected = isSelected('upcoming', getEventStatus());?>
-				<option value='upcoming' <?=$selected?>>Upcoming</option>
-				<?php $selected = isSelected('active', getEventStatus());?>
-				<option value='active'<?=$selected?>>Active</option>
+				<option <?=optionValue('hidden', getEventStatus())?> >
+					Under Construction
+				</option>
+				
+				<option <?=optionValue('upcoming', getEventStatus())?> >
+					Publish Roster
+				</option>
+				
+				<option <?=optionValue('active', getEventStatus())?> >
+					Publish All
+				</option>
 			</select>
 			</div>
 			
@@ -62,16 +66,18 @@ if($_SESSION['eventID'] == null){
 	<div class='reveal' id='statusTypes' data-reveal>
 		<ul>
 			<li>
-				<strong>Hidden</strong> - 
+				<strong>Under Construction</strong> <i>(Hidden)</i><BR> 
 				No one can see event details without logging in as event staff/organizer.
 			</li>
 			<li>
-				<strong>Upcomming</strong> - 
-				Everyone can see the event tournaments and roster. Only event staff/organizers can see pools/matches.
+				<strong>Publish Roster</strong> <i>(Upcomming)</i><BR>
+				Everyone can see the event tournaments and roster. Only event staff/organizers can see pools/matches.<BR>
+				Use this if you want to share the rosters but don't want participants to see you working on the pools/brackets.
 			</li>
 			<li>
-				<strong>Active</strong> - 
+				<strong>Publish All</strong> <i>(Active)</i><BR>
 				Everyone can see all results.
+				<BR>Use this when your even is ready to go, and you want to share everything with the world!
 			</li>
 		</ul>
 		<button class='close-button' data-close aria-label='Close modal' type='button'>

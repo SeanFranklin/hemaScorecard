@@ -17,9 +17,10 @@ function displayPageAlerts(){
 // This function is called at the top of every page by the header
 // to display error messages created in processing POST data.
 
+
 // Only displays diagnostic errors for the Software Administrator
 	if(USER_TYPE >= USER_SUPER_ADMIN){
-		foreach((array)$_SESSION['alertMessages']['systemErrors'] as $message){
+		foreach($_SESSION['alertMessages']['systemErrors'] as $message){
 			displayAlert("<strong>Error: </strong>".$message, 'alert');
 		}
 	} else {
@@ -30,6 +31,7 @@ function displayPageAlerts(){
 	}
 
 // Error messages for the user.
+
 	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
 		displayAlert("<strong>Error: </strong>".$message,'warning');
 	}
@@ -38,16 +40,19 @@ function displayPageAlerts(){
 	$alertMessage = '';
 	if(sizeof($_SESSION['userAlerts']) < 1){
 		$alertMessage = $_SESSION['alertMessages']['userAlerts'][0];
-	} else {
+	} elseif(sizeof($_SESSION['userAlerts']) > 1) {
 		$alertMessage = "<ul>";
 		foreach((array)$_SESSION['alertMessages']['userAlerts'] as $message){
 			$alertMessage .= "<li>{$message}</li>";
 		}
 		$alertMessage .= "</ul>";
 	}
+
 	displayAlert($alertMessage);
 	
-	unset($_SESSION['alertMessages']);
+	$_SESSION['alertMessages']['systemErrors'] = [];
+	$_SESSION['alertMessages']['userErrors'] = [];
+	$_SESSION['alertMessages']['userAlerts'] = [];
 }
 
 /******************************************************************************/
@@ -1119,6 +1124,54 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentNegativeScore($tournamentID = 'new'){
+// Select menu for whether or not the tournament uses negative scores
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a box to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(isPools($tournamentID) || isBrackets($tournamentID)){
+			
+			$sql = "SELECT isNegativeScore
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$isNegativeScore = (int)mysqlQuery($sql, SINGLE, 'isNegativeScore');
+		}
+		unset($display);
+	} elseif($tournamentID == 'new') {
+		$isNegativeScore = 0;
+	}
+
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='negativeScore_div<?=$tournamentID?>' >
+			
+		Use Negative Score
+		<?php tooltip("<strong>Negative Points</strong><BR>
+						Deducts points from fighters when they are hit, rather than awarding 
+						points to fighters for hitting their opponents"); ?>
+		
+		<select name='updateTournament[isNegativeScore]'
+			onchange="enableTournamentButton('<?=$tournamentID?>')"
+			id='negativeScore_select<?=$tournamentID?>'>
+			
+			<option <?=optionValue(0,$isNegativeScore)?> >No</option>
+			<option <?=optionValue(1,$isNegativeScore)?> >Yes</option>
+			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentNetScore($tournamentID = 'new'){
 // Select menu for whether or not the tournament uses net score for Full Afterblow
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1925,6 +1978,16 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$index1 = 2;
 			$index2 = 1; 
+		}
+
+		if(isNegativeScore($matchInfo['tournamentID'])
+			&& ($exchange['exchangeType'] == 'clean' 
+				|| $exchange['exchangeType'] == 'afterblow')){
+			$temp = $index1;
+			$index1 = $index2;
+			$index2 = $temp;
+			$exchange['scoreValue'] *= -1;
+			$exchange['scoreDeduction'] *= -1;
 		}
 
 		switch ($exchange['exchangeType']){

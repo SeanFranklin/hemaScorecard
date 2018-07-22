@@ -35,28 +35,34 @@ $categorizedEventList = sortEventList($eventList);
 	<ul class='accordion' data-accordion  data-allow-all-closed='true'>
 		<li class='accordion-item is-active' data-accordion-item>
 			<a class='accordion-title'>
-				<h4>Active & Recent</h4>
+				<h4>Active & Upcoming</h4>
 			</a>
 			<div class='accordion-content' data-tab-content>
  
 				<?php if($categorizedEventList['active'] != null || $categorizedEventList['default'] != null):?>
 					<h5>Active Events</h5>
-					<?php displayEventsInCategory($categorizedEventList['default']); ?>
-					<?php displayEventsInCategory($categorizedEventList['active']); ?>
+					<?php displayEventsInCategory(
+							array_reverse((array)$categorizedEventList['default'],true)
+						); ?>
+					<?php displayEventsInCategory(
+							array_reverse((array)$categorizedEventList['active'],true)
+						); ?>
 				<?php endif ?>
 	
 				<?php if($categorizedEventList['upcoming'] != null): ?>
 					<h5>Upcoming Events</h5>
-					<?php displayEventsInCategory($categorizedEventList['upcoming']); ?>
+					<?php displayEventsInCategory(
+							array_reverse((array)$categorizedEventList['upcoming'],true)
+						); ?>
 				<?php endif ?>
 	
 				<?php if(USER_TYPE == USER_SUPER_ADMIN && $categorizedEventList['hidden'] != null): ?>
 					<h5>Hidden Events</h5>
-					<?php displayEventsInCategory($categorizedEventList['hidden']); ?>
+					<?php displayEventsInCategory(
+							array_reverse((array)$categorizedEventList['hidden'],true)
+						); ?>
 				<?php endif ?>
 	
-				<h5>Recent Events</h5>
-				<?php displayEventsInCategory($categorizedEventList['archived'],3); ?>
 			</div>
 		</li>
 

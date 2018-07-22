@@ -71,7 +71,6 @@ include_once('includes/config.php');
  
 	<?php debugging(); ?>
 
-
 	<!-- Mobile Navigation -->
     <div class="title-bar" data-responsive-toggle="tourney-animated-menu" data-hide-for="large" style='display:none'>
 		<form method='POST' name='logOutForm1'>
@@ -146,6 +145,7 @@ include_once('includes/config.php');
 							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
 							<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
 							<HR>
+							<li><a href='participantsSchools.php'>Edit School List</a></li>
 							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
 							<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
@@ -239,7 +239,7 @@ include_once('includes/config.php');
 	
 	<?php 
 	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)
-		&& ($hideEventNav !== true || USER_TYPE == USER_SUPER_ADMIN)):
+		&& (!isset($hideEventNav) || USER_TYPE == USER_SUPER_ADMIN)):
 		/* This is the lower navigational bar
 		 * It will not show up if there is no event or tournament selected,  
 		 * or if the pagerequests it to be hidden. It will always be shown
@@ -286,18 +286,20 @@ include_once('includes/config.php');
 
 		?>
  
-		<ul class='menu align-left tourney-menu-large show-for-medium'>
-			<?= $navBarString ?>
-		</ul>
-		<ul class='dropdown menu tourney-menu-mobile 
-			show-for-small-only align-center' data-dropdown-menu>
-			<li>
-				<a href='#'>Browse Tournament</a>
-				<ul class='menu'>
-					<?= $navBarString ?>
-				</ul>
-			</li>
-		</ul>
+ 		<?php if(isset($navBarString)): ?>
+			<ul class='menu align-left tourney-menu-large show-for-medium'>
+				<?= $navBarString ?>
+			</ul>
+			<ul class='dropdown menu tourney-menu-mobile 
+				show-for-small-only align-center' data-dropdown-menu>
+				<li>
+					<a href='#'>Browse Tournament</a>
+					<ul class='menu'>
+						<?= $navBarString ?>
+					</ul>
+				</li>
+			</ul>
+		<?php endif ?>
 		
 	<?php endif ?>	
 
@@ -370,7 +372,7 @@ function eventNameForHeader(){
 // Add the event name or prompty to select an event
 
 	$eventID = $_SESSION['eventID'];
-	if(USER_TYPE == USER_SUPER_ADMIN || USERR_TYPE == USER_STATS){
+	/*if(USER_TYPE == USER_SUPER_ADMIN || USER_TYPE == USER_STATS){
 		$eventList = getEventList();
 		?>
 		<form method='POST'>
@@ -380,19 +382,23 @@ function eventNameForHeader(){
 			<?php if($eventID == null): ?>
 				<option selected disabled></option>
 			<?php endif ?>
-			<?php foreach($eventList as $listEventID => $data): 
+			<?php foreach((array)$eventList as $listEventID => $data): 
 				$selected = isSelected($eventID, $listEventID);
 			?>
-				<option value=<?=$listEventID?> <?=$selected?>>
+			<!--
+				<option value='<?=$listEventID?>' <?=$selected?>>
 					<?=$data['eventName']?> <?=$data['eventYear']?>
-				</option>
-			<?php endforeach ?>
+				</option>-->
+			<?php endforeach ?> 
 		</select>
 		</div>
 		</form>
 		<?php
-		return;
-	}
+	} elseif($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
+		echo $_SESSION['eventName'];
+	} else {
+		echo "No Event Selected";
+	}*/
 
 	if($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
 		echo $_SESSION['eventName'];

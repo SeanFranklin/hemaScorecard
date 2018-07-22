@@ -776,31 +776,26 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 	if($scoring[$id1]['hit'] && $scoring[$id2]['hit']){
 		return;
 	}
-	
-// Records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id1]['hit'] < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	}
 
 // Determine which fighter hit
-	if($scoring[$id1]['hit']){
-		if($scoring[$id2]['hit']){
+	if($scoring[$id1]['hit'] != ''){
+		if($scoring[$id2]['hit'] != ''){
 			// Score entered for both fighters. Not a valid exchange.
 			return;
 		} else {
 			$rosterID = $id1;
+			$otherID = $id2;
 		}
 	} elseif($scoring[$id2]['hit']){
 		$rosterID = $id2;
+		$otherID = $id1;
 	} else {
 		return;
 	}
 	
-
 // Base score value
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
-		$scoreValue = $scoring[$rosterID]['hit'];
+		$scoreValue = abs($scoring[$rosterID]['hit']);
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
 		$at = getAttackAttributes($scoring[$rosterID]['hit']);
 		$scoreValue = $at['attackPoints'];
@@ -894,18 +889,14 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		return;
 	}
 
-	// records the exchange as a penalty if the score is negative
-	if($score1 < 0 OR $score2 < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	} 
-	
 	//checks if only one fighter hit
 	if(xorWithZero($score1,$score2)){//only one hitter
 		if($score1){
 			$rosterID = $id1;
+			$otherID = $id2;
 		} else {
 			$rosterID = $id2;
+			$otherID = $id1;
 		}
 		$scoreValue = 	$scoring[$rosterID]['hit'];
 		$scoreDeduction = 'null';
@@ -944,6 +935,13 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		if($scoreDeduction == ""){$scoreDeduction = 'null';}
 		
 	}
+
+	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
+		$temp = $scoreValue;
+		$scoreValue *= -1;
+		$scoreDeduction *= -1;
+		$rosterID = $otherID;
+	}
 	
 	
 	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, $scoreDeduction, $rPrefix, null,null,$exchangeID);
@@ -962,12 +960,6 @@ function noAfterblowScoring($matchInfo,$scoring){
 
 	$exchangeID = $scoring['exchangeID'];
 	
-	// records the exchange as a penalty if the score is negative
-	if($scoring[$id1]['hit'] < 0 OR $scoring[$id2]['hit'] < 0){
-		insertPenalty($matchInfo, $scoring);
-		return;
-	} 
-
 	// Checks if points are entered for both fighters
 	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
 		insertLastExchange($matchInfo, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
@@ -981,9 +973,11 @@ function noAfterblowScoring($matchInfo,$scoring){
 			return;
 		} else {
 			$rosterID = $id1;
+			$otherID = $id2;
 		}
 	} elseif($scoring[$id2]['hit']){
 		$rosterID = $id2;
+		$otherID = $id1;
 	} else {
 		return;
 	}
@@ -1005,6 +999,11 @@ function noAfterblowScoring($matchInfo,$scoring){
 	if($_POST['attackModifier'] == 9){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
+	}
+
+	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
+		$scoreValue *= -1;
+		$rosterID = $otherID;
 	}
 	
 	insertLastExchange($matchInfo, 'clean', $rosterID, $scoreValue,
@@ -1158,6 +1157,8 @@ function logUserIn(){
 		changeEvent($eventID, true);
 	} else {
 		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Failed to Log In";
+		$_SESSION['failedLogIn']['type'] = $type;
+		$_SESSION['failedLogIn']['eventID'] = $eventID;
 	}
 
 	return;

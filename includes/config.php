@@ -10,8 +10,15 @@
 	
 *******************************************************************************/
 
+// Initialize Session //////////////////////////////////////////////////////////
+
 	session_start();
 
+	if(!isset($_SESSION['alertMessages'])){
+		$_SESSION['alertMessages']['systemErrors'] = [];
+		$_SESSION['alertMessages']['userErrors'] = [];
+		$_SESSION['alertMessages']['userAlerts'] = [];
+	}
 
 // System Constants ////////////////////////////////////////////////////////////
 	
@@ -82,7 +89,7 @@ $conn = connectToDB();
 // Set Session Values //////////////////////////////////////////////////////////
 
 // Set user type
-	if($_POST['formName'] != 'logUserIn'){
+	if(!isset($_POST['formName']) || $_POST['formName'] != 'logUserIn'){
 		if($_SESSION['userType'] == null){
 			define("USER_TYPE", USER_GUEST);
 		} else {
@@ -111,6 +118,8 @@ $conn = connectToDB();
 				$_SESSION['tournamentID'] = $tournamentIDs[0];
 			}
 		}
+	} else {
+		$_SESSION['tournamentID'] == null;
 	}
 
 // Pool Set

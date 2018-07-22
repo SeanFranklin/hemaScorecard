@@ -35,9 +35,9 @@ function logInTypeToggle(selectElement){
 // Used in adminLogIn.php
 
 	if(selectElement.value == 3 || selectElement.value == 4){
-		document.getElementById('logInEventList').style.display='block';
+		$('#logInEventList').show();
 	} else {
-		document.getElementById('logInEventList').style.display='none';
+		$('#logInEventList').hide();
 	}
 
 
