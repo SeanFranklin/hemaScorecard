@@ -11,6 +11,8 @@
 *******************************************************************************/
 
 include_once('includes/config.php');
+
+$livestreamInfo = getLivestreamInfo();
 ?>
 
 <!doctype html>
@@ -96,7 +98,7 @@ include_once('includes/config.php');
                 
                 
                 <?php if(USER_TYPE < USER_ADMIN): ?>
-					<li><a href='participantsRoster.php'>Event Participants</a></li>
+					<li><a href='participantsEvent.php'>Event Participants</a></li>
 				<?php endif ?>
 				
 				<?php if(USER_TYPE < USER_ADMIN && $_SESSION['eventID'] != null): ?>
@@ -108,7 +110,7 @@ include_once('includes/config.php');
                 $manageEvent = "
 					<li><a href='#'>Manage Fighters</a>
 						<ul class='menu vertical'>
-							<li><a href='participantsRoster.php'>Event Roster</a></li>
+							<li><a href='participantsEvent.php'>Event Roster</a></li>
 							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
 							<!--<li><a href='participantsImport.php'>Import Roster</a></li>-->
 						</ul>
@@ -180,8 +182,7 @@ include_once('includes/config.php');
 				<a href='infoSelect.php'>Change Event</a></li>
 				<li><a href='adminHelp.php'>Help/About</a></li>
 				
-				<?php 	$livestreamInfo = getLivestreamInfo(); 
-					if($livestreamInfo['isLive'] == 1): ?>
+				<?php if($livestreamInfo['isLive'] == 1): ?>
 					<li><a class='button warning hollow' href='livestream.php'>Livestream</a></li>
 				<?php endif ?>
 				
@@ -205,7 +206,7 @@ include_once('includes/config.php');
 	
 	<!-- START Page Title --------------------------------------------->
 	
-	<?php if($_SESSION['eventID'] != null && $hidePageTitle != true): ?>
+	<?php if($_SESSION['eventID'] != null && !isset($hidePageTitle)): ?>
 		<div class='hero-title'>
 			
 		<!-- Event Name -->
@@ -215,7 +216,7 @@ include_once('includes/config.php');
 		
 		
 		<!-- Tournament Name -->
-		<?php  if($includeTournamentName == true):
+		<?php  if(isset($includeTournamentName) && $_SESSION['tournamentID'] != null):
 			$tName = getTournamentName(); ?>
 			
 			<div class='hide-for-large'>
@@ -247,9 +248,8 @@ include_once('includes/config.php');
 		 * The items that appear in the navigation bar change depending on
 		 * the type of tournament which is active. */
 		
-		// Moved to upper navigation
-		//$navBarString = "<li><a href='participantsRoster.php'>Event Participants</a></li>";
-		
+		$navBarString = '';
+
 		if($_SESSION['tournamentID'] != null){
 			$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
 		}
@@ -309,7 +309,9 @@ include_once('includes/config.php');
 	<?php
 	
 	livestreamAlert($livestreamInfo, $pageName);
-	tournamentLockedAlert($lockedTournamentWarning);
+	if(isset($lockedTournamentWarning)){
+		tournamentLockedAlert($lockedTournamentWarning);
+	}
 	displayPageAlerts();
 
 
@@ -326,7 +328,7 @@ function tournamentLockedAlert($isWarning){
 	
 	<div class='callout alert text-center' data-closeable>
 		Results for this tournament have been finalized, most changes have been disabled.
-		<a href='infoSummary.php'>Remove final results</a> to edit.
+		<a href='infoSummary.php#anchor<?=$_SESSION['tournamentID']?>'>Remove final results</a> to edit.
 	</div>
 	
 <?php }
@@ -339,7 +341,7 @@ function livestreamAlert($info, $pageName){
 	
 	if(USER_TYPE >= USER_STAFF){ return; }
 	if(strpos($pageName, 'Livestream') !== false) { return; }
-	if($_SESSION['hideLivestreamAlert'] == true){ return; }
+	if(isset($_SESSION['hideLivestreamAlert']) && $_SESSION['hideLivestreamAlert'] == true){ return; }
 	if($info['isLive'] != 1){ return; }
 	
 	?>
@@ -411,12 +413,20 @@ function eventNameForHeader(){
 /******************************************************************************/
 
 function tournamentListForHeader(){
-	$tournamentList = getEventTournaments();
-	$currentTournamentName = getTournamentName();
-	$currentTournamenID = $_SESSION['tournamentID'];
+
+	$tournamentList = getEventTournaments($_SESSION['eventID']);
+
 	if($tournamentList == null){
 		return;
 	}
+
+	$currentTournamenID = $_SESSION['tournamentID'];
+	$currentTournamentName = '';
+	if($currentTournamenID != null){
+		$currentTournamentName = getTournamentName();
+	}
+	
+	
 	?>
 	
 	<li>
@@ -463,12 +473,12 @@ function tournamentListForHeader(){
 
 function debugging(){
 
-	if(SHOW_POST === true){
+	if(defined("SHOW_POST") && SHOW_POST === true){
 		echo "---- POST -------------------------------------------------------";
 		show($_SESSION['post']);
 	}
 	unset($_SESSION['post']);
-	if(SHOW_SESSION === true){
+	if(defined("SHOW_SESSION") && SHOW_SESSION === true){
 		echo "---- SESSION ----------------------------------------------------";
 		show($_SESSION);
 	}
