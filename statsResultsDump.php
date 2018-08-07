@@ -25,15 +25,17 @@ if($_SESSION['eventID'] == null){
 
 	
 	// Splits list into finalized tournaments first
+	$finalizedTournaments = [];
+	$unfinalizedTournaments = [];
 	foreach($tournamentList_unsorted as $tournamentID => $tournament){
 		if(isFinalized($tournamentID)){
-			$t1[$tournamentID] = $tournament;
+			$finalizedTournaments[$tournamentID] = $tournament;
 		} else {
-			$t2[$tournamentID] = $tournament;
+			$unfinalizedTournaments[$tournamentID] = $tournament;
 		}
 	}
 	
-	$tournamentList = appendArray($t1, $t2);
+	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
 	$email = getEventEmail();
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

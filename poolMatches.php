@@ -47,10 +47,12 @@ if($tournamentID == null){
 			}	
 		}
 
+
 		if($incompletes && $completes){
 			$poolsInProgress[$groupID] = true;
-		}	
+		}
 	}
+
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -67,7 +69,7 @@ if($tournamentID == null){
 			<ul class='menu'>
 			<?php foreach($matchList as $groupID => $group): ?>
 				<?php $name = "{$group['groupName']}";
-				if($poolsInProgress[$groupID] == true){
+				if(isset($poolsInProgress[$groupID])){
 					$inProgress = '- In Progress';
 				} else { 
 					$inProgress = null;
@@ -125,19 +127,19 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 	} else {
 		$topName = 'firstName';
 		$bottomName = 'lastName';
+		$extra = '';
 	}
 	
+	$nameData = '';
 	$id1 = $match['fighter1ID'];
 	$nameData = getFighterName($id1, 'split');
 	$topName1 = $nameData[$topName].$extra;
 	$bottomName1 = $nameData[$bottomName];
-	$school1 = $names[$id1]['school'];
 	
 	$id2 = $match['fighter2ID'];
 	$nameData = getFighterName($id2, 'split');
 	$topName2 = $nameData[$topName].$extra;
 	$bottomName2 = $nameData[$bottomName];
-	$school2 = $names[$id2]['school'];
 	
 	$winnerID = $match['winnerID'];
 	
@@ -145,11 +147,14 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 	$t1 = "h6";
 	$t2 = "h6";
 
-	switch($match['endType']){
-		case null:
-		
-			$divClass = 'match-incomplete';
-			break;
+	if(isset($match['endType'])){
+		$endType = $match['endType'];
+	} else {
+		$endType = null;
+	}
+
+	$divClass = '';
+	switch($endType){
 		case 'ignore':
 			$divClass = 'match-ignore';
 			break;
@@ -165,7 +170,10 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 				$t2 = "h5";
 			}
 			break;
+		case null:
 		default:
+			$divClass = 'match-incomplete';
+			break;
 	}
 	
 	$code1 = COLOR_CODE_1;

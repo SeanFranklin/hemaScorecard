@@ -35,10 +35,11 @@ if($tournamentID == null){
 	if(isPools($tournamentID)){
 		$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');
 	} else {
-		$finalists = getTournamentRoster();
+		$finalists = getTournamentRoster($tournamentID, 'name');
 	}
 
-bracketHelperToggleButton($allBracketInfo, $finalists);
+	bracketHelperToggleButton($allBracketInfo, $finalists);
+
 
 // Bracket Display
 	if($allBracketInfo == null){
@@ -57,18 +58,20 @@ bracketHelperToggleButton($allBracketInfo, $finalists);
 	
 
 // Auto-refresh
-	$bracketMatches = getBracketMatchesByPosition($allBracketInfo['winner']['groupID']);
-	foreach((array)$bracketMatches as $level => $matchesInLevel){
-		if($level == 1){ break; }
-		foreach((array)$matchesInLevel as $match){
-			if($match['winnerID'] == null){$incompletes = true;
-			} else { $completes = true; }
-			
+	if($allBracketInfo != null){
+		$bracketMatches = getBracketMatchesByPosition($allBracketInfo['winner']['groupID']);
+		foreach((array)$bracketMatches as $level => $matchesInLevel){
+			if($level == 1){ break; }
+			foreach((array)$matchesInLevel as $match){
+				if($match['winnerID'] == null){$incompletes = true;
+				} else { $completes = true; }
+				
+			}
 		}
-	}
 	
-	$time = autoRefreshTime(isInProgress($tournamentID, 'bracket'));
-	echo "<script>window.onload = function(){autoRefresh({$time});}</script>";
+		$time = autoRefreshTime(isInProgress($tournamentID, 'bracket'));
+		echo "<script>window.onload = function(){autoRefresh({$time});}</script>";
+	}
 
 }
 

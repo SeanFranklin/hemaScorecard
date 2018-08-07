@@ -25,7 +25,7 @@ if(USER_TYPE < USER_ADMIN){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 	
-	<form method='POST' action='participantsRoster.php'>
+	<form method='POST' action='participantsEvent.php'>
 	<input type='hidden' name='on' value='1'>
 	<button class='button' value='addEventParticipantsMode' name='formName'>
 		- Return To Add Participants -

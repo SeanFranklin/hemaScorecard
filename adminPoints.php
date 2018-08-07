@@ -36,7 +36,7 @@ if($_SESSION['eventID'] == null){
 <a class='button hollow' href='adminTournaments.php'>
 	Back to Tournament Settings
 </a>
-<h4>Attacks for <strong><?=getTournamentName();?></strong></h4><hr>
+<h4>Attacks for <strong><?=getTournamentName($_SESSION['tournamentID']);?></strong></h4><hr>
 
 <form method='POST'>
 <button class='button success' name='formName' value='addAttackTypes'>

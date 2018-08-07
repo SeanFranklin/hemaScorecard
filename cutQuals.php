@@ -24,14 +24,16 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 		$time = strtotime("-2 year", time());
 		$date = date("Y-m-d", $time);
 	}
-	
-	
-	$standardID = $_SESSION['cuttingQualStandard'];
-	if($standardID != null){
-		$qualList = getCuttingQualificationsList($standardID, $date);
-	}
-	$standards = getCuttingQualificationsStandards();
 
+	$standards = getCuttingQualificationsStandards();
+	$qualList = [];	
+
+	if(isset($_SESSION['cuttingQualStandard'])){
+		$standardID = $_SESSION['cuttingQualStandard'];
+		if($standardID != null){
+			$qualList = getCuttingQualificationsList($standardID, $date);
+		}
+	}
 	
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -93,8 +95,15 @@ include('includes/footer.php');
 function addToQualList($standards){
 // Interface to add new cutting qualifications
 	
-	if(USER_TYPE < USER_SUPER_ADMIN){return;}
-	$listMode = $_SESSION['newCutQualMode'];
+	if(USER_TYPE < USER_SUPER_ADMIN){
+		setAlert(USER_ALERT,"Sorry, you must log in as a System Administrator to do that");
+		return;
+	}
+
+	$listMode = '';
+	if(isset($_SESSION['newCutQualMode'])){
+		$listMode = $_SESSION['newCutQualMode'];
+	}
 	
 	if($listMode != 'all'){
 		$qualsToAdd = 5;

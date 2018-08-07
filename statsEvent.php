@@ -26,14 +26,19 @@ if($_SESSION['eventID'] == null){
 
 	$numParticipants = count($roster);
 	
+	$clubTotals[1] = 0;
 	if($roster != null){
 		foreach($roster as $fighter){
 			$schoolID = $fighter['schoolID'];
+			if(!isset($clubTotals[$schoolID])){
+				$clubTotals[$schoolID] = 0;
+			}
 			$clubTotals[$schoolID]++; 
 		}
 		arsort($clubTotals);
 	}
 	$numUnknown = $clubTotals[1];
+	$totalParticipants = 0; // Placeholder, it is set in a loop bellow.
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -55,10 +60,11 @@ if($_SESSION['eventID'] == null){
 	<table>
 	<caption>Participant Numbers</caption>
 	
+
 	<?php foreach((array)$tournamentList as $ID => $tournament): 
 		$name = getTournamentName($ID);
 		$numbers = $tournament['numParticipants'];
-		$total += $numbers;
+		$totalParticipants += $numbers;
 		?>
 		
 		<tr>
@@ -72,7 +78,7 @@ if($_SESSION['eventID'] == null){
 				<em>Total Entries:</em>
 			</th>
 			<th class='text-center'>
-				<em><?=$total?></em>
+				<em><?=$totalParticipants?></em>
 			</th>
 		</tr>
 	</table>

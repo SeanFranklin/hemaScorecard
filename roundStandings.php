@@ -50,7 +50,7 @@ if($_SESSION['eventID'] == null){
 		if($_SESSION['groupSet'] == $groupSet){
 			$active = 'is-active';
 		} else {
-			unset($active);
+			$active = '';
 		}
 		
 		$rounds = getRounds($tournamentID, $groupSet);
@@ -91,8 +91,10 @@ include('includes/footer.php');
 /******************************************************************************/
 
 function showRoundStandings($groupSet, $ownDiv = true){
-	$rounds = getRounds($tournamentID, $groupSet);
-	$ignores = getIgnores($tournamentID);
+
+
+	$rounds = getRounds($_SESSION['tournamentID'], $groupSet);
+	$ignores = getIgnores($_SESSION['tournamentID']);
 	$numRounds = count($rounds);
 	?>
 
@@ -127,7 +129,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Data -->
 			<?php foreach((array)$scores as $num => $fighter):
 				$rosterID = $fighter['rosterID'];
-				if($ignores[$rosterID] <= $roundNumber && isset($ignores[$rosterID])){
+				if(isset($ignores[$rosterID]) && $ignores[$rosterID] <= $roundNumber){
 					continue;
 				}
 				
@@ -135,8 +137,10 @@ function showRoundStandings($groupSet, $ownDiv = true){
 				$place = $num + 1;
 				$score = $fighter['score'];
 				
-				$temp = $cumulativeScores[$roundNumber-1][$rosterID] + $score;
-				$cumulativeScores[$roundNumber][$rosterID] = $temp;
+				$cumulativeScores[$roundNumber][$rosterID] = $score;
+				if($roundNumber > 1){
+					$cumulativeScores[$roundNumber][$rosterID] += $cumulativeScores[$roundNumber-1][$rosterID];
+				}
 				$highestRound = $roundNumber;
 				?>
 				
@@ -159,7 +163,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 
 <!--  Cumulative scores at end of round -->
 	<?php
-	unset($scores);
+	$scores = [];
 	if($numRounds > 1 && isset($cumulativeScores)):
 		foreach($cumulativeScores[$highestRound] as $rosterID => $score){
 			$fighterData['rosterID'] = $rosterID;

@@ -60,7 +60,7 @@ if($_SESSION['eventID'] == null){
 		if($_SESSION['groupSet'] == $groupSet){
 			$active = 'is-active';
 		} else {
-			unset($active);
+			$active = '';
 		}	
 		?>
 
@@ -152,7 +152,7 @@ function displayRounds($rounds, $ownDiv = true){
 		$roundRoster = getPoolRosters($_SESSION['tournamentID'], $groupSet);
 		$roundRoster = $roundRoster[$groupID];
 
-		unset($fightersInRound);
+		$fightersInRound = [];
 		foreach((array)$roundRoster as  $entry){
 			// Makes a list of the fighters already in the round
 			// used to know who is eligible to be entered
@@ -161,7 +161,7 @@ function displayRounds($rounds, $ownDiv = true){
 		} 
 		
 		$numInRound = count($roundRoster);
-		$sortedRoster = getListForNextRound($tournamentID, $groupSet, $groupNumber);
+		$sortedRoster = getListForNextRound($_SESSION['tournamentID'], $groupSet, $groupNumber);
 		$numInEvent = count($sortedRoster); 
 
 		// If a fighter has been removed from advancing but they are already in the
@@ -246,12 +246,14 @@ function displayRounds($rounds, $ownDiv = true){
 							<?php foreach($sortedRoster as $fighter): 
 								$rosterID = $fighter['rosterID'];
 								$name = getFighterName($rosterID);
-								if($fightersInRound[$rosterID] == true){continue;} 
+								if(isset($fightersInRound[$rosterID])){
+									continue;
+								} 
 
-								if($fighter['place'] !== null){
+								if(!is_null($fighter['place'])){
 									$place = $fighter['place']+1;
 								} else {
-									$place == null;
+									$place = '';
 								} ?>
 								
 								<option value='<?=$rosterID?>'>
@@ -510,6 +512,7 @@ function changeRoundNamesBox($multiRoundDisplay = true){
 	<form method='POST'>
 	<h5>Rename Rounds:</h5>
 	
+	$roundNum = 0;
 	<?php foreach($rounds as $round): 
 		$set = $round['groupSet'];
 		$setName = getSetName($set);

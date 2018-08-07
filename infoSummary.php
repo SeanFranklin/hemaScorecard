@@ -17,8 +17,13 @@ include('includes/header.php');
 if($_SESSION['eventID'] == null){
 	pageError('event');
 } else {
-
+	
+	define("NUM_FINALISTS_DISPLAYED",4);
 	$tournamentList = getTournamentsFull();
+
+	if(!isset($_SESSION['manualTournamentPlacing'])){
+		$_SESSION['manualTournamentPlacing'] = '';
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,9 +38,11 @@ if($_SESSION['eventID'] == null){
 		$name = getTournamentName($tournamentID); 
 		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
 					style='cursor: pointer;'";
+
+		$fieldsetLink = '';
 		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
 			$fieldsetLink = $link;
-		} 
+		}
 		
 		?>
 		
@@ -47,13 +54,14 @@ if($_SESSION['eventID'] == null){
 
 			<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
 			<input type='hidden' name='formName' value='changeTournament'>
+			<input type='hidden' name='newPage' value='participantsTournament.php'>
 			<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
 			</form>	
 		
 		<!-- If no tournament results -->	
 			 <?php if(!isFinalized($tournamentID)): ?>
 				<?php if(USER_TYPE >= USER_STAFF):
-					if($_SESSION['manualTournamentPlacing'] == $tournamentID):
+					if(@$_SESSION['manualTournamentPlacing'] == $tournamentID): // could be null
 						manualTournamentPlacing($tournamentID);
 						unset($_SESSION['manualTournamentPlacing']);
 					else: ?>
@@ -87,7 +95,7 @@ if($_SESSION['eventID'] == null){
 			<table>
 				<?php 
 				$i = 0;
-				define("NUM_FINALISTS_DISPLAYED",4);
+				
 				$placingsToShow = sizeof($placings);
 
 				while($i < $placingsToShow):
@@ -165,10 +173,16 @@ function manualTournamentPlacing($tournamentID){
 	<input type='hidden' name='tournamentID' value='<?= $tournamentID ?>'>
 	<input type='hidden' name='manualTournamentPlacing' value='1'>
 		
-	<?php for($i=1;$i<=$max;$i++): 
+
+	<?php 
+	$isTie = false;
+	for($i=1;$i<=$max;$i++): 
+		// resets the tie counter if the last match wasn't part of a tie 
 		if($isTie != true){
 			$tieStartsAt = $i;
 		}
+
+		//
 		$isTie = isset($_SESSION['ties'][$i]);
 		$extraClass = isSelected($isTie,'alert callout');
 		
@@ -184,9 +198,9 @@ function manualTournamentPlacing($tournamentID){
 					$name = getFighterName($rosterID);
 					
 					if(isset($_SESSION['lastManualPlacingAttempt'])){
-						$selectedID = $_SESSION['lastManualPlacingAttempt'][$i];
+						$selectedID = @$_SESSION['lastManualPlacingAttempt'][$i];
 					} else {
-						$selectedID = $_SESSION['overallScores'][$i-1];
+						$selectedID = @$_SESSION['overallScores'][$i-1];
 					}
 					$selected = isSelected($rosterID, $selectedID);
 					 ?>
@@ -196,7 +210,7 @@ function manualTournamentPlacing($tournamentID){
 		</div>
 		
 		<!-- If it is done displaying a block of tied fighters -->
-		<?php if($_SESSION['ties'][$i] === 'end'): ?>
+		<?php if(isset($_SESSION['ties'][$i]) && $_SESSION['ties'][$i] === 'end'): ?>
 			<div class='input-group'>
 				<span class='input-group-label'>Enter above fighters as a tie?</span>
 				<div class='switch no-bottom input-group-field'>
@@ -208,7 +222,7 @@ function manualTournamentPlacing($tournamentID){
 			</div>
 			<BR>
 			
-			<?php unset($isTie); ?>
+			<?php $isTie = false; ?>
 			
 		<?php endif ?>
 		

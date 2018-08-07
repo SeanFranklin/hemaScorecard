@@ -22,9 +22,17 @@ if($tournamentID == null){
 	pageError('tournament');
 } else{
 
+
+	////////////////////////////
+
+isInProgress($tournamentID);
+	/////////////////////////
+
+
 	toggleFighterListSort();
 
 	$eventRoster = getEventRoster();
+
 	if($_SESSION['rosterViewMode'] == 'school'){
 		$sortString = 'school';
 	} else {

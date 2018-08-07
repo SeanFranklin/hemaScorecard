@@ -51,7 +51,7 @@ if($_SESSION['eventID'] == null){
 		if($_SESSION['groupSet'] == $groupSet){
 			$active = 'is-active';
 		} else {
-			unset($active);
+			$active = '';
 		}
 		
 		$rounds = getRounds($tournamentID, $groupSet); ?>
@@ -80,10 +80,6 @@ if($_SESSION['eventID'] == null){
 				displayRound($round);
 			endforeach ?>
 			
-			<?php if($isMultiple): ?>
-				</div>
-				</div>
-			<?php endif ?>
 		<?php endif ?>
 		
 		<!--Accordion item end-->

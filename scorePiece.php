@@ -24,12 +24,22 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	displayAlert("No Round Selected");
+	if(USER_TYPE == USER_SUPER_ADMIN){
+		displayAlert("No Piece Selected<BR><a href='roundMatches.php'>Piece List</a>");
+	} elseif($eventID == null){
+		redirect('infoSelect.php');
+	} elseif($tournamentID == null){
+		redirect('infoSummary.php');
+	} elseif($matchID == null){
+		redirect('participantsRoster.php');
+	} else {
+		displayAlert("No Piece Selected<BR><a href='roundMatches.php'>Piece List</a>");
+	}
 } elseif(!isRounds($tournamentID)){
 	displayAlert("So close and yet so far. <BR>Perhaps <a href='scoreMatch.php'>this</a> is what you're looking for? :)");
 } else {
 
-	define(EXCHANGES, 'Cuts');
+	define("EXCHANGES", 'Cuts');
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
 	
 	$_SESSION['groupSet'] = getGroupSetOfMatch($matchID);
@@ -124,7 +134,7 @@ function askForFinalization($tournamentID){
 	scorekeeper to finalize the tournament results */
 	
 	if(USER_TYPE < USER_STAFF){						return;}
-	if($_SESSION['askForFinalization'] !== true){	return; }
+	if(!isset($_SESSION['askForFinalization'])){	return; }
 	
 	unset($_SESSION['manualTournamentPlacing']);
 	unset($_SESSION['askForFinalization']);

@@ -50,7 +50,7 @@ if($_SESSION['eventID'] == null){
 
 	<?php if($importData != null): ?>
 	
-		<form method='POST' action='participantsRoster.php'>
+		<form method='POST' action='participantsEvent.php'>
 			
 		<button class='button success large' name='formName' value='addEventParticipants'>
 			Add To Event Participants
@@ -101,7 +101,7 @@ if($_SESSION['eventID'] == null){
 					<option value='2' <?=$s2?>>*Unafiliated</option>
 					
 					<?php foreach($schoolList as $school):
-						if($school['schoolShortName'] == null || $school['schoolShortName'] == 'Unafiliated'){continue;}
+						if($school['schoolShortName'] == null || $school['schoolShortName'] == 'Unaffiliated'){continue;}
 						$s = isSelected($school['schoolID'],$schoolID);
 						?>
 						
@@ -118,7 +118,7 @@ if($_SESSION['eventID'] == null){
 					if($fighter[$tournamentID] != ''){
 						$checked  = 'checked';
 					} else {
-						unset($checked);
+						$checked = '');
 					}
 					$i++;
 					?>
