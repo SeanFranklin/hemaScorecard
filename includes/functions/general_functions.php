@@ -15,12 +15,38 @@ function show($array){
 
 /******************************************************************************/
 
+function ifSet($bool, $value){
+// If true return the value, if false return an empty value.
+
+	if((bool)$bool != false){
+		return $value;
+	} else {
+		return null;
+	}
+}
+
+/******************************************************************************/
+
+function ifNotSet($bool, $value){
+// If false return the value, if true return an empty value.
+
+	if((bool)$bool != false){
+		return null;
+	} else {
+		return $value;
+	}
+}
+
+/******************************************************************************/
+
 function optionValue($value, $selectValue = null){
 // Writes the value line to an option in a select statement
 // If the value is equal to the optional second parameter then the option is selected
 
 	echo "value='{$value}'";
-	if($value == $selectValue){
+	if(($value === 0 || $value === '0') && ($selectValue === '' || $selectValue === null)){
+		// Do nothing
+	} elseif($value == $selectValue){
 		echo " selected";
 	}
 
@@ -174,9 +200,52 @@ function nullBlankInt($input){
 
 /******************************************************************************/
 
-function nullRecord($tableName, $whereClause, $fieldsToKeep){
-	// nulls the values of all fields on $tableName, identified by $whereClause
-	// except for the fields in array $fieldsToKeep
+function mysqlSetRecordToDefault($tableName, $whereClause, $fieldsToKeep){
+	// Sets the values of all fields on $tableName to their defaults
+	// Function affects rows identified by $whereClause
+	// and ignores the fields named in the array $fieldsToKeep
+	
+	if($whereClause == null){return;}
+	
+	if(is_string($fieldsToKeep)){
+		$a = $fieldsToKeep;
+		unset($fieldsToKeep);
+		$fieldsToKeep[] = $a;
+	}
+	
+	$sql = "SHOW COLUMNS FROM {$tableName}";
+	$result = mysqlQuery($sql, ASSOC);
+	
+	foreach($result as $record){
+		$name = $record['Field'];
+		if($record['Key'] != 'PRI'){
+			$fieldNames[$name] = true;
+		}
+	}
+	
+	foreach($fieldsToKeep as $field){
+		unset($fieldNames[$field]);
+	}
+	
+	$sql = "UPDATE {$tableName}
+		SET ";
+	foreach($fieldNames as $name => $true){
+		$sql .= "{$name}= DEFAULT, ";
+		
+	}
+
+	$sql = rtrim($sql,', \t\n');
+	$sql .= " ".$whereClause;
+	
+	mysqlQuery($sql, SEND);
+}
+
+/******************************************************************************/
+
+function mysqlSetRecordToNull($tableName, $whereClause, $fieldsToKeep){
+	// Sets the values of all fields on $tableName to null
+	// Function affects rows identified by $whereClause
+	// and ignores the fields named in the array $fieldsToKeep
 	
 	if($whereClause == null){return;}
 	
@@ -211,10 +280,6 @@ function nullRecord($tableName, $whereClause, $fieldsToKeep){
 	$sql .= " ".$whereClause;
 
 	mysqlQuery($sql, SEND);
-	
-	
-	
-	
 }
 
 /******************************************************************************/
@@ -222,6 +287,9 @@ function nullRecord($tableName, $whereClause, $fieldsToKeep){
 function xorWithZero($in1, $in2){
 // XOR function where zero is recognized as a number and not a null	
 	
+	$num1 = false;
+	$num2 = false;
+
 	if($in1){$num1 = true;}
 	if($in2){$num2 = true;}
 	

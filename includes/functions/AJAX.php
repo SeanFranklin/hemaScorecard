@@ -7,7 +7,7 @@
 	
 *******************************************************************************/
 
-define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/v6/');
+define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/');
 include_once(BASE_URL.'includes/config.php');
 
 // SWITCH CASE /////////////////////////////////////////////////////////////////
@@ -23,12 +23,37 @@ case 'hasFought': {
 // Table join structure is dynamicaly changed depending on what the calling 
 // function wants to know about. ie. Has fought in the event? Has fought in a pool?
 
-	$rosterID = $_REQUEST['rosterID'];
-	$matchID = $_REQUEST['matchID'];
-	$groupID = $_REQUEST['groupID'];
-	$tournamentID = $_REQUEST['tournamentID'];
-	$eventID = $_REQUEST['eventID'];
-	
+	if(isset($_REQUEST['rosterID'])){
+		$rosterID = (int)$_REQUEST['rosterID'];
+	} else {
+		$rosterID = null;
+	}
+
+	if(isset($_REQUEST['matchID'])){
+		$matchID = (int)$_REQUEST['matchID'];
+	} else {
+		$matchID = null;
+	}
+
+	if(isset($_REQUEST['groupID'])){
+		$groupID  = (int)$_REQUEST['groupID'];
+	} else {
+		$groupID  = null;
+	}
+
+	if(isset($_REQUEST['tournamentID'])){
+		$tournamentID  = (int)$_REQUEST['tournamentID'];
+	} else {
+		$tournamentID  = null;
+	}
+
+	if(isset($_REQUEST['eventID'])){
+		$eventID  = (int)$_REQUEST['eventID'];
+	} else {
+		$eventID  = null;
+	}
+
+	$where = [];
 	if($rosterID != null){
 		$where[] = "(scoringID = {$rosterID} OR recievingID = {$rosterID}) ";
 	}
@@ -47,11 +72,12 @@ case 'hasFought': {
 		$where[] = "eventTournaments.eventID = {$eventID} ";
 		$joinLevel = 3;
 	}
-	
+
 	if($where == null){ return; }
 
+	$joinString = '';
 	if($joinLevel >= 1){
-		$joinString = "INNER JOIN eventMatches USING(matchID) ";
+		$joinString .= "INNER JOIN eventMatches USING(matchID) ";
 	}
 	if($joinLevel >= 2){
 		$joinString .= "INNER JOIN eventGroups USING(groupID) ";
@@ -79,7 +105,7 @@ case 'hasFought': {
 	
 	$result = mysqlQuery($sql, SINGLE, 'exchangeID');
 	
-	if(isset($result)){
+	if(isset($result) && $result != null){
 		echo "HAS FOUGHT";
 	}
 } break;
@@ -90,8 +116,8 @@ case 'newExchange': {
 // Checks if the exchange provided is the same as the most recent exchange in the
 // database. Used in page auto-refreshing functions.
 
-	$lastExchange = $_REQUEST['exchangeID'];
-	$matchID = $_REQUEST['matchID'];
+	$lastExchange = (int)$_REQUEST['exchangeID'];
+	$matchID = (int)$_REQUEST['matchID'];
 	
 	if($matchID == null){return;}
 	
@@ -99,19 +125,28 @@ case 'newExchange': {
 			FROM eventExchanges
 			WHERE matchID = {$matchID}";	
 	$newExchange = mysqlQuery($sql, SINGLE, 'MAX(exchangeID)');
-	
+	$ReturnValue['refresh'] = false;
+	$ReturnValue['matchTime'] = null;
+
+
 	if($newExchange != $lastExchange){
-		echo "REFRESH";
+		$ReturnValue['refresh'] = true;
+	} else {
+		$sql = "SELECT matchTime
+				FROM eventMatches
+				WHERE matchID = {$matchID}";	
+		$ReturnValue['matchTime'] = mysqlQuery($sql, SINGLE, 'matchTime');
 	}	
 
+	echo json_encode($ReturnValue);
 } break;
 
 /******************************************************************************/
 
 case 'fighterInfo': {
 
-	$rosterID = $_REQUEST['rosterID'];
-	$eventID = $_REQUEST['eventID'];
+	$rosterID = (int)$_REQUEST['rosterID'];
+	$eventID = (int)$_REQUEST['eventID'];
 	
 	$sql = "SELECT firstName, lastName, eventRoster.schoolID
 			FROM eventRoster
@@ -127,7 +162,8 @@ case 'fighterInfo': {
 			
 	$result = mysqlQuery($sql, ASSOC);
 	
-	foreach($result as $item){
+	$temp = [];
+	foreach((array)$result as $item){
 		$tournamentID = $item['tournamentID'];
 		$temp[$tournamentID] = true;
 	}
@@ -143,7 +179,7 @@ case 'getRankingTypes': {
 // Returns the ranking algorithms that match the given elimination type.
 // Used to auto-populate form entry fields for creating and editing tournaments.
 
-	$elimID = $_REQUEST['elimID'];
+	$elimID = (int)$_REQUEST['elimID'];
 
 	switch($elimID){
 		case POOL_BRACKET:
@@ -173,10 +209,14 @@ case 'getRankingTypes': {
  
 case 'updateMatchTime': {
 
+	$matchTime = (int)$_REQUEST['matchTime'];
+	$matchID = (int)$_REQUEST['matchID'];
+
 	$sql = "UPDATE eventMatches
-			SET matchTime = {$_REQUEST['matchTime']}
-			WHERE matchID = {$_REQUEST['matchID']}";
+			SET matchTime = {$matchTime}
+			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
+
 	
 } break;
 
@@ -184,16 +224,19 @@ case 'updateMatchTime': {
 
 case 'getLivestreamMatch':{
 
-	$matchID = getLivestreamMatch($_REQUEST['eventID']);
-	if($matchID == null){ return; }
-	
+	$eventID = (int)$_REQUEST['eventID'];
+	$lastExchange = (int)$_REQUEST['lastExchange'];
+	$matchID = getLivestreamMatch($eventID);
+	if($matchID == null){
+		return;
+	}
 	
 	$matchInfo = getMatchInfo($matchID);
 
 // If there has been no new exchanges it returns no data
-	if($_REQUEST['lastExchange'] == $matchInfo['lastExchange']){ 
+	if($lastExchange == $matchInfo['lastExchange']){ 
 		$returnInfo['matchTime'] = $matchInfo['matchTime'];
-		echo json_encode($returnInfo);
+		echo(json_encode($returnInfo));
 		return;
 	}
 		
