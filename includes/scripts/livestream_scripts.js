@@ -13,7 +13,7 @@ function getLivestreamMatchInfo(){
 	query = query + "&lastExchange="+getLivestreamMatchInfo.lastExch;
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "/v6/includes/functions/AJAX.php?"+query, true);
+	xhr.open("GET", "/includes/functions/AJAX.php?"+query, true);
 	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 	xhr.send();
 

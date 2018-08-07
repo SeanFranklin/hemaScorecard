@@ -96,7 +96,7 @@ function scoredRoundsRemoves($roster){
 		if($stops[$rosterID] > 0){
 			$stopCheck = 'checked';
 		} else {
-			unset($stopCheck);
+			$stopCheck = '';
 		}
 		
 		?>
@@ -163,7 +163,7 @@ function poolSetRemoves($roster){
 		if($stops[$rosterID] > 0){
 			$stopCheck = 'checked';
 		} else {
-			unset($stopCheck);
+			$stopCheck = '';
 		}
 		
 		?>
@@ -239,17 +239,18 @@ function poolBracketRemoves($roster){
 	
 <!-- Ignore all of a fighter's pool matches -->	
 	<?php foreach($roster as $rosterID => $fighter): 
-		if($ignores[$rosterID] > 0){
+
+		if(isset($ignores[$rosterID]) && $ignores[$rosterID] > 0){
 			$oldIgnore = 1;
 			$ignoreCheck = 'checked';
 		} else {
 			$oldIgnore = 0;
-			unset($ignoreCheck);
+			$ignoreCheck = '';
 		}
 		if($stops[$rosterID] > 0){
 			$stopCheck = 'checked';
 		} else {
-			unset($stopCheck);
+			$stopCheck='';
 		}
 		?>
 	

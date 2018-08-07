@@ -18,6 +18,10 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } else {
 	
+	if(!isset($_SESSION['StatsInfo']['displayType'])){
+		$_SESSION['StatsInfo']['displayType'] = 'percent';
+	}
+
 	$exchangesByTournament = getEventExchanges();
 	
 	$stats = getEventStats($exchangesByTournament);
@@ -30,6 +34,8 @@ if($_SESSION['eventID'] == null){
 	
 	$eventTournaments = getEventTournaments();
 	$overall['tournaments'] = count($eventTournaments);
+
+	$weaponList = [];
 	foreach($eventTournaments as $tournamentID){
 		$weapon = getTournamentWeapon($tournamentID);
 		$weaponList[$weapon['weaponID']] = true;
@@ -43,6 +49,28 @@ if($_SESSION['eventID'] == null){
 	tournamentExchangesTable($stats);
 	echo "<HR>";
 	tournamentTargetTable($stats);	
+
+// Toggle button
+	
+	?>
+	<div class='text-right'>
+
+		<form method='POST'>
+			<input type='hidden' name='formName' value='toggleStatsType'>
+
+			<?php $class = ifSet('percent' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
+			<button class='button <?=$class?>' name='statsType[display]' value='percent'>
+				% - Display Percentages
+			</button>
+
+			<?php $class = ifSet('value' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
+			<button class='button <?=$class?>' name='statsType[display]' value='value'>
+				# - Display Totals
+			</button>
+		</form>
+	</div>
+
+	<?php
 	
 }
 include('includes/footer.php');
@@ -71,31 +99,43 @@ function tournamentTargetTable($stats){
 	<?php foreach((array)$stats as $tournamentID => $data):
 		
 		$name = getTournamentName($data['tournamentID']);
-		
-		$pt1 = $data[1];
-		$pt2 = $data[2];
-		$pt3 = $data[3];
-		$pt4 = $data[4];
-		$pt5 = $data[5];
-		$totalPts = $pt1 + $pt2 + $pt3 + $pt4 + $pt5;
-		
-		if($totalPts != 0){
-			$pt1P = round($pt1/$totalPts,2)*100;
-			$pt2P = round($pt2/$totalPts,2)*100;
-			$pt3P = round($pt3/$totalPts,2)*100;
-			$pt4P = round($pt4/$totalPts,2)*100;
-			$pt5P = round($pt5/$totalPts,2)*100;
+		$total = 0;
+
+
+		for($i = 1; $i <= 5; $i++){
+			if(!isset($data[$i])){
+				$data[$i] = 0;	
+			}
+			$total += $data[$i];
 		}
+
+		for($i = 1; $i <= 5; $i++){
+
+			if($total > 0 && $data[$i] > 0){
+				$percent[$i] = round(100*$data[$i]/$total,0)."%";
+			} else {
+				$percent[$i] = '';
+			}
+
+			if($_SESSION['StatsInfo']['displayType'] == 'value'){
+				$disp[$i] = $data[$i];
+			} else {
+				$disp[$i] = $percent[$i];
+			}
+		}
+
+
+
 		?>
 		
 	<!-- Data -->	
 		<tr>
 			<td><?=$name?></td>
-			<td><?=$pt1?></td>
-			<td><?=$pt2?></td>
-			<td><?=$pt3?></td>
-			<td><?=$pt4?></td>
-			<td><?=$pt5?></td>
+			<td><?=$disp[1]?></td>
+			<td><?=$disp[2]?></td>
+			<td><?=$disp[3]?></td>
+			<td><?=$disp[4]?></td>
+			<td><?=$disp[5]?></td>
 		</tr>
 		
 	<?php endforeach ?>
@@ -107,15 +147,56 @@ function tournamentTargetTable($stats){
 /******************************************************************************/
 
 function eventExchangesTable($totals){
-	if($totals['all'] != null){
+
+
+	if(empty($totals['all'])){
+		$total = 1;
+		$actualTotal = 0; // To avoid the divide by zero
+	} else {
 		$total = $totals['all'];
-	} else {$total = 1;}
+		$actualTotal = $total;
+	}
+
+	if(empty($totals['clean'])){
+		$cleanN = 0;
+		$cleanP = '';
+	} else {
+		$cleanN = $totals['clean'];
+		$cleanP = "(".(round($cleanN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['double'])){
+		$doubleN = 0;
+		$doubleP = '';
+	} else {
+		$doubleN = $totals['double'];
+		$doubleP = "(".(round($doubleN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['afterblow'])){
+		$afterN = 0;
+		$afterP = '';
+	} else {
+		$afterN = $totals['afterblow'];
+		$afterP = "(".(round($afterN/$total,2)*100).'%)';
+	}
 	
-	$cleanP = round($totals['clean']/$total,2)*100;
-	$doubleP = round($totals['double']/$total,2)*100;
-	$afterP = round($totals['afterblow']/$total,2)*100;
-	$noP = round($totals['noExchange']/$total,2)*100;
-	$noQ = round($totals['noQuality']/$total,2)*100;
+	if(empty($totals['noExchange'])){
+		$noExchangeN = 0;
+		$noExchangeP = '';
+	} else {
+		$noExchangeN = $totals['noExchange'];
+		$noExchangeP = "(".(round($noExchangeN/$total,2)*100).'%)';
+	}
+	
+	if(empty($totals['noQuality'])){
+		$noQualityN = 0;
+		$noQualityP = '';
+	} else {
+		$noQualityN = $totals['noQuality'];
+		$noQualityP = "(".(round($noQualityN/$total,2)*100).'%)';
+	}
+
 	?>
 
 	<div class='grid-x grid-margin-x'>
@@ -148,7 +229,7 @@ function eventExchangesTable($totals){
 		
 		<!-- Weapons -->
 		<div class='small-9 cell'>
-			Number of Types:
+			Number of Weapon Sets:
 		</div>
 		<div class='small-3 cell align-self-middle'>
 			<?=$totals['weapons']?>
@@ -196,28 +277,28 @@ function eventExchangesTable($totals){
 		<caption>Exchange Summary</caption>
 		<tr>
 			<td>Clean Hits:</td>
-			<td><?=$totals['clean']?></td>
-			<td>(<?=$cleanP?>%)</td>
+			<td><?=$cleanN?></td>
+			<td><?=$cleanP?></td>
 		</tr>
 		<tr>
 			<td>Double Hits:</td>
-			<td><?=$totals['double']?></td>
-			<td>(<?=$doubleP?>%)</td>
+			<td><?=$doubleN?></td>
+			<td><?=$doubleP?></td>
 		</tr>
 		<tr>
 			<td>Afterblows:</td>
-			<td><?=$totals['afterblow']?></td>
-			<td>(<?=$afterP?>%)</td>
+			<td><?=$afterN?></td>
+			<td><?=$afterP?></td>
 		</tr>
 		<tr>
 			<td>No Quality:</td>
-			<td><?=$totals['noQuality']?></td>
-			<td>(<?=$noQ?>%)</td>
+			<td><?=$noQualityN?></td>
+			<td><?=$noQualityP?></td>
 		</tr>
 		<tr>
 			<td>No Exchanges:</td>
-			<td><?=$totals['noExchange']?></td>
-			<td>(<?=$noP?>%)</td>
+			<td><?=$noExchangeN?></td>
+			<td><?=$noExchangeP?></td>
 		</tr>
 		
 		<tr style='border-top:solid 1px'>
@@ -225,7 +306,7 @@ function eventExchangesTable($totals){
 				<em>Total Exchanges:</em>
 			</th>
 			<th class='text-left'>
-				<em><?=$totals['all']?></em>
+				<em><?=$actualTotal?></em>
 			</th>
 			<th>
 				&nbsp;
@@ -242,6 +323,7 @@ function eventExchangesTable($totals){
 function tournamentExchangesTable($stats){
 	$bilateralsText = "Bilaterals per Exchange - ";
 	$bilateralsText .= "Doubles & Afterblows per total scoring exchanges";
+	$displaMode = 'a';
 	?>
 
 	
@@ -267,34 +349,49 @@ function tournamentExchangesTable($stats){
 			
 			$name = getTournamentName($data['tournamentID']);
 
-			$clean = $data['clean'];
-			$double = $data['double'];
-			$noExchange = $data['noExchange'];
-			$noQuality = $data['noQuality'];
-			$afterblow = $data['afterblow'];
+			$cleanN = $data['clean'];
+			$doubleN = $data['double'];
+			$noExchangeN = $data['noExchange'];
+			$noQualityN = $data['noQuality'];
+			$afterblowN = $data['afterblow'];
 			$all = $data['total'];
-			$cleanScore = $data['cleanScore'];
 			$BpE = $data['BpE'];
 			
-			if($all != 0 ){
-				
-				$cleanP = round($clean/$all,2)*100;
-				$doubleP = round($double/$all,2)*100;
-				$afterP = round($afterblow/$all,2)*100;
-				$noP = round($noExchange/$all,2)*100;
-				$noQ = round($noQuality/$all,2)*100;
+			if($all == 0){
+				continue;
 			}
+				
+			$cleanP = (round($cleanN/$all,2)*100)."%";
+			$doubleP = (round($doubleN/$all,2)*100)."%";
+			$afterblowP = (round($afterblowN/$all,2)*100)."%";
+			$noExchangeP = (round($noExchangeN/$all,2)*100)."%";
+			$noQualityP = (round($noQualityN/$all,2)*100)."%";
+
+			if($_SESSION['StatsInfo']['displayType'] == 'value'){
+				$clean = $cleanN;
+				$afterblow = $afterblowN;
+				$double = $doubleN;
+				$noExchange = $noExchangeN;
+				$noQuality = $noQualityN;
+			} else {
+				$clean = $cleanP;
+				$afterblow = $afterblowP;
+				$double = $doubleP;
+				$noExchange = $noExchangeP;
+				$noQuality = $noQualityP;
+			}
+			
 			?>
 			
 	<!-- Data -->
 			<tr>
 				<td><?=$name?></td>
 				<td><?=$all?></td>
-				<td><?=$clean?> (<?=$cleanP?>%)</td>
-				<td><?=$double?> (<?=$doubleP?>%)</td>
-				<td><?=$afterblow?> (<?=$afterP?>%)</td>
-				<td><?=$noQuality?> (<?=$noQ?>%)</td>
-				<td><?=$noExchange?> (<?=$noP?>%)</td>
+				<td><?=$clean?></td>
+				<td><?=$double?></td>
+				<td><?=$afterblow?></td>
+				<td><?=$noQuality?></td>
+				<td><?=$noExchange?></td>
 				<td><?=$BpE?>%</td>
 			</tr>
 			

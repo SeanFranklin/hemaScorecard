@@ -27,13 +27,14 @@ if($tournamentID == null){
 } else {
 	
 	$allBracketInfo = getBracketInformation($tournamentID);
-	
+
 	// Redirect if there is no loser bracket
-	if($allBracketInfo['loser'] == null){
+	if(!isset($allBracketInfo['loser'])){
 		if(USER_TYPE < USER_SUPER_ADMIN){
 			redirect('finalsBracket1.php');
 		}
 		displayAlert("No Consolation Bracket created");		
+		$allBracketInfo['loser'] = [];
 	}
 	
 	$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');

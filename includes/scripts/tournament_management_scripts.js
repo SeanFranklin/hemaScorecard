@@ -4,8 +4,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	
 	displayOn = 'inline'
 
-	 var hideSpeed = 'fast';
-	 var showSpeed = 'fast';
+	var hideSpeed = 'fast';
+	var showSpeed = 'fast';
 	
 	var fieldsToDisplay = [];
 	
@@ -30,7 +30,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		negativeScore: 'show'
+		reverseScore: 'show'
 	};
 	
 	// Direct Bracket
@@ -46,7 +46,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		negativeScore: 'show'
+		reverseScore: 'show'
 	};
 	
 	// Pool Sets
@@ -65,7 +65,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		negativeScore: 'show'
+		reverseScore: 'show'
 	};
 	
 	// Scored Event
@@ -123,6 +123,8 @@ function enableTournamentButton(tournamentID){
 		warrningMessages.push('No Elim Type selected');
 	}
 
+// Check modes related to fighting matches
+
 	if(elimID == 2 || elimID == 3 || elimID == 4){
 		doubleID = document.getElementById('doubleID_select'+tournamentID).value;
 		if(doubleID.length == 0){
@@ -137,6 +139,8 @@ function enableTournamentButton(tournamentID){
 		}
 	}
 
+// Check modes relating to score/rankings
+
 	if(elimID == 2 || elimID == 4 || elimID == 5){
 		rankingID = document.getElementById('rankingID_select'+tournamentID).value;
 		if(rankingID.length == 0){
@@ -149,28 +153,39 @@ function enableTournamentButton(tournamentID){
 		if(baseValue == '' || baseValue < 0 || baseValue > 100){
 			warrningMessages.push('Please input a Base Score Value');
 		}
+	} else { // If it isn't a scored event, still have to manage the base score value for reverse score tournaments
+		if($('#reverseScore_select'+tournamentID).val() > 0){
+			$("#baseValue_div"+tournamentID).show();
+		} else {
+			$("#baseValue_div"+tournamentID).hide();
+		}
 	}
 
-	// Check if the negative score option is selected
-	if($('#negativeScore_select'+tournamentID).val() == 1){
+// Check if the reverse score option is selected
+
+	if($('#reverseScore_select'+tournamentID).val() > 0){
 		if($('#doubleID_select'+tournamentID).val() == 2){
-			warrningMessages.push('Negative Score can not be used with Deductive Afterblow');
+			warrningMessages.push('Reverse Score can not be used with Deductive Afterblow');
 		}
 		if($('#doubleID_select'+tournamentID).val() == 3 && $('#notNetScore_select'+tournamentID).val() == 0){
-			warrningMessages.push('Negative Score can not be used with No Net Points');
+			warrningMessages.push('Reverse Score can not be used with No Net Points');
 		}
 	}
 
+
+
+// Set warning messages
+
 	if(warrningMessages.length == 0){
-		$('#tournamentWarnings').html('<BR>');
+		$('#tournamentWarnings_'+tournamentID).html('<BR>');
 		button.disabled = false;
 	} else {
-		$('#tournamentWarnings').html("<ul>");
+		$('#tournamentWarnings_'+tournamentID).html("<ul>");
 		$.each(warrningMessages, function( index, value ) {
 			var warningText = "<li class='red-text'>"+value+"</li>";
-			$('#tournamentWarnings').append(warningText);
+			$('#tournamentWarnings_'+tournamentID).append(warningText);
 		});
-		$('#tournamentWarnings').append("</ul>");
+		$('#tournamentWarnings_'+tournamentID).append("</ul>");
 		button.disabled = true;
 	}
 

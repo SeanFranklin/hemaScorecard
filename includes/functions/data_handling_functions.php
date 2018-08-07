@@ -9,6 +9,26 @@
 
 /******************************************************************************/
 
+function setAlert($type,$message){
+
+	switch($type){
+		case USER_ERROR:
+			$class = 'userErrors';
+			break;
+		case USER_ALERT:
+			$class = 'userAlerts';
+			break;
+		case SYSTEM:
+		default:
+			$class = 'systemErrors';
+			break;
+	}
+
+	$_SESSION['alertMessages'][$class][] = $message;
+}
+
+/******************************************************************************/
+
 function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 
 	if($exchangeInfo['rosterID'] == $fighter1ID){
@@ -17,6 +37,7 @@ function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 		$fighter1 = false;
 	}
 
+	$appendName = false;
 	switch($exchangeInfo['exchangeType']){
 		case 'double':
 			$text = 'Double Hit';
@@ -132,7 +153,7 @@ function autoRefreshTime($poolsInProgress){
 function getBracketAdvancements($allBracketInfo, $finalists){
 // Determines which fighters should be advanced into which spots in the bracket
 
-	if($_SESSION['bracketHelper'] != 'on'){
+	if($allBracketInfo == null || $_SESSION['bracketHelper'] != 'on'){
 		return null;
 	}
 	
@@ -148,6 +169,7 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 	$currentLevel = $bracketLevels;
 	
 	// Fighter positions for winners bracket based on pool seeding
+	$fightersCounted = 0;
 	for($fighterSeed;$fighterSeed >= 1; $fighterSeed--){
 		$fightersCounted++;
 		if($fightersCounted > $numFightersAtLevel){
@@ -160,7 +182,12 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 		$matchNumber = ceil($position/2);
 		$fighterNumber = 2 - ($position % 2);
 		
-		$matchPositions['winners'][$currentLevel][$matchNumber][$fighterNumber]['rosterID'] = $finalists[$fighterSeed-1]['rosterID'];
+		$seed = [];
+		if(isset($finalists[$fighterSeed-1]['rosterID']))
+		{
+			$seed = $finalists[$fighterSeed-1]['rosterID'];
+		}
+		$matchPositions['winners'][$currentLevel][$matchNumber][$fighterNumber]['rosterID'] = $seed;
 	}
 	
 	// Fighter positions for winners bracket based on bracket advancement
@@ -184,9 +211,10 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 	
 
 	// Bronze Medal Match for Single Elim
-	if($allBracketInfo['loser'] == null){ //is single elim
-		$matchPositions['losers'][1][1][1]['rosterID'] = $bracketMatches[2][1]['loserID'];
-		$matchPositions['losers'][1][1][2]['rosterID'] = $bracketMatches[2][2]['loserID'];
+	if(!isset($allBracketInfo['loser'])){ //is single elim
+		// The loserID might not be set at the time of the call, in which case assign null
+		@$matchPositions['losers'][1][1][1]['rosterID'] = $bracketMatches[2][1]['loserID'];
+		@$matchPositions['losers'][1][1][2]['rosterID'] = $bracketMatches[2][2]['loserID'];
 	}
 	
 	
@@ -201,6 +229,10 @@ function getLoserBracketAdvancements($allBracketInfo, $finalists){
 // Determines which fighters should be advanced into which spots in the bracket
 //   IMPORTANT:	Behavior is undefined if the consolation bracket size 
 //				is not a power of 2. ie. top8, top16. 
+	
+	if(!isset( $allBracketInfo['loser']) || $allBracketInfo['loser'] == null){
+		return [];
+	}
 
 	$bracketID = $allBracketInfo['loser']['groupID'];
 	$bracketLevels = $allBracketInfo['loser']['bracketLevels'];
@@ -209,6 +241,8 @@ function getLoserBracketAdvancements($allBracketInfo, $finalists){
 	$winnerBracketMatches = getBracketMatchesByPosition( $allBracketInfo['winner']['groupID']);
 	$changeOverBracket = false;
 	
+	
+	$matchPositions = [];
 	for($bracketLevel = $bracketLevels; $bracketLevel >= 1; $bracketLevel--){
 		$matchesInLevel = pow(2, floor($bracketLevel/2));
 		
@@ -221,10 +255,15 @@ function getLoserBracketAdvancements($allBracketInfo, $finalists){
 			if($bracketLevel == $bracketLevels){
 				$winBLevel = (($bracketLevel+1)/2) + 1;
 				$winPos = ($pos*2) -1;
-				$matchPositions['losers'][$bracketLevel][$pos][1]['rosterID'] = 
-					$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
-				$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
-					$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];		
+				if(isset($winnerBracketMatches[$winBLevel][$winPos]['loserID'])){
+					$matchPositions['losers'][$bracketLevel][$pos][1]['rosterID'] = 
+						$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
+				}
+
+				if(isset($winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'])){
+					$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
+						$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];	
+				}	
 				continue;
 			}
 			
@@ -236,11 +275,15 @@ function getLoserBracketAdvancements($allBracketInfo, $finalists){
 					$newPos = $pos;
 				}
 					
-				$matchPositions['losers'][$bracketLevel][$newPos][1]['rosterID'] = 
-					$winnerBracketMatches[$winBLevel][$pos]['loserID'];
-					
-				$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
-					$bracketMatches[$bracketLevel+1][$pos]['winnerID'];
+				if(isset($winnerBracketMatches[$winBLevel][$pos]['loserID'])){
+					$matchPositions['losers'][$bracketLevel][$newPos][1]['rosterID'] = 
+						$winnerBracketMatches[$winBLevel][$pos]['loserID'];
+				}
+				
+				if(isset($bracketMatches[$bracketLevel+1][$pos]['winnerID'])){	
+					$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
+						$bracketMatches[$bracketLevel+1][$pos]['winnerID'];
+				}
 
 			} else { // Odd levels just get info from match before
 				
@@ -313,20 +356,6 @@ function checkPassword($input, $type, $eventID = null){
 	
 }
 
-
-/******************************************************************************/
-
-function sortEventList($eventList){
-// Sorts the event list into a multi-dimensional array indexed by the event type
-// ie. all active events together, all archived events together.
-
-	foreach($eventList as $eventID => $event){
-		$type = $event['eventStatus'];
-		$a[$type][$eventID] = $event;
-	}
-	return $a;
-}
-
 /******************************************************************************/
 
 function getBracketDepthByFighterCount($numFighters, $bracketType){
@@ -357,6 +386,13 @@ function getEventStats($stats){
 // Also returns a total list for the event
 
 	if($stats == null){ return; }
+
+	$stats['overall']['clean'] = 0;
+	$stats['overall']['double'] = 0;
+	$stats['overall']['afterblow'] = 0;
+	$stats['overall']['noExchange'] = 0;
+	$stats['overall']['noQuality']= 0;
+	$stats['overall']['all'] = 0;
 	
 	foreach($stats as $tournamentID => $data){
 		$stats['overall']['clean'] += $data['clean'];

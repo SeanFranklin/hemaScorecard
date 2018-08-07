@@ -20,7 +20,9 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 
 } else {
 
-	if($_SESSION['duplicateNameSearchType'] != null){
+	$allDuplicates = [];
+
+	if(isset($_SESSION['duplicateNameSearchType'])){
 
 		$sql = "SELECT systemRosterID, firstName, lastName, schoolID
 				FROM systemRoster";
@@ -41,7 +43,7 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 				continue;
 			}
 
-			unset($duplicateToAdd);
+			$duplicateToAdd = [];
 			$duplicateToAdd[0] = $fighter;
 			foreach($newDuplicates as $data){
 				$duplicateToAdd[] = $data;
@@ -83,7 +85,7 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 		$numInSet = count($set);
 
 		
-		unset($setInfo);
+		$setInfo = [];
 
 	// Display the duplicate fighters in a set
 		foreach($set as $index => $fighter):
@@ -91,6 +93,7 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 			$setInfo[$index]['numTournaments'] = getNumTournamentAppearances($fighter['systemRosterID']);
 			$setInfo[$index]['fullName'] =  getFighterNameSystem($fighter['systemRosterID'],'last');
 			$setInfo[$index]['schoolName'] = getSchoolName($fighter['schoolID'],'full');
+			$setInfo[$index]['HemaRatingsID'] =  getHemaRatingsID($fighter['systemRosterID']);
 			$name = getFighterNameSystem($fighter['systemRosterID'],'array');
 			?>
 
@@ -98,6 +101,7 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 				<td><?=$name['lastName']?></td>
 				<td><?=$name['firstName']?></td>
 				<td><?=$setInfo[$index]['schoolName']?></td>
+				<td><?=$setInfo[$index]['HemaRatingsID']?></td>
 				<td class='text-right'>
 					<?=$setInfo[$index]['numTournaments']?>&nbsp;&nbsp;&nbsp;
 					<?=tournamentEntryTooltip($fighter['systemRosterID'])?>
@@ -202,6 +206,7 @@ function tournamentEntryTooltip($systemRosterID){
 	$allTournaments = mysqlQuery($sql, ASSOC);
 
 	$oldEventID = null;
+	$str = '';
 
 	foreach($allTournaments as $entry){
 		if($entry['eventID'] != $oldEventID){
@@ -359,7 +364,12 @@ function getNumTournamentAppearances($systemRosterID){
 /******************************************************************************/
 
 function changeSearchButton($text,$value){
-	if($_SESSION['duplicateNameSearchType'] != $value){
+	$currentSearch = '';
+	if(isset($_SESSION['duplicateNameSearchType'])){
+		$currentSearch = $_SESSION['duplicateNameSearchType'];
+	}
+
+	if($currentSearch != $value){
 		$class = 'hollow';
 	}
 ?>

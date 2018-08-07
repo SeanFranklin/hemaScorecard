@@ -291,7 +291,7 @@ fighters in 4 person pools.
 <fieldset class='fieldset'>
 <legend><h4>Adding Event Participants</h4></legend>
 
-Participants are added to the event in <strong><a href='participantsRoster.php'>Manage Fighters > Event Participants</a></strong>. 
+Participants are added to the event in <strong><a href='participantsEvent.php'>Manage Fighters > Event Participants</a></strong>. 
 <em>Remember, you can't do this unless logged in as an Event Organizer</em>
 <BR><BR>
 On the Event Roster page there is a button labeled <strong>Add Event Participants</strong>.
@@ -334,7 +334,7 @@ in the lower navigational bar.
 This allows you to enter/remove multiple fighters at the same time.
 <em>Note: This option will not appear unless you have selected a tournament.</em></li>
 <li>Manually change the tournaments a fighter is assigned to by clicking <strong>Edit</strong> on the 
-<strong><a href='participantsRoster.php'>Event Participants</a></strong> page. A form will open to change a fighters name, school, or tournament
+<strong><a href='participantsEvent.php'>Event Participants</a></strong> page. A form will open to change a fighters name, school, or tournament
 registrations.</li>
 
 <a name='createPools'></a>

@@ -40,15 +40,15 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentElimType();
 			edit_tournamentDoubleType();
 			edit_tournamentRankingType();
-			edit_tournamentBasePoints();
 			edit_tournamentNetScore();
+			edit_tournamentBasePoints();			
 			?>
 		</div>
 		
 	<!-- Submit button -->
 		<div class='grid-x grid-padding-x text-center'>
 			<div class=' cell'>	
-			<div id='tournamentWarnings'>
+			<div id='tournamentWarnings_new'>
 				<BR>
 			</div>
 			<button class='button success expanded'
@@ -70,7 +70,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentNormalization();
 
 			edit_tournamentMaxExchanges();
-			edit_tournamentNegativeScore();
+			edit_tournamentReverseScore();
 			edit_tournamentControlPoints();
 			edit_tournamentCuttingQual();
 			edit_tournamentKeepPrivate();

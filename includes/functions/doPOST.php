@@ -16,323 +16,335 @@ function _select_above(){
 
 function processPostData(){
 
-	if(count($_POST) > 0){
-		// Refresh page after POST processing complete to prevent resubmits
-		$refreshPage = true;
-	}
 
 	/* For debugging, commented out for regular use ///
 	$refreshPage = false;
-	define(SHOW_POST, true);	$_SESSION['post'] = $_POST;
-	//define(SHOW_SESSION, true);
+	define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
+	//define('SHOW_SESSION', true);
 	/////////////////////////////*/
-	
-	$formName = $_POST['formName'];
-	unset($_POST['formName']);
 
-	checkSession();
-	switch($formName){
+
+	if(isset($_POST['formName'])){
+
+		// Refresh page after POST processing complete to prevent resubmits
+		if(!isset($refreshPage)){
+			$refreshPage = true;
+		}
 	
-// Navigation Cases
-		case 'logUserIn':
-			logUserIn();
-			break;
-		case 'selectEvent':
-			changeEvent();
-			break;
-		case 'changeTournament':
-			$_SESSION['tournamentID'] = $_POST['newTournament'];
-			unset($_SESSION['matchID']);
-			unset($_SESSION['bracketHelper']);
-			$_SESSION['groupSet'] = 1;
-			break;
-		case 'navigatePage':
-			$newUrl = "Location: ".$_POST['newPage']."#";
-			header($newUrl);
-			exit;
-			break;
-		case 'goToMatch':
-			$_SESSION['matchID'] = $_POST['matchID'];
-			header("Location: scoreMatch.php");
-			exit;
-			break;
-		case 'goToPiece':
-			$_SESSION['matchID'] = $_POST['matchID'];
-			header("Location: scorePiece.php");
-			exit;
-			break;
-		case 'rosterViewMode':
-			if(isset($_POST['rosterViewMode'])){
-				$_SESSION['rosterViewMode'] = $_POST['rosterViewMode'];
-			}
-			break;
-		case 'eventNavigation':
-			$link = $_POST['eventNavigation'];
-			header("Location: {$link}");
-			exit;
-			break;
-			
-// Roster Management Cases
-		case 'addEventParticipants':
-			addEventParticipantsByName();
-			addEventParticipantsByID();	
-			break;
-		case 'deleteFromEvent':
-			deleteFromEvent();
-			break;
-		case 'changeSchool':
-			$_SESSION['newParticipantsSchoolID'] = $_POST['schoolID'];
-			break;
-		case 'addEventParticipantsMode':
-			if(isset($_POST['newParticipantsMode'])){
-				$_SESSION['addEventParticipantsMode'] = $_POST['newParticipantsMode'];
-				unset($_SESSION['jumpTo']);
-			}
-			break;
-		case 'addToTournamentRoster':
-			addToTournament();
-			break;
-		case 'deleteFromTournamentRoster':
-			deleteFromTournament();
-			break;
-		case 'editEventParticipant':
-			editEventParticipant();
-			break;
-		case 'importRosterCSV':
-			importRosterCSV();
-			break;
+		$formName = $_POST['formName'];
+		unset($_POST['formName']);
+
+		checkSession();
+		switch($formName){
 		
-	
-// Pool Management Cases
-		case 'createNewPools':
-			createNewPools();
-			break;
-		case 'addFightersToPool':
-			addFightersToGroup();
-			break;
-		case 'deleteFromPools':
-			deleteFromGroups();
-			break;
-		case 'changePoolSet':
-			$_SESSION['groupSet'] = $_POST['groupSet'];
-			break;
-		case 'generateNextPoolSet':
-			pool_GenerateNextPools($_POST['advancementsForSetNum']);
-			break;
-		case 'changeGroupOrder':
-			reOrderGroups($_POST['newGroupNumber']);
-			break;
-		case 'updatePoolSets':
-			updatePoolSets();
-			break;
-		case 'renameGroups':
-			renameGroups();
-			break;
-			
-// Scored Rounds
-		case 'numberOfGroupSets':
-			updateNumberOfGroupSets();
-			break;
-		case 'createNewRounds':
-			createNewRounds();
-			break;
-		case 'deleteFromRounds':
-			deleteFromGroups();
-			break;
-		case 'addFightersToRound':
-			addFightersToGroup();
-			break;
-		case 'addMultipleFighterToRound':
-			addMultipleFightersToRound();
-			break;
-		case 'addExchanges':
-			scored_AddExchanges();
-			break;
-		case 'updateScores':
-			scored_UpdateExchanges();
-			break;
-		case 'deleteExchanges':
-			deleteExchanges();
-			break;
-		case 'stageOptions':
-			updateStageOptions();
-			break;
-			
-		
-// Match Scoring
-		case 'newExchange':
-			addNewExchange();
-			break;
-		case 'matchWinner':
-			addMatchWinner();
-			break;
-		case 'switchFighters':
-			switchMatchFighters();
-			break;
-		case 'YouTubeLink':
-			updateYouTubeLink();
-			break;
-		case 'ignorePastIncompletes':
-			$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
-			if(isset($_POST['matchID'])){$_SESSION['matchID'] = $_POST['matchID'];}
-			break;
-		
-				
-// Finals
-		case 'createBracket':
-			createTournamentBrackets(null, null);
-			break;
-		case 'updateBracket':
-			if(isset($_POST['goToMatch'])){
-				$_SESSION['matchID'] = $_POST['goToMatch'];
+	// Navigation Cases
+			case 'logUserIn':
+				logUserIn();
+				break;
+			case 'selectEvent':
+				changeEvent();
+				break;
+			case 'changeTournament':
+				$_SESSION['tournamentID'] = $_POST['newTournament'];
+				$_SESSION['matchID'] = '';
+				$_SESSION['bracketHelper'] = '';
+				$_SESSION['groupSet'] = 1;
+				if(isset($_POST['newPage'])){
+					$newUrl = "Location: ".$_POST['newPage']."#";
+					header($newUrl);
+					exit;
+				}
+				break;
+			case 'navigatePage':
+				$newUrl = "Location: ".$_POST['newPage']."#";
+				header($newUrl);
+				exit;
+				break;
+			case 'goToMatch':
+				$_SESSION['matchID'] = $_POST['matchID'];
 				header("Location: scoreMatch.php");
 				exit;
-			} else if(isset($_POST['updateBracket'])){
-				updateFinalsBracket();
-			}
-			break;
-		case 'deleteBracket':
-			deleteBracket();
-			break;
-		case 'toggleBracketHelper':
-			toggleBracketHelper();
-			break;
+				break;
+			case 'goToPiece':
+				$_SESSION['matchID'] = $_POST['matchID'];
+				header("Location: scorePiece.php");
+				exit;
+				break;
+			case 'rosterViewMode':
+				if(isset($_POST['rosterViewMode'])){
+					$_SESSION['rosterViewMode'] = $_POST['rosterViewMode'];
+				}
+				break;
+			case 'eventNavigation':
+				$link = $_POST['eventNavigation'];
+				header("Location: {$link}");
+				exit;
+				break;
+				
+	// Roster Management Cases
+			case 'addEventParticipants':
+				addEventParticipantsByName();
+				addEventParticipantsByID();	
+				break;
+			case 'deleteFromEvent':
+				deleteFromEvent();
+				break;
+			case 'changeSchool':
+				$_SESSION['newParticipantsSchoolID'] = $_POST['schoolID'];
+				break;
+			case 'addEventParticipantsMode':
+				if(isset($_POST['newParticipantsMode'])){
+					$_SESSION['addEventParticipantsMode'] = $_POST['newParticipantsMode'];
+					unset($_SESSION['jumpTo']);
+				}
+				break;
+			case 'addToTournamentRoster':
+				addToTournament();
+				break;
+			case 'deleteFromTournamentRoster':
+				deleteFromTournament();
+				break;
+			case 'editEventParticipant':
+				editEventParticipant();
+				break;
+			case 'importRosterCSV':
+				importRosterCSV();
+				break;
 			
-			
-// Event Organzer Cases
-		case 'ignoreFightersInTournament':
-			updateIgnoredFighters();
-			break;
-		case 'addNewSchool':
-			addNewSchool();
-			break;
-		case 'newPasswords':
-			updateEventPasswords();
-			break;
-		case 'eventDefaultUpdate':
-			updateEventDefaults();
-			break;
-		case 'updateTournamentInfo':
-			updateEventTournaments();
-			break;
-		case 'deleteTournament':
-			deleteEventTournament();
-			break;	
-		case 'finalizeTournament':
-			if($_POST['finalizeTournament'] == 'revoke'){
-				removeTournamentPlacings($_POST['tournamentID']);
-			} else {
-				generateTournamentPlacings($_POST['tournamentID']);
-			}
-			break;
-		case 'addAttackTypes':
-			addAttacksToTournament();
-			break;
-		case 'eventStatusUpdate':
-			editEventStatus();
-			break;
-		case 'displaySettings':
-			updateDisplaySettings();
-			break;
-		case 'setContactEmail':
-			updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
-			break;
-		case 'SubmitToS':
-			processToS($_POST['ToS']);
-			break;
-
-
-// Admin Cases
-		case 'newSystemPasswords':
-			updateSystemPasswords();
-			break;
 		
-		case 'editExistingSchool':
-			updateExistingSchool();
-			break;
-		case 'addNewEvent':
-			addNewEvent();
-			break;
-		case 'editEvent':
-			editEvent();
-			break;
-		case 'addTournamentType':
-			addTournamentType();
-			break;
-		case 'addNewDuplicateException':
-			addNewDuplicateException();
-			break;
-		case 'combineDuplicateFighters':
-			combineSystemRosterIDs($_POST['combineInto'],$_POST['rosterIDs']);
-			break;
-		case 'duplicateNameSearchType':
-			$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
-			break;
-		case 'HemaRatingsList':
-			$_SESSION['HemaRatingsBounds'] = $_POST['HemaRatingsBounds'];
-			break;
-		case 'HemaRatingsUpdate':
-			updateHemaRatingsInfo($_POST['systemRosterID']);
-			break;
-	
+	// Pool Management Cases
+			case 'createNewPools':
+				createNewPools();
+				break;
+			case 'addFightersToPool':
+				addFightersToGroup();
+				break;
+			case 'deleteFromPools':
+				deleteFromGroups();
+				break;
+			case 'changePoolSet':
+				$_SESSION['groupSet'] = $_POST['groupSet'];
+				break;
+			case 'generateNextPoolSet':
+				pool_GenerateNextPools($_POST['advancementsForSetNum']);
+				break;
+			case 'changeGroupOrder':
+				reOrderGroups($_POST['newGroupNumber']);
+				break;
+			case 'updatePoolSets':
+				updatePoolSets();
+				break;
+			case 'renameGroups':
+				renameGroups();
+				break;
+				
+	// Scored Rounds
+			case 'numberOfGroupSets':
+				updateNumberOfGroupSets();
+				break;
+			case 'createNewRounds':
+				createNewRounds();
+				break;
+			case 'deleteFromRounds':
+				deleteFromGroups();
+				break;
+			case 'addFightersToRound':
+				addFightersToGroup();
+				break;
+			case 'addMultipleFighterToRound':
+				addMultipleFightersToRound();
+				break;
+			case 'addExchanges':
+				scored_AddExchanges();
+				break;
+			case 'updateScores':
+				scored_UpdateExchanges();
+				break;
+			case 'deleteExchanges':
+				deleteExchanges();
+				break;
+			case 'stageOptions':
+				updateStageOptions();
+				break;
+				
 			
-// Stats Cases
-		case 'dataFilters':
-			setDataFilters();
-			break;
-		case 'HemaRatingsExport':
-			exportHemaRatings($_POST['HemaRatingsExport']);
-			break;
+	// Match Scoring
+			case 'newExchange':
+				addNewExchange();
+				break;
+			case 'matchWinner':
+				addMatchWinner();
+				break;
+			case 'switchFighters':
+				switchMatchFighters();
+				break;
+			case 'YouTubeLink':
+				updateYouTubeLink();
+				break;
+			case 'ignorePastIncompletes':
+				$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
+				if(isset($_POST['matchID'])){$_SESSION['matchID'] = $_POST['matchID'];}
+				break;
 			
-			
-// Cutting Qualification Cases
-		case 'newCutQuals':
-			addNewCuttingQuals();
-			break;
-		case 'newCutQualMode':
-			$_SESSION['newCutQualMode'] = $_POST['newCutQualMode'];
-			break;
-		case 'changeCutQualDisplay':
-			$_SESSION['cutQualDisplayMode'] = $_POST['cutQualDisplayMode'];
-			break;
-		case 'setCutQualStandards':
-			updateTournamentCuttingStandard();
-			break;
-		case 'addQualledFighterEvent':
-			addNewCuttingQual_event();
-			break;
-		case 'removeQualledFighterEvent':
-			removeCuttingQual_event();
-			break;
-		case 'changeCuttingStandard':
-			$_SESSION['cuttingQualStandard'] = $_POST['standardID'];
-			$_SESSION['cuttingQualDate'] = $_POST['cuttingQualDate'];
-			break;
-	
-	
-// Livestream Cases
-		case 'livestreamInfo':
-			updateLivestreamInfo();
-			break;
-		case 'activateLivestream':
-			activateLivestream();
-			break;
-		case 'hideLivestreamAlert':
-			$_SESSION['hideLivestreamAlert'] = true;
-			break;
-		case 'livestreamOrder':
-			setLivestreamMatchOrder();
-			break;
-		case 'setLivestreamMatch':
-			setLivestreamMatch();
-			break;
-			
-			
-// Default Cases
-		case null:
-			break;
-		default:
-			break;
+					
+	// Finals
+			case 'createBracket':
+				createTournamentBrackets(null, null);
+				break;
+			case 'updateBracket':
+				if(isset($_POST['goToMatch'])){
+					$_SESSION['matchID'] = $_POST['goToMatch'];
+					header("Location: scoreMatch.php");
+					exit;
+				} else if(isset($_POST['updateBracket'])){
+					updateFinalsBracket();
+				}
+				break;
+			case 'deleteBracket':
+				deleteBracket();
+				break;
+			case 'toggleBracketHelper':
+				toggleBracketHelper();
+				break;
+				
+				
+	// Event Organzer Cases
+			case 'ignoreFightersInTournament':
+				updateIgnoredFighters();
+				break;
+			case 'addNewSchool':
+				addNewSchool();
+				break;
+			case 'newPasswords':
+				updateEventPasswords();
+				break;
+			case 'eventDefaultUpdate':
+				updateEventDefaults();
+				break;
+			case 'updateTournamentInfo':
+				updateEventTournaments();
+				break;
+			case 'deleteTournament':
+				deleteEventTournament();
+				break;	
+			case 'finalizeTournament':
+				if(isset($_POST['finalizeTournament']) && $_POST['finalizeTournament'] == 'revoke'){
+					removeTournamentPlacings($_POST['tournamentID']);
+				} else {
+					generateTournamentPlacings($_POST['tournamentID']);
+				}
+				break;
+			case 'addAttackTypes':
+				addAttacksToTournament();
+				break;
+			case 'eventStatusUpdate':
+				editEventStatus();
+				break;
+			case 'displaySettings':
+				updateDisplaySettings();
+				break;
+			case 'setContactEmail':
+				updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
+				break;
+			case 'SubmitToS':
+				processToS($_POST['ToS']);
+				break;
+
+
+	// Admin Cases
+			case 'newSystemPasswords':
+				updateSystemPasswords();
+				break;
+			case 'editExistingSchool':
+				updateExistingSchool();
+				break;
+			case 'addNewEvent':
+				addNewEvent();
+				break;
+			case 'editEvent':
+				editEvent();
+				break;
+			case 'addTournamentType':
+				addTournamentType();
+				break;
+			case 'addNewDuplicateException':
+				addNewDuplicateException();
+				break;
+			case 'combineDuplicateFighters':
+				combineSystemRosterIDs($_POST['combineInto'],$_POST['rosterIDs']);
+				break;
+			case 'duplicateNameSearchType':
+				$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
+				break;
+			case 'HemaRatingsList':
+				$_SESSION['HemaRatingsBounds'] = $_POST['HemaRatingsBounds'];
+				break;
+			case 'HemaRatingsUpdate':
+				updateHemaRatingsInfo($_POST['systemRosterID']);
+				break;
+		
+				
+	// Stats Cases
+			case 'dataFilters':
+				setDataFilters();
+				break;
+			case 'HemaRatingsExport':
+				exportHemaRatings($_POST['HemaRatingsExport']);
+				break;
+			case 'toggleStatsType':
+				$_SESSION['StatsInfo']['displayType'] = $_POST['statsType']['display'];
+				break;
+				
+				
+	// Cutting Qualification Cases
+			case 'newCutQuals':
+				addNewCuttingQuals();
+				break;
+			case 'newCutQualMode':
+				$_SESSION['newCutQualMode'] = $_POST['newCutQualMode'];
+				break;
+			case 'changeCutQualDisplay':
+				$_SESSION['cutQualDisplayMode'] = $_POST['cutQualDisplayMode'];
+				break;
+			case 'setCutQualStandards':
+				updateTournamentCuttingStandard();
+				break;
+			case 'addQualledFighterEvent':
+				addNewCuttingQual_event();
+				break;
+			case 'removeQualledFighterEvent':
+				removeCuttingQual_event();
+				break;
+			case 'changeCuttingStandard':
+				$_SESSION['cuttingQualStandard'] = $_POST['standardID'];
+				$_SESSION['cuttingQualDate'] = $_POST['cuttingQualDate'];
+				break;
+		
+		
+	// Livestream Cases
+			case 'livestreamInfo':
+				updateLivestreamInfo();
+				break;
+			case 'activateLivestream':
+				activateLivestream();
+				break;
+			case 'hideLivestreamAlert':
+				$_SESSION['hideLivestreamAlert'] = true;
+				break;
+			case 'livestreamOrder':
+				setLivestreamMatchOrder();
+				break;
+			case 'setLivestreamMatch':
+				setLivestreamMatch();
+				break;
+				
+				
+	// Default Cases
+			case null:
+				break;
+			default:
+				break;
+		}
 	}
 
 	if(isset($_SESSION['checkEvent'])){
@@ -350,9 +362,9 @@ function processPostData(){
 
 	unset($_POST);
 
-	if($refreshPage){
+	if(empty($refreshPage) == false){
 		$url = strtok($_SERVER['PHP_SELF'], "#");
-		$url .= "#".$_SESSION['jumpTo'];
+		$url .= "#".@$_SESSION['jumpTo'];
 		unset($_SESSION['jumpTo']);
 		header('Location: '.$url);
 		exit;
@@ -380,7 +392,13 @@ function checkEvent(){
 //					That the standings have been properly updated
 
 	// If it has been specified to check everything in the event
-	if($_SESSION['checkEvent']['all'] === true){
+	if(!isset($_SESSION['checkEvent'])){
+		return;
+	}
+
+
+
+	if(isset($_SESSION['checkEvent']['all']) && $_SESSION['checkEvent']['all'] === true){
 		$tournamentIDs = getEventTournaments();
 		foreach((array)$tournamentIDs as $tournamentID){
 			checkGroupOrders($tournamentID);
@@ -401,7 +419,7 @@ function checkEvent(){
 			$name = getTournamentName($tournamentID);
 			
 			// Check everything in the tournament
-			if($tournament['all'] === true){
+			if(isset($tournament['all']) && $tournament['all'] === true){
 				if(isPools($tournamentID)){
 					checkGroupOrders($tournamentID);
 					updatePoolMatchList($tournamentID, 'tournament');
@@ -414,7 +432,7 @@ function checkEvent(){
 				}
 				
 			// Only check the pool orders/names	
-			} elseif($tournament['order'] === true){
+			} elseif(isset($tournament['order']) && $tournament['order'] === true){
 				checkGroupOrders($tournamentID);
 			
 			// Only check specified groups
@@ -511,7 +529,7 @@ function toggleBracketHelper(){
 	
 	// Turns the helper off it is on
 	if($_SESSION['bracketHelper'] == 'on' || $_SESSION['bracketHelper'] == 'try'){
-		unset($_SESSION['bracketHelper']);
+		$_SESSION['bracketHelper'] = '';
 		return;
 	}
 	
@@ -551,11 +569,13 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 	$elimID = getElimID($tournamentID);
 	if($elimID != POOL_BRACKET && $elimID != POOL_SETS){
 		return; 
-	}	
+	}
 
 	$setNumber = $groupSet;
 	$numberOfGroupSets = getNumGroupSets($tournamentID);
-	if($setNumber < 1){ $setNumber = 1;}
+	if($setNumber < 1){
+		$setNumber = 1;
+	}
 
 	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
 		
@@ -568,6 +588,7 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 		pool_ScoreFighters($tournamentID, $setNumber);
 
 		pool_RankFighters($tournamentID, $setNumber);
+		
 	
 	}
 
@@ -646,10 +667,7 @@ function addNewExchange(){
 	
 	if(USER_TYPE < USER_STAFF){return;}
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){return;}
-	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
 	
 	// Easter egg for anyone who gets the the Score Match page while they are in
@@ -660,7 +678,7 @@ function addNewExchange(){
 		return;
 	}
 	
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
+	$matchID = $_SESSION['matchID'];
 	if($matchID == null){return;}
 	
 // updates the last exchange
@@ -726,12 +744,8 @@ function calculateLastExchange($matchInfo, $scoring){
 // can be added appropriately
 
 	if(USER_TYPE < USER_STAFF){return;}
-
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){return;}
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
+	$tournamentID = $matchInfo['tournamentID'];
 	
 	$scoring = array_filter_recursive($scoring);
 
@@ -771,6 +785,9 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
 	$exchangeID = $scoring['exchangeID'];
+	$rPrefix = null;
+	$rType = null;
+	$rTarget = null;
 	
 // Doesn't do anything if a score was entered in both boxes
 	if($scoring[$id1]['hit'] && $scoring[$id2]['hit']){
@@ -807,7 +824,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 		return;
 	}
 	
-	if($_POST['attackModifier'] == 9){
+	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == 9){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
 	}
@@ -844,14 +861,14 @@ function insertPenalty($matchInfo, $scoring){
 		return;
 	}
 	
-	if($scoring[$id1]['penalty'] < 0){
+	if($scoring[$id1]['penalty'] != 0){
 		$scoreValue = $scoring[$id1]['penalty'];
 		$rosterID = $id1;
 		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0, null, null, null, $exchangeID);
 		return;
 	}
 	
-	if($scoring[$id2]['penalty'] < 0){
+	if($scoring[$id2]['penalty'] != 0){
 		$scoreValue = $scoring[$id2]['penalty'];
 		$rosterID = $id2;
 		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0, null, null, null, $exchangeID);
@@ -871,6 +888,12 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
 	$exchangeID = $scoring['exchangeID'];
+
+	$scoreValue = null;
+	$scoreDeduction = null;
+	$rPrefix = null;
+	$rTarget = null;
+	$rType = null;
 	
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
@@ -902,7 +925,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$scoreDeduction = 'null';
 		$exchangeType = 'clean';
 
-		if($_POST['attackModifier'] == 9){
+		if(@$_POST['attackModifier'] == 9){
 			$rPrefix = (int)$_POST['attackModifier'];
 			$scoreValue += getControlPointValue();
 		}
@@ -936,15 +959,13 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		
 	}
 
-	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
-		$temp = $scoreValue;
-		$scoreValue *= -1;
-		$scoreDeduction *= -1;
+	if(isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO){
 		$rosterID = $otherID;
 	}
 	
 	
-	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, $scoreDeduction, $rPrefix, null,null,$exchangeID);
+	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, 
+		$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 }
 
 /******************************************************************************/
@@ -959,6 +980,11 @@ function noAfterblowScoring($matchInfo,$scoring){
 	$id2 = $matchInfo['fighter2ID'];
 
 	$exchangeID = $scoring['exchangeID'];
+	$scoreValue = null;
+	$scoreDeduction = null;
+	$rPrefix = null;
+	$rType = null;
+	$rTarget = null;
 	
 	// Checks if points are entered for both fighters
 	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
@@ -995,14 +1021,13 @@ function noAfterblowScoring($matchInfo,$scoring){
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode set in noAfterblowScoring()";
 		return;
 	}
-	
-	if($_POST['attackModifier'] == 9){
+
+	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == 9){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
 	}
 
-	if(isNegativeScore($matchInfo['tournamentID']) && $_POST['scoreLookupMode'] == 'rawPoints'){
-		$scoreValue *= -1;
+	if(isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO){
 		$rosterID = $otherID;
 	}
 	
@@ -1081,15 +1106,19 @@ function changeEvent($eventID = null, $loggingIn = false){
 // Changes event to the parameter provided and redirects to a
 // landing page determined by the login type
 	
-	if($eventID == null){ $eventID =$_POST['changeEventTo']; }
-	if($_SESSION['eventID'] != $eventID){ $eventChanged = true; }
+	if($eventID == null){ @$eventID =$_POST['changeEventTo']; }
+	if($_SESSION['eventID'] != $eventID){
+		$eventChanged = true;
+	} else {
+		$eventChanged = false;
+	}
 
 	$_SESSION['eventID'] = $eventID;
 	$_SESSION['eventName'] = getEventName($eventID);
 		
-	unset($_SESSION['tournamentID']);
-	unset($_SESSION['matchID']);
-	unset($_SESSION['groupSet']);
+	$_SESSION['tournamentID'] = '';
+	$_SESSION['matchID'] = '';
+	$_SESSION['groupSet'] = '';
 	
 	// If there is only one tournament in the event it is selected
 	$IDs = getEventTournaments();
@@ -1117,7 +1146,7 @@ function changeEvent($eventID = null, $loggingIn = false){
 			$landingPage = 'statsEvent.php';
 			break;
 		case USER_STAFF:
-			$landingPage ='participantsRoster.php';
+			$landingPage ='participantsEvent.php';
 			break;
 		case USER_VIDEO:
 			//$landingPage = VIDEO PAGE PLACEHOLDER
@@ -1142,9 +1171,9 @@ function changeEvent($eventID = null, $loggingIn = false){
 function logUserIn(){
 // Attempts to log a user in	
 	
-	$type = $_POST['logInType'];
-	$passwordInput = $_POST['password'];
-	$eventID = $_POST['logInEventID'];
+	$type = @$_POST['logInType'];
+	$passwordInput = @$_POST['password'];
+	$eventID = @$_POST['logInEventID'];
 	if($type == USER_STATS || $type == USER_VIDEO || $type == USER_SUPER_ADMIN){
 		$eventID = null;
 	}
@@ -1172,6 +1201,9 @@ function checkGroupOrders($tournamentID, $groupID = null){
 // rounds are sequential, with no gaps inbetween, and have an appropriate name
 // for their position.
 
+	$pools = [];
+	$rounds = [];
+
 	if($groupID == null){
 		if(isPools($tournamentID)){
 			$pools = getPools($tournamentID, 'all');
@@ -1186,34 +1218,41 @@ function checkGroupOrders($tournamentID, $groupID = null){
 
 	$poolRosters = getPoolRosters($tournamentID, 'all');
 
-	foreach((array)$pools as $pool){
+	foreach($pools as $pool){
 		
 		$groupID = $pool['groupID'];
-		$poolRoster = $poolRosters[$groupID];
-		$i=0;
-		foreach((array)$poolRoster as $poolPosition => $fighter){
-			$i++;
-			if($poolPosition == $i){continue;}
-			$tableID = $fighter['tableID'];
-			$sql = "UPDATE eventGroupRoster
-					SET poolPosition = {$i}
-					WHERE tableID = {$tableID}";
-			mysqlQuery($sql, SEND, null);
-			
-		}	
+		if(isset($poolRosters[$groupID])){
+			$poolRoster = $poolRosters[$groupID];
+			$i=0;
+			foreach($poolRoster as $poolPosition => $fighter){
+				$i++;
+				if($poolPosition == $i){continue;}
+				$tableID = $fighter['tableID'];
+				$sql = "UPDATE eventGroupRoster
+						SET poolPosition = {$i}
+						WHERE tableID = {$tableID}";
+				mysqlQuery($sql, SEND, null);
+				
+			}	
+		}
 	}	
 	
-	unset($i);
+	$i = 0;
 	if($groupID != null){
 		$pools = getPools($tournamentID, 'all');
 	}
 	
 	$itemNumber = 0;
 //Check the pools are numbered sequentialy.
-	foreach((array)$pools as $poolData){
+	foreach($pools as $poolData){
 		
 		$poolSet = $poolData['groupSet'];
+
+		if(!isset($groupNumbers[$poolSet])){
+			$groupNumbers[$poolSet] = 0;
+		}
 		$groupNumbers[$poolSet]++;
+
 		$poolNum = $groupNumbers[$poolSet];
 		$groupID = $poolData['groupID'];
 
@@ -1236,12 +1275,20 @@ function checkGroupOrders($tournamentID, $groupID = null){
 		mysqlQuery($sql,SEND);
 	}
 	
+	
 // Check if rounds are numbered sequentialy.
 	$groupNumber = 0;
 
-	foreach((array)$rounds as $roundData){
+	if(!isset($rounds)){
+		$rounds = [];
+	}
+
+	foreach($rounds as $roundData){
 		
 		$groupSet = $roundData['groupSet'];
+		if(!isset($groupNumbers[$groupSet])){
+			$groupNumbers[$groupSet] = 0;
+		}
 		$groupNumbers[$groupSet]++;
 		$groupNumber = $groupNumbers[$groupSet];
 		$groupID = $roundData['groupID'];
@@ -1268,6 +1315,7 @@ function checkGroupOrders($tournamentID, $groupID = null){
 		
 		
 	}
+	
 
 }
 

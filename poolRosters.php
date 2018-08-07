@@ -19,8 +19,8 @@ $lockedTournamentWarning = true;
 $jsIncludes[] = 'group_management_scripts.js';
 include('includes/header.php');
 
-$pools = getPools($tournamentID, $_SESSION['groupSet']);
 $tournamentID = $_SESSION['tournamentID'];
+$pools = getPools($tournamentID, $_SESSION['groupSet']);
 
 if($tournamentID == null){
 	pageError('tournament');	
@@ -66,6 +66,7 @@ if($tournamentID == null){
 	}
 
 //gets a list of fighters not already in a pool
+	$freeFighters = [];
 	foreach($tournamentRoster as $fighter){
 		$rosterID = $fighter['rosterID'];
 		if (!in_array($rosterID, $assignedFighters)){
@@ -145,7 +146,11 @@ function poolManagement($numPools = 0){
 	if(USER_TYPE < USER_ADMIN){  return; }
 	$tournamentID = $_SESSION['tournamentID'];
 	
-	if($numPools <= 1){$noReOrder = "disabled";}
+	$noReOrder = '';
+	if($numPools <= 1){
+		$noReOrder = "disabled";
+	} 
+	
 	?>
 	
 	<fieldset class='fieldset'>
@@ -291,8 +296,9 @@ function poolSetBox($tournamentID){
 		<?php if($setData['cumulative'] !== '0'){
 			$checked = 'checked';
 		} else {
-			unset($checked);
+			$checked = '';
 		} 
+		$setName = @$setData['name'];
 		?>
 		
 	<!-- Name -->
@@ -304,7 +310,7 @@ function poolSetBox($tournamentID){
 		<div class='grid-x'>
 		<div class='input-group no-bottom'>
 			<span class='input-group-label'>Name:</span>
-			<input type='text' class='input-group-field' value='<?=$setData['name']?>'
+			<input type='text' class='input-group-field' value='<?=$setName?>'
 				 name='renameSet[<?=$setNumber?>]' placeholder='Pool Set <?=$setNumber?>'>
 		</div>	 
 		
@@ -333,17 +339,13 @@ function poolSetBox($tournamentID){
 				 name='normalizeSet[<?=$setNumber?>]'>
 				 <option value=0>Auto</option>
 				 <?php for($i=2;$i<=10;$i++): 
-					$selected = isSelected($i, $setData['normalization']);
+					$selected = isSelected($i, @$setData['normalization']);
 					?>
 				 
 					<option value='<?=$i?>' <?=$selected?>><?=$i?></option>
 				 <?php endfor ?>
 				</select>
 			
-			
-			<!--<input type='number' class='input-group-field' value='<?=$setData['normalization']?>'
-				 name='normalizeSet[<?=$setNumber?>]' placeholder='<?=$normalizeSize?>'
-				 min=2 max=10>-->
 		</div>
 		</div>
 		
@@ -380,7 +382,7 @@ function poolSetBox($tournamentID){
 function renamePoolsBox(){
 // Form to changethe name of pools in the current pool set
 	
-	$pools = getPools($tournamentID, $_SESSION['groupSet']);
+	$pools = getPools($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
 	
 	<div class='reveal tiny' id='renamePools' data-reveal>
@@ -388,7 +390,10 @@ function renamePoolsBox(){
 	<h5>Rename Pools:</h5>
 	
 <!-- Pool names -->
-	<?php foreach($pools as $pool):
+
+	<?php 
+	$i = 0;
+	foreach($pools as $pool):
 		$i++; ?>
 		<div class='input-group'>
 		<span class='input-group-label'><?=$i?>:</span>

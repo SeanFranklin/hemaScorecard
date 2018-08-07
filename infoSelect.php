@@ -18,8 +18,13 @@ $hidePageTitle = true;
 include('includes/header.php');
 
 // Get the event List
-$eventList = getEventList();
-$categorizedEventList = sortEventList($eventList); 
+// Get the event List
+$activeEvents = getEventList('active');
+$upcomingEvents = getEventList('upcoming');
+if(USER_TYPE >= USER_SUPER_ADMIN){
+	$hiddenEvents = getEventList('hidden');
+}
+$archivedEvents = getEventList('archived', 'DESC');
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,34 +44,29 @@ $categorizedEventList = sortEventList($eventList);
 			</a>
 			<div class='accordion-content' data-tab-content>
  
-				<?php if($categorizedEventList['active'] != null || $categorizedEventList['default'] != null):?>
-					<h5>Active Events</h5>
-					<?php displayEventsInCategory(
-							array_reverse((array)$categorizedEventList['default'],true)
-						); ?>
-					<?php displayEventsInCategory(
-							array_reverse((array)$categorizedEventList['active'],true)
-						); ?>
-				<?php endif ?>
-	
-				<?php if($categorizedEventList['upcoming'] != null): ?>
-					<h5>Upcoming Events</h5>
-					<?php displayEventsInCategory(
-							array_reverse((array)$categorizedEventList['upcoming'],true)
-						); ?>
-				<?php endif ?>
-	
-				<?php if(USER_TYPE == USER_SUPER_ADMIN && $categorizedEventList['hidden'] != null): ?>
+				<!-- Hidden Events -->
+				<?php if(USER_TYPE >= USER_SUPER_ADMIN && $hiddenEvents != null): ?>
 					<h5>Hidden Events</h5>
-					<?php displayEventsInCategory(
-							array_reverse((array)$categorizedEventList['hidden'],true)
-						); ?>
+					<?php displayEventsInCategory($hiddenEvents); ?>
+				<?php endif ?>
+	
+				<!-- Active Events -->
+				<?php if($activeEvents != null):?>
+					<h5>Active Events</h5>
+					<?php displayEventsInCategory($activeEvents); ?>
+				<?php endif ?>
+
+				<!-- Upcoming Events -->
+				<?php if($upcomingEvents != null): ?>
+					<h5>Upcoming Events</h5>
+					<?php displayEventsInCategory($upcomingEvents); ?>
 				<?php endif ?>
 	
 			</div>
 		</li>
 
-		<?php displayArchivedEvents($categorizedEventList['archived']); //Old events displayed by year ?>
+		<!-- Recent Events -->
+		<?php displayArchivedEvents($archivedEvents);?>
 
 	</ul>
 	</form>
@@ -83,6 +83,8 @@ include('includes/footer.php');
 
 function displayArchivedEvents($eventList){
 	
+	$oldYear = null;
+
 	foreach($eventList as $eventID => $eventInfo){
 		$year = $eventInfo['eventYear'];
 		if($year != $oldYear){
@@ -101,17 +103,10 @@ function displayArchivedEvents($eventList){
 
 /**********************************************************************/
 
-function displayEventsInCategory($eventList,$numToDisplay = null){
+function displayEventsInCategory($eventList){
 
 	foreach((array)$eventList as $eventID => $eventInfo){
-
 		displayEventButton($eventID, $eventInfo);
-
-		$numDisplayed++;
-		if($numToDisplay != null && $numDisplayed >= $numToDisplay){
-			return;
-		}
-
 	}
 }
 

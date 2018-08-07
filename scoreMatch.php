@@ -24,8 +24,20 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
+	if(USER_TYPE == USER_SUPER_ADMIN){
+		displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
+	} elseif($eventID == null){
+		redirect('infoSelect.php');
+	} elseif($tournamentID == null){
+		redirect('infoSummary.php');
+	} elseif($matchID == null){
+		redirect('participantsRoster.php');
+	} else {
+		displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
+	}
 } else {
+
+
 	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
 
@@ -44,9 +56,10 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	echo "<input type='hidden' value='{$matchInfo['doubleType']}' id='doubleType'>";
 	
 // Auto refresh if match is in progress
-	if($matchInfo['lastExchange'] != null && $matchInfo['matchComplete'] == 0 
+	if(($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0) && $matchInfo['matchComplete'] == 0 
 		&& $matchInfo['ignoreMatch'] != 1 && USER_TYPE < USER_STAFF){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
+
 	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -56,7 +69,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 <!-- Warning if match is ignored -->
 	<?php if($matchInfo['ignoreMatch'] == 1): ?>
 		<div class='callout secondary text-center'>
-			<span class='red-text'>This match has been excluded from scoring calcultions</span>
+			<span class='red-text'>This match has been excluded from scoring calculations</span>
 			<BR>Possible reasons include injury or disqualification from the tournament
 		</div>	
 		
@@ -106,7 +119,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		if(USER_TYPE > USER_STAFF 
 		   && $exchangesNotNumbered == false 
 		   && LOCK_TOURNAMENT ==''
-		   && $matchInfo['matchComplete'] == false){
+		   && $matchInfo['matchComplete'] == false
+		   && count($exchangeInfo) > 0){
 			?>
 			<div class='large-12 cell'>	
 			<BR>
@@ -200,7 +214,7 @@ function askForFinalization($tournamentID){
 	scorekeeper to finalize the tournament results */
 	
 	if(USER_TYPE < USER_STAFF){						return;}
-	if($_SESSION['askForFinalization'] !== true){	return; }
+	if(!isset($_SESSION['askForFinalization'])){	return; }
 	
 	unset($_SESSION['manualTournamentPlacing']);
 	unset($_SESSION['askForFinalization']);
@@ -281,7 +295,7 @@ function dataEntryBox($matchInfo){
 /*	The main data entry box for the match. Contains boxes for each fighter
 	and the scorekeepers box bellow. Scorekeepers box only visiable if logged in.*/
 
-	$doubleTypes = getDoubleTypes($tournamentID);
+	$doubleTypes = getDoubleTypes($matchInfo['tournamentID']);
 ?>	
 	
 <!-- Score boxes for individual fighters -->
@@ -418,7 +432,6 @@ function fighterDataEntryBox($matchInfo,$num){
 	
 	$isFinished = $matchInfo['winnerID'];
 	$tournamentID = $matchInfo['tournamentID'];
-	$event = EVENT;
 
 	if($num == 1){
 		$colorCode = COLOR_CODE_1;
@@ -467,7 +480,7 @@ function fighterDataEntryBox($matchInfo,$num){
 			<!-- Hit score select -->
 				<div class='input-group grid-x'>
 					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
-					<?php scoreSelectDropDown($id, $pre, isNegativeScore($tournamentID)); ?>
+					<?php scoreSelectDropDown($id, $pre, isReverseScore($tournamentID)); ?>
 					
 				</div>
 			
@@ -522,9 +535,14 @@ function fighterDataEntryBox($matchInfo,$num){
 							id='<?=$pre?>_penalty_dropdown' 
 							onchange="penaltyDropDownChange(this)">
 							<option value=''></option>
-							<option value='-1'>-1 Point</option>
-							<?php for($i = 2; $i<=$maxPoints;$i++): ?>
-								<option value='-<?=$i?>'>-<?=$i?> Points</option>
+							<?php for($i = 1; $i <=$maxPoints;$i++): 
+								if(isReverseScore($tournamentID) == REVERSE_SCORE_GOLF){
+									$penaltyVal = $i;
+								} else {
+									$penaltyVal = -$i;
+								}
+								?>
+								<option value='<?=$penaltyVal?>'><?=$penaltyVal?> Points</option>
 							<?php endfor ?>
 						</select>
 					</div>
@@ -538,7 +556,7 @@ function fighterDataEntryBox($matchInfo,$num){
 
 /******************************************************************************/
 
-function scoreSelectDropDown($id, $pre, $isNegativeScore){
+function scoreSelectDropDown($id, $pre, $isReverseScore){
 	
 	$attacks = getTournamentAttacks();
 	
@@ -546,15 +564,17 @@ function scoreSelectDropDown($id, $pre, $isNegativeScore){
 		$minPoints = 1;
 		$maxPoints = 10;
 
-		if($isNegativeScore == false){
+		if($isReverseScore == REVERSE_SCORE_INJURY){
 			$dir = 1;
+			$textPrefix = '-';
 		} else {
-			$dir = -1;
+			$dir = 1;
+			$textPrefix = '';
 		}
 
 		for($i = $minPoints * $dir; abs($i)<=abs($maxPoints); $i += $dir){
 			$attacks[$i]['tableID'] = $i;
-			$attacks[$i]['attackText'] = $i." Point".plrl($i);
+			$attacks[$i]['attackText'] = $textPrefix.$i." Point".plrl($i);
 		}
 		$scoreMode = 'rawPoints';
 	} else {
@@ -588,14 +608,21 @@ function createSideBar($matchInfo){
 	$name2 = COLOR_NAME_2;
 	
 	$matchID = $matchInfo['matchID'];
+	$tournamentID = $matchInfo['tournamentID'];
 	$fighter1ID = $matchInfo['fighter1ID'];
 	$fighter2ID = $matchInfo['fighter2ID'];
 	$winnerID = $matchInfo['winnerID'];
 	$nextMatchInfo = getNextPoolMatch($matchInfo);
 	$doubles = getMatchDoubles($matchID);
 
-	
-	switch($matchInfo['endType']){
+	if(isset($matchInfo['endType'])){
+		$endType = $matchInfo['endType'];
+	} else {
+		$endType = '';
+	}
+
+	$endColor = '';
+	switch($endType){
 		case 'winner':
 			$endText1 = 'Winner';
 			if($winnerID == $fighter1ID){
@@ -612,12 +639,17 @@ function createSideBar($matchInfo){
 			$endText2 = 'Tie';
 			break;
 		case 'ignore':
+			$endText1 = '';
 			$endText2 = 'Match Incomplete';
 			break;
 		case 'doubleOut':
 			$endText1 = 'No Winner';
 			$endText2 = "<span class='red-text'>Double Out</span>";
+			break;
 		default:
+			$endText1 = '';
+			$endText2 = '';
+			break;
 	}
 	
 
@@ -626,7 +658,7 @@ function createSideBar($matchInfo){
 	
 	
 <!-- Match winner management/display -->
-	<?php if(isset($matchInfo['endType'])): ?>
+	<?php if($endText1 != null || $endText2 != null): ?>
 		<h4><?=$endText1?></h4>
 		<div class='match-winner-name' style='background-color:<?=$endColor?>'>
 		<h3 class='no-bottom'><?=$endText2?></h3>
@@ -634,49 +666,69 @@ function createSideBar($matchInfo){
 		
 		
 	<?php else: ?>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
-		<!-- Timer -->
+
+	<!-- Timer -->
+		<?php if(IS_TIMER): ?>
+			<input type='hidden' class='matchTime' id='matchTime' 
+				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
+		<?php if(USER_TYPE >= USER_STAFF): ?>	
+			<script>
+				window.onload = function(){ updateTimerDisplay();};
+			</script>
+		
+			Timer:
+			<a class='button hollow expanded success no-bottom' onclick="startTimer(this)" id='timerButton'>
+			<h4 class='no-bottom' id='currentTime'>0:00</h4>
+			</a>
 			
+			<!--Manual Time Set -->
+			<a onclick="document.getElementById('manualSetDiv').classList.remove('hidden');"
+				id='manualTimerToggle'>
+				Manual Time Set
+			</a>
 			
+			<div class='hidden' id='manualSetDiv'>
+			<div class='input-group grid-x'>
+				<input class='input-group-field' type='number' name='timerMinutes'
+					id='timerMinutes' placeholder='Min'>
+				<input class='input-group-field' type='number' name='timerSeconds'
+					id='timerSeconds' placeholder='Sec'>
+				<button class='button success input-group-button large-shrink medium-12 small-shrink'
+					onclick="manualTimeSet()">
+					&#10004;
+				</button>
+			</div>
 			
+			</div>
 			
-			<?php if(IS_TIMER): ?>
-				<script>
-					window.onload = function(){ updateTimerDisplay(); };
-				</script>
-			
-				<input type='hidden' class='matchTime' id='matchTime' 
-					name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-				
-				Timer:
-				<a class='button hollow expanded success no-bottom' onclick="startTimer(this)" id='timerButton'>
-				<h4 class='no-bottom' id='currentTime'>0:00</h4>
-				</a>
-				
-				<!--Manual Time Set -->
-				<a onclick="document.getElementById('manualSetDiv').classList.remove('hidden');"
-					id='manualTimerToggle'>
-					Manual Time Set
-				</a>
-				
-				<div class='hidden' id='manualSetDiv'>
-				<div class='input-group grid-x'>
-					<input class='input-group-field' type='number' name='timerMinutes'
-						id='timerMinutes' placeholder='Min'>
-					<input class='input-group-field' type='number' name='timerSeconds'
-						id='timerSeconds' placeholder='Sec'>
-					<button class='button success input-group-button large-shrink medium-12 small-shrink'
-						onclick="manualTimeSet()">
-						&#10004;
-					</button>
-				</div>
-				
-				</div>
-				
-				<HR>
-			<?php endif ?>	
-			
-		<!-- Match Winner -->		
+			<HR>
+		<?php else: ?>
+
+			<script>
+				window.addEventListener("load",function(event) {
+				    	updateTimerDisplay();
+				    });
+			</script>
+
+			<?php if($matchInfo['matchTime'] > 0){
+				$hideTimer = '';
+			} else {
+				$hideTimer = 'hidden';
+			}
+
+
+			?>
+			<div class='match-winner-name <?=$hideTimer?> alert' id='currentTimeDiv'>
+				<h3 class='no-bottom' id='currentTime'>
+					0:00
+				</h3>
+			</div>
+
+		<?php endif?>
+		<?php endif ?>
+
+	<!-- Match Winner -->
+		<?php if(USER_TYPE >= USER_STAFF): ?>		
 			<form method='POST'>
 			<fieldset <?=LOCK_TOURNAMENT?>>
 			<input type='hidden' name='formName' value='matchWinner'>
@@ -718,7 +770,7 @@ function createSideBar($matchInfo){
 			
 		<?php elseif($matchInfo['ignoreMatch']): ?>
 			<h4>Match Incomplete</h4>
-		<?php elseif($matchInfo['lastExchange'] != null): ?>
+		<?php elseif($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0): ?>
 			<h4>In Progress</h4>
 		<?php else: ?>
 			<h4>Not Started</h4>
@@ -734,7 +786,7 @@ function createSideBar($matchInfo){
 	<input type='hidden' name='matchID' value='<?=$matchID?>'>
 	<input type='hidden' class='matchTime' name='matchTime' value=''>
 
-	<?php doublesText($doubles, $matchInfo['maxDoubles'], $matchInfo['matchComplete']) ?>
+	<?php doublesText($doubles, $matchInfo) ?>
 	</fieldset>
 	</form>
 	
@@ -745,7 +797,7 @@ function createSideBar($matchInfo){
 		<HR>
 
 		
-		Next Match: <BR>
+		Next Match: <?= tooltip('Skipping matches which have fighters removed due to injury/disqualification');?> <BR>
 
 		<?php if($matchInfo['unconcludedMatchWarning']): ?>
 
@@ -830,16 +882,35 @@ function createSideBar($matchInfo){
 
 /******************************************************************************/
 
-function doublesText($doubles, $max, $complete){
+function doublesText($doubles, $matchInfo){
 // adds smiley and frowny faces depending on the number of double hits
 // adds button to declare match as a double out
+
+
+	$doubleOut = ifSet($doubles >= $matchInfo['maxDoubles'], true);
+	$reverseScore = isReverseScore($matchInfo['tournamentID']);
+	$basePointValue = getBasePointValue($matchInfo['tournamentID'], $_SESSION['groupSet']);
+
+	if($reverseScore == REVERSE_SCORE_INJURY){
+		if(($matchInfo['fighter1score'] <= 0 && $matchInfo['fighter2score'] <= 0)
+			|| ($basePointValue == 0)
+			)
+		{
+		$doubleOut = true;
+		}
+	} elseif($reverseScore == REVERSE_SCORE_GOLF){
+		if(($matchInfo['fighter1score'] >= $basePointValue && $matchInfo['fighter2score'] >= $basePointValue)
+			|| $basePointValue == 0){
+			$doubleOut = true;
+		}
+
+	}
+		
 	
-	if($doubles >= $max){ $doubleOut = true; }
-	
-	if($doubleOut){ $class="class='red-text'";}
-	$string = "{$doubles} Double Hit";
-	if($doubles != 1){ $string .= "s";}
-	
+
+	$class=ifSet($doubleOut,"class='red-text'");
+	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
+
 	switch ($doubles){
 	case 0:
 		$string .= " :)";
@@ -857,7 +928,7 @@ function doublesText($doubles, $max, $complete){
 	?>
 	
 	<span <?=$class?>><?=$string?></span>
-	<?php if($doubleOut && !$complete && USER_TYPE >= USER_STAFF): ?>
+	<?php if($doubleOut && !$matchInfo['matchComplete'] && USER_TYPE >= USER_STAFF): ?>
 		<BR>
 		<button class='button large alert no-bottom' name='matchWinnerID' 
 			value='doubleOut' <?=LOCK_TOURNAMENT?>>
@@ -873,7 +944,7 @@ function unconcludedMatchWarning($matchInfo){
 
 	$useWarning = isUnconcludedMatchWarning($matchInfo);
 
-	if($useWarning){
+	if($useWarning && USER_TYPE >= USER_STAFF){
 		$string = "<strong>The last two matches have not been concluded.</strong><BR>
 		Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
 		<i>If a match is not fought due to injury/disqualification, be sure that an event organizer removes them from the pool scoring calculations.</i>

@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Event Details';
+
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -21,7 +22,7 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	$defaults = getEventDefaults();
-	define(MAX_VAL,10);  	// Maximum value for most tournament parameters, arbitrary
+	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail();
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

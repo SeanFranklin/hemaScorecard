@@ -22,7 +22,7 @@ function toggleTableRow(divName, divName2 = null) {
 
 /************************************************************************************/
 
-function toggleCheckbox(checkboxID, divID){
+function toggleCheckbox(checkboxID, divID, dontCheck){
     checkbox = document.getElementById(checkboxID);
     
     if(checkbox.checked){
@@ -32,8 +32,9 @@ function toggleCheckbox(checkboxID, divID){
         checkbox.checked = true;
         divID.style.background = '#3adb76';
     }
-
-    checkIfFought(checkbox);
+    if(typeof dontCheck === 'undefined'){
+        checkIfFought(checkbox);
+    }
 }
 
 /******************************************************************************/
@@ -81,7 +82,7 @@ function editParticipant(rosterID){
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
             if(this.responseText.length > 1){ // If the fighter has already fought
-              
+                console.log(this.responseText);
                 var data = JSON.parse(this.responseText);
                 fillInFields(data);
             }

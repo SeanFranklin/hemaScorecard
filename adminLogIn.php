@@ -14,9 +14,10 @@ $pageName = 'Log In';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-$eventList = getEventList('ASC');
-$eventList = sortEventList($eventList);
-$eventTypes = ['default','active','upcoming', 'hidden']; 
+$activeEvents = getEventList('active');
+$upcomingEvents = getEventList('upcoming');
+$hiddenEvents = getEventList('hidden');
+
 
 if(isset($_SESSION['failedLogIn'])){
 	$defaultEventID = $_SESSION['failedLogIn']['eventID'];
@@ -25,12 +26,29 @@ if(isset($_SESSION['failedLogIn'])){
 } else {
 	$typeSelect = USER_STAFF;
 	$defaultEventID = $_SESSION['eventID'];
+
+	if($defaultEventID == null){
+		if($activeEvents != null){
+			reset($activeEvents);
+			$defaultEventID = key($activeEvents);
+		} elseif($upcomingEvents != null){
+			reset($upcomingEvents);
+			$defaultEventID = key($upcomingEvents);
+		} else {
+			reset($hiddenEvents);
+			$defaultEventID = key($hiddenEvents);
+		}
+
+	}
 }
 
+$logInEventListClass = '';
 if($typeSelect != USER_STAFF && $typeSelect != USER_ADMIN){
 	$logInEventListClass = "style='display:none'";
 }
+
 $eventNameForLogin = getEventName($defaultEventID);
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -72,22 +90,9 @@ $eventNameForLogin = getEventName($defaultEventID);
 			<label id='logInEventList' <?=$logInEventListClass?> >
 				<span>Event to Log Into</span>
 				<select id='logInEventID' name='logInEventID'  onchange="logInEventToggle('logInEventID')">	
-				<?php foreach((array)$eventTypes as $type):
-
-					foreach((array)$eventList[$type] as $eventID => $eventInfo):
-						$eventName = getEventName($eventID);
-						if($eventNameForLogin == null){
-							$eventNameForLogin = $eventName;
-						}
-						$selected = isSelected($eventID, $defaultEventID);		
-						?>
-							
-						<option value='<?=$eventID?>' <?=$selected?> id='eventName<?=$eventID?>'>
-							<?=$eventName?>
-						</option>";
-						
-					<?php endforeach ?>	
-				<?php endforeach ?>	
+					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
+					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
+					<?php populateEventSelectFields($hiddenEvents, $defaultEventID); ?>
 				</select>
 			</label>
 		
@@ -116,6 +121,24 @@ include('includes/footer.php');
 ////////////////////////////////////////////////////////////////////////////////
 
 /******************************************************************************/
+
+function populateEventSelectFields($eventList, $defaultEventID){
+
+	if($eventList == null){
+		return;
+	}
+
+	foreach($eventList as $eventID => $eventInfo){
+		$eventName = getEventName($eventID);
+		$selected = isSelected($eventID, $defaultEventID);		
+		
+		echo "<option value='{$eventID}' {$selected} id='eventName{$eventID}'>";
+			echo $eventName;
+		echo "</option>";
+						
+	}
+
+}
 
 /******************************************************************************
 

@@ -12,14 +12,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Welcome to HEMA Scorecard";
-$hideEventNav = true;
-$hidePageTitle = true;
 
 include('includes/header.php');
 
 // Get the event List
-$eventList = getEventList();
-$categorizedEventList = sortEventList($eventList); 
+$activeEvents = getEventList('active');
+$upcomingEvents = getEventList('upcoming');
+if(USER_TYPE >= USER_SUPER_ADMIN){
+	$hiddenEvents = getEventList('hidden');
+}
+$archivedEvents = getEventList('archived', 'DESC', 4);
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -47,17 +49,27 @@ $categorizedEventList = sortEventList($eventList);
 <form method='POST'>
 <input type='hidden' name='formName' value='selectEvent'>
 
-<?php if($categorizedEventList['active'] != null || $categorizedEventList['default'] != null):?>
-	<h5>Active Events</h5>
-	<?php displayEventsInCategory(array_reverse($categorizedEventList['active'],true)); ?>
-<?php endif ?>
+<!-- Hidden Events -->
+	<?php if(USER_TYPE >= USER_SUPER_ADMIN && $hiddenEvents != null): ?>
+		<h5>Hidden Events</h5>
+		<?php displayEventsInCategory($hiddenEvents); ?>
+	<?php endif ?>
 
-<?php if($categorizedEventList['upcoming'] != null): ?>
-	<h5>Upcoming Events</h5>
-	<?php displayEventsInCategory(array_reverse($categorizedEventList['upcoming'],true)); ?>
-<?php endif ?>
-<h5>Recent Events</h5>
-	<?php displayEventsInCategory($categorizedEventList['archived'],4);?>
+<!-- Active Events -->
+	<?php if($activeEvents != null):?>
+		<h5>Active Events</h5>
+		<?php displayEventsInCategory($activeEvents); ?>
+	<?php endif ?>
+
+<!-- Upcoming Events -->
+	<?php if($upcomingEvents != null): ?>
+		<h5>Upcoming Events</h5>
+		<?php displayEventsInCategory($upcomingEvents); ?>
+	<?php endif ?>
+
+<!-- Recent Events -->
+	<h5>Recent Events</h5>
+		<?php displayEventsInCategory($archivedEvents);?>
 
 </form>
 
@@ -69,8 +81,7 @@ include('includes/footer.php');
 
 /**********************************************************************/
 
-function displayEventsInCategory($eventList,$numToDisplay = null){
-
+function displayEventsInCategory($eventList){
 
 	echo "<div class='grid-x grid-padding-x'>";
 
@@ -80,10 +91,7 @@ function displayEventsInCategory($eventList,$numToDisplay = null){
 
 		displayEventButton($eventID, $eventInfo);
 		echo "</div>";
-		$numDisplayed++;
-		if($numToDisplay != null && $numDisplayed >= $numToDisplay){
-			break;
-		}
+
 	}
 	echo "</div>";
 }

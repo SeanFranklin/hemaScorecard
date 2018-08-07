@@ -361,10 +361,9 @@ function validateYoutube(){
 
 /************************************************************************************/
 
-function refreshOnNewExchange(matchID, exchangeID){
+function refreshOnNewExchange(matchID, exchangeID = 0){
 	
-	var refreshPeriod = 10 * 1000; // seconds
-	
+	var refreshPeriod = 1 * 1000; // seconds
 	var intervalID = window.setInterval(function(){ a(); }, refreshPeriod);
 	
 	function a(){ 
@@ -379,8 +378,19 @@ function refreshOnNewExchange(matchID, exchangeID){
 
 		xhr.onreadystatechange = function (){
 			if(this.readyState == 4 && this.status == 200){
-				if(this.responseText.length > 1){ // If the fighter has already fought
-					location.reload();
+
+				if(this.responseText.length >= 1){ // If the fighter has already fought
+					recievedData = JSON.parse(this.responseText);
+
+					if(recievedData['refresh'] == true){
+						location.reload();
+					} else if(recievedData['matchTime'] > 0) {
+						$('#currentTimeDiv').show();
+						$('#matchTime').val(recievedData['matchTime'])
+						updateTimerDisplay();
+					} else {
+						$('#currentTimeDiv').hide();
+					}
 				}
 			}
 		};	
@@ -429,12 +439,12 @@ function increaseTime(){
 	if(isNaN(time)){ time = 0; }
 	time += 1;
 	document.getElementById('matchTime').value = time;	
-	updateTimerDisplay();
+	updateMatchTimer();
 }
 
 /******************************************************************************/
 
-function updateTimerDisplay(){
+function updateMatchTimer(){
 	time = document.getElementById('matchTime').value;
 	
 	// Update the form fields
@@ -443,16 +453,7 @@ function updateTimerDisplay(){
 		timerInputs[i].value = time;
 	}
 	
-	// Update the button in M:SS format
-	minutes = Math.floor(time/60);
-	seconds = time - (minutes * 60);
-	document.getElementById('timerMinutes').value = minutes;
-	document.getElementById('timerSeconds').value = seconds;
-	if(seconds < 10){
-		seconds = "0"+seconds.toString();
-	}
-	str = minutes.toString()+":"+seconds.toString();
-	document.getElementById('currentTime').innerHTML = str;
+	updateTimerDisplay(time);
 	
 	// Update the match time in the DB
 	var query = "mode=updateMatchTime";
@@ -468,11 +469,32 @@ function updateTimerDisplay(){
 
 /******************************************************************************/
 
+function updateTimerDisplay(time = null){
+	// Update the button in M:SS format
+
+	if(time == null){
+		time = $('#matchTime').val()
+	}
+	
+	minutes = Math.floor(time/60);
+	seconds = time - (minutes * 60);
+
+	if(seconds < 10){
+		seconds = "0"+seconds.toString();
+	}
+
+	str = minutes.toString()+":"+seconds.toString();
+	document.getElementById('currentTime').innerHTML = str;
+}
+
+
+/******************************************************************************/
+
 function manualTimeSet(){
 	time = parseInt(document.getElementById('timerMinutes').value) * 60;
 	time += parseInt(document.getElementById('timerSeconds').value);
 	document.getElementById('matchTime').value = time;
-	updateTimerDisplay();
+	updateMatchTimer();
 	document.getElementById('manualSetDiv').classList.add('hidden')
 }
 

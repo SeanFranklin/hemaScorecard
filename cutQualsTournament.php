@@ -22,6 +22,8 @@ if($_SESSION['tournamentID'] == null){
 	displayAlert('No Cutting Qualification required for this tournament');
 } else {
 
+
+
 	$thisStandard = getCuttingStandard();
 	if($thisStandard != null){
 		$qualList = getCuttingQualificationsList($thisStandard['standardID'], $thisStandard['date']);
@@ -29,27 +31,30 @@ if($_SESSION['tournamentID'] == null){
 	$tournamentList =  getTournamentSystemRosterIDs();
 	$allStandards = getCuttingQualificationsStandards();
 	
-	
-	foreach($tournamentList as $fighter){
-			unset($entry);
+	if(isset($qualList)){
+		foreach($tournamentList as $fighter){
+			$entry = [];
 			$systemRosterID = $fighter['systemRosterID']; 
 			$entry['name'] = getFighterNameSystem($systemRosterID);
 			$entry['systemRosterID'] = $systemRosterID;
 			$eventDate = getEventEndDate();
 			
-			
-			if($qualList[$systemRosterID]['date'] == $eventDate){
-				$entry['thisEvent'] = true;
-				$entry['qualID'] = $qualList[$systemRosterID]['qualID'];
-			}
-			
 			if(isset($qualList[$systemRosterID])){ 
 				$entry['qualled'] = true;
+				if($qualList[$systemRosterID]['date'] == $eventDate){
+					$entry['thisEvent'] = true;
+					$entry['qualID'] = $qualList[$systemRosterID]['qualID'];
+				}
 			} else {
 				$entry['qualled'] = false;
 			}
 			
-			switch($_SESSION['cutQualDisplayMode']){
+			$displayMode = '';
+			if(isset($_SESSION['cutQualDisplayMode'])){
+				$displayMode = $_SESSION['cutQualDisplayMode'];
+			}
+
+			switch($displayMode){
 				case 'name':
 					$displayList[] = $entry;
 					break;
@@ -62,14 +67,17 @@ if($_SESSION['tournamentID'] == null){
 					}
 					break;
 			}
+		}
+
+		foreach((array)$nonQualledFighters as $fighter){
+		$displayList[] = $fighter;
+		}
+		foreach((array)$qualledFighters as $fighter){
+			$displayList[] = $fighter;
+		}
 	}
 	
-	foreach((array)$nonQualledFighters as $fighter){
-		$displayList[] = $fighter;
-	}
-	foreach((array)$qualledFighters as $fighter){
-		$displayList[] = $fighter;
-	}
+	
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -80,9 +88,13 @@ if($_SESSION['tournamentID'] == null){
 		Fighters who have completed 
 		<strong><?=$thisStandard['standardName']?></strong> 
 		since <strong><?=$thisStandard['date']?></strong><BR>
-	<?php else: ?>
-		<?=displayAlert("No Cutting Quallification Standards Set<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>")?>
-	<?php endif ?>
+	<?php else:
+		$alertText = "No Cutting Quallification Standards Set";
+		if(USER_TYPE >= USER_STAFF){
+			$alertText .= "<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>";
+		}
+		displayAlert($alertText);
+	endif ?>
 	
 
 	<?php if(USER_TYPE >= USER_SUPER_ADMIN): ?>
@@ -189,11 +201,13 @@ if($_SESSION['tournamentID'] == null){
 			</th>
 			<th>
 				<button name='cutQualDisplayMode' value='quall'><a><strong>
-					Qualled
-					<?=tooltip('<u>Add</u><BR>Fighter has not met quall standard.<BR>
-								<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-quallified on this date.<BR>
-								<u>Remove</u><BR>Remove quallification achieved at this event.'
+					Qualified
+					<?php if(USER_TYPE >= USER_STAFF): ?>
+					<?=tooltip('<u>Add</u><BR>Fighter has not met qual standard.<BR>
+								<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-qualified on this date.<BR>
+								<u>Remove</u><BR>Remove qualification achieved at this event.'
 								)?>
+					<?php endif ?>
 				</strong></a></button>
 			</th>
 		</tr>
@@ -201,25 +215,33 @@ if($_SESSION['tournamentID'] == null){
 
 	<!-- Data -->
 		
-		<?php foreach((array)$displayList as $fighter): ?>
+		<?php foreach((array)$displayList as $fighter): 
+			if(isset($fighter['qualID'])){
+				$qualID = $fighter['qualID'];
+			} else {
+				$qualID = '';
+			}
+			?>
 			<tr>
 				<form method='POST'>
 				<input type='hidden' name='systemRosterID' value='<?=$fighter['systemRosterID']?>'>
-				<input type='hidden' name='qualID' value='<?=$fighter['qualID']?>'>
+				<input type='hidden' name='qualID' value='<?=$qualID?>'>
 				
 				<td><?=$fighter['name']?></td>
 				<th>
 					<?php if($fighter['qualled']): ?>
-						<?php if($fighter['thisEvent'] && USER_TYPE >= USER_STAFF):?>
+						<?php if(isset($fighter['thisEvent']) && USER_TYPE >= USER_STAFF):?>
 							<button class='button tiny hollow alert no-bottom' 
 								name='formName' value='removeQualledFighterEvent'>
 								Remove
 							</button>
-						<?php else: ?>	
+						<?php elseif(USER_TYPE >= USER_STAFF): ?>	
 							<button class='button tiny hollow no-bottom' 
 								name='formName' value='addQualledFighterEvent'>
 								Update
 							</button>
+						<?php else: ?>
+							<strong>X</strong>
 						<?php endif ?>
 					 <?php else: ?>
 						 <?php if(USER_TYPE >= USER_STAFF): ?>

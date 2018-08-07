@@ -53,7 +53,8 @@ function checkIfFought(checkbox){
 
 		xhr.onreadystatechange = function (){
 			if(this.readyState == 4 && this.status == 200){
-				if(this.responseText.length > 1){ // If the fighter has already fought
+				if(this.responseText.substr(this.responseText.length - 10) == 'HAS FOUGHT' ){ 
+					// If the fighter has already fought
 					hasAlreadyFoughtWarning(true, divElement);
 					checkIfFought.numConflictsChecked++;
 				}

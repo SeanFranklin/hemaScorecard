@@ -13,7 +13,7 @@ function addNewCuttingQual_event(){
 	$date = getEventEndDate();
 	$systemRosterID = $_POST['systemRosterID'];
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){ return null;	}
 	
 	$standard = getCuttingStandard($tournamentID);

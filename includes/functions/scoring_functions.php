@@ -45,7 +45,7 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 
 /******************************************************************************/
 
-function _DeductionBased_displayExchange($exchange,$exchangeNum = null){
+function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 // Displays an exchange for pieces using 'Deduction Based' scoring
 // A request to generate a header may be passed instead of an exchange
 
@@ -69,7 +69,12 @@ function _DeductionBased_displayExchange($exchange,$exchangeNum = null){
 	<?php
 	
 	// Code Block /////////////////////////////
-	
+	if($exchange == null){
+		// Not a valid exchange
+		return;
+	}
+
+
 	$exchangeNum--;
 	$exchangeID = $exchange['exchangeID'];
 	
@@ -81,6 +86,8 @@ function _DeductionBased_displayExchange($exchange,$exchangeNum = null){
 			return;
 		}
 		$placeholder="placeholder='Enter Deduction'";
+		$against = '';
+		$for = '';
 	}
 	?>
 	
@@ -138,6 +145,260 @@ function _DeductionBased_updateExchanges(){
 	
 		$exchangesToUpdate[$exchangeID]['scoreValue'] = (float)$data['value'];
 		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = (float)$data['deduction'];
+	}
+
+	return $exchangesToUpdate;
+	
+}
+
+/******************************************************************************/
+
+function _JNCR_addExchanges($numToAdd, $matchInfo){
+// Adds cuts to a piece using the 'Pure Score' format
+
+	$groupSet = getGroupSetOfMatch($matchInfo['matchID']);
+	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
+
+	for($i=1;$i<=$numToAdd;$i++){
+		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
+	}
+	
+}
+
+/******************************************************************************/
+
+function _JNCR_displayExchange($exchange,$exchangeNum){
+// Displays an exchange for pieces using 'Pure Score' scoring
+// A request to generate a header may be passed instead of an exchange
+
+	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	?>
+	
+<!--  Table Headers -->
+	<?php if($exchangeNum == 'header'): ?>
+		<tr>
+
+			<?php if(USER_TYPE >= USER_STAFF): ?>
+				<th style='padding: 1px; width:6%;'>
+					&nbsp;
+				</th>
+				<th class='text-center' style='padding: 1px; width:22%'>
+					Cut
+				</th>
+				<th class='text-center' style='padding: 1px; width:22%'>
+					Upper
+				</th>
+				<th class='text-center' style='padding: 1px; width:22%'>
+					Lower
+				</th>
+				<th class='text-center' style='padding: 1px; width:17%'>
+					Task
+				</th>
+				<th class='text-center' style='padding: 1px;'>
+					Points
+				</th>
+
+			<?php else: ?>
+				<th>
+					<strong>Cut Num</strong>
+				</th>
+				<th class='text-center' style='padding: 1px;'>
+					Score
+				</th>
+				<th class='text-center' style='padding: 1px;'>
+					Deduction
+				</th>
+				<th class='text-center' style='padding: 1px;'>
+					Points
+				</th>
+			<?php endif ?>
+		</tr>
+		
+		<?php return; ?>
+	<?php endif ?>
+<?php
+
+// Calculations
+	$exchangeID = $exchange['exchangeID'];
+	
+	if($exchange['exchangeType'] == 'scored'){
+		$for = $exchange['scoreValue'];
+		$against = $exchange['scoreDeduction'];
+		$total = $for - $against;
+		$zeroVal = '';
+		$placeholder = "placeholder='No Change'";
+		$cutPoints = '';
+		$upperPoints = '';
+		$lowerPoints = '';
+		
+	} else {
+		if(USER_TYPE < USER_STAFF){ return;}
+		$for = $exchange['scoreValue'];
+		$total = 'N/A';
+		$against = 'N/A';
+		$zeroVal = '';
+		$placeholder = "placeholder='0'";
+		$cutPoints = 0;
+		$upperPoints = 0;
+		$lowerPoints = 0;
+	}
+	?>
+	
+<!-- Table Row -->
+	<tr class='text-center'>
+
+		<?php if(USER_TYPE >= USER_STAFF): ?>
+			<td>
+				<strong><?=$exchangeNum?></strong>
+				<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
+				<input type='hidden' value='<?=$basePointValue?>' name='scores[<?=$exchangeID?>][scoreValue]'>
+				<input type='hidden' value='<?=$against?>' name='scores[<?=$exchangeID?>][scoreDeduction]'>
+			</td>
+
+			<td style='padding: 2px;'>
+				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
+					value='<?=$cutPoints?>' name='scores[<?=$exchangeID?>][cutPoints]'>-->
+				<select class='no-bottom' name='scores[<?=$exchangeID?>][cutPoints]'>
+					<?php if($cutPoints==''):?>
+						<option value=''></option>
+					<?php endif ?>
+					<option value='8'>8</option>
+					<option value='6'>6</option>
+					<option value='4'>4</option>
+					<option value='2'>2</option>
+					<option <?=optionValue(0,$cutPoints)?> >0</option>
+					<option value='-5'>-5</option>
+					<option value='10'>-10</option>
+					<option value='30'>-30</option>
+				</select>
+			</td>
+			<td style='padding: 2px;'>
+				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
+					value='<?=$upperPoints?>' name='scores[<?=$exchangeID?>][upperPoints]'>-->
+				<select class='no-bottom' name='scores[<?=$exchangeID?>][upperPoints]'>
+					<?php if($upperPoints==''):?>
+						<option value=''></option>
+					<?php endif ?>
+					<option value='4'>4</option>
+					<option value='3'>3</option>
+					<option value='2'>2</option>
+					<option value='1'>2</option>
+					<option <?=optionValue(0,$upperPoints)?> >0</option>
+					<option value='-10'>-10</option>
+					<option value='-20'>-20</option>
+				</select>
+			</td>
+			<td style='padding: 2px;'>
+				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
+					value='<?=$lowerPoints?>' name='scores[<?=$exchangeID?>][lowerPoints]'>-->
+				<select class='no-bottom' name='scores[<?=$exchangeID?>][lowerPoints]'>
+					<?php if($lowerPoints==''):?>
+						<option value=''></option>
+					<?php endif ?>
+					<option value='4'>4</option>
+					<option value='3'>3</option>
+					<option value='2'>2</option>
+					<option value='1'>2</option>
+					<option <?=optionValue(0,$lowerPoints)?> >0</option>
+					<option value='-10'>-10</option>
+					<option value='-20'>-20</option>
+				</select>
+			</td>
+			<td style='padding: 2px;'>
+				<select class='no-bottom' name='scores[<?=$exchangeID?>][taskPoints]'>
+					<option value='1'>Full</option>
+					<option value='0.5'>1/2</option>
+					<option value='0'>Null</option>
+				</select'>
+			</td>
+			<td>
+				<strong>
+					<?=$total?>
+				</strong>
+			</td>
+
+		<?php else: ?>
+			<td>
+				<strong><?=$exchangeNum?></strong>
+			</td>
+
+			<td>
+				<?=$for;?>
+			</td>
+
+			<td>
+				<?php if($against > 0): ?> 
+					- <!-- Points against are displayed as negative-->
+				<?php endif ?>
+				<?=$against;?>
+			</td>
+
+			<td>
+				<strong>
+					<?=$total?>
+				</strong>
+			</td>
+		<?php endif ?>
+
+	</tr>
+<?php }
+
+/******************************************************************************/
+
+function _JNCR_updateExchanges(){
+// Calculates the score of each cut for pieces using 'Pure Score'	
+	
+	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$exchangesToUpdate = [];
+
+	foreach((array)$_POST['scores'] as $exchangeID => $data){
+
+		if($data['cutPoints'] == '' && $data['upperPoints'] == '' && $data['lowerPoints'] == ''){
+			continue;
+		}
+
+		// Convert all the input strings into numbers
+		$cutPoints = (float)$data['cutPoints'];
+		$upperPoints = (float)$data['upperPoints'];
+		$lowerPoints = (float)$data['lowerPoints'];
+		$taskPoints = (float)$data['taskPoints'];
+
+		// Check if a penalty was assesed
+		$penalty = 0;
+		if($cutPoints < $penalty){
+			$penalty = $cutPoints;
+		}
+		if($upperPoints < $penalty){
+			$penalty = $upperPoints;
+		}
+		if($lowerPoints < $penalty){
+			$penalty = $lowerPoints;
+		}
+
+		// Calculate the score and deductions
+		if($penalty < 0){
+			$score = $penalty;
+			$deduction = $basePointValue - $score;
+		}elseif($cutPoints == 0){
+			$score = 0;
+			$deduction = $basePointValue;
+		} elseif(($upperPoints + $lowerPoints) == 0){
+			$score = 0;
+			$deduction = $basePointValue;
+		} else {
+			$score = (float)($cutPoints + $upperPoints + $lowerPoints);
+			$score *= $taskPoints;
+			$deduction = $basePointValue - $score;
+		}
+
+		// Record the Exchange
+		$exchangesToUpdate[$exchangeID]['scoreValue'] = $basePointValue;
+		if($score == $basePointValue){
+			$exchangesToUpdate[$exchangeID]['scoreValue'] += 4;
+		}
+
+		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = $deduction;
+
 	}
 
 	return $exchangesToUpdate;
@@ -374,7 +635,9 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 		</td>
 	
 		<td>
-			<?=$total?>
+			<strong>
+				<?=$total?>
+			</strong>
 		</td>
 	</tr>
 <?php }
@@ -469,6 +732,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1){
 	$displayMeta = mysqlQuery($sql, SINGLE);
 
 	// Check to see which fields are used
+	$selectStr = '';
 	for($i = 1; $i <= $maxNumFields; $i++){
 		if($displayMeta['displayTitle'.$i] == '' || $displayMeta['displayField'.$i] == ''){
 			$maxNumFields = $i - 1;
@@ -532,7 +796,7 @@ function pool_GenerateNextPools($poolSet){
 // Calculate advancements to move onto the next pool set using the parameters specified.
 // Parameters are the number of 
 			
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
 
 	// determine which algorithim to use
@@ -597,7 +861,7 @@ function pool_GenerateNextPools($poolSet){
 		foreach($fightersInTier as $rosterIDtoAdd){
 			
 
-			if(!$avoidRefights){
+			if(@!$avoidRefights){
 
 				$_SESSION['poolSeeds'][$poolNum][$poolPosition] = $rosterIDtoAdd;
 				$poolNum += $poolNumIncrement;
@@ -614,9 +878,9 @@ function pool_GenerateNextPools($poolSet){
 			} else {
 
 				// Determine which pools are eligible on account of not being full
-				unset($eligiblePools_Size);
+				$eligiblePools_Size = [];
 				for($i = $startPoolNum; $i <= $maxPoolNum; $i++){
-					$fightersInPool = count($_SESSION['poolSeeds'][$i]);
+					$fightersInPool = count(@$_SESSION['poolSeeds'][$i]);
 					if($fightersInPool < $maxPoolSize){
 						$eligiblePools_Size[$i] = $fightersInPool;
 					}
@@ -624,25 +888,29 @@ function pool_GenerateNextPools($poolSet){
 				if($eligiblePools_Size == null){continue;}
 
 				// Check for conflict levels in each pool
-				unset($possiblePoolRefights);
+				$possiblePoolRefights = [];
 				foreach($eligiblePools_Size as $poolNum => $fightersInPool){
+					if(!isset($possiblePoolRefights[$poolNum])){
+						$possiblePoolRefights[$poolNum] = 0;
+					}
+
 					for($i=1;$i <= $fightersInPool; $i++){
 						$existingRosterID = $_SESSION['poolSeeds'][$poolNum][$i];
 						$possiblePoolRefights[$poolNum] += $numberOfFightsTogether[$rosterIDtoAdd][$existingRosterID];
 					}
-					$possiblePoolRefights[$poolNum] += $poolRefights[$poolNum];
+					$possiblePoolRefights[$poolNum] += @$poolRefights[$poolNum];
 				}
 				
 				
 				
 				// Find possible pools with lowest total refights
 				$minRefights = 9999;
-				unset($eligiblePools_Conflicts);
+				$eligiblePools_Conflicts = [];
 				foreach($possiblePoolRefights as $poolNum => $numRefights){
 					if($numRefights == $minRefights){
 						$eligiblePools_Conflicts[$poolNum] = $possiblePoolRefights[$poolNum];
 					} else if($numRefights < $minRefights){
-						unset($eligiblePools_Conflicts);
+						$eligiblePools_Conflicts = [];
 						$eligiblePools_Conflicts[$poolNum] = $possiblePoolRefights[$poolNum];
 						$minRefights = $numRefights;
 					}
@@ -650,7 +918,7 @@ function pool_GenerateNextPools($poolSet){
 				
 				// Chose Most Empty Pools
 				$mostEmptyPool = 9999;
-				unset($eligiblePools_Combined);
+				$eligiblePools_Combined = [];
 				foreach($eligiblePools_Conflicts as $poolNum => $possibleRefights){
 					$fightersInPool = $eligiblePools_Size[$poolNum];
 					if($fightersInPool == $mostEmptyPool){
@@ -665,7 +933,7 @@ function pool_GenerateNextPools($poolSet){
 				
 				// Stick in first pool if not resolved
 				$poolNum = $eligiblePools_Combined[0];
-				$poolRefights[$poolNum] += $possiblePoolRefights[$poolNum];
+				@$poolRefights[$poolNum] += $possiblePoolRefights[$poolNum];
 				$poolPosition = $eligiblePools_Size[$poolNum]+1;
 			
 				$_SESSION['poolSeeds'][$poolNum][$poolPosition] = $rosterIDtoAdd;
@@ -727,7 +995,8 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 	$sql = "SELECT groupWinnersFirst, 
 			orderByField1, orderBySort1,
 			orderByField2, orderBySort2,
-			orderByField3, orderBySort3
+			orderByField3, orderBySort3,
+			orderByField4, orderBySort4
 			FROM eventTournaments
 			INNER JOIN systemRankings USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
@@ -746,13 +1015,16 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 	if($meta['orderByField2'] != '' 
 		&& ($meta['orderBySort2'] == 'ASC' || $meta['orderBySort2'] == 'DESC')){
 			$orderBy .= ", {$meta['orderByField2']} {$meta['orderBySort2']}";
-
 	}
 
 	if($meta['orderByField3'] != '' 
 		&& ($meta['orderBySort3'] == 'ASC' || $meta['orderBySort3'] == 'DESC')){
 			$orderBy .= ", {$meta['orderByField3']} {$meta['orderBySort3']}";
+	}
 
+	if($meta['orderByField4'] != '' 
+		&& ($meta['orderBySort4'] == 'ASC' || $meta['orderBySort4'] == 'DESC')){
+			$orderBy .= ", {$meta['orderByField4']} {$meta['orderBySort4']}";
 	}
 
 // Retrieve List
@@ -780,12 +1052,18 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 		$numGroups = mysqlQuery($sql, SINGLE, 'numGroups');
 
 		$loserPlacing = 1 + ($numGroups * $numWinners);
+	} else {
+		$loserPlacing = 1;
 	}
 
 	
 // Update each fighter with their placing
 	foreach($rankedList as $standing){
 		$groupID = $standing['groupID'];
+		if(!isset($winnersInGroup[$groupID])){
+			$winnersInGroup[$groupID] = 0;
+		}
+
 		$standingID = $standing['standingID'];
 
 		if($winnersInGroup[$groupID] < $numWinners){
@@ -815,15 +1093,15 @@ function scored_AddExchanges(){
 	
 	if(USER_TYPE < USER_STAFF){return;}
 
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){return;}
+	$matchID = $_SESSION['matchID'];
+	if($matchID == null){
+		return;
+	}
+	$matchInfo = getMatchInfo($matchID);
+	$tournamentID = $matchInfo['tournamentID'];
 
 	$numToAdd = (int)$_POST['exchangesToAdd'];
 
-	$matchInfo = getMatchInfo($matchID);
-
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
 	
 // determine which algorithim to use
 	$funcName = getScoringFunctionName($tournamentID);
@@ -841,12 +1119,11 @@ function scored_DisplyExchanges($matchID = null){
 	
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){return;}
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
-	
+
+	$matchInfo = getMatchInfo($matchID);
 
 // Determine which algorithim to use	
-	$funcName = getDisplayFunctionName($tournamentID);
+	$funcName = getDisplayFunctionName($matchInfo['tournamentID']);
 	if($funcName == null){return;}
 	$funcName = "_".$funcName."_displayExchange";
 
@@ -855,7 +1132,7 @@ function scored_DisplyExchanges($matchID = null){
 
 	echo "<table>";
 // Display Header
-	call_user_func($funcName,$exchange,'header');
+	call_user_func($funcName,'','header');
 
 // Display Exchanges	
 	foreach($exchanges as $exchange){
@@ -885,11 +1162,16 @@ function scored_UpdateExchanges($tournamentID = null){
 // Get Exchanges to Update & Score values
 	$exchangesToUpdate = call_user_func($funcName);
 
+	if($exchangesToUpdate == null){
+		return;
+	}
+
 // Update Exchanges
 	foreach((array)$exchangesToUpdate as $exchangeID => $data){
 		$scoreValue = (float)$data['scoreValue'];
 		$scoreDeduction = (float)$data['scoreDeduction'];
-		
+		$sampleExchangeID = $exchangeID;
+
 		$sql = "UPDATE eventExchanges
 				SET scoreValue = {$scoreValue}, 
 				scoreDeduction = {$scoreDeduction},
@@ -898,7 +1180,7 @@ function scored_UpdateExchanges($tournamentID = null){
 		mysqlQuery($sql, SEND);
 	}
 	
-	updateMatch(getMatchInfo($matchID));
+	updateMatch(getMatchInfo($_POST['matchID']));
 	
 	if(isLastPiece($tournamentID)){
 		$_SESSION['askForFinalization'] = true;

@@ -18,11 +18,32 @@ $hideEventNav = true;
 $hidePageTitle = true;
 include('includes/header.php');
 
+////////////////////////////////////////////////////
+// This is because this page is so hackily coded it needs to be re-done //////
+error_reporting(E_ERROR | E_PARSE);
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
 if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
 	pageError('user');
 } else {
+
+	if(!isset($_SESSION['dataFilters']['weaponID'])){
+		$_SESSION['dataFilters']['weaponID'] = '';
+	}
+	if(!isset($_SESSION['dataFilters']['sortOrder'])){
+		$_SESSION['dataFilters']['sortOrder'] = '';
+	}
+	if(!isset($_SESSION['dataFilters']['newQuery'])){
+		$_SESSION['dataFilters']['newQuery'] = '';
+	}
+	if(!isset($_SESSION['dataFilters']['threshold'])){
+		$_SESSION['dataFilters']['threshold'] = '';
+	}
+
+
 	
-	DEFINE(DEFAULT_THRESHOLD, 60);
+	DEFINE('DEFAULT_THRESHOLD', 60);
 	$weaponID = $_SESSION['dataFilters']['weaponID'];
 
 	$filterFields = getFilterFields();
@@ -84,11 +105,10 @@ function filterBoxes($filterFields){
 	$weaponID = $_SESSION['dataFilters']['weaponID'];
 	$weaponList = getTournamentWeaponsList();
 	
-	if($_SESSION['dataFilters']['sortOrder'] == SORT_ASC){
-		$ascSelected = "selected";
-	}
 	if($_SESSION['dataFilters']['sortOrder'] == SORT_DESC){
-		$descSelected = "selected";
+		$sortOrder = "desc";
+	} else {
+		$sortOrder = "asc";
 	}
 	
 	?>
@@ -141,8 +161,8 @@ function filterBoxes($filterFields){
 		</select>
 
 		<select  class='input-group-field' name='sortOrder'>
-			<option value='asc' <?=$ascSelected?>>Low -> High</option>
-			<option value='desc' <?=$descSelected?>>High -> Low</option>
+			<option <?=optionValue('asc',$sortOrder)?> >Low -> High</option>
+			<option <?=optionValue('desc',$sortOrder)?> >High -> Low</option>
 		</select>
 	</div>
 		
@@ -158,7 +178,7 @@ function filterBoxes($filterFields){
 		} elseif($j > 2){
 			$extra = 'hide-for-small-only';
 		} else {
-			unset($extra);
+			$extra = '';
 		}
 		?>
 		
@@ -278,7 +298,8 @@ function calculateFighterStats($weaponID){
 	$systemRosterIDs = getSystemRoster();
 
 	foreach($systemRosterIDs as $systemRosterID){
-	
+
+
 		$isScoringFighter = true;
 		$a = getFighterExchanges($systemRosterID,$weaponID);
 		foreach($a as $ex){

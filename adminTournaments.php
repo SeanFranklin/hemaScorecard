@@ -24,6 +24,8 @@ if($_SESSION['eventID'] == null){
 	$tournamentList = getTournamentsFull();
 	if(count($tournamentList) == 1){
 		$isActiveItem = 'is-active';
+	} else {
+		$isActiveItem = '';
 	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -40,7 +42,7 @@ if($_SESSION['eventID'] == null){
 		if(isFinalized($tournamentID)){
 			$isLocked = 'disabled';
 		} else {
-			unset($isLocked);
+			$isLocked = '';
 		}
 		?>
 		
@@ -81,8 +83,8 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentElimType($tournamentID);
 				edit_tournamentDoubleType($tournamentID);
 				edit_tournamentRankingType($tournamentID);
-				edit_tournamentBasePoints($tournamentID);
 				edit_tournamentNetScore($tournamentID);
+				edit_tournamentBasePoints($tournamentID);
 				?>
 			</div>
 			<div class='grid-x grid-padding-x text-center'>
@@ -100,13 +102,16 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentNormalization($tournamentID);
 
 				edit_tournamentMaxExchanges($tournamentID);
-				edit_tournamentNegativeScore($tournamentID);
+				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				?>
 			</div>
 			<BR>
+			<div id='tournamentWarnings_<?=$tournamentID?>'>
+				<BR>
+			</div>
 			<div>
 				<button class='button success' name='updateType' value='update' 
 					id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>>
