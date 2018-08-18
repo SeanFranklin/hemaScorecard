@@ -374,40 +374,46 @@ function eventNameForHeader(){
 // Add the event name or prompty to select an event
 
 	$eventID = $_SESSION['eventID'];
-	/*if(USER_TYPE == USER_SUPER_ADMIN || USER_TYPE == USER_STATS){
-		$eventList = getEventList();
-		?>
+	if(USER_TYPE == USER_SUPER_ADMIN || USER_TYPE == USER_STATS): ?>
 		<form method='POST'>
 		<input type='hidden' name='formName' value='selectEvent'>	
 		<div class='grid-x align-center'>
 		<select class='shrink' name='changeEventTo' onchange='this.form.submit()'>
-			<?php if($eventID == null): ?>
-				<option selected disabled></option>
-			<?php endif ?>
-			<?php foreach((array)$eventList as $listEventID => $data): 
-				$selected = isSelected($eventID, $listEventID);
-			?>
-			<!--
-				<option value='<?=$listEventID?>' <?=$selected?>>
-					<?=$data['eventName']?> <?=$data['eventYear']?>
-				</option>-->
-			<?php endforeach ?> 
+			<?php eventNameListSelectOptions($eventID) ?>
 		</select>
 		</div>
 		</form>
-		<?php
-	} elseif($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
-		echo $_SESSION['eventName'];
-	} else {
-		echo "No Event Selected";
-	}*/
+		
+	<?php elseif($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '): ?>
+		<?=$_SESSION['eventName']?>
+	<?php else: ?>
+		No Event Selected
+	<?php endif ?>
 
-	if($_SESSION['eventName'] != null AND $_SESSION['eventName'] != ' '){
-		echo $_SESSION['eventName'];
+<?php
+}
+
+/******************************************************************************/
+
+function eventNameListSelectOptions($eventID){
+
+	
+	$eventList[] = getEventList('hidden');
+	$eventList[] = getEventList('upcoming');
+	$eventList[] = getEventList('active');
+	$eventList[] = getEventList('archived');
+
+	if($eventID == null){
+		echo "<option selected disabled></option>";
 	} else {
-		echo "No Event Selected";
+		foreach($eventList as $listPart){
+			foreach((array)$listPart as $listEventID => $data){ ?>
+				<option <?=optionValue($listEventID, $eventID)?> >
+					<?=$data['eventName']?> <?=$data['eventYear']?>
+				</option>
+			<?php }
+		}
 	}
-
 }
 
 /******************************************************************************/
