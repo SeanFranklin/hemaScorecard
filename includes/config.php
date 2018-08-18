@@ -12,13 +12,7 @@
 
 // Initialize Session //////////////////////////////////////////////////////////
 
-	session_start();
-
-	if(!isset($_SESSION['alertMessages'])){
-		$_SESSION['alertMessages']['systemErrors'] = [];
-		$_SESSION['alertMessages']['userErrors'] = [];
-		$_SESSION['alertMessages']['userAlerts'] = [];
-	}
+	initializeSession();
 
 // System Constants ////////////////////////////////////////////////////////////
 	
@@ -33,6 +27,7 @@
 
 // Program Related Constants
 
+	// User Types
 	define("USER_GUEST",1);
 	define("USER_VIDEO",2);
 	define("USER_STAFF",3);
@@ -40,6 +35,12 @@
 	define("USER_SUPER_ADMIN",5);
 	define("USER_STATS",-1);
 
+	// Alert Codes
+	define("SYSTEM",1);
+	define("USER_ERROR",2);
+	define("USER_ALERT",3);
+
+	// mysqlQuery() function codes
 	define("SEND",0);
 	define("INDEX",1);
 	define("RAW",2);
@@ -67,6 +68,7 @@
 	define("DEFAULT_COLOR_CODE_2",'#66F');
 
 	define("DEFAULT_MAX_DOUBLES",3);
+	define("POOL_SIZE_LIMIT",10);
 	
 	define("RESULTS_ONLY",1);
 	define("POOL_BRACKET",2);
@@ -77,6 +79,13 @@
 	define("NO_AFTERBLOW",1);
 	define("DEDUCTIVE_AFTERBLOW",2);
 	define("FULL_AFTERBLOW",3);
+
+	define("REVERSE_SCORE_NO",0);
+	define("REVERSE_SCORE_GOLF",1);
+	define("REVERSE_SCORE_INJURY",2);
+
+	define("ATTACK_CONTROL_DB",9);
+	define("ATTACK_AFTERBLOW_DB",13);
 
 // Includes ////////////////////////////////////////////////////////////////////
 
@@ -98,11 +107,14 @@ $conn = connectToDB();
 	}
 
 // Set the event ID to the Default Event if there is one
-	if(!isset($_SESSION['eventID'])){
+	if(!isset($_SESSION['eventID']) || ((int)$_SESSION['eventID']) <= 0){
 		$defaultEvent = getDefaultEvent();
 		if($defaultEvent != null){
 			$_SESSION['eventID'] = $defaultEvent;
 			$_SESSION['eventName'] = getEventName($eventID);
+		} else {
+			$_SESSION['eventID'] = '';
+			$_SESSION['eventName'] = '';
 		}
 	}
 
@@ -127,7 +139,11 @@ $conn = connectToDB();
 	
 // Name mode  -- this MUST go before processPostData
 	$defaults = getEventDefaults();
-	define("NAME_MODE", $defaults['nameDisplay']);
+	$nameMode = $defaults['nameDisplay'];
+	if($nameMode == ''){
+		$nameMode = DEFAULT_NAME_MODE;
+	}
+	define("NAME_MODE", DEFAULT_NAME_MODE);
 
 // Process POST Data ///////////////////////////////////////////////////////////
 
@@ -159,9 +175,9 @@ $conn = connectToDB();
 	
 // Event Display Modes
 	$defaults = getEventDefaults(); // Have to re-load as it could change with POST
-	define("TOURNAMENT_DISPLAY_MODE", $defaults['tournamentDisplay']);
-	define("TOURNAMENT_SORT_MODE", $defaults['tournamentSorting']);
-	
+	$_SESSION['dataModes']['tournamentDisplay'] = $defaults['tournamentDisplay'];
+	$_SESSION['dataModes']['tournamentSort'] = $defaults['tournamentSorting'];
+
 
 // Match Colors
 	if($_SESSION['tournamentID'] != null){
@@ -189,8 +205,70 @@ $conn = connectToDB();
 	if(!defined('COLOR_NAME_2')){ define("COLOR_NAME_2", null); }
 	if(!defined('COLOR_CODE_1')){ define("COLOR_CODE_1", null); }
 	if(!defined('COLOR_CODE_2')){ define("COLOR_CODE_2", null); }
-	
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function initializeSession(){
+// Starts the session and initializes any session variables 
+// that are not set to null values.
+
+	session_start();
+
+	if(!isset($_SESSION['alertMessages'])){
+		$_SESSION['alertMessages']['systemErrors'] = [];
+		$_SESSION['alertMessages']['userErrors'] = [];
+		$_SESSION['alertMessages']['userAlerts'] = [];
+	}
+	if(!isset($_SESSION['eventID'])){
+		$_SESSION['eventID'] = '';
+	}
+	if(!isset($_SESSION['tournamentID'])){
+		$_SESSION['tournamentID'] = '';
+	}
+	if(!isset($_SESSION['matchID'])){
+		$_SESSION['matchID'] = '';
+	}
+	if(!isset($_SESSION['groupSet']) || $_SESSION['groupSet'] == null){
+		$_SESSION['groupSet'] = 1;
+	}
+
+	if(!isset($_SESSION['userType'])){
+		$_SESSION['userType'] = '';
+	}
+
+	if(!isset($_SESSION['alertMessages']['systemErrors'])){
+		$_SESSION['alertMessages']['systemErrors'] = [];
+	}
+	if(!isset($_SESSION['alertMessages']['userErrors'])){
+		$_SESSION['alertMessages']['userErrors'] = [];
+	}
+	if(!isset($_SESSION['alertMessages']['userAlerts'])){
+		$_SESSION['alertMessages']['userAlerts'] = [];
+	}
+
+	if(!isset($_SESSION['rosterViewMode'])){
+		$_SESSION['rosterViewMode'] = [];
+	}
+	if(!isset($_SESSION['bracketHelper'])){
+		$_SESSION['bracketHelper'] = [];
+	}
+
+	if(!isset($_SESSION['dataModes']['tournamentDisplay'])){
+		$_SESSION['dataModes']['tournamentDisplay'] = '';
+	}
+	if(!isset($_SESSION['dataModes']['tournamentSort'])){
+		$_SESSION['dataModes']['tournamentSort'] = '';
+	}
+
+}
+
+/******************************************************************************/	
 	
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+
