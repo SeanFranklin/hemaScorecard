@@ -25,6 +25,14 @@ function toggle(divName, divName2 = null) {
 
 /************************************************************************************/
 
+function rankingDescriptionToggle(rankingID){
+    $(".rankingDescription").hide();
+    var divName = "rankingID"+rankingID; 
+    $("#"+divName).show();
+}
+
+/************************************************************************************/
+
 function autoRefresh(timeInterval){
 // Automatically refreshes a page for a given time interval.
 // timeInterval is in msec

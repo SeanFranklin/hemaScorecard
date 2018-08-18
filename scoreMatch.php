@@ -342,7 +342,7 @@ function dataEntryBox($matchInfo){
 	</tr>
 	
 	<!-- Double Hit -->
-	<?php if($doubleTypes['afterblowType'] != 'full'): ?>
+	<?php if(isDoubleHits()): ?>
 		<tr>
 			<td>Double Hit</td>
 			<td>
@@ -682,7 +682,7 @@ function createSideBar($matchInfo){
 			</a>
 			
 			<!--Manual Time Set -->
-			<a onclick="document.getElementById('manualSetDiv').classList.remove('hidden');"
+			<a onclick="$('#manualSetDiv').toggle();"
 				id='manualTimerToggle'>
 				Manual Time Set
 			</a>
@@ -777,18 +777,21 @@ function createSideBar($matchInfo){
 		<?php endif ?>
 	<?php endif ?>
 	
-	<hr>
 	
 <!-- Doubles management/display -->
-	<form method='POST'>
-	<fieldset <?=LOCK_TOURNAMENT?>>
-	<input type='hidden' name='formName' value='matchWinner'>
-	<input type='hidden' name='matchID' value='<?=$matchID?>'>
-	<input type='hidden' class='matchTime' name='matchTime' value=''>
+	<?php if(isDoubleHits()): ?>
+		<hr>
 
-	<?php doublesText($doubles, $matchInfo) ?>
-	</fieldset>
-	</form>
+		<form method='POST'>
+		<fieldset <?=LOCK_TOURNAMENT?>>
+		<input type='hidden' name='formName' value='matchWinner'>
+		<input type='hidden' name='matchID' value='<?=$matchID?>'>
+		<input type='hidden' class='matchTime' name='matchTime' value=''>
+
+		<?php doublesText($doubles, $matchInfo) ?>
+		</fieldset>
+		</form>
+	<?php endif ?>
 	
 	<?php if(USER_TYPE < USER_STAFF){ return; } ?>
 	

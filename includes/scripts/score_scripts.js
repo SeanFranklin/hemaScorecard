@@ -367,6 +367,7 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 	var intervalID = window.setInterval(function(){ a(); }, refreshPeriod);
 	
 	function a(){ 
+		var query = {};
 		var query = "mode=newExchange";
 		query = query + "&matchID=" + matchID.toString();
 		query = query + "&exchangeID=" + exchangeID.toString();
@@ -393,7 +394,7 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 					}
 				}
 			}
-		};	
+		};	//*/
 	}
 }
 
@@ -405,13 +406,14 @@ function startTimer(timeDiv){
 		timeDiv.classList.remove('running');
 		timeDiv.classList.remove('alert');
 		timeDiv.classList.add('success');
-		document.getElementById('manualTimerToggle').classList.remove('hidden');
+		$('#manualTimerToggle').show();
 		clearInterval(timerClock);
 	} else {
 		timeDiv.classList.add('running');
 		timeDiv.classList.add('alert');
 		timeDiv.classList.remove('success');
-		document.getElementById('manualTimerToggle').classList.add('hidden');
+		$('#manualTimerToggle').hide();
+		$('#manualSetDiv').hide();
 		timerClock = setInterval(increaseTime,1000);
 	}
 }
@@ -449,6 +451,7 @@ function updateMatchTimer(){
 	
 	// Update the form fields
 	timerInputs = document.getElementsByClassName('matchTime');
+
 	for(var i=0; i<timerInputs.length; i++){
 		timerInputs[i].value = time;
 	}
@@ -491,8 +494,18 @@ function updateTimerDisplay(time = null){
 /******************************************************************************/
 
 function manualTimeSet(){
-	time = parseInt(document.getElementById('timerMinutes').value) * 60;
-	time += parseInt(document.getElementById('timerSeconds').value);
+	var minutes = parseInt($('#timerMinutes').val());
+	if (Number.isInteger(minutes) == false){
+		minutes = 0;
+	}
+
+	var seconds = parseInt($('#timerSeconds').val());
+	if (Number.isInteger(seconds) == false) {
+		seconds = 0;
+	}
+
+	time = (60 * minutes) + seconds;
+
 	document.getElementById('matchTime').value = time;
 	updateMatchTimer();
 	document.getElementById('manualSetDiv').classList.add('hidden')

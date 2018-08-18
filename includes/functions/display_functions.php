@@ -524,8 +524,7 @@ function edit_tournamentDoubleType($tournamentID = 'new'){
 		<strong>Double/Afterblow Type</strong>
 		
 		<select name='updateTournament[doubleTypeID]' 
-			onchange="edit_doubleType('<?=$tournamentID?>')"
-			id='doubleID_select<?=$tournamentID?>'>
+			onchange="edit_doubleType('<?=$tournamentID?>')" id='doubleID_select<?=$tournamentID?>'>
 			
 			<option <?=$nullOptionSelected?> disabled></option>
 				<?php foreach($doubleTypes as $ID => $name):?>
@@ -617,17 +616,6 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 	
 	
 <!-- Ranking types reveal-->
-
-	<script>
-	
-		function rankingDescriptionToggle(rankingID){
-			$(".rankingDescription").hide();
-			var divName = "rankingID"+rankingID; 
-			$("#"+divName).show();
-		}
-	
-	</script>
-
 
 	<div class='reveal large' id='rankingTypesReveal' data-reveal>
 	
@@ -828,6 +816,14 @@ function edit_tournamentMaxDoubles($tournamentID = 'new'){
 		
 		if(in_array($info['tournamentElimID'], array(2,3,4)) AND $info['doubleTypeID'] != 3){
 			$display = '';
+		} else {
+			$sql = "SELECT overrideDoubleType
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$isOverrideDoubles = (int)mysqlQuery($sql, SINGLE, 'overrideDoubleType');
+			if($isOverrideDoubles == 1){
+				$display = '';
+			}
 		}
 	}
 	
@@ -1162,6 +1158,58 @@ function edit_tournamentReverseScore($tournamentID = 'new'){
 			<option <?=optionValue(0,$isReverseScore)?> >No (Normal)</option>
 			<option <?=optionValue(1,$isReverseScore)?> >Golf Score</option>
 			<option <?=optionValue(2,$isReverseScore)?> >Injury Score</option>
+			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentOverrideDoubles($tournamentID = 'new'){
+// Select menu for whether or not the tournament uses overdides 
+// the default double hit behavior.
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a box to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+	$isOverrideDoubles = 0;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(isFullAfterblow($tournamentID) && (isPools($tournamentID) || isBrackets($tournamentID))){
+			
+			$sql = "SELECT overrideDoubleType
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$isOverrideDoubles = (int)mysqlQuery($sql, SINGLE, 'overrideDoubleType');
+			if($isOverrideDoubles == 1){
+				$display = '';
+			}
+		}
+		$display = '';
+
+	} elseif($tournamentID == 'new') {
+		// Not used
+	}
+
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='overrideDoubles_div<?=$tournamentID?>' >
+			
+		Enable Doubles
+		<?php tooltip("Enables double hits in Full Afterblow Scoring"); ?>
+		
+		<select name='updateTournament[overrideDoubleType]'
+			onchange="enableTournamentButton('<?=$tournamentID?>')"
+			id='overrideDoubles_select<?=$tournamentID?>'>
+			
+			<option <?=optionValue(0,$isOverrideDoubles)?> >No (Normal)</option>
+			<option <?=optionValue(1,$isOverrideDoubles)?> >Yes</option>
 			
 		</select>
 		

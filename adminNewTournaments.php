@@ -72,6 +72,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentMaxExchanges();
 			edit_tournamentReverseScore();
 			edit_tournamentControlPoints();
+			edit_tournamentOverrideDoubles();
 			edit_tournamentCuttingQual();
 			edit_tournamentKeepPrivate();
 			?>

@@ -136,6 +136,13 @@ function enableTournamentButton(tournamentID){
 			if(netScoreMode.length == 0){
 				warrningMessages.push('Please select Net Score preference');
 			}
+			$("#overrideDoubles_div"+tournamentID).show();
+			console.log("!");
+			if($("#overrideDoubles_select"+tournamentID).val() != 0){
+				$("#maxDoubles_div"+tournamentID).show();
+			}
+		} else {
+			$("#overrideDoubles_div"+tournamentID).hide();
 		}
 	}
 
