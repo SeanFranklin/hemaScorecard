@@ -23,7 +23,6 @@ function processPostData(){
 	//define('SHOW_SESSION', true);
 	/////////////////////////////*/
 
-
 	if(isset($_POST['formName'])){
 
 		// Refresh page after POST processing complete to prevent resubmits
@@ -824,7 +823,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 		return;
 	}
 	
-	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == 9){
+	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == ATTACK_CONTROL_DB){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
 	}
@@ -904,9 +903,18 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$score1 = $at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
 		
+		
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = $at2['attackPoints'];
 		$scoring[$id2]['hit'] = $score2;
+
+		$afterblowPrefix = null;
+		if($at1['attackPrefix'] == ATTACK_AFTERBLOW_DB){
+			$afterblowPrefix = 1;
+		} elseif($at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){
+			$afterblowPrefix = 2;
+		}
+
 	} else {
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode in fullAfterblowScoring()";
 		return;
@@ -925,7 +933,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$scoreDeduction = 'null';
 		$exchangeType = 'clean';
 
-		if(@$_POST['attackModifier'] == 9){
+		if(@$_POST['attackModifier'] == ATTACK_CONTROL_DB){
 			$rPrefix = (int)$_POST['attackModifier'];
 			$scoreValue += getControlPointValue();
 		}
@@ -949,7 +957,19 @@ function fullAfterblowScoring($matchInfo,$scoring){
 			}
 			
 		}
-		
+
+		// Manages afterblows
+		// If the higher scoring fighter has the afterblow prefix it adds
+		// it to the exchange. If the lower scoring fighter had it, they 
+		// would have had the afterblow anyways.
+		if($rPrefix == null){
+			if($rosterID == $id1 && $afterblowPrefix == 1){
+				$rPrefix = ATTACK_AFTERBLOW_DB;
+			} elseif($rosterID == $id2 && $afterblowPrefix == 2){
+				$rPrefix = ATTACK_AFTERBLOW_DB;
+			}
+		}
+
 		$scoreValue = 	$scoring[$rosterID]['hit'];
 		$scoreDeduction = $scoring[$otherID]['hit'];
 		$exchangeType = 'afterblow';
@@ -1022,7 +1042,7 @@ function noAfterblowScoring($matchInfo,$scoring){
 		return;
 	}
 
-	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == 9){
+	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == ATTACK_CONTROL_DB){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue();
 	}
@@ -1106,7 +1126,7 @@ function changeEvent($eventID = null, $loggingIn = false){
 // Changes event to the parameter provided and redirects to a
 // landing page determined by the login type
 	
-	if($eventID == null){ @$eventID =$_POST['changeEventTo']; }
+	if($eventID == null){ @$eventID = (int)$_POST['changeEventTo']; }
 	if($_SESSION['eventID'] != $eventID){
 		$eventChanged = true;
 	} else {

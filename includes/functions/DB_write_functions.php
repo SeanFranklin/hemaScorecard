@@ -154,22 +154,24 @@ function addEventParticipantsByID(){
 		$rosterID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 		
 	// Add fighters to tournaments
-		foreach((array)$fighter['tournamentIDs'] as $tournamentID){
-			if(isFinalized($tournamentID)){
-				$name = getFighterName($rosterID);
-				$tName = getTournamentName($tournamentID);
+		if(isset($fighter['tournamentIDs'])){
+			foreach((array)$fighter['tournamentIDs'] as $tournamentID){
+				if(isFinalized($tournamentID)){
+					$name = getFighterName($rosterID);
+					$tName = getTournamentName($tournamentID);
+					
+					$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Tournament Addition Failed</span> - Tournament has already been finalized<BR>
+					 <strong>{$name}</strong> can not be added to <strong>{$tName}</strong>";
+					continue;
+				}
 				
-				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Tournament Addition Failed</span> - Tournament has already been finalized<BR>
-				 <strong>{$name}</strong> can not be added to <strong>{$tName}</strong>";
-				continue;
+				
+				$sql = "INSERT INTO eventTournamentRoster
+					(rosterID, tournamentID)
+					VALUES
+					({$rosterID}, {$tournamentID})";
+				mysqlQuery($sql, SEND);
 			}
-			
-			
-			$sql = "INSERT INTO eventTournamentRoster
-				(rosterID, tournamentID)
-				VALUES
-				({$rosterID}, {$tournamentID})";
-			mysqlQuery($sql, SEND);
 		}
 		
 	// Check if the schoolID in the systemRoster should be updated
@@ -244,7 +246,7 @@ function addEventParticipantsByName(){
 			$error['enteredSchoolID'] = $schoolID;
 			$error['systemSchoolID'] = $systemSchoolID;
 			$error['systemRosterID'] = $systemRosterID;
-			$error['tournamentIDs'] = $fighter['tournamentIDs'];
+			@$error['tournamentIDs'] = $fighter['tournamentIDs']; // This may not exist and should be null
 			$_SESSION['rosterEntryConflicts']['alreadyExists'][] = $error;
 			continue;
 		}
@@ -1240,20 +1242,43 @@ function editEventParticipant(){
 			FROM eventRoster
 			WHERE rosterID = {$rosterID}";
 	$systemRosterID = mysqlQuery($sql, SINGLE, 'systemRosterID');
-
-	$firstName = rtrim($_POST['editParticipantData']['firstName']);
-	$lastName = rtrim($_POST['editParticipantData']['lastName']);
+	
 	$schoolID = $_POST['editParticipantData']['schoolID'];
 	$tournaments = @$_POST['editParticipantData']['tournamentIDs']; // There may be no tournaments set
+	$firstName = rtrim($_POST['editParticipantData']['firstName']);
+	$lastName = rtrim($_POST['editParticipantData']['lastName']);
 
-	$sql = "UPDATE systemRoster
-			SET firstName = ?, lastName = ?
-			WHERE systemRosterID = {$systemRosterID}";
+	$sql = "SELECT COUNT(*) AS numEvents
+			FROM eventRoster 
+			WHERE systemRosterID = {$systemRosterID}
+			AND eventID != {$eventID}";
+	$count = (int)mysqlQuery($sql, SINGLE, 'numEvents');
 
-	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "ss", $firstName, $lastName);
-	$exec = mysqli_stmt_execute($stmt);
-	mysqli_stmt_close($stmt);
+	if(($count == 0) || (USER_TYPE >= USER_SUPER_ADMIN)){
+		
+		$sql = "UPDATE systemRoster
+				SET firstName = ?, lastName = ?
+				WHERE systemRosterID = {$systemRosterID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		$bind = mysqli_stmt_bind_param($stmt, "ss", $firstName, $lastName);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	} else {
+		$oldName = getFighterName($rosterID,'split');
+
+		if(strcmp($oldName['firstName'],$firstName) != 0
+			|| strcmp($oldName['lastName'],$lastName) != 0){
+
+			$oldName = getFighterName($rosterID);
+
+			setAlert(USER_ERROR,
+				"<u>{$oldName}</u> is entered across multiple events.<BR>
+				You can not change their name.<BR>
+				If there is an issue, please contact the HEMA Scorecard Staff."
+				);
+		}
+	}
 	
 	$sql = "UPDATE eventRoster
 			SET schoolID = {$schoolID}
@@ -2424,7 +2449,7 @@ function updateEventTournaments(){
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, tournamentElimID, tournamentRankingID,
 					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
-					isNotNetScore, basePointValue, isPrivate, isReverseScore
+					isNotNetScore, basePointValue, overrideDoubleType, isPrivate, isReverseScore
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -2445,6 +2470,7 @@ function updateEventTournaments(){
 					{$info['useControlPoint']},
 					{$info['isNotNetScore']},
 					{$info['basePointValue']},
+					{$info['overrideDoubleType']},
 					{$info['isPrivate']},
 					{$info['isReverseScore']}
 					)";
@@ -2453,7 +2479,7 @@ function updateEventTournaments(){
 			$tournamentID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 			
 			$newName = getTournamentName($tournamentID);
-			$_SESSION['alertMessages']['userAlerts'][] = "Created tournament: '{$newName}'";
+			$_SESSION['alertMessages']['userAlerts'][] = "Created tournament: <strong>{$newName}</strong>";
 			
 			$_SESSION['tournamentID'] = $tournamentID;
 			break;
@@ -3097,8 +3123,6 @@ function updateMatch($matchInfo){
 		}
 	}
 
-
-show($fighter1Score);
 	$sql = "UPDATE eventMatches
 			SET fighter1Score = {$fighter1Score},
 			fighter2Score = {$fighter2Score}

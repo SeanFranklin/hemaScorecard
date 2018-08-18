@@ -772,7 +772,6 @@ function getEventList($eventStatus, $order = null, $limit = null){
 	$validValues['hidden'] = true;
 	$validValues['archived'] = true;
 
-
 	if(!isset($validValues[$eventStatus])){
 		setAlert(SYSTEM,'Invalid eventStatus in getEventList()');
 		return null;
@@ -3557,6 +3556,28 @@ function isFinalized($tournamentID){
 	}
 	return false;
 	
+}
+
+/******************************************************************************/
+
+function isDoubleHits($tournamentID = null){
+	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == null){
+		setAlert(SYSTEM,"No tournamentID in isDoubleHits()");
+		return;
+	}
+
+	$sql = "SELECT doubleTypeID, overrideDoubleType
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$res = mysqlQuery($sql, SINGLE);
+
+	if($res['doubleTypeID'] == FULL_AFTERBLOW && $res['overrideDoubleType'] == 0){
+		return false;
+	} else {
+		return true;
+	}
+
 }
 
 /******************************************************************************/
