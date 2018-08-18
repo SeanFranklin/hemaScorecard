@@ -104,6 +104,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentMaxExchanges($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
+				edit_tournamentOverrideDoubles($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				?>

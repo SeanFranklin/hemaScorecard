@@ -133,6 +133,7 @@ function editEventMenu($eventID,$eventInfo){
 	$num = rand(0,999);		// random number acting as a delete confirmation
 	$eventStatus = getEventStatus($eventID);
 	$statusType = array('active','upcoming','hidden','default','archived');
+	$e_mail = getEventEmail($eventID);
 	?>
 	
 	<fieldset class='fieldset cell large-6'>
@@ -173,6 +174,7 @@ function editEventMenu($eventID,$eventInfo){
 		<button class='button alert hollow small' name='deleteEvent' value='Delete Event'>Delete Event</button>
 		<input type='text' name='deleteCode' size='1'>
 	</form>
+	Organizer E-mail: <strong><u><?=$e_mail?></u></strong>
 	</fieldset>
 
 <?php }
