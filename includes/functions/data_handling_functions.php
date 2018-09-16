@@ -29,6 +29,53 @@ function setAlert($type,$message){
 
 /******************************************************************************/
 
+function makePoolMatchOrder($groupRoster, $ignores = [], $groupSet = 1){
+
+	$numTeams = count($groupRoster);
+
+	$teamsSet = [];
+	$matchOrder = [];
+	$matchNumber = 1;
+
+	// Step through sequentialy and do everyone vs everyone
+	foreach($groupRoster as $team1ID => $team1Roster){
+		$teamsSet[$team1ID] = true;
+
+		foreach($groupRoster as $team2ID => $team2Roster){
+			if(isset($teamsSet[$team2ID])){
+				continue;
+			}
+			
+			foreach($team1Roster as $rosterID1){
+
+				// Skip if fighter 1 can't continue
+				if( @(int)$ignores[$rosterID1]['stopAtSet'] < (int)$groupSet    // If unset treat it as zero
+					&& @(int)$ignores[$rosterID1]['stopAtSet'] > 0){
+					continue;
+				}
+
+				foreach($team2Roster as $rosterID2){
+
+					// Skip if fighter 2 can't continue
+					if( @(int)$ignores[$rosterID2]['stopAtSet'] < (int)$groupSet    // If unset treat it as zero
+						&& @(int)$ignores[$rosterID2]['stopAtSet'] > 0){
+						continue;
+					}
+
+					$matchOrder[$matchNumber]['fighter1ID'] = $rosterID1;
+					$matchOrder[$matchNumber]['fighter2ID'] = $rosterID2;
+					$matchNumber++;
+				}
+			}
+		}
+	}
+
+	return $matchOrder;
+
+}
+
+/******************************************************************************/
+
 function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 
 	if($exchangeInfo['rosterID'] == $fighter1ID){

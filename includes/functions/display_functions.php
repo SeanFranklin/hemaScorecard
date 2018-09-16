@@ -976,6 +976,56 @@ function edit_tournamentNormalization($tournamentID = 'new'){
 	
 <?php }
 
+/******************************************************************************/
+
+function edit_tournamentPoolWinners($tournamentID = 'new'){
+// Select menu for the number of pool winners to rank ahead of non-pool winners.
+// Appears or disapears as controled by javascript.
+	
+	$display = "hidden"; 			// Hidden for most cases
+	$normSize = null;
+	$numWinners = 0;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT poolWinnersFirst
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$numWinners = mysqlQuery($sql, SINGLE, 'poolWinnersFirst');
+
+		$sql = "SELECT tournamentElimID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$info = mysqlQuery($sql, SINGLE);
+		
+		if(in_array($info['tournamentElimID'], array(2,4)) ){
+			$display = '';
+		}
+		
+	}
+	
+	?>
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='poolWinnersFirst_div<?=$tournamentID?>'>
+			
+		Sort Pool Winners First
+		<?php tooltip("Using this option the top fighters in each pool will all
+		be ranked at the top, even if a non pool-winner has a higher score."); ?>
+
+		<select name='updateTournament[poolWinnersFirst]'
+			id='poolWinnersFirst_select<?=$tournamentID?>'>
+			<option value='0'>No (Rank by Score)</option>
+			<?php for($i = 1; $i <= (POOL_SIZE_LIMIT-1); $i++): ?>
+				<option <?=optionValue($i,$numWinners)?> >Top <?=$i?> from pool</option>
+			<?php endfor ?>
+		</select>			
+
+	</div>
+	
+<?php }
+
 /***********************************************************(******************/
 
 function edit_tournamentColors($tournamentID = 'new', $num){
@@ -1377,10 +1427,11 @@ function edit_tournamentCuttingQual($tournamentID = 'new'){
 	
 <?php }
 
-/**********************************************************(*******************/
+/*****************************************************************************/
 
 function edit_tournamentKeepPrivate($tournamentID = 'new'){
-// Select menu for whether or not the tournament has a cutting qualification
+// Select menu for whether or not the software should warn people the event
+// organizer would rather not have results posted or added to stuff like HEMA Ratings
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a checkbox to create a new tournament if no parameter is passed
 	
@@ -1420,6 +1471,65 @@ function edit_tournamentKeepPrivate($tournamentID = 'new'){
 		</select>
 		
 	</div>
+	
+<?php }
+
+/*****************************************************************************/
+
+function edit_tournamentTeams($tournamentID = 'new'){
+// Select if the tournament is a team event
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$isTeams = 0;
+	$display = 'hidden';
+	$mode = '';
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+		
+		$sql = "SELECT isTeams
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$isTeams = (int)mysqlQuery($sql, SINGLE, 'isTeams');
+
+		if($isTeams){
+			$mode = getTournamentLogic($tournamentID);
+			$display = '';
+		}
+
+	}
+
+	$selected = isSelected(1 == $isTeams);	
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box' 
+		id='isTeams_div<?=$tournamentID?>' onchange="enableTournamentButton('<?=$tournamentID?>')">
+		Team Based Event
+		
+		<select name='updateTournament[isTeams]'
+			id='isTeams_select<?=$tournamentID?>'>
+			<option value='0'>No</option>
+			<option value='1' <?=$selected?>>Team Event</option>
+		</select>
+		
+	</div>
+
+<!-- Start display -->
+	
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='teamLogic_div<?=$tournamentID?>'>
+		Team Mode<?=tooltip("<u>Team vs Team</u><BR>Whole teams fight each other
+				<BR><u>All vs All</u><BR>Each team member faces each member of every other team individually.")?>
+		
+		<select name='updateTournament[logicMode]'
+			id='teamLogic_select<?=$tournamentID?>'>
+			<option value='NULL'>Team vs Team</option>
+			<option <?=optionValue('team_AllVsAll',$mode)?> >All vs All</option>
+		</select>
+		
+	</div>
+	
 	
 <?php }
 
