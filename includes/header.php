@@ -112,7 +112,6 @@ $livestreamInfo = getLivestreamInfo();
 						<ul class='menu vertical'>
 							<li><a href='participantsEvent.php'>Event Roster</a></li>
 							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
-							<!--<li><a href='participantsImport.php'>Import Roster</a></li>-->
 						</ul>
 					</li>
 					<li><a href='#'>Manage Event</a>
@@ -251,8 +250,16 @@ $livestreamInfo = getLivestreamInfo();
 		$navBarString = '';
 
 		if($_SESSION['tournamentID'] != null){
-			$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
+			if(!isTeams($_SESSION['tournamentID'])){
+				$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
+			} elseif(USER_TYPE >= USER_STAFF) {
+				$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
+				$navBarString .= "<li><a href='participantsTeams.php'>Team Rosters</a></li>";
+			} else {
+				$navBarString .= "<li><a href='participantsTeams.php'>Team Rosters</a></li>";
+			}
 		}
+
 							
 		// Tournament has pools
 		if(isPools($_SESSION['tournamentID'])){

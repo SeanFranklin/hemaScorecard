@@ -5,6 +5,8 @@
 	Page footer and javascript declarations
 		
 *******************************************************************************/
+
+	displayPageAlerts();
 ?>
 
 	</div id='a'><!-- End Page Wrapper -->
