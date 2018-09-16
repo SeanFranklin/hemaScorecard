@@ -11,7 +11,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	
 	// Results Only
 	fieldsToDisplay [1] = {			
-		elimID: 'show'
+		elimID: 'show',
+		isTeams: 'show'
 	};
 	
 	// Pool & Bracket 
@@ -30,7 +31,9 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		reverseScore: 'show'
+		reverseScore: 'show',
+		isTeams: 'show',
+		poolWinnersFirst: 'show'
 	};
 	
 	// Direct Bracket
@@ -46,7 +49,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		reverseScore: 'show'
+		reverseScore: 'show',
+		isTeams: 'show'
 	};
 	
 	// Pool Sets
@@ -65,7 +69,9 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
-		reverseScore: 'show'
+		reverseScore: 'show',
+		isTeams: 'show',
+		poolWinnersFirst: 'show'
 	};
 	
 	// Scored Event
@@ -74,7 +80,8 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		rankingID: 'refresh',
 		baseValue: 'show',
 		isCuttingQual: 'show',
-		isPrivate: 'show'
+		isPrivate: 'show',
+		isTeams: 'show'
 	};
 	
 	function toggleTournamentEntryDiv(){
@@ -107,6 +114,13 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 // Check for fields which are just toggled by double hits
 	if(fieldsToDisplay[elimID]['maxDoubles'] == 'show'){
 		edit_doubleType(tournamentID);
+	}
+
+// Team Modes
+	if($('#isTeams_select'+tournamentID).val() > 0){
+		$('#teamLogic_div'+tournamentID).show();
+	} else {
+		$('#teamLogic_div'+tournamentID).hide();
 	}
 	
 }
@@ -179,6 +193,12 @@ function enableTournamentButton(tournamentID){
 		}
 	}
 
+// Team Modes
+	if($('#isTeams_select'+tournamentID).val() > 0){
+		$('#teamLogic_div'+tournamentID).show();
+	} else {
+		$('#teamLogic_div'+tournamentID).hide();
+	}
 
 
 // Set warning messages
@@ -256,13 +276,11 @@ function edit_elimType(tournamentID){
 				option.selected = true;
 				select.appendChild(option);
 
-				for(var rankingID in rankingTypes){
-					
+				for(var i in rankingTypes){
 					var option = document.createElement('option');
-					option.value = rankingID;
-					option.innerHTML = rankingTypes[rankingID];
+					option.value = rankingTypes[i]['tournamentRankingID'];
+					option.innerHTML = rankingTypes[i]['name'];
 					select.appendChild(option);
-					
 				}
 
 				enableTournamentButton(tournamentID);

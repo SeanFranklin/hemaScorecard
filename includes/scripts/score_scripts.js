@@ -400,7 +400,9 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 
 /******************************************************************************/
 
-function startTimer(timeDiv){
+function startTimer(){
+
+	timeDiv = document.getElementById("timerButton");
 	
 	if(timeDiv.classList.contains('running')){
 		timeDiv.classList.remove('running');
@@ -408,6 +410,7 @@ function startTimer(timeDiv){
 		timeDiv.classList.add('success');
 		$('#manualTimerToggle').show();
 		clearInterval(timerClock);
+		$("#restartTimerInput").val(0);
 	} else {
 		timeDiv.classList.add('running');
 		timeDiv.classList.add('alert');
@@ -415,6 +418,7 @@ function startTimer(timeDiv){
 		$('#manualTimerToggle').hide();
 		$('#manualSetDiv').hide();
 		timerClock = setInterval(increaseTime,1000);
+		$("#restartTimerInput").val(1);
 	}
 }
 
