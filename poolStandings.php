@@ -36,10 +36,13 @@ if($tournamentID == null){
 	poolSetNavigation();
 	
 	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
+	$isTeamLogic = isTeamLogic($tournamentID);
+
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
+
 	<?php if($incompleteMatches != null): ?>
 		<div class='large-12 callout secondary text-center'>
 		<p>All pool matches not yet concluded. <BR>
@@ -55,10 +58,31 @@ if($tournamentID == null){
 		</div>			
 	<?php endif ?>
 
-<?php 	
-// creates the table to display the results 
-		pool_DisplayResults($tournamentID, $_SESSION['groupSet']); // 
+	<?php if($isTeamLogic == false): ?>
+		<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], isTeams($tournamentID));?>
+	<?php else: ?>
+		<ul class="tabs" data-tabs id="example-tabs">
+			<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Teams</a></li>
+			<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">Fighters</a></li>
+		</ul>
+
+
+		<div class="tabs-content" data-tabs-content="example-tabs">
+			<div class="tabs-panel is-active" id="panel1">
+				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], true);?>
+			</div>
+			<div class="tabs-panel" id="panel2">
+				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet']);?>
+			</div>
+			
+		</div>
+	<? endif ?>
+
 		
+
+
+		 
+<?php 		
 }
 
 include('includes/footer.php');

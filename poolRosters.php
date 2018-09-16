@@ -43,12 +43,12 @@ if($tournamentID == null){
 	
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
-	$tournamentRoster = getTournamentRoster();
+	$tournamentRoster = getTournamentCompetitors();
 	$assignedFighters = array();
 
-	$stops = getStops($tournamentID);
-	foreach($stops as $rosterID => $bool){
-		if($bool == 1){
+	$ignores = getIgnores($tournamentID);
+	foreach($ignores as $rosterID => $status){
+		if($status['stopAtSet'] > 0){
 			foreach($tournamentRoster as $index => $fighter){
 				if($fighter['rosterID'] == $rosterID){
 					unset($tournamentRoster[$index]);
@@ -73,12 +73,11 @@ if($tournamentID == null){
 			$freeFighters[] = $fighter;
 		}
 	}
-
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
-	
+
 <!-- Pool Set Navigation -->
 	<div id='poolRosterDiv'>
 	<div class='grid-x grid-padding-x'>
@@ -544,10 +543,16 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 							$seedID = false;
 						}
 						$selected = isSelected($seedID,$entry['rosterID']);
-
+						if(!IS_TEAMS){
+							$name = getFighterName($entry['rosterID'])." ";
+							$name .= "(".$entry['schoolAbreviation'].")";
+						} else {
+							$name = getTeamName($entry['rosterID']);
+						}
 						?>
+
 						<option value='<?=$entry['rosterID']?>' <?=$selected?>>
-							<?=getFighterName($entry['rosterID'])?> (<?=$entry['schoolAbreviation']?>)
+							<?=$name?>
 						</option>
 					<?php endforeach ?>
 				</select>
@@ -556,7 +561,15 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 		
 		<!-- Fighter Already entered in position -->	
 		<?php else:?>
-			<?php $rosterID = $poolRoster[$i]['rosterID']; ?>
+			<?php $rosterID = $poolRoster[$i]['rosterID']; 
+				if(!IS_TEAMS){
+					$name = getFighterName($rosterID)." ";
+					$name .= "<em>(".$poolRoster[$i]['schoolAbreviation'].")</em>";
+				} else {
+					$name = getTeamName($rosterID);
+				}
+
+			?>
 			<div class='medium-shrink small-6 cell opacity-toggle' id='divFor<?=$rosterID?>'>
 			
 			<?php if(USER_TYPE >= USER_ADMIN): ?>
@@ -564,7 +577,7 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 					onchange="checkIfFought(this)" 
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'>
 			<?php endif ?>
-			<?=getFighterName($rosterID)?> <em>(<?=$poolRoster[$i]['schoolAbreviation']?>)</em>
+			<?=$name?>
 			</div>
 		<?php endif ?>
 		

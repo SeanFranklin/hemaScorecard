@@ -17,6 +17,81 @@ include('includes/header.php');
 if(USER_TYPE < USER_SUPER_ADMIN){
 	pageError('user');
 } else {
+
+
+// THIS CODE GENRATES NEW IGNORE TABLES ///////////////////////
+
+$sql = "SELECT eGR.rosterID, tournamentID, ignorePoolMatches, removeFromFinals, ignoreFighter
+		FROM eventGroupRoster eGR
+		INNER JOIN eventTournamentRoster eTR ON eGR.tournamentTableID = eTR.tableID
+		WHERE (ignorePoolMatches > 0 OR removeFromFinals > 0)";
+$allIgnores = mysqlQuery($sql, ASSOC);
+
+foreach($allIgnores as $ignore){
+
+
+	$sql = "SELECT *
+			FROM eventIgnores
+			WHERE tournamentID = {$ignore['tournamentID']}
+			AND rosterID = {$ignore['rosterID']}";
+	$result = (bool)mysqlQuery($sql, SINGLE);
+
+	if($result == false){
+		$ignoreAtSet = max((int)$ignore['ignorePoolMatches'],(int)$ignore['ignoreFighter']);
+
+		$stopAtSet = (int)$ignore['removeFromFinals'];
+		if($ignoreAtSet > 0 && $stopAtSet == 0){
+			$stopAtSet = 1;
+		}
+
+		$sql = "INSERT INTO eventIgnores
+				(tournamentID, rosterID, ignoreAtSet, stopAtSet)
+				VALUES
+				({$ignore['tournamentID']}, {$ignore['rosterID']}, {$ignoreAtSet}, {$stopAtSet})";
+				show($sql);
+		mysqlQuery($sql, SEND);
+	}
+
+}
+show("IGNORES - TABLE POPULATED");
+show("///////////////////////////////////////////////////////////////");
+
+$sql = "SELECT tournamentID, groupWinnersFirst
+		FROM eventTournaments eT
+		INNER JOIN systemRankings sR USING(tournamentRankingID)";
+$tList = mysqlQuery($sql, ASSOC);
+
+foreach($tList as $tournament){
+	$tournamentID = $tournament['tournamentID'];
+	$numWinners = (int)$tournament['groupWinnersFirst'];
+
+	$sql = "UPDATE eventTournaments
+			SET poolWinnersFirst = {$numWinners}
+			WHERE tournamentID = {$tournamentID}";
+	mysqlQuery($sql, SEND);
+}
+
+
+show("POOL WINNERS - TABLE POPULATED");
+show("///////////////////////////////////////////////////////////////");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	

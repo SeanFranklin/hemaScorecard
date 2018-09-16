@@ -34,6 +34,8 @@ if($_SESSION['eventID'] == null){
 	<?php foreach((array)$tournamentList as $tournamentID => $data):
 		
 		$placings = getTournamentPlacings($tournamentID);
+
+		$isTeams = isTeams($tournamentID);
 		
 		$name = getTournamentName($tournamentID); 
 		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
@@ -43,10 +45,9 @@ if($_SESSION['eventID'] == null){
 		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
 			$fieldsetLink = $link;
 		}
-		
 		?>
 		
-		
+
 		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
 		
 			<a name='anchor<?=$tournamentID?>'></a>
@@ -62,7 +63,7 @@ if($_SESSION['eventID'] == null){
 			 <?php if(!isFinalized($tournamentID)): ?>
 				<?php if(USER_TYPE >= USER_STAFF):
 					if(@$_SESSION['manualTournamentPlacing'] == $tournamentID): // could be null
-						manualTournamentPlacing($tournamentID);
+						manualTournamentPlacing($tournamentID, $isTeams);
 						unset($_SESSION['manualTournamentPlacing']);
 					else: ?>
 						<?php if(isset($_SESSION['manualPlacingMessage'][$tournamentID])): ?>
@@ -75,9 +76,11 @@ if($_SESSION['eventID'] == null){
 						<form method='POST'>
 						<input type='hidden' name='formName' value='finalizeTournament'>
 						<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
-						<button class='button'>
-							Auto Finalize Tournament
-						</button>
+						<?php if(!isResultsOnly($tournamentID)): ?>
+							<button class='button'>
+								Auto Finalize Tournament
+							</button>
+						<?php endif ?>
 						<button class='button secondary' name='enableManualTournamentPlacing' value='x'>
 							Manually Finalize Tournament
 						</button>
@@ -110,12 +113,23 @@ if($_SESSION['eventID'] == null){
 
 					$rosterID = $placings[$i]['rosterID'];
 					if($rosterID == null){continue;}
-					$name = getFighterName($rosterID);
-					
-					$school = $placings[$i]['schoolFullName'];
-					if($placings[$i]['schoolBranch'] != null){
-						$school .= ", ".$placings[$i]['schoolBranch'];
+
+					if($isTeams){
+						$name = getTeamName($rosterID);
+					} else {
+						$name = getEntryName($rosterID);
 					}
+					
+					if(isset($placings[$i]['schoolFullName'])){
+						$school = $placings[$i]['schoolFullName'];
+						if($placings[$i]['schoolBranch'] != null){
+							$school .= ", ".$placings[$i]['schoolBranch'];
+						}
+					} else {
+						$school = '';
+					}
+
+
 					$num = $placings[$i]['lowBound'];
 					if($num == null){ $num = $placings[$i]['placing']; }
 					$i++;?>
@@ -156,9 +170,9 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function manualTournamentPlacing($tournamentID){
+function manualTournamentPlacing($tournamentID, $isTeams = false){
 
-	$roster = getTournamentRoster($tournamentID);
+	$roster = getTournamentCompetitors($tournamentID);
 	$max = sizeof($roster);
 	?>
 	
@@ -195,7 +209,11 @@ function manualTournamentPlacing($tournamentID){
 				<option></option>";
 				<?php foreach($roster as $person):
 					$rosterID = $person['rosterID'];
-					$name = getFighterName($rosterID);
+					if($isTeams){
+						$name = getTeamName($rosterID);
+					} else {
+						$name = getEntryName($rosterID);
+					}
 					
 					if(isset($_SESSION['lastManualPlacingAttempt'])){
 						$selectedID = @$_SESSION['lastManualPlacingAttempt'][$i];
