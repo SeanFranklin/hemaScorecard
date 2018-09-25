@@ -22,13 +22,6 @@ if($tournamentID == null){
 	pageError('tournament');
 } else{
 
-
-	////////////////////////////
-
-isInProgress($tournamentID);
-	/////////////////////////
-
-
 	toggleFighterListSort();
 
 	$eventRoster = getEventRoster();
@@ -39,7 +32,7 @@ isInProgress($tournamentID);
 		$sortString = 'name';
 	}
 
-	$tournamentRoster = getTournamentRoster($tournamentID,$sortString);
+	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
 	$numFighters = count($tournamentRoster);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -48,8 +41,6 @@ isInProgress($tournamentID);
 
 <!-- Page Structure -->
 	
-
-
 	<form method='POST' id='tournamentRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	
@@ -75,10 +66,12 @@ isInProgress($tournamentID);
 <!-- Display existing participants -->
 	<?php foreach ($tournamentRoster as $person):
 		$namesEntered[$person['rosterID']] = 'entered';
-		$rosterID = $person['rosterID']; ?>
+		$rosterID = $person['rosterID'];
+		$schoolID = $person['schoolID'];
+	?>
 		<tr id='divFor<?= $rosterID ?>'>
 			<td><?=getFighterName($rosterID)?></td>
-			<td><?= $person['schoolShortName'] ?></td>
+			<td><?=getSchoolName($schoolID)?></td>
 			<?php if(USER_TYPE >= USER_ADMIN): ?>
 				<td>
 					<input type='checkbox' name='deleteFromTournament[<?= $rosterID ?>]'

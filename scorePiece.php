@@ -46,7 +46,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	// Updates the group set so that when they navigate back the set this is a part
 	// of is expanded.
 	
-	$name = getFighterName($matchInfo['fighter1ID']);
+	$name = getEntryName($matchInfo['fighter1ID']);
 	$school = $matchInfo['fighter1School'];
 	$score = $matchInfo['fighter1score'];
 	$matchID = $matchInfo['matchID'];
@@ -185,7 +185,7 @@ function addNewExchangesBox($matchInfo){
 		<form method='POST'>
 		<input type='hidden' name='formName' value='goToPiece'>
 		<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
-			Next in List - <?=getFighterName($nextMatchInfo['fighter1ID'])?>
+			Next in List - <?=getEntryName($nextMatchInfo['fighter1ID'])?>
 		</button>
 	
 		</form>

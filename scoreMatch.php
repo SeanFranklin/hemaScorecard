@@ -37,9 +37,13 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	}
 } else {
 
-
-	
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
+	if(isset($_SESSION['restartTimer'])){
+		$matchInfo['restartTimer'] = true;
+		unset($_SESSION['restartTimer']);
+	} else {
+		$matchInfo['restartTimer'] = false;
+	}
 
 	$exchangeInfo = getMatchExchanges($matchID);
 
@@ -404,6 +408,7 @@ function dataEntryBox($matchInfo){
 	
 	<!-- Hidden button to be selected if a score is entered from the dropdowns -->
 	<input type='radio' name='mod' value='hit' class='hidden' id='NA_Radio'>
+	<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
 	
 	</div>
 	
@@ -445,7 +450,7 @@ function fighterDataEntryBox($matchInfo,$num){
 	}
 	
 	$id = $matchInfo[$pre.'ID'];
-	$fighterName = getFighterName($id);;
+	$fighterName = getCombatantName($id);
 	$fighterSchool = $matchInfo[$pre.'School'];
 	$score = $matchInfo[$pre.'score'];
 	if($score == null){$score=0;};
@@ -455,6 +460,14 @@ function fighterDataEntryBox($matchInfo,$num){
 	if($doubleTypes['afterblowType'] != 'deductive'){
 		$hideAfterblow = "class='hidden'";
 	}
+
+	if(isTeamLogic($tournamentID)){
+		$teamID = getFighterTeam($id, $tournamentID);
+		$teamName = getTeamName($teamID);
+	} else {
+		$teamName = "";
+	}
+
 	?>
 	
 <!-- Begin display -->
@@ -467,6 +480,9 @@ function fighterDataEntryBox($matchInfo,$num){
 			</div>
 			<div class='align-self-bottom cell'>
 				<span style='font-size:15px;'><?=$fighterSchool?></span><BR>
+				<?php if(isTeamLogic($tournamentID)): ?>
+					<span style='font-size:15px;'>(<?=$teamName?>)</span><BR>
+				<?php endif ?>
 				<span style='font-size:30px;'><?=$colorName?></span><BR>
 				<span style='font-size:60px;'><?=$score?></span><BR>
 		
@@ -673,11 +689,19 @@ function createSideBar($matchInfo){
 				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 		<?php if(USER_TYPE >= USER_STAFF): ?>	
 			<script>
-				window.onload = function(){ updateTimerDisplay();};
+				window.onload = function(){
+
+					updateTimerDisplay();
+
+					<?php if($matchInfo['restartTimer'] == true): ?>
+						startTimer();
+					<? endif ?>
+
+				};
 			</script>
 		
 			Timer:
-			<a class='button hollow expanded success no-bottom' onclick="startTimer(this)" id='timerButton'>
+			<a class='button hollow expanded success no-bottom' onclick="startTimer()" id='timerButton'>
 			<h4 class='no-bottom' id='currentTime'>0:00</h4>
 			</a>
 			
@@ -806,10 +830,10 @@ function createSideBar($matchInfo){
 
 
 			<a class='button hollow expanded' data-open='confirmNextPoolNavigation'>
-				<?=getFighterName($nextMatchInfo['fighter1ID'])?>
+				<?=getCombatantName($nextMatchInfo['fighter1ID'])?>
 				<BR> <?=$name1?>
 				<BR><BR> vs.<BR>
-				<BR> <?=getFighterName($nextMatchInfo['fighter2ID'])?>
+				<BR> <?=getCombatantName($nextMatchInfo['fighter2ID'])?>
 				<BR> <?=$name2?>
 			</a>
 
@@ -851,10 +875,10 @@ function createSideBar($matchInfo){
 			<input type='hidden' name='formName' value='goToMatch'>
 			
 			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
-				<?=getFighterName($nextMatchInfo['fighter1ID'])?>
+				<?=getCombatantName($nextMatchInfo['fighter1ID'])?>
 				<BR> <?=$name1?>
 				<BR><BR> vs.<BR>
-				<BR> <?=getFighterName($nextMatchInfo['fighter2ID'])?>
+				<BR> <?=getCombatantName($nextMatchInfo['fighter2ID'])?>
 				<BR> <?=$name2?>
 			</button>
 

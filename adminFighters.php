@@ -25,7 +25,24 @@ if(USER_TYPE < USER_ADMIN){
 	displayAlert("No need to withdraw fighters from this tournament format");
 } else {
 
-	$roster = getTournamentRoster($tournamentID,'rosterID','full');
+	$isTeamLogic = isTeamLogic($tournamentID);
+	$GLOBALS['ignores'] = getIgnores($tournamentID);
+
+	if(isEntriesByTeam($tournamentID) == true){
+		$showTeams = true;
+		$teamRoster = getTournamentTeams($tournamentID);
+		
+	} else {
+		$showTeams = false;
+	}
+
+	if(isMatchesByTeam($tournamentID) == true){
+		$showFighters = false;
+	} else {
+		$showFighters = true;
+		$fighterRoster = getTournamentFighters($tournamentID,'rosterID','full');
+	}
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,18 +56,29 @@ if(USER_TYPE < USER_ADMIN){
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	<input type='hidden' name='formName' value='ignoreFightersInTournament'>
-	<input type='hidden' name='tournamentID' value='<?=$tournamentID?>'>
-	<table>
-		<?php 
-			if(isBrackets()){
-				poolBracketRemoves($roster);
-			} elseif(isRounds()){
-				scoredRoundsRemoves($roster);
-			} else {
-				poolSetRemoves($roster);
-			} 
-		?>
-	</table>
+	<input type='hidden' name='manageFighters[tournamentID]' value='<?=$tournamentID?>'>
+
+	<?php if($showFighters & $showTeams): ?>
+		<ul class="tabs" data-tabs id="example-tabs">
+			<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Fighters</a></li>
+			<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">Teams</a></li>
+		</ul>
+
+
+		<div class="tabs-content" data-tabs-content="example-tabs">
+			<div class="tabs-panel is-active" id="panel1">
+				<?php removeRosterTable($fighterRoster, $ignores, 'fighter');?>
+			</div>
+			<div class="tabs-panel" id="panel2">
+				<?php removeRosterTable($teamRoster, $ignores, 'team')?>
+			</div>
+		</div>
+	<?php elseif($showTeams): ?>
+		<?php removeRosterTable($teamRoster, $ignores, 'team')?>
+	<?php else: ?>
+		<?php removeRosterTable($fighterRoster, $ignores, 'fighter')?>
+	<?php endif ?>
+	
 	<BR>
 	<button class='button large success' name='updateTournament' 
 		value='<?=$tournamentID?>' <?=LOCK_TOURNAMENT?>>
@@ -72,131 +100,87 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function scoredRoundsRemoves($roster){
+function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
+
 	$numGroupSets = getNumGroupSets();
-	$stops = getStops();
 	
 	// Text for tooltips
-	$text = "Fighter can no longer advance to subsequent rounds or stages";
-	?>
-	
-	<input type='hidden' name='ignoreMode' value='groupSet'>
-	<table>
-		<tr>
-			<th>
-				Name
-			</th>
-			<th>
-				Can not advance
-				<?php tooltip($text); ?>
-			</th>
-		</tr>
-
-	<?php foreach($roster as $rosterID => $fighter): 
-		if($stops[$rosterID] > 0){
-			$stopCheck = 'checked';
+	$stopTitle = "Can not advance";
+	$soloTitle = "Remove Individual";
+	if($numGroupSets == 1){
+		$ignoreTitle = "Remove From Scoring";
+		$ignoreClause = '';
+		$numSetsForStops = 1;
+	} else {
+		$ignoreTitle = "Remove from set number";
+		$ignoreClause = " starting in this pool set, leaving older sets unaffected";
+		if($entryType == 'fighter'){
+			$numSetsForStops = 1;
 		} else {
-			$stopCheck = '';
+			$stopTitle = "Last set fought in";
+			$numSetsForStops = $numGroupSets;
 		}
-		
-		?>
-		<tr>
-			<td>
-				<?=getFighterName($rosterID)?>
-			</td>
-				
-	<!-- Keep fighter pool results but don't advance them to the bracket -->
-		<td>
-		<div class='switch text-center no-bottom'>
-			<input type='hidden' name='finalsIgnores[<?=$rosterID?>]' value='0'>
-			<input class='switch-input' type='checkbox' id='finalsIgnores[<?=$rosterID?>]' 
-				name='finalsIgnores[<?=$rosterID?>]' value='1' <?=$stopCheck?>>
-			<label class='switch-paddle' for='finalsIgnores[<?=$rosterID?>]'>
-			</label>
-		</div>
-		</td>
-		</tr>	
-	<?php endforeach ?>
-	
-	</table>
-	
-<?php }
-
-/******************************************************************************/
-
-function poolSetRemoves($roster){
-	$numGroupSets = getNumGroupSets();
-	$ignores = getIgnores();
-	$stops = getStops();
-	
-	// Text for tooltips
-	$text = "Removes all matches involving the fighter from scoring calculations 
-		starting in this pool set, leaving older sets unaffected.<BR><BR>
+	}
+	$ignoreText = "Removes all matches involving the fighter from scoring calculations{$ignoreClause}.<BR><BR>
 		Use if the fighter has been injured or disqualified before completing their pool.";
-	$text2 = "Fighters have all matches and scores remain unchanged but will not
-		advance to the next set. <BR><BR> Use if a fighter has completed their pool
+
+	$stopText = "Fighters have all matches and scores remain unchanged but will not
+		advance. <BR><BR> Use if a fighter has completed their pool
 		without incident but must withdraw from the tournament.";
+
+	$soloText = "Have all the fighters matches and exchanges count towards scoring, but do not display
+				this fighter's results. ";
+
 	?>
-	
-	<input type='hidden' name='ignoreMode' value='groupSet'>
+
 	<table>
 		<tr>
 			<th>
 				Name
 			</th>
 			<th>
-				Remove from set number
-				<?php tooltip($text); ?>
+				<?= $ignoreTitle ?>
+				<?= tooltip($ignoreText); ?>
 			</th>
 			<th>
-				Can not advance
-				<?php tooltip($text2); ?>
+				<?= $stopTitle ?>
+				<?php tooltip($stopText); ?>
+			</th>
+			<th>
+				<?= $soloTitle ?>
+				<?php tooltip($soloText); ?>
 			</th>
 		</tr>
 
-	<?php foreach($roster as $rosterID => $fighter): 
-		if(!isset($ignores[$rosterID])){
-			$oldVal = 0;
-		} else {
-			$oldVal = $ignores[$rosterID];
-		}
-		if($stops[$rosterID] > 0){
-			$stopCheck = 'checked';
-		} else {
-			$stopCheck = '';
-		}
-		
-		?>
+	<?php foreach($roster as $entry):
+		$rosterID = $entry['rosterID'];?>
 		<tr>
 			<td>
-				<?=getFighterName($rosterID)?>
+				<?
+					if($entryType == 'team'){
+					
+						$name = getTeamName($rosterID);
+					} else {
+						$name = getFighterName($rosterID);
+					}
+				?>
+				<?=$name?>
 			</td>
 			
 		<!-- Remove from scoring in a set -->
 			<td>
-				<input type='hidden' name='ignoreFightersOld[<?=$rosterID?>]' value='<?=$oldVal?>'>
-				<select name = 'ignoreFightersNew[<?=$rosterID?>]'>
-					<option value=0></option>
-					<?php for($i=$numGroupSets;$i>0; $i--):
-						$name = getSetName($i);
-						$selected = isSelected($i,$oldVal);
-						?>
-					<option value=<?=$i?> <?=$selected?>><?=$name?></option>
-					
-				<?php endfor ?>
-				</select>
+				<?=ignoreAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['ignoreAtSet'])?>	
 			</td>
 			
-	<!-- Keep fighter pool results but don't advance them to the bracket -->
-		<td>
-		<div class='switch text-center no-bottom'>
-			<input type='hidden' name='finalsIgnores[<?=$rosterID?>]' value='0'>
-			<input class='switch-input' type='checkbox' id='finalsIgnores[<?=$rosterID?>]' 
-				name='finalsIgnores[<?=$rosterID?>]' value='1' <?=$stopCheck?>>
-			<label class='switch-paddle' for='finalsIgnores[<?=$rosterID?>]'>
-			</label>
-		</div>
-		</td>
+		<!-- Keep fighter pool results but don't advance them to the bracket -->
+			<td>
+				<?=stopAtInput($rosterID, $numSetsForStops, (int)@$ignores[$rosterID]['stopAtSet'])?>	
+			</td>
+
+		<!-- Keep fighter pool match data, but don't display their results -->
+			<td>
+				<?=soloAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['soloAtSet'])?>	
+			</td>
 		</tr>	
 	<?php endforeach ?>
 	
@@ -206,86 +190,108 @@ function poolSetRemoves($roster){
 
 /******************************************************************************/
 
-function poolBracketRemoves($roster){
-	$ignores = getIgnores();
-	$stops = getStops();
+function stopAtInput($rosterID, $numGroupSets, $selectValue){
 
-	// Text for tooltips
-	$text = "Removes all matches involving the fighter from scoring calculations. 
-		Use if the fighter has been injured/disqualified before 
-		they have completed all of their pool matches.";
-	$text2 = htmlspecialchars("Selecting this will remove a fighter 
-		from the list of fighters advancing to the finals, 
-		but not affect their score or matches from the pools. 
-		Use if a fighter withdraws between completion 
-		of the pool and start of the finals.");
-	
+	if($selectValue != 0){
+		$stopCheck = "checked";
+	} else {
+		$stopCheck = '';
+	}
+
 	?>
-	
-<!-- Header row -->
-	<table>
-		<th>
-			Name
-		</th>
-		<th>
-			Remove From Scoring
-			<?php tooltip($text); ?>
-		</th>
-		<th>
-			Don't Advance to Bracket
-			<?php tooltip($text2); ?>
-		</th>
-		
-	
-<!-- Ignore all of a fighter's pool matches -->	
-	<?php foreach($roster as $rosterID => $fighter): 
+	<?php if($numGroupSets > 1): ?>
+		<select name = 'manageFighters[rosterList][<?=$rosterID?>][stopAtSet]'>
+			<option value=0></option>
+			<?php for($i=$numGroupSets;$i>0; $i--): ?>
+				<option <?=optionValue($i,$selectValue)?> >
+					<?=getSetName($i)?>
+				</option>
+			<?php endfor ?>
+		</select>
+	<?php else: ?>
+		<div class='switch text-center no-bottom'>
+			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' value='0'>
+			<input class='switch-input' type='checkbox' 
+				id='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' 
+				name='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' value='1' <?=$stopCheck?>>
+			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]'>
+			</label>
+		</div>
+	<?php endif ?>
 
-		if(isset($ignores[$rosterID]) && $ignores[$rosterID] > 0){
-			$oldIgnore = 1;
-			$ignoreCheck = 'checked';
-		} else {
-			$oldIgnore = 0;
-			$ignoreCheck = '';
-		}
-		if($stops[$rosterID] > 0){
-			$stopCheck = 'checked';
-		} else {
-			$stopCheck='';
-		}
-		?>
-	
-		<input type='hidden' name='ignoreMode' value='groupSet'>
-		<tr>
-			<td>
-				<?=getFighterName($rosterID)?>
-				</td>
-			<td>
-			<div class='switch text-center no-bottom'>
-				<input type='hidden' name='ignoreFightersOld[<?=$rosterID?>]' value='<?=$oldIgnore?>'>
-				<input class='switch-input' type='checkbox' id='poolIgnores[<?=$rosterID?>]' 
-					name = 'ignoreFightersNew[<?=$rosterID?>]' value='1' <?=$ignoreCheck?>>
-				<label class='switch-paddle' for='poolIgnores[<?=$rosterID?>]'>
-				</label>
-			</div>
-			</td>
-				
-		<!-- Keep fighter pool results but don't advance them to the bracket -->
-			<td>
-			<div class='switch text-center no-bottom'>
-				<input type='hidden' name='finalsIgnores[<?=$rosterID?>]' value='0'>
-				<input class='switch-input' type='checkbox' id='finalsIgnores[<?=$rosterID?>]' 
-					name='finalsIgnores[<?=$rosterID?>]' value='1' <?=$stopCheck?>>
-				<label class='switch-paddle' for='finalsIgnores[<?=$rosterID?>]'>
-				</label>
-			</div>
-			</td>
-		</tr>
-	<?php endforeach ?>
-	
-	</table>
-	
-	
-<?php }
+<?php
+
+}
+
+/******************************************************************************/
+
+function ignoreAtInput($rosterID, $numGroupSets, $selectValue){
+
+	if($selectValue != 0){
+		$stopCheck = "checked";
+	} else {
+		$stopCheck = '';
+	}
+
+	?>
+	<?php if($numGroupSets > 1): ?>
+		<select name = 'manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]'>
+			<option value=0></option>
+			<?php for($i=$numGroupSets;$i>0; $i--): ?>
+				<option <?=optionValue($i,$selectValue)?> >
+					<?=getSetName($i)?>
+				</option>
+			<?php endfor ?>
+		</select>
+	<?php else: ?>
+		<div class='switch text-center no-bottom'>
+			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' value='0'>
+			<input class='switch-input' type='checkbox' 
+				id='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' 
+				name='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' value='1' <?=$stopCheck?>>
+			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]'>
+			</label>
+		</div>
+	<?php endif ?>
+
+<?php
+
+}
+
+/******************************************************************************/
+
+function soloAtInput($rosterID, $numGroupSets, $selectValue){
+
+	if($selectValue != 0){
+		$stopCheck = "checked";
+	} else {
+		$stopCheck = '';
+	}
+
+	?>
+	<?php if($numGroupSets > 1): ?>
+		<select name = 'manageFighters[rosterList][<?=$rosterID?>][soloAtSet]'>
+			<option value=0></option>
+			<?php for($i=$numGroupSets;$i>0; $i--): ?>
+				<option <?=optionValue($i,$selectValue)?> >
+					<?=getSetName($i)?>
+				</option>
+			<?php endfor ?>
+		</select>
+	<?php else: ?>
+		<div class='switch text-center no-bottom'>
+			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' value='0'>
+			<input class='switch-input' type='checkbox' 
+				id='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' 
+				name='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' value='1' <?=$stopCheck?>>
+			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]'>
+			</label>
+		</div>
+	<?php endif ?>
+
+<?php
+
+}
 
 /******************************************************************************/
 

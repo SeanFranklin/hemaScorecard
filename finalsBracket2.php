@@ -37,7 +37,16 @@ if($tournamentID == null){
 		$allBracketInfo['loser'] = [];
 	}
 	
-	$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');
+	if(isPools($tournamentID)){
+		$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');
+	} else {
+		if(isEntriesByTeam($tournamentID) == false){
+			$finalists = getTournamentFighters($tournamentID);
+		} else {
+			$finalists = getTournamentTeams($tournamentID);
+		}
+
+	}
 	
 // Bracket Helper
 	$bracketAdvancements = getLoserBracketAdvancements($allBracketInfo, $finalists);

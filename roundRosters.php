@@ -132,8 +132,7 @@ include('includes/footer.php');
 /******************************************************************************/
 
 function displayRounds($rounds, $ownDiv = true){
-
-	$roster = getTournamentRoster();
+	$ignores = getIgnores($_SESSION['tournamentID'], 'stopAtSet');
 	?>
 	
 	<!-- If the round should span the entire screen -->
@@ -143,6 +142,7 @@ function displayRounds($rounds, $ownDiv = true){
 	
 <!-- Step through rounds in set -->
 	<?php foreach($rounds as $num => $round):
+
 		$name = $round['groupName'];
 		
 		$groupID = $round['groupID'];
@@ -153,11 +153,15 @@ function displayRounds($rounds, $ownDiv = true){
 		$roundRoster = $roundRoster[$groupID];
 
 		$fightersInRound = [];
+		$numNotAdvancing = 0;
 		foreach((array)$roundRoster as  $entry){
 			// Makes a list of the fighters already in the round
 			// used to know who is eligible to be entered
 			$rosterID = $entry['rosterID'];
 			$fightersInRound[$rosterID] = true;
+			if(@$ignores[$rosterID] >= $groupSet){ // not existing is a logical zero
+				$numNotAdvancing++;
+			}
 		} 
 		
 		$numInRound = count($roundRoster);
@@ -167,7 +171,7 @@ function displayRounds($rounds, $ownDiv = true){
 		// If a fighter has been removed from advancing but they are already in the
 		// round they will be taking up a spot in the round despite not adding
 		// to the number of fighters in the round. This corrects the number discrepency.
-		$numInEvent += getNumStopsInGroup($groupID);
+		$numInEvent += $numNotAdvancing;
 		?>
 		
 	<!-- Display round -->
@@ -213,7 +217,7 @@ function displayRounds($rounds, $ownDiv = true){
 	<!-- Fighters in the round -->
 		<?php foreach((array)$roundRoster as $fighter):
 			$rosterID = $fighter['rosterID'];
-			$name = getFighterName($rosterID);
+			$name = getEntryName($rosterID);
 			?>
 		
 			<div class='large-12 cell' id='divFor<?=$groupID?>-<?=$rosterID?>'>
@@ -245,7 +249,7 @@ function displayRounds($rounds, $ownDiv = true){
 				
 							<?php foreach($sortedRoster as $fighter): 
 								$rosterID = $fighter['rosterID'];
-								$name = getFighterName($rosterID);
+								$name = getEntryName($rosterID);
 								if(isset($fightersInRound[$rosterID])){
 									continue;
 								} 

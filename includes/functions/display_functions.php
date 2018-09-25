@@ -976,6 +976,56 @@ function edit_tournamentNormalization($tournamentID = 'new'){
 	
 <?php }
 
+/******************************************************************************/
+
+function edit_tournamentPoolWinners($tournamentID = 'new'){
+// Select menu for the number of pool winners to rank ahead of non-pool winners.
+// Appears or disapears as controled by javascript.
+	
+	$display = "hidden"; 			// Hidden for most cases
+	$normSize = null;
+	$numWinners = 0;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT poolWinnersFirst
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$numWinners = mysqlQuery($sql, SINGLE, 'poolWinnersFirst');
+
+		$sql = "SELECT tournamentElimID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$info = mysqlQuery($sql, SINGLE);
+		
+		if(in_array($info['tournamentElimID'], array(2,4)) ){
+			$display = '';
+		}
+		
+	}
+	
+	?>
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='poolWinnersFirst_div<?=$tournamentID?>'>
+			
+		Sort Pool Winners First
+		<?php tooltip("Using this option the top fighters in each pool will all
+		be ranked at the top, even if a non pool-winner has a higher score."); ?>
+
+		<select name='updateTournament[poolWinnersFirst]'
+			id='poolWinnersFirst_select<?=$tournamentID?>'>
+			<option value='0'>No (Rank by Score)</option>
+			<?php for($i = 1; $i <= (POOL_SIZE_LIMIT-1); $i++): ?>
+				<option <?=optionValue($i,$numWinners)?> >Top <?=$i?> from pool</option>
+			<?php endfor ?>
+		</select>			
+
+	</div>
+	
+<?php }
+
 /***********************************************************(******************/
 
 function edit_tournamentColors($tournamentID = 'new', $num){
@@ -1377,10 +1427,11 @@ function edit_tournamentCuttingQual($tournamentID = 'new'){
 	
 <?php }
 
-/**********************************************************(*******************/
+/*****************************************************************************/
 
 function edit_tournamentKeepPrivate($tournamentID = 'new'){
-// Select menu for whether or not the tournament has a cutting qualification
+// Select menu for whether or not the software should warn people the event
+// organizer would rather not have results posted or added to stuff like HEMA Ratings
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a checkbox to create a new tournament if no parameter is passed
 	
@@ -1420,6 +1471,68 @@ function edit_tournamentKeepPrivate($tournamentID = 'new'){
 		</select>
 		
 	</div>
+	
+<?php }
+
+/*****************************************************************************/
+
+function edit_tournamentTeams($tournamentID = 'new'){
+// Select if the tournament is a team event
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$isTeams = 0;
+	$display = 'hidden';
+	$mode = '';
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+		
+		$sql = "SELECT isTeams
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$isTeams = (int)mysqlQuery($sql, SINGLE, 'isTeams');
+
+		if($isTeams){
+			$mode = getTournamentLogic($tournamentID);
+			$display = '';
+		}
+
+	}
+
+	$selected = isSelected(1 == $isTeams);	
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box' 
+		id='isTeams_div<?=$tournamentID?>' onchange="enableTournamentButton('<?=$tournamentID?>')">
+		Team Based Event
+		
+		<select name='updateTournament[isTeams]'
+			id='isTeams_select<?=$tournamentID?>'>
+			<option value='0'>No</option>
+			<option value='1' <?=$selected?>>Team Event</option>
+		</select>
+		
+	</div>
+
+<!-- Start display -->
+	
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='teamLogic_div<?=$tournamentID?>'>
+		Team Mode<?=tooltip("<u>Team vs Team</u><BR>Whole teams fight each other
+				<BR><u>Solo</u><BR>Treated as an individual tournament with team points tabulated.
+				<BR><u>All vs All</u><BR>Each team member faces each member of every other team individually.")?>
+		
+		<select name='updateTournament[logicMode]'
+			id='teamLogic_select<?=$tournamentID?>'>
+			<option value='NULL'>Team vs Team</option>
+			<option <?=optionValue('team_Solo',$mode)?> >Solo</option>
+			<option <?=optionValue('team_AllVsAll',$mode)?> >All vs All</option>
+			
+		</select>
+		
+	</div>
+	
 	
 <?php }
 
@@ -1559,7 +1672,7 @@ function poolSetNavigation(){
 
 /******************************************************************************/
  
- function bracket_finalistDropDown($fighterNum,$matchID, $finalists, $seedID){
+ function bracket_finalistDropDown($fighterNum,$matchID, $finalists, $seedID, $isTeams){
 // Creates a drop down list of all the fighters provided
 // Used in elimination brackets
 
@@ -1579,7 +1692,7 @@ function poolSetNavigation(){
 			?>
 			
 			<option value='<?=$fighter['rosterID']?>' <?=$selected?>>
-				<?=$rank?><?=getFighterName($fighter['rosterID'])?>
+				<?=$rank?><?=getFighterName($fighter['rosterID'],null,null,$isTeams)?>
 			</option>
 			
 		<?php endforeach ?>
@@ -1588,7 +1701,7 @@ function poolSetNavigation(){
 
 /******************************************************************************/
 
-function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists, $seedID){
+function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists, $seedID, $teamEntry){
 // Creates entry field or displays previously entered fighter
 // for the bracket position specified
 
@@ -1618,7 +1731,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		<?php 
 			if(USER_TYPE >= USER_STAFF){
 				// Staff and higher can add fighters
-				bracket_finalistDropDown($fighterNum, $matchID, $finalists, $seedID);
+				bracket_finalistDropDown($fighterNum, $matchID, $finalists, $seedID,$teamEntry);
 			} else {
 				// Blank for guests
 				echo "&nbsp;";
@@ -1630,7 +1743,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 
 <!-- If data exists for the bracket position -->		
 	<?php else: 
-		$name = getFighterName($matchInfo['fighter'.$fighterNum.'ID']);
+		$name = getFighterName($matchInfo['fighter'.$fighterNum.'ID'],null,null,$teamEntry);
 		$score = $matchInfo['fighter'.$fighterNum.'Score'];
 		$style = '';
 		
@@ -1798,6 +1911,7 @@ function bracket_display($bracketInfo, $finalists,$type,$bracketAdvancements){
 	$tournamentID = $bracketInfo['tournamentID'];
 	$bracketLevels = $bracketInfo['bracketLevels'];
 	$bracketID = $bracketInfo['groupID'];
+	$teamEntry = isEntriesByTeam($tournamentID);
 	if($type == 'win' OR $type == 'winner' OR $type == 'winners'){
 		$isWinnersBracket = true;
 	} else {
@@ -1881,7 +1995,6 @@ function bracket_display($bracketInfo, $finalists,$type,$bracketAdvancements){
 				$matchInfo = null;
 			}
 			
-	
 			if($matchInfo == null){
 				$isNotBlank = false;
 			} else {$isNotBlank = true;}
@@ -1932,8 +2045,8 @@ function bracket_display($bracketInfo, $finalists,$type,$bracketAdvancements){
 				<div class='large-10 small-10 medium-10'>
 	
 				<?php if($isNotBlank): ?>
-					<?php bracket_finalistEntry(1,$matchInfo, $bracketInfo, $finalists,$seed1); ?>
-					<?php bracket_finalistEntry(2,$matchInfo, $bracketInfo, $finalists,$seed2); ?>
+					<?php bracket_finalistEntry(1,$matchInfo, $bracketInfo, $finalists,$seed1,$teamEntry); ?>
+					<?php bracket_finalistEntry(2,$matchInfo, $bracketInfo, $finalists,$seed2,$teamEntry); ?>
 					<a name='anchor<?=$matchID?>'></a>
 				<?php endif ?>	
 				</div>
@@ -2512,8 +2625,8 @@ function displayIncompleteMatches($incompleteMatches){
 	The following pool matches are incomplete:
 	<?php foreach($incompleteMatches as $matchID):
 		$matchInfo = getMatchInfo($matchID);
-		$name1 = getFighterName($matchInfo['fighter1ID']);
-		$name2 = getFighterName($matchInfo['fighter2ID']);
+		$name1 = getFighterName($matchInfo['fighter1ID'],null,null,$matchInfo['teamEntry']);
+		$name2 = getFighterName($matchInfo['fighter2ID'],null,null,$matchInfo['teamEntry']);
 		$poolName = getGroupName($matchInfo['groupID']);
 		?>
 		

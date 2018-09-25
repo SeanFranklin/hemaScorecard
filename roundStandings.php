@@ -94,7 +94,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 
 
 	$rounds = getRounds($_SESSION['tournamentID'], $groupSet);
-	$ignores = getIgnores($_SESSION['tournamentID']);
+	$ignores = getIgnores($_SESSION['tournamentID'],'ignoreAtSet');
 	$numRounds = count($rounds);
 	?>
 
@@ -129,11 +129,11 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Data -->
 			<?php foreach((array)$scores as $num => $fighter):
 				$rosterID = $fighter['rosterID'];
-				if(isset($ignores[$rosterID]) && $ignores[$rosterID] <= $roundNumber){
+				if(isset($ignores[$rosterID]) && $roundNumber >= $ignores[$rosterID]){
 					continue;
 				}
 				
-				$name = getFighterName($rosterID);	
+				$name = getEntryName($rosterID);	
 				$place = $num + 1;
 				$score = $fighter['score'];
 				
@@ -196,7 +196,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Data -->
 			<?php foreach((array)$scores as $num => $fighter):
 				$place = $num + 1;
-				$name = getFighterName($fighter['rosterID']);
+				$name = getEntryName($fighter['rosterID']);
 				$score = $fighter['score'];
 				?>
 				<tr>
@@ -237,7 +237,7 @@ function showRoundIncompleted($groupID){
 		<u>Round not completed:</u>
 		<ul>
 		<?php foreach($notCompleted as $rosterID):
-			$name = getFighterName($rosterID) ?>
+			$name = getEntryName($rosterID) ?>
 			<li><?=$name?></li>
 		<?php endforeach ?>
 		<?php unset($notCompleted); ?>

@@ -314,6 +314,32 @@ function xorWithZero($in1, $in2){
 
 /******************************************************************************/
 
+function numSuffix($number){
+// Return the correct suffix to a number. ie. 1 -> 'st', 2 -> 'nd', 3 -> 'rd'
+// Returns as an html formated superscript.
+	switch (substr($number, -1)){
+		case 1:
+			$suf = "st";
+			break;
+		case 2:
+			$suf = "nd";
+			break;
+		case 3:
+			$suf = "rd";
+			break;
+		case null:
+			break;
+		default:
+			$suf = "th";
+			break;
+	}
+
+	return $suf;
+
+}
+
+/******************************************************************************/
+
 function sqlDateToString($sqlDate){
 // Converts dates read from sql into human readable format. Month and day only.
 // Example: '2017-12-15' -> 'Dec 15th'
@@ -326,23 +352,8 @@ function sqlDateToString($sqlDate){
 	$day = $sqlDate[8];
 	$day .= $sqlDate[9];
 	
-	
-	switch (substr($day, -1)){
-		case 1:
-			$day .= "<sup>st</sup>";
-			break;
-		case 2:
-			$day .= "<sup>nd</sup>";
-			break;
-		case 3:
-			$day .= "<sup>rd</sup>";
-			break;
-		case null:
-			break;
-		default:
-			$day .= "<sup>th</sup>";
-			break;
-	}
+	$day .= "<sup>".numSuffix($day)."</sup>";
+
 	
 	if($day[0] == 0){
 		$day = substr($day, 1);

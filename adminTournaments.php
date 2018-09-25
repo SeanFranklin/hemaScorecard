@@ -100,12 +100,14 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentMaxDoubles($tournamentID);
 				edit_tournamentMaxPoolSize($tournamentID);
 				edit_tournamentNormalization($tournamentID);
+				edit_tournamentPoolWinners($tournamentID);
 
 				edit_tournamentMaxExchanges($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentOverrideDoubles($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
+				edit_tournamentTeams($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				?>
 			</div>

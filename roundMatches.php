@@ -128,7 +128,7 @@ function displayRound($roundInfo){
 		<?php foreach($matches as $match):
 			$matchID = $match['matchID'];
 			$rosterID = $match['fighter1ID'];
-			$name = getFighterName($rosterID);
+			$name = getEntryName($rosterID);
 			$score = $match['fighter1Score']; ?>
 			
 			<div class='large-4 cell'>

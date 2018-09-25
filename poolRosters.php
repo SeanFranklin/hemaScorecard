@@ -43,12 +43,20 @@ if($tournamentID == null){
 	
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
-	$tournamentRoster = getTournamentRoster();
+	if(isEntriesByTeam($tournamentID) == false){
+		$isTeams = false;
+		$tournamentRoster = getTournamentFighters($tournamentID);
+	} else {
+		$isTeams = true;
+		$tournamentRoster = getTournamentTeams($tournamentID);
+	}
+
+	
 	$assignedFighters = array();
 
-	$stops = getStops($tournamentID);
-	foreach($stops as $rosterID => $bool){
-		if($bool == 1){
+	$ignores = getIgnores($tournamentID);
+	foreach($ignores as $rosterID => $status){
+		if($status['stopAtSet'] > 0){
 			foreach($tournamentRoster as $index => $fighter){
 				if($fighter['rosterID'] == $rosterID){
 					unset($tournamentRoster[$index]);
@@ -73,12 +81,11 @@ if($tournamentID == null){
 			$freeFighters[] = $fighter;
 		}
 	}
-
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
-	
+
 <!-- Pool Set Navigation -->
 	<div id='poolRosterDiv'>
 	<div class='grid-x grid-padding-x'>
@@ -95,10 +102,8 @@ if($tournamentID == null){
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	<div class='grid-x grid-padding-x' id='list-of-pools'>
 	<?php foreach($pools as $pool): ?>
-		<?php 
-			$groupID = $pool['groupID'];
-			poolEntryField($groupID , $pool['groupName'],$pool['groupNumber'], 
-							$poolRosters[$groupID], $freeFighters); 
+		<?php 			
+			poolEntryField($pool, $poolRosters[$pool['groupID']], $freeFighters, $isTeams); 
 		?>
 	<?php endforeach ?>
 	</div>
@@ -483,9 +488,13 @@ function autoPopluateButton($tournamentID = null){
 
 /******************************************************************************/
 
-function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRoster){
+function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 // Displays the current pool roster and fields to add fighters
-	
+
+	$groupID = $poolInfo['groupID'];
+	$poolName = $poolInfo['groupName'];
+	$poolNum = $poolInfo['groupNumber'];
+
 	$schoolList = getSchoolList();
 	$maxPoolSize = maxPoolSize();
 	$numPools = getNumPools($_SESSION['groupSet']);
@@ -544,10 +553,16 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 							$seedID = false;
 						}
 						$selected = isSelected($seedID,$entry['rosterID']);
-
+						if($isTeams == false){
+							$name = getFighterName($entry['rosterID'])." ";
+							$name .= "(".getSchoolName($entry['schoolID'],'abrev').")";
+						} else {
+							$name = getTeamName($entry['rosterID']);
+						}
 						?>
+
 						<option value='<?=$entry['rosterID']?>' <?=$selected?>>
-							<?=getFighterName($entry['rosterID'])?> (<?=$entry['schoolAbreviation']?>)
+							<?=$name?>
 						</option>
 					<?php endforeach ?>
 				</select>
@@ -556,7 +571,15 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 		
 		<!-- Fighter Already entered in position -->	
 		<?php else:?>
-			<?php $rosterID = $poolRoster[$i]['rosterID']; ?>
+			<?php $rosterID = $poolRoster[$i]['rosterID']; 
+				if($isTeams == false){
+					$name = getFighterName($rosterID)." ";
+					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abrev').")</em>";
+				} else {
+					$name = getTeamName($rosterID);
+				}
+
+			?>
 			<div class='medium-shrink small-6 cell opacity-toggle' id='divFor<?=$rosterID?>'>
 			
 			<?php if(USER_TYPE >= USER_ADMIN): ?>
@@ -564,7 +587,7 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 					onchange="checkIfFought(this)" 
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'>
 			<?php endif ?>
-			<?=getFighterName($rosterID)?> <em>(<?=$poolRoster[$i]['schoolAbreviation']?>)</em>
+			<?=$name?>
 			</div>
 		<?php endif ?>
 		

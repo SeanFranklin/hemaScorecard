@@ -130,16 +130,18 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 		$extra = '';
 	}
 	
-	$nameData = '';
+
 	$id1 = $match['fighter1ID'];
-	$nameData = getFighterName($id1, 'split');
-	$topName1 = $nameData[$topName].$extra;
-	$bottomName1 = $nameData[$bottomName];
-	
 	$id2 = $match['fighter2ID'];
-	$nameData = getFighterName($id2, 'split');
-	$topName2 = $nameData[$topName].$extra;
-	$bottomName2 = $nameData[$bottomName];
+
+	$nameData1 = getCombatantName($id1, 'split');
+	$nameData2 = getCombatantName($id2, 'split');
+
+	$topName1 = $nameData1[$topName].$extra;
+	$bottomName1 = $nameData1[$bottomName];
+	
+	$topName2 = $nameData2[$topName].$extra;
+	$bottomName2 = $nameData2[$bottomName];
 	
 	$winnerID = $match['winnerID'];
 	

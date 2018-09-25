@@ -655,17 +655,18 @@ function _RSScutting_updateExchanges(){
 			$a = (float)$data['form'];
 			$b = (float)$data['cut'];
 		} else {
-			$a = $data['form'];
-			$b = $data['cut'];
+			$a = (float)$data['form'];
+			$b = (float)$data['cut'];
 			
 			if($a !== '' || $b !== ''){
 				$a = (float)$a;
 				$b = (float)$b;
 			} else {
-				$a = $data['against'];
+				$a = (float)$data['against'];
 				$b = 0;
 			}
 		}
+
 
 		$deduction = round(sqrt($a*$a + $b*$b),1);
 		
@@ -713,15 +714,17 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
-function pool_DisplayResults($tournamentID, $groupSet = 1){
+function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 // Calls the appropriate funciton to display the fighters pool standings 
 // given the tournament scoring algorithm
 
 	$bracketInfo = getBracketInformation($tournamentID);
+	$ignores = getIgnores($tournamentID, 'soloAtSet');
 	$numToElims = $bracketInfo['winner']['numFighters'];
 	$maxNumFields = 5;
+	$showTeams = (int)((bool)$showTeams);
 
-	$sql = "SELECT displayTitle1, displayField1,
+	$sql = "SELECT poolWinnersFirst,displayTitle1, displayField1,
 			displayTitle2, displayField2,
 			displayTitle3, displayField3,
 			displayTitle4, displayField4,
@@ -730,6 +733,8 @@ function pool_DisplayResults($tournamentID, $groupSet = 1){
 			INNER JOIN systemRankings USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 	$displayMeta = mysqlQuery($sql, SINGLE);
+	$numPoolWinners = $displayMeta['poolWinnersFirst'];
+	unset($displayMeta['poolWinnersFirst']);
 
 	// Check to see which fields are used
 	$selectStr = '';
@@ -742,13 +747,20 @@ function pool_DisplayResults($tournamentID, $groupSet = 1){
 		$selectStr .= ", {$tmpStr}";
 	}
 
-	$sql = "SELECT rank, rosterID {$selectStr}
-			FROM eventStandings
+	$sql1 = "SELECT rank, rosterID {$selectStr} ";
+	$sql2 =	"FROM eventStandings
+			INNER JOIN eventRoster USING(rosterID)
 			WHERE tournamentID = {$tournamentID}
 			AND groupType = 'pool'
 			AND groupSet = {$groupSet}
+			AND isTeam = {$showTeams}
 			ORDER BY rank ASC";
+	$sql = $sql1.$sql2;
 	$displayInfo = mysqlQuery($sql, ASSOC);
+
+	$sql1 = "SELECT COUNT(DISTINCT(groupID)) AS numGroups ";
+	$sql = $sql1.$sql2;
+	$numGroups = mysqlQuery($sql, SINGLE, 'numGroups');
 
 
 	echo "<table>";
@@ -765,16 +777,29 @@ function pool_DisplayResults($tournamentID, $groupSet = 1){
 	}
 	echo "</tr>";
 
+	/////// USE $numGroups and $numPoolWinners
+	//////////////////
+	////////////////
+
 	foreach($displayInfo as $fighter){
+		if(@$ignores[$fighter['rosterID']] >= $groupSet){
+			continue;
+		}
+
 		if($fighter['rank'] == $numToElims){
 			$class = 'last-to-elims';
 		} else {
 			$class = null;
 		}
+		if($showTeams){
+			$name = getTeamName($fighter['rosterID']);
+		} else {
+			$name = getCombatantName($fighter['rosterID']);
+		}
 
 		echo "<tr class='text-center {$class}'>";
 		echo "<td>".$fighter['rank']."</td>";
-		echo "<td  class='text-left'>".getFighterName($fighter['rosterID'])."</td>";
+		echo "<td  class='text-left'>{$name}</td>";
 		for($i = 1; $i <= $maxNumFields; $i++){
 			$index = $displayMeta["displayField".$i];
 			$value = round($fighter[$index],1) + 0;
@@ -823,6 +848,7 @@ function pool_GenerateNextPools($poolSet){
 	// Generate Tiers
 	$tier = 1;
 	$numFightersInTier = 0;
+	$poolTier = [];
 	foreach($standings as $fighter){
 		$numFightersInTier++;
 		if($numFightersInTier > $tierSize){
@@ -954,14 +980,14 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if(isCumulative($groupSet, $tournamentID)){
+	if(isEntriesByTeam($tournamentID) && isMatchesByTeam($tournamentID) == false){
+		$numberOfMatches = getNormalizationAveraged($tournamentID, $groupSet) - 1;
+	} elseif(isCumulative($groupSet, $tournamentID)){
 		$numberOfMatches = getNormalizationCumulative($tournamentID, $groupSet) - 1;
 	} else {
 		$numberOfMatches = getNormalization($tournamentID, $groupSet) - 1;
 	}
 	
-
-
 	foreach((array)$fighterStats as $rosterID => $fighterData){
 
 		$matchesFought = $fighterData['matches'];
@@ -982,7 +1008,7 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
-function pool_RankFighters($tournamentID, $groupSet = 1){
+function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 // Assigns a rank to all fighters in the given group set
 
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
@@ -990,9 +1016,10 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_RankFighters()";
 		return;
 	}
+	$useTeams = (int)((bool)$useTeams);
 
 // Load meta data on how to rank fighters
-	$sql = "SELECT groupWinnersFirst, 
+	$sql = "SELECT poolWinnersFirst, 
 			orderByField1, orderBySort1,
 			orderByField2, orderBySort2,
 			orderByField3, orderBySort3,
@@ -1002,6 +1029,8 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 			WHERE tournamentID = {$tournamentID}";
 
 	$meta = mysqlQuery($sql, SINGLE);
+	$numWinners = (int)$meta['poolWinnersFirst'];
+	unset($meta['poolWinnersFist']);
 
 // Check which of the ORDER BY fields are valid/used	
 	if($meta['orderByField1'] == '' 
@@ -1028,16 +1057,18 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 	}
 
 // Retrieve List
-	$sql = "SELECT standingID, groupID
+	$sql = "SELECT standingID, groupID, rosterID
 			FROM eventStandings
+			INNER JOIN eventRoster USING(rosterID)
 			WHERE tournamentID = {$tournamentID}
 			AND groupType = 'pool'
 			AND groupSet = {$groupSet}
+			AND isTeam = {$useTeams}
 			{$orderBy}";
 
 	$rankedList = mysqlQuery($sql, ASSOC);
+	$ignores = getIgnores($tournamentID, 'soloAtSet');
 
-	$numWinners = (int)$meta['groupWinnersFirst'];
 	$winnerPlacing = 1;
 	$loserPlacing = 1;
 
@@ -1056,15 +1087,22 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 		$loserPlacing = 1;
 	}
 
-	
+
 // Update each fighter with their placing
 	foreach($rankedList as $standing){
+		$standingID = $standing['standingID'];
+		if(@$ignores[$standing['rosterID']] >= $groupSet){ // if ignores is unset it is a logical zero
+			$sql = "UPDATE eventStandings
+					SET rank = NULL
+					WHERE standingID = {$standingID}";
+			mysqlQuery($sql, SEND);
+			continue;
+		}
+
 		$groupID = $standing['groupID'];
 		if(!isset($winnersInGroup[$groupID])){
 			$winnersInGroup[$groupID] = 0;
 		}
-
-		$standingID = $standing['standingID'];
 
 		if($winnersInGroup[$groupID] < $numWinners){
 			$winnersInGroup[$groupID]++;
@@ -1083,6 +1121,115 @@ function pool_RankFighters($tournamentID, $groupSet = 1){
 
 	}
 	
+}
+
+/******************************************************************************/
+
+function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
+
+
+	$rosters = getPoolRosters($tournamentID, $setNumber);
+	$standingsToKeep = [];
+
+	$ignores = getIgnores($tournamentID,'ignoreAtSet');
+	$teamRosters = getTeamRosters($tournamentID);
+
+	foreach($teamRosters as $teamID => $teamRoster){
+		if(count($teamRoster) == 0){
+			continue;
+		}
+
+		$inRange = '';
+		foreach($teamRoster['members'] as $fighter){
+			if($inRange != ''){
+				$inRange .= ', ';
+			}
+			$inRange .= $fighter['rosterID'];
+		}
+
+	// Don't do anything if no one in the team has fought
+		$sql = "SELECT COUNT(*) AS numRecords
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID IN({$inRange})";
+		$numRecords = mysqlQuery($sql, SINGLE, 'numRecords');
+		
+		if($numRecords < 1){
+			continue;
+		}
+
+
+	// Find the standingID to update, or create a new one if it doesn't exist
+		$sql = "SELECT standingID
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID = {$teamID}";
+		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
+
+		if($standingID == null){
+			$sql = "INSERT INTO eventStandings
+					(tournamentID, groupSet, rosterID, groupType)
+					VALUES
+					({$tournamentID}, {$setNumber}, {$teamID}, 'pool')";
+			mysqlQuery($sql, SEND);
+
+			$standingID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+		}
+
+	// Prepare query to update team score
+		$fields = ['score', 'matches', 'wins', 'losses','ties','pointsFor','pointsAgainst',
+					'hitsFor','hitsAgainst','afterblowsFor','afterblowsAgainst',
+					'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst',
+					'numPenalties','penaltiesAgainstOpponents','penaltiesAgainst','doubleOuts'];
+		$selectClause = implode("), SUM(", $fields);
+		$selectClause = "SUM(".$selectClause.")";
+
+
+		$sql = "SELECT {$selectClause}
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID IN({$inRange})";
+		$teamData = mysqlQuery($sql, SINGLE);
+		
+		$updateClause = '';
+		foreach($fields as $field){
+			if($updateClause != ''){
+				$updateClause .= ', ';
+			}
+			$updateClause .= $field.'='.((float)$teamData["SUM(".$field.")"]);
+
+		}
+
+		$sql = "UPDATE eventStandings
+				SET
+				{$updateClause}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+
+		$standingsToKeep[] = $standingID;
+
+
+	}
+
+	// Delete old standings
+	if(count($standingsToKeep) > 0){
+		$inString = " AND standingID NOT IN(".implode(',',$standingsToKeep).")";
+	} else {
+		$inString = "";
+	}
+ 
+	$sql = "DELETE eventStandings 
+			FROM eventStandings
+			INNER JOIN eventRoster ON eventStandings.rosterID = eventRoster.rosterID
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$setNumber}
+			AND isTeam = 1
+			{$inString}";
+	mysqlQuery($sql, SEND);
+
 }
 
 /******************************************************************************/

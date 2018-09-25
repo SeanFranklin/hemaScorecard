@@ -109,6 +109,17 @@ function processPostData(){
 			case 'importRosterCSV':
 				importRosterCSV();
 				break;
+			case 'createNewTeam':
+				createNewTeam($_POST['newTeamInfo']);
+				break;
+			case 'deleteTeams':
+				deleteTeams($_POST['deleteTeamsInfo']);
+				break;
+			case 'addToTeams':
+				foreach($_POST['updateTeams'] as $teamInfo){
+					addTeamMembers($teamInfo);
+				}
+				break;
 			
 		
 	// Pool Management Cases
@@ -209,7 +220,7 @@ function processPostData(){
 				
 	// Event Organzer Cases
 			case 'ignoreFightersInTournament':
-				updateIgnoredFighters();
+				updateIgnoredFighters($_POST['manageFighters']);
 				break;
 			case 'addNewSchool':
 				addNewSchool();
@@ -395,8 +406,6 @@ function checkEvent(){
 		return;
 	}
 
-
-
 	if(isset($_SESSION['checkEvent']['all']) && $_SESSION['checkEvent']['all'] === true){
 		$tournamentIDs = getEventTournaments();
 		foreach((array)$tournamentIDs as $tournamentID){
@@ -439,7 +448,7 @@ function checkEvent(){
 				foreach($tournament as $groupID => $groupOp){				
 					if(isPools($tournamentID)){
 						checkGroupOrders($tournamentID, $groupID);
-						updatePoolMatchList($groupID, 'pool');
+						updatePoolMatchList($groupID, 'pool', $tournamentID);
 					}
 					if(isRounds($tournamentID)){
 						checkRoundRoster($tournamentID, $groupID);
@@ -576,18 +585,34 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 		$setNumber = 1;
 	}
 
+	if(isTeams($tournamentID) == false){
+		$entriesAreTeams = false;
+		$calculateTeamScores = false;
+	} elseif(isMatchesByTeam($tournamentID) == true){
+		$entriesAreTeams = true;
+		$calculateTeamScores = false;
+	} else {
+		$entriesAreTeams = false;
+		$calculateTeamScores = true;
+	}
+
 	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
 		
 		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
 		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
 
-		recordScores($fighterStats, $tournamentID, 'pool', $setNumber);
+		recordScores($fighterStats, $tournamentID, $setNumber);
 		unset($fighterStats);
 
 		pool_ScoreFighters($tournamentID, $setNumber);
 
-		pool_RankFighters($tournamentID, $setNumber);
+		pool_RankFighters($tournamentID, $setNumber, $entriesAreTeams);
 		
+		if($calculateTeamScores == true){
+			pool_CalculateTeamScores($tournamentID, $setNumber);
+			pool_RankFighters($tournamentID, $setNumber, true);
+		
+		}
 	
 	}
 
@@ -679,6 +704,10 @@ function addNewExchange(){
 	
 	$matchID = $_SESSION['matchID'];
 	if($matchID == null){return;}
+
+	if(@$_POST['restartTimer'] == 1){ // May not exist. This is logical '0'.
+		$_SESSION['restartTimer'] = 1;
+	}
 	
 // updates the last exchange
 
@@ -893,6 +922,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	$rPrefix = null;
 	$rTarget = null;
 	$rType = null;
+	$afterblowPrefix = null;
 	
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
@@ -908,7 +938,6 @@ function fullAfterblowScoring($matchInfo,$scoring){
 		$score2 = $at2['attackPoints'];
 		$scoring[$id2]['hit'] = $score2;
 
-		$afterblowPrefix = null;
 		if($at1['attackPrefix'] == ATTACK_AFTERBLOW_DB){
 			$afterblowPrefix = 1;
 		} elseif($at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){

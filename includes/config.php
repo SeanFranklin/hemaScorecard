@@ -143,7 +143,15 @@ $conn = connectToDB();
 	if($nameMode == ''){
 		$nameMode = DEFAULT_NAME_MODE;
 	}
-	define("NAME_MODE", DEFAULT_NAME_MODE);
+	define("NAME_MODE", $nameMode);
+
+// Is Teams Mode -- MUST go before processPostData
+	if(isset($_SESSION['tournamentID']) && $_SESSION['tournamentID'] != null){
+		if(isTeams($_SESSION['tournamentID'])){
+			define("IS_TEAMS",true);
+		}
+	}
+	if(!defined('IS_TEAMS')){ define("IS_TEAMS", false); }
 
 // Process POST Data ///////////////////////////////////////////////////////////
 
@@ -154,23 +162,31 @@ $conn = connectToDB();
 // Tournament Specific Constants
 	if($_SESSION['tournamentID'] != null){
 		$tournamentID = $_SESSION['tournamentID'];
-		$sql = "SELECT isFinalized, useTimer
+		$sql = "SELECT isFinalized, useTimer, isTeams, logicMode
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$tSettings = mysqlQuery($sql, SINGLE);
 		
-// Tournament Concluded	
+	// Tournament Concluded	
 		if($tSettings['isFinalized'] == 1){
 			define("LOCK_TOURNAMENT", 'disabled');
 		}
 		
-// Use timer in the matches
+	// Use timer in the matches
 		if($tSettings['useTimer'] == 1){
 			define("IS_TIMER", true);
 		}
+
+	// Use timer in the matches
+		if($tSettings['logicMode'] != ''){
+			define("LOGIC_MODE", $tSettings['logicMode']);
+		}
+		
+
 	}
 	if(!defined('IS_TIMER')){ define("IS_TIMER", false); }
 	if(!defined('LOCK_TOURNAMENT')){ define("LOCK_TOURNAMENT", ''); }
+	if(!defined('LOGIC_MODE')){ define("LOGIC_MODE", 'normal'); }
 	
 	
 // Event Display Modes

@@ -199,7 +199,7 @@ case 'getRankingTypes': {
 			FROM systemRankings
 			{$where}
 			ORDER BY numberOfInstances DESC";
-	$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
+	$rankingTypes = mysqlQuery($sql, ASSOC);
 	
 	echo json_encode($rankingTypes);
 
