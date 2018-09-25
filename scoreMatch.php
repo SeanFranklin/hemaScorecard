@@ -460,6 +460,14 @@ function fighterDataEntryBox($matchInfo,$num){
 	if($doubleTypes['afterblowType'] != 'deductive'){
 		$hideAfterblow = "class='hidden'";
 	}
+
+	if(isTeamLogic($tournamentID)){
+		$teamID = getFighterTeam($id, $tournamentID);
+		$teamName = getTeamName($teamID);
+	} else {
+		$teamName = "";
+	}
+
 	?>
 	
 <!-- Begin display -->
@@ -472,6 +480,9 @@ function fighterDataEntryBox($matchInfo,$num){
 			</div>
 			<div class='align-self-bottom cell'>
 				<span style='font-size:15px;'><?=$fighterSchool?></span><BR>
+				<?php if(isTeamLogic($tournamentID)): ?>
+					<span style='font-size:15px;'>(<?=$teamName?>)</span><BR>
+				<?php endif ?>
 				<span style='font-size:30px;'><?=$colorName?></span><BR>
 				<span style='font-size:60px;'><?=$score?></span><BR>
 		

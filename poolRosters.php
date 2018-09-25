@@ -43,7 +43,15 @@ if($tournamentID == null){
 	
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
-	$tournamentRoster = getTournamentCompetitors();
+	if(isEntriesByTeam($tournamentID) == false){
+		$isTeams = false;
+		$tournamentRoster = getTournamentFighters($tournamentID);
+	} else {
+		$isTeams = true;
+		$tournamentRoster = getTournamentTeams($tournamentID);
+	}
+
+	
 	$assignedFighters = array();
 
 	$ignores = getIgnores($tournamentID);
@@ -94,10 +102,8 @@ if($tournamentID == null){
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	<div class='grid-x grid-padding-x' id='list-of-pools'>
 	<?php foreach($pools as $pool): ?>
-		<?php 
-			$groupID = $pool['groupID'];
-			poolEntryField($groupID , $pool['groupName'],$pool['groupNumber'], 
-							$poolRosters[$groupID], $freeFighters); 
+		<?php 			
+			poolEntryField($pool, $poolRosters[$pool['groupID']], $freeFighters, $isTeams); 
 		?>
 	<?php endforeach ?>
 	</div>
@@ -482,9 +488,13 @@ function autoPopluateButton($tournamentID = null){
 
 /******************************************************************************/
 
-function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRoster){
+function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 // Displays the current pool roster and fields to add fighters
-	
+
+	$groupID = $poolInfo['groupID'];
+	$poolName = $poolInfo['groupName'];
+	$poolNum = $poolInfo['groupNumber'];
+
 	$schoolList = getSchoolList();
 	$maxPoolSize = maxPoolSize();
 	$numPools = getNumPools($_SESSION['groupSet']);
@@ -543,9 +553,9 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 							$seedID = false;
 						}
 						$selected = isSelected($seedID,$entry['rosterID']);
-						if(!IS_TEAMS){
+						if($isTeams == false){
 							$name = getFighterName($entry['rosterID'])." ";
-							$name .= "(".$entry['schoolAbreviation'].")";
+							$name .= "(".getSchoolName($entry['schoolID'],'abrev').")";
 						} else {
 							$name = getTeamName($entry['rosterID']);
 						}
@@ -562,9 +572,9 @@ function poolEntryField($groupID,$poolName,$poolNum,$poolRoster, $tournamentRost
 		<!-- Fighter Already entered in position -->	
 		<?php else:?>
 			<?php $rosterID = $poolRoster[$i]['rosterID']; 
-				if(!IS_TEAMS){
+				if($isTeams == false){
 					$name = getFighterName($rosterID)." ";
-					$name .= "<em>(".$poolRoster[$i]['schoolAbreviation'].")</em>";
+					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abrev').")</em>";
 				} else {
 					$name = getTeamName($rosterID);
 				}

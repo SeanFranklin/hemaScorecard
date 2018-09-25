@@ -35,7 +35,12 @@ if($tournamentID == null){
 	if(isPools($tournamentID)){
 		$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');
 	} else {
-		$finalists = getTournamentRoster($tournamentID, 'name');
+		if(isEntriesByTeam($tournamentID) == false){
+			$finalists = getTournamentFighters($tournamentID);
+		} else {
+			$finalists = getTournamentTeams($tournamentID);
+		}
+
 	}
 
 	bracketHelperToggleButton($allBracketInfo, $finalists);
@@ -46,7 +51,6 @@ if($tournamentID == null){
 		displayAlert("No Brackets Created", 'CENTER');
 	} else {
 		$bracketAdvancements = getBracketAdvancements($allBracketInfo, $finalists);
-		
 
 		// Where the magic happens. Located in displayFunctions.php
 		bracket_display($allBracketInfo['winner'],$finalists,'winners',$bracketAdvancements);

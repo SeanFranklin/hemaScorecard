@@ -36,7 +36,20 @@ if($tournamentID == null){
 	poolSetNavigation();
 	
 	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
-	$isTeamLogic = isTeamLogic($tournamentID);
+
+	$teamRoster = getTournamentTeams($tournamentID);
+	$fighterRoster = getTournamentFighters($tournamentID,'rosterID','full');
+
+	if(isTeams($tournamentID) == false){
+		$showFighters = true;
+		$showTeams = false;
+	} elseif(isMatchesByTeam($tournamentID) == true){
+		$showFighters = false;
+		$showTeams = true;
+	} else {
+		$showFighters = true;
+		$showTeams = true;
+	}
 
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -58,30 +71,27 @@ if($tournamentID == null){
 		</div>			
 	<?php endif ?>
 
-	<?php if($isTeamLogic == false): ?>
-		<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], isTeams($tournamentID));?>
-	<?php else: ?>
-		<ul class="tabs" data-tabs id="example-tabs">
-			<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Teams</a></li>
-			<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">Fighters</a></li>
-		</ul>
 
+	<?php if($showFighters & $showTeams): ?>
+		<ul class="tabs" data-tabs id="example-tabs">
+			<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Fighters</a></li>
+			<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">Teams</a></li>
+		</ul>
 
 		<div class="tabs-content" data-tabs-content="example-tabs">
 			<div class="tabs-panel is-active" id="panel1">
-				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], true);?>
+				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], false);?>
 			</div>
 			<div class="tabs-panel" id="panel2">
-				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet']);?>
+				<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], true);?>
 			</div>
-			
 		</div>
-	<? endif ?>
-
-		
-
-
-		 
+	<?php elseif($showTeams): ?>
+		<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], true);?>
+	<?php else: ?>
+		<?=pool_DisplayResults($tournamentID, $_SESSION['groupSet'], false);?>
+	<?php endif ?>
+ 
 <?php 		
 }
 

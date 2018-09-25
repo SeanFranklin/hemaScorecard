@@ -25,9 +25,24 @@ if(USER_TYPE < USER_ADMIN){
 	displayAlert("No need to withdraw fighters from this tournament format");
 } else {
 
-	$roster = getTournamentCompetitors($tournamentID,'rosterID','full');
 	$isTeamLogic = isTeamLogic($tournamentID);
-	$ignores = getIgnores($_SESSION['tournamentID']);
+	$GLOBALS['ignores'] = getIgnores($tournamentID);
+
+	if(isEntriesByTeam($tournamentID) == true){
+		$showTeams = true;
+		$teamRoster = getTournamentTeams($tournamentID);
+		
+	} else {
+		$showTeams = false;
+	}
+
+	if(isMatchesByTeam($tournamentID) == true){
+		$showFighters = false;
+	} else {
+		$showFighters = true;
+		$fighterRoster = getTournamentFighters($tournamentID,'rosterID','full');
+	}
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,9 +58,7 @@ if(USER_TYPE < USER_ADMIN){
 	<input type='hidden' name='formName' value='ignoreFightersInTournament'>
 	<input type='hidden' name='manageFighters[tournamentID]' value='<?=$tournamentID?>'>
 
-	<?php if($isTeamLogic == false): ?>
-		<?php removeRosterTable($roster, $ignores)?>
-	<?php else: ?>
+	<?php if($showFighters & $showTeams): ?>
 		<ul class="tabs" data-tabs id="example-tabs">
 			<li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Fighters</a></li>
 			<li class="tabs-title"><a data-tabs-target="panel2" href="#panel2">Teams</a></li>
@@ -54,17 +67,17 @@ if(USER_TYPE < USER_ADMIN){
 
 		<div class="tabs-content" data-tabs-content="example-tabs">
 			<div class="tabs-panel is-active" id="panel1">
-				<?php 
-					$fighterRoster = getTournamentRoster($tournamentID,'rosterID','full');
-					removeRosterTable($fighterRoster, $ignores, true);
-				?>
+				<?php removeRosterTable($fighterRoster, $ignores, 'fighter');?>
 			</div>
 			<div class="tabs-panel" id="panel2">
-				<?php removeRosterTable($roster, $ignores)?>
+				<?php removeRosterTable($teamRoster, $ignores, 'team')?>
 			</div>
 		</div>
-	<? endif ?>
-
+	<?php elseif($showTeams): ?>
+		<?php removeRosterTable($teamRoster, $ignores, 'team')?>
+	<?php else: ?>
+		<?php removeRosterTable($fighterRoster, $ignores, 'fighter')?>
+	<?php endif ?>
 	
 	<BR>
 	<button class='button large success' name='updateTournament' 
@@ -87,7 +100,7 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function removeRosterTable($roster, $ignores, $forceFighterName = false){
+function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 
 	$numGroupSets = getNumGroupSets();
 	
@@ -101,7 +114,7 @@ function removeRosterTable($roster, $ignores, $forceFighterName = false){
 	} else {
 		$ignoreTitle = "Remove from set number";
 		$ignoreClause = " starting in this pool set, leaving older sets unaffected";
-		if($forceFighterName == false){
+		if($entryType == 'fighter'){
 			$numSetsForStops = 1;
 		} else {
 			$stopTitle = "Last set fought in";
@@ -139,17 +152,19 @@ function removeRosterTable($roster, $ignores, $forceFighterName = false){
 			</th>
 		</tr>
 
-	<?php foreach($roster as $rosterID => $fighter):?>
+	<?php foreach($roster as $entry):
+		$rosterID = $entry['rosterID'];?>
 		<tr>
 			<td>
-				<?  
-					if($forceFighterName){
-						$name = getFighterName($rosterID);
+				<?
+					if($entryType == 'team'){
+					
+						$name = getTeamName($rosterID);
 					} else {
-						$name = getEntryName($rosterID);
+						$name = getFighterName($rosterID);
 					}
-					echo $name; 
 				?>
+				<?=$name?>
 			</td>
 			
 		<!-- Remove from scoring in a set -->
