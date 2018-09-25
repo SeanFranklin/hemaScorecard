@@ -17,7 +17,7 @@ function _select_above(){
 function processPostData(){
 
 
-	//* For debugging, commented out for regular use ///
+	/* For debugging, commented out for regular use ///
 	$refreshPage = false;
 	define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
 	//define('SHOW_SESSION', true);
@@ -448,7 +448,7 @@ function checkEvent(){
 				foreach($tournament as $groupID => $groupOp){				
 					if(isPools($tournamentID)){
 						checkGroupOrders($tournamentID, $groupID);
-						updatePoolMatchList($groupID, 'pool');
+						updatePoolMatchList($groupID, 'pool', $tournamentID);
 					}
 					if(isRounds($tournamentID)){
 						checkRoundRoster($tournamentID, $groupID);
@@ -585,20 +585,15 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 		$setNumber = 1;
 	}
 
-	$isTeams = isTeams($tournamentID);
-	$logicMode = getTournamentLogic($tournamentID);
-
-	if($isTeams){
-		switch($logicMode){
-			case 'team_AllVsAll':
-				$treatTeamsAsFighters = false;
-				break;
-			default:
-				$treatTeamsAsFighters = true;
-				break;
-		}
+	if(isTeams($tournamentID) == false){
+		$entriesAreTeams = false;
+		$calculateTeamScores = false;
+	} elseif(isMatchesByTeam($tournamentID) == true){
+		$entriesAreTeams = true;
+		$calculateTeamScores = false;
 	} else {
-		$treatTeamsAsFighters = false;
+		$entriesAreTeams = false;
+		$calculateTeamScores = true;
 	}
 
 	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
@@ -606,14 +601,14 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
 		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
 
-		recordScores($fighterStats, $tournamentID, 'pool', $setNumber);
+		recordScores($fighterStats, $tournamentID, $setNumber);
 		unset($fighterStats);
 
 		pool_ScoreFighters($tournamentID, $setNumber);
 
-		pool_RankFighters($tournamentID, $setNumber, $treatTeamsAsFighters);
+		pool_RankFighters($tournamentID, $setNumber, $entriesAreTeams);
 		
-		if($isTeams && $treatTeamsAsFighters == false){
+		if($calculateTeamScores == true){
 			pool_CalculateTeamScores($tournamentID, $setNumber);
 			pool_RankFighters($tournamentID, $setNumber, true);
 		
@@ -710,7 +705,7 @@ function addNewExchange(){
 	$matchID = $_SESSION['matchID'];
 	if($matchID == null){return;}
 
-	if($_POST['restartTimer'] == 1){
+	if(@$_POST['restartTimer'] == 1){ // May not exist. This is logical '0'.
 		$_SESSION['restartTimer'] = 1;
 	}
 	

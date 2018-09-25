@@ -203,7 +203,7 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 	if($allBracketInfo == null || $_SESSION['bracketHelper'] != 'on'){
 		return null;
 	}
-	
+
 	$bracketID = $allBracketInfo['winner']['groupID'];
 	$bracketLevels = $allBracketInfo['winner']['bracketLevels'];
 
@@ -218,6 +218,7 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 	// Fighter positions for winners bracket based on pool seeding
 	$fightersCounted = 0;
 	for($fighterSeed;$fighterSeed >= 1; $fighterSeed--){
+
 		$fightersCounted++;
 		if($fightersCounted > $numFightersAtLevel){
 			$currentLevel--;

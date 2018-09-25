@@ -128,6 +128,7 @@ function isTeamLogic($tournamentID){
 	$logicMode = getTournamentLogic($tournamentID);
 	switch($logicMode){
 		case 'team_AllVsAll':
+		case 'team_Solo':
 			return true;
 			break;
 		default:
@@ -1147,6 +1148,7 @@ function getCombatantName($rosterID, $splitName = null, $nameMode = null){
 
 	switch(LOGIC_MODE){
 		case 'team_AllVsAll':
+		case 'team_Solo':
 			$name = getFighterName($rosterID, $splitName, $nameMode);
 			break;
 		default:
@@ -1156,6 +1158,69 @@ function getCombatantName($rosterID, $splitName = null, $nameMode = null){
 	
 	return $name;
 }
+
+/******************************************************************************/
+
+function isEntriesByTeam($tournamentID){
+// Returns TRUE if it is a team event which has teams being entered
+
+	$sql = "SELECT isTeams, logicMode
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$teamInfo = mysqlQuery($sql, SINGLE);
+
+	if($teamInfo['isTeams'] == false){
+		return false;
+	}
+
+
+	switch($teamInfo['logicMode']){
+		case 'team_AllVsAll':
+			$retVal = true;
+			break;
+		case 'team_Solo':
+			$retVal = false;
+			break;
+		default:
+			$retVal = true;
+			break; 
+	}
+
+	return $retVal;
+
+}
+
+/******************************************************************************/
+
+function isMatchesByTeam($tournamentID){
+// Returns TRUE if it is a team event which has teams fighting teams
+
+	$sql = "SELECT isTeams, logicMode
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$teamInfo = mysqlQuery($sql, SINGLE);
+
+	if($teamInfo['isTeams'] == false){
+		return false;
+	}
+
+
+	switch($teamInfo['logicMode']){
+		case 'team_AllVsAll':
+			$retVal = false;
+			break;
+		case 'team_Solo':
+			$retVal = false;
+			break;
+		default:
+			$retVal = true;
+			break; 
+	}
+
+	return $retVal;
+
+}
+
 
 /******************************************************************************/
 
@@ -1243,10 +1308,14 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 
 /******************************************************************************/
 
-function getFighterName($rosterID, $splitName = null, $nameMode = null){
+function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false){
 	if($rosterID == null){
 		setAlert(SYSTEM,"No rosterID in getFighterName()");
 		return;
+	}
+
+	if($isTeam == true){
+		return getTeamName($rosterID, $splitName);
 	}
 
 	if($splitName == null){
@@ -1510,14 +1579,16 @@ function getMatchInfo($matchID = null){
 			WHERE matchID = {$matchID}";	
 	$matchInfo['lastExchange'] = mysqlQuery($sql, SINGLE, 'MAX(exchangeID)');
 
-	$sql = "SELECT doubleTypeID
+	$sql = "SELECT doubleTypeID, tournamentID 
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE matchID = {$matchID}";	
-	$matchInfo['doubleType'] = mysqlQuery($sql, SINGLE, 'doubleTypeID');
-	
-	
+			WHERE matchID = {$matchID}";
+	$temp = mysqlQuery($sql, SINGLE);
+
+	$matchInfo['doubleType'] = $temp['doubleTypeID'];
+	$matchInfo['teamEntry'] = isMatchesByTeam($temp['tournamentID']);
+
 	if($matchInfo['matchComplete'] == 1){
 		$sql = "SELECT exchangeType
 				FROM eventExchanges
@@ -1526,6 +1597,8 @@ function getMatchInfo($matchID = null){
 	} elseif ($matchInfo['ignoreMatch'] == 1){
 		$matchInfo['endType'] = 'ignore';
 	}
+
+
 	
 	
 	
@@ -2011,30 +2084,15 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 		$pools[$groupID] = [];
 	}
 
-	if(isTeams($tournamentID) == false){
-		$sql = "SELECT eventGroupRoster.poolPosition, eventGroupRoster.tableID,
-				eventGroups.groupID, eventRoster.rosterID, systemSchools.schoolAbreviation
-				FROM eventGroupRoster
-				INNER JOIN eventGroups ON eventGroups.groupID = eventGroupRoster.groupID
-				INNER JOIN eventRoster ON eventGroupRoster.rosterID = eventRoster.rosterID
-				INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
-				INNER JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
-				WHERE eventGroups.tournamentID = {$tournamentID}
-				{$groupSet}
-				ORDER BY eventGroupRoster.poolPosition ASC";
-	} else {
-		$sql = "SELECT eventGroupRoster.poolPosition, eventGroupRoster.tableID,
-				eventGroups.groupID, eventRoster.rosterID, systemSchools.schoolAbreviation
-				FROM eventGroupRoster
-				INNER JOIN eventGroups ON eventGroups.groupID = eventGroupRoster.groupID
-				INNER JOIN eventRoster ON eventGroupRoster.rosterID = eventRoster.rosterID
-				LEFT JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
-				LEFT JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
-				WHERE eventGroups.tournamentID = {$tournamentID}
-				AND eventRoster.isTeam = 1
-				{$groupSet}
-				ORDER BY eventGroupRoster.poolPosition ASC";
-	}
+	
+	$sql = "SELECT poolPosition, tableID, groupID, rosterID, schoolID
+			FROM eventGroupRoster
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE eventGroups.tournamentID = {$tournamentID}
+			{$groupSet}
+			ORDER BY eventGroupRoster.poolPosition ASC";
+	
 
 	$result = (array)mysqlQuery($sql, ASSOC);
 
@@ -2042,8 +2100,8 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 		$groupID = $row['groupID'];
 		$poolPosition = $row['poolPosition'];
 		$pools[$groupID][$poolPosition]['rosterID'] = $row['rosterID'];
-		$pools[$groupID][$poolPosition]['schoolAbreviation'] = $row['schoolAbreviation'];
 		$pools[$groupID][$poolPosition]['tableID'] = $row['tableID'];
+		$pools[$groupID][$poolPosition]['schoolID'] = $row['schoolID'];
 	}
 
 	
@@ -2527,10 +2585,16 @@ function getNormalizationAveraged($tournamentID, $groupSet = 1){
 
 	}
 
-	$averageNumMatches = (2 * $numMatches) / $numFighters;
-	$averageGroupSize = $averageNumMatches + 1;
+	if($numFighters != 0){
+		$averageNumMatches = (2 * $numMatches) / $numFighters;
+		$averageGroupSize = $averageNumMatches + 1;
 
-	$averageGroupSize = round($averageGroupSize);
+		$averageGroupSize = round($averageGroupSize);
+	} else {
+		$averageGroupSize = 0;
+	}
+
+
 	return $averageGroupSize;
 }
 
@@ -2691,10 +2755,13 @@ function getSchoolListLONG($sortString = null){
 	return $allSchools;
 }
 
+
 /******************************************************************************/
 
 function getSchoolName($schoolID = null, $nameType = null, $includeBranch = null){
-	if($schoolID == null){return "No schoolID in getSchoolName()";} 
+	if($schoolID == null){
+		return '';
+	} 
 	
 	$sql = "SELECT schoolFullName, schoolShortName, schoolBranch, schoolAbreviation 
 			FROM systemSchools
@@ -3067,6 +3134,34 @@ function getTournamentCompetitors($tournamentID = null, $sortType = null, $exclu
 
 /******************************************************************************/
 
+function getTournamentFighters($tournamentID, $sortType = null, $excluded = null){
+
+	$excludeTheDiscounted = null;
+	
+	$orderName = NAME_MODE;
+	
+	if($sortType == 'school'){
+		$sortString = "ORDER BY (CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, {$orderName} ASC";
+	} else {
+		$sortString = "ORDER BY systemRoster.{$orderName}";
+	}
+
+	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster USING(systemRosterID)
+			INNER JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
+			WHERE tournamentID = {$tournamentID}
+			AND isTeam = 0
+			{$excludeTheDiscounted}
+			{$sortString}";	
+
+	return mysqlQuery($sql, ASSOC);
+
+}
+
+/******************************************************************************/
+
 function getTournamentRoster($tournamentID = null, $sortType = null, $excluded = null){
 // returns a sorted array of all fighters in a tournament
 // indexed by rosterID	
@@ -3193,9 +3288,11 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 	$ignoreWhere = '';
 	if($advancementsOnly){
 		$ignores = getIgnores($tournamentID,'stopAtSet',1);
+		$ignoreWhere = "AND eventStandings.rank IS NOT NULL";
 		if($ignores != null){
 			$ignoreWhere = " AND eventStandings.rosterID NOT IN (".implode(",",$ignores).")";
 		}
+
 	} 
 	
 	if($poolSet == 'all'){
@@ -3215,26 +3312,27 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 					WHERE eventTournamentRoster.tournamentID = {$tournamentID}
 					ORDER BY {$orderName} ASC";
 		} else {
-			if(isTeams($tournamentID)){
+			if(isMatchesByTeam($tournamentID)){
 				$teamClause = "AND isTeam = 1";
 			} else {
 				$teamClause = "AND isTeam = 0";
 			}
 		
-			$sql = "SELECT eventRoster.rosterID,
-					rank, score, wins, losses, ties, pointsFor, pointsAgainst, doubles, matches,
+			$sql = "SELECT rosterID, rank, score, wins, losses, ties, pointsFor, 
+					pointsAgainst, doubles, matches,
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst
 					FROM eventStandings
-					INNER JOIN eventRoster ON eventStandings.rosterID = eventRoster.rosterID
-					WHERE eventStandings.tournamentID = {$tournamentID}
+					INNER JOIN eventRoster USING(rosterID)
+					WHERE tournamentID = {$tournamentID}
 					AND groupType = 'pool'
 					{$groupSet}
 					{$ignoreWhere}
 					{$teamClause}
 					ORDER BY rank ASC";
 		}
+
 		$rankedList = mysqlQuery($sql, ASSOC);
-		
+
 		if($advancementsOnly){
 		// Removes and gaps in the list created by fighters who completed
 		// pools but are stepping out of the finals.
@@ -3562,19 +3660,34 @@ function isTeams($tournamentID = null){
 
 /******************************************************************************/
 
+function getFighterTeam($rosterID, $tournamentID){
+
+	$sql = "SELECT teamID
+			FROM eventTeamRoster team
+			INNER JOIN eventTournamentRoster tourn ON team.tournamentRosterID = tourn.tableID
+			WHERE team.rosterID = {$rosterID}
+			AND tournamentID = {$tournamentID}";
+	return (int)mysqlQuery($sql, SINGLE, 'teamID');
+
+}
+
+
+/******************************************************************************/
+
 function getTournamentTeams($tournamentID = null){
 
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return false;}
+
 	$tournamentID = (int)$tournamentID;
 
-	$sql = "SELECT eventRoster.rosterID as teamID 
+	$sql = "SELECT eventRoster.rosterID as rosterID, NULL AS schoolID, eventRoster.rosterID as teamID 
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			WHERE isTeam = TRUE
 			AND eventTournamentRoster.tournamentID = {$tournamentID}";
 
-	return mysqlQuery($sql, SINGLES, 'teamID');
+	return mysqlQuery($sql, ASSOC);
 
 }
 
@@ -3596,8 +3709,6 @@ function getTeamRosters($tournamentID = null){
 	$allMembers =  mysqlQuery($sql, ASSOC);
 
 	$retVal = [];
-
-
 
 	foreach($allMembers as $member){
 		$teamID = $member['teamID'];

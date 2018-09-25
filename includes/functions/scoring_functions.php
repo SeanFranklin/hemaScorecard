@@ -980,7 +980,7 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if(getTournamentLogic($tournamentID) == 'team_AllVsAll'){
+	if(isEntriesByTeam($tournamentID) && isMatchesByTeam($tournamentID) == false){
 		$numberOfMatches = getNormalizationAveraged($tournamentID, $groupSet) - 1;
 	} elseif(isCumulative($groupSet, $tournamentID)){
 		$numberOfMatches = getNormalizationCumulative($tournamentID, $groupSet) - 1;
@@ -1131,76 +1131,86 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 	$rosters = getPoolRosters($tournamentID, $setNumber);
 	$standingsToKeep = [];
 
-	foreach($rosters as $groupID => $group){
-		foreach($group as $team){
-			$teamID = $team['rosterID'];
+	$ignores = getIgnores($tournamentID,'ignoreAtSet');
+	$teamRosters = getTeamRosters($tournamentID);
 
-			$roster = getTeamRoster($teamID);
+	foreach($teamRosters as $teamID => $teamRoster){
+		if(count($teamRoster) == 0){
+			continue;
+		}
 
-			if(sizeof($roster) == 0){
-				continue;
+		$inRange = '';
+		foreach($teamRoster['members'] as $fighter){
+			if($inRange != ''){
+				$inRange .= ', ';
 			}
+			$inRange .= $fighter['rosterID'];
+		}
 
-			$inRange = '';
-			foreach($roster as $rosterID){
-				if($inRange != ''){
-					$inRange .= ', ';
-				}
-				$inRange .= $rosterID;
-			}
-
-
-			$sql = "SELECT standingID
-					FROM eventStandings
-					WHERE tournamentID = {$tournamentID}
-					AND groupSet = {$setNumber}
-					AND rosterID = {$teamID}";
-			$standingID = mysqlQuery($sql, SINGLE, 'standingID');
-
-			if($standingID == null){
-				$sql = "INSERT INTO eventStandings
-						(tournamentID, groupSet, rosterID, groupID, groupType)
-						VALUES
-						({$tournamentID}, {$setNumber}, {$teamID}, {$groupID}, 'pool')";
-				mysqlQuery($sql, SEND);
-
-				$standingID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
-			}
-
-			$fields = ['score', 'matches', 'wins', 'losses','ties','pointsFor','pointsAgainst',
-						'hitsFor','hitsAgainst','afterblowsFor','afterblowsAgainst',
-						'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst',
-						'numPenalties','penaltiesAgainstOpponents','penaltiesAgainst','doubleOuts'];
-			$selectClause = implode("), SUM(", $fields);
-			$selectClause = "SUM(".$selectClause.")";
+	// Don't do anything if no one in the team has fought
+		$sql = "SELECT COUNT(*) AS numRecords
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID IN({$inRange})";
+		$numRecords = mysqlQuery($sql, SINGLE, 'numRecords');
+		
+		if($numRecords < 1){
+			continue;
+		}
 
 
-			$sql = "SELECT {$selectClause}
-					FROM eventStandings
-					WHERE tournamentID = {$tournamentID}
-					AND groupSet = {$setNumber}
-					AND rosterID IN({$inRange})";
-			$teamData = mysqlQuery($sql, SINGLE);
-			
-			$updateClause = '';
-			foreach($fields as $field){
-				if($updateClause != ''){
-					$updateClause .= ', ';
-				}
-				$updateClause .= $field.'='.((float)$teamData["SUM(".$field.")"]);
+	// Find the standingID to update, or create a new one if it doesn't exist
+		$sql = "SELECT standingID
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID = {$teamID}";
+		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
 
-			}
-
-
-			$sql = "UPDATE eventStandings
-					SET
-					{$updateClause}
-					WHERE standingID = {$standingID}";
+		if($standingID == null){
+			$sql = "INSERT INTO eventStandings
+					(tournamentID, groupSet, rosterID, groupType)
+					VALUES
+					({$tournamentID}, {$setNumber}, {$teamID}, 'pool')";
 			mysqlQuery($sql, SEND);
 
-			$standingsToKeep[] = $standingID;
+			$standingID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+		}
+
+	// Prepare query to update team score
+		$fields = ['score', 'matches', 'wins', 'losses','ties','pointsFor','pointsAgainst',
+					'hitsFor','hitsAgainst','afterblowsFor','afterblowsAgainst',
+					'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst',
+					'numPenalties','penaltiesAgainstOpponents','penaltiesAgainst','doubleOuts'];
+		$selectClause = implode("), SUM(", $fields);
+		$selectClause = "SUM(".$selectClause.")";
+
+
+		$sql = "SELECT {$selectClause}
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupSet = {$setNumber}
+				AND rosterID IN({$inRange})";
+		$teamData = mysqlQuery($sql, SINGLE);
+		
+		$updateClause = '';
+		foreach($fields as $field){
+			if($updateClause != ''){
+				$updateClause .= ', ';
+			}
+			$updateClause .= $field.'='.((float)$teamData["SUM(".$field.")"]);
 
 		}
+
+		$sql = "UPDATE eventStandings
+				SET
+				{$updateClause}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+
+		$standingsToKeep[] = $standingID;
+
 
 	}
 

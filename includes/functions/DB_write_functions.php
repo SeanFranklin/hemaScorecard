@@ -368,6 +368,7 @@ function addFightersToGroup(){
 
 	foreach((array)$_POST['groupAdditions'] as $groupID => $groupAdditions){
 		foreach($groupAdditions as $poolPosition => $rosterID){
+			
 			if(isset($fightersInList[$rosterID])){
 				$skippedFighters++;
 				continue;
@@ -2040,32 +2041,28 @@ function importRosterCSV(){
 
 /******************************************************************************/
 
-function recordScores($allFighterStats, $tournamentID, $groupType, $groupSet = null){
+function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 	
 	if(USER_TYPE < USER_STAFF){return;}
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if($groupType == null){
-		$groupType = 'pool';
-	}
 	if($groupSet == null){ $groupSet = $_SESSION['groupSet']; }
 	if($groupSet == null){
 		$_SESSION['alertMessages']['systemErrors'][] = "No groupSet in recordScores()";
 		return; 
 	}
 
-	$teamString = "AND isTeam = 0";
+
 	if(isTeams($tournamentID)){
-		switch(getTournamentLogic($tournamentID)){
-			case 'team_AllVsAll':
-				$teamString = "AND isTeam = 0";
-				break;
-			default:
-				$teamString = '';
-				break;
+		if(isMatchesByTeam($tournamentID) == false){
+			$teamString = "AND isTeam = 0";
+		} else {
+			$teamString = '';
 		}
+	} else {
+		$teamString = "AND isTeam = 0";
 	}
 
 
@@ -2074,11 +2071,11 @@ function recordScores($allFighterStats, $tournamentID, $groupType, $groupSet = n
 			FROM eventStandings
 			INNER JOIN eventRoster USING(rosterID)
 			WHERE tournamentID = {$tournamentID}
-			AND groupType = '{$groupType}'
+			AND groupType = 'pool'
 			AND groupSet = {$groupSet}
 			{$teamString}";
 	$existingStandings = mysqlQuery($sql, ASSOC);
-	
+
 	$standingsToDelete = [];
 	foreach((array)$existingStandings as $standing){
 		$rosterID = $standing['rosterID'];
@@ -2135,7 +2132,7 @@ function recordScores($allFighterStats, $tournamentID, $groupType, $groupSet = n
 			$sql = "INSERT INTO eventStandings
 					(groupType, tournamentID, groupSet,{$fieldString})
 					VALUES
-					('{$groupType}', {$tournamentID}, {$groupSet},{$valueString})";
+					('pool', {$tournamentID}, {$groupSet},{$valueString})";
 
 			mysqlQuery($sql, SEND);
 		}
@@ -2569,6 +2566,22 @@ function updateEventTournaments(){
 	$defaults = getEventDefaults($eventID);
 	$info = $_POST['updateTournament'];
 
+
+	if($info['isTeams'] == true){
+		if($info['logicMode'] == 'team_AllVsAll'
+			&& (   $info['tournamentElimID'] == POOL_BRACKET
+			    || $info['tournamentElimID'] == DIRECT_BRACKET
+			   )
+			){
+			$info['logicMode'] = "NULL";
+
+			setAlert(USER_ERROR,"Brackets are not supported for having all team members fight each other.
+				<BR>If you want this feature get in contact and we can talk about implementation.
+				<BR><strong>Tournament has been converted to <u>Team vs Team</u>.</strong>");
+		}
+	}
+
+
 	switch($_POST['updateType']){
 	// Add a new tournament
 		case 'add':
@@ -2596,7 +2609,6 @@ function updateEventTournaments(){
 					$_SESSION['alertMessages']['userErrors'][] = "Reverse Score mode only functions without
 					<u>Use Net Points</u> enabled. <BR><u>Use Net Points</u> has been set to <i>No</i>.";
 				}
-
 			}
 
 			$sql = "INSERT INTO eventTournaments (
@@ -2667,28 +2679,9 @@ function updateEventTournaments(){
 
 			}
 
-			if($info['isTeams'] == true){
-				if($info['tournamentElimID'] == POOL_BRACKET
-					|| $info['tournamentElimID'] == DIRECT_BRACKET){
-
-					$sql = "SELECT COUNT(*) AS numTeams 
-							FROM eventRoster
-							INNER JOIN eventTournamentRoster USING(rosterID)
-							WHERE tournamentID = {$tournamentID}
-							AND isTeam = 1";
-					$numTeams = mysqlQuery($sql, SINGLE, 'numTeams');
-					if($numTeams > 0){
-						setAlert(USER_ERROR,"Teams are not currently supported for bracket tournaments
-							<BR><strong>Tournament has <u>NOT</u> been updated.");
-						return;
-					} else {
-						$info['isTeams'] = '0';
-						setAlert(USER_ERROR,"Teams are not currently supported for bracket tournaments
-							<BR>Tournament has been set to a non-team tournament.");
-					}
-				}
-
-			}
+			$wasEntriesByTeam = isEntriesByTeam($tournamentID);
+			$wasMatchesByTeam = isMatchesByTeam($tournamentID);
+			$wasTeamTournament = isTeams($tournamentID);
 
 		// Delete groups if the elim type has changed		
 			$elimTypeID = $info['tournamentElimID'];
@@ -2741,19 +2734,23 @@ function updateEventTournaments(){
 				mysqlQuery($sql, SEND);
 			}
 
-		// Clean up if switching to and from team based tournaments
-			if($info['isTeams'] == false){
+		// Clean up data if switching between team modes
+			if(isEntriesByTeam($tournamentID) == true && $wasEntriesByTeam == false){
+				$sql = "DELETE  eventGroupRoster FROM eventGroupRoster
+						INNER JOIN eventGroups USING(groupID)
+						WHERE tournamentID = {$tournamentID}";
+				mysqlQuery($sql, SEND);
+			} elseif(isEntriesByTeam($tournamentID) == false && $wasEntriesByTeam == true){
+				$sql = "DELETE  eventGroupRoster FROM eventGroupRoster
+						INNER JOIN eventGroups USING(groupID)
+						WHERE tournamentID = {$tournamentID}";
+				mysqlQuery($sql, SEND);
+			}
+			if(isTeams($tournamentID) == false){
 				$sql = "DELETE eventRoster FROM eventRoster
 						INNER JOIN eventTournamentRoster USING(rosterID)
 						WHERE tournamentID = {$tournamentID}
 						AND isTeam = 1";
-				mysqlQuery($sql, SEND);
-			} else {
-				$sql = "DELETE  eventGroupRoster FROM eventGroupRoster
-						INNER JOIN eventGroups USING(groupID)
-						INNER JOIN eventRoster USING(rosterID)
-						WHERE tournamentID = {$tournamentID}
-						AND isTeam = 0";
 				mysqlQuery($sql, SEND);
 			}
 
@@ -3050,12 +3047,11 @@ function updateIgnoredFighters($manageFighterData){
 
 	$numGroupSets = getNumGroupSets($tournamentID);
 	$checkTeams = false;
-	if(isTeams($tournamentID)
-		&& getTournamentLogic($tournamentID) == 'team_AllVsAll'){
+	if(isTeamLogic($tournamentID)){
 		$checkTeams = true;
 	}
 
-	for($groupSet = 1; $groupSet <= $numGroupSets; $groupSet++){
+	for($groupSet = $numGroupSets; $groupSet > 0; $groupSet--){
 
 		if(isset($rosterIDsToIgnore[$groupSet])){
 			$ignoreList = implode(",",$rosterIDsToIgnore[$groupSet]);
@@ -3097,7 +3093,7 @@ function updateIgnoredFighters($manageFighterData){
 				INNER JOIN eventGroups USING(groupID)
 				SET ignoreMatch = 0
 				WHERE tournamentID = {$tournamentID}
-				AND groupSet >= {$groupSet}
+				AND groupSet = {$groupSet}
 				AND (groupType = 'pool' OR groupType = 'round')
 				AND ((fighter1ID NOT IN ({$ignoreList})) AND (fighter2ID NOT IN ({$ignoreList})) )";
 		mysqlQuery($sql, SEND);
@@ -3363,7 +3359,7 @@ function updateRoundMatchList($tournamentID = null){
 
 /******************************************************************************/
 
-function updatePoolMatchList($ID = null, $type = null){
+function updatePoolMatchList($ID, $type, $tIdIn = null){
 
 	if(USER_TYPE < USER_STAFF){return;}
 	
@@ -3395,6 +3391,7 @@ function updatePoolMatchList($ID = null, $type = null){
 		$tournaments[] = null;
 	}
 
+
 	foreach((array)$tournaments as $tournamentID){
 		if($type == 'event'){
 			if(!isPools($tournamentID)){continue;}
@@ -3404,19 +3401,21 @@ function updatePoolMatchList($ID = null, $type = null){
 			$pools = getPools($tournamentID, 'all');
 		} else {
 			$pools = getGroupInfo($groupID);
+			$tournamentID = $tIdIn;
 		}
 
-		$logicMode = getTournamentLogic($tournamentID);
 		$ignores = [];
-	
-		switch($logicMode){
-			case 'team_AllVsAll':
-				$ignores = getIgnores($tournamentID);
-				$poolRosters = getPoolTeamRosters($tournamentID,'all');
-				break;
-			default:
-				$poolRosters = getPoolRosters($tournamentID, 'all');
-				break;
+
+		if(isEntriesByTeam($tournamentID) == true && isMatchesByTeam($tournamentID) == false){
+			// In this case pools are populated by teams, but matches have to be constructed on
+			// an individual basis.
+			$constructMatches = true;
+			$ignores = getIgnores($tournamentID);
+			$poolRosters = getPoolTeamRosters($tournamentID,'all');
+		} else {
+			$constructMatches = false;
+			$matchOrderType = 'normal';
+			$poolRosters = getPoolRosters($tournamentID, 'all');
 		}
 			
 		$goodMatchesInPool = null;
@@ -3438,13 +3437,10 @@ function updatePoolMatchList($ID = null, $type = null){
 					WHERE groupID = {$groupID}";
 			mysqlQuery($sql, SEND);
 
-			switch($logicMode){
-				case 'team_AllVsAll':
-					$matchOrder = makePoolMatchOrder($poolRosters[$groupID], $ignores, $pool['groupSet']);
-					break;
-				default:
-					$matchOrder = getPoolMatchOrder($groupID, $poolRoster);
-					break;
+			if($constructMatches == false){
+				$matchOrder = getPoolMatchOrder($groupID, $poolRoster);
+			} else {
+				$matchOrder = makePoolMatchOrder($poolRosters[$groupID], $ignores, $pool['groupSet']);
 			}
 			
 			foreach((array)$matchOrder as $matchNumber => $matchInfo){
