@@ -118,7 +118,7 @@ if($_SESSION['eventID'] == null){
 					if($fighter[$tournamentID] != ''){
 						$checked  = 'checked';
 					} else {
-						$checked = '');
+						$checked = '';
 					}
 					$i++;
 					?>

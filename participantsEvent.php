@@ -194,6 +194,8 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 			</button>
 		</span>
 	<?php endif?>
+
+    </form>
 	
 <?php }
 

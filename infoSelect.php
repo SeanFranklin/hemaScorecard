@@ -18,7 +18,6 @@ $hidePageTitle = true;
 include('includes/header.php');
 
 // Get the event List
-// Get the event List
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
 if(USER_TYPE >= USER_SUPER_ADMIN){

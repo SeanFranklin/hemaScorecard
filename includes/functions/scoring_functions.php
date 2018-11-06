@@ -268,8 +268,8 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 					<option value='2'>2</option>
 					<option <?=optionValue(0,$cutPoints)?> >0</option>
 					<option value='-5'>-5</option>
-					<option value='10'>-10</option>
-					<option value='30'>-30</option>
+					<option value='-10'>-10</option>
+					<option value='-30'>-30</option>
 				</select>
 			</td>
 			<td style='padding: 2px;'>
