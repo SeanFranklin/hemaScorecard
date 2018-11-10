@@ -241,7 +241,8 @@ function displayEventButton($eventID, $eventInfo){
 		if(isset($location)){ $location .= ', '; }
 		$location .= $eventInfo['eventCountry'];
 	}
-	$location = rtrim($location,', \t\n');
+
+	$location = rtrim($location,', \t');
 	
 // Format year and date string
 	$name = $eventInfo['eventName'];
@@ -649,6 +650,13 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 				
 			</div>
 			<div class='large-9 cell' id='rankingDescriptionContainer'>
+				<div class='rankingDescription'>
+					<BR><BR><BR>
+					<div class='callout success text-center'>
+						<h5>If you would like a Ranking Algorithm not listed here, let the HEMA Scorecard Team know!</h5>
+						<i>(It's super easy to add them)</i>
+					</div>
+				</div>
 				<?php foreach($rankingTypeDescriptions as $type): ?>
 					<div id='rankingID<?=$type['tournamentRankingID']?>' class='hidden rankingDescription'>
 						<h5><?=$type['name']?></h5>

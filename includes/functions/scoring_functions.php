@@ -689,6 +689,76 @@ function _RSScutting_updateExchanges(){
 
 /******************************************************************************/
 
+function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
+	
+	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}
+			AND ignoreMatch = 0
+			AND matchComplete = 1";
+
+	$matchResults = mysqlQuery($sql, ASSOC);
+
+	foreach($matchResults as $match){
+		if((int)$match['fighter1Score'] > (int)$match['fighter2Score']){
+			$winnerID = $match['fighter1ID'];
+			$winnerScore = $match['fighter1Score'];
+			$loserID = $match['fighter2ID'];
+			$loserScore = $match['fighter2Score'];
+		} elseif((int)$match['fighter1Score'] < (int)$match['fighter2Score']) {
+			$winnerID = $match['fighter2ID'];
+			$winnerScore = $match['fighter2Score'];
+			$loserID = $match['fighter1ID'];
+			$loserScore = $match['fighter1Score'];
+		} else {
+			// These values may not exist, in which case they should be evaluated as zero.
+			@$scores[$match['fighter1ID']] += 0;
+			@$scores[$match['fighter2ID']] += 0;
+			@$numMatches[$match['fighter1ID']]++;
+			@$numMatches[$match['fighter2ID']]++;
+			continue;
+		}
+
+		// Calculate the winner and loser scores
+		$winnerCalc = ($winnerScore - $loserScore) / $winnerScore;
+		$loserCalc = 0;
+
+		// These values may not exist, in which case they should be evaluated as zero.
+		@$scores[$winnerID] += $winnerCalc; 
+		@$scores[$loserID] += $loserCalc;
+		@$numMatches[$winnerID]++;
+		@$numMatches[$loserID]++;
+	}
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	// Write to DB
+
+	foreach($scores as $rosterID => $score){
+
+		if($normalizedMatches != $numMatches[$rosterID]){
+			$normalizedScore = $score * ($normalizedMatches / $numMatches[$rosterID]);
+		} else {
+			$normalizedScore = $score;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$normalizedScore}
+				WHERE tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND rosterID = {$rosterID}";
+		mysqlQuery($sql, SEND);
+	}	
+
+}
+
+/******************************************************************************/
+
 function pool_ScoreFighters($tournamentID, $groupSet = 1){
 // Calls the appropriate funciton to score fighters given the tournament
 // scoring algorithm
@@ -701,16 +771,23 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 	
 	$formula = getScoreFormula($tournamentID);
 
-	$sql = "UPDATE eventStandings
-			SET score = ($formula)
-			WHERE tournamentID = {$tournamentID}
-			AND groupType = 'pool'
-			AND groupSet = {$groupSet}";
+	if(substr($formula,0,1) !== '#'){
 
-	mysqlQuery($sql, SEND);
+		$sql = "UPDATE eventStandings
+				SET score = ($formula)
+				WHERE tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}";
+
+		mysqlQuery($sql, SEND);
+	} else {
+		// If a function has been specified instead of an algorithm then it is 
+		// prefixed with an '#';
+		$funcName = "_".substr($formula,1)."_calculateScore";
+		call_user_func($funcName,$tournamentID,$groupSet);
+	}
 	
 }
-
 
 /******************************************************************************/
 
