@@ -87,6 +87,11 @@
 	define("ATTACK_CONTROL_DB",9);
 	define("ATTACK_AFTERBLOW_DB",13);
 
+// Display Related Constants
+
+	define("EVENT_ACTIVE_LIMIT",6);
+	define("EVENT_UPCOMING_LIMIT",1);
+
 // Includes ////////////////////////////////////////////////////////////////////
 
 require_once(BASE_URL.'includes/function_lib.php');

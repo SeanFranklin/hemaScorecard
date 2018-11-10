@@ -794,36 +794,72 @@ function getEventList($eventStatus, $order = null, $limit = null){
 	$validValues['hidden'] = true;
 	$validValues['archived'] = true;
 
-	if(!isset($validValues[$eventStatus])){
-		setAlert(SYSTEM,'Invalid eventStatus in getEventList()');
-		return null;
-	}
-	if($order != 'DESC' && $order != 'ASC'){
-		if($eventStatus == 'archived' || $eventStatus == '%'){
-			$order = 'DESC';
-		} else {
-			$order = 'ASC';
+	if($eventStatus == 'recent'){
+		$limit = (int)$limit;
+		if($limit == 0){ 
+			$limit = 4;  // Arbitrary magic number to prevent calling without limit.
 		}
 
-	}
+		$eventActiveLimit = EVENT_ACTIVE_LIMIT;
+		$eventUpcomingLimit = EVENT_UPCOMING_LIMIT;
+		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
+				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventStatus
+				FROM 
+				systemEvents
+				WHERE (		(eventStatus LIKE 'archived')
+						OR (eventStatus LIKE 'active'
+							AND DATEDIFF(eventEndDate,CURDATE()) < {$eventActiveLimit} )
+						OR (eventStatus LIKE 'upcoming'
+							AND DATEDIFF(eventEndDate,CURDATE()) < {$eventUpcomingLimit} )
+					   )
+				ORDER BY eventStartDate DESC, eventEndDate DESC
+				LIMIT {$limit}";
+		return mysqlQuery($sql, KEY, 'eventID');	
 
-	$limit = (int)$limit;
-	if((int)$limit > 0){
-		$limitString = "LIMIT {$limit}";
+
+	} elseif($eventStatus == 'old'){
+		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
+				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventStatus
+				FROM 
+				systemEvents
+				WHERE eventStatus IN ('archived', 'active', 'upcoming')
+				ORDER BY eventStartDate DESC, eventEndDate DESC";
+		return mysqlQuery($sql, KEY, 'eventID');	
+
+
 	} else {
-		$limitString = '';
-	}
-	
-	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-			eventEndDate, eventCountry, eventProvince, eventCity, 
-			eventStatus 
-			FROM 
-			systemEvents
-			WHERE eventStatus LIKE '{$eventStatus}'
-			ORDER BY eventStartDate {$order}
-			{$limitString}";
-	return mysqlQuery($sql, KEY, 'eventID');
+		if(!isset($validValues[$eventStatus])){
+			setAlert(SYSTEM,'Invalid eventStatus in getEventList()');
+			return null;
+		}
+		if($order != 'DESC' && $order != 'ASC'){
+			if($eventStatus == 'archived' || $eventStatus == '%'){
+				$order = 'DESC';
+			} else {
+				$order = 'ASC';
+			}
 
+		}
+
+		$limit = (int)$limit;
+		if((int)$limit > 0){
+			$limitString = "LIMIT {$limit}";
+		} else {
+			$limitString = '';
+		}
+		
+		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
+				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventStatus 
+				FROM 
+				systemEvents
+				WHERE eventStatus LIKE '{$eventStatus}'
+				ORDER BY eventStartDate {$order}, eventEndDate {$order}
+				{$limitString}";
+		return mysqlQuery($sql, KEY, 'eventID');
+	}
 }
 
 /******************************************************************************/

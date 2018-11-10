@@ -799,6 +799,11 @@ function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
 	if($numExchanges < $maxExchanges){ return; }
 	
 	$_POST['matchID'] = $matchID;
+	if(isReverseScore() == REVERSE_SCORE_GOLF){
+		$reversedResult = true;
+	} else {
+		$reversedResult = false;
+	}
 	
 	if($doubles >= $matchInfo['maxDoubles']){
 		$_POST['matchID'] = $_POST['matchID'];
@@ -810,9 +815,17 @@ function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
 		}
 		$_POST['matchWinnerID'] = 'tie';
 	} elseif($matchInfo['fighter1score'] > $matchInfo['fighter2score']){
-		$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
+		if($reversedResult == false){
+			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
+		} else {
+			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
+		}
 	} elseif($matchInfo['fighter2score'] > $matchInfo['fighter1score']){
-		$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
+		if($reversedResult == false){
+			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
+		} else {
+			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
+		}
 	} else {
 		$_SESSION['alertMessages']['userErrors'][] = "Unable to determine how to conclude match";
 		return;

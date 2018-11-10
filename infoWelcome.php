@@ -21,7 +21,7 @@ $upcomingEvents = getEventList('upcoming');
 if(USER_TYPE >= USER_SUPER_ADMIN){
 	$hiddenEvents = getEventList('hidden');
 }
-$archivedEvents = getEventList('archived', 'DESC', 4);
+$recentEvents = getEventList('recent', 'DESC', 4);
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ $archivedEvents = getEventList('archived', 'DESC', 4);
 	</div>
 
 	<div class='cell medium-shrink small-12 text-center'>
-		<img src='includes\images\hemaa_logo_m.png' style='border:1px solid black;'>
+		<img src='includes\images\logo_square.png' style='padding:10px;border:1px solid black;'>
 		<p class='text-right'><i>Supported by the <a href='https://www.hemaalliance.com/'>HEMA Alliance</a></i></p>
 	</div>
 </div>
@@ -58,18 +58,18 @@ $archivedEvents = getEventList('archived', 'DESC', 4);
 <!-- Active Events -->
 	<?php if($activeEvents != null):?>
 		<h5>Active Events</h5>
-		<?php displayEventsInCategory($activeEvents); ?>
+		<?php displayEventsInCategory($activeEvents, EVENT_ACTIVE_LIMIT); ?>
 	<?php endif ?>
 
 <!-- Upcoming Events -->
 	<?php if($upcomingEvents != null): ?>
 		<h5>Upcoming Events</h5>
-		<?php displayEventsInCategory($upcomingEvents); ?>
+		<?php displayEventsInCategory($upcomingEvents, EVENT_UPCOMING_LIMIT); ?>
 	<?php endif ?>
 
 <!-- Recent Events -->
 	<h5>Recent Events</h5>
-		<?php displayEventsInCategory($archivedEvents);?>
+		<?php displayEventsInCategory($recentEvents);?>
 
 </form>
 
@@ -81,11 +81,26 @@ include('includes/footer.php');
 
 /**********************************************************************/
 
-function displayEventsInCategory($eventList){
+function displayEventsInCategory($eventList, $dateLimit = 0){
+
+	if(USER_TYPE >= USER_SUPER_ADMIN){
+		$dateLimit = 0;
+	}
 
 	echo "<div class='grid-x grid-padding-x'>";
 
 	foreach((array)$eventList as $eventID => $eventInfo){
+
+		// A check to make sure that old events don't show up in the 
+		// active/upcoming category.
+		$then = date_create($eventInfo['eventEndDate']);
+		$today= date_create(date("Y-m-d"));
+		$diff = date_diff($then,$today);
+		$num = (int)$diff->format('%R%a');
+
+		if($dateLimit > 0 && $num > $dateLimit){
+			continue;
+		}
 
 		echo "<div class='large-6 medium-12 cell'>";
 

@@ -24,7 +24,8 @@ $upcomingEvents = getEventList('upcoming');
 if(USER_TYPE >= USER_SUPER_ADMIN){
 	$hiddenEvents = getEventList('hidden');
 }
-$archivedEvents = getEventList('archived', 'DESC');
+$archivedEvents = getEventList('old', 'DESC');
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +41,7 @@ $archivedEvents = getEventList('archived', 'DESC');
 	<ul class='accordion' data-accordion  data-allow-all-closed='true'>
 		<li class='accordion-item is-active' data-accordion-item>
 			<a class='accordion-title'>
-				<h4>Active & Upcoming</h4>
+				<h4>Active Events</h4>
 			</a>
 			<div class='accordion-content' data-tab-content>
  
@@ -53,19 +54,19 @@ $archivedEvents = getEventList('archived', 'DESC');
 				<!-- Active Events -->
 				<?php if($activeEvents != null):?>
 					<h5>Active Events</h5>
-					<?php displayEventsInCategory($activeEvents); ?>
+					<?php displayEventsInCategory($activeEvents, EVENT_ACTIVE_LIMIT); ?>
 				<?php endif ?>
 
 				<!-- Upcoming Events -->
 				<?php if($upcomingEvents != null): ?>
 					<h5>Upcoming Events</h5>
-					<?php displayEventsInCategory($upcomingEvents); ?>
+					<?php displayEventsInCategory($upcomingEvents, EVENT_UPCOMING_LIMIT); ?>
 				<?php endif ?>
 	
 			</div>
 		</li>
 
-		<!-- Recent Events -->
+		<!-- Old Events -->
 		<?php displayArchivedEvents($archivedEvents);?>
 
 	</ul>
@@ -103,9 +104,25 @@ function displayArchivedEvents($eventList){
 
 /**********************************************************************/
 
-function displayEventsInCategory($eventList){
+function displayEventsInCategory($eventList, $dateLimit = 0){
+
+	if(USER_TYPE >= USER_SUPER_ADMIN){
+		$dateLimit = 0;
+	}
 
 	foreach((array)$eventList as $eventID => $eventInfo){
+		// A check to make sure that old events don't show up in the 
+		// active/upcoming category.
+		$then = date_create($eventInfo['eventEndDate']);
+		$today= date_create(date("Y-m-d"));
+		$diff = date_diff($then,$today);
+		$num = (int)$diff->format('%R%a');
+
+		if($dateLimit > 0 && $num > $dateLimit){
+			continue;
+		}
+
+
 		displayEventButton($eventID, $eventInfo);
 	}
 }
