@@ -802,10 +802,10 @@ function getEventList($eventStatus, $order = null, $limit = null){
 
 		$eventActiveLimit = EVENT_ACTIVE_LIMIT;
 		$eventUpcomingLimit = EVENT_UPCOMING_LIMIT;
-		
+
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
 				eventEndDate, eventCountry, eventProvince, eventCity, 
-				eventStatus, DATEDIFF(eventEndDate,CURDATE()) as numDays
+				eventStatus
 				FROM 
 				systemEvents
 				WHERE (		(eventStatus LIKE 'archived')
