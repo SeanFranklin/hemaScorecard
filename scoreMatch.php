@@ -914,7 +914,7 @@ function doublesText($doubles, $matchInfo){
 // adds button to declare match as a double out
 
 
-	$doubleOut = ifSet($doubles >= $matchInfo['maxDoubles'], true);
+	$doubleOut = ifSet((int)$doubles >= (int)$matchInfo['maxDoubles'], true);
 	$reverseScore = isReverseScore($matchInfo['tournamentID']);
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'], $_SESSION['groupSet']);
 
@@ -927,12 +927,10 @@ function doublesText($doubles, $matchInfo){
 		}
 	} elseif($reverseScore == REVERSE_SCORE_GOLF){
 		if(($matchInfo['fighter1score'] >= $basePointValue && $matchInfo['fighter2score'] >= $basePointValue)
-			|| $basePointValue == 0){
+			&& $basePointValue != 0){
 			$doubleOut = true;
 		}
-
-	}
-		
+	}	
 	
 
 	$class=ifSet($doubleOut,"class='red-text'");

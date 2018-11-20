@@ -66,9 +66,8 @@ ac.nilknarfnaes@ameh
 <p>
 	HEMA Scorecard lives online, which means that your participants and spectators are no longer in the dark.
 	<BR>
-	This also means that you don't have to take the time to print pool results and make brackets for people to follow.
-	Why? Because it's right there at their fingertips, with no effort on your part. <BR>
-	<em>(Yes, <a href='http://hemaratings.com/'>HEMA Ratings</a> can also grab your results directly, without you needing to send them in.)</em>
+	This also means that you don't have to take the time to print pool results, and make brackets for people to follow.
+	Why? Because it's right there at their fingertips, with no effort on your part.
 </p>
 
 

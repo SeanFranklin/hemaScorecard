@@ -100,6 +100,12 @@ Thanks to Jayson Barrons with layout design and consultation.
 </li>
 
 <li>
+	<em>Does this work with HEMA Ratings?</em>
+	Yes! Just let them know you have run your tournament using HEMA Scorecard and they
+	are able to grab all the results. You don't have to worry about anything.
+</li>
+
+<li>
 	<em>Can I use a different type of ranking?</em>
 	Probably. All ranking algorithms need to be coded into the system prior to the
 	start of the event. It is best to give the HEMA Scorecard team as much notice as posisble
