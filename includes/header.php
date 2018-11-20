@@ -136,6 +136,7 @@ $livestreamInfo = getLivestreamInfo();
 					<li><a href='#'>Analytics</a>
 						<ul class='menu vertical'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
+							<li><a href='statsMultiEvent.php'>Event Statisitcs</a></li>
 							<li><a href='statsResultsDump.php'>Export Results</a></li>
 						</ul>
 					</li>";
