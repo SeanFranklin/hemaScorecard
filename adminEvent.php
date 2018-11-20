@@ -278,40 +278,59 @@ if($_SESSION['eventID'] == null){
 	</fieldset>
 	
 		
-<!-- Change Passwords ----------------------------------->
+<!-- Change Staff Password ----------------------------------->
 	<form method='POST'>
 	<fieldset class='fieldset'>
-		<legend><h4>Change Passwords</h4></legend>
+		<legend><h4>Change Password - Event Staff</h4></legend>
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='newPasswords'>
 
 	<!-- New staff password -->
-		<div class='large-6 input-group cell'>
+		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>New Staff Password:</span>
-			<input class='input-group-field' type='text' name='<?=USER_STAFF?>' 
-				placeholder=' Leave blank for no change'>
-		</div>
-
-	<!-- New admin password -->	
-		<div class='large-6 input-group cell'>
-			<span class='input-group-label'>New Admin Password:</span>
-			<input class='input-group-field' type='text' name='<?=USER_ADMIN?>' 
-				placeholder=' Leave blank for no change'>
+			<input class='input-group-field' type='text' name='<?=USER_STAFF?>' required>
 		</div>
 		
 	<!-- Current password -->
-		<div class='large-12 input-group cell'>
+		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
 			<input class='input-group-field' type='password' name='passwordVerification'>
-			<button class='button success input-group-button hide-for-small-only' 
+		</div>
+
+	<!-- Submit button -->
+		<div class='large-2 cell'>
+			<button class='button success expanded' 
 				name='updateEventPasswords' value='Update Passwords'>
 				Update Passwords
 			</button>
 		</div>
 		
+		</div>
+	</fieldset>
+	</form>
+
+<!-- Change Admin Password ----------------------------------->
+	<form method='POST'>
+	<fieldset class='fieldset'>
+		<legend><h4>Change Password - Event Organizer</h4></legend>
+		<div class='grid-x grid-margin-x'>
+		<input type='hidden' name='formName' value='newPasswords'>
+
+	<!-- New admin password -->	
+		<div class='large-5 input-group cell'>
+			<span class='input-group-label'>New Admin Password:</span>
+			<input class='input-group-field' type='text' name='<?=USER_ADMIN?>'>
+		</div>
+		
+	<!-- Current password -->
+		<div class='large-5 input-group cell'>
+			<span class='input-group-label'>Current Admin Password: </span>
+			<input class='input-group-field' type='password' name='passwordVerification'>
+		</div>
+		
 	<!-- Submit button -->
-		<div class='cell'>
-			<button class='button success expanded show-for-small-only' 
+		<div class='large-2 cell'>
+			<button class='button success expanded' 
 				name='updateEventPasswords' value='Update Passwords'>
 				Update Passwords
 			</button>

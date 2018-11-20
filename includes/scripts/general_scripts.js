@@ -60,3 +60,11 @@ function safeReload(){
 	location.reload();
 }
 
+/**********************************************************************/
+
+$( "#createNewEventToggleButton" ).click(function() {
+  $( "#createNewEventField" ).slideToggle( "slow", function() {
+    // Animation complete.
+  });
+});
+

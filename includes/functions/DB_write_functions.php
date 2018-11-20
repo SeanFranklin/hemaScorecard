@@ -1769,13 +1769,25 @@ function generateTournamentPlacings_bracket($tournamentID){
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
 	
+	$unfinishedBracketMatches = false;
 	// Top 4
-	writeTournamentPlacing($winnerMatches[1][1]['winnerID'],$tournamentID,1);
-	writeTournamentPlacing($winnerMatches[1][1]['loserID'],$tournamentID,2);
-	writeTournamentPlacing($loserMatches[1][1]['winnerID'],$tournamentID,3);
-	writeTournamentPlacing($loserMatches[1][1]['loserID'],$tournamentID,4);
+	if($winnerMatches[1][1]['winnerID'] != null && $winnerMatches[1][1]['loserID'] != null){
+		writeTournamentPlacing($winnerMatches[1][1]['winnerID'],$tournamentID,1);
+		writeTournamentPlacing($winnerMatches[1][1]['loserID'],$tournamentID,2);
+	} else {
+		$unfinishedBracketMatches = true;
+	}
+	if($loserMatches[1][1]['winnerID'] != null && $loserMatches[1][1]['loserID'] != null){
+
+		writeTournamentPlacing($loserMatches[1][1]['winnerID'],$tournamentID,3);
+		writeTournamentPlacing($loserMatches[1][1]['loserID'],$tournamentID,4);
+	} else {
+		$unfinishedBracketMatches = true;
+	}
 	
-	if(isset($bracketInfo['loser'])){
+	if($unfinishedBracketMatches == true){
+		// Don't try to update the rest of the matches.
+	} elseif(isset($bracketInfo['loser'])){
 		// Double Elim
 		foreach($loserMatches as $bracketLevel => $levelData){
 			if($bracketLevel == 1 ){continue;}
@@ -1784,7 +1796,13 @@ function generateTournamentPlacings_bracket($tournamentID){
 				//$max = $bracketInfo['loser']['numFighters']+2;
 				//if($high > $max){$high = $max;}
 				$low = getNumEntriesAtLevel_consolation($bracketLevel-1,'fighters')+3;
-				writeTournamentPlacing($matchInfo['loserID'],$tournamentID,$high,'bracket',$low,$high);
+				if($matchInfo['loserID'] != null){
+					writeTournamentPlacing($matchInfo['loserID'],$tournamentID,
+											$high,'bracket',$low,$high);
+				} else {
+					$unfinishedBracketMatches = true;
+					break 2;
+				}
 			}
 		}
 	} else {
@@ -1795,7 +1813,13 @@ function generateTournamentPlacings_bracket($tournamentID){
 			foreach($levelData as $bracketPosition => $matchInfo){
 				$high = pow(2,$bracketLevel);
 				$low = pow(2,$bracketLevel-1)+1;
-				writeTournamentPlacing($matchInfo['loserID'],$tournamentID,$high,'bracket',$low,$high);
+				if($matchInfo['loserID'] != null){
+					writeTournamentPlacing($matchInfo['loserID'],$tournamentID,
+											$high,'bracket',$low,$high);
+				} else {
+					$unfinishedBracketMatches = true;
+					break 2;
+				}
 			}
 		}
 	}
@@ -1804,6 +1828,11 @@ function generateTournamentPlacings_bracket($tournamentID){
 			SET isFinalized = 1
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
+
+	if($unfinishedBracketMatches == true){
+		$_SESSION['autoPlacingMessage'][$tournamentID] = "<p class='red-text'><strong>You seem to have matches with no winners in your bracket.</p></strong><p>(I did the best I could.)</p>";
+		$_SESSION['alertMessages']['userAlerts'][] = "<p class='red-text'><strong>You seem to have matches with no winners in your bracket.</p></strong><p>(I did the best I could.)</p>";
+	}
 	
 }
 

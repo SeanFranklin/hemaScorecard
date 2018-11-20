@@ -92,6 +92,12 @@ if($_SESSION['eventID'] == null){
 				<?php continue; ?>
 			<?php endif ?>
 			
+		<?php if(USER_TYPE >= USER_STAFF 
+				&& isset($_SESSION['autoPlacingMessage'][$tournamentID])):
+			echo $_SESSION['autoPlacingMessage'][$tournamentID];
+			unset ($_SESSION['autoPlacingMessage'][$tournamentID]);
+		endif ?>
+
 		
 			
 		<!-- Display tournament placings -->

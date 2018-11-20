@@ -24,6 +24,7 @@ if(USER_TYPE < USER_SUPER_ADMIN){
 	if(isset($_SESSION['editEventID'])){
 		$eventID = $_SESSION['editEventID'];
 		unset($_SESSION['editEventID']);
+
 		editEventMenu($eventID,$eventList[$eventID]);
 	} else {
 		addNewEventMenu();
@@ -48,9 +49,9 @@ function displayAdminEventList($eventList){
 						'eventName',
 						'eventStartDate',
 						'eventCity',
-						'eventProvince',
 						'eventCountry',
 						'eventStatus'];
+	$archivedReached = false;
 										
 	?>
 	
@@ -71,7 +72,32 @@ function displayAdminEventList($eventList){
 	
 
 <!-- Events -->
-	<?php foreach($eventList as $eventID => $info): ?>
+	<?php foreach($eventList as $eventID => $info): 
+		$topBorder = '';
+
+		switch($info['eventStatus']){
+			case 'active':
+			case 'upcoming':
+				if($archivedReached == true){
+					$class = 'alert-text';
+				} else {
+					$class = 'warning-text';
+				}
+				break;
+			case 'archived':
+				$class = 'success-text';
+				if($archivedReached == false){
+					$topBorder = ' table-top-border';
+				}
+				$archivedReached = true;
+				break;
+			case 'hidden':
+			default:
+				$class = '';
+				break;
+		}
+
+		?>
 		<tr>
 			<td>
 				<button class='button tiny hollow no-bottom expanded' name='eventToEdit' value='<?=$eventID?>'>
@@ -83,7 +109,7 @@ function displayAdminEventList($eventList){
 				if($fieldName == 'eventID'){continue;}
 				$fieldValue = $info[$fieldName];
 				?>
-				<td><?=$fieldValue?></td>
+				<td class='<?=$class?><?=$topBorder?>'><?=$fieldValue?></td>
 			<?php endforeach ?>
 		</tr>
 	<?php endforeach ?>
@@ -100,7 +126,10 @@ function displayAdminEventList($eventList){
 function addNewEventMenu(){
 	?>
 	
-	<fieldset class='fieldset cell large-6'>
+	<a class='button hollow' id="createNewEventToggleButton">
+	 	Create New Event
+	</a>
+	<fieldset class='fieldset cell large-6 hidden' id='createNewEventField'>
 	<legend><h4>Add New Event</h4></legend>
 	<form method='POST'>
 		<input type='hidden' name='formName' value='addNewEvent'>
@@ -120,7 +149,7 @@ function addNewEventMenu(){
 			</tr>
 		</table>
 		
-		<button class='button'>Add Event</button>
+		<button class='button success'>Add Event</button>
 	
 	</form>
 	</fieldset>

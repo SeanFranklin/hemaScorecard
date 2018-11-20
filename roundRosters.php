@@ -254,7 +254,7 @@ function displayRounds($rounds, $ownDiv = true){
 									continue;
 								} 
 
-								if(!is_null($fighter['place'])){
+								if(isset($fighter['place']) && !is_null($fighter['place'])){
 									$place = $fighter['place']+1;
 								} else {
 									$place = '';
@@ -510,13 +510,14 @@ function createRoundsBox($numGroupSets){
 function changeRoundNamesBox($multiRoundDisplay = true){
 	
 	$rounds = getRounds();
+	$roundNum = 0;
+	$oldSet = 0;
 	?>
 	
 	<div class='reveal tiny' id='renameRounds' data-reveal>
 	<form method='POST'>
 	<h5>Rename Rounds:</h5>
-	
-	$roundNum = 0;
+
 	<?php foreach($rounds as $round): 
 		$set = $round['groupSet'];
 		$setName = getSetName($set);

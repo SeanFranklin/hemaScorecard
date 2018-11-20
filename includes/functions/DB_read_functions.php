@@ -802,6 +802,7 @@ function getEventList($eventStatus, $order = null, $limit = null){
 
 		$eventActiveLimit = EVENT_ACTIVE_LIMIT;
 		$eventUpcomingLimit = EVENT_UPCOMING_LIMIT;
+
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
 				eventEndDate, eventCountry, eventProvince, eventCity, 
 				eventStatus
@@ -809,12 +810,13 @@ function getEventList($eventStatus, $order = null, $limit = null){
 				systemEvents
 				WHERE (		(eventStatus LIKE 'archived')
 						OR (eventStatus LIKE 'active'
-							AND DATEDIFF(eventEndDate,CURDATE()) < {$eventActiveLimit} )
+							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventActiveLimit} )
 						OR (eventStatus LIKE 'upcoming'
-							AND DATEDIFF(eventEndDate,CURDATE()) < {$eventUpcomingLimit} )
+							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventUpcomingLimit} )
 					   )
-				ORDER BY eventStartDate DESC, eventEndDate DESC
-				LIMIT {$limit}";
+				ORDER BY eventEndDate DESC, eventStartDate DESC
+				LIMIT {$limit}"; 
+
 		return mysqlQuery($sql, KEY, 'eventID');	
 
 
