@@ -93,6 +93,10 @@
 	border-bottom: 1px solid black;
 }
 
+.table-top-border{
+  border-top: 1px solid black;
+}
+
 .match-winner-name{
 	border: solid 1px black;
 	padding: 5px;
@@ -179,6 +183,18 @@ select {
 
 .red-text {
   color: red;
+}
+
+.alert-text {
+  color: #F04124;
+}
+
+.success-text {
+  color: #43AC6A;
+}
+
+.warning-text {
+  color: #F08A24;
 }
 
 /* Jayson Stuff ***************************************************************/
