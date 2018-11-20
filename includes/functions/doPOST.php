@@ -304,6 +304,9 @@ function processPostData(){
 			case 'toggleStatsType':
 				$_SESSION['StatsInfo']['displayType'] = $_POST['statsType']['display'];
 				break;
+			case 'tournamentDataFilters':
+				$_SESSION['tDataFilters'] = $_POST['tDataFilter'];
+				break;
 				
 				
 	// Cutting Qualification Cases
@@ -782,7 +785,8 @@ function calculateLastExchange($matchInfo, $scoring){
 	$id2 = $matchInfo['fighter2ID'];
 	
 	// Return if there was no initial hit for either fighter
-	if(!$scoring[$id1]['hit'] AND !$scoring[$id2]['hit']){
+	// Suppress error because not existing is logically the same as 0 or null.
+	if(@!$scoring[$id1]['hit'] AND @!$scoring[$id2]['hit']){
 		return;
 	}
 	

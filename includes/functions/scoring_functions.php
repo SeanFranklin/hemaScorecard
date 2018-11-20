@@ -79,13 +79,14 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 	$exchangeID = $exchange['exchangeID'];
 	
 	if($exchange['exchangeType'] == 'scored'){
+		$placeholder = '';
 		$against = $exchange['scoreDeduction'];
 		$for = $exchange['scoreValue'];
 	} else {
 		if(USER_TYPE < USER_STAFF){
 			return;
 		}
-		$placeholder="placeholder='Enter Deduction'";
+		$placeholder = "placeholder='Enter Deduction'";
 		$against = '';
 		$for = '';
 	}
@@ -143,8 +144,9 @@ function _DeductionBased_updateExchanges(){
 
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
 	
-		$exchangesToUpdate[$exchangeID]['scoreValue'] = (float)$data['value'];
-		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = (float)$data['deduction'];
+		// Unset values are treated as zero.
+		$exchangesToUpdate[$exchangeID]['scoreValue'] = @(float)$data['value'];
+		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = @(float)$data['deduction'];
 	}
 
 	return $exchangesToUpdate;
