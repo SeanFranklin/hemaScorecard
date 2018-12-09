@@ -17,11 +17,11 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_ADMIN){
+} elseif(false){
 	pageError('user');
 
 	///////// This has been temporarialy disabled
-} elseif(USER_TYPE < USER_SUPER_ADMIN) {
+} elseif(ALLOW['SOFTWARE_ADMIN'] == false) {
 	displayAlert('This functionality has been disabled<BR>Sorry for any inconvenience');
 	/////////
 

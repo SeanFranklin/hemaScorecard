@@ -18,36 +18,26 @@ $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
 $hiddenEvents = getEventList('hidden');
 
-
 if(isset($_SESSION['failedLogIn'])){
 	$defaultEventID = $_SESSION['failedLogIn']['eventID'];
 	$typeSelect = $_SESSION['failedLogIn']['type'];
 	unset($_SESSION['failedLogIn']);
 } else {
-	$typeSelect = USER_STAFF;
+	$typeSelect = '';
 	$defaultEventID = $_SESSION['eventID'];
-
-	if($defaultEventID == null){
-		if($activeEvents != null){
-			reset($activeEvents);
-			$defaultEventID = key($activeEvents);
-		} elseif($upcomingEvents != null){
-			reset($upcomingEvents);
-			$defaultEventID = key($upcomingEvents);
-		} else {
-			reset($hiddenEvents);
-			$defaultEventID = key($hiddenEvents);
-		}
-
-	}
 }
 
-$logInEventListClass = '';
-if($typeSelect != USER_STAFF && $typeSelect != USER_ADMIN){
-	$logInEventListClass = "style='display:none'";
+if($typeSelect == null){
+	$eventListVisibility = 'hidden';
+	$userNameVisibility = 'hidden';
+} elseif ($typeSelect == 'logInStaff' || $typeSelect == 'logInOrganizer') {
+	$eventListVisibility = '';
+	$userNameVisibility = 'hidden';
+} else {
+	$typeSelect = 'logInUser';
+	$eventListVisibility = 'hidden';
+	$userNameVisibility = '';
 }
-
-$eventNameForLogin = getEventName($defaultEventID);
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -61,35 +51,27 @@ $eventNameForLogin = getEventName($defaultEventID);
 		<!-- User type -->
 			<label>
 				<span>User Type</span>
-				<select id='logInType' name='logInType' autocomplete='username' 
-					onchange="logInTypeToggle(this)" <?=$typeSelect?>>
-
-					<option <?=optionValue(USER_STAFF, $typeSelect)?>>
+				<select id='logInType' name='logInData[type]' autocomplete='username' 
+					onchange="logInTypeToggle(this)" required>
+					<option selected disabled></option>
+					<option <?=optionValue('logInStaff', $typeSelect)?>>
 						Event Staff
 					</option>
-					<option <?=optionValue(USER_ADMIN, $typeSelect)?>>
+					<option <?=optionValue('logInOrganizer', $typeSelect)?>>
 						Event Organizer
 					</option>
-					<option <?=optionValue(USER_SUPER_ADMIN, $typeSelect)?>>
-						Software Administrator
+					<option <?=optionValue('logInUser', $typeSelect)?>>
+						Software User
 					</option>
-					<option <?=optionValue(USER_VIDEO, $typeSelect)?>>
-						Video Manager
-					</option>
-					<option <?=optionValue(USER_STATS, $typeSelect)?>>
-						Analytics User
-					</option>
-
 				</select>
 			</label>
 			
 
-
 		<!-- Event list -->
-		
-			<label id='logInEventList' <?=$logInEventListClass?> >
-				<span>Event to Log Into</span>
-				<select id='logInEventID' name='logInEventID'  onchange="logInEventToggle('logInEventID')">	
+			<label id='logInEventListDiv' class='<?=$eventListVisibility?>'>
+				<span>Event</span>
+				<select id='logInEventID' name='logInData[eventID]'  onchange="logInEventToggle('logInEventID')">	
+					<option selected disabled></option>
 					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
 					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
 					<?php populateEventSelectFields($hiddenEvents, $defaultEventID); ?>
@@ -97,16 +79,20 @@ $eventNameForLogin = getEventName($defaultEventID);
 			</label>
 		
 
-		<!-- This exists to give a username to password manager functionality of the browser
-			It is hidden from the user. -->
-			<input id='LogInUserName' type='text' name='userName' value='Event Staff: <?=$eventNameForLogin?>' style='display:none'>
+		<!-- User Name -->
+			<label id='logInUserNameDiv' class='<?=$userNameVisibility?>'>
+				<span>Username</span>
+				<input id='logInUserName' type='text' name='logInData[userName]'>
+			</label>
 			
+
 		<!-- Password -->	
 			<label>
 				<span>Password</span>
-			<input type='password' name='password'>
+			<input type='password' name='logInData[password]' required>
 			</label>
-			<button class='button large small-12 cell' name='formName' value='logUserIn'>
+			<button id='logInSubmitButton' class='button large small-12 cell' 
+					name='formName' value='logUserIn'>
 				<strong>Log In</strong>
 			</button>
 		</form>
@@ -138,55 +124,6 @@ function populateEventSelectFields($eventList, $defaultEventID){
 						
 	}
 
-}
-
-/******************************************************************************
-
-function displayLogInLevel($userType){ 		No longer used
-	$eventName = getEventName(null);
-	echo "<BR>";
-	echo "<form action='adminLogIn.php' method='POST'>
-	<input type='hidden' name='formName' value='logUserIn'>";
-	
-	
-	if($_SESSION['userType'] != USER_GUEST){
-		echo "<div class='grid-x grid-padding-x'>
-				<div class='large-4 medium-4 cell align-self-middle'>
-					Currently logged in to {$eventName} as:
-				</div>
-				<div class='large-2 medium-2 cell callout'>";
-		switch ($userType){
-			case USER_STAFF:
-				echo "Event Staff";
-				break;
-			case USER_ADMIN:
-				echo "Tournament Organizer";
-				break;
-			case USER_SUPER_ADMIN:
-				echo "Program Staff";
-				break;
-			case USER_VIDEO:
-				echo "Video Manager";
-				break;
-			case USER_STATS:
-				echo "Analytics User";
-				break;
-			default:
-				break;
-		}
-		
-		echo "	</div>
-				<div class='large-2 medium-2 cell'>
-					<button class='button large alert' name='logInType' value='1'>
-						Log Out
-					</button>
-				</div>
-			</div>";
-	} else {
-		echo "You are not logged in.<BR>
-				If you are event staff or an event organizer please log in.";
-	}
-	echo "</form>";
 }
 
 /******************************************************************************/

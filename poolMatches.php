@@ -17,13 +17,14 @@ $tournamentID = $_SESSION['tournamentID'];
 if($tournamentID == null){
 	pageError('tournament');
 } elseif(!isPools($tournamentID)){
-	if(isRounds($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
+	if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
 		// redirects to the rounds if they happen to go to the pools
 		// page while in a rounds tournament
 		redirect('roundMatches.php');
 	}
 	displayAlert("There are no pools for this tournament");
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
 		

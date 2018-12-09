@@ -24,13 +24,14 @@ $tournamentID = $_SESSION['tournamentID'];
 if($tournamentID == null){
 	pageError('tournament');
 } elseif(!isPools($tournamentID)){
-	if(isRounds($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
+	if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
 		// redirects to the rounds if they happen to go to the pools
 		// page while in a rounds tournament
 		redirect('roundStandings.php');
 	}
 	displayAlert("There are no pools for this tournament");
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
 	poolSetNavigation();
@@ -60,7 +61,7 @@ if($tournamentID == null){
 		<div class='large-12 callout secondary text-center'>
 		<p>All pool matches not yet concluded. <BR>
 		Results may be extrapolated based on matches concluded so far.</p>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
 			<button class='button hollow' onclick="toggle('incompleteMatchesDiv')">
 				Show Matches
 			</button>

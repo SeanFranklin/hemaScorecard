@@ -20,7 +20,7 @@ include('includes/header.php');
 // Get the event List
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
-if(USER_TYPE >= USER_SUPER_ADMIN){
+if(ALLOW['VIEW_HIDDEN']){
 	$hiddenEvents = getEventList('hidden');
 }
 $archivedEvents = getEventList('old', 'DESC');
@@ -45,7 +45,7 @@ $archivedEvents = getEventList('old', 'DESC');
 			<div class='accordion-content' data-tab-content>
  
 				<!-- Hidden Events -->
-				<?php if(USER_TYPE >= USER_SUPER_ADMIN && $hiddenEvents != null): ?>
+				<?php if(ALLOW['VIEW_HIDDEN'] && $hiddenEvents != null): ?>
 					<h5>Hidden Events</h5>
 					<?php displayEventsInCategory($hiddenEvents); ?>
 				<?php endif ?>
@@ -105,7 +105,7 @@ function displayArchivedEvents($eventList){
 
 function displayEventsInCategory($eventList, $dateLimit = 0){
 
-	if(USER_TYPE >= USER_SUPER_ADMIN){
+	if(ALLOW['VIEW_HIDDEN']){
 		$dateLimit = 0;
 	}
 

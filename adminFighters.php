@@ -17,13 +17,19 @@ include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
 
-if(USER_TYPE < USER_ADMIN){
+if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else if($tournamentID == null){
 	pageError('tournament');
 } else if(!isRounds($tournamentID) && !isPools($tournamentID)){
 	displayAlert("No need to withdraw fighters from this tournament format");
 } else {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		$formLock = 'disabled';
+	} else {
+		$formLock = '';
+	}
 
 	$isTeamLogic = isTeamLogic($tournamentID);
 	$GLOBALS['ignores'] = getIgnores($tournamentID);
@@ -54,7 +60,7 @@ if(USER_TYPE < USER_ADMIN){
 	<div class='large-7 medium-8 small-12'>
 	
 	<form method='POST'>
-	<fieldset <?=LOCK_TOURNAMENT?>>
+	<fieldset <?=LOCK_TOURNAMENT?> <?=$formLock?>>
 	<input type='hidden' name='formName' value='ignoreFightersInTournament'>
 	<input type='hidden' name='manageFighters[tournamentID]' value='<?=$tournamentID?>'>
 

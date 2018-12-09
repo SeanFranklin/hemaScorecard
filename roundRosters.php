@@ -27,11 +27,12 @@ if($_SESSION['eventID'] == null){
 } elseif($tournamentID == null){
 	pageError('tournament');
 } elseif(!isRounds($tournamentID)){
-	if(isPools($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
+	if(isPools($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
 		redirect('poolMatches.php');
 	}
 	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	
@@ -99,7 +100,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 	<?php endif ?>
 	
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
 		
 		<?php confirmDeleteReveal('roundRosterForm', 'deleteFromRounds'); ?>
@@ -178,7 +179,7 @@ function displayRounds($rounds, $ownDiv = true){
 		<fieldset class='fieldset large-4 medium-6 small-12 cell' id='divFor<?=$groupID?>'>
 		<legend>
 			<h3>
-				<?php if(USER_TYPE >= USER_ADMIN): ?>
+				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 					<input type='checkbox' name='deleteGroup[<?=$groupID?>]' 
 						id=<?=$groupID?> onchange="checkIfFought(this)">
 				<?php endif ?>
@@ -189,7 +190,7 @@ function displayRounds($rounds, $ownDiv = true){
 		<div class='grid-x grid-padding-x grid-margin-x'>
 
 	<!-- Option to add multiple at a time ----------------------------------------------------->
-		<?php if(USER_TYPE >= USER_STAFF 
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true
 				&& $numInRound < 1 
 				&& ((count($sortedRoster) > 0) ||
 					($groupNumber > 1 && count($oldRoster) > 1 ))
@@ -223,7 +224,7 @@ function displayRounds($rounds, $ownDiv = true){
 			<div class='large-12 cell' id='divFor<?=$groupID?>-<?=$rosterID?>'>
 			<div class='grid-x grid-padding-x'>
 			
-			<?php if(USER_TYPE >= USER_STAFF): ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<div class='small-1 cell' >
 				<input type='checkbox' 
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]' 
@@ -235,7 +236,7 @@ function displayRounds($rounds, $ownDiv = true){
 		<?php endforeach ?>
 		
 	<!-- Add new fighters to the round -->
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<?php for($i=$numInRound+1;$i<=$numInEvent;$i++): ?>
 				<div class='large-12 cell'>
 					<div class='grid-x grid-padding-x'>
@@ -290,7 +291,7 @@ function roundManagement($numGroupSets, $multiRoundDisplay){
 //	Change the number of stages/sets & rename stages
 //	Add/remove/rename rounds in a set
 	
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
 	
 	$maxGroupSets = 5;

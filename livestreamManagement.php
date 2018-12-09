@@ -16,7 +16,7 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');;
-} elseif(USER_TYPE < USER_ADMIN){
+} elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
 	

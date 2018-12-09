@@ -17,20 +17,30 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_ADMIN){
+} elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
 	
 	$defaults = getEventDefaults();
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail();
+
+	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.
+	$formLock = 'disabled';
+	$passwordLock = 'disabled';
+	if(ALLOW['EVENT_MANAGEMENT'] == true){
+		$formLock = '';
+		$passwordLock = '';
+	} elseif(ALLOW['SOFTWARE_ASSIST'] == true) {
+		$passwordLock = '';
+	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!--  Event Settings  -------------------------------->
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$formLock?>>
 	<legend><h4>Event Status</h4></legend>
 	<form method='POST'>
 	
@@ -88,7 +98,7 @@ if($_SESSION['eventID'] == null){
 	
 
 <!--  Tournament Defaults  -------------------------------->
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$formLock?>>
 	<legend><h4>Tournament Defaults</h4></legend>
 	<form method='POST'>
 	
@@ -195,7 +205,7 @@ if($_SESSION['eventID'] == null){
 	
 	
 <!--  Display settings  -------------------------------->
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$formLock?>>
 	<legend><h4>Display Settings</h4></legend>
 	<form method='POST'>
 	
@@ -256,7 +266,7 @@ if($_SESSION['eventID'] == null){
 
 
 <!--  Contact information -------------------------------->
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$formLock?>>
 	<legend><h4>Contact Information</h4></legend>
 	<form method='POST'>
 	
@@ -280,28 +290,28 @@ if($_SESSION['eventID'] == null){
 		
 <!-- Change Staff Password ----------------------------------->
 	<form method='POST'>
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$passwordLock?>>
 		<legend><h4>Change Password - Event Staff</h4></legend>
 		<div class='grid-x grid-margin-x'>
-		<input type='hidden' name='formName' value='newPasswords'>
+		<input type='hidden' name='formName' value='updatePasswords'>
 
 	<!-- New staff password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>New Staff Password:</span>
-			<input class='input-group-field' type='text' name='<?=USER_STAFF?>' required>
+			<input class='input-group-field' type='text' name='changePasswords[newPassword]' required>
 		</div>
 		
 	<!-- Current password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
-			<input class='input-group-field' type='password' name='passwordVerification'>
+			<input class='input-group-field' type='password' name='changePasswords[passwordVerification]'>
 		</div>
 
 	<!-- Submit button -->
 		<div class='large-2 cell'>
 			<button class='button success expanded' 
-				name='updateEventPasswords' value='Update Passwords'>
-				Update Passwords
+				name='changePasswords[userName]' value='eventStaff'>
+				Update Staff Password
 			</button>
 		</div>
 		
@@ -311,7 +321,7 @@ if($_SESSION['eventID'] == null){
 
 <!-- Change Admin Password ----------------------------------->
 	<form method='POST'>
-	<fieldset class='fieldset'>
+	<fieldset class='fieldset' <?=$passwordLock?>>
 		<legend><h4>Change Password - Event Organizer</h4></legend>
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='newPasswords'>
@@ -319,20 +329,20 @@ if($_SESSION['eventID'] == null){
 	<!-- New admin password -->	
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>New Admin Password:</span>
-			<input class='input-group-field' type='text' name='<?=USER_ADMIN?>'>
+			<input class='input-group-field' type='text' name='changePasswords[newPassword]'>
 		</div>
 		
 	<!-- Current password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
-			<input class='input-group-field' type='password' name='passwordVerification'>
+			<input class='input-group-field' type='password' name='changePasswords[passwordVerification]'>
 		</div>
 		
 	<!-- Submit button -->
 		<div class='large-2 cell'>
 			<button class='button success expanded' 
-				name='updateEventPasswords' value='Update Passwords'>
-				Update Passwords
+				name='changePasswords[userName]' value='eventOrganizer'>
+				Update Organizer Password
 			</button>
 		</div>
 		

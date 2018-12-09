@@ -24,7 +24,7 @@ error_reporting(E_ERROR | E_PARSE);
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
-if(USER_TYPE <= USER_ADMIN && USER_TYPE != USER_STATS){
+if(ALLOW['STATS_ALL'] == false){
 	pageError('user');
 } else {
 

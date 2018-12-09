@@ -13,7 +13,7 @@
 $pageName = 'HEMA Ratings Interface';
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN){
+if(ALLOW['SOFTWARE_ADMIN'] == false){
 	pageError('user');
 
 } else {

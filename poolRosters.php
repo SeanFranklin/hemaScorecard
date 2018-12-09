@@ -27,7 +27,7 @@ if($tournamentID == null){
 } elseif($pools == null){
 	poolSetNavigation();
 	if(!isPools($tournamentID)){
-		if(isRounds($tournamentID) && USER_TYPE < USER_SUPER_ADMIN){
+		if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
 			// redirects to the rounds if they happen to go to the pools
 			// page while in a rounds tournament
 			redirect('roundRosters.php');
@@ -37,7 +37,8 @@ if($tournamentID == null){
 		displayAlert("No Pools Created");
 		poolManagement(); 
 	}
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
 	
@@ -109,7 +110,7 @@ if($tournamentID == null){
 	</div>
 
 <!-- Submit Buttons -->
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		<?php confirmDeleteReveal('poolRosterForm', 'deleteFromPools'); ?>
 		<button class='button success' name='formName' value='addFightersToPool' <?=LOCK_TOURNAMENT?>>
 			Add Fighters
@@ -148,7 +149,7 @@ function poolManagement($numPools = 0){
 // Controls for event organizers to manage the pools themselves
 // Numbers, order, name, and sets
 	
-	if(USER_TYPE < USER_ADMIN){  return; }
+	if(ALLOW['EVENT_MANAGEMENT'] == false){  return; }
 	$tournamentID = $_SESSION['tournamentID'];
 	
 	$noReOrder = '';
@@ -439,8 +440,8 @@ function autoPopluateButton($tournamentID = null){
 	
 	if($tournamentID == ''){$tournamentID = $_SESSION['tournamentID'];}
 
-	if(USER_TYPE < USER_STAFF){ 				return;}
-	if($_SESSION['groupSet'] <= 1){				return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
+	if($_SESSION['groupSet'] <= 1){	return;}
 	if(!isPoolSets($tournamentID)){	return;}
 	?>
 
@@ -507,7 +508,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 <!-- Pool Name -->
 	<div class='large-1 small-12 medium-12 cell hide-toggle' >
 		
-	<?php if(USER_TYPE >= USER_ADMIN):
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true):
 		// checkbox to delete pool ?>
 		<input type='checkbox' name='deleteGroup[<?=$groupID?>]' id='<?=$groupID?>' onchange="checkIfFought(this)">
 	<?php endif ?>	
@@ -542,7 +543,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 
 		<!-- Empty pool position -->
 		<?php if(!isset($poolRoster[$i])): ?>
-			<?php if(USER_TYPE >= USER_ADMIN):?>
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
 			<div class='large-2 medium-3 small-6'>	
 				<select name='groupAdditions[<?=$groupID?>][<?=$i?>]' class='opacity-toggle'>
 					<option value=''></option>
@@ -582,7 +583,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 			?>
 			<div class='medium-shrink small-6 cell opacity-toggle' id='divFor<?=$rosterID?>'>
 			
-			<?php if(USER_TYPE >= USER_ADMIN): ?>
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<input type='checkbox' id=<?=$rosterID?>
 					onchange="checkIfFought(this)" 
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'>

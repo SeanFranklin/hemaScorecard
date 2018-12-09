@@ -88,7 +88,7 @@ Thanks to Jayson Barrons with layout design and consultation.
 <ul class='faq-list'>
 <li>
 	<em>Why should I use HEMA Scorecard for my event?</em>
-	<a href='whyscorecard.php'>What a great question!</a>
+	<a href='infoWhy.php'>What a great question!</a>
 </li>
 	
 <li>

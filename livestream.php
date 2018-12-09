@@ -28,7 +28,7 @@ if($_SESSION['eventID'] == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 	<input type='hidden' id='eventID' value='<?=$_SESSION['eventID']?>'>
-	<?php if(USER_TYPE > USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
 		<a class='button' href='livestreamManagement.php'>Go to Livestream Management</a>
 	<?php endif ?>
 

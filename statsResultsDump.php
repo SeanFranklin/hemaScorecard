@@ -18,7 +18,7 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){
+} elseif(ALLOW['STATS_EVENT'] == false && ALLOW['STATS_ALL'] == false){
 	pageError('user');
 } else {
 	$tournamentList_unsorted = getTournamentsFull();
@@ -41,8 +41,10 @@ if($_SESSION['eventID'] == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
-	<strong>Event Contact Information: </strong><a href='mailto:<?=$email?>'><?=$email?></a>
-
+	<?php if(ALLOW['VIEW_EMAIL']):?>
+		<strong>Event Contact Information: </strong>
+		<a href='mailto:<?=$email?>'><?=$email?></a>
+	<?php endif ?>
 	<fieldset class='fieldset'>
 	<legend><h4>HEMA Ratings Format</h4></legend>
 	<form method='POST'>
