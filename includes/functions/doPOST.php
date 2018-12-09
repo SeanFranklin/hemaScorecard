@@ -38,10 +38,13 @@ function processPostData(){
 		
 	// Navigation Cases
 			case 'logUserIn':
-				logUserIn();
+				logUserIn($_POST['logInData']);
+				break;
+			case 'logUserOut':
+				logUserOut();
 				break;
 			case 'selectEvent':
-				changeEvent();
+				changeEvent((int)$_POST['changeEventTo']);
 				break;
 			case 'changeTournament':
 				$_SESSION['tournamentID'] = $_POST['newTournament'];
@@ -226,7 +229,7 @@ function processPostData(){
 				addNewSchool();
 				break;
 			case 'newPasswords':
-				updateEventPasswords();
+				updatePasswords($_POST['changePasswords']);
 				break;
 			case 'eventDefaultUpdate':
 				updateEventDefaults();
@@ -262,9 +265,6 @@ function processPostData(){
 
 
 	// Admin Cases
-			case 'newSystemPasswords':
-				updateSystemPasswords();
-				break;
 			case 'editExistingSchool':
 				updateExistingSchool();
 				break;
@@ -376,11 +376,7 @@ function processPostData(){
 	unset($_POST);
 
 	if(empty($refreshPage) == false){
-		$url = strtok($_SERVER['PHP_SELF'], "#");
-		$url .= "#".@$_SESSION['jumpTo'];
-		unset($_SESSION['jumpTo']);
-		header('Location: '.$url);
-		exit;
+		refreshPage();
 	}
 
 // Check that terms of use have been signed
@@ -493,7 +489,7 @@ function exportHemaRatings($informationType){
 
 function processToS($ToS){
 
-	if(USER_TYPE != USER_ADMIN){ return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return;}
 
 	if(count($ToS['checkboxes']) < $ToS['numCheckboxes']){
 		$_SESSION['alertMessages']['userErrors'][] = "Please completely fill in the Terms of Service agreement";
@@ -572,7 +568,7 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 // If called with groupSet == 0 it does them all
 // If called with a groupSet number it does that set and all the ones after
 		
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
@@ -656,7 +652,7 @@ function createTournamentBrackets($tournamentID, $numWinnerBracketFighters){
 // Creates a tournament bracket depending on the elimination type used
 // Overwrites any existing brackets
 
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
@@ -692,7 +688,7 @@ function createTournamentBrackets($tournamentID, $numWinnerBracketFighters){
 function addNewExchange(){
 // Add a new exchange to a match
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
@@ -774,7 +770,7 @@ function calculateLastExchange($matchInfo, $scoring){
 // determine which type of scoring is in effect so the exchange 
 // can be added appropriately
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$tournamentID = $matchInfo['tournamentID'];
 	
@@ -811,7 +807,7 @@ function calculateLastExchange($matchInfo, $scoring){
 function deductiveAfterblowScoring($matchInfo,$scoring){
 // scoring calculations for Deductive Afterblow
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
@@ -880,7 +876,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 function insertPenalty($matchInfo, $scoring){
 // inserts an exchange as a penalty
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
@@ -914,7 +910,7 @@ function insertPenalty($matchInfo, $scoring){
 function fullAfterblowScoring($matchInfo,$scoring){
 // scoring calculations for Full Afterblow	
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
@@ -1026,7 +1022,7 @@ function fullAfterblowScoring($matchInfo,$scoring){
 function noAfterblowScoring($matchInfo,$scoring){
 // scoring calculations for No Afterblow
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $matchInfo['matchID'];
 	$id1 = $matchInfo['fighter1ID'];
@@ -1155,95 +1151,121 @@ function checkSession(){
 
 /******************************************************************************/
 
-function changeEvent($eventID = null, $loggingIn = false){
+function changeEvent($eventID, $logoutInhibit = false){
 // Changes event to the parameter provided and redirects to a
 // landing page determined by the login type
 	
-	if($eventID == null){ @$eventID = (int)$_POST['changeEventTo']; }
-	if($_SESSION['eventID'] != $eventID){
-		$eventChanged = true;
-	} else {
+	if($_SESSION['eventID'] == $eventID){
 		$eventChanged = false;
-	}
+	} else {
 
-	$_SESSION['eventID'] = $eventID;
-	$_SESSION['eventName'] = getEventName($eventID);
+		$eventChanged = true;
+		$_SESSION['eventID'] = $eventID;
+		$_SESSION['eventName'] = getEventName($eventID);
 		
-	$_SESSION['tournamentID'] = '';
-	$_SESSION['matchID'] = '';
-	$_SESSION['groupSet'] = '';
-	
-	// If there is only one tournament in the event it is selected
-	$IDs = getEventTournaments();
-	if(count($IDs) == 1){
-		$_SESSION['tournamentID'] = $IDs[0];
+		// If there is only one tournament in the event it is selected by deafult
+		$IDs = getEventTournaments();
+		if(count($IDs) == 1){
+			$_SESSION['tournamentID'] = $IDs[0];
+		} else {
+			$_SESSION['tournamentID'] = '';
+		}
+		$_SESSION['matchID'] = '';
+		$_SESSION['groupSet'] = '';
+
+
+		// Log user out if switching event
+		if($logoutInhibit == true || ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
+			// User can stay logged in
+		} else {
+			logUserOut(false);
+		}
+
 	}
 
 // Page re-directs
-	
-	if($loggingIn == false){
-		// These user-types retain page focus when switching events
-		// unless useLandingPage is enabled
-		if($_SESSION['userType'] == USER_SUPER_ADMIN 
-		|| $_SESSION['userType'] == USER_VIDEO
-		|| $_SESSION['userType'] == USER_STATS){
-			return;
-		} elseif($eventChanged) {
-			$_SESSION['userType'] = USER_GUEST;
-		}
-	}
-	
-	
-	switch ($_SESSION['userType']) {
-		case USER_ADMIN:
-			$landingPage = 'statsEvent.php';
-			break;
-		case USER_STAFF:
-			$landingPage ='participantsEvent.php';
-			break;
-		case USER_VIDEO:
-			//$landingPage = VIDEO PAGE PLACEHOLDER
-			return;
-			break;
-		case USER_STATS:
-			$landingPage = 'statsFighters.php';
-			break;
-		default:
-			if($_SESSION['eventID'] == null){$landingPage = 'infoWelcome.php';
-			} else {$landingPage = 'infoSummary.php';}
-			break;
+
+	// Default landing page
+	if($_SESSION['eventID'] == null){
+		$landingPage = 'infoWelcome.php';
+	} else {
+		$landingPage = 'infoSummary.php';
 	}
 
-	header("Location: {$landingPage}");
-	exit;
+	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
+		if(basename($_SERVER['PHP_SELF']) == "adminLogin.php"){
+			$landingPage = 'infoSelect.php';
+		} elseif(basename($_SERVER['PHP_SELF']) == "infoSelect.php"){
+			$landingPage = 'infoSummary.php';
+		} else {
+			$landingPage = null;
+		}
+	}
+
+
+	if($landingPage != null){
+		header("Location: {$landingPage}");
+		exit;
+	} else {
+		refreshPage();
+	}
 
 }
 
 /******************************************************************************/
 
-function logUserIn(){
+function logUserIn($logInData){
 // Attempts to log a user in	
 	
-	$type = @$_POST['logInType'];
-	$passwordInput = @$_POST['password'];
-	$eventID = @$_POST['logInEventID'];
-	if($type == USER_STATS || $type == USER_VIDEO || $type == USER_SUPER_ADMIN){
+	$type = $logInData['type'];
+	$passwordInput = $logInData['password'];
+	
+	if($type == 'logInUser'){
 		$eventID = null;
+		$userName = $logInData['userName'];
+	} elseif($type == 'logInStaff'){
+		$userName = "eventStaff";
+		$eventID = $logInData['eventID'];
+	} elseif($type == 'logInOrganizer'){
+		$userName = "eventOrganizer";
+		$eventID = $logInData['eventID'];
+	} else {
+		logUserOut();
 	}
 
-	
-	if(checkPassword($passwordInput, $type, $eventID)){
-		$_SESSION['userType'] = $type;
+	if(checkPassword($passwordInput, $userName, $eventID) === true){
+
 		unset($_SESSION['clearOnLogOut']);
+		$_SESSION['userName'] = $userName;
 
 		changeEvent($eventID, true);
 	} else {
-		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Failed to Log In";
+		if($type == 'logInUser'){
+			setAlert(USER_ERROR,"Invalid Username/Password combination<BR>
+									<strong>Failed to Log In.</strong>");
+		} else {
+			setAlert(USER_ERROR,"Incorrect Password<BR>
+								<strong>Failed to Log In</strong>");
+		}
 		$_SESSION['failedLogIn']['type'] = $type;
 		$_SESSION['failedLogIn']['eventID'] = $eventID;
 	}
 
 	return;
+}
+
+/******************************************************************************/
+
+function logUserOut($refreshPage = true){
+	unset($_SESSION['clearOnLogOut']);
+
+	$_SESSION['userName'] = null;
+	$_SESSION['userID'] = null;
+
+	if($refreshPage == true){
+		header("Location: infoWelcome.php");
+		exit;
+	}
 }
 
 /******************************************************************************/

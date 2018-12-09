@@ -187,7 +187,7 @@ function autoRefreshTime($poolsInProgress){
 	if($poolsInProgress != true){
 		return 0;
 	}
-	if(USER_TYPE != USER_GUEST){
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
 		return 0;
 	}
 
@@ -355,43 +355,29 @@ function getLoserBracketAdvancements($allBracketInfo, $finalists){
 
 /******************************************************************************/
 
-function checkPassword($input, $type, $eventID = null){
+function checkPassword($input, $userName, $eventID = null){
 // Checks if the password provided matches the password in the database
 // Returns true if the passwords match, false if they don't
-// 
-
-// Checks
-	// No password required for guests
-	if($type == USER_GUEST){return true;}
-	
-	// Admin and staff logins are tied to events. If they try to log in without
-	// and event then it fails
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
-		if($type == USER_ADMIN || $type == USER_STAFF){
-			return false;
-		}
-	}
-
+ 
 // Get password to compare
-	switch ((int)$type){
-		case USER_VIDEO:
-			$password = getPassword('USER_VIDEO');
+	switch($userName){
+		case 'eventStaff':
+			if($eventID == null){
+				return false;
+			}
+			$password = getEventStaffPassword($eventID);
 			break;
-		case USER_STAFF:
-			$password = getPassword('USER_STAFF',$eventID);
-			break;
-		case USER_ADMIN:
-			$password = getPassword('USER_ADMIN',$eventID);
-			break;
-		case USER_SUPER_ADMIN:
-			$password = getPassword('USER_SUPER_ADMIN');
-			break;
-		case USER_STATS:
-			$password = getPassword('USER_STATS');
+		case 'eventOrganizer':
+			if($eventID == null){
+				return false;
+			}
+			$password = getEventOrganizerPassword($eventID);
 			break;
 		default:
-			return false;
+			$password = getUserPassword($userName);
+			if($password == null){
+				return false;
+			}
 			break;
 	}
 

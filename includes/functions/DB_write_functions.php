@@ -13,7 +13,7 @@ function deleteFromEvent(){
 	
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$tournamentIDs = getEventTournaments($eventID);
 	
 	foreach((array)$_POST['deleteFromEvent'] as $rosterID => $data){
@@ -70,7 +70,7 @@ function activateLivestream($eventID = null){
 
 function addAttacksToTournament($tournamentID = null){
 	
-	if(USER_TYPE < USER_ADMIN){ return; }
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
 	if($tournamentID == null){ $tournamentID = $_SESSION['tournamentID']; }
 	if($tournamentID == null){return;}
 	
@@ -124,7 +124,7 @@ function addAttacksToTournament($tournamentID = null){
 function addEventParticipantsByID(){
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 		
 	foreach(@(array)$_POST['newParticipants']['byID'] as $fighter){
 
@@ -194,7 +194,7 @@ function addEventParticipantsByName(){
 	
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	foreach(@(array)$_POST['newParticipants']['new'] as $fighter){
 		
@@ -293,7 +293,7 @@ function addEventParticipantsByName(){
 
 function addMultipleFightersToRound(){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
@@ -356,7 +356,7 @@ function addMultipleFightersToRound(){
 
 function addFightersToGroup(){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
@@ -414,7 +414,7 @@ function addFightersToGroup(){
 /******************************************************************************/
 
 function addMatchWinner(){
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$matchID = $_POST['matchID'];
 	$matchInfo = getMatchInfo($matchID);
@@ -456,7 +456,7 @@ function addMatchWinner(){
 /******************************************************************************/
 function addNewEvent(){
 	
-	if(USER_TYPE < USER_SUPER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	
 	$eventYear = substr($_POST['eventStartDate'],0,4);
 	$num = mt_rand(100,999);
@@ -466,7 +466,7 @@ function addNewEvent(){
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbreviation, eventYear, eventStartDate,
 			eventEndDate, eventCountry, eventProvince, eventCity,
-			eventStatus, USER_STAFF, USER_ADMIN)
+			eventStatus, staffPassword, organizerPassword)
 			VALUES
 			(?,?,?,?,?,?,?,?,?,?,?)";
 	
@@ -513,8 +513,7 @@ function addNewEvent(){
 /******************************************************************************/
 
 function addNewSchool(){
-	if(USER_TYPE < USER_ADMIN){return;}
-	
+	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	
 	$schoolFullName = $_POST['schoolFullName'];
 	$schoolShortName = $_POST['schoolShortName'];
@@ -556,7 +555,7 @@ function addToTournament(){
 
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 // Add New Participants
 	foreach((array)$_POST['addToTournament'] as $rosterID){//insert data into table
@@ -583,7 +582,7 @@ function addToTournament(){
 
 function addTournamentType(){
 	
-	if(USER_TYPE < USER_SUPER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	
 	$meta = $_POST['tournamentTypeMeta'];
 	$type = $_POST['tournamentType'];
@@ -622,7 +621,7 @@ function addNewDuplicateException(){
 // Adds a new name to the table of fighters who are not the same person.
 // These are names tha the sort algorithm identifies incorrectly.
 
-	if(USER_TYPE < USER_SUPER_ADMIN){ return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
 	$rosterID1 = $_POST['rosterIDs'][0];
 	$rosterID2 = $_POST['rosterIDs'][1];
 
@@ -687,7 +686,7 @@ function checkRoundRoster($tournamentID, $groupID = null){
 function clearExchanges($matchID, $code){
 // clears exchanges from a match	
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){return;}
@@ -837,7 +836,7 @@ function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
 /******************************************************************************/
 
 function createConsolationBracket($tournamentID, $numFighters){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
 	$bracketLevels = getBracketDepthByFighterCount($numFighters,2);	
 	$sql = "INSERT INTO eventGroups
@@ -888,7 +887,7 @@ function createConsolationBracket($tournamentID, $numFighters){
 /******************************************************************************/
 
 function createNewPools(){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$_SESSION['eventChanges']['poolsModified'] = true;
 	
 	$tournamentID = $_SESSION['tournamentID'];
@@ -919,7 +918,7 @@ function createNewPools(){
 function createNewTeam($teamInfo){
 
 // Error checking
-	if(USER_TYPE < USER_ADMIN){ 
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ 
 		setAlert(USER_ERROR,"You must be logged in as an Event Organizer to do this operation");
 		return;
 	}
@@ -967,7 +966,7 @@ function addTeamMembers($teamInfo, $tournamentID = null){
 
 
 // Error checking
-	if(USER_TYPE < USER_ADMIN){ 
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ 
 		setAlert(USER_ERROR,"You must be logged in as an Event Organizer to do this operation");
 		return;
 	}
@@ -1033,7 +1032,7 @@ function addTeamMembers($teamInfo, $tournamentID = null){
 
 function deleteTeams($deleteInfo){
 
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
 	if(isset($deleteInfo['teamsToDelete'])){
 		foreach((array)$deleteInfo['teamsToDelete'] as $teamID => $data){
@@ -1056,7 +1055,7 @@ function deleteTeams($deleteInfo){
 /******************************************************************************/
 
 function createNewRounds(){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$_SESSION['eventChanges']['roundsModified'] = true;
 	
 	$tournamentID = $_SESSION['tournamentID'];
@@ -1085,7 +1084,7 @@ function createNewRounds(){
 function createWinnersBracket($tournamentID, $numFighters){
 // creates a winners bracket
 	
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$bracketLevels = ceil(log($numFighters,2));
 	$matchesToSkip = pow(2,$bracketLevels) - $numFighters;
 
@@ -1129,7 +1128,7 @@ function createWinnersBracket($tournamentID, $numFighters){
 
 function deleteBracket(){
 	
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
@@ -1145,7 +1144,7 @@ function deleteBracket(){
 
 function deleteExchanges(){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	if(!isset($_POST['exchangesToDelete'])){return;}
 	$matchID = $_POST['matchID'];
@@ -1183,7 +1182,7 @@ function deleteExchanges(){
 function deleteFromGroups(){
 
 // Error Checking
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$eventID = $_SESSION['eventID'];
 	$tournamentID = $_SESSION['tournamentID'];
 	if($eventID == null || $tournamentID == null ){
@@ -1242,7 +1241,7 @@ function deleteFromTournament(){
 
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 
 	foreach((array)$_POST['deleteFromTournament'] as $rosterID => $true){
@@ -1265,7 +1264,7 @@ function deleteFromTournament(){
 
 function deleteRounds(){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	foreach((array)$_POST['roundIDtoDelete'] as $groupID => $stuff){
 		$sql = "SELECT tournamentID
@@ -1285,7 +1284,7 @@ function deleteRounds(){
 /******************************************************************************/
 
 function editEvent(){
-	if(USER_TYPE < USER_SUPER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 
 	if(isset($_POST['eventToEdit'])){
 		$_SESSION['editEventID'] = $_POST['eventToEdit'];
@@ -1350,7 +1349,7 @@ function editEvent(){
 
 function editEventStatus(){
 	
-	if(USER_TYPE < USER_ADMIN){ return; }
+	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){ return; }
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
 	
@@ -1378,7 +1377,7 @@ function editEventParticipant(){
 	if($eventID == null){
 		$_SESSION['alertMessages']['systemErrors'][] = "No eventID in editEventParticipant";
 		return;}
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	// If the editing mode needs to be enabled
 	if(!isset($_POST['editParticipantData'])){
@@ -1412,7 +1411,7 @@ function editEventParticipant(){
 			AND eventID != {$eventID}";
 	$count = (int)mysqlQuery($sql, SINGLE, 'numEvents');
 
-	if(($count == 0) || (USER_TYPE >= USER_SUPER_ADMIN)){
+	if(($count == 0) || (ALLOW['SOFTWARE_ADMIN'] == true)){
 		
 		$sql = "UPDATE systemRoster
 				SET firstName = ?, lastName = ?
@@ -1431,7 +1430,7 @@ function editEventParticipant(){
 			$oldName = getFighterName($rosterID);
 
 			setAlert(USER_ERROR,
-				"<u>{$oldName}</u> is entered across multiple events.<BR>
+				"<u>{$oldName}</u> already exists in the system.<BR>
 				You can not change their name.<BR>
 				If there is an issue, please contact the HEMA Scorecard Staff."
 				);
@@ -1515,7 +1514,7 @@ function editEventParticipant(){
 
 function generateTournamentPlacings($tournamentID){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	if($tournamentID == null){
 		displayAlert("No tournamentID in generateTournamentPlacings()");
@@ -1843,7 +1842,7 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 							$refPrefix = null, $refType = null, $refTarget = null, $exchangeID = null){
 // records a new exchange into the match	
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$scoreValue = (int)$scoreValueIn;
 	$scoreDeduction = abs((int)$scoreDeductionIn);
@@ -1910,7 +1909,7 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 
 function insertNewEventParticipant($firstName, $lastName, $schoolID, $tournamentIDs){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	$eventID = $_SESSION['eventID'];
 	
@@ -1957,7 +1956,7 @@ function insertNewEventParticipant($firstName, $lastName, $schoolID, $tournament
 /******************************************************************************/
 
 function importRosterCSV(){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	
 	$csv_mimetypes = array(
 		'text/csv',
@@ -2085,7 +2084,7 @@ function importRosterCSV(){
 
 function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
@@ -2235,7 +2234,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 
 function removeTournamentPlacings($tournamentID){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	if($tournamentID == null){
 		echo "No tournamentID in removeTournamentPlacings()";
@@ -2435,7 +2434,7 @@ function setLivestreamMatch($eventID = null){
 
 function switchMatchFighters($matchID = null){
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){
@@ -2481,7 +2480,7 @@ function switchMatchFighters($matchID = null){
 
 function updateContactEmail($email, $eventID = null){
 
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
 	if($eventID == null){
@@ -2529,7 +2528,7 @@ function updateDisplaySettings(){
 
 function updateEventDefaults(){
 	
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
@@ -2561,46 +2560,99 @@ function updateEventDefaults(){
 
 /******************************************************************************/
 
-function updateEventPasswords(){
-	if(USER_TYPE < USER_ADMIN){return;}
-	
-	$eventID = $_SESSION['eventID'];
-	if($eventID == null){return;}
+function updatePasswords($passwordData){
 
-	// Check if it is valid to change
-	$isAdmin = checkPassword($_POST['passwordVerification'], USER_ADMIN, $eventID);
-	$isSuperAdmin = checkPassword($_POST['passwordVerification'], USER_SUPER_ADMIN, $eventID);
-	
-	if(!$isAdmin && !$isSuperAdmin){
-		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Password<BR>Passwords not changed";
+	// Check if a valid password was provided.
+	if($passwordData['newPassword'] == ''){
+		setAlert(USER_ERROR,"No password entered. <BR><strong>Password not updated.</strong>");
+		return;
+	}
+
+	$eventID = $_SESSION['eventID'];
+	$passwordValid = checkPassword($passwordData['passwordVerification'], 
+									$_SESSION['userName'], $eventID);
+	if($passwordValid == false){
+		setAlert(USER_ERROR,"Incorrect Password<BR><strong>Password not changed</strong>");
 		return;	
 	}
 	
+	
 	// Update Database
-	$staffPass = password_hash($_POST[USER_STAFF], PASSWORD_DEFAULT);
-	$adminPass = password_hash($_POST[USER_ADMIN], PASSWORD_DEFAULT);
-	
-	if($_POST[USER_STAFF] != null){
+	$passHash = password_hash($passwordData['newPassword'], PASSWORD_DEFAULT);
+
+	if(@$passwordData['userName'] == 'eventStaff' || @$passwordData['userName'] == 'eventOrganizer'){
+		// If an event organizer is updating their password.
+		// 'userName' field may not exist, treat as empty/null
+
+		if($eventID == null){
+			setAlert(USER_ERROR,"No event set.
+								<BR><strong>Password not updated.</strong>");
+			return;
+		}
+
+		if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){
+			setAlert(USER_ERROR,"You are not logged in to the correct account.
+								<BR><strong>Password not updated.</strong>");
+			return;
+		}
+
+		if($passwordData['userName'] == 'eventStaff'){
+			$passField = 'staffPassword';
+		} elseif($passwordData['userName'] == 'eventOrganizer') {
+			$passField = 'organizerPassword';
+		} else {
+			setAlert(SYSTEM_ERROR,"Invalid userName in updatePasswords()
+					<BR><strong>Password not updated.</strong>");
+			return;
+		}
+
+
 		$sql = "UPDATE systemEvents
-				SET USER_STAFF = '{$staffPass}'
+				SET {$passField} = '{$passHash}'
 				WHERE eventID = {$eventID}";
-		mysqlQuery($sql, SEND);
-	}
+	} else {
+		// If a user is updating their password
+
+		$userID = @(int)$passwordData['userID'];
+		$sql = "SELECT userName
+				FROM systemUsers
+				WHERE userID = {$userID}";
+		$tableUserName = mysqlQuery($sql, SINGLE, 'userName');
+		show($tableUserName);
+
+		if($tableUserName == null){
+			setAlert(USER_ERROR,"Invalid user selected.<BR><strong>Password not changed</strong>");
+			return;
+		}
+
+		if($tableUserName != $_SESSION['userName']
+			&& ALLOW['SOFTWARE_ADMIN'] == false){
+			setAlert(USER_ERROR,"Can't change password for that user.<BR><strong>Password not changed</strong>");
+			return;
+		}
+
+		if($passwordData['newPassword'] != $passwordData['newPassword2']){
+			setAlert(USER_ERROR,"Two passwords do not match.<BR><strong>Password not changed</strong>");
+			return;
+		}
+
+		$sql = "UPDATE systemUsers
+				SET password = '{$passHash}'
+				WHERE userID = {$userID}";
 		
-	if($_POST[USER_ADMIN] != null){
-		$sql = "UPDATE systemEvents
-				SET USER_ADMIN = '{$adminPass}'
-				WHERE eventID = {$eventID}";
-		mysqlQuery($sql, SEND);
 	}
-	
-	$_SESSION['alertMessages']['userAlerts'][] = "Passwords Updated";
+
+	mysqlQuery($sql, SEND);	
+	setAlert(USER_ALERT,"Password Updated");
 }
 
 /******************************************************************************/
 
 function updateEventTournaments(){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		
+		return;
+	}
 	
 	$eventID = $_SESSION['eventID'];
 	if($eventID == null){return;}
@@ -2880,7 +2932,11 @@ function deleteEventTournament(){
 /******************************************************************************/
 
 function updateExistingSchool(){
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){
+		$_SESSION['alertMessages']['userErrors'] == "Sorry, only Software Administrators and Assistants can 
+		edit existing school information.";
+		return;
+	}
 	$schoolID = $_POST['schoolID'];
 	
 	if(isset($_POST['cancelUpdate'])){
@@ -2922,7 +2978,7 @@ function updateExistingSchool(){
 /******************************************************************************/
 
 function updateFinalsBracket(){
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
 	
@@ -2978,7 +3034,7 @@ function updateFinalsBracket(){
 
 function updateHemaRatingsInfo($fighters){
 
-	if(USER_TYPE < USER_SUPER_ADMIN){ return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
 
 
 	foreach($fighters as $systemRosterID => $fighter){
@@ -3035,7 +3091,7 @@ function updateIgnoredFighters($manageFighterData){
 // If a fighter is set to un-ignore it will unignore 
 // all matches, even if they were ignored individualy
 	
-	if(USER_TYPE < USER_ADMIN){return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	$tournamentID = $manageFighterData['tournamentID'];
 	
 	if($tournamentID == null){
@@ -3227,7 +3283,7 @@ function updateLivestreamInfo(){
 function updateMatch($matchInfo){
 // updates the information pertaining to a match
 // fighterIDs, score, ect...
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $matchInfo['matchID'];
 	$tournamentID = $matchInfo['tournamentID'];
@@ -3332,7 +3388,7 @@ function updateRoundMatchList($tournamentID = null){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	$rounds = getRounds($tournamentID);
 	
 	foreach((array)$rounds as $num => $round){
@@ -3403,7 +3459,7 @@ function updateRoundMatchList($tournamentID = null){
 
 function updatePoolMatchList($ID, $type, $tIdIn = null){
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	switch($type){
 		case 'group':
@@ -3679,7 +3735,7 @@ function updatePoolSets(){
 /******************************************************************************/
 
 function updateStageOptions(){
-	if(USER_TYPE < USER_ADMIN){ return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return;}
 	
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){ return; }
@@ -3699,42 +3755,6 @@ function updateStageOptions(){
 		mysqlQuery($sql, SEND);
 	}
 		
-}
-
-/******************************************************************************/
-
-function updateSystemPasswords(){
-	
-	if(USER_TYPE < USER_SUPER_ADMIN){
-		$_SESSION['alertMessages']['userErrors'][] = "Not Logged in as Software Administrator";
-		return;
-	}
-	
-	if(checkPassword($_POST['adminPassword'], USER_SUPER_ADMIN, null) == false){
-		$_SESSION['alertMessages']['userErrors'][] = "Incorrect Admin Password";
-		return;
-	}
-	
-	$type = $_POST['passwordType'];
-	
-	if($type == 'USER_SUPER_ADMIN' && $_POST[$type] != $_POST[$type.'_2']){
-		$_SESSION['alertMessages']['userErrors'][] = "Unable to update <BR><BR>Two passwords do not match";
-		return;
-	}
-	
-	$password = password_hash($_POST[$type], PASSWORD_DEFAULT);
-
-	$sql = "UPDATE systemUsers
-			SET password = ?
-			WHERE logInType = '{$type}'";
-			
-	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "s", $password);
-	$exec = mysqli_stmt_execute($stmt);
-	mysqli_stmt_close($stmt);
-	
-	$_SESSION['alertMessages']['userAlerts'][] = "Password updated sucessfully";
-	
 }
 
 /******************************************************************************/
@@ -3779,11 +3799,11 @@ function updateTournamentCuttingStandard($tournamentID = null){
 		return;
 	}
 	
-	$sql = "DELETE FROM eventCuttingStandards
+	$sql = "DELETE FROM eventCutStandards
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
 	
-	$sql = "INSERT INTO eventCuttingStandards
+	$sql = "INSERT INTO eventCutStandards
 			(tournamentID, standardID, date)
 			VALUES
 			({$tournamentID}, {$standard}, '{$date}')";
@@ -3796,7 +3816,7 @@ function updateTournamentCuttingStandard($tournamentID = null){
 
 function updateTournamentFighterCounts($tournamentID = null){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	if($tournamentID != null){
 		$tournamentList[] = $tournamentID;
 	} else {
@@ -3868,7 +3888,7 @@ function updateYouTubeLink($matchID = null){
 
 function writeTournamentPlacing($rosterID, $tournamentID, $placing, $type = 'final', $low = 'null', $high = 'null'){
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['EVENT_MANAGEMENT'] == false){return;}
 	
 	if($rosterID == null || $tournamentID == null || $placing == null){
 		$_SESSION['alertMessages']['systemErrors'][] = "Invalid parameters passed in writeTournamentPlacing()";

@@ -18,7 +18,7 @@ function displayPageAlerts(){
 // to display error messages created in processing POST data.
 
 // Only displays diagnostic errors for the Software Administrator
-	if(USER_TYPE >= USER_SUPER_ADMIN){
+	if(ALLOW['SOFTWARE_ASSIST'] == true){
 		foreach($_SESSION['alertMessages']['systemErrors'] as $message){
 			displayAlert("<strong>Error: </strong>".$message, 'alert');
 		}
@@ -86,8 +86,9 @@ function pageError($type){
 		$str = "<strong>No Tournament Selected</strong><BR>
 				Select a tournament in the upper left menu";
 	} elseif(strcasecmp($type, 'user') == 0 || strcasecmp($type, 'login') == 0){
-		$str = "<strong>Not Logged In</strong><BR>
-				<a href='adminLogin.php'>Login</a>";
+		$str = "
+				You do not have permision to view this page.<BR>
+				<strong>Click here to <a href='adminLogIn.php'>Login</a></strong>";
 	} else {
 		$str = "Page can not be displayed";
 	}
@@ -127,14 +128,11 @@ function checkForTermsOfUse(){
 		return;
 
 // Don't need to sign ToS
-	} elseif(USER_TYPE != USER_ADMIN
-			|| isEventTermsAccepted()
-			){
-
+	} elseif($_SESSION['userName'] != 'eventOrganizer' || isEventTermsAccepted()){
 		return;
 
 // If they need to sign ToS, kicks them back to the log in page. 
-//This won't let them leave the log-in screen until they sign the ToS or log out
+// This won't let them leave the log-in screen until they sign the ToS or log out
 	} elseif($pageName != 'adminLogIn.php'){
 		header('Location: adminLogIn.php');
 		exit;
@@ -207,8 +205,7 @@ function checkForTermsOfUse(){
 				Got it!<BR> I checked and agreed to all 4 boxes and filled in the e-mail.
 			</button>
 
-			<input type='hidden' name='logInType' value='1'>
-			<button class='button alert small-6 cell' name='formName' value='logUserIn'>
+			<button class='button alert small-6 cell' name='formName' value='logUserOut'>
 				Not cool.<BR>I'll go back to pen and paper like a cave man.
 			</button>
 
@@ -1737,7 +1734,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		<div class='<?=$class?>'>
 							
 		<?php 
-			if(USER_TYPE >= USER_STAFF){
+			if(ALLOW['EVENT_SCOREKEEP'] == true){
 				// Staff and higher can add fighters
 				bracket_finalistDropDown($fighterNum, $matchID, $finalists, $seedID,$teamEntry);
 			} else {
@@ -1765,7 +1762,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 			$class = "bracket-top-slot";
 		}
 		
-		if(USER_TYPE >= USER_STAFF){	// shows fighter color for staff only
+		if(ALLOW['EVENT_SCOREKEEP'] == true){	// shows fighter color for staff only
 			$style .= "background-color: {$color}; ";
 		}
 		?>
@@ -1782,6 +1779,7 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 
 function bracket_management($tournamentID, $allBracketInfo, $finalists){
 	
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
 
@@ -1790,7 +1788,6 @@ function bracket_management($tournamentID, $allBracketInfo, $finalists){
 <!-- Bracket Management -->
 	<div style='margin-top: 50px;'>&nbsp;</div>
 	
-	<?php if(USER_TYPE < USER_STAFF){ return; } ?>
 	
 	<fieldset class='fieldset'>
 	<legend>Bracket Management</legend>
@@ -1800,7 +1797,7 @@ function bracket_management($tournamentID, $allBracketInfo, $finalists){
 <!-- Create Bracket -->	
 
 	<?php if($allBracketInfo == null): ?>
-		<?php if(USER_TYPE >= USER_ADMIN): ?>
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 			<div class='large-3 medium-4 cell'>
 				<a class='button expanded' data-open='createBracket' <?=LOCK_TOURNAMENT?>>
 					Create Bracket
@@ -1814,7 +1811,7 @@ function bracket_management($tournamentID, $allBracketInfo, $finalists){
 	
 	
 	<!-- Delete Bracket -->
-		<?php if(USER_TYPE >= USER_ADMIN): ?>
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		<div class='large-3 medium-4 cell'>
 			<a class='button alert expanded' data-open='deleteBracket' <?=LOCK_TOURNAMENT?>>
 				Delete Bracket
@@ -1953,7 +1950,7 @@ function bracket_display($bracketInfo, $finalists,$type,$bracketAdvancements){
 	<input type='hidden' name='formName' value='updateBracket'>
 	<input type='hidden' name='groupID' value='<?=$bracketID?>'>
 
-	<?php if(USER_TYPE >= USER_STAFF): ?>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		
 		<button class= 'button success' name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
 			Add Fighters
@@ -2452,7 +2449,7 @@ function goToMatchButton($matchInfo){
 <!-- If an unfiled match was passed -->
 	<?php else: ?>
 	
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<button class='button success hollow small' style='margin-bottom: 5px;' 
 				name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
 				Add
@@ -2464,7 +2461,7 @@ function goToMatchButton($matchInfo){
 	<?php endif ?>
 	
 	<!-- Checkbox for staff to delete fighters from a match -->
-	<?php if(USER_TYPE >= USER_STAFF): ?>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<input type='checkbox' class='no-bottom'  name='clearMatch[<?=$matchID?>]' 
 			value='true' <?=LOCK_TOURNAMENT?>>
 	<?php endif ?>
@@ -2481,7 +2478,7 @@ function addYoutube($matchID, $divider = true){
 ?>
 
 <!-- Display entry field for staff -->
-	<?php if(USER_TYPE >= USER_VIDEO): ?>
+	<?php if(ALLOW['EVENT_YOUTUBE'] == true): ?>
 		<?php if($divider):?>
 			<HR width='80%'>
 		<?php endif ?>
@@ -2520,7 +2517,7 @@ function bracketHelperToggleButton($allBracketInfo, $finalists){
 // If the helper will go into a 'try' state if it is attempted to be enabled
 // while there are incomplete pool matches, informing the user of the difficulty.
 
-	if($_SESSION['userType'] < USER_STAFF){ return; }
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){
 		setAlert(SYSTEM,'No tournamentID in bracketHelperToggleButton()');

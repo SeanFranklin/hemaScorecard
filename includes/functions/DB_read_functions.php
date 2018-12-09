@@ -556,8 +556,8 @@ function getCuttingStandard($tournamentID = null){
 	}	
 	
 	$sql = "SELECT standardID, date, qualValue, standardName
-			FROM eventCuttingStandards
-			INNER JOIN cuttingStandards USING(standardID)
+			FROM eventCutStandards
+			INNER JOIN systemCutStandards USING(standardID)
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE);
 	
@@ -1970,44 +1970,42 @@ function getNumGroupSets($tournamentID = null){
 
 /******************************************************************************/
 
-function getPassword($type, $eventID = null){
-	
-	if($eventID != null){ // Getting the password for an event.
-		$sql = "SELECT {$type}
-				FROM systemEvents
-				WHERE eventID = {$eventID}";
-		return mysqlQuery($sql, SINGLE, $type);
-	}
+function getUserPassword($userName){
 	
 	$sql = "SELECT password
 			FROM systemUsers
-			WHERE logInType = '{$type}'";
-	return mysqlQuery($sql, SINGLE, 'password');
+			WHERE userName = ?";
+	//return mysqlQuery($sql, SINGLE, 'password');
+
+
+	$stmt = $GLOBALS["___mysqli_ston"]->prepare($sql);
+	$stmt->bind_param("s",$userName);
+	$stmt->execute();
+	$stmt->bind_result($password);
+	$stmt->fetch();
+
+	return $password;
+
 }
 
 /******************************************************************************/
 
-function getPasswords($eventID = null){
-// returns an array containing the encrypted password data stored in the SQL table	
+function getEventStaffPassword($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
-		setAlert(SYSTEM,"No eventID in getPasswords()");
-		return;
-	}
-	
-	$sql = "SELECT staffPassword, adminPassword, salt FROM systemEvents
+	$sql = "SELECT staffPassword
+			FROM systemEvents
 			WHERE eventID = {$eventID}";
-	$result = mysqlQuery($sql, SINGLE);
+	return mysqlQuery($sql, SINGLE, 'staffPassword');
+}
+
+/******************************************************************************/
+
+function getEventOrganizerPassword($eventID){
 	
-	$password[USER_STAFF] = $result['staffPassword'];
-	$password[USER_ADMIN] = $result['adminPassword'];
-	$password['salt'] = $result['salt'];
-	$password[USER_SUPER_ADMIN] = SUPER_ADMIN_PASSWORD;
-	$password[USER_VIDEO] = VIDEO_PASSWORD;
-	$password[USER_STATS] = ANALYTICS_PASSWORD;
-	
-	return $password;
+	$sql = "SELECT organizerPassword
+			FROM systemEvents
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE, 'organizerPassword');
 }
 
 /******************************************************************************/
@@ -4252,8 +4250,8 @@ function isUnconcludedMatchWarning($matchInfo){
 
 	if($numPastIncompletes >= 2 
 		&& @$_SESSION['clearOnLogOut']['ignorePastIncompletes'] != true
-		&& USER_TYPE >= USER_STAFF
-		&& USER_TYPE < USER_SUPER_ADMIN){
+		&& ALLOW['EVENT_SCOREKEEP'] == true
+		&& ALLOW['SOFTWARE_ADMIN'] == false){
 		return true;
 	}
 
