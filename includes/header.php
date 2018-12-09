@@ -13,6 +13,7 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo();
+
 ?>
 
 <!doctype html>
@@ -79,11 +80,10 @@ $livestreamInfo = getLivestreamInfo();
         <button class="menu-icon" type="button" data-toggle></button>
         <div class="title-bar-title">Menu</div>
         <?php //tournamentListForHeader(); ?>
-        <?php if(USER_TYPE == USER_GUEST): ?>
+        <?php if($_SESSION['userName'] == null): ?>
 			<a href='adminLogIn.php' class='login-link'>Login</a>
 		<?php else: ?>
-			<input type='hidden' name='logInType' value='1'>
-			<input type='hidden' name='formName' value='logUserIn'>
+			<input type='hidden' name='formName' value='logUserOut'>
 			<a href='javascript:document.logOutForm1.submit();' class='login-link'>Log Out</a>	
 		<?php endif ?>
 		</form>
@@ -95,25 +95,28 @@ $livestreamInfo = getLivestreamInfo();
             <ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu>
 				<li><?php tournamentListForHeader(); ?></li>
                 
-                
-                
-                <?php if(USER_TYPE < USER_ADMIN): ?>
-					<li><a href='participantsEvent.php'>Event Participants</a></li>
-				<?php endif ?>
-				
-				<?php if(USER_TYPE < USER_ADMIN && $_SESSION['eventID'] != null): ?>
-					<li><a href='infoSummary.php'>Final Results</a></li>
-				<?php endif;
-				
-				
-                
-                $manageEvent = "
+
+			<!-- Fighter Management -->
+			<?php if($_SESSION['eventID'] != null):?>
+				<?php if(    ALLOW['EVENT_SCOREKEEP'] == true 
+						  || ALLOW['VIEW_SETTINGS'] == true):?>
 					<li><a href='#'>Manage Fighters</a>
 						<ul class='menu vertical'>
 							<li><a href='participantsEvent.php'>Event Roster</a></li>
 							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
 						</ul>
 					</li>
+				<?php else: ?>
+					<li>
+						<a href='participantsEvent.php'>Event Participants</a>
+					</li>
+				<?php endif ?>
+			<?php endif ?>
+				
+			<!-- Event Management -->
+			<?php if($_SESSION['eventID'] != null):?>
+				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
+						  || ALLOW['VIEW_SETTINGS'] == true):?>
 					<li><a href='#'>Manage Event</a>
 						<ul class='menu vertical'>
 							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
@@ -121,67 +124,81 @@ $livestreamInfo = getLivestreamInfo();
 							<li><a href='adminEvent.php'>Event Settings</a></li>
 							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
 						</ul>
-					</li>";
-					
-				$eventStatus = "
+					</li>
+				<?php else: ?>
+					<!-- Empty -->
+				<?php endif ?>
+			<?php endif ?>
+
+			<!-- Event Information -->
+			<?php if($_SESSION['eventID'] != null):?>
+				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
+						  || ALLOW['VIEW_SETTINGS'] == true
+						  || ALLOW['STATS_EVENT'] == true):?>
 					<li><a href='#'>Event Status</a>
 						<ul class='menu vertical'>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
 						</ul>
-					</li>";
-				
-				$analytics = "
+					</li>
+				<?php else: ?>
+					<li>
+						<a href='infoSummary.php'>Final Results</a>
+					</li>
+				<?php endif ?>
+			<?php endif ?>
+
+			<!-- Analytics -->
+				<?php if(ALLOW['STATS_ALL'] == true):?>
 					<li><a href='#'>Analytics</a>
 						<ul class='menu vertical'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
-							<li><a href='statsMultiEvent.php'>Event Statisitcs</a></li>
+							<li><a href='statsMultiEvent.php'>Tournament Summaries</a></li>
 							<li><a href='statsResultsDump.php'>Export Results</a></li>
 						</ul>
-					</li>";
-				$masterAdmin = "
+					</li>
+				<?php else: ?>
+					<li>
+						<!-- Show nothing -->
+					</li>
+				<?php endif ?>
+
+			<!-- Change Event -->
+				<a href='infoSelect.php'>Change Event</a></li>
+
+			<!-- Software Admin -->
+				<?php if(  ALLOW['SOFTWARE_ADMIN'] == true
+						|| ALLOW['SOFTWARE_ASSIST'] == true):?>
 					<li><a href='#'>ADMIN</a>
 						<ul class='menu vertical'>
 							<li><a href='masterEvents.php'>Manage Events</a></li>
-							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
-							<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
-							<HR>
 							<li><a href='participantsSchools.php'>Edit School List</a></li>
 							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
-							<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
+							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
+							<?php if(  ALLOW['SOFTWARE_ADMIN'] == true): ?>
+								<HR>
+								<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
+								<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
+							<?php endif ?>
 						</ul>
-					</li>";
-				$videoManager = "
-					<li><a href='#'>Video Manager (placeholder)</a></li>
-				";
-				
-				if($_SESSION['eventID'] == null){
-					$manageEvent = null;
-					$eventStatus = null;
-				}
-                
-                if(USER_TYPE == USER_ADMIN){
-					echo "$manageEvent $eventStatus";
-				}
-				
-				if(USER_TYPE == USER_STATS){
-					echo "$eventStatus $analytics";
-				}
-				
-				if(USER_TYPE == USER_SUPER_ADMIN){
-					echo "$manageEvent $eventStatus $analytics $masterAdmin";
-				}
-				if(USER_TYPE == USER_VIDEO){
-					echo "$videoManager";
-				}
-				
-                ?>
-                
-				<a href='infoSelect.php'>Change Event</a></li>
+					</li>
+				<?php else: ?>
+					<?php if($_SESSION['userName'] != null
+						&& $_SESSION['userName'] != 'eventStaff'
+						&& $_SESSION['userName'] != 'eventAdmin'): ?>
+
+						<li><a href='masterPasswords.php'>Change Password</a></li>
+
+					<?php endif ?>
+				<?php endif ?>
+
+
+			<!-- Help Page -->
 				<li><a href='adminHelp.php'>Help/About</a></li>
 				
+			<!-- Livestream -->
 				<?php if($livestreamInfo['isLive'] == 1): ?>
 					<li><a class='button warning hollow' href='livestream.php'>Livestream</a></li>
 				<?php endif ?>
@@ -190,12 +207,11 @@ $livestreamInfo = getLivestreamInfo();
            
         </div>
         <div class="top-bar-right show-for-large">
-			<?php if(USER_TYPE == USER_GUEST): ?>
+			<?php if($_SESSION['userName'] == null): ?>
 				<a href='adminLogIn.php' style='color:white'>Login</a>
 			<?php else: ?>
 				<form method='POST' name='logOutForm2'>
-				<input type='hidden' name='logInType' value='1'>
-				<input type='hidden' name='formName' value='logUserIn'>
+				<input type='hidden' name='formName' value='logUserOut'>
 				<a href='javascript:document.logOutForm2.submit();' style='color:white'>Log Out</a>
 				</form>	
 			<?php endif ?>
@@ -240,7 +256,7 @@ $livestreamInfo = getLivestreamInfo();
 	
 	<?php 
 	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)
-		&& (!isset($hideEventNav) || USER_TYPE == USER_SUPER_ADMIN)):
+		&& (!isset($hideEventNav) || ALLOW['SOFTWARE_ADMIN'] == true)):
 		/* This is the lower navigational bar
 		 * It will not show up if there is no event or tournament selected,  
 		 * or if the pagerequests it to be hidden. It will always be shown
@@ -253,7 +269,7 @@ $livestreamInfo = getLivestreamInfo();
 		if($_SESSION['tournamentID'] != null){
 			if(!isTeams($_SESSION['tournamentID'])){
 				$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
-			} elseif(USER_TYPE >= USER_STAFF) {
+			} elseif(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true) {
 				$navBarString .= "<li><a href='participantsTournament.php'>Tournament Roster</a></li>";
 				$navBarString .= "<li><a href='participantsTeams.php'>Team Rosters</a></li>";
 			} else {
@@ -331,7 +347,7 @@ $livestreamInfo = getLivestreamInfo();
 function tournamentLockedAlert($isWarning){
 	if(!$isWarning){ return; }
 	if(LOCK_TOURNAMENT == null){ return; }
-	if(USER_TYPE < USER_STAFF){ return; }
+	if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['EVENT_MANAGEMENT'] == false){ return; }
 	?>
 	
 	<div class='callout alert text-center' data-closeable>
@@ -347,7 +363,6 @@ function tournamentLockedAlert($isWarning){
 function livestreamAlert($info, $pageName){
 // Display an alert notifying people about the livestream
 	
-	if(USER_TYPE >= USER_STAFF){ return; }
 	if(strpos($pageName, 'Livestream') !== false) { return; }
 	if(isset($_SESSION['hideLivestreamAlert']) && $_SESSION['hideLivestreamAlert'] == true){ return; }
 	if($info['isLive'] != 1){ return; }
@@ -382,7 +397,7 @@ function eventNameForHeader(){
 // Add the event name or prompty to select an event
 
 	$eventID = $_SESSION['eventID'];
-	if(USER_TYPE == USER_SUPER_ADMIN || USER_TYPE == USER_STATS): ?>
+	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true): ?>
 		<form method='POST'>
 		<input type='hidden' name='formName' value='selectEvent'>	
 		<div class='grid-x align-center'>
