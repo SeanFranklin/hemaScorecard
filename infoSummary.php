@@ -25,6 +25,12 @@ if($_SESSION['eventID'] == null){
 		$_SESSION['manualTournamentPlacing'] = '';
 	}
 
+	if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['EVENT_MANAGEMENT'] == true){
+		define('ALLOW_EDITING',true);
+	} else {
+		define('ALLOW_EDITING',false);
+	}
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -42,7 +48,7 @@ if($_SESSION['eventID'] == null){
 					style='cursor: pointer;'";
 
 		$fieldsetLink = '';
-		if(USER_TYPE <= USER_STAFF && !isFinalized($tournamentID)){
+		if(!ALLOW_EDITING && !isFinalized($tournamentID)){
 			$fieldsetLink = $link;
 		}
 		?>
@@ -61,7 +67,7 @@ if($_SESSION['eventID'] == null){
 		
 		<!-- If no tournament results -->	
 			 <?php if(!isFinalized($tournamentID)): ?>
-				<?php if(USER_TYPE >= USER_STAFF):
+				<?php if(ALLOW_EDITING):
 					if(@$_SESSION['manualTournamentPlacing'] == $tournamentID): // could be null
 						manualTournamentPlacing($tournamentID, $isTeams);
 						unset($_SESSION['manualTournamentPlacing']);
@@ -92,7 +98,7 @@ if($_SESSION['eventID'] == null){
 				<?php continue; ?>
 			<?php endif ?>
 			
-		<?php if(USER_TYPE >= USER_STAFF 
+		<?php if(ALLOW_EDITING
 				&& isset($_SESSION['autoPlacingMessage'][$tournamentID])):
 			echo $_SESSION['autoPlacingMessage'][$tournamentID];
 			unset ($_SESSION['autoPlacingMessage'][$tournamentID]);
@@ -150,7 +156,7 @@ if($_SESSION['eventID'] == null){
 			</table>
 			
 		<!-- Button to remove results -->
-			<?php if(USER_TYPE >= USER_ADMIN): ?>
+			<?php if(ALLOW_EDITING): ?>
 				<form method='POST'>
 				<input type='hidden' name='formName' value='finalizeTournament'>
 				<input type='hidden' name='finalizeTournament' value='revoke'>

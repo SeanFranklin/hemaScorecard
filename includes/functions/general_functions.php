@@ -15,6 +15,17 @@ function show($array){
 
 /******************************************************************************/
 
+function refreshPage(){
+
+	$url = strtok($_SERVER['PHP_SELF'], "#");
+	$url .= "#".@$_SESSION['jumpTo']; // could be empty, treated as null
+	unset($_SESSION['jumpTo']);
+	header('Location: '.$url);
+	exit;
+}
+
+/******************************************************************************/
+
 function ifSet($bool, $value){
 // If true return the value, if false return an empty value.
 

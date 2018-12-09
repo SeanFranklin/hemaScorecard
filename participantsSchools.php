@@ -12,11 +12,11 @@
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-$pageName = 'Event Roster';
+$pageName = 'School Management';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-if(USER_TYPE < USER_ADMIN){
+if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
 	$schools = getSchoolListLong();
@@ -57,7 +57,7 @@ if(USER_TYPE < USER_ADMIN){
 	<?php foreach($schools as $school): ?>
 		<tr>
 			<td>
-			<?php if(USER_TYPE == USER_SUPER_ADMIN):
+			<?php if(ALLOW['SOFTWARE_ASSIST'] == true):
 				$displayID = intToString($school['schoolID'],3); ?>
 				<button class='button tiny hollow' name='schoolID' value='<?= $school['schoolID'] ?>'>
 					Edit #<?= $displayID ?>
@@ -106,7 +106,7 @@ function displaySchoolHeaders(){
 
 function editExistingSchool(){
 	
-	if(USER_TYPE < USER_SUPER_ADMIN){return;}
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	$schoolID = $_SESSION['editSchoolID'];
 	unset($_SESSION['editSchoolID']);
 	$schoolInfo = getSchoolInfo($schoolID); ?>

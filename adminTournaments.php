@@ -17,9 +17,15 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_ADMIN) {
+} elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false) {
 	pageError('user');
 } else {
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		$formLock = 'disabled';
+	} else {
+		$formLock = '';
+	}
 
 	$tournamentList = getTournamentsFull();
 	if(count($tournamentList) == 1){
@@ -70,7 +76,7 @@ if($_SESSION['eventID'] == null){
 			<?php endif ?>
 
 			<form method='POST'>
-			<fieldset <?=$isLocked?>>
+			<fieldset <?=$isLocked?> <?=$formLock?> >
 				
 			<input type='hidden' name='formName' value='updateTournamentInfo'>
 			<input type='hidden' name='modifyTournamentID' value='<?=$tournamentID?>'>
@@ -117,18 +123,18 @@ if($_SESSION['eventID'] == null){
 			</div>
 			<div>
 				<button class='button success' name='updateType' value='update' 
-					id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>>
+					id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>  <?=$formLock?>>
 					Update <?=$name?>
 				</button>
-				<button class='button secondary' name='formName' <?=$isLocked?>>
+				<button class='button secondary' name='formName' <?=$isLocked?>  <?=$formLock?>>
 					Cancel
 				</button>
 				<a class='button' href='adminPoints.php'
-					style='float:middle' <?=$isLocked?>>
+					style='float:middle' <?=$isLocked?>  <?=$formLock?>>
 					Change Point Values
 				</a>
 				<a class='button alert' data-open='boxFor-<?=$tournamentID?>' 
-					style='float:right' <?=$isLocked?>>
+					style='float:right' <?=$isLocked?>  <?=$formLock?>>
 					Delete Tournament
 				</a>
 			</div>
@@ -137,7 +143,7 @@ if($_SESSION['eventID'] == null){
 
 			
 			<?php 
-			if($isLocked == null){
+			if($isLocked == null &&  $formLock == null){
 				confirmTournamentDeletionBox($tournamentID); 
 			}	
 			?>

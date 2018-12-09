@@ -14,47 +14,67 @@
 $pageName = "Software Password Management";
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN){
+if(		$_SESSION['userName'] == null 
+	|| 	$_SESSION['userName'] == 'eventOrganizer' 
+	|| 	$_SESSION['userName'] == 'eventStaff'){
 	pageError('user');
 } else {
+
+
+	if(ALLOW['SOFTWARE_ADMIN'] == true){
+		$sql = "SELECT userID, userName
+				FROM systemUsers";
+		$userList = mysqlQuery($sql, ASSOC);
+		$firstOption = "<option disabled selected></option>";
+	} else {
+		$sql = "SELECT userID, userName
+				FROM systemUsers
+				WHERE userName = '{$_SESSION['userName']}'";
+		$userList = mysqlQuery($sql, ASSOC);
+		$firstOption = "";
+	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
 
 	<form method='POST'>
-	<input type='hidden' name='formName' value='newSystemPasswords'>
+	<input type='hidden' name='formName' value='updatePasswords'>
 	<fieldset class='fieldset'>
 	<legend>Password Information</legend>
 	<div class='grid-x grid-margin-x'>
 
-	<!-- Current password -->
-		<div class='input-group large-7 cell'>
-			<span class='input-group-label inline'>Admin Password</span>
-			<input class='input-group-field' type='password'  name='adminPassword'>
-		</div>
-		
-	<!-- New Video User password -->
+	<!-- User -->
 		<div class='input-group large-6 cell'>
-			<span class='input-group-label inline'>New Video Password:</span>
-			<input class='input-group-field' type='password' name='USER_VIDEO'>
-			<button class='button input-group-button' name='passwordType' value='USER_VIDEO'>Update</button>
-		</div>
-		
-	<!-- New Analytics User password -->
-		<div class='input-group large-6 cell'>
-			<span class='input-group-label inline'>New Stats Password:</span>
-			<input class='input-group-field' type='password' name='USER_STATS'>
-			<button class='button input-group-button' name='passwordType' value='USER_STATS'>Update</button>
+			<span class='input-group-label inline'>User:</span>
+			<select class='input-group-field' name='changePasswords[userID]'>
+				<?=$firstOption?>
+				<?php foreach($userList as $user): ?>
+
+					<option value=<?=$user['userID']?>><?=$user['userName']?></option>
+				<?php endforeach ?>
+				
+			</select>
 		</div>
 
-	<!-- New System Administrator password -->
+	<!-- Current password confirm-->
+		<div class='input-group large-6 cell'>
+			<span class='input-group-label inline'>Current Password:</span>
+			<input class='input-group-field' type='password' required
+					name='changePasswords[passwordVerification]'>
+		</div>
+		
+	<!-- New password & confirm box-->
 		<div class='input-group large-12 cell'>
-			<span class='input-group-label inline'>New Admin Password:</span>
-			<input class='input-group-field' type='password' name='USER_SUPER_ADMIN'>
+			<span class='input-group-label inline'>New Password:</span>
+			<input class='input-group-field' type='password' required 
+					name='changePasswords[newPassword]'>
+
 			<span class='input-group-label inline'>Confirm:</span>
-			<input class='input-group-field' type='password' name='USER_SUPER_ADMIN_2'>
-			<button class='button input-group-button' name='passwordType' value='USER_SUPER_ADMIN'>Update</button>
+			<input class='input-group-field' type='password' required
+					name='changePasswords[newPassword2]'>
+
+			<button class='button input-group-button' name='' value=''>Update</button>
 		</div>
 		
 		

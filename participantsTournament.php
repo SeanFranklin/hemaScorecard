@@ -56,7 +56,7 @@ if($tournamentID == null){
 	<tr>
 		<th onclick="changeRosterOrderType('name')"><a>Name</a></th>
 		<th onclick="changeRosterOrderType('school')"><a>School</a></th>
-		<?php if(USER_TYPE >= USER_ADMIN): //only admins can delete participants ?>
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): //only event organizers ?>
 			<th>Remove</th>
 		<?php endif ?>
 	</tr>
@@ -72,7 +72,7 @@ if($tournamentID == null){
 		<tr id='divFor<?= $rosterID ?>'>
 			<td><?=getFighterName($rosterID)?></td>
 			<td><?=getSchoolName($schoolID)?></td>
-			<?php if(USER_TYPE >= USER_ADMIN): ?>
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<td>
 					<input type='checkbox' name='deleteFromTournament[<?= $rosterID ?>]'
 						id='<?= $rosterID ?>' onchange="checkIfFought(this)">
@@ -82,7 +82,7 @@ if($tournamentID == null){
 	<?php endforeach ?>
 
 
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 <!-- Add new participants -->
 		<?php $numBlankEntries = 5;
 		for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
@@ -113,7 +113,7 @@ if($tournamentID == null){
 	</div>
 	</div>
 
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 <!-- Add / Delete Fighter Buttons -->
 		<button class='button success' name='formName' 
 			value='addToTournamentRoster' <?=LOCK_TOURNAMENT?>>

@@ -15,7 +15,7 @@ $pageName = 'Duplicate Name Entries';
 include('includes/header.php');
 $jsIncludes[] = "misc_scripts.js";
 
-if(USER_TYPE < USER_SUPER_ADMIN){
+if(ALLOW['SOFTWARE_ADMIN'] == false){
 	pageError('user');
 
 } else {

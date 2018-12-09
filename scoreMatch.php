@@ -24,7 +24,7 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	if(USER_TYPE == USER_SUPER_ADMIN){
+	if(ALLOW['VIEW_SETTINGS'] == true){
 		displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
 	} elseif($eventID == null){
 		redirect('infoSelect.php');
@@ -61,7 +61,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 // Auto refresh if match is in progress
 	if(($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0) && $matchInfo['matchComplete'] == 0 
-		&& $matchInfo['ignoreMatch'] != 1 && USER_TYPE < USER_STAFF){
+		&& $matchInfo['ignoreMatch'] != 1 && ALLOW['EVENT_SCOREKEEP'] == false){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
 
 	}
@@ -105,7 +105,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 				</form>
 			</div>
 			
-			<?php if(USER_TYPE < USER_STAFF): ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 				<BR>
 			<?php endif ?>
 			
@@ -120,7 +120,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			
 		<?php $exchangesNotNumbered = matchHistoryBar($matchInfo); ?>
 		<?php
-		if(USER_TYPE > USER_STAFF 
+		if(ALLOW['EVENT_SCOREKEEP'] == true 
 		   && $exchangesNotNumbered == false 
 		   && LOCK_TOURNAMENT ==''
 		   && $matchInfo['matchComplete'] == false
@@ -191,7 +191,7 @@ include('includes/footer.php');
 function livestreamMatchSet($matchID){
 	
 	$livestreamInfo = getLivestreamInfo();
-	if(USER_TYPE < USER_STAFF){ return; }
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
 	if($livestreamInfo['isLive'] != 1 || $livestreamInfo['useOverlay'] != 1){
 		return;
 	}
@@ -217,8 +217,8 @@ function askForFinalization($tournamentID){
 /*	After the final match of a tournament has concluded this will prompt the 
 	scorekeeper to finalize the tournament results */
 	
-	if(USER_TYPE < USER_STAFF){						return;}
-	if(!isset($_SESSION['askForFinalization'])){	return; }
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
+	if(!isset($_SESSION['askForFinalization'])){ return; }
 	
 	unset($_SESSION['manualTournamentPlacing']);
 	unset($_SESSION['askForFinalization']);
@@ -309,7 +309,7 @@ function dataEntryBox($matchInfo){
 	</div>
 	
 	
-	<?php if(USER_TYPE < USER_STAFF){ return; } ?>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == false){ return; } ?>
 	
 	<!-- If match is complete the only option is to re-open it -->
 	<?php if($matchInfo['matchComplete']): ?>
@@ -390,7 +390,7 @@ function dataEntryBox($matchInfo){
 	</tr>
 	
 	<!-- Clear all exchanges, only for software admin-->
-	<?php if(USER_TYPE >= USER_SUPER_ADMIN): ?>
+	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
 		<tr>
 			<td>Clear All Exchanges</td>
 			<td><div class='switch no-bottom'>
@@ -486,7 +486,7 @@ function fighterDataEntryBox($matchInfo,$num){
 				<span style='font-size:30px;'><?=$colorName?></span><BR>
 				<span style='font-size:60px;'><?=$score?></span><BR>
 		
-				<?php if($isFinished || USER_TYPE < USER_STAFF): ?>
+				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false): ?>
 					</div>
 					</div>
 					</div>
@@ -687,7 +687,7 @@ function createSideBar($matchInfo){
 		<?php if(IS_TIMER): ?>
 			<input type='hidden' class='matchTime' id='matchTime' 
 				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-		<?php if(USER_TYPE >= USER_STAFF): ?>	
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
 			<script>
 				window.onload = function(){
 
@@ -752,7 +752,7 @@ function createSideBar($matchInfo){
 		<?php endif ?>
 
 	<!-- Match Winner -->
-		<?php if(USER_TYPE >= USER_STAFF): ?>		
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>		
 			<form method='POST'>
 			<fieldset <?=LOCK_TOURNAMENT?>>
 			<input type='hidden' name='formName' value='matchWinner'>
@@ -817,16 +817,17 @@ function createSideBar($matchInfo){
 		</form>
 	<?php endif ?>
 	
-	<?php if(USER_TYPE < USER_STAFF){ return; } ?>
 	
 <!-- Go to next match buttons -->
+
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
 	<?php if(isset($nextMatchInfo)): ?>
 		<HR>
 
 		
 		Next Match: <?= tooltip('Skipping matches which have fighters removed due to injury/disqualification');?> <BR>
 
-		<?php if($matchInfo['unconcludedMatchWarning']): ?>
+		<?php if($matchInfo['unconcludedMatchWarning'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
 
 
 			<a class='button hollow expanded' data-open='confirmNextPoolNavigation'>
@@ -895,15 +896,18 @@ function createSideBar($matchInfo){
 			End of Pool
 		</a>
 	<?php endif ?>
+	<?php endif ?>
 	
 <!-- Switch fighter colors -->	
-	<HR>
-	<form method='POST'>
-	<button class='button warning hollow no-bottom' name='formName' 
-		value='switchFighters' <?=LOCK_TOURNAMENT?>>
-		Switch Fighter Colors
-	</button>
-	</form>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+		<HR>
+		<form method='POST'>
+		<button class='button warning hollow no-bottom' name='formName' 
+			value='switchFighters' <?=LOCK_TOURNAMENT?>>
+			Switch Fighter Colors
+		</button>
+		</form>
+	<?php endif ?>
 	
 <?php }
 
@@ -953,7 +957,7 @@ function doublesText($doubles, $matchInfo){
 	?>
 	
 	<span <?=$class?>><?=$string?></span>
-	<?php if($doubleOut && !$matchInfo['matchComplete'] && USER_TYPE >= USER_STAFF): ?>
+	<?php if($doubleOut && !$matchInfo['matchComplete'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
 		<button class='button large alert no-bottom' name='matchWinnerID' 
 			value='doubleOut' <?=LOCK_TOURNAMENT?>>
@@ -969,7 +973,7 @@ function unconcludedMatchWarning($matchInfo){
 
 	$useWarning = isUnconcludedMatchWarning($matchInfo);
 
-	if($useWarning && USER_TYPE >= USER_STAFF){
+	if($useWarning && ALLOW['EVENT_SCOREKEEP'] == true){
 		$string = "<strong>The last two matches have not been concluded.</strong><BR>
 		Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
 		<i>If a match is not fought due to injury/disqualification, be sure that an event organizer removes them from the pool scoring calculations.</i>

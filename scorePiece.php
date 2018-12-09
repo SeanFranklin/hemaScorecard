@@ -24,7 +24,7 @@ $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
 
 if($matchID == null || $tournamentID == null || $eventID == null){
-	if(USER_TYPE == USER_SUPER_ADMIN){
+	if(ALLOW['VIEW_SETTINGS']){
 		displayAlert("No Piece Selected<BR><a href='roundMatches.php'>Piece List</a>");
 	} elseif($eventID == null){
 		redirect('infoSelect.php');
@@ -92,7 +92,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 		<?php scored_DisplyExchanges(null, $score); ?>
 	
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<div class='grid-x grid-padding-x '>
 				<div class='large-6 cell'>
 					<button class='button large success expanded' 
@@ -133,7 +133,7 @@ function askForFinalization($tournamentID){
 /*	After the final match of a tournament has concluded this will prompt the 
 	scorekeeper to finalize the tournament results */
 	
-	if(USER_TYPE < USER_STAFF){						return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){			return; }
 	if(!isset($_SESSION['askForFinalization'])){	return; }
 	
 	unset($_SESSION['manualTournamentPlacing']);
@@ -160,7 +160,7 @@ function askForFinalization($tournamentID){
 
 function addNewExchangesBox($matchInfo){
 	
-	if(USER_TYPE < USER_STAFF){ return; }
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
 	$nextMatchInfo = getNextPoolMatch($matchInfo);
 ?>
 

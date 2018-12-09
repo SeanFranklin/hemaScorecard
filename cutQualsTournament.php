@@ -90,20 +90,20 @@ if($_SESSION['tournamentID'] == null){
 		since <strong><?=$thisStandard['date']?></strong><BR>
 	<?php else:
 		$alertText = "No Cutting Quallification Standards Set";
-		if(USER_TYPE >= USER_STAFF){
+		if(ALLOW['EVENT_MANAGEMENT'] == true){
 			$alertText .= "<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>";
 		}
 		displayAlert($alertText);
 	endif ?>
 	
 
-	<?php if(USER_TYPE >= USER_SUPER_ADMIN): ?>
+	<?php if(ALLOW['SOFTWARE_ASSIST'] == true): ?>
 		<a class='button small-expanded hollow' href='cutQuals.php'>
 			Master Quallification List
 		</a>
 	<?php endif ?>
 
-	<?php if(USER_TYPE >= USER_STAFF): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		
 		<a class='button small-expanded' data-open='changeStandardsBox'>
 			Change Tournament Standards
@@ -202,7 +202,7 @@ if($_SESSION['tournamentID'] == null){
 			<th>
 				<button name='cutQualDisplayMode' value='quall'><a><strong>
 					Qualified
-					<?php if(USER_TYPE >= USER_STAFF): ?>
+					<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 					<?=tooltip('<u>Add</u><BR>Fighter has not met qual standard.<BR>
 								<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-qualified on this date.<BR>
 								<u>Remove</u><BR>Remove qualification achieved at this event.'
@@ -230,12 +230,12 @@ if($_SESSION['tournamentID'] == null){
 				<td><?=$fighter['name']?></td>
 				<th>
 					<?php if($fighter['qualled']): ?>
-						<?php if(isset($fighter['thisEvent']) && USER_TYPE >= USER_STAFF):?>
+						<?php if(isset($fighter['thisEvent']) && ALLOW['EVENT_SCOREKEEP'] == true):?>
 							<button class='button tiny hollow alert no-bottom' 
 								name='formName' value='removeQualledFighterEvent'>
 								Remove
 							</button>
-						<?php elseif(USER_TYPE >= USER_STAFF): ?>	
+						<?php elseif(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
 							<button class='button tiny hollow no-bottom' 
 								name='formName' value='addQualledFighterEvent'>
 								Update
@@ -244,7 +244,7 @@ if($_SESSION['tournamentID'] == null){
 							<strong>X</strong>
 						<?php endif ?>
 					 <?php else: ?>
-						 <?php if(USER_TYPE >= USER_STAFF): ?>
+						 <?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 							<button class='button tiny hollow success no-bottom' 
 								name='formName' value='addQualledFighterEvent'>
 								Add

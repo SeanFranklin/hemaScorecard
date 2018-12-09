@@ -17,11 +17,17 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_ADMIN) {
+} elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false) {
 	pageError('user');
 } elseif($_SESSION['tournamentID'] == null){
 	pageError('tournament');
 } else{
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		$formLock = 'disabled';
+	} else {
+		$formLock = '';
+	}
 
 	$targets = getAllAttackTargets();
 	$types = getAllAttackTypes();
@@ -38,8 +44,9 @@ if($_SESSION['eventID'] == null){
 </a>
 <h4>Attacks for <strong><?=getTournamentName($_SESSION['tournamentID']);?></strong></h4><hr>
 
+<fieldset <?=$formLock?> >
 <form method='POST'>
-<button class='button success' name='formName' value='addAttackTypes'>
+<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>> 
 	Submit
 </button>
 
@@ -192,11 +199,12 @@ if($_SESSION['eventID'] == null){
 	<?php endfor ?>
 </table>
 
-<button class='button success' name='formName' value='addAttackTypes'>
+<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
 	Submit
 </button>
 
 </form>
+</fieldset>
 <?php }
 include('includes/footer.php');
 

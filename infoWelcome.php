@@ -18,7 +18,7 @@ include('includes/header.php');
 // Get the event List
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
-if(USER_TYPE >= USER_SUPER_ADMIN){
+if(ALLOW['VIEW_HIDDEN']){
 	$hiddenEvents = getEventList('hidden');
 }
 $recentEvents = getEventList('recent', 'DESC', 4);
@@ -50,7 +50,7 @@ $recentEvents = getEventList('recent', 'DESC', 4);
 <input type='hidden' name='formName' value='selectEvent'>
 
 <!-- Hidden Events -->
-	<?php if(USER_TYPE >= USER_SUPER_ADMIN && $hiddenEvents != null): ?>
+	<?php if(ALLOW['VIEW_HIDDEN'] == true && $hiddenEvents != null): ?>
 		<h5>Hidden Events</h5>
 		<?php displayEventsInCategory($hiddenEvents); ?>
 	<?php endif ?>
@@ -83,7 +83,7 @@ include('includes/footer.php');
 
 function displayEventsInCategory($eventList, $dateLimit = 0){
 
-	if(USER_TYPE >= USER_SUPER_ADMIN){
+	if(ALLOW['VIEW_HIDDEN']){
 		$dateLimit = 0;
 	}
 

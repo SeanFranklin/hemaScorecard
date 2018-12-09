@@ -28,12 +28,7 @@
 // Program Related Constants
 
 	// User Types
-	define("USER_GUEST",1);
-	define("USER_VIDEO",2);
-	define("USER_STAFF",3);
-	define("USER_ADMIN",4);
-	define("USER_SUPER_ADMIN",5);
-	define("USER_STATS",-1);
+	define("NO_LOGIN",0);
 
 	// Alert Codes
 	define("SYSTEM",1);
@@ -102,14 +97,8 @@ $conn = connectToDB();
 
 // Set Session Values //////////////////////////////////////////////////////////
 
-// Set user type
-	if(!isset($_POST['formName']) || $_POST['formName'] != 'logUserIn'){
-		if($_SESSION['userType'] == null){
-			define("USER_TYPE", USER_GUEST);
-		} else {
-			define("USER_TYPE", $_SESSION['userType']);
-		}
-	}
+// Set the Permissions
+	setPermissions();
 
 // Set the event ID to the Default Event if there is one
 	if(!isset($_SESSION['eventID']) || ((int)$_SESSION['eventID']) <= 0){
@@ -227,8 +216,98 @@ $conn = connectToDB();
 	if(!defined('COLOR_CODE_1')){ define("COLOR_CODE_1", null); }
 	if(!defined('COLOR_CODE_2')){ define("COLOR_CODE_2", null); }
 
+
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function setPermissions(){
+// Intialize the permissions constant with what the current user can and can't do.
+
+	$permissionsList = 
+		['EVENT_YOUTUBE','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
+		'SOFTWARE_EVENT_SWITCHING','SOFTWARE_ASSIST','SOFTWARE_ADMIN',
+		'STATS_EVENT','STATS_ALL',
+		'VIEW_HIDDEN','VIEW_SETTINGS','VIEW_EMAIL'];
+
+	foreach($permissionsList as $permisionType){
+		$permissionsArray[$permisionType] = false;
+	}
+
+	switch($_SESSION['userName']){
+		case 'eventStaff':
+			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
+			break;
+		case 'eventOrganizer':
+			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
+			$permissionsArray['EVENT_MANAGEMENT'] 	= true;
+			$permissionsArray['STATS_EVENT'] 		= true;
+			break;
+		case '':
+			// No user name, no permissions.
+			break;
+		default:
+			$selectFields = '';
+			foreach($permissionsList as $permisionType){
+				if($selectFields != ''){
+					$selectFields .= ", ";
+				}
+				$selectFields .= $permisionType;
+			}
+
+			$sql = "SELECT userID, {$selectFields}
+					FROM systemUsers
+					WHERE userName = '{$_SESSION['userName']}'";
+			$permData = mysqlQuery($sql, SINGLE);
+
+			$_SESSION['userID'] = $permData['userID'];
+			unset($permData['userID']);
+
+			foreach($permData as $field => $bool){
+				if($bool == true){
+					$permissionsArray[$field] = true;
+				}
+			}
+	}
+
+	define("ALLOW",$permissionsArray);
+
+/*
+EVENT_YOUTUBE
+	- Can add youtube links to fights
+EVENT_SCOREKEEP
+	- Can score matches/pieces.
+	- Can advance fighters in brackets
+	- Can finalize tournaments
+EVENT_MANAGEMENT
+	- Can add fighters to events/tournaments
+	- Can add schools to the DB
+	- Can create/populate pools & sets.
+	- Can create brackets.
+
+SOFTWARE_EVENT_SWITCHING
+	- Can go between events without loging out
+SOFTWARE_ASSIST
+	- Can change software related settings, such as adding events or changing school names
+	- Can reset event passwords
+SOFTWARE_ADMIN
+	- Can assign passwords to all users
+
+STATS_EVENT
+	- Can view statistics of the current event.
+STATS_ALL
+	- Can view agregate stats across multiple events.
+
+VIEW_HIDDEN
+	- Can see hidden events
+VIEW_SETTINGS
+	- Can view all the EVENT_MANAGEMENT functionality, but not change any settings.
+VIEW_EMAIL
+	- Can view event organizer e-mail addresses.
+*/
+
+}
 
 /******************************************************************************/
 
@@ -256,8 +335,8 @@ function initializeSession(){
 		$_SESSION['groupSet'] = 1;
 	}
 
-	if(!isset($_SESSION['userType'])){
-		$_SESSION['userType'] = '';
+	if(!isset($_SESSION['userName'])){
+		$_SESSION['userName'] = '';
 	}
 
 	if(!isset($_SESSION['alertMessages']['systemErrors'])){

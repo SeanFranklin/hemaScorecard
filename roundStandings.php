@@ -21,12 +21,13 @@ if($_SESSION['eventID'] == null){
 } elseif($tournamentID == null){
 	pageError('tournament');
 } elseif(!isRounds($tournamentID)){
-	if(USER_TYPE < USER_SUPER_ADMIN){
+	if(ALLOW['VIEW_SETTINGS'] == true){
 		if(isPools($tournamentID)){redirect('poolStandings.php');}
 		if(isBrackets($tournamentID)){redirect('finalsBracket1.php');}
 	}
 	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') && USER_TYPE < USER_STAFF){
+} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	

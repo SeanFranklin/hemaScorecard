@@ -42,7 +42,7 @@ if($eventID == null){
 	$schoolList = getSchoolList();
 
 // For entering new participants
-	if(USER_TYPE >= USER_ADMIN){
+	if(ALLOW['EVENT_MANAGEMENT'] == true){
 		if(!isset($_SESSION['addEventParticipantsMode'])){
 			$_SESSION['addEventParticipantsMode'] = '';
 		}
@@ -111,7 +111,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 			>
 		
 		<!-- Deletion checkboxes -->
-			<?php if(USER_TYPE >= USER_ADMIN): ?>
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<td>
 					<a name="anchor<?=$rosterID?>"></a>
 					<input type='checkbox' name='deleteFromEvent[<?=$rosterID?>]'
@@ -186,7 +186,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 	
 	</table>
 
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		
 		<span id='deleteButtonContainer'>
 			<button class='button alert hollow' name='formName' value='deleteFromEvent' id='deleteButton'>
@@ -202,7 +202,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 /******************************************************************************/
 
 function addNewParticipantsButtons(){
-	if($_SESSION['userType'] < USER_ADMIN){ return; }
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
 	?>
 
 	<div style='display:inline-block'>
@@ -301,7 +301,7 @@ function displayEntryConflicts(){
 function addNewParticipantsBySchool($tournamentList,$schoolList){
 // Interface to add participants to the event
 
-	if(USER_TYPE < USER_ADMIN){ return;}
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return;}
 	if(!isset($_SESSION['newParticipantsSchoolID'])){
 		$_SESSION['newParticipantsSchoolID'] = '';
 	}
@@ -496,7 +496,7 @@ function editParticipant($rosterID,$schoolList){
 // Edit the information attributed with a participant
 // Values to be filled in by Javascript
 
-	if(USER_TYPE < USER_ADMIN){ return; }
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
 	$tournamentIDs = getEventTournaments();
 	?>
 	
@@ -627,7 +627,7 @@ function tableHeaders($tournamentList, $removeDisabled = false){
 	
 	<thead >
 	<tr>
-		<?php if(USER_TYPE >= USER_ADMIN && !$removeDisabled):?>
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true && !$removeDisabled):?>
 			<th>
 				<span class='hide-for-small-only'>Remove</span>
 				<span class='show-for-small-only'>X</span>

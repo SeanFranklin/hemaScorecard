@@ -15,7 +15,7 @@
 function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 // Add exchanges using 'Deduction Based' scoring algorithm
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $matchInfo['matchID'];
 	if($matchID == null){return;}
@@ -56,7 +56,7 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 	<?php if($exchangeNum == 'header'): ?>
 	
 		<tr>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<th></th>
 		<?php endif ?>
 			<th></th>
@@ -83,7 +83,7 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 		$against = $exchange['scoreDeduction'];
 		$for = $exchange['scoreValue'];
 	} else {
-		if(USER_TYPE < USER_STAFF){
+		if(ALLOW['EVENT_SCOREKEEP'] == false){
 			return;
 		}
 		$placeholder = "placeholder='Enter Deduction'";
@@ -93,7 +93,7 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 	?>
 	
 	<tr>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<?php if($exchangeNum == 0): ?>
 				<td><input type='checkbox' name='exchangesToDelete[all]'></td>
 			<?php else: ?>
@@ -111,7 +111,7 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 	
 	<!-- Exchanges -->
 		<td class='text-center'>
-			<?php if(USER_TYPE >= USER_STAFF): ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<?php if($exchangeNum == 0): ?>
 					<input type='number' step='0.1' class='no-bottom' 
 						value='<?=$for?>' name=scores[<?=$exchangeID?>][value]>
@@ -140,7 +140,7 @@ function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
 
 function _DeductionBased_updateExchanges(){
 
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
 	
@@ -180,7 +180,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
 
-			<?php if(USER_TYPE >= USER_STAFF): ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<th style='padding: 1px; width:6%;'>
 					&nbsp;
 				</th>
@@ -234,7 +234,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 		$lowerPoints = '';
 		
 	} else {
-		if(USER_TYPE < USER_STAFF){ return;}
+		if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
 		$for = $exchange['scoreValue'];
 		$total = 'N/A';
 		$against = 'N/A';
@@ -249,7 +249,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 <!-- Table Row -->
 	<tr class='text-center'>
 
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<td>
 				<strong><?=$exchangeNum?></strong>
 				<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
@@ -434,7 +434,7 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
 			<th>
-				<?php if(USER_TYPE < USER_STAFF): ?>
+				<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 					<strong>Cut Num</strong>
 				<?php endif ?>
 			</th>
@@ -466,7 +466,7 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 		$zeroVal = '';
 		$placeholder = "placeholder='No Change'";
 	} else {
-		if(USER_TYPE < USER_STAFF){ return;}
+		if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
 		$for = $exchange['scoreValue'];
 		$total = 'N/A';
 		$against = 'N/A';
@@ -480,13 +480,13 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 	
 		<td>
 		<strong><?=$exchangeNum?></strong>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
 		<?php endif ?>
 		</td>
 	
 
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<td style='padding: 1px;'>
 				<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
 					value='<?=$for?>' name='scores[<?=$exchangeID?>][scoreValue]' >
@@ -560,12 +560,12 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
 			<th>
-				<?php if(USER_TYPE < USER_STAFF): ?>
+				<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 					<strong>Cut Num</strong>
 				<?php endif ?>
 			</th>
 		
-			<?php if(USER_TYPE >= USER_STAFF): ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<th class='text-center' style='padding: 1px;'>
 					Form
 				</th>
@@ -596,7 +596,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 		$zeroVal = '';
 		$placeholder = "placeholder='No Change'";
 	} else {
-		if(USER_TYPE < USER_STAFF){ return;}
+		if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
 		$total = 'N/A';
 		$against = 'N/A';
 		$zeroVal = '';
@@ -609,14 +609,14 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 	
 		<td>
 		<?=$exchangeNum?>
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
 			<input type='number' class='hidden' value=<?=$basePointValue?> name=scores[<?=$exchangeID?>][for]>
 		<?php endif ?>
 		</td>
 	
 
-		<?php if(USER_TYPE >= USER_STAFF): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<td style='padding: 1px;'>
 				<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
 					value='<?=$zeroVal?>' name=scores[<?=$exchangeID?>][form] >
@@ -1317,7 +1317,7 @@ function scored_AddExchanges(){
 // Select the appropriate function to add exchanges to a piece given
 // the tournament format
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $_SESSION['matchID'];
 	if($matchID == null){
@@ -1373,7 +1373,7 @@ function scored_DisplyExchanges($matchID = null){
 function scored_UpdateExchanges($tournamentID = null){
 // Select the correct function to update the exchanges of a piece
 	
-	if(USER_TYPE < USER_STAFF){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	
 	if(!isset($_POST['scores'])){return;}
 	

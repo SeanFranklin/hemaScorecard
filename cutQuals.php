@@ -15,7 +15,7 @@
 $pageName = 'Cutting Quallifications';
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN){
+if(ALLOW['SOFTWARE_ASSIST'] == false){
 	pageError('user');
 } else {
 	if(isSet($_SESSION['cuttingQualDate'])){
@@ -95,7 +95,7 @@ include('includes/footer.php');
 function addToQualList($standards){
 // Interface to add new cutting qualifications
 	
-	if(USER_TYPE < USER_SUPER_ADMIN){
+	if(ALLOW['SOFTWARE_ASSIST'] == false){
 		setAlert(USER_ALERT,"Sorry, you must log in as a System Administrator to do that");
 		return;
 	}

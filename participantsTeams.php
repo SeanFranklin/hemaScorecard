@@ -42,7 +42,7 @@ if($tournamentID == null){
 	<form method='POST'>
 	<table>
 		<tr>
-			<?php if(USER_TYPE >= USER_ADMIN): ?>
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<th></th>
 			<?php endif ?>
 			<th>Team Name</th>
@@ -50,7 +50,7 @@ if($tournamentID == null){
 		</tr>
 		<?php foreach($teamRosters as $teamID => $team): ?>
 			<tr>
-				<?php if(USER_TYPE >= USER_ADMIN): ?>
+				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 					<td>
 						<input type='checkbox' name='deleteTeamsInfo[teamsToDelete][<?=$teamID?>]'>
 					</td>
@@ -62,13 +62,13 @@ if($tournamentID == null){
 					<input type='hidden' name='updateTeams[<?=$teamID?>][teamID]' value='<?=$teamID?>'>
 					<?php foreach($team['members'] as $member): ?>
 						<BR>
-						<?php if(USER_TYPE >= USER_ADMIN): ?>
+						<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 							<input type='checkbox' name='deleteTeamsInfo[membersToDelete][<?=$member['tableID']?>]'>
 						<?php endif ?>
 						<?=getFighterName($member['rosterID'])?>
 					<?php endforeach ?>
 
-					<?php if(USER_TYPE >= USER_ADMIN): ?>
+					<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 						<?php for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
 							<div class='input-group'>
 							<span class='input-group-label'>
@@ -91,7 +91,7 @@ if($tournamentID == null){
 	</table>
 
 <!-- Buttons to update teams -->
-	<?php if(USER_TYPE >= USER_ADMIN): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		<button class='button no-bottom success' name='formName' value='addToTeams'>
 			Update Teams
 		</button>
@@ -118,7 +118,7 @@ include('includes/footer.php');
 
 function teamName($teamID){
 
-	if(USER_TYPE < USER_ADMIN){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		echo getTeamName($teamID);
 		return;
 	} else {
@@ -137,7 +137,7 @@ function teamName($teamID){
 /******************************************************************************/
 
 function createNewTeamInterface($addableFighters){
-	if(USER_TYPE < USER_ADMIN){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
 	}
 

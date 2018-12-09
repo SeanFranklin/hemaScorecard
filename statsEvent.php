@@ -17,7 +17,7 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(USER_TYPE < USER_ADMIN && USER_TYPE != USER_STATS){	
+} elseif(ALLOW['STATS_EVENT'] == false){	
 	pageError('user');
 } else {
 	

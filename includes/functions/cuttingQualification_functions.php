@@ -20,7 +20,7 @@ function addNewCuttingQual_event(){
 	$standardID = $standard['standardID'];
 	$qualValue = 1;
 	
-	$sql = "INSERT INTO cuttingQualifications
+	$sql = "INSERT INTO systemCutQualifications
 			(systemRosterID, standardID, date, qualValue)
 			VALUES
 			(?,?,?,?)";
@@ -38,7 +38,7 @@ function removeCuttingQual_event(){
 	
 	$qualID = $_POST['qualID'];
 
-	$sql = "DELETE FROM cuttingQualifications
+	$sql = "DELETE FROM systemCutQualifications
 			WHERE qualID = {$qualID}";
 	mysqlQuery($sql, SEND);
 	
@@ -48,7 +48,7 @@ function removeCuttingQual_event(){
 
 function addNewCuttingQuals(){
 
-	if(USER_TYPE < USER_STAFF){
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
 		return;
 	}
 
@@ -60,7 +60,7 @@ function addNewCuttingQuals(){
 		$date = $newQual['qualDate'];
 		if($date == null){$date = date('Y-m-d H:i:s');}
 		
-		$sql = "INSERT INTO cuttingQualifications
+		$sql = "INSERT INTO systemCutQualifications
 			(systemRosterID, standardID, date, qualValue)
 			VALUES
 			(?,?,?,?)";
@@ -95,7 +95,7 @@ function getEventEndDate($eventID = null){
 /******************************************************************************/
 
 function getCuttingQualificationsStandards(){
-	$sql = "SELECT * FROM cuttingStandards";
+	$sql = "SELECT * FROM systemCutStandards";
 	return mysqlQuery($sql, ASSOC);
 	
 }
@@ -108,15 +108,15 @@ function getCuttingQualificationsList($standardID, $date){
 	// Returns the most recent quallification
 	$sql = "SELECT Q.qualID, Q.systemRosterID, Q.date, Q.qualValue,
 			S.standardName, S.standardCode
-			FROM cuttingQualifications as Q
+			FROM systemCutQualifications as Q
 			
-			INNER JOIN cuttingStandards as S ON Q.standardID = S.standardID
+			INNER JOIN systemCutStandards as S ON Q.standardID = S.standardID
 			INNER JOIN systemRoster as roster ON Q.systemRosterID = roster.systemRosterID
 
 			WHERE date > '$date'
 			AND Q.standardID = {$standardID}
 			AND Q.qualID = (SELECT Q2.qualID
-							FROM cuttingQualifications as Q2
+							FROM systemCutQualifications as Q2
 							WHERE Q.systemRosterID = Q2.SystemRosterID
 							AND Q2.standardID = {$standardID}
 							ORDER BY Q2.date DESC
@@ -130,16 +130,16 @@ function getCuttingQualificationsList($standardID, $date){
 // For West Coast Qualification fighters with a qualValue of 5 should be added
 // to the quals list regardless of date
 	$sql = "SELECT standardCode
-			FROM cuttingStandards
+			FROM systemCuttingStandards
 			WHERE standardID = {$standardID}";
 	$code = mysqlQuery($sql, SINGLE, 'standardCode');
 	
 	if($code == 'westCoast'){
 		$sql = "SELECT Q.qualID, Q.systemRosterID, Q.date, Q.qualValue,
 				S.standardName, S.standardCode
-				FROM cuttingQualifications as Q
+				FROM systemCutQualifications as Q
 				
-				INNER JOIN cuttingStandards as S ON Q.standardID = S.standardID
+				INNER JOIN systemCutStandards as S ON Q.standardID = S.standardID
 				INNER JOIN systemRoster as roster ON Q.systemRosterID = roster.systemRosterID
 				
 				WHERE Q.standardID = {$standardID}
