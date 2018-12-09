@@ -82,7 +82,7 @@ function editParticipant(rosterID){
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
             if(this.responseText.length > 1){ // If the fighter has already fought
-              
+                console.log(this.responseText);
                 var data = JSON.parse(this.responseText);
                 fillInFields(data);
             }
