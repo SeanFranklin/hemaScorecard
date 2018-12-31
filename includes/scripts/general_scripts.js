@@ -1,5 +1,13 @@
 
-AJAX_LOCATION = "/includes/functions/AJAX.php";
+
+// CONSTANT DECLARATIONS ///////////////////////////////////////
+const AJAX_LOCATION = "/includes/functions/AJAX.php";
+
+// Tournament Formats
+const FORMAT_RESULTS    = 1;
+const FORMAT_MATCH      = 2;
+const FORMAT_SOLO       = 3;
+const FORMAT_COMPOSITE  = 4;
 
 /************************************************************************************/
 
@@ -21,6 +29,13 @@ function toggle(divName, divName2 = null) {
         x.style.display = 'none';
     }
     
+}
+
+/************************************************************************************/
+
+function show(text){
+// Alias of console.log() used to maintain symetry with data dump function from php
+    console.log(text);
 }
 
 /************************************************************************************/

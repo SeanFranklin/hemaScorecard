@@ -39,18 +39,34 @@ function toggleCheckbox(checkboxID, divID, dontCheck){
 
 /******************************************************************************/
 
-function changeRosterOrderType(type){
+function changeParticipantOrdering(sortWhat,sortHow){
     
-    var myForm = document.getElementById('rosterViewMode');
+    // Create form
+    var myForm = document.createElement("form");
     myForm.method = 'POST';
 
-    
-    var mode = document.createElement('input');
-    mode.type = 'hidden';
-    mode.value = type;
-    mode.name = 'rosterViewMode'
+    // Form Name
+    var formName = document.createElement('input');
+    formName.type = 'hidden';
+    formName.value = 'changeSortType';
+    formName.name = 'formName';
+    myForm.appendChild(formName);
 
-    myForm.appendChild(mode);
+    // What to sort
+    var what = document.createElement('input');
+    what.type = 'hidden';
+    what.value = sortWhat;
+    what.name = 'sortWhat';
+    myForm.appendChild(what);
+
+    // How to sort it
+    var how = document.createElement('input');
+    how.type = 'hidden';
+    how.value = sortHow;
+    how.name = 'sortHow';
+    myForm.appendChild(how);
+
+    document.getElementsByTagName('body')[0].appendChild(myForm);
 
     myForm.submit();
 

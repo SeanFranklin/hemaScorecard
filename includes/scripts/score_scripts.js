@@ -57,9 +57,7 @@ function isValidExchange(){
 		if( fighter1Score.value != "" || fighter2Score.value != ""){
 			isValid = false;
 		}
-		if( (fighter1Penalty.value == "" && fighter2Penalty.value == "")
-			|| (fighter1Penalty.value != "" && fighter2Penalty.value != ""))
-			{
+		if(fighter1Penalty.value == "" && fighter2Penalty.value == ""){
 			isValid = false;
 		}
 	}
@@ -323,7 +321,7 @@ function modifiersRadioButtons(){
 
 /**********************************************************************/
 
-function editExchange(exchangeID){
+function editExchange(exchangeID, exchangeTime){
 
 	$('.exchangeID').val(exchangeID);
 
@@ -331,12 +329,26 @@ function editExchange(exchangeID){
 		$('#editExchangeButton').show();
 		$('#cancelEditExchangeButton').hide();
 		$('.editExchangeWarningDiv').hide();
-		 $('body').css('background-color', '');
+		$('body').css('background-color', '');
+		$('.timer-input').attr("disabled",false);
+		$('.conclude-match-button').attr("disabled",false);
+		
+		disableTimer = false;
+		$('#matchTime').attr('value',originalMatchTime);
+		updateTimerDisplay();
+
 	} else {
 		$('#editExchangeButton').hide();
 		$('#cancelEditExchangeButton').show();
 		$('.editExchangeWarningDiv').show();
 		$('body').css('background-color', '#ddd');
+		$('.timer-input').attr("disabled",'disabled');
+		$('.conclude-match-button').attr("disabled",'disabled');
+
+		disableTimer = true;
+		originalMatchTime = document.getElementById('matchTime').value
+		$('#matchTime').attr('value',exchangeTime);
+		updateTimerDisplay();
 	}
 
 }
@@ -398,9 +410,16 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 	}
 }
 
+var disableTimer = false;
+var originalMatchTime = 0;
+
 /******************************************************************************/
 
 function startTimer(){
+
+	if(disableTimer == true){
+		return;
+	}
 
 	timeDiv = document.getElementById("timerButton");
 	
