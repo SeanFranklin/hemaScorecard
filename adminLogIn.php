@@ -89,7 +89,7 @@ if($typeSelect == null){
 		<!-- Password -->	
 			<label>
 				<span>Password</span>
-			<input type='password' name='logInData[password]' required>
+			<input type='password' name='logInData[password]'>
 			</label>
 			<button id='logInSubmitButton' class='button large small-12 cell' 
 					name='formName' value='logUserIn'>

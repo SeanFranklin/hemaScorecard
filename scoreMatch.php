@@ -128,14 +128,14 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			?>
 			<div class='large-12 cell'>	
 			<BR>
-			<button class='button' id='editExchangeButton' data-open='poolSetBox'>
+			<button class='button' id='editExchangeButton' data-open='editExchangeBox'>
 				Edit Exchange
 			</button>
 			<button class='button hidden warning' id='cancelEditExchangeButton' onclick="editExchange('')">
 				Cancel Editing
 			</button>
 
-			<div class='reveal tiny' id='poolSetBox' data-reveal>
+			<div class='reveal tiny' id='editExchangeBox' data-reveal>
 				
 				
 				<h5>Edit Exchange</h5>
@@ -149,7 +149,9 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					}
 					?>
 					<a class='button hollow small-6 cell' data-close aria-label='Close modal' 
-					type='button' onclick="editExchange('<?=$exchange['exchangeID']?>')">
+						type='button' 
+						onclick="editExchange('<?=$exchange['exchangeID']?>',
+												'<?=$exchange['exchangeTime']?>')">
 						[Edit #<?=$exchange['exchangeNumber']?>] 
 						<?=convertExchangeIntoText($exchange, $matchInfo['fighter1ID'])?>
 					</a>
@@ -701,7 +703,8 @@ function createSideBar($matchInfo){
 			</script>
 		
 			Timer:
-			<a class='button hollow expanded success no-bottom' onclick="startTimer()" id='timerButton'>
+			<a class='button hollow expanded success no-bottom timer-input' 
+				onclick="startTimer()" id='timerButton'>
 			<h4 class='no-bottom' id='currentTime'>0:00</h4>
 			</a>
 			
@@ -713,11 +716,12 @@ function createSideBar($matchInfo){
 			
 			<div class='hidden' id='manualSetDiv'>
 			<div class='input-group grid-x'>
-				<input class='input-group-field' type='number' name='timerMinutes'
+				<input class='input-group-field timer-input' type='number' name='timerMinutes'
 					id='timerMinutes' placeholder='Min'>
-				<input class='input-group-field' type='number' name='timerSeconds'
+				<input class='input-group-field timer-input' type='number' name='timerSeconds'
 					id='timerSeconds' placeholder='Sec'>
-				<button class='button success input-group-button large-shrink medium-12 small-shrink'
+				<button class='button success input-group-button large-shrink 
+							medium-12 small-shrink timer-input'
 					onclick="manualTimeSet()">
 					&#10004;
 				</button>
@@ -761,15 +765,15 @@ function createSideBar($matchInfo){
 		
 			Winner:
 			<div class='grid-x'>
-			<div class='small-6 medium-12 large-6 cell match-winner-button'>
-				<button class='button large success no-bottom expanded' 
+			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
+				<button class='button large success no-bottom expanded conclude-match-button' 
 					style='background-color:<?=$colorCode1?>; '
 					name='matchWinnerID' value='<?=$fighter1ID?>' <?=LOCK_TOURNAMENT?>>
 					<?=$name1?>
 				</button>
 			</div>
-			<div class='small-6 medium-12 large-6 cell match-winner-button'>
-				<button class='button large success no-bottom expanded' 
+			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
+				<button class='button large success no-bottom expanded conclude-match-button' 
 				style='background-color:<?=$colorCode2?>;'
 					name='matchWinnerID' value='<?=$fighter2ID?>' <?=LOCK_TOURNAMENT?>>
 					<?=$name2?>
@@ -959,7 +963,7 @@ function doublesText($doubles, $matchInfo){
 	<span <?=$class?>><?=$string?></span>
 	<?php if($doubleOut && !$matchInfo['matchComplete'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
-		<button class='button large alert no-bottom' name='matchWinnerID' 
+		<button class='button large alert no-bottom conclude-match-button' name='matchWinnerID' 
 			value='doubleOut' <?=LOCK_TOURNAMENT?>>
 			Double Out
 		</button>

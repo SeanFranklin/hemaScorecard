@@ -18,8 +18,23 @@ include('includes/header.php');
 // Get the event List
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
+
 if(ALLOW['VIEW_HIDDEN']){
 	$hiddenEvents = getEventList('hidden');
+} else {
+	// Check if someone made their event public without even creating a tournament.
+	// If so then don't show it to regular users.
+	foreach($activeEvents as $eventID => $data){
+		if(count(getEventTournaments($eventID)) == 0){
+			unset($activeEvents[$eventID]);
+		}
+	}
+	foreach($upcomingEvents as $eventID => $data){
+		if(count(getEventTournaments($eventID)) == 0){
+			unset($activeEvents[$eventID]);
+		}
+	}
+
 }
 $recentEvents = getEventList('recent', 'DESC', 4);
 

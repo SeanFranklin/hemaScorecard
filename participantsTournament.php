@@ -22,14 +22,18 @@ if($tournamentID == null){
 	pageError('tournament');
 } else{
 
-	toggleFighterListSort();
-
 	$eventRoster = getEventRoster();
 
 	if($_SESSION['rosterViewMode'] == 'school'){
 		$sortString = 'school';
 	} else {
 		$sortString = 'name';
+	}
+
+	if(ALLOW['EVENT_MANAGEMENT'] == true && $_SESSION['formatID'] != FORMAT_COMPOSITE){
+		define("ALLOW_EDITING", true);
+	} else {
+		define("ALLOW_EDITING", false);
 	}
 
 	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
@@ -54,9 +58,9 @@ if($tournamentID == null){
 <!-- Table headers -->
 	<thead>
 	<tr>
-		<th onclick="changeRosterOrderType('name')"><a>Name</a></th>
-		<th onclick="changeRosterOrderType('school')"><a>School</a></th>
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): //only event organizers ?>
+		<th onclick="changeParticipantOrdering('rosterViewMode','name')"><a>Name</a></th>
+		<th onclick="changeParticipantOrdering('rosterViewMode','school')"><a>School</a></th>
+		<?php if(ALLOW_EDITING == true): //only event organizers ?>
 			<th>Remove</th>
 		<?php endif ?>
 	</tr>
@@ -72,7 +76,7 @@ if($tournamentID == null){
 		<tr id='divFor<?= $rosterID ?>'>
 			<td><?=getFighterName($rosterID)?></td>
 			<td><?=getSchoolName($schoolID)?></td>
-			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+			<?php if(ALLOW_EDITING == true): ?>
 				<td>
 					<input type='checkbox' name='deleteFromTournament[<?= $rosterID ?>]'
 						id='<?= $rosterID ?>' onchange="checkIfFought(this)">
@@ -82,7 +86,7 @@ if($tournamentID == null){
 	<?php endforeach ?>
 
 
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+	<?php if(ALLOW_EDITING == true): ?>
 <!-- Add new participants -->
 		<?php $numBlankEntries = 5;
 		for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
@@ -113,7 +117,7 @@ if($tournamentID == null){
 	</div>
 	</div>
 
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+	<?php if(ALLOW_EDITING == true): ?>
 <!-- Add / Delete Fighter Buttons -->
 		<button class='button success' name='formName' 
 			value='addToTournamentRoster' <?=LOCK_TOURNAMENT?>>

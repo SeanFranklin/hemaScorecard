@@ -54,8 +54,9 @@ if($_SESSION['eventID'] == null){
 	<button class='button' name='HemaRatingsExport' value='roster'>
 		Export Roster
 	</button>
-	<i> - Remember to return any HEMA Ratings IDs not on this list!
-	
+	<?php if(ALLOW['STATS_ALL'] == true): ?>
+		<i> - Remember to return any HEMA Ratings IDs not on this list!
+	<?php endif ?>
 	<BR><BR>
 
 <!-- Export tournaments -->

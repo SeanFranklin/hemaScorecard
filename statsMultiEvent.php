@@ -1,9 +1,11 @@
 <?php
 /*******************************************************************************
-	Event Tournament Summary
+	Event Summary
 	
-	Displays the summary of all tournaments searched with a given filter.
-	Clean hits, doubles, etc...
+	Displays information about the event, such as fighter counts for
+	each tournament and registrations from each club
+	LOGIN
+		- ADMIN and above can view the page
 		
 *******************************************************************************/
 
@@ -13,7 +15,7 @@
 $pageName = 'Event & Tournament Stats';
 include('includes/header.php');
 
-if(ALLOW['STATS_ALL'] == false){	
+if(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){	
 	pageError('user');
 } else {
 	

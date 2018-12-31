@@ -24,6 +24,7 @@ if($_SESSION['eventID'] == null){
 	$defaults = getEventDefaults();
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail();
+	$eventDates = getEventDates($_SESSION['eventID']);
 
 	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.
 	$formLock = 'disabled';
@@ -265,14 +266,49 @@ if($_SESSION['eventID'] == null){
 	</fieldset>
 
 
-<!--  Contact information -------------------------------->
+<!--  Event Information -------------------------------->
 	<fieldset class='fieldset' <?=$formLock?>>
-	<legend><h4>Contact Information</h4></legend>
+	<legend><h4>Event Information</h4></legend>
+
+	<!-- Event Information -->
 	<form method='POST'>
-	
 	<div class='grid-x grid-margin-x'>
+		<div class='large-6 cell'>
+			<div class=' input-group cell no-bottom'>
+				<span class='input-group-label no-bottom'>Event Name:</span>
+				<input class='input-group-field no-bottom' type='text' 
+					name='newEventInfo[eventName]' 
+					value='<?=getEventName($_SESSION['eventID'],'raw')?>'>
+			</div>
+			<em class='red-text'>Don't include a year, it will be added automatically!</em><BR><BR>
+		</div>
+
+		<div class='large-6 cell input-group cell'>
+			<span class='input-group-label no-bottom'>StartDate:</span>
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[startDate]' 
+				value='<?=$eventDates['eventStartDate']?>'>
+		</div>
+
+		<div class='large-6 cell input-group cell'>
+			<span class='input-group-label'>End Date:</span>
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[endDate]' 
+				value='<?=$eventDates['eventEndDate']?>'>
+		</div>
+
+		<div class='large-3 cell'>
+			<button class='button success expanded' name='formName' value='setEventInfo'>
+				Update Event Information
+			</button>
+		</div>
 	
-	<!-- Tournament name order -->
+	</div>
+	</form>
+
+	<HR>
+
+	<!-- Contact E-mail -->
+	<form method='POST'>
+	<div class='grid-x grid-margin-x'>
 		<div class='large-6 input-group cell'>
 			<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
 			<input class='input-group-field' type='text' name='contactEmail' 
@@ -324,7 +360,7 @@ if($_SESSION['eventID'] == null){
 	<fieldset class='fieldset' <?=$passwordLock?>>
 		<legend><h4>Change Password - Event Organizer</h4></legend>
 		<div class='grid-x grid-margin-x'>
-		<input type='hidden' name='formName' value='newPasswords'>
+		<input type='hidden' name='formName' value='updatePasswords'>
 
 	<!-- New admin password -->	
 		<div class='large-5 input-group cell'>

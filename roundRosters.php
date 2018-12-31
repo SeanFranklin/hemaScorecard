@@ -26,8 +26,8 @@ if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif($tournamentID == null){
 	pageError('tournament');
-} elseif(!isRounds($tournamentID)){
-	if(isPools($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
+} elseif($_SESSION['formatID'] != FORMAT_SOLO){
+	if($_SESSION['formatID'] == FORMAT_MATCH && ALLOW['VIEW_SETTINGS'] == false){
 		redirect('poolMatches.php');
 	}
 	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');

@@ -23,8 +23,8 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
 	pageError('tournament');
-} elseif(!isPools($tournamentID)){
-	if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
+} elseif($_SESSION['formatID'] != FORMAT_MATCH && $_SESSION['formatID'] != FORMAT_COMPOSITE){
+	if($_SESSION['formatID'] == FORMAT_SOLO && ALLOW['VIEW_SETTINGS'] == false){
 		// redirects to the rounds if they happen to go to the pools
 		// page while in a rounds tournament
 		redirect('roundStandings.php');
@@ -34,7 +34,8 @@ if($tournamentID == null){
 		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
-	poolSetNavigation();
+	poolSetNavigation(true);
+
 	
 	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
 
@@ -66,7 +67,7 @@ if($tournamentID == null){
 				Show Matches
 			</button>
 			<div id='incompleteMatchesDiv' class='callout hidden'>
-				<?php displayIncompleteMatches($incompleteMatches); // display_functions.php?>
+				<?php displayIncompleteMatches($incompleteMatches);?>
 			</div>
 		<?php endif ?>	
 		</div>			
