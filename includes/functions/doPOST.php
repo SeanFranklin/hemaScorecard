@@ -27,7 +27,7 @@ function processPostData(){
 
 		// Refresh page after POST processing complete to prevent resubmits
 		if(!isset($refreshPage)){
-			$refreshPage = true;
+			//$refreshPage = true;
 		}
 	
 		$formName = $_POST['formName'];
@@ -72,10 +72,11 @@ function processPostData(){
 				header("Location: scorePiece.php");
 				exit;
 				break;
-			case 'rosterViewMode':
-				if(isset($_POST['rosterViewMode'])){
-					$_SESSION['rosterViewMode'] = $_POST['rosterViewMode'];
-				}
+			case 'changeSortType':
+				$_SESSION[$_POST['sortWhat']] = $_POST['sortHow'];
+				break;
+			case 'displayByPoolsToggle':
+				$_SESSION['displayByPool'] = !$_SESSION['displayByPool'];
 				break;
 			case 'eventNavigation':
 				$link = $_POST['eventNavigation'];
@@ -105,6 +106,9 @@ function processPostData(){
 				break;
 			case 'deleteFromTournamentRoster':
 				deleteFromTournament();
+				break;
+			case 'updateFighterRatings':
+				updateFighterRatings($_POST['updateRatings']);
 				break;
 			case 'editEventParticipant':
 				editEventParticipant();
@@ -138,8 +142,8 @@ function processPostData(){
 			case 'changePoolSet':
 				$_SESSION['groupSet'] = $_POST['groupSet'];
 				break;
-			case 'generateNextPoolSet':
-				pool_GenerateNextPools($_POST['advancementsForSetNum']);
+			case 'generatePools':
+				pool_GeneratePools($_POST['generatePools']);
 				break;
 			case 'changeGroupOrder':
 				reOrderGroups($_POST['newGroupNumber']);
@@ -228,8 +232,11 @@ function processPostData(){
 			case 'addNewSchool':
 				addNewSchool();
 				break;
-			case 'newPasswords':
+			case 'updatePasswords':
 				updatePasswords($_POST['changePasswords']);
+				break;
+			case 'updateTournamentComponents':
+				updateTournamentComponents($_POST['compositeTournament']);
 				break;
 			case 'eventDefaultUpdate':
 				updateEventDefaults();
@@ -241,11 +248,13 @@ function processPostData(){
 				deleteEventTournament();
 				break;	
 			case 'finalizeTournament':
+				$tID = $_POST['tournamentID'];
 				if(isset($_POST['finalizeTournament']) && $_POST['finalizeTournament'] == 'revoke'){
-					removeTournamentPlacings($_POST['tournamentID']);
+					removeTournamentPlacings($tID);
 				} else {
-					generateTournamentPlacings($_POST['tournamentID']);
+					generateTournamentPlacings($tID);
 				}
+				checkCompositeTournaments($tID);
 				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
@@ -258,6 +267,9 @@ function processPostData(){
 				break;
 			case 'setContactEmail':
 				updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
+				break;
+			case 'setEventInfo':
+				updateEventInformation($_POST['newEventInfo'],$_SESSION['eventID']);
 				break;
 			case 'SubmitToS':
 				processToS($_POST['ToS']);
@@ -408,9 +420,13 @@ function checkEvent(){
 	if(isset($_SESSION['checkEvent']['all']) && $_SESSION['checkEvent']['all'] === true){
 		$tournamentIDs = getEventTournaments();
 		foreach((array)$tournamentIDs as $tournamentID){
+			$formatID = getTournamentFormat($tournamentID);
+
 			checkGroupOrders($tournamentID);
-			updatePoolStandings($tournamentID, ALL_GROUP_SETS);
-			if(isRounds($tournamentID)){
+			if(isPools($tournamentID)){
+				updatePoolStandings($tournamentID, ALL_GROUP_SETS);
+			}
+			if($formatID == FORMAT_SOLO){
 				updateRoundMatchList();
 			}
 		}
@@ -421,6 +437,8 @@ function checkEvent(){
 	
 	// If it has been specified to check only certain tournament in the event
 	foreach($_SESSION['checkEvent'] as $tournamentID => $tournament){
+		$formatID = getTournamentFormat($tournamentID);
+
 
 		if(ctype_digit($tournamentID) || is_int($tournamentID)){
 			$name = getTournamentName($tournamentID);
@@ -431,7 +449,7 @@ function checkEvent(){
 					checkGroupOrders($tournamentID);
 					updatePoolMatchList($tournamentID, 'tournament');
 				}
-				if(isRounds($tournamentID)){
+				if($formatID == FORMAT_SOLO){
 					
 					checkGroupOrders($tournamentID);
 					checkRoundRoster($tournamentID);
@@ -449,7 +467,7 @@ function checkEvent(){
 						checkGroupOrders($tournamentID, $groupID);
 						updatePoolMatchList($groupID, 'pool', $tournamentID);
 					}
-					if(isRounds($tournamentID)){
+					if($formatID == FORMAT_SOLO){
 						checkRoundRoster($tournamentID, $groupID);
 						updateRoundMatchList();
 					}
@@ -563,65 +581,6 @@ function toggleBracketHelper(){
 
 /******************************************************************************/
 
-function updatePoolStandings($tournamentID, $groupSet = 1){
-// Calls the functions in poolScoring.php required to update the pool standings
-// If called with groupSet == 0 it does them all
-// If called with a groupSet number it does that set and all the ones after
-		
-	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
-	
-	// Check to catch non-pool events
-	$elimID = getElimID($tournamentID);
-	if($elimID != POOL_BRACKET && $elimID != POOL_SETS){
-		return; 
-	}
-
-	$setNumber = $groupSet;
-	$numberOfGroupSets = getNumGroupSets($tournamentID);
-	if($setNumber < 1){
-		$setNumber = 1;
-	}
-
-	if(isTeams($tournamentID) == false){
-		$entriesAreTeams = false;
-		$calculateTeamScores = false;
-	} elseif(isMatchesByTeam($tournamentID) == true){
-		$entriesAreTeams = true;
-		$calculateTeamScores = false;
-	} else {
-		$entriesAreTeams = false;
-		$calculateTeamScores = true;
-	}
-
-	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
-		
-		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
-		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
-
-		recordScores($fighterStats, $tournamentID, $setNumber);
-		unset($fighterStats);
-
-		pool_ScoreFighters($tournamentID, $setNumber);
-
-		pool_RankFighters($tournamentID, $setNumber, $entriesAreTeams);
-		
-		if($calculateTeamScores == true){
-			pool_CalculateTeamScores($tournamentID, $setNumber);
-			pool_RankFighters($tournamentID, $setNumber, true);
-		
-		}
-	
-	}
-
-	unset($_SESSION['updatePoolStandings'][$tournamentID]);
-	
-}
-
-
-/******************************************************************************/
-
 function setDataFilters(){
 // Sets the data filters for fighter analytics display
 	
@@ -695,9 +654,13 @@ function addNewExchange(){
 	
 	// Easter egg for anyone who gets the the Score Match page while they are in
 	// event that has rounds and pieces rather than matches
-	if(isRounds($tournamentID)){
+	$formatID = getTournamentFormat($tournamentID);
+	if($formatID == FORMAT_SOLO){
 		$_SESSION['alertMessages']['userAlerts'][] = "<p>If you go against yourself with a 
 			sharp sword and come out alive, are you a winner or a loser?</p>";
+		return;
+	} elseif($formatID != FORMAT_MATCH) {
+		setAlert(SYSTEM,"Invalid formatID in addNewExchange()");
 		return;
 	}
 	
@@ -753,14 +716,29 @@ function addNewExchange(){
 	updateMatch($matchInfo);
 	
 	// Check if it is the type of tournament which has a set number of exchanges
-	$maxExchanges = getMaxExchanges();
-	if($maxExchanges >= 1 && $_POST['lastExchange'] != 'clearLastExchange'){
-		$exchanges = getMatchExchanges($matchID);
-		if(count($exchanges) >= $maxExchanges){
-			concludeMatchByExchanges($matchID, $exchanges, $maxExchanges);
+	
+	if($_POST['lastExchange'] != 'clearLastExchange'){
+		$matchCap = getMatchCaps($tournamentID);
+		$matchInfo = getMatchInfo($matchID);
+
+		$matchConcluded = false;
+		if($matchCap['exchanges'] != null){
+			if(shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']) == true){
+				autoConcludeMatch($matchInfo);
+				$matchConcluded = true;
+			}
+		}
+		if($matchConcluded == false && $matchCap['points'] != null){
+			if(shouldMatchConcludeByPoints($matchInfo, $matchCap['points']) == true){
+				autoConcludeMatch($matchInfo);
+				$matchConcluded = true;
+			}
+		}
+		if($matchConcluded == true){
 			updateMatch($matchInfo);
 		}
 	}
+
 	
 }
 
@@ -883,24 +861,18 @@ function insertPenalty($matchInfo, $scoring){
 	$id2 = $matchInfo['fighter2ID'];
 	$exchangeID = $scoring['exchangeID'];
 	
-	if ($scoring[$id1]['penalty'] < 0 && $scoring[$id2]['penalty'] < 0){
-		$_SESSION['alertMessages']['userErrors'][] =  "<span class='red-text'>Exchange can not be added.</span><BR>
-				You can not apply a penalty to both fighters in the same exchange.";
-		return;
-	}
-	
 	if($scoring[$id1]['penalty'] != 0){
 		$scoreValue = $scoring[$id1]['penalty'];
 		$rosterID = $id1;
-		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0, null, null, null, $exchangeID);
-		return;
+		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 
+							0, null, null, null, $exchangeID);
 	}
 	
 	if($scoring[$id2]['penalty'] != 0){
 		$scoreValue = $scoring[$id2]['penalty'];
 		$rosterID = $id2;
-		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 0, null, null, null, $exchangeID);
-		return;
+		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 
+							0, null, null, null, $exchangeID);
 	}
 }
 
@@ -1390,7 +1362,6 @@ function checkGroupOrders($tournamentID, $groupID = null){
 		
 		
 	}
-	
 
 }
 

@@ -199,26 +199,30 @@ function addNewSchoolInput(){
 		<input type='hidden' name='formName' value='addNewSchool'>
 		<div class='grid-x cell'>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'>Full Name</span>
+			<span class='input-group-label small-5'><strong>Full Name:</strong></span>
 			<input class='input-group-field' type='text' name='schoolFullName' required
 				 onkeyup="schoolInputPlaceholders()" id='schoolFull' placeholder='- Mandatory -'>
 		</div>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'>School Short Name </span>
+			<span class='input-group-label small-5'>School Short Name:</span>
 			<input class='input-group-field' type='text' name='schoolShortName'
 				id='schoolShort'>
 		</div>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'>School Abreviation</span>
+			<span class='input-group-label small-5'><strong>School Abreviation</strong> 
+				<?=tooltip("This is used as a shorthand for things like pool rosters, to help avoid people from the same school fighting.<BR>
+				Please keep it as short as possible, 3-5 characters.<BR>
+				(Max is 7)")?>:
+			</span>
 			<input class='input-group-field' type='text' name='schoolAbreviation'
-				id='schoolAbreviation'>
+				id='schoolAbreviation' maxlength='7' placeholder='(keep it short)' required>
 		</div>
 		<div class='input-group grid-x cell'>
 			<span class='input-group-label small-5'>School Branch</span>
 			<input class='input-group-field' type='text' name='schoolBranch'>
 		</div>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'>School Country</span>
+			<span class='input-group-label small-5'><strong>School Country</strong></span>
 			<input class='input-group-field' type='text' name='schoolCountry'
 				id='schoolCountry' placeholder='- Mandatory -' required>
 		</div>

@@ -179,25 +179,11 @@ case 'getRankingTypes': {
 // Returns the ranking algorithms that match the given elimination type.
 // Used to auto-populate form entry fields for creating and editing tournaments.
 
-	$elimID = (int)$_REQUEST['elimID'];
+	$formatID = (int)$_REQUEST['formatID'];
 
-	switch($elimID){
-		case POOL_BRACKET:
-			$where = "WHERE Pool_Bracket = 1";
-			break;
-		case POOL_SETS:
-			$where = "WHERE Pool_Sets = 1";
-			break;
-		case SCORED_EVENT:
-			$where = "WHERE Scored_Event = 1";
-			break;
-		default:
-			return;
-	}
-	
 	$sql = "SELECT tournamentRankingID, name
 			FROM systemRankings
-			{$where}
+			WHERE formatID = {$formatID}
 			ORDER BY numberOfInstances DESC";
 	$rankingTypes = mysqlQuery($sql, ASSOC);
 	

@@ -45,7 +45,7 @@
 }
 
 
-.match-winner-button{
+.match-winner-button-div{
 	padding-right: 2px;
 	padding-left: 2px;
 }
@@ -91,6 +91,14 @@
 	
 .last-to-elims{
 	border-bottom: 1px solid black;
+}
+
+.first-no-elims{
+  border-top: 1px solid black;
+}
+
+.pool-winner{
+  font-style: italic;
 }
 
 .table-top-border{
@@ -183,6 +191,10 @@ select {
 
 .red-text {
   color: red;
+}
+
+.grey-text {
+  color: grey;
 }
 
 .alert-text {

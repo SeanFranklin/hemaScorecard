@@ -67,7 +67,6 @@ if($eventID == null){
 	}
 
 // Display roster
-	toggleFighterListSort();
 	displayEventRoster($roster, $tournamentRosters, $tournamentList);
 
 }
@@ -633,11 +632,11 @@ function tableHeaders($tournamentList, $removeDisabled = false){
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
-		<th onclick="changeRosterOrderType('name')" class='text-center'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center'>
 			<a>Name</a>
 		</th>	
 
-		<th onclick="changeRosterOrderType('school')"  class='text-center'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center'>
 			<a>School</a>
 		</th>
 	</tr>

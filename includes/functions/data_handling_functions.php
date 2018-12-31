@@ -76,6 +76,113 @@ function makePoolMatchOrder($groupRoster, $ignores = [], $groupSet = 1){
 
 /******************************************************************************/
 
+function generate_RefightPoints($poolRefights,$numberOfFightsTogether,$fighterID){
+
+	$SCALING_FACTOR = -0.25;
+	$sumOfRefights = 0;
+
+	foreach($poolRefights as $poolNum => $existingRefights){
+		$totalRefights = $existingRefights;
+		foreach((array)@$_SESSION['poolSeeds'][$poolNum] as $rosterID){ 
+		// This could not exist, in this case there is no need to loop through
+			$totalRefights += $numberOfFightsTogether[$fighterID][$rosterID];
+		}
+		$potentialRefights[$poolNum] = $totalRefights * $SCALING_FACTOR;
+		$sumOfRefights += $potentialRefights[$poolNum];
+	}
+
+
+	if($sumOfRefights != 0){
+		foreach($potentialRefights as $poolNum => $numRefights){
+			$potentialRefights[$poolNum] = -$numRefights / $sumOfRefights;
+		}
+	}
+
+	return $potentialRefights;
+
+}
+
+/******************************************************************************/
+
+function generate_SameSchoolPoints($poolSchools,$schoolID){
+// Takes away 0.5 points for each fighter of the same school already in the pool
+
+
+
+	$numAlreadyIn = [];
+	$sumAlreadyIn = 0;
+	foreach($poolSchools as $poolNum => $schools){
+		$numAlreadyIn[$poolNum] = @$poolSchools[$poolNum][$schoolID]; // Could be unset, treat as zero
+		$sumAlreadyIn += $numAlreadyIn[$poolNum];
+	}
+
+	if($sumAlreadyIn != 0){
+		foreach($numAlreadyIn as $poolNum => $num){
+			$numAlreadyIn[$poolNum] = -$num /$sumAlreadyIn; 
+		}
+	}
+
+	return $numAlreadyIn;
+
+}
+
+/******************************************************************************/
+
+function generate_PoolRatingPoints($poolRatings,$fighterRating){
+
+	$highestRating = max($poolRatings);
+	$ratingSum = 0;
+	foreach($poolRatings as $index => $rating){
+		$poolRatings[$index] = $highestRating - $rating;
+		$ratingSum += $poolRatings[$index];
+	}
+
+	if($ratingSum != 0){
+		foreach($poolRatings as $index => $rating){
+			$poolRatings[$index] = $poolRatings[$index]/$ratingSum;
+		}
+	}
+
+	return $poolRatings;
+
+}
+
+/******************************************************************************/
+
+function generate_PoolSizePoints($numInPools,$maxPoolSize){
+
+	$maxSpotsLeft = 0;
+	$minSpotsLeft = (int)$maxPoolSize;
+	$totalSpotsLeft = 0;
+	$spotsLeft = [];
+	foreach($numInPools as $poolNum => $numInPool){
+		$spotsLeft[$poolNum] = $maxPoolSize - $numInPool;
+		if($spotsLeft[$poolNum] > $maxSpotsLeft){
+			$maxSpotsLeft = $spotsLeft[$poolNum];
+		}
+		if($spotsLeft[$poolNum] < $minSpotsLeft){
+			$minSpotsLeft = $spotsLeft[$poolNum];
+		}
+		$totalSpotsLeft += $spotsLeft[$poolNum];
+	}
+
+	foreach($spotsLeft as $poolNum=> $numSpots)
+	{
+		if($numSpots == 0){
+			$weightFunction[$poolNum] = -99; // Super low number ensures no one is put in this pool
+		} else {
+			$weightFunction[$poolNum] = $numSpots / $totalSpotsLeft;
+		}
+	}
+
+	return($weightFunction);
+
+}
+
+
+
+/******************************************************************************/
+
 function convertExchangeIntoText($exchangeInfo, $fighter1ID){
 
 	if($exchangeInfo['rosterID'] == $fighter1ID){
@@ -362,21 +469,21 @@ function checkPassword($input, $userName, $eventID = null){
 // Get password to compare
 	switch($userName){
 		case 'eventStaff':
-			if($eventID == null){
-				return false;
+			if($eventID === null){
+				return true;
 			}
 			$password = getEventStaffPassword($eventID);
 			break;
 		case 'eventOrganizer':
-			if($eventID == null){
-				return false;
+			if($eventID === null){
+				return true;
 			}
 			$password = getEventOrganizerPassword($eventID);
 			break;
 		default:
 			$password = getUserPassword($userName);
-			if($password == null){
-				return false;
+			if($password === null){
+				return true;
 			}
 			break;
 	}
@@ -527,6 +634,89 @@ function getBracketPositionByRank($rank, $numPositions){
 	return;
 
 }
+
+/******************************************************************************/
+
+function updatePoolStandings($tournamentID, $groupSet = 1){
+// Calls the functions in poolScoring.php required to update the pool standings
+// If called with groupSet == 0 it does them all
+// If called with a groupSet number it does that set and all the ones after
+		
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == null){return;}
+	
+	// Check to catch non-pool events
+	$formatID = getTournamentFormat($tournamentID);
+	if($formatID != FORMAT_MATCH){
+		return; 
+	}
+
+	$setNumber = $groupSet;
+	$numberOfGroupSets = getNumGroupSets($tournamentID);
+	if($setNumber < 1){
+		$setNumber = 1;
+	}
+
+	if(isTeams($tournamentID) == false){
+		$entriesAreTeams = false;
+		$calculateTeamScores = false;
+	} elseif(isMatchesByTeam($tournamentID) == true){
+		$entriesAreTeams = true;
+		$calculateTeamScores = false;
+	} else {
+		$entriesAreTeams = false;
+		$calculateTeamScores = true;
+	}
+
+	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
+		
+		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
+		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
+
+		recordScores($fighterStats, $tournamentID, $setNumber);
+		unset($fighterStats);
+
+		pool_ScoreFighters($tournamentID, $setNumber);
+
+		pool_RankFighters($tournamentID, $setNumber, $entriesAreTeams);
+		
+		if($calculateTeamScores == true){
+			pool_CalculateTeamScores($tournamentID, $setNumber);
+			pool_RankFighters($tournamentID, $setNumber, true);
+		
+		}
+	
+	}
+
+	unset($_SESSION['updatePoolStandings'][$tournamentID]);
+	
+}
+
+/******************************************************************************/
+
+function checkCompositeTournaments($tournamentID){
+// Check if the tournament was a component of another tournament,
+// and if so then update the scores of that one.
+
+	$tournamentID = (int)$tournamentID;
+
+	if(isPartOfComposite($tournamentID)){
+		$sql = "SELECT tournamentID AS baseTournamentID
+				FROM eventComponents
+				WHERE componentTournamentID = {$tournamentID}";
+		$componentOf = mysqlQuery($sql, SINGLES, 'baseTournamentID');
+	
+		foreach($componentOf as $baseTournamentID){
+			
+			pool_ScoreFighters($baseTournamentID);
+
+			pool_RankFighters($baseTournamentID);
+			
+		}
+	}
+}
+
 
 /******************************************************************************/
 

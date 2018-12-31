@@ -39,7 +39,6 @@ if(		$_SESSION['userName'] == null
 ?>
 
 	<form method='POST'>
-	<input type='hidden' name='formName' value='updatePasswords'>
 	<fieldset class='fieldset'>
 	<legend>Password Information</legend>
 	<div class='grid-x grid-margin-x'>
@@ -60,7 +59,7 @@ if(		$_SESSION['userName'] == null
 	<!-- Current password confirm-->
 		<div class='input-group large-6 cell'>
 			<span class='input-group-label inline'>Current Password:</span>
-			<input class='input-group-field' type='password' required
+			<input class='input-group-field' type='password'
 					name='changePasswords[passwordVerification]'>
 		</div>
 		
@@ -74,7 +73,9 @@ if(		$_SESSION['userName'] == null
 			<input class='input-group-field' type='password' required
 					name='changePasswords[newPassword2]'>
 
-			<button class='button input-group-button' name='' value=''>Update</button>
+			<button class='button input-group-button' name='formName' value='updatePasswords'>
+				Update
+			</button>
 		</div>
 		
 		

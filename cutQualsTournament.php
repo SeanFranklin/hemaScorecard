@@ -89,9 +89,9 @@ if($_SESSION['tournamentID'] == null){
 		<strong><?=$thisStandard['standardName']?></strong> 
 		since <strong><?=$thisStandard['date']?></strong><BR>
 	<?php else:
-		$alertText = "No Cutting Quallification Standards Set";
+		$alertText = "No Cutting Qualification Standards Set";
 		if(ALLOW['EVENT_MANAGEMENT'] == true){
-			$alertText .= "<BR><a data-open='changeStandardsBox'>Add Quallification Standard</a>";
+			$alertText .= "<BR><a data-open='changeStandardsBox'>Add Qualification Standard</a>";
 		}
 		displayAlert($alertText);
 	endif ?>
@@ -99,7 +99,7 @@ if($_SESSION['tournamentID'] == null){
 
 	<?php if(ALLOW['SOFTWARE_ASSIST'] == true): ?>
 		<a class='button small-expanded hollow' href='cutQuals.php'>
-			Master Quallification List
+			Master Qualification List
 		</a>
 	<?php endif ?>
 

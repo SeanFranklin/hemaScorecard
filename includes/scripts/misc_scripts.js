@@ -34,15 +34,17 @@ function logInTypeToggle(selectElement){
 // Certain types of log ins are tied to event, and others are system wide.
 // Used in adminLogIn.php
 
-	if(selectElement.value == 3 || selectElement.value == 4){
-		$('#logInEventList').show();
+	if(selectElement.value == 'logInStaff' || selectElement.value == 'logInOrganizer'){
+		$('#logInEventListDiv').show();
+		$('#logInUserNameDiv').hide();
+		logInEventToggle();
 	} else {
-		$('#logInEventList').hide();
+		$('#logInEventListDiv').hide();
+		$('#logInUserNameDiv').show();
+		$('#logInUserName').val('');
 	}
 
-
-	logInEventToggle();
-
+	logInSubmitEnable();
 }
 
 /******************************************************************************/
@@ -52,36 +54,33 @@ function logInEventToggle(){
 // Helps facilitate password managers
 // Used in adminLogIn.php
 
+	eventName = $("#logInEventID option:selected").text().trim();
 
-	eventName = $("#logInEventID option:selected").text();
-	console.log(eventName);
-	eventName = eventName.trim();
-	
-	switch($('#logInType').val()){
-		case '-1':
-			$('#LogInUserName').val('Video Manager');
-			break;
-		case '1':
-			$('#LogInUserName').val('Guest');
-			break;
-		case '2':
-			$('#LogInUserName').va('Analytics User');
-			break;
-		case '3':
-			$('#LogInUserName').val('Event Staff: '+eventName);
-			break;
-		case '4':
-			$("#LogInUserName").val("Event Organizer: "+eventName);
-			break;
-		case '5':
-			$('#LogInUserName').val('#System Administrator');
-			break;;
-		default:
-			$('#LogInUserName').val('Event Staff');
-			break;
-	}
+	eventName = eventName;
+	$('#logInUserName').val(eventName);
+
+	logInSubmitEnable();
 	
 }
+
+/******************************************************************************/
+
+function logInSubmitEnable(){
+// Enables the login button only if the user has entered data in.
+// Used in adminLogIn.php
+
+	var userName = $('#logInUserName').val();
+
+	if($('#logInUserName').val().length > 0){
+		$("#logInSubmitButton").prop("disabled",false);
+	} else {
+		$("#logInSubmitButton").prop("disabled",true);
+	}
+}
+
+$('#logInUserName').bind('input', function() {
+    logInSubmitEnable();
+});
 
 /******************************************************************************/
 
@@ -90,10 +89,6 @@ function schoolInputPlaceholders(){
 // another form field.
 // Used in participantsSchools.php
 
-	var abreviation = document.getElementById('schoolFull').value;
-	abreviation = abreviation.replace( /[^A-Z]/g, '' );
-	document.getElementById('schoolAbreviation').placeholder = abreviation;
-	
 	document.getElementById('schoolShort').placeholder = schoolFull.value;
-	
+
 }

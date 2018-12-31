@@ -104,6 +104,11 @@ $livestreamInfo = getLivestreamInfo();
 						<ul class='menu vertical'>
 							<li><a href='participantsEvent.php'>Event Roster</a></li>
 							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
+							<?php if(ALLOW['EVENT_MANAGEMENT'] == true
+									&& $_SESSION['formatID'] == FORMAT_MATCH): ?>
+								<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
+								<li><a href='statsResultsDump.php'>Export Results</a></li>
+							<?php endif ?>
 						</ul>
 					</li>
 				<?php else: ?>
@@ -187,7 +192,7 @@ $livestreamInfo = getLivestreamInfo();
 				<?php else: ?>
 					<?php if($_SESSION['userName'] != null
 						&& $_SESSION['userName'] != 'eventStaff'
-						&& $_SESSION['userName'] != 'eventAdmin'): ?>
+						&& $_SESSION['userName'] != 'eventOrganizer'): ?>
 
 						<li><a href='masterPasswords.php'>Change Password</a></li>
 
@@ -277,12 +282,22 @@ $livestreamInfo = getLivestreamInfo();
 			}
 		}
 
+		// Tournament is a composite event
+		if($_SESSION['formatID'] == FORMAT_COMPOSITE){
+			$navBarString .= "<li><a href='participantsComponents.php'>Tournament Components</a></li>
+								<li><a href='poolStandings.php'>Standings</a></li>";
+		}
+
 							
 		// Tournament has pools
 		if(isPools($_SESSION['tournamentID'])){
 			$navBarString .= "<li><a href='poolRosters.php'>Pool Rosters</a></li>
 								<li><a href='poolMatches.php'>Pool Matches</a></li>
 								<li><a href='poolStandings.php'>Pool Standings</a></li>";
+		} elseif ($_SESSION['formatID'] == FORMAT_MATCH 
+					&& ALLOW['EVENT_MANAGEMENT'] == true){
+
+			$navBarString .= "<li><a href='poolRosters.php'>Create Pools</a></li>";
 		}
 		
 		// Tournament has brackets
@@ -293,11 +308,14 @@ $livestreamInfo = getLivestreamInfo();
 			} else {
 				$navBarString .= "<li><a href='finalsBracket1.php'>Finals Bracket</a></li>";
 			}
+		} elseif ($_SESSION['formatID'] == FORMAT_MATCH 
+					&& ALLOW['EVENT_MANAGEMENT'] == true){
 
+			$navBarString .= "<li><a href='finalsBracket1.php'>Create Bracket</a></li>";
 		}
 		
 		// Tournament has rounds
-		if(isRounds($_SESSION['tournamentID'])){
+		if($_SESSION['formatID'] == FORMAT_SOLO){
 			$navBarString .= "<li><a href='roundRosters.php'>Round Rosters</a></li>
 								<li><a href='roundMatches.php'>Round Scores</a></li>
 								<li><a href='roundStandings.php'>Round Standings</a></li>";

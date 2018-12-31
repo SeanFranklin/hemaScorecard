@@ -1,6 +1,6 @@
 /**********************************************************************/
 
-function toggleTournamentEditingFields(tournamentID, elimID){
+function toggleTournamentEditingFields(tournamentID, formatID){
 	
 	displayOn = 'inline'
 
@@ -10,14 +10,14 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	var fieldsToDisplay = [];
 	
 	// Results Only
-	fieldsToDisplay [1] = {			
-		elimID: 'show',
+	fieldsToDisplay [FORMAT_RESULTS] = {			
+		formatID: 'show',
 		isTeams: 'show'
 	};
 	
-	// Pool & Bracket 
-	fieldsToDisplay [2] = {
-		elimID: 'show',			
+	// Matches 
+	fieldsToDisplay [FORMAT_MATCH] = {
+		formatID: 'show',			
 		doubleID: 'show',
 		rankingID: 'refresh',
 		color1: 'show',
@@ -33,50 +33,13 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		isPrivate: 'show',
 		reverseScore: 'show',
 		isTeams: 'show',
-		poolWinnersFirst: 'show'
+		poolWinnersFirst: 'show',
+		maxPoints: 'show'
 	};
 	
-	// Direct Bracket
-	fieldsToDisplay [3] = {
-		elimID: 'show',			 
-		doubleID: 'show',
-		color1: 'show',
-		color2: 'show',
-		maxDoubles: 'show',
-		allowTies: 'show',
-		isCuttingQual: 'show',
-		maxExchanges: 'show',
-		useTimer: 'show',
-		controlPoint: 'show',
-		isPrivate: 'show',
-		reverseScore: 'show',
-		isTeams: 'show'
-	};
-	
-	// Pool Sets
-	fieldsToDisplay [4] = {
-		elimID: 'show',			 
-		doubleID: 'show',
-		rankingID: 'refresh',
-		color1: 'show',
-		color2: 'show',
-		maxDoubles: 'show',
-		maxPoolSize: 'show',
-		normalizePoolSize: 'show',
-		allowTies: 'show',
-		isCuttingQual: 'show',
-		maxExchanges: 'show',
-		useTimer: 'show',
-		controlPoint: 'show',
-		isPrivate: 'show',
-		reverseScore: 'show',
-		isTeams: 'show',
-		poolWinnersFirst: 'show'
-	};
-	
-	// Scored Event
-	fieldsToDisplay [5] = {
-		elimID: 'show',			 
+	// Solo
+	fieldsToDisplay [FORMAT_SOLO] = {
+		formatD: 'show',			 
 		rankingID: 'refresh',
 		baseValue: 'show',
 		isCuttingQual: 'show',
@@ -84,15 +47,24 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 		isTeams: 'show'
 	};
 	
+	// Composite
+	fieldsToDisplay [FORMAT_COMPOSITE] = {
+		formatD: 'show',			 
+		rankingID: 'refresh',
+		baseValue: 'show'
+	};
+
+	console.log(fieldsToDisplay);
+	
 	function toggleTournamentEntryDiv(){
 		var divID = $(this).attr('Id');
 		if(typeof divID !== 'string'){ return; }
 		
 		
 		var divName = divID.substring(0,divID.lastIndexOf("_"));
-		if(divName == 'elimID'){ return; }
+		if(divName == 'formatID'){ return; }
 
-		switch(fieldsToDisplay[+elimID][divName]){
+		switch(fieldsToDisplay[+formatID][divName]){
 			case 'show':
 				$(this).show(showSpeed);
 				break;
@@ -112,7 +84,7 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 	
 
 // Check for fields which are just toggled by double hits
-	if(fieldsToDisplay[elimID]['maxDoubles'] == 'show'){
+	if(fieldsToDisplay[formatID]['maxDoubles'] == 'show'){
 		edit_doubleType(tournamentID);
 	}
 
@@ -129,17 +101,17 @@ function toggleTournamentEditingFields(tournamentID, elimID){
 
 function enableTournamentButton(tournamentID){
 
-	var elimID = document.getElementById('elimID_select'+tournamentID).value;
+	var formatID = document.getElementById('formatID_select'+tournamentID).value;
 	var button = document.getElementById('editTournamentButton'+tournamentID);
 	var warrningMessages = [];
 
-	if(elimID.length == 0){
-		warrningMessages.push('No Elim Type selected');
+	if(formatID.length == 0){
+		warrningMessages.push('No format selected');
 	}
 
 // Check modes related to fighting matches
 
-	if(elimID == 2 || elimID == 3 || elimID == 4){
+	if(formatID == FORMAT_MATCH){
 		doubleID = document.getElementById('doubleID_select'+tournamentID).value;
 		if(doubleID.length == 0){
 			warrningMessages.push('Please select Double/Afterblow Type');
@@ -162,14 +134,14 @@ function enableTournamentButton(tournamentID){
 
 // Check modes relating to score/rankings
 
-	if(elimID == 2 || elimID == 4 || elimID == 5){
+	if(formatID == FORMAT_MATCH || formatID == FORMAT_SOLO || formatID == FORMAT_COMPOSITE){
 		rankingID = document.getElementById('rankingID_select'+tournamentID).value;
 		if(rankingID.length == 0){
-			warrningMessages.push('Please select No Ranking Type');
+			warrningMessages.push('Please select Ranking Type');
 		}
 	}
 
-	if(elimID == 5){
+	if(formatID == FORMAT_SOLO || formatID == FORMAT_COMPOSITE){
 		baseValue = document.getElementById('baseValue_select'+tournamentID).value;
 		if(baseValue == '' || baseValue < 0 || baseValue > 100){
 			warrningMessages.push('Please input a Base Score Value');
@@ -240,23 +212,20 @@ function edit_doubleType(tournamentID){
 
 /**********************************************************************/
 
-function edit_elimType(tournamentID){
+function edit_formatType(tournamentID){
 
-	elimID = document.getElementById('elimID_select'+tournamentID).value;
+	formatID = document.getElementById('formatID_select'+tournamentID).value;
 	
-	toggleTournamentEditingFields(tournamentID, elimID);
+	toggleTournamentEditingFields(tournamentID, formatID);
 
-	//if(tournamentID == 'new'){
-		if(elimID == 1){
-			document.getElementById('editTournamentButton'+tournamentID).disabled = false;
-			return;
-		} else if(elimID == 3){
-			enableTournamentButton(tournamentID);
-			return;
-		}	
-	//}
+	
+	if(formatID == FORMAT_RESULTS){
+		document.getElementById('editTournamentButton'+tournamentID).disabled = false;
+		return;
+	}
+	
 
-	var query = "mode=getRankingTypes&elimID="+elimID;
+	var query = "mode=getRankingTypes&formatID="+formatID;
 
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", AJAX_LOCATION+"?"+query, true);
@@ -268,6 +237,7 @@ function edit_elimType(tournamentID){
 			if(this.responseText.length > 1){
 				
 				rankingTypes = JSON.parse(this.responseText);
+
 				select = document.getElementById('rankingID_select'+tournamentID);
 				select.length = 0;
 

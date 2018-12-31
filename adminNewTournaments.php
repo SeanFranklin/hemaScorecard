@@ -37,7 +37,7 @@ if($_SESSION['eventID'] == null){
 		<?php edit_tournamentName(); ?>
 		<div id='requiredFields_new' class='grid-x grid-padding-x text-center'>
 			<?php
-			edit_tournamentElimType();
+			edit_tournamentFormatType();
 			edit_tournamentDoubleType();
 			edit_tournamentRankingType();
 			edit_tournamentNetScore();
@@ -71,6 +71,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentPoolWinners();
 
 			edit_tournamentMaxExchanges();
+			edit_tournamentMaxPoints();
 			edit_tournamentReverseScore();
 			edit_tournamentControlPoints();
 			edit_tournamentOverrideDoubles();

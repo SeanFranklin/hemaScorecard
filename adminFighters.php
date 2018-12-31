@@ -21,8 +21,6 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else if($tournamentID == null){
 	pageError('tournament');
-} else if(!isRounds($tournamentID) && !isPools($tournamentID)){
-	displayAlert("No need to withdraw fighters from this tournament format");
 } else {
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){

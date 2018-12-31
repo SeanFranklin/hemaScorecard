@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 09, 2018 at 03:01 PM
+-- Generation Time: Dec 31, 2018 at 02:21 AM
 -- Server version: 5.6.37
 -- PHP Version: 7.1.8
 
@@ -50,6 +50,18 @@ CREATE TABLE IF NOT EXISTS `eventAttributes` (
   `attributeType` varchar(255) NOT NULL,
   `attributeValue` float DEFAULT NULL,
   `attributeGroupSet` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `eventComponents`
+--
+
+CREATE TABLE IF NOT EXISTS `eventComponents` (
+  `componentID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `componentTournamentID` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -305,7 +317,8 @@ CREATE TABLE IF NOT EXISTS `eventTeamRoster` (
 CREATE TABLE IF NOT EXISTS `eventTournamentRoster` (
   `tableID` int(10) unsigned NOT NULL,
   `tournamentID` int(10) unsigned DEFAULT NULL,
-  `rosterID` int(10) unsigned DEFAULT NULL
+  `rosterID` int(10) unsigned DEFAULT NULL,
+  `rating` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -324,7 +337,7 @@ CREATE TABLE IF NOT EXISTS `eventTournaments` (
   `tournamentSuffixID` int(10) unsigned DEFAULT NULL,
   `tournamentRankingID` int(10) unsigned DEFAULT NULL,
   `doubleTypeID` int(10) unsigned DEFAULT '2',
-  `tournamentElimID` int(10) unsigned DEFAULT '2',
+  `formatID` int(10) unsigned DEFAULT '2',
   `numGroupSets` int(11) NOT NULL DEFAULT '1',
   `numParticipants` int(10) unsigned DEFAULT '0',
   `normalizePoolSize` int(11) DEFAULT '0',
@@ -333,6 +346,7 @@ CREATE TABLE IF NOT EXISTS `eventTournaments` (
   `maxPoolSize` int(10) unsigned NOT NULL DEFAULT '5',
   `maxDoubleHits` int(10) unsigned NOT NULL DEFAULT '3',
   `maximumExchanges` int(11) DEFAULT NULL,
+  `maximumPoints` int(11) DEFAULT NULL,
   `basePointValue` int(11) NOT NULL DEFAULT '0',
   `allowTies` tinyint(1) NOT NULL DEFAULT '0',
   `tournamentStatus` varchar(255) DEFAULT NULL,
@@ -392,30 +406,6 @@ CREATE TABLE IF NOT EXISTS `systemEvents` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `systemRoster`
---
-
-CREATE TABLE IF NOT EXISTS `systemRoster` (
-  `systemRosterID` int(10) unsigned NOT NULL,
-  `firstName` varchar(255) DEFAULT NULL,
-  `middleName` varchar(255) DEFAULT NULL,
-  `lastName` varchar(255) DEFAULT NULL,
-  `nickname` varchar(255) DEFAULT NULL,
-  `gender` varchar(255) DEFAULT NULL,
-  `schoolID` int(10) unsigned DEFAULT NULL,
-  `HemaRatingsID` int(10) unsigned DEFAULT NULL,
-  `birthdate` date DEFAULT NULL,
-  `rosterCountry` varchar(255) DEFAULT NULL,
-  `rosterProvince` varchar(255) DEFAULT NULL,
-  `rosterCity` varchar(255) DEFAULT NULL,
-  `eMail` varchar(255) DEFAULT NULL,
-  `publicNotes` text,
-  `privateNotes` text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `systemRosterNotDuplicate`
 --
 
@@ -469,6 +459,14 @@ ALTER TABLE `eventAttacks`
 ALTER TABLE `eventAttributes`
   ADD PRIMARY KEY (`attributeID`),
   ADD KEY `tournamentID` (`tournamentID`);
+
+--
+-- Indexes for table `eventComponents`
+--
+ALTER TABLE `eventComponents`
+  ADD PRIMARY KEY (`componentID`),
+  ADD KEY `tournamentID` (`tournamentID`),
+  ADD KEY `componentTournamentID` (`componentTournamentID`);
 
 --
 -- Indexes for table `eventCutStandards`
@@ -604,10 +602,10 @@ ALTER TABLE `eventTournaments`
   ADD KEY `tournamentMaterialID` (`tournamentMaterialID`),
   ADD KEY `tournamentRankingID` (`tournamentRankingID`),
   ADD KEY `doubleTypeID` (`doubleTypeID`),
-  ADD KEY `elimTypeID` (`tournamentElimID`),
+  ADD KEY `elimTypeID` (`formatID`),
   ADD KEY `color1ID` (`color1ID`),
   ADD KEY `color2ID` (`color2ID`),
-  ADD KEY `tournamentElimID` (`tournamentElimID`);
+  ADD KEY `tournamentElimID` (`formatID`);
 
 --
 -- Indexes for table `systemCutQualifications`
@@ -622,14 +620,6 @@ ALTER TABLE `systemCutQualifications`
 --
 ALTER TABLE `systemEvents`
   ADD PRIMARY KEY (`eventID`);
-
---
--- Indexes for table `systemRoster`
---
-ALTER TABLE `systemRoster`
-  ADD PRIMARY KEY (`systemRosterID`),
-  ADD UNIQUE KEY `HemaRatingsID` (`HemaRatingsID`),
-  ADD KEY `schoolID` (`schoolID`);
 
 --
 -- Indexes for table `systemRosterNotDuplicate`
@@ -659,6 +649,11 @@ ALTER TABLE `eventAttacks`
 --
 ALTER TABLE `eventAttributes`
   MODIFY `attributeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `eventComponents`
+--
+ALTER TABLE `eventComponents`
+  MODIFY `componentID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventCutStandards`
 --
@@ -745,11 +740,6 @@ ALTER TABLE `systemCutQualifications`
 ALTER TABLE `systemEvents`
   MODIFY `eventID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `systemRoster`
---
-ALTER TABLE `systemRoster`
-  MODIFY `systemRosterID` int(10) unsigned NOT NULL AUTO_INCREMENT;
---
 -- AUTO_INCREMENT for table `systemRosterNotDuplicate`
 --
 ALTER TABLE `systemRosterNotDuplicate`
@@ -776,6 +766,13 @@ ALTER TABLE `eventAttacks`
 --
 ALTER TABLE `eventAttributes`
   ADD CONSTRAINT `eventAttributes_ibfk_1` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `eventComponents`
+--
+ALTER TABLE `eventComponents`
+  ADD CONSTRAINT `eventComponents_ibfk_1` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `eventComponents_ibfk_2` FOREIGN KEY (`componentTournamentID`) REFERENCES `eventTournaments` (`tournamentID`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `eventCutStandards`
@@ -888,7 +885,7 @@ ALTER TABLE `eventTournaments`
   ADD CONSTRAINT `eventTournaments_ibfk_1` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) ON DELETE CASCADE,
   ADD CONSTRAINT `eventTournaments_ibfk_10` FOREIGN KEY (`color1ID`) REFERENCES `systemColors` (`colorID`),
   ADD CONSTRAINT `eventTournaments_ibfk_11` FOREIGN KEY (`color2ID`) REFERENCES `systemColors` (`colorID`),
-  ADD CONSTRAINT `eventTournaments_ibfk_14` FOREIGN KEY (`tournamentElimID`) REFERENCES `systemElimTypes` (`elimTypeID`),
+  ADD CONSTRAINT `eventTournaments_ibfk_14` FOREIGN KEY (`formatID`) REFERENCES `systemFormats` (`formatID`),
   ADD CONSTRAINT `eventTournaments_ibfk_15` FOREIGN KEY (`tournamentRankingID`) REFERENCES `systemRankings` (`tournamentRankingID`),
   ADD CONSTRAINT `eventTournaments_ibfk_2` FOREIGN KEY (`tournamentWeaponID`) REFERENCES `systemTournaments` (`tournamentTypeID`),
   ADD CONSTRAINT `eventTournaments_ibfk_3` FOREIGN KEY (`tournamentPrefixID`) REFERENCES `systemTournaments` (`tournamentTypeID`),
@@ -903,12 +900,6 @@ ALTER TABLE `eventTournaments`
 ALTER TABLE `systemCutQualifications`
   ADD CONSTRAINT `cuttingqualifications_ibfk_1` FOREIGN KEY (`systemRosterID`) REFERENCES `systemRoster` (`systemRosterID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `cuttingqualifications_ibfk_2` FOREIGN KEY (`standardID`) REFERENCES `systemCutStandards` (`standardID`) ON UPDATE CASCADE;
-
---
--- Constraints for table `systemRoster`
---
-ALTER TABLE `systemRoster`
-  ADD CONSTRAINT `systemRoster_ibfk_1` FOREIGN KEY (`schoolID`) REFERENCES `systemSchools` (`schoolID`);
 
 --
 -- Constraints for table `systemRosterNotDuplicate`

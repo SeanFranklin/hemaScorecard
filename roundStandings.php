@@ -20,10 +20,9 @@ if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif($tournamentID == null){
 	pageError('tournament');
-} elseif(!isRounds($tournamentID)){
-	if(ALLOW['VIEW_SETTINGS'] == true){
-		if(isPools($tournamentID)){redirect('poolStandings.php');}
-		if(isBrackets($tournamentID)){redirect('finalsBracket1.php');}
+} elseif($_SESSION['formatID'] != FORMAT_SOLO){
+	if(ALLOW['VIEW_SETTINGS'] != true){
+		redirect('participantsTournament.php');
 	}
 	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
 } elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 

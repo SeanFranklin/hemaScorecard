@@ -65,11 +65,12 @@
 	define("DEFAULT_MAX_DOUBLES",3);
 	define("POOL_SIZE_LIMIT",10);
 	
-	define("RESULTS_ONLY",1);
-	define("POOL_BRACKET",2);
-	define("DIRECT_BRACKET",3);
-	define("POOL_SETS",4);
-	define("SCORED_EVENT",5);
+	// The types of tournaments
+	define("FORMAT_NONE",0);
+	define("FORMAT_RESULTS",1);
+	define("FORMAT_MATCH",2);
+	define("FORMAT_SOLO",3);
+	define("FORMAT_COMPOSITE",4);
 
 	define("NO_AFTERBLOW",1);
 	define("DEDUCTIVE_AFTERBLOW",2);
@@ -114,6 +115,9 @@ $conn = connectToDB();
 
 // Set tournament ID if there is only one tournament in the event
 	if($_SESSION['eventID'] != null){
+		
+		$_SESSION['eventName'] = getEventName($_SESSION['eventID']);
+
 		if($_SESSION['tournamentID'] == null){
 			$sql = "SELECT tournamentID
 					FROM eventTournaments
@@ -156,7 +160,7 @@ $conn = connectToDB();
 // Tournament Specific Constants
 	if($_SESSION['tournamentID'] != null){
 		$tournamentID = $_SESSION['tournamentID'];
-		$sql = "SELECT isFinalized, useTimer, isTeams, logicMode
+		$sql = "SELECT isFinalized, useTimer, isTeams, logicMode, formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$tSettings = mysqlQuery($sql, SINGLE);
@@ -175,8 +179,10 @@ $conn = connectToDB();
 		if($tSettings['logicMode'] != ''){
 			define("LOGIC_MODE", $tSettings['logicMode']);
 		}
-		
 
+	// Tournament format
+		$_SESSION['formatID'] = $tSettings['formatID'];
+		
 	}
 	if(!defined('IS_TIMER')){ define("IS_TIMER", false); }
 	if(!defined('LOCK_TOURNAMENT')){ define("LOCK_TOURNAMENT", ''); }
@@ -334,6 +340,9 @@ function initializeSession(){
 	if(!isset($_SESSION['groupSet']) || $_SESSION['groupSet'] == null){
 		$_SESSION['groupSet'] = 1;
 	}
+	if(!isset($_SESSION['formatID']) || $_SESSION['formatID'] == null){
+		$_SESSION['formatID'] = '';
+	}
 
 	if(!isset($_SESSION['userName'])){
 		$_SESSION['userName'] = '';
@@ -351,6 +360,12 @@ function initializeSession(){
 
 	if(!isset($_SESSION['rosterViewMode'])){
 		$_SESSION['rosterViewMode'] = [];
+	}
+	if(!isset($_SESSION['ratingViewMode'])){
+		$_SESSION['ratingViewMode'] = [];
+	}
+	if(!isset($_SESSION['displayByPool'])){
+		$_SESSION['displayByPool'] = false;
 	}
 	if(!isset($_SESSION['bracketHelper'])){
 		$_SESSION['bracketHelper'] = [];

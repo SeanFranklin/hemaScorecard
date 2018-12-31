@@ -45,6 +45,8 @@ if($_SESSION['eventID'] == null){
 		$numParticipants = $tournament['numParticipants'];
 		$divName = "tournament".$tournamentID;
 		$name = getTournamentName($tournamentID);
+
+		// LOCK_TOURNAMENT can't be used because it only applies to the current tournament
 		if(isFinalized($tournamentID)){
 			$isLocked = 'disabled';
 		} else {
@@ -86,7 +88,7 @@ if($_SESSION['eventID'] == null){
 
 			<div id='requiredFields_<?=$tournamentID?>' class='grid-x grid-padding-x text-center'>
 				<?php
-				edit_tournamentElimType($tournamentID);
+				edit_tournamentFormatType($tournamentID);
 				edit_tournamentDoubleType($tournamentID);
 				edit_tournamentRankingType($tournamentID);
 				edit_tournamentNetScore($tournamentID);
@@ -109,6 +111,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentPoolWinners($tournamentID);
 
 				edit_tournamentMaxExchanges($tournamentID);
+				edit_tournamentMaxPoints($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentOverrideDoubles($tournamentID);

@@ -26,8 +26,8 @@ if($tournamentID == null){
 	pageError('tournament');	
 } elseif($pools == null){
 	poolSetNavigation();
-	if(!isPools($tournamentID)){
-		if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
+	if($_SESSION['formatID'] != FORMAT_MATCH){
+		if($_SESSION['formatID'] == FORMAT_SOLO && ALLOW['VIEW_SETTINGS'] == false){
 			// redirects to the rounds if they happen to go to the pools
 			// page while in a rounds tournament
 			redirect('roundRosters.php');
@@ -41,6 +41,8 @@ if($tournamentID == null){
 		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
+
+	$numPools = count($pools);
 	
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
@@ -94,7 +96,7 @@ if($tournamentID == null){
 			<?php poolSetNavigation(); ?>
 		</div>
 		<div class='auto cell'>
-			<?php autoPopluateButton(); ?>
+			<?php autoPopluateButton($numPools); ?>
 		</div>
 	</div>
 	
@@ -173,8 +175,9 @@ function poolManagement($numPools = 0){
 			<button class='button expanded' data-open='addPoolsBox' <?=LOCK_TOURNAMENT?>>
 				Add New Pools
 			</button>
+			<?php addPoolsBox($tournamentID); ?>
 		</div>
-		<?php addPoolsBox($tournamentID); ?>
+		
 	
 	<!-- Re-order pools -->
 		<div class='large-3 medium-4 cell'>
@@ -198,14 +201,14 @@ function poolManagement($numPools = 0){
 		</div>
 		
 	<!-- Pool set management -->
-		<?php if(isPoolSets($tournamentID)): ?>
-			<div class='large-3 medium-4 text-center cell'>
-				<button class='button expanded' data-open='poolSetBox' <?=LOCK_TOURNAMENT?>>
-					Manage Pool Sets
-				</button>
-			</div>
+		<div class='large-3 medium-4 text-center cell'>
+			<button class='button expanded' data-open='poolSetBox' <?=LOCK_TOURNAMENT?>>
+				Manage Pool Sets
+			</button>
 			<?php poolSetBox($tournamentID); ?>
-		<?php endif ?>
+		</div>
+		
+		
 	
 	</div>
 	</div>
@@ -269,6 +272,8 @@ function poolSetBox($tournamentID){
 	if($normalizeSize < 2){
 		$normalizeSize = 'Auto';
 	}
+
+
 	?>
 	
 	<div class='reveal large' id='poolSetBox' data-reveal>
@@ -434,55 +439,160 @@ function renamePoolsBox(){
 
 /******************************************************************************/
 
-function autoPopluateButton($tournamentID = null){
+function autoPopluateButton($numPools, $tournamentID = null){
 // Generate pool seedings based on the previous pool sets and the
 // scoring algorithm of the tournament
 	
 	if($tournamentID == ''){$tournamentID = $_SESSION['tournamentID'];}
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
-	if($_SESSION['groupSet'] <= 1){	return;}
-	if(!isPoolSets($tournamentID)){	return;}
+
+	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']-1);
 	?>
 
+	<button class='button hollow' data-open='autoPopulateBox' <?=LOCK_TOURNAMENT?>>
+		Generate Pools
+	</button>
+
+
+	<div class='reveal tiny' id='autoPopulateBox' data-reveal>
+	<h5>Auto-Generate Pools</h5>
+	<em>This will try it's best to meet all the conditions you specify. No gaurantees!</em>
 	<form method='POST'>
-	<div class='grid-x grid-margin-x grid-padding-x'>
-		<input type='hidden' name='advancementsForSetNum' value='<?=$_SESSION['groupSet']?>'>
+
+		<input type='hidden' name='generatePools[groupSet]' value='<?=$_SESSION['groupSet']?>'>
+
+		<?php if($incompleteMatches != null): ?>
+			<div id='incompleteMatchesDiv' class='callout'>
+				<?php displayIncompleteMatches($incompleteMatches);?>
+			</div>
+		<?php endif ?>
 
 
-		<div class='shrink align-self-middle opacity-toggle'>
-			Pools per tier:
-			<?php tooltip("Specifying a number allows you to create &#39;groupings&#39; of fighters.<BR>
-				Leave blank to distribute fighters between all the pools.
-				<BR><BR>
-				eg: 2 Pools per tier will fill the first 2 pools up with the highest ranked, and so on."); ?>
+	<!-- Seed Method -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				<strong>Seeding Source:</strong>
+			</span>
+			<select class='input-group-field' type='text' size='1' required
+				name='generatePools[seedMethod]' value='' placeholder='all'> 
+				<option selected disabled></option>
+				<?php if($_SESSION['groupSet'] > 1): ?>
+					<option value='poolStanding'>Previous Pool Ranking</option>
+				<?php endif ?>
+				<option value='random'>Random</option>
+				<option value='seedList'>Seed List</option>
+				<option disabled value='hemaRatings'>HEMA Ratings</option>
+
+			</select>
 		</div>
-		&nbsp;
-		<div class='shrink'>
-			<input type='text' size='1' name='poolsInTier' value='' placeholder='all'> 
+
+		<HR>
+
+	<!-- Separate Schools -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Separate Schools?
+				<?php tooltip("The software will attempt to create pools that 
+						avoids people from the same school fighting each other, 
+						while also seeding based on rank."); ?>
+			</span>
+			<div class='switch no-bottom input-group-field'>
+				<input class='switch-input' type='hidden'  
+					name='generatePools[avoidSchoolFights]' value=0>
+				<input class='switch-input' type='checkbox' id='avoidSchoolFights' 
+					name='generatePools[avoidSchoolFights]' value=1>
+				<label class='switch-paddle' for='avoidSchoolFights'>
+				</label>
+			</div>
 		</div>
-		<div class='shrink align-self-middle'>
-			 <button class='button secondary hollow' name='formName' value='generateNextPoolSet'>
-				Populate Advancements
+
+	<!-- Avoid Re-fights -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Avoid Re-Fights?
+					<?php tooltip("The software will attempt to create pools with 
+						the least number of fighters facing fighters
+						they have fought before, while also seeding based on rank."); ?>
+			</span>
+			<div class='switch no-bottom input-group-field'>
+				<input class='switch-input' type='hidden'  
+					name='generatePools[avoidRefights]' value=0>
+				<input class='switch-input' type='checkbox' id='avoidRefights' 
+					name='generatePools[avoidRefights]' value=1>
+				<label class='switch-paddle' for='avoidRefights'>
+				</label>
+			</div>
+		</div>
+
+	<!-- Pools per tier -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Pools per tier:
+				<?php tooltip("Specifying a number allows you to create 
+					&#39;groupings&#39; of fighters.<BR>
+					Leave blank to distribute fighters between all the pools.
+					<BR><BR>
+					eg: 2 Pools per tier will fill the first 2 pools up
+					 with the highest ranked, and so on."); ?>
+			</span>
+			<select class='input-group-field' type='text' size='1' 
+				name='generatePools[poolsInTier]' value='' placeholder='all'> 
+				<option value=0>- all -</option>
+				<?php for($i=1;$i<=$numPools;$i++): ?>
+					<option value=<?=$i?>><?=$i?></option>
+				<?php endfor ?>
+
+			</select>
+		</div>
+
+	<!-- Show Debug -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Show Generation Data?
+					<?php tooltip("This will show you the calculations to generate the poosl.<BR>
+					<em>Warning</em>: This will flood your screen with numbers."); ?>
+			</span>
+			<div class='switch no-bottom input-group-field'>
+				<input class='switch-input' type='hidden'  
+					name='generatePools[debug]' value=0>
+				<input class='switch-input' type='checkbox' id='debug' 
+					name='generatePools[debug]' value=1>
+				<label class='switch-paddle' for='debug'>
+				</label>
+			</div>
+		</div>
+
+		<HR>
+
+	<!-- Submit buttons -->
+		<?php if($incompleteMatches != null): ?>
+			<span class='red-text'>
+				<strong>There are incomplete pool matches.</strong><BR>
+			</span>
+				Advancements will be generated based on incomplete information.<BR>
+			<em class='grey-text'>
+				(If fighters are injured/disqualifiedthey should be removed using Manage Fighters -> Withdraw Fighters.)
+			</em>
+		<?php endif ?>
+		<div class='grid-x grid-margin-x'>
+			<button class='success button small-6 cell' name='formName' value='generatePools'>
+				Populate
+			</button>
+			<button class='secondary button small-6 cell' 
+				data-close aria-label='Close modal' type='button'>
+				Cancel
 			</button>
 		</div>
-		&nbsp;
-		<div>
-		Avoid Re-Fights?
-		<?php tooltip("The software will attempt to create pools with the least number of fighters facing fighters
-				they have fought before, while also seeding based on rank."); ?>
-		<div class='switch text-center no-bottom'>
-			<input class='switch-input' type='checkbox' id='avoidRefights' 
-				name='avoidRefights' value='true'>
-			<label class='switch-paddle' for='avoidRefights'>
-			</label>
-		</div>
-
-		</div>
-
-	</div>
 	
 	</form>
+
+	<!-- Reveal close button -->
+	<button class='close-button' data-close aria-label='Close modal' type='button'>
+		<span aria-hidden='true'>&times;</span>
+	</button>
+
+	</div>
 	
 <?php }
 
@@ -548,8 +658,8 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams){
 				<select name='groupAdditions[<?=$groupID?>][<?=$i?>]' class='opacity-toggle'>
 					<option value=''></option>
 					<?php foreach((array)$tournamentRoster as $entry):
-						if(isset($_SESSION['poolSeeds'][$poolNum][$i])){
-							$seedID = $_SESSION['poolSeeds'][$poolNum][$i];
+						if(isset($_SESSION['poolSeeds'][$poolNum-1][$i-1])){
+							$seedID = $_SESSION['poolSeeds'][$poolNum-1][$i-1];
 						} else {
 							$seedID = false;
 						}

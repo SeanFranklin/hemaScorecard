@@ -16,8 +16,8 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
 	pageError('tournament');
-} elseif(!isPools($tournamentID)){
-	if(isRounds($tournamentID) && ALLOW['VIEW_SETTINGS'] == false){
+} elseif($_SESSION['formatID'] != FORMAT_MATCH){
+	if($_SESSION['formatID'] == FORMAT_SOLO && ALLOW['VIEW_SETTINGS'] == false){
 		// redirects to the rounds if they happen to go to the pools
 		// page while in a rounds tournament
 		redirect('roundMatches.php');

@@ -20,8 +20,8 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
 	pageError('tournament');
-} elseif(!isBrackets($tournamentID)){
-	displayAlert("There are no brackets for this tournament");
+} elseif($_SESSION['formatID'] != FORMAT_MATCH){
+	displayAlert("There are no brackets for this tournament format");
 } elseif (    (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
 		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)
 ){
