@@ -190,6 +190,28 @@ function addEventParticipantsByID(){
 
 /******************************************************************************/
 
+function updateFighterRatings($ratingData){
+
+	$tournamentID = (int)$ratingData['tournamentID'];
+
+	$updateString = '';
+	foreach($ratingData['fighters'] as $id => $r){
+		$rating = (int)$r;
+		$rosterID = (int)$id;
+
+		$sql = "UPDATE eventTournamentRoster
+				SET rating = {$rating}
+				WHERE tournamentID = {$tournamentID}
+				AND rosterID = {$rosterID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT,"Ratings Updated");
+
+}
+
+/******************************************************************************/
+
 function addEventParticipantsByName(){
 	
 	$eventID = $_SESSION['eventID'];
@@ -773,61 +795,90 @@ function combineSystemRosterIDs($baseID, $rosterIDs){
 
 /******************************************************************************/
 
-function concludeMatchByExchanges($matchID, $exchanges, $maxExchanges){
+function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
 	
-	$matchInfo = getMatchInfo($matchID);
-	if($matchInfo['matchComplete'] == 1 || $matchInfo['ignoreMatch'] == 1){ return;}
-	$numExchanges = 0;
-	$doubles = 0;
-
-	foreach($exchanges as $exchange){
-		switch($exchange['exchangeType']){
-			case 'clean':
-			case 'afterblow':
-				$numExchanges++;
-				break;
-			case 'double':
-				$doubles++;
-				$numExchanges++;
-				break;
-			default:
-		}
-	
+	if($matchInfo['matchComplete'] == 1 || $matchInfo['ignoreMatch'] == 1){ 
+		return false;
 	}
+
+	if($matchInfo['fighter1score'] >= $maxPoints || $matchInfo['fighter2score'] >= $maxPoints){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
 	
-	if($numExchanges < $maxExchanges){ return; }
+	if($matchInfo['matchComplete'] == 1 || $matchInfo['ignoreMatch'] == 1){ 
+		return false;
+	}
+
+	$sql = "SELECT COUNT(*) AS numExchanges
+			FROM eventExchanges
+			WHERE matchID = {$matchInfo['matchID']}
+			AND exchangeType IN ('clean','afterblow','double')";
+	$numExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
+
+	if($numExchanges >= $maxExchanges){
+		return true;
+	} else {
+		return false;
+	}
+}
 	
-	$_POST['matchID'] = $matchID;
-	if(isReverseScore() == REVERSE_SCORE_GOLF){
+/******************************************************************************/
+
+function autoConcludeMatch($matchInfo){
+
+
+	if(isReverseScore($matchInfo['tournamentID']) == REVERSE_SCORE_GOLF){
 		$reversedResult = true;
 	} else {
 		$reversedResult = false;
 	}
+
+	$_POST['matchID'] = $matchInfo['matchID'];
 	
-	if($doubles >= $matchInfo['maxDoubles']){
-		$_POST['matchID'] = $_POST['matchID'];
+	if(getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
+
 		$_POST['matchWinnerID'] = 'doubleOut';
+
 	} elseif($matchInfo['fighter1score'] == $matchInfo['fighter2score']){
+
 		if(!isTies()){
-			$_SESSION['alertMessages']['userErrors'][] = "Tie match, can't conclude.";
+			setAlert(USER_ERROR,"Tie match, can't conclude.");
 			return;
 		}
 		$_POST['matchWinnerID'] = 'tie';
+
 	} elseif($matchInfo['fighter1score'] > $matchInfo['fighter2score']){
+
 		if($reversedResult == false){
 			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
 		} else {
 			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
 		}
+
 	} elseif($matchInfo['fighter2score'] > $matchInfo['fighter1score']){
+
 		if($reversedResult == false){
 			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
 		} else {
 			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
 		}
+
 	} else {
-		$_SESSION['alertMessages']['userErrors'][] = "Unable to determine how to conclude match";
+
+		setAlert(USER_ERROR,"Unable to determine how to conclude match");
 		return;
+
 	}
 	
 	addMatchWinner();
@@ -1523,6 +1574,7 @@ function generateTournamentPlacings($tournamentID){
 	if($tournamentID == 'cancel'){
 		return;
 	}
+	$tournamentID = (int)$tournamentID;
 	
 	if(isset($_POST['enableManualTournamentPlacing'])){
 		$_SESSION['manualTournamentPlacing'] = $tournamentID;
@@ -1530,6 +1582,7 @@ function generateTournamentPlacings($tournamentID){
 	}
 	
 	$_SESSION['jumpTo'] = "anchor{$tournamentID}";
+	$formatID = getTournamentFormat($tournamentID);
 	
 	// If tournament placings have been manualy specified by the used.
 	if(isset($_POST['manualTournamentPlacing'])){
@@ -1544,9 +1597,11 @@ function generateTournamentPlacings($tournamentID){
 				$_SESSION['manualPlacingMessage'][$tournamentID] = "The same fighter is entered in more than on place. Can not finalize results.";
 				$_SESSION['alertMessages']['userErrors'][] = "Fighters entered in more than on location. Can not finalize results.";
 				$_SESSION['lastManualPlacingAttempt'] = $_POST['placing'];
+
+
 				if(isBrackets($tournamentID)){
 					generateTournamentPlacings_bracket($tournamentID);
-				} elseif (isRounds($tournamentID)){
+				} elseif ($formatID == FORMAT_SOLO){
 					generateTournamentPlacings_round($tournamentID);
 				} else{
 					generateTournamentPlacings_set($tournamentID);
@@ -1587,16 +1642,14 @@ function generateTournamentPlacings($tournamentID){
 				SET isFinalized = 1
 				WHERE tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
-		return;
 	
 	} elseif(isBrackets($tournamentID)){
 		generateTournamentPlacings_bracket($tournamentID);
-	} elseif (isRounds($tournamentID)){
+	} elseif ($formatID == FORMAT_SOLO){
 		generateTournamentPlacings_round($tournamentID);
 	} else{
 		generateTournamentPlacings_set($tournamentID);
 	}
-	
 }
 
 /******************************************************************************/
@@ -1606,6 +1659,7 @@ function generateTournamentPlacings_set($tournamentID){
 	$numSets = getNumGroupSets($tournamentID);
 	
 	$placeNum = 0;
+	$overallScores = [];
 	for($set = $numSets; $set >= 1; $set--){
 		$sql = "SELECT  rosterID, rank, score
 				FROM eventStandings
@@ -1862,7 +1916,7 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 	} else{
 		$exchangeTime = 'NULL';
 	}
-	
+
 	if($refPrefix == null){
 		$refPrefix = 'NULL';
 	}
@@ -1894,7 +1948,7 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 				recievingID		= {$recievingID}, 
 				scoreValue 		= {$scoreValue}, 
 				scoreDeduction  = {$scoreDeduction}, 
-				exchangeTime	= {$exchangeTime}, 
+				
 				refPrefix		= {$refPrefix}, 
 				refType			= {$refType}, 
 				refTarget		= {$refTarget}
@@ -2557,6 +2611,41 @@ function updateEventDefaults(){
 	$_SESSION['alertMessages']['userAlerts'][] = "Event Defaults Updated";
 }
 
+/******************************************************************************/
+
+function updateEventInformation($newEventInfo,$eventID){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){
+		return;
+	}
+
+	$startDate = $newEventInfo['startDate'];
+	$endDate = $newEventInfo['endDate'];
+
+	// Check that the start date isn't after the end date.
+	$eStart = date_create($startDate);
+	$eEnd= date_create($endDate);
+	$diff = date_diff($eStart,$eEnd);
+	$num = (int)$diff->format('%R%a');
+	if($num < 0){
+		$endDate = $startDate;
+	}
+
+	$sql = "UPDATE systemEvents SET
+			eventName = ?, eventStartDate = ?, eventEndDate = ?
+			WHERE eventID = ?";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	$bind = mysqli_stmt_bind_param($stmt, "sssi", 
+									$newEventInfo['eventName'],
+									$startDate,
+									$endDate,
+									$eventID);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);	
+
+}
+
 
 /******************************************************************************/
 
@@ -2618,7 +2707,6 @@ function updatePasswords($passwordData){
 				FROM systemUsers
 				WHERE userID = {$userID}";
 		$tableUserName = mysqlQuery($sql, SINGLE, 'userName');
-		show($tableUserName);
 
 		if($tableUserName == null){
 			setAlert(USER_ERROR,"Invalid user selected.<BR><strong>Password not changed</strong>");
@@ -2649,8 +2737,8 @@ function updatePasswords($passwordData){
 /******************************************************************************/
 
 function updateEventTournaments(){
+
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
-		
 		return;
 	}
 	
@@ -2660,22 +2748,6 @@ function updateEventTournaments(){
 	$defaults = getEventDefaults($eventID);
 	$info = $_POST['updateTournament'];
 
-
-	if($info['isTeams'] == true){
-		if($info['logicMode'] == 'team_AllVsAll'
-			&& (   $info['tournamentElimID'] == POOL_BRACKET
-			    || $info['tournamentElimID'] == DIRECT_BRACKET
-			   )
-			){
-			$info['logicMode'] = "NULL";
-
-			setAlert(USER_ERROR,"Brackets are not supported for having all team members fight each other.
-				<BR>If you want this feature get in contact and we can talk about implementation.
-				<BR><strong>Tournament has been converted to <u>Team vs Team</u>.</strong>");
-		}
-	}
-
-
 	switch($_POST['updateType']){
 	// Add a new tournament
 		case 'add':
@@ -2683,6 +2755,7 @@ function updateEventTournaments(){
 			if(!isset($info['tournamentRankingID'])){ $info['tournamentRankingID'] = 'null'; }
 			if(!isset($info['doubleTypeID'])){ $info['doubleTypeID'] = 'null'; }
 			if($info['maximumExchanges'] == ''){$info['maximumExchanges'] = 'null';}
+			if($info['maximumPoints'] == ''){$info['maximumPoints'] = 'null';}
 			if(!isset($info['isNotNetScore'])){$info['isNotNetScore'] = 0;}
 			if($info['basePointValue'] == ''){$info['basePointValue'] = 0;}
 			if($info['logicMode'] != "NULL"){$info['logicMode'] = "'".$info['logicMode']."'";}
@@ -2709,8 +2782,8 @@ function updateEventTournaments(){
 					eventID, tournamentWeaponID, tournamentPrefixID, 
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
-					maxDoubleHits, tournamentElimID, tournamentRankingID,
-					maximumExchanges, isCuttingQual, useTimer, useControlPoint,
+					maxDoubleHits, formatID, tournamentRankingID,
+					maximumExchanges, maximumPoints, isCuttingQual, useTimer, useControlPoint,
 					isNotNetScore, basePointValue, overrideDoubleType, isPrivate, 
 					isReverseScore, isTeams, logicMode, poolWinnersFirst
 					) VALUES (
@@ -2725,9 +2798,10 @@ function updateEventTournaments(){
 					{$info['color2ID']},
 					{$info['maxPoolSize']},
 					{$info['maxDoubleHits']},
-					{$info['tournamentElimID']},
+					{$info['formatID']},
 					{$info['tournamentRankingID']},
 					{$info['maximumExchanges']},
+					{$info['maximumPoints']},
 					{$info['isCuttingQual']},
 					{$info['useTimer']},
 					{$info['useControlPoint']},
@@ -2777,35 +2851,7 @@ function updateEventTournaments(){
 			$wasMatchesByTeam = isMatchesByTeam($tournamentID);
 			$wasTeamTournament = isTeams($tournamentID);
 
-		// Delete groups if the elim type has changed		
-			$elimTypeID = $info['tournamentElimID'];
-			switch ($elimTypeID){
-				case POOL_BRACKET:
-					$whereStatement = "AND (groupType != 'pool' OR groupSet > 1) AND groupType != 'elim'";
-					break;
-				case SCORED_EVENT:
-					$whereStatement = "AND groupType != 'round'";
-					break;
-				case POOL_SETS:	
-					$whereStatement = "AND groupType != 'pool'";
-					break;
-				case DIRECT_BRACKET:
-					$whereStatement = "AND groupType != 'elim'";
-					break;
-				case RESULTS_ONLY:
-					$whereStatement = '';
-					break;
-				default:
-					$whereStatement = "AND FALSE";
-					// Don't delete anything if you don't know what is going on 
-					break;
-			}
-			
-			$sql = "DELETE FROM eventGroups
-					WHERE tournamentID = {$tournamentID}
-					{$whereStatement}";
-					
-			mysqlQuery($sql, SEND);
+		
 			
 		// Construct SQL statement to do all updates
 
@@ -2820,13 +2866,39 @@ function updateEventTournaments(){
 			$sql = rtrim($sql,', \t\n');
 			$sql .= " WHERE tournamentID = {$tournamentID}";
 			mysqlQuery($sql, SEND);
-			
 
-			if($elimTypeID != POOL_SETS && $elimTypeID != SCORED_EVENT){
-				$_SESSION['groupSet'] = 1;
-				$sql = "UPDATE eventTournaments SET numGroupSets = 1 WHERE tournamentID = {$tournamentID}";
-				mysqlQuery($sql, SEND);
+		// Delete groups if the elim type has changed		
+			$formatID = $info['formatID'];
+
+			$whereStatement = '';
+			if($formatID == FORMAT_MATCH){
+				$whereStatement .= "AND groupType != 'pool' AND groupType != 'elim'";
 			}
+			if($formatID == FORMAT_SOLO){
+				$whereStatement .= "AND groupType != 'round'";
+			}
+			
+			$sql = "DELETE FROM eventGroups
+					WHERE tournamentID = {$tournamentID}
+					{$whereStatement}";
+					
+			mysqlQuery($sql, SEND);	
+
+		// Clean up if switching number of pool sets
+			if($formatID != FORMAT_MATCH && $formatID != FORMAT_SOLO){
+				$_SESSION['groupSet'] = 1;
+				$sql = "UPDATE eventTournaments 
+						SET numGroupSets = 1 
+						WHERE tournamentID = {$tournamentID}";
+				mysqlQuery($sql, SEND);
+
+				$sql = "DELETE FROM eventAttributes
+						WHERE tournamentID = {$tournamentID}
+						AND attributeGroupSet > 1";
+				mysqlQuery($sql,SEND);
+			}
+
+	
 
 		// Clean up data if switching between team modes
 			if(isEntriesByTeam($tournamentID) == true && $wasEntriesByTeam == false){
@@ -3814,6 +3886,52 @@ function updateTournamentCuttingStandard($tournamentID = null){
 
 /******************************************************************************/
 
+function updateTournamentComponents($componentData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
+
+	$tournamentID = (int)$componentData['tournamentID'];
+
+	foreach($componentData['components'] as $compTourID => $bool){
+
+		// A tournament can't be a component of itself
+		if($compTourID == $tournamentID){ continue;}
+		$compID = (int)$compTourID;
+
+		if($bool == false){
+
+			$sql = "DELETE FROM eventComponents
+					WHERE tournamentID = {$tournamentID}
+					AND componentTournamentID = {$compID}";
+			mysqlQuery($sql, SEND);
+
+		} else {
+
+			$sql = "SELECT COUNT(*) AS numOccurances
+					FROM eventComponents
+					WHERE tournamentID = {$tournamentID}
+					AND componentTournamentID = {$compID}";
+			$alreadyAdded = (bool)mysqlQuery($sql, SINGLE, 'numOccurances');
+
+			if($alreadyAdded == false){
+				$sql = "INSERT INTO eventComponents
+						(tournamentID, componentTournamentID)
+						VALUES
+						({$tournamentID}, {$compID})";
+				mysqlQuery($sql, SEND);
+			}
+
+		}
+	}
+
+	updateTournamentFighterCounts();
+
+	setAlert(USER_ALERT,"Tournament components updated.");
+
+}
+
+/******************************************************************************/
+
 function updateTournamentFighterCounts($tournamentID = null){
 	
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -3824,19 +3942,96 @@ function updateTournamentFighterCounts($tournamentID = null){
 	}
 	
 	foreach((array)$tournamentList as $tournamentID){
-		$sql = "SELECT rosterID 
-				FROM eventTournamentRoster
-				WHERE tournamentID = {$tournamentID}";
-		$result = mysqlQuery($sql, ASSOC);
 
-		$numFighters = count($result);
-		
 		$sql = "UPDATE eventTournaments
-				SET numParticipants = $numFighters
+				SET numParticipants = (SELECT COUNT(*)
+										FROM eventTournamentRoster
+										WHERE tournamentID = {$tournamentID})
 				WHERE tournamentID = {$tournamentID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	// Check if there is a composite tournament
+
+	$compFormatNum = FORMAT_COMPOSITE;
+	$sql = "SELECT tournamentID
+			FROM eventTournaments
+			WHERE formatID = {$compFormatNum}
+			AND eventID = ( SELECT eventID
+							FROM eventTournaments
+							WHERE tournamentID = {$tournamentID})";
+	$compositeTournaments = mysqlQuery($sql, SINGLES, 'tournamentID');
+
+	if($compositeTournaments == null){
+		return;
+	}
+
+	foreach($compositeTournaments as $tournamentID){
+
+		$tournamentComponents = getTournamentComponents($tournamentID);
+		if($tournamentComponents == null){continue;}
+
+		$tString = '';
+		$numComponents = 0;
+		foreach($tournamentComponents['fullList'] as $tCompID){
+			if($tString != ''){
+				$tString .= ", ";
+			}
+			$tString .= "{$tCompID}";
+			$numComponents++;
+		}
+
+		$sql = "SELECT DISTINCT rosterID
+				FROM eventTournamentRoster as eTR1
+				WHERE (	SELECT COUNT(*)
+						FROM eventTournamentRoster as eTR2
+						WHERE eTR1.rosterID = eTR2.rosterID
+						AND eTR2.tournamentID IN ({$tString}) )
+					= {$numComponents}";
+
+		$tournamentRoster = mysqlQuery($sql, SINGLES, 'rosterID');
+		
+		$rString = '';
+		$numParticipants = 0;
+		foreach($tournamentRoster as $rosterID){
+			
+			if($rString != ''){
+				$rString .= ", ";
+			}
+			$rString .= "{$rosterID}";
+			$numParticipants++;
+
+			$sql = "SELECT COUNT(*) AS isIn
+					FROM eventTournamentRoster
+					WHERE tournamentID = {$tournamentID}
+					AND rosterID = {$rosterID}";
+			$isAlreadyEntered = (bool)mysqlQuery($sql, SINGLE, 'isIn');
+
+			if($isAlreadyEntered == false){
+				$sql = "INSERT INTO eventTournamentRoster
+						(rosterID, tournamentID)
+						VALUES
+						({$rosterID}, {$tournamentID})";
+				mysqlQuery($sql, SEND);
+			}
+		}
+
+		// Delete any fighters not still in the tournaments
+		$sql = "DELETE FROM eventTournamentRoster
+				WHERE tournamentID = {$tournamentID}
+				AND rosterID NOT IN ({$rString})";
+		mysqlQuery($sql, SEND);
+
+		// Finaly update the participant count.
+		$sql = "UPDATE eventTournaments
+		SET numParticipants = {$numParticipants}
+		WHERE tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
 
 	}
+
+
+
 }
 
 /******************************************************************************/

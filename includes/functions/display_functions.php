@@ -439,37 +439,37 @@ function edit_tournamentName($tournamentID = 'new'){
 
 /*****************************************************************************/
 
-function edit_tournamentElimType($tournamentID = 'new'){
+function edit_tournamentFormatType($tournamentID = 'new'){
 // Select menu for the type of tournament
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a select box to create a new tournament if no parameter is passed
 	
-	$sql = "SELECT elimTypeID, elimTypeName
-			FROM systemElimTypes";
-	$elimTypes = mysqlQuery($sql, KEY_SINGLES, 'elimTypeID', 'elimTypeName');
+	$sql = "SELECT formatID, formatName
+			FROM systemFormats";
+	$formatTypes = mysqlQuery($sql, KEY_SINGLES, 'formatID', 'formatName');
 	
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$currentID = mysqlQuery($sql, SINGLE, 'tournamentElimID');
+		$currentID = mysqlQuery($sql, SINGLE, 'formatID');
 	}
 	?>
 	
 <!-- Start display -->
 	<div class='medium-6 large-3 cell tournament-edit-box' 
-		id='elimID_div<?=$tournamentID?>'>
+		id='formatID_div<?=$tournamentID?>'>
 			
 		<strong>Tournament Type</strong>
 
-		<select name='updateTournament[tournamentElimID]' 
-			onchange="edit_elimType('<?=$tournamentID?>')"
-			id='elimID_select<?=$tournamentID?>'>
+		<select name='updateTournament[formatID]' 
+			onchange="edit_formatType('<?=$tournamentID?>')"
+			id='formatID_select<?=$tournamentID?>'>
 			
 			<?php if($tournamentID == 'new'): ?>
 				<option selected disabled></option>
 			<?php endif ?>	
-			<?php foreach($elimTypes as $ID => $name): ?>
+			<?php foreach($formatTypes as $ID => $name): ?>
 				<option <?=optionValue($ID, @$currentID)?> >
 					<?=$name?>
 				</option>
@@ -492,25 +492,23 @@ function edit_tournamentDoubleType($tournamentID = 'new'){
 	
 	$display = "hidden"; 		// Hidden for most cases
 	$nullOptionSelected = "selected";
+	$currentID = null;
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$elimTypeID = mysqlQuery($sql, SINGLE, 'tournamentElimID');
+		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
 		
-		switch($elimTypeID){
-			case POOL_BRACKET:
-			case DIRECT_BRACKET:
-			case POOL_SETS:
-				$display = '';
-				$nullOptionSelected = '';
-				
-				$sql = "SELECT doubleTypeID
-						FROM eventTournaments
-						WHERE tournamentID = {$tournamentID}";
-				$currentID = mysqlQuery($sql, SINGLE, 'doubleTypeID');	
+		if($formatID == FORMAT_MATCH){
+			$display = '';
+			$nullOptionSelected = '';
+			
+			$sql = "SELECT doubleTypeID
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$currentID = mysqlQuery($sql, SINGLE, 'doubleTypeID');	
 		}
 	}
 	?>
@@ -526,7 +524,7 @@ function edit_tournamentDoubleType($tournamentID = 'new'){
 			
 			<option <?=$nullOptionSelected?> disabled></option>
 				<?php foreach($doubleTypes as $ID => $name):?>
-					<option <?=optionValue($ID, @$currentID)?>>
+					<option <?=optionValue($ID, $currentID)?>>
 						<?=$name?>						
 					</option>
 				<?php endforeach ?>
@@ -546,46 +544,28 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 	$nullOptionSelected = "selected";
 	$rankingTypeDescriptions = getRankingTypeDescriptions();
 	$rankingTypes = [];
+	$current = null;
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT tournamentRankingID, name
+				FROM systemRankings
+				WHERE formatID = (	SELECT formatID
+									FROM eventTournaments
+									WHERE tournamentID = {$tournamentID})
+				ORDER BY numberOfInstances DESC";
+		$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
+
+		if($rankingTypes != null){
+			$display = null;
+			$nullOptionSelected = null;	
+		}
+
+
+		$sql = "SELECT tournamentRankingID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$elimTypeID = mysqlQuery($sql, SINGLE, 'tournamentElimID');
-		
-		// Generate query to get eligible alogrithms based on tournament type
-		switch($elimTypeID){
-			case POOL_BRACKET:
-				$where = "WHERE Pool_Bracket = 1";
-				break;
-			case POOL_SETS:
-				$where = "WHERE Pool_Sets = 1";
-				break;
-			case SCORED_EVENT:
-				$where = "WHERE Scored_Event = 1";
-				break;
-			default:
-				$where = null;
-		}
-		
-		// Get ranking types
-		if($where != null){
-			$display = null;
-			$nullOptionSelected = null;
-
-			$sql = "SELECT tournamentRankingID
-					FROM eventTournaments
-					WHERE tournamentID = {$tournamentID}";
-			$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');
-			
-			
-			$sql = "SELECT tournamentRankingID, name
-					FROM systemRankings
-					{$where}
-					ORDER BY numberOfInstances DESC";
-			$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
-		}		
+		$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');	
 	}
 	?>
 
@@ -602,11 +582,10 @@ function edit_tournamentRankingType($tournamentID = 'new'){
 			id='rankingID_select<?=$tournamentID?>'>
 		
 			<option disabled <?=$nullOptionSelected?>></option>
-			<?php foreach($rankingTypes as $ID => $name):
-				$selected = isSelected($ID, $currentID);
-				?>
-				
-				<option value='<?=$ID?>' <?=$selected?>><?=$name?></option>
+			<?php foreach($rankingTypes as $ID => $name):?>
+				<option <?=optionValue($ID, $currentID)?> >
+					<?=$name?>	
+				</option>
 			<?php endforeach ?>
 		</select>
 	</div>
@@ -696,12 +675,14 @@ function edit_tournamentBasePoints($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID, isReverseScore
+		$sql = "SELECT formatID, isReverseScore
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$result = mysqlQuery($sql, SINGLE);
 		
-		if($result['tournamentElimID'] == SCORED_EVENT || $result['isReverseScore'] > REVERSE_SCORE_NO){
+		if($result['formatID'] == FORMAT_SOLO 
+			|| $result['formatID'] == FORMAT_COMPOSITE
+			|| $result['isReverseScore'] > REVERSE_SCORE_NO){
 			$display = '';
 			
 			$sql = "SELECT basePointValue
@@ -744,19 +725,20 @@ function edit_tournamentControlPoints($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$info = mysqlQuery($sql, SINGLE);
+		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
 		
+		if($formatID == FORMAT_MATCH){
+			$display = '';
+		}
+
 		$sql = "SELECT useControlPoint
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$value = mysqlQuery($sql, SINGLE, 'useControlPoint');
 		
-		if(in_array($info['tournamentElimID'], array(2,3,4)) ){
-			$display = '';
-		}
 	}
 	
 	if($value == null){
@@ -787,9 +769,11 @@ function edit_tournamentControlPoints($tournamentID = 'new'){
 					$selected = isSelected(0, $value);
 					echo "<option value=0 {$selected}>No</option>";
 					for($i = 1; $i <= $pointLimit; $i++):
-					$selected = isSelected($i, $value);
-					?>
-					<option value=<?=$i?> <?=$selected?>><?=$i?> Point<?=plrl($i)?></option>
+						$selected = isSelected($i, $value);
+						?>
+						<option <?=optionValue($i, $value)?> >
+							<?=$i?>Point<?=plrl($i)?>
+						</option>
 				<?php endfor ?>
 			
 		</select>		
@@ -809,7 +793,7 @@ function edit_tournamentMaxDoubles($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID, doubleTypeID
+		$sql = "SELECT formatID, doubleTypeID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$info = mysqlQuery($sql, SINGLE);
@@ -819,7 +803,7 @@ function edit_tournamentMaxDoubles($tournamentID = 'new'){
 				WHERE tournamentID = {$tournamentID}";
 		$maxDoubles = mysqlQuery($sql, SINGLE, 'maxDoubleHits');
 		
-		if(in_array($info['tournamentElimID'], array(2,3,4)) AND $info['doubleTypeID'] != 3){
+		if($info['formatID'] == FORMAT_MATCH AND $info['doubleTypeID'] != 3){
 			$display = '';
 		} else {
 			$sql = "SELECT overrideDoubleType
@@ -874,17 +858,17 @@ function edit_tournamentMaxPoolSize($tournamentID = 'new'){
 	
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$info = mysqlQuery($sql, SINGLE);
+		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
 		
 		$sql = "SELECT maxPoolSize
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$maxSize = mysqlQuery($sql, SINGLE, 'maxPoolSize');
 		
-		if(in_array($info['tournamentElimID'], array(2,4)) ){
+		if($formatID == FORMAT_MATCH){
 			$display ='';
 		}
 	}
@@ -932,17 +916,17 @@ function edit_tournamentNormalization($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$info = mysqlQuery($sql, SINGLE);
+		$formatID = mysqlQuery($sql, SINGLE);
 		
 		$sql = "SELECT normalizePoolSize
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$normSize = mysqlQuery($sql, SINGLE, 'normalizePoolSize');
 		
-		if(in_array($info['tournamentElimID'], array(2,4)) ){
+		if($formatID == FORMAT_MATCH ){
 			$display = '';
 		}
 	}
@@ -998,12 +982,12 @@ function edit_tournamentPoolWinners($tournamentID = 'new'){
 				WHERE tournamentID = {$tournamentID}";
 		$numWinners = mysqlQuery($sql, SINGLE, 'poolWinnersFirst');
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$info = mysqlQuery($sql, SINGLE);
+		$formatID = mysqlQuery($sql, SINGLE,'formatID');
 		
-		if(in_array($info['tournamentElimID'], array(2,4)) ){
+		if($formatID = FORMAT_MATCH ){
 			$display = '';
 		}
 		
@@ -1046,20 +1030,21 @@ function edit_tournamentColors($tournamentID = 'new', $num){
 	
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		$sql = "SELECT tournamentElimID
+		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$elimTypeID = mysqlQuery($sql, SINGLE, 'tournamentElimID');
+		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
 		
-		if($elimTypeID == POOL_SETS || $elimTypeID == POOL_BRACKET || $elimTypeID == DIRECT_BRACKET){
+		if($formatID == FORMAT_MATCH){
+
 			$display = '';
-			
 			
 			$sql = "SELECT color{$num}ID, colorName
 					FROM eventTournaments
 					INNER JOIN systemColors ON color{$num}ID = colorID
 					WHERE tournamentID = {$tournamentID}";
 			$color = mysqlQuery($sql, SINGLE);
+
 			$currentName = $color['colorName'];
 			$currentID = $color["color{$num}ID"];
 			
@@ -1098,11 +1083,8 @@ function edit_tournamentColors($tournamentID = 'new', $num){
 		<select name='updateTournament[color<?=$num?>ID]' 
 			id='color<?=$num?>_select<?=$tournamentID?>'>
 			
-			<?php foreach($colors as $color):
-				$selected = isSelected($color['colorID'], $currentID);
-				?>
-				
-				<option value='<?=$color['colorID']?>' <?=$selected?>>
+			<?php foreach($colors as $color):?>
+				<option <?=optionValue($color['colorID'], $currentID)?> >
 					<?=$color['colorName']?>
 				</option>
 			<?php endforeach ?>
@@ -1124,7 +1106,8 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID)){
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH){
 			$display = '';
 			
 			$sql = "SELECT allowTies
@@ -1182,7 +1165,7 @@ function edit_tournamentReverseScore($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID)){
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
 			
 			$sql = "SELECT isReverseScore
 					FROM eventTournaments
@@ -1234,7 +1217,7 @@ function edit_tournamentOverrideDoubles($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isFullAfterblow($tournamentID) && (isPools($tournamentID) || isBrackets($tournamentID))){
+		if(isFullAfterblow($tournamentID) && (getTournamentFormat($tournamentID) == FORMAT_MATCH)){
 			
 			$sql = "SELECT overrideDoubleType
 					FROM eventTournaments
@@ -1286,7 +1269,7 @@ function edit_tournamentNetScore($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID)){
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
 			
 			$sql = "SELECT isNotNetScore
 					FROM eventTournaments
@@ -1344,7 +1327,7 @@ function edit_tournamentTimer($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID)){
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
 			$display = '';
 			
 			$sql = "SELECT useTimer
@@ -1401,7 +1384,8 @@ function edit_tournamentCuttingQual($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID) || isRounds($tournamentID)){
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH || $formatID == FORMAT_SOLO){
 			$display = '';
 			
 			$sql = "SELECT isCuttingQual
@@ -1446,7 +1430,8 @@ function edit_tournamentKeepPrivate($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID) || isRounds($tournamentID)){
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH || $formatID == FORMAT_SOLO){
 			$display = '';
 			
 			$sql = "SELECT isPrivate
@@ -1554,7 +1539,7 @@ function edit_tournamentMaxExchanges($tournamentID = 'new'){
 	$maxExchanges = 0;
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(isPools($tournamentID) || isBrackets($tournamentID)){
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
 			$display = '';
 			
 			$sql = "SELECT maximumExchanges
@@ -1590,16 +1575,47 @@ function edit_tournamentMaxExchanges($tournamentID = 'new'){
 	
 <?php }
 
-/*******************************************************(**********************/
+/****************************************************(*************************/
 
-function toggleFighterListSort(){
-// Hidden form to be submited to change the sorting mode of roster displays
-// ie. Sort by laste name, sort by school	
+function edit_tournamentMaxPoints($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+
+	$maxPoints = 0;
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
+			$display = '';
+			
+			$sql = "SELECT maximumPoints
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$maxPoints = mysqlQuery($sql, SINGLE, 'maximumPoints');
+
+		}
+	} elseif($tournamentID == 'new') {
+		// Pull from event defaults
+	}
+
+	if($maxPoints == 0){
+		$maxPoints = '';
+	}
 	?>
 	
-	<form method='POST' id='rosterViewMode'>
-		<input type='hidden' name='formName' value='rosterViewMode'>
-	</form>
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='maxPoints_div<?=$tournamentID?>' >
+			
+		Maximum Points
+		<?php tooltip("Match will automaticaly conclude after this number is reached. <BR>
+			<strong>Leave blank for unlimited.</strong>"); ?>
+		<input type='number' name='updateTournament[maximumPoints]' value='<?=$maxPoints?>'
+			placeholder='Unlimited' min=0 max=100 class='text-center'>
+	</div>
 	
 <?php }
 
@@ -1627,7 +1643,7 @@ function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bot
 
 /******************************************************************************/
 
-function poolSetNavigation(){
+function poolSetNavigation($displayByPoolsButton = false){
 // Buttons to navigate between pool sets, only display if it is a pool set tournament	
 	
 	
@@ -1638,41 +1654,61 @@ function poolSetNavigation(){
 		return;
 	}
 	
-	$sql = "SELECT numGroupSets, tournamentElimID
-			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}";
-	$result = mysqlQuery($sql, SINGLE);
-	
-	$numGroupSets = $result['numGroupSets'];
-	$tournamentElimID = $result['tournamentElimID'];
+	$numGroupSets = getNumGroupSets($tournamentID);
 
-	if($numGroupSets <= 1){ return 1; }
+	if($displayByPoolsButton == true){
+		$sql = "SELECT COUNT(*) AS numNull
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND groupID IS NULL";
+		$numNull = mysqlQuery($sql, SINGLE, 'numNull');
+
+
+		if($numNull != 0){
+			$_SESSION['displayByPool'] = false;
+			$displayByPoolsButton = false;
+		} elseif($_SESSION['displayByPool'] == false){
+			$displayByPoolText = "Display by Pool";
+		} else {
+			$displayByPoolText = "Display by Rank";
+		}
+	}
+
 	?>
 	
 <!-- Start display -->
 	<form method='POST' style='display:inline'>
-	<input type='hidden' name='formName' value='changePoolSet'>
-	
-		<?php for($i = 1; $i <= $numGroupSets; $i++):
-			
-			if($i == $_SESSION['groupSet'] || !isset($_SESSION['groupSet'])){ 
-				$selected = null;
-			} else { 
-				$selected = 'hollow'; 
-			}
-			$name = getSetName($i, $tournamentID);
-			?>
-			
-			<button class='button <?=$selected?> secondary' 
-				name='groupSet' value='<?=$i?>'>
-				<?=$name?>
-			</button>
-		<?php endfor ?>
-	
+
+	<?php if($numGroupSets > 1): ?>
+		
+		<input type='hidden' name='formName' value='changePoolSet'>
+		
+			<?php for($i = 1; $i <= $numGroupSets; $i++):
+				
+				if($i == $_SESSION['groupSet'] || !isset($_SESSION['groupSet'])){ 
+					$selected = null;
+				} else { 
+					$selected = 'hollow'; 
+				}
+				$name = getSetName($i, $tournamentID);
+				?>
+				
+				<button class='button <?=$selected?> secondary' 
+					name='groupSet' value='<?=$i?>'>
+					<?=$name?>
+				</button>
+			<?php endfor ?>
+	<?php endif ?>
+
+	<?php if($displayByPoolsButton == true): ?>
+		<button class='button hollow float-right' name='formName' value='displayByPoolsToggle'>
+				<?=$displayByPoolText?>
+		</button>
+	<?php endif ?>
+
 	</form>
 	
 <?php 
-	return $numGroupSets;
 }
 
 /******************************************************************************/
@@ -2622,6 +2658,10 @@ function displayIncompleteMatches($incompleteMatches){
 // Used to show staff which events are not complete if they need to 
 // close them all to enable the bracket helper	
 	
+	if(count($incompleteMatches) < 1){
+		return;
+	}
+
 	?>
 	
 	<form method='POST'>
@@ -2646,6 +2686,64 @@ function displayIncompleteMatches($incompleteMatches){
 	
 	<?php unset($_SESSION['incompletePoolMatches']); ?>
 <?php }
+
+/******************************************************************************/
+
+function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
+							$ratingPoints,$schoolPoints,$refightPoints){
+// This function is used to calibrate the pool auto-generation feature
+// It shows the progress of every step in the pool generation, and what the
+// weighted values are for each attribute to consider.
+// THIS SHOULD NOT BE USED IN PRODUCTION
+
+	$info = getFighterInfo($fighterID);
+	echo "<BR><BR><h4>Adding <strong class='red-text'>{$info['name']}</strong> 
+		from <strong>{$info['schoolName']}</strong></h4>";
+
+	echo "<BR><u>Algorithm Scoring</u>";
+	echo "<table>";
+	echo "<tr><th></th>
+		<th>Pool Size Score</th>
+		<th>Rating Score</th>
+		<th>Same-School Score</th>
+		<th>Num Refights Score</th>
+		<th>TOTAL SCORE</th></tr>";
+	foreach($poolPoints as $poolNum => $numPoints){
+		$size = round($sizePoints[$poolNum],2);
+		$rating = round($ratingPoints[$poolNum],2);
+		$school = round($schoolPoints[$poolNum],2);
+		$refight = round($refightPoints[$poolNum],2);
+		$total = round($numPoints,2);
+
+		echo "<tr><th>Pool {$poolNum}</th>";
+		echo "<td>{$size}</td>";
+		echo "<td>{$rating}</td>";
+		echo "<td>{$school}</td>";
+		echo "<td>{$refight}</td>";
+		echo "<td>{$total}</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
+
+	echo "<u>Pool Rosters</u>";
+	echo "<table>";
+	foreach($_SESSION['poolSeeds'] as $poolNum => $poolRoster){
+		echo "<tr><th>Pool {$poolNum}</th>";
+		foreach($poolRoster as $rosterID){
+			$name = getFighterName($rosterID);
+			if($rosterID == $fighterID){
+				echo "<td><strong class='red-text'>{$name}</strong></td>";
+			}else{
+				echo "<td>{$name}</td>";
+			}
+	
+		}
+		echo "</tr>";
+	}
+	echo "</table>";
+	echo "<HR>";
+
+}
 
 /********************************************************************((********/
 

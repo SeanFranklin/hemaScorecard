@@ -130,7 +130,7 @@ function getCuttingQualificationsList($standardID, $date){
 // For West Coast Qualification fighters with a qualValue of 5 should be added
 // to the quals list regardless of date
 	$sql = "SELECT standardCode
-			FROM systemCuttingStandards
+			FROM systemCutStandards
 			WHERE standardID = {$standardID}";
 	$code = mysqlQuery($sql, SINGLE, 'standardCode');
 	
