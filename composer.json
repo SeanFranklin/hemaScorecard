@@ -1,0 +1,10 @@
+{
+    "name": "hema/scorecard",
+    "type": "project",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Scorecard\\": "src/"
+        }
+    }
+}
