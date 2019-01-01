@@ -1368,6 +1368,9 @@ function editEvent(){
 	}
 	
 	$eventYear = substr($_POST['eventStartDate'],0,4);
+	if($_POST['eventEndDate'] == ''){
+		$_POST['eventEndDate'] = $_POST['eventStartDate'];
+	}
 	
 	$sql = "UPDATE systemEvents
 			SET
@@ -1392,7 +1395,11 @@ function editEvent(){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
-	setAlert(USER_ALERT,"<strong>{$name}</strong> updated");
+	if($exec == true){
+		setAlert(USER_ALERT,"<strong>{$name}</strong> updated");
+	} else {
+		setAlert(SYSTEM,"SQL Query Fail in editEvent()");
+	}
 	
 }
 
@@ -3059,7 +3066,7 @@ function updateFinalsBracket(){
 	// Clears the Match
 	if($_POST['updateBracket'] == 'clearMatches'){
 	
-		foreach(@(array)$_POST['clearMatch'] as $matchID => $finalists){
+		foreach(@(array)$_POST['selectedBracketMatches']['matchIDs'] as $matchID => $finalists){
 		
 			$notNull = [];
 			$notNull[] = 'groupID';
