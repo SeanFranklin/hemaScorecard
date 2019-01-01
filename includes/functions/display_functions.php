@@ -2498,7 +2498,7 @@ function goToMatchButton($matchInfo){
 	
 	<!-- Checkbox for staff to delete fighters from a match -->
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<input type='checkbox' class='no-bottom'  name='clearMatch[<?=$matchID?>]' 
+		<input type='checkbox' class='no-bottom'  name='selectedBracketMatches[matchIDs][<?=$matchID?>]' 
 			value='true' <?=LOCK_TOURNAMENT?>>
 	<?php endif ?>
 	
