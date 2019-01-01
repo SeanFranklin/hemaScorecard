@@ -722,13 +722,13 @@ function addNewExchange(){
 		$matchInfo = getMatchInfo($matchID);
 
 		$matchConcluded = false;
-		if($matchCap['exchanges'] != null){
+		if($matchCap['exchanges'] != 0){
 			if(shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;
 			}
 		}
-		if($matchConcluded == false && $matchCap['points'] != null){
+		if($matchConcluded == false && $matchCap['points'] != 0){
 			if(shouldMatchConcludeByPoints($matchInfo, $matchCap['points']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;

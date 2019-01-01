@@ -13,7 +13,7 @@
 $pageName = "Manage System Events";
 include('includes/header.php');
 
-if(ALLOW['SOFTWARE_ADMIN'] == false){
+if(ALLOW['SOFTWARE_ASSIST'] == false){
 	pageError('user');
 } else {
 
@@ -100,9 +100,15 @@ function displayAdminEventList($eventList){
 		?>
 		<tr>
 			<td>
-				<button class='button tiny hollow no-bottom expanded' name='eventToEdit' value='<?=$eventID?>'>
-					Edit #<?=$eventID?>
-				</button>
+				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['eventStatus'] != 'archived'): ?>
+					<button class='button tiny hollow no-bottom expanded' 
+							name='eventToEdit' 
+							value='<?=$eventID?>'>
+
+						Edit #<?=$eventID?>
+
+					</button>
+				<?php endif ?>
 			</td>
 			
 			<?php foreach($fieldsToDisplay as $fieldName):
@@ -164,6 +170,12 @@ function editEventMenu($eventID,$eventInfo){
 	$eventStatus = getEventStatus($eventID);
 	$statusType = array('active','upcoming','hidden','default','archived');
 	$e_mail = getEventEmail($eventID);
+
+	// Software assistants can't edit archived events
+	if(ALLOW['SOFTWARE_ASSIST'] == false
+		|| (ALLOW['SOFTWARE_ADMIN'] == false && $eventStatus == 'archived')){
+		return;
+	}
 	?>
 	
 	<fieldset class='fieldset cell large-6'>
@@ -199,10 +211,12 @@ function editEventMenu($eventID,$eventInfo){
 		<button class='button secondary' name='formName'>Cancel</button>
 		
 	<!-- Delete event & confirmation -->
-		<BR><?=$num?>
-		<input type='hidden' value='<?=$num?>' name='confirmDelete'>
-		<button class='button alert hollow small' name='deleteEvent' value='Delete Event'>Delete Event</button>
-		<input type='text' name='deleteCode' size='1'>
+		<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+			<BR><?=$num?>
+			<input type='hidden' value='<?=$num?>' name='confirmDelete'>
+			<button class='button alert hollow small' name='deleteEvent' value='Delete Event'>Delete Event</button>
+			<input type='text' name='deleteCode' size='1'>
+		<?php endif ?>
 	</form>
 	Organizer E-mail: <strong><u><?=$e_mail?></u></strong>
 	</fieldset>
