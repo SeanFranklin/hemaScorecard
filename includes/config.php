@@ -15,8 +15,6 @@
 	initializeSession();
 
 // System Constants ////////////////////////////////////////////////////////////
-	
-	define("DEBUGGING", 0);
 	date_default_timezone_set("UTC");
 
 // Database Connection
@@ -26,9 +24,6 @@
 	include(BASE_URL.'includes/database.php');
 
 // Program Related Constants
-
-	// User Types
-	define("NO_LOGIN",0);
 
 	// Alert Codes
 	define("SYSTEM",1);

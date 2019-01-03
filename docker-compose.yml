@@ -24,3 +24,5 @@ services:
     volumes:
       - ./includes/ScorecardV5 - Tables 1.sql:/docker-entrypoint-initdb.d/02-scorecard.sql
       - ./includes/ScorecardV5 - Tables 2.sql:/docker-entrypoint-initdb.d/01-scorecard.sql
+    ports:
+      - 3306:3306

@@ -1,7 +1,9 @@
 {
     "name": "hema/scorecard",
     "type": "project",
-    "require": {},
+    "require": {
+        "ext-pdo": "*"
+    },
     "autoload": {
         "psr-4": {
             "Scorecard\\": "src/"
