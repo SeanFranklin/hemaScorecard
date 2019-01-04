@@ -38,18 +38,6 @@ function ifSet($bool, $value){
 
 /******************************************************************************/
 
-function ifNotSet($bool, $value){
-// If false return the value, if true return an empty value.
-
-	if((bool)$bool != false){
-		return null;
-	} else {
-		return $value;
-	}
-}
-
-/******************************************************************************/
-
 function optionValue($value, $selectValue = null){
 // Writes the value line to an option in a select statement
 // If the value is equal to the optional second parameter then the option is selected
@@ -143,43 +131,6 @@ function isNotSelected($val1, $val2='selected', $output='selected'){
 	return $output;
 }
 
-
-/******************************************************************************/
-
-function getGoogleSpreadsheet($spreadsheet_url,$headers){
-	
-	if(!ini_set('default_socket_timeout',    15)) {echo "<!-- unable to change socket timeout -->";}
-
-	if (($handle = fopen($spreadsheet_url, "r")) !== false) {
-		while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-			$spreadsheetData[]=$data;
-		}
-		fclose($handle);
-	} else {
-		die("Problem reading csv");
-	}
-	
-	
-	
-	if($headers == null){
-		foreach($spreadsheetData[0] as $i => $columnName){
-			$headers[$i] = $columnName;
-		}
-	}
-	
-	unset($spreadsheetData[0]);
-	$arrayLength = count($spreadsheetData);
-	
-	for($i=1;$i<=$arrayLength;$i++){
-		foreach($headers as $j => $header){
-			$spreadsheetData[$i][$header] = $spreadsheetData[$i][$j];
-			unset($spreadsheetData[$i][$j]);
-		}
-	}
-	
-	return $spreadsheetData;
-}
-
 /******************************************************************************/
 
 function intToString($int, $num){
@@ -195,18 +146,6 @@ function intToString($int, $num){
 
 	return $string;
 
-}
-
-/******************************************************************************/
-
-function nullBlankInt($input){
-// returns the string 'null' if the input is null. Used for sql queries
-	
-	if($input != null){
-		return $input;
-	} else {
-		return 'null';
-	}
 }
 
 /******************************************************************************/
@@ -253,48 +192,6 @@ function mysqlSetRecordToDefault($tableName, $whereClause, $fieldsToKeep){
 
 /******************************************************************************/
 
-function mysqlSetRecordToNull($tableName, $whereClause, $fieldsToKeep){
-	// Sets the values of all fields on $tableName to null
-	// Function affects rows identified by $whereClause
-	// and ignores the fields named in the array $fieldsToKeep
-	
-	if($whereClause == null){return;}
-	
-	if(is_string($fieldsToKeep)){
-		$a = $fieldsToKeep;
-		unset($fieldsToKeep);
-		$fieldsToKeep[] = $a;
-	}
-	
-	$sql = "SHOW COLUMNS FROM {$tableName}";
-	$result = mysqlQuery($sql, ASSOC);
-	
-	foreach($result as $record){
-		$name = $record['Field'];
-		if($record['Key'] != 'PRI'){
-			$fieldNames[$name] = true;
-		}
-	}
-	
-	foreach($fieldsToKeep as $field){
-		unset($fieldNames[$field]);
-	}
-	
-	$sql = "UPDATE {$tableName}
-			SET ";
-	foreach($fieldNames as $name => $true){
-		$sql .= "{$name}= null, ";
-		
-	}
-
-	$sql = rtrim($sql,', \t\n');
-	$sql .= " ".$whereClause;
-
-	mysqlQuery($sql, SEND);
-}
-
-/******************************************************************************/
-
 function xorWithZero($in1, $in2){
 // XOR function where zero is recognized as a number and not a null	
 	
@@ -321,113 +218,6 @@ function xorWithZero($in1, $in2){
 		}
 		
 	}
-}
-
-/******************************************************************************/
-
-function numSuffix($number){
-// Return the correct suffix to a number. ie. 1 -> 'st', 2 -> 'nd', 3 -> 'rd'
-// Returns as an html formated superscript.
-	switch (substr($number, -1)){
-		case 1:
-			$suf = "st";
-			break;
-		case 2:
-			$suf = "nd";
-			break;
-		case 3:
-			$suf = "rd";
-			break;
-		case null:
-			break;
-		default:
-			$suf = "th";
-			break;
-	}
-
-	return $suf;
-
-}
-
-/******************************************************************************/
-
-function sqlDateToString($sqlDate){
-// Converts dates read from sql into human readable format. Month and day only.
-// Example: '2017-12-15' -> 'Dec 15th'
-	
-	if(strcmp($sqlDate,"0000-00-00") == 0){
-		return null;
-	}
-	
-	// Day
-	$day = $sqlDate[8];
-	$day .= $sqlDate[9];
-	
-	$day .= "<sup>".numSuffix($day)."</sup>";
-
-	
-	if($day[0] == 0){
-		$day = substr($day, 1);
-	}
-
-	// Month
-	$monthNumber = substr($sqlDate, 5,2);
-
-	switch ($monthNumber) {
-		case '01':
-			$month = 'Jan';
-			break;
-		case '02':
-			$month = 'Feb';
-			break;
-		case '03':
-			$month = 'Mar';
-			break;
-		case '04':
-			$month = 'Apr';
-			break;
-		case '05':
-			$month = 'May';
-			break;
-		case '06':
-			$month = 'June';
-			break;
-		case '07':
-			$month = 'July';
-			break;
-		case '08':
-			$month = 'Aug';
-			break;
-		case '09':
-			$month = 'Sept';
-			break;
-		case '10':
-			$month = 'Oct';
-			break;
-		case '11':
-			$month = 'Nov';
-			break;
-		case '12':
-			$month = 'Dec';
-			break;
-	}
-	
-	$date = $month." ".$day;
-	return $date;
-		
-}
-
-/******************************************************************************
-
-function query($sql){
-// submits a query and checks for errors
-
-	$queryOutput = mysqli_query($GLOBALS["___mysqli_ston"], $sql);
-	if(!$queryOutput){
-		echo "<BR>!!!!!!!!!";
-		die('Error: '.((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
-	}
-	return $queryOutput;
 }
 
 /******************************************************************************/

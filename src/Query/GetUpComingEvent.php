@@ -1,6 +1,6 @@
 <?php
 
-namespace Scorecard\InfoWelcome;
+namespace Scorecard\Query;
 
 
 use Scorecard\Infrastructure\AbstractPdoRepository;

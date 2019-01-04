@@ -1,14 +1,15 @@
 <?php
 
-namespace Scorecard\InfoWelcome;
+namespace Scorecard\Query;
 
 
 use Scorecard\Infrastructure\AbstractPdoRepository;
 use PDO;
 
-class GetHiddenEvents extends AbstractPdoRepository
+class GetActiveEvent extends AbstractPdoRepository
 {
-    public function all() {
+    public function all()
+    {
         $query =
             "SELECT eventID, 
                 eventName, 
@@ -18,13 +19,16 @@ class GetHiddenEvents extends AbstractPdoRepository
                 eventCountry, 
                 eventProvince, 
                 eventCity, 
-                eventStatus
+                eventStatus 
             FROM systemEvents
-            LEFT JOIN eventTournaments using (eventID)
-            WHERE eventTournaments.eventID IS NULL
-            ORDER BY eventEndDate DESC, eventStartDate DESC";
+            JOIN eventTournaments using (eventID)
+            WHERE CURRENT_DATE() BETWEEN eventStartDate AND eventEndDate
+            GROUP BY eventID
+            ORDER BY eventStartDate ASC, eventEndDate ASC";
 
         $statement = $this->handle->prepare($query);
+        $statement->execute();
+
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }

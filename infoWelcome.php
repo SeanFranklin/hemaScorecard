@@ -11,10 +11,10 @@ namespace Scorecard\Info\Welcome;
 
 require __DIR__ . '/bootstrap.php';
 
-use Scorecard\InfoWelcome\GetActiveEvent;
-use Scorecard\InfoWelcome\GetHiddenEvents;
+use Scorecard\Query\GetActiveEvent;
+use Scorecard\Query\GetHiddenEvents;
 use Scorecard\InfoWelcome\GetRecentEvents;
-use Scorecard\InfoWelcome\GetUpComingEvent;
+use Scorecard\Query\GetUpComingEvent;
 
 $pageName = "Welcome to HEMA Scorecard";
 include('includes/header.php');

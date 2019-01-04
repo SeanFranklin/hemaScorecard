@@ -2,7 +2,8 @@
     "name": "hema/scorecard",
     "type": "project",
     "require": {
-        "ext-pdo": "*"
+        "ext-pdo": "*",
+        "ext-mysqli": "*"
     },
     "autoload": {
         "psr-4": {
