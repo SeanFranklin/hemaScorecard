@@ -129,13 +129,13 @@ if($_SESSION['eventID'] == null){
 					id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>  <?=$formLock?>>
 					Update <?=$name?>
 				</button>
-				<button class='button secondary' name='formName' <?=$isLocked?>  <?=$formLock?>>
+				<button class='button secondary' name='formName' value='' <?=$isLocked?>  <?=$formLock?>>
 					Cancel
 				</button>
-				<a class='button' href='adminPoints.php'
+				<button class='button' href='adminPoints.php' name='formName' value='goToPointsPage'
 					style='float:middle' <?=$isLocked?>  <?=$formLock?>>
 					Change Point Values
-				</a>
+				</button>
 				<a class='button alert' data-open='boxFor-<?=$tournamentID?>' 
 					style='float:right' <?=$isLocked?>  <?=$formLock?>>
 					Delete Tournament

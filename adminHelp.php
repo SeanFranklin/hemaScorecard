@@ -256,11 +256,9 @@ Invitational Longsword).
 <li><u>Results Only</u> - Only list the participants, and the final placings of the tournament. 
 Useful if you have an event you don't wish to use HEMA Scorecard for, but would like the 
 event participants to see their registrations in the software.</li>
-<li><u>Pool & Bracket</u> - Each fighter fights in a pool, 
-and a certain number make it though to an elimination bracket.</li>
-<li><u>Direct Bracket</u> - A bracket only, with no pools</li>
-<li><u>Pool Sets</u> - A tournament which uses a series of pools</li>
+<li><u>Sparring Matches</u> - Most HEMA tournaments. This is any tournament where people (or teams) face each other in matches. <em>(This includes the old Pool & Bracket, Direct Bracket & Pool Sets modes)</em></li>
 <li><u>Scored Event</u> - An event where the participants compete for individual score, such as a cutting tournament.</li>
+<li><u>Composite Event</u> - A tournament which doesn't have any results of it's own, but calculates based on the placings in other events.</li>
 
 <BR>
 <strong>Doubles/Afterblows</strong> specifies the afterblow model that will be used in scoring. 
@@ -347,7 +345,7 @@ registrations.</li>
 <BR>
 <h5>Create Pools</h5>
 If your tournament has pools, the next step is to create them. This is 
-performed under <strong><a href='poolRosters.php'>Pool Rosters</a></strong> in the lower navigational bar.
+performed under <strong><a href='poolRosters.php'>Pool Rosters</a></strong> in the lower navigational bar. This is also where you can create multiple pool sets, or successive stages of pools.
 <BR>
 You will be greeted with 'No Pools Created', and the option to create more pools located at the bottom of the screen. 
 Create as many pools as required. At this point the pools will be empty, 
@@ -359,6 +357,11 @@ the maximum pool size. <a href='#editTournaments'>Read More</a><BR>
 <u>Change Pool Order:</u> To re-order pool number click <strong>Re-Order Pools</strong>. This will temporarily 
 lock pool rosters from being changed, and give the option to change the pool numbers. 
 Click <strong>Done</strong> to save these changes, or <strong>Cancel</strong> to discard.
+
+<BR><a name='createPoolSets'></a>
+<BR>
+<h5>Pool Sets</h5>
+If your tournament has Pool Sets (people fighting in multiple rounds of pools) you also create these in <strong><a href='poolRosters.php'>Pool Rosters</a></strong>. In the bottom right of the Pool Management box you will see an option to <strong>Manage Pool Sets</strong>. You can then increase the number of Pool Sets your tournament uses.
 
 
 <BR><a name='createBrackets'></a><BR>
