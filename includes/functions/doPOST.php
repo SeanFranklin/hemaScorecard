@@ -47,20 +47,13 @@ function processPostData(){
 				changeEvent((int)$_POST['changeEventTo']);
 				break;
 			case 'changeTournament':
-				$_SESSION['tournamentID'] = $_POST['newTournament'];
-				$_SESSION['matchID'] = '';
-				$_SESSION['bracketHelper'] = '';
-				$_SESSION['groupSet'] = 1;
+				changeTournament($_POST['newTournament']);
 				if(isset($_POST['newPage'])){
-					$newUrl = "Location: ".$_POST['newPage']."#";
-					header($newUrl);
-					exit;
+					changePage($_POST['newPage']);
 				}
 				break;
 			case 'navigatePage':
-				$newUrl = "Location: ".$_POST['newPage']."#";
-				header($newUrl);
-				exit;
+				changePage($_POST['newPage']);
 				break;
 			case 'goToMatch':
 				$_SESSION['matchID'] = $_POST['matchID'];
@@ -255,6 +248,10 @@ function processPostData(){
 					generateTournamentPlacings($tID);
 				}
 				checkCompositeTournaments($tID);
+				break;
+			case 'goToPointsPage':
+				changeTournament($_POST['modifyTournamentID']);
+				changePage('adminPoints.php');
 				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
@@ -480,6 +477,23 @@ function checkEvent(){
 	}
 	unset($_SESSION['checkEvent']);
 	
+}
+
+/******************************************************************************/
+
+function changeTournament($tournamentID){
+	$_SESSION['tournamentID'] = $tournamentID;
+	$_SESSION['matchID'] = '';
+	$_SESSION['bracketHelper'] = '';
+	$_SESSION['groupSet'] = 1;
+}
+
+/******************************************************************************/
+
+function changePage($newPage){
+	$newUrl = "Location: ".$newPage."#";
+	header($newUrl);
+	exit;
 }
 
 /******************************************************************************/
@@ -722,13 +736,13 @@ function addNewExchange(){
 		$matchInfo = getMatchInfo($matchID);
 
 		$matchConcluded = false;
-		if($matchCap['exchanges'] != 0){
+		if($matchCap['exchanges'] != null){
 			if(shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;
 			}
 		}
-		if($matchConcluded == false && $matchCap['points'] != 0){
+		if($matchConcluded == false && $matchCap['points'] != null){
 			if(shouldMatchConcludeByPoints($matchInfo, $matchCap['points']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;
