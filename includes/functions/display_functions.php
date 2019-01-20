@@ -219,66 +219,69 @@ function checkForTermsOfUse(){
 <?php
 }
 
-/******************************************************************************/
-
+/**
+ * Creates a button to navigate to an event
+ * @param $eventID
+ * @param $eventInfo
+ */
 function displayEventButton($eventID, $eventInfo){
-//Creates a button to navigate to an event
-	
-// Format location string
+    //Creates a button to navigate to an event
 
-	$location = '';
-	if($eventInfo['eventCity'] != null){
-		$location = $eventInfo['eventCity'];
-	}
-	if($eventInfo['eventProvince'] != null){
-		if(isset($location)){ $location .= ', '; }
-		$location .= $eventInfo['eventProvince'];
-	}
-	if($eventInfo['eventCountry'] != null){
-		if(isset($location)){ $location .= ', '; }
-		$location .= $eventInfo['eventCountry'];
-	}
+    // Format location string
+    $location = '';
+    if($eventInfo['eventCity'] != null){
+        $location = $eventInfo['eventCity'];
+    }
+    if($eventInfo['eventProvince'] != null){
+        if(isset($location)){ $location .= ', '; }
+        $location .= $eventInfo['eventProvince'];
+    }
+    if($eventInfo['eventCountry'] != null){
+        if(isset($location)){ $location .= ', '; }
+        $location .= $eventInfo['eventCountry'];
+    }
 
-	$location = rtrim($location,', \t');
-	
-// Format year and date string
-	$name = $eventInfo['eventName'];
-	$year = $eventInfo['eventYear'];
-	
-	$startDate = sqlDateToString($eventInfo['eventStartDate']);
-	$endDate = sqlDateToString($eventInfo['eventEndDate']);
-	
-	if($startDate != null){
-		if($endDate == null OR $endDate == $startDate){
-			$dateString = $startDate;
-		} else {
-			$dateString = $startDate." - ".$endDate;
-		}
-	} else if($endDate != null){
-		$dateString = $endDate;
-	}
-	
-// Displays current event in red
-	if($eventID == $_SESSION['eventID']){
-		$isActive = "alert";
-	} else { 
-		$isActive = ''; 
-	} 
-	
-	?>
+    $location = rtrim($location,', \t');
 
+    // Format year and date string
+    $name = $eventInfo['eventName'];
+    $year = $eventInfo['eventYear'];
 
-	<button value='<?= $eventID ?>' style='width:100%'
-		class='button hollow <?= $isActive ?>' name='changeEventTo' >
-		<?= $name ?>, <?= $year ?>
-		<span class='hide-for-small-only'> - </span>
-		<BR class='show-for-small-only'>
-		<?= $location ?>
-		<BR>
-		<?= $dateString ?>
-	</button>
+    $startDate = $eventInfo['eventStartDate'];
+    $endDate = $eventInfo['eventStartDate'];
 
-	
+    try {
+        $format = "M jS";
+        $dateString = '';
+        if (isset($startDate)) {
+            $dateString = (new DateTime($startDate))->format($format);
+
+            if (isset($endDate) && $endDate != $startDate)
+                $dateString .= " - " . (new DateTime($endDate))->format($format);
+        } else if (isset($endDate)) {
+            $dateString = (new DateTime($endDate))->format($format);
+        }
+    } catch (Exception $e) {
+        $dateString = '';
+    }
+
+    // Displays current event in red
+    if($eventID == $_SESSION['eventID']) {
+        $isActive = "alert";
+    } else {
+        $isActive = '';
+    }
+
+    ?>
+    <button value='<?= $eventID ?>' style='width:100%'
+        class='button hollow <?= $isActive ?>' name='changeEventTo' >
+        <?= $name ?>, <?= $year ?>
+        <span class='hide-for-small-only'> - </span>
+        <BR class='show-for-small-only'>
+        <?= $location ?>
+        <BR>
+        <?= $dateString ?>
+    </button>
 <?php }
 
 /******************************************************************************/

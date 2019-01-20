@@ -1,0 +1,28 @@
+version: "3.2"
+services:
+  php:
+    build: './docker/php/'
+    volumes:
+    - ./:/var/www/hemascorecard
+    depends_on:
+      - db
+  apache:
+    build: './docker/apache/'
+    depends_on:
+    - php
+    ports:
+    - "8080:80"
+    volumes:
+    - ./:/var/www/hemascorecard
+  db:
+    image: mysql:5.6
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER=php
+      - MYSQL_PASSWORD=notarealpass
+      - MYSQL_DATABASE=ScorecardV5
+    volumes:
+      - ./includes/ScorecardV5 - Tables 1.sql:/docker-entrypoint-initdb.d/02-scorecard.sql
+      - ./includes/ScorecardV5 - Tables 2.sql:/docker-entrypoint-initdb.d/01-scorecard.sql
+    ports:
+      - 3306:3306

@@ -21,8 +21,3 @@ exit;
 <h1>HEMA Scorecard is undergoing maintenanace</h1>
 We'll be back soon and better than ever. </div>
 </body>*/
-
-?>
-
-
-

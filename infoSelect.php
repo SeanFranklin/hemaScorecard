@@ -1,132 +1,107 @@
-<?php 
+<?php
 /*******************************************************************************
-	Event Selection
-	
-	Select which event to use
-	Login:
-		- SUPER ADMIN can see hidden events
-	
-*******************************************************************************/
+ * Event Selection
+ *
+ * Select which event to use
+ * Login:
+ * - SUPER ADMIN can see hidden events
+ *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+namespace Scorecard\InfoSelect;
+
+use Scorecard\Query\GetActiveEvent;
+use Scorecard\Query\GetHiddenEvents;
+use Scorecard\Query\GetUpComingEvent;
 
 $pageName = "Tournament Selection";
 $hideEventNav = true;
 $hidePageTitle = true;
-
 include('includes/header.php');
 
+$activeEventsRepo = new GetActiveEvent();
+$upcomingEventsRepo = new GetUpComingEvent();
+$hiddenEventsRepo = new GetHiddenEvents();
+$archivedEventsRepo = new GetArchivedEvents();
+
 // Get the event List
-$activeEvents = getEventList('active');
-$upcomingEvents = getEventList('upcoming');
-if(ALLOW['VIEW_HIDDEN']){
-	$hiddenEvents = getEventList('hidden');
+$activeEvents = $activeEventsRepo->all();
+$upcomingEvents = $upcomingEventsRepo->all();
+if (ALLOW['VIEW_HIDDEN']) {
+    $hiddenEvents = $hiddenEventsRepo->all();
+} else {
+    $hiddenEvents = array();
 }
-$archivedEvents = getEventList('old', 'DESC');
+$archivedEvents = $archivedEventsRepo->all();
 
-
-// PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<div class='grid-x grid-padding-x'>
-	<div class='large-7 medium-10 small-12 cell' id='eventListContainer'>
-		
-	<h4 class='text-center'>Change Event</h4>
-		
-	<form method='POST'>
-	<input type='hidden' name='formName' value='selectEvent'>
-	<ul class='accordion' data-accordion  data-allow-all-closed='true'>
-		<li class='accordion-item is-active' data-accordion-item>
-			<a class='accordion-title'>
-				<h4>Active Events</h4>
-			</a>
-			<div class='accordion-content' data-tab-content>
- 
-				<!-- Hidden Events -->
-				<?php if(ALLOW['VIEW_HIDDEN'] && $hiddenEvents != null): ?>
-					<h5>Hidden Events</h5>
-					<?php displayEventsInCategory($hiddenEvents); ?>
-				<?php endif ?>
-	
-				<!-- Active Events -->
-				<?php if($activeEvents != null):?>
-					<h5>Active Events</h5>
-					<?php displayEventsInCategory($activeEvents, EVENT_ACTIVE_LIMIT); ?>
-				<?php endif ?>
+    <div class='grid-x grid-padding-x'>
+        <div class='large-7 medium-10 small-12 cell' id='eventListContainer'>
 
-				<!-- Upcoming Events -->
-				<?php if($upcomingEvents != null): ?>
-					<h5>Upcoming Events</h5>
-					<?php displayEventsInCategory($upcomingEvents, EVENT_UPCOMING_LIMIT); ?>
-				<?php endif ?>
-	
-			</div>
-		</li>
+            <h4 class='text-center'>Change Event</h4>
 
-		<!-- Old Events -->
-		<?php displayArchivedEvents($archivedEvents);?>
+            <form method='POST'>
+                <input type='hidden' name='formName' value='selectEvent'>
+                <ul class='accordion' data-accordion data-allow-all-closed='true'>
+                    <li class='accordion-item is-active' data-accordion-item>
+                        <a class='accordion-title'>
+                            <h4>Active Events</h4>
+                        </a>
+                        <div class='accordion-content' data-tab-content>
 
-	</ul>
-	</form>
-	</div>
-</div>
+                            <!-- Hidden Events -->
+                            <?php if (ALLOW['VIEW_HIDDEN'] && count($hiddenEvents) > 0): ?>
+                                <h5>Hidden Events</h5>
+                                <?php displayEventsInCategory($hiddenEvents); ?>
+                            <?php endif ?>
 
-<?
+                            <!-- Active Events -->
+                            <?php if (count($activeEvents) > 0): ?>
+                                <h5>Active Events</h5>
+                                <?php displayEventsInCategory($activeEvents); ?>
+                            <?php endif ?>
+
+                            <!-- Upcoming Events -->
+                            <?php if (count($upcomingEvents) > 0): ?>
+                                <h5>Upcoming Events</h5>
+                                <?php displayEventsInCategory($upcomingEvents); ?>
+                            <?php endif ?>
+                        </div>
+                    </li>
+
+                    <!-- Old Events -->
+                    <?php displayArchivedEvents($archivedEvents); ?>
+
+                </ul>
+            </form>
+        </div>
+    </div>
+
+    <?
 include('includes/footer.php');
 
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+function displayArchivedEvents($year_buckets)
+{
+    foreach ($year_buckets as $year => $eventList) {
+        echo "<li class='accordion-item' data-accordion-item>
+            <a class='accordion-title' style='padding-top:10px; padding-bottom:1px'><h4>{$year} Events</h4></a>
+            <div class='accordion-content' data-tab-content>";
 
-/******************************************************************************/
-
-function displayArchivedEvents($eventList){
-	
-	$oldYear = null;
-
-	foreach($eventList as $eventID => $eventInfo){
-		$year = $eventInfo['eventYear'];
-		if($year != $oldYear){
-			if($oldYear != null){ echo "</div></li>"; }
-			echo "<li class='accordion-item' data-accordion-item>
-				<a class='accordion-title' style='padding-top:10px; padding-bottom:1px'><h4>{$year} Events</h4></a>
-				<div class='accordion-content' data-tab-content>";
-			$oldYear = $year;
-			
-		}
-		displayEventButton($eventID, $eventInfo);
-	}
-	echo "</div></li>";
-	
+        foreach ($eventList as $eventInfo) {
+            $eventID = $eventInfo['eventID'];
+            displayEventButton($eventID, $eventInfo);
+        }
+        echo "</div></li>";
+    }
+    echo "</div></li>";
 }
 
 /**********************************************************************/
 
-function displayEventsInCategory($eventList, $dateLimit = 0){
-
-	if(ALLOW['VIEW_HIDDEN']){
-		$dateLimit = 0;
-	}
-
-	foreach((array)$eventList as $eventID => $eventInfo){
-		// A check to make sure that old events don't show up in the 
-		// active/upcoming category.
-		$then = date_create($eventInfo['eventEndDate']);
-		$today= date_create(date("Y-m-d"));
-		$diff = date_diff($then,$today);
-		$num = (int)$diff->format('%R%a');
-
-		if($dateLimit > 0 && $num > $dateLimit){
-			continue;
-		}
-
-
-		displayEventButton($eventID, $eventInfo);
-	}
+function displayEventsInCategory($eventList)
+{
+    foreach ($eventList as $eventInfo) {
+        $eventID = $eventInfo['eventID'];
+        displayEventButton($eventID, $eventInfo);
+    }
 }
-
-/******************************************************************************/
-
-// END OF DOCUMENT /////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
