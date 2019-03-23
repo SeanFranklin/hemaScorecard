@@ -17,17 +17,18 @@ function _select_above(){
 function processPostData(){
 
 
+	///////////////////////////////////////////////////////////////////////
 	/* For debugging, commented out for regular use ///
 	$refreshPage = false;
 	define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
 	//define('SHOW_SESSION', true);
-	/////////////////////////////*/
+	//////////////////////////////////////////////////////////////////////*/
 
 	if(isset($_POST['formName'])){
 
 		// Refresh page after POST processing complete to prevent resubmits
 		if(!isset($refreshPage)){
-			//$refreshPage = true;
+			$refreshPage = true;
 		}
 	
 		$formName = $_POST['formName'];
@@ -68,6 +69,11 @@ function processPostData(){
 			case 'changeSortType':
 				$_SESSION[$_POST['sortWhat']] = $_POST['sortHow'];
 				break;
+			case 'personalSchedule':
+				$_SESSION['rosterID'] = (int)$_POST['rosterID'];
+				header("Location: participantsSchedules.php");
+				exit;
+				break;
 			case 'displayByPoolsToggle':
 				$_SESSION['displayByPool'] = !$_SESSION['displayByPool'];
 				break;
@@ -75,6 +81,9 @@ function processPostData(){
 				$link = $_POST['eventNavigation'];
 				header("Location: {$link}");
 				exit;
+				break;
+			case 'changeRosterID':
+				$_SESSION['rosterID'] = (int)$_POST['rosterID'];
 				break;
 				
 	// Roster Management Cases
@@ -147,6 +156,9 @@ function processPostData(){
 			case 'renameGroups':
 				renameGroups();
 				break;
+			case 'updateRankByPool':
+				updateRankByPool($_POST['rankByPool']);
+				break;
 				
 	// Scored Rounds
 			case 'numberOfGroupSets':
@@ -198,8 +210,11 @@ function processPostData(){
 			
 					
 	// Finals
+			case 'changeBracketView':
+				$_SESSION['bracketView'] = (int)$_POST['bracketView'];
+				break;
 			case 'createBracket':
-				createTournamentBrackets(null, null);
+				createTournamentBrackets($_POST['createBracket']);
 				break;
 			case 'updateBracket':
 				if(isset($_POST['goToMatch'])){
@@ -209,6 +224,12 @@ function processPostData(){
 				} else if(isset($_POST['updateBracket'])){
 					updateFinalsBracket();
 				}
+				break;
+			case 'createTrueDoubleElim':
+				extendFinalsBracket($_POST['tournamentID']);
+				break;
+			case 'removeTrueDoubleElim':
+				contractFinalsBracket($_POST['tournamentID']);
 				break;
 			case 'deleteBracket':
 				deleteBracket();
@@ -221,6 +242,9 @@ function processPostData(){
 	// Event Organzer Cases
 			case 'ignoreFightersInTournament':
 				updateIgnoredFighters($_POST['manageFighters']);
+				break;
+			case 'checkInFighters':
+				checkInFighters($_POST['checkInFighters']);
 				break;
 			case 'addNewSchool':
 				addNewSchool();
@@ -240,14 +264,36 @@ function processPostData(){
 			case 'deleteTournament':
 				deleteEventTournament();
 				break;	
+			case 'editTournamentPlacings':
+				$_SESSION['manualPlacing']['tournamentID'] = $_POST['tournamentID'];
+				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
+				break;
 			case 'finalizeTournament':
+			case 'autoFinalizeTournament':
 				$tID = $_POST['tournamentID'];
-				if(isset($_POST['finalizeTournament']) && $_POST['finalizeTournament'] == 'revoke'){
-					removeTournamentPlacings($tID);
+				if($tID == 0){
+					break;
+					// Do nothing. It is a cancel request.
+				} elseif($formName == 'finalizeTournament'){
+					recordTournamentPlacings($tID,$_POST['tournamentPlacings']);
 				} else {
-					generateTournamentPlacings($tID);
+					if(isset($_POST['autoFinalizeSpecs']) == true){
+						$specs = $_POST['autoFinalizeSpecs'];
+					} else {
+						$specs = [];
+					}
+					generateTournamentPlacings($tID, $specs);
 				}
 				checkCompositeTournaments($tID);
+				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
+				break;
+			case 'finalizeTournament-no':
+				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
+				break;
+			case 'removeTournamentPlacings':
+				removeTournamentPlacings($_POST['tournamentID']);
+				checkCompositeTournaments($_POST['tournamentID']);
+				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'goToPointsPage':
 				changeTournament($_POST['modifyTournamentID']);
@@ -261,6 +307,9 @@ function processPostData(){
 				break;
 			case 'displaySettings':
 				updateDisplaySettings();
+				break;
+			case 'staffRegistrationSettings':
+				updateStaffRegistrationSettings($_POST['eventSettings']['staffRegistration']);
 				break;
 			case 'setContactEmail':
 				updateContactEmail($_POST['contactEmail'],$_SESSION['eventID']);
@@ -301,7 +350,50 @@ function processPostData(){
 			case 'HemaRatingsUpdate':
 				updateHemaRatingsInfo($_POST['systemRosterID']);
 				break;
-		
+
+	// Logistics Cases
+			case 'editLocations':
+				logisticsEditLocations($_POST['editLocationInformation']);
+				break;
+			case 'deleteLocations':
+				logisticsDeleteLocations($_POST['locationsToDelete']);
+				break;
+			case 'assignGroupsToRings':
+				logisticsAssignTournamentToRing($_POST['assignToLocations']);
+				break;
+			case 'assignMatchesToLocations':
+				logisticsAssignTournamentToRing($_POST['selectedBracketMatches'],$_POST['locationID']);
+				break;
+			case 'editScheduleBlock':	
+				logisticsEditScheduleBlock($_POST['editScheduleBlock']);		
+				break;
+			case 'deleteScheduleBlocks':
+				logisticsDeleteScheduleBlocks(@$_POST['deleteScheduleBlocks']);
+				break;
+			case 'selectScheduleBlock':
+				$_SESSION['blockID'] = (int)$_POST['blockID'];
+				break;
+			case 'editStaffList':
+				logisticsEditStaffList($_POST['editStaffList']);
+				break;
+			case 'deleteStaffList':
+				logisticsDeleteStaffList($_POST['editStaffList']);
+				break;
+			case 'editStaffShifts':
+				logisticsEditStaffShifts($_POST['editStaffShifts'], $_SESSION['eventID']);
+				break;
+			case 'bulkStaffAssign':
+				logisticsBulkStaffAssign($_POST['bulkStaffAssign']);
+				break;
+			case 'updateMatchStaff':
+				logisticsCheckInMatchStaff($_POST['updateMatchStaff']);
+				break;
+			case 'updateMatchStaffFromShift':
+				logisticsCheckInMatchStaffFromShift($_POST['updateMatchStaffFromShift']);
+				break;
+			case 'updateStaffTemplates':
+				logisticsUpdateStaffTemplates($_POST['staffTemplateInfo']);
+				break;
 				
 	// Stats Cases
 			case 'dataFilters':
@@ -621,39 +713,88 @@ function setDataFilters(){
 
 /******************************************************************************/
 
-function createTournamentBrackets($tournamentID, $numWinnerBracketFighters){
+function createTournamentBrackets($bracketSpecs){
 // Creates a tournament bracket depending on the elimination type used
 // Overwrites any existing brackets
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
+	// Import data
+	$tournamentID 	= (int)$bracketSpecs['tournamentID'];
+	$sizePrimary 	= (int)$bracketSpecs['sizePrimary'];
+	$sizeSecondary 	= (int)$bracketSpecs['sizeSecondary'];
+	$elimType	= (int)$bracketSpecs['elimType'];
+	$extraPrimary = 0;
+	$extraSecondary = 0;
 
-	if($numWinnerBracketFighters == null){$numWinnerBracketFighters = (int)$_POST['numWinnerBracketFighters'];}
-	if($numWinnerBracketFighters < 2){ 
-		$_SESSION['alertMessages']['userErrors'][] = "Can not create a bracket with less than 2 people";
+	// Data validation
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in createTournamentBrackets().");
 		return;
 	}
-	
-	$numLooserBracketFighters = (int)$_POST['numLooserBracketFighters'];
+	if($sizePrimary < 2){ 
+		setAlert(USER_ERROR,"Can not create a bracket with less than 2 people!");
+		return;
+	}
+	if($sizeSecondary > $sizePrimary){ 
+		setAlert(USER_ERROR,"Secondary Bracket can no be bigger than the primary bracket.<BR>
+							Secondary Bracket size has been adjusted to 
+							<strong>Top {$sizePrimary}</strong> fighters.");
+		$sizeSecondary = $sizePrimary;
+		return;
+	}
 
-	if($numLooserBracketFighters == null){
-		if($numWinnerBracketFighters < 4){
-			$numLooserBracketFighters = 0;
+	if($elimType != ELIM_TYPE_SINGLE && $sizeSecondary == 0){
+		$sizeSecondary = $sizePrimary;
+	}
+
+
+	if($elimType == ELIM_TYPE_SINGLE){
+		if($sizePrimary >= 4){
+			$sizeSecondary = 2;
 		} else {
-			$numLooserBracketFighters = 2;
+			$sizeSeocndary = 0;
 		}
-	} elseif($numLooserBracketFighters > $numWinnerBracketFighters - 2){
-		$numLooserBracketFighters = $numWinnerBracketFighters - 2;
+	} elseif($elimType == ELIM_TYPE_CONSOLATION){
+		$sizeSecondary -= 2; // Remove the top two from the winners bracket
+
+		if($sizeSecondary == 2){
+			setAlert(USER_ALERT,"<strong>Note:</strong> A double elim bracket for Top 4 is the
+									same as a single elim bracket with a Bronze Medal Match.");
+		}
+
 	} else {
-		$numLooserBracketFighters -= 2;
+		if($sizeSecondary != $sizePrimary){
+			$sizeSecondary = $sizePrimary;
+			setAlert(USER_ERROR,"For a True Double Elim bracket the size of the Secondary Bracket must 
+								be the same as the size of the Primary Bracket.
+								<BR>This has been automatically corrected for you.");
+		}
+		$sizeSecondary -= 2;
+		$extraSecondary = 1;
+		if($elimType == ELIM_TYPE_LOWER_BRACKET){
+			$extraPrimary = 1;
+		} else {
+			$extraPrimary = 2;
+		}
+
 	}
 
-	createWinnersBracket($tournamentID, $numWinnerBracketFighters);
-	if($numLooserBracketFighters >= 2){
-		createConsolationBracket($tournamentID, $numLooserBracketFighters);
+
+	if($sizeSecondary != 0 && $sizeSecondary < 2){
+		setAlert(USER_ERROR,"You can not create a Double Elimination Bracket for less than the
+							Top 4 fighters.<BR>
+							A <u>single elimination</u> bracket has been created.");
+		$sizeSecondary = 0;
+		$elimType = ELIM_TYPE_SINGLE;
 	}
+
+	// Create brackets
+	createPrimaryBracket($tournamentID, $sizePrimary, $extraPrimary);
+	if($sizeSecondary >= 2){
+		createSecondaryBracket($tournamentID, $sizeSecondary, $extraSecondary);
+	}
+	
 }
 
 /******************************************************************************/
@@ -688,6 +829,7 @@ function addNewExchange(){
 // updates the last exchange
 
 	$matchInfo = getMatchInfo($matchID);
+
 	$scoring = $_POST['score'];
 
 	$f1ID = $matchInfo['fighter1ID'];
@@ -726,28 +868,36 @@ function addNewExchange(){
 			break;
 		
 	} 
-	
 	updateMatch($matchInfo);
 	
 	// Check if it is the type of tournament which has a set number of exchanges
 	
 	if($_POST['lastExchange'] != 'clearLastExchange'){
+		
 		$matchCap = getMatchCaps($tournamentID);
 		$matchInfo = getMatchInfo($matchID);
 
 		$matchConcluded = false;
-		if($matchCap['exchanges'] != null){
+		if($matchCap['exchanges'] != 0){
 			if(shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;
 			}
 		}
-		if($matchConcluded == false && $matchCap['points'] != null){
+		if($matchConcluded == false && $matchCap['points'] != 0){
 			if(shouldMatchConcludeByPoints($matchInfo, $matchCap['points']) == true){
 				autoConcludeMatch($matchInfo);
 				$matchConcluded = true;
 			}
 		}
+
+		if($matchConcluded == false && $matchInfo['matchTime'] >= $matchCap['timeLimit']){
+			if(shouldMatchConcludeByTime($matchInfo) == true){
+				autoConcludeMatch($matchInfo);
+				$matchConcluded = true;
+			}
+		}
+
 		if($matchConcluded == true){
 			updateMatch($matchInfo);
 		}
@@ -1122,6 +1272,7 @@ function checkSession(){
 	if($matchID == null){
 		return;
 	}
+	$matchID = (int)$matchID;
 	
 	$sql = "SELECT matchID
 			FROM eventMatches
@@ -1158,7 +1309,10 @@ function changeEvent($eventID, $logoutInhibit = false){
 		}
 		$_SESSION['matchID'] = '';
 		$_SESSION['groupSet'] = '';
-
+		$_SESSION['scheduleID'] = '';
+		$_SESSION['rosterID'] = '';
+		$_SESSION['blockID'] = '';
+		$_SESSION['dayNum'] = logistics_getCurrentDayNum($_SESSION['eventID']);
 
 		// Log user out if switching event
 		if($logoutInhibit == true || ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){

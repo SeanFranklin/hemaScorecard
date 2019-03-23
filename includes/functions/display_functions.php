@@ -77,6 +77,31 @@ function displayAlert ($text = null, $class = 'secondary'){
 
 /******************************************************************************/
 
+function checkboxPaddle($name, $onVal, $isOn = false, $offVal = 0, $class1 = null, $class2 = null){
+	
+	// This is explicityly designed to catch a value of 0 as false
+	$checked = '';
+	if($isOn != false){
+		$checked = 'checked';
+	}
+?>
+
+	<div class='switch text-center no-bottom'>
+
+		<input type='hidden' name='<?=$name?>' value='<?=$offVal?>' class='<?=$class2?>' >
+
+		<input class='switch-input <?=$class1?>' type='checkbox' 
+			id='<?=$name?>'  <?=$checked?>
+			name='<?=$name?>' value='<?=$onVal?>'>
+
+		<label class='switch-paddle' for='<?=$name?>'>
+		</label>
+	</div>
+<?php
+}
+
+/******************************************************************************/
+
 function pageError($type){
 	
 	if(strcasecmp($type, 'event') == 0){
@@ -289,17 +314,7 @@ function confirmDeleteReveal($formID, $formName){
 
 	
 	<script>
-	function submitThisForm(){
-		var form = document.getElementById('<?=$formID?>');
-		
-		var formName = document.createElement('input');
-		formName.type = 'hidden';
-		formName.name = 'formName';
-		formName.value = '<?=$formName?>';
-		form.appendChild(formName);
-		
-		form.submit();
-	}
+	
 	</script>
 	
 	
@@ -315,12 +330,17 @@ function confirmDeleteReveal($formID, $formName){
 	<HR>
 	
 	<div class='grid-x grid-margin-x'>
-		<button class='button alert small-6 cell no-bottom' onclick="submitThisForm();">
+
+		<button class='button alert small-6 cell no-bottom' 
+			onclick="submitForm('<?=$formID?>','<?=$formName?>');">
 			I still want to Delete
 		</button>
-		<button class='button secondary small-6 cell no-bottom' data-close aria-label='Close modal' type='button'>
+
+		<button class='button secondary small-6 cell no-bottom' 
+			data-close aria-label='Close modal' type='button'>
 			Cancel
 		</button>
+
 	</div>
 	
 	</div>
@@ -772,7 +792,7 @@ function edit_tournamentControlPoints($tournamentID = 'new'){
 						$selected = isSelected($i, $value);
 						?>
 						<option <?=optionValue($i, $value)?> >
-							<?=$i?>Point<?=plrl($i)?>
+							<?=$i?> Point<?=plrl($i)?>
 						</option>
 				<?php endfor ?>
 			
@@ -849,6 +869,46 @@ function edit_tournamentMaxDoubles($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentLimitPoolMatches($tournamentID = 'new'){
+// Select menu for the maximum doubles allowed in a tournament
+// Appears or disapears as controled by javascript
+
+	$display = "hidden"; 	// Hidden for most cases
+	$maxMatchesLimit = 10;	// Arbitrary
+	$maxMatches = null; 	// Arbitrary
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
+			$display = '';
+			$maxMatches = getTournamentPoolMatchLimit($tournamentID);
+		}
+	}
+	
+	?>
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='limitPoolMatches_div<?=$tournamentID?>'>
+			
+		Limit Pool Matches
+		<?=tooltip("This will limit the number of fights each person has in a pool.<BR>
+			<em><u>Example:</u> If there are 8 people in a pool and the limit is 3, then
+			each of the fighters will only have 3 matches. (assigned at random)</em>")?>
+
+		<select name='updateTournament[limitPoolMatches]' 
+			id='limitPoolMatches_select<?=$tournamentID?>'>
+			<option <?=optionValue(0,$maxMatches)?> > No </option>
+			<?php for($i = 1; $i <= $maxMatchesLimit; $i++):?>
+				<option <?=optionValue($i,$maxMatches)?> ><?=$i?></option>
+			<?php endfor ?>
+		</select>		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentMaxPoolSize($tournamentID = 'new'){
 // Select menu for the maximum pool size allowed in a tournament
 // Appears or disapears as controled by javascript
@@ -906,6 +966,105 @@ function edit_tournamentMaxPoolSize($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentNumSubMatches($tournamentID = 'new'){
+// Select menu for the maximum pool size allowed in a tournament
+// Appears or disapears as controled by javascript
+	
+	$display = "hidden"; 			// Hidden for most cases
+	$numSubMatches = null;					
+	
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT formatID, numSubMatches
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$res = mysqlQuery($sql, SINGLE);
+		
+		$numSubMatches = $res['numSubMatches'];
+		
+		if($res['formatID'] == FORMAT_MATCH){
+			$display ='';
+		}
+	}
+	
+	?>
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='numSubMatches_div<?=$tournamentID?>'>
+			
+		Use Sub-matches
+		<?=tooltip("Sub-matches will create multiple 'sub-matches' for each match.
+					<BR><u>Example</u>: A multi-weapon tournament where competitors
+					face off with each weapon set one after another.")?>
+
+		<select name='updateTournament[numSubMatches]'
+			id='numSubMatches_select<?=$tournamentID?>'>
+				<option value=0>No</option>
+				<?php for($i = 2; $i <= 9; $i++): ?>
+					
+					<option <?=optionValue($i,$numSubMatches)?> >
+						<?=$i?> Sub-matches per Match	
+					</option>
+				<?php endfor ?>
+			
+		</select>		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentSubMatchMode($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+	$subMatchMode = SUB_MATCH_ANALOG;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT subMatchMode, formatID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$data = mysqlQuery($sql, SINGLE);
+
+		$subMatchMode = $data['subMatchMode'];
+
+		if($data['formatID'] == FORMAT_MATCH){
+			$display = '';
+		}
+
+	} 
+	
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='subMatchMode_div<?=$tournamentID?>' >
+			
+		Sub-match Mode
+		<?=tooltip("<u>Analog</u>: The points from all sub-matches are added to determine
+					the match winner.
+					<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches, 
+					regardless of what the scores were.")?>
+		
+		<select name='updateTournament[subMatchMode]'
+			id='subMatchMode_select<?=$tournamentID?>'>
+			<option <?=optionValue(SUB_MATCH_ANALOG,$subMatchMode)?> >	Analog 	</option>
+			<option <?=optionValue(SUB_MATCH_DIGITAL,$subMatchMode)?> >	Digital	</option>
+			
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentNormalization($tournamentID = 'new'){
 // Select menu for the normalization pool size All pools results will be 
 // scaled to this size to ensure fairness across different sized pools.
@@ -919,7 +1078,7 @@ function edit_tournamentNormalization($tournamentID = 'new'){
 		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$formatID = mysqlQuery($sql, SINGLE);
+		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
 		
 		$sql = "SELECT normalizePoolSize
 				FROM eventTournaments
@@ -1152,6 +1311,53 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentStaffCheckin($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+	$checkInStaff = STAFF_CHECK_IN_NONE;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH){
+			$display = '';
+			
+			$sql = "SELECT checkInStaff
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$checkInStaff = (int)mysqlQuery($sql, SINGLE, 'checkInStaff');
+
+		}
+
+	} 
+	
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='checkInStaff_div<?=$tournamentID?>' >
+			
+		Check in Staff for Matches
+		<?=tooltip("Use this if you want to keep track of your judging/table staff on a match by match basis.")?>	
+		
+		<select name='updateTournament[checkInStaff]'
+			id='checkInStaff_select<?=$tournamentID?>'>
+			<option <?=optionValue(STAFF_CHECK_IN_NONE,$checkInStaff)?> >No</option>
+			<option <?=optionValue(STAFF_CHECK_IN_ALLOWED,$checkInStaff)?> >Optional</option>
+			<option <?=optionValue(STAFF_CHECK_IN_MANDATORY,$checkInStaff)?> >Mandatory </option>
+		</select>
+		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentReverseScore($tournamentID = 'new'){
 // Select menu for whether or not the tournament uses reverse scores,
 // if points are entered to the fighter who got hit rather than 
@@ -1165,7 +1371,8 @@ function edit_tournamentReverseScore($tournamentID = 'new'){
 
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 
-		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH || $formatID == FORMAT_SOLO){
 			
 			$sql = "SELECT isReverseScore
 					FROM eventTournaments
@@ -1223,11 +1430,9 @@ function edit_tournamentOverrideDoubles($tournamentID = 'new'){
 					FROM eventTournaments
 					WHERE tournamentID = {$tournamentID}";
 			$isOverrideDoubles = (int)mysqlQuery($sql, SINGLE, 'overrideDoubleType');
-			if($isOverrideDoubles == 1){
-				$display = '';
-			}
+
+			$display = '';
 		}
-		$display = '';
 
 	} elseif($tournamentID == 'new') {
 		// Not used
@@ -1466,6 +1671,41 @@ function edit_tournamentKeepPrivate($tournamentID = 'new'){
 
 /*****************************************************************************/
 
+function edit_tournamentHideFinalResults($tournamentID = 'new'){
+
+	$hideFinalResults = null;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$sql = "SELECT hideFinalResults
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$hideFinalResults = (bool)mysqlQuery($sql, SINGLE, 'hideFinalResults');
+
+	}
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box' 
+		id='hideFinalResults_div<?=$tournamentID?>' >
+			
+		Show Final Results<?=tooltip("Disable this to not show the overall tournament results.<BR>
+			<BR>eg: Not showing the final results of tournaments that are components of a composite
+			event.")?>
+		
+		<select name='updateTournament[hideFinalResults]'
+			id='hideFinalResults_select<?=$tournamentID?>'>
+			<option <?=optionValue(0,$hideFinalResults)?> >Yes (normal)</option>
+			<option <?=optionValue(1,$hideFinalResults)?> >No (hide them)</option>
+		</select>
+		
+	</div>
+	
+<?php }
+
+/*****************************************************************************/
+
 function edit_tournamentTeams($tournamentID = 'new'){
 // Select if the tournament is a team event
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1619,6 +1859,50 @@ function edit_tournamentMaxPoints($tournamentID = 'new'){
 	
 <?php }
 
+/****************************************************(*************************/
+
+function edit_tournamentTimeLimit($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+
+	$timeLimit = 0;
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
+			$display = '';
+			
+			$sql = "SELECT timeLimit
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$timeLimit = mysqlQuery($sql, SINGLE, 'timeLimit');
+
+		}
+	} elseif($tournamentID == 'new') {
+		// Pull from event defaults
+	}
+
+	if($timeLimit == 0){
+		$timeLimit = '';
+	}
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='timeLimit_div<?=$tournamentID?>' >
+			
+		Time Limit
+		<?php tooltip("Match will automaticaly conclude after this time is reached. <BR>
+			<strong>Leave blank for unlimited.</strong>"); ?>
+		<input type='number' name='updateTournament[timeLimit]' value='<?=$timeLimit?>'
+			placeholder='Unlimited' min=0 max=100 class='text-center'>
+	</div>
+	
+<?php }
+
 /*********************************************************(********************/
 
 function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bottom'){
@@ -1632,7 +1916,7 @@ function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bot
 
 	
 	<span data-tooltip aria-haspopup='true' class='has-tip' 
-		data-disable-hover='false' tabindex='2' title='<?=$text?>'
+		data-disable-hover='false' tabindex='2' title="<?=$text?>"
 		data-position='<?=$dir?>' data-allow-html='true' >
 		
 		<?=$tip?>
@@ -1709,467 +1993,6 @@ function poolSetNavigation($displayByPoolsButton = false){
 	</form>
 	
 <?php 
-}
-
-/******************************************************************************/
- 
- function bracket_finalistDropDown($fighterNum,$matchID, $finalists, $seedID, $isTeams){
-// Creates a drop down list of all the fighters provided
-// Used in elimination brackets
-
-	$rankedNames = $finalists;
-	$tournamentID = $_SESSION['tournamentID'];
-	?>
-
-	<select name='newFinalists[<?=$matchID?>][<?=$fighterNum?>]' class='bracket-select' <?=LOCK_TOURNAMENT?>>
-		<option value=''></option>
-		<?php foreach($rankedNames as $fighter):
-			if(isset($fighter['rank']) AND $_SESSION['bracketHelper'] != 'on'){
-				$rank = "#{$fighter['rank']} - ";
-			} else {
-				$rank = '';
-			}
-			$selected = isSelected($fighter['rosterID'], $seedID);
-			?>
-			
-			<option value='<?=$fighter['rosterID']?>' <?=$selected?>>
-				<?=$rank?><?=getFighterName($fighter['rosterID'],null,null,$isTeams)?>
-			</option>
-			
-		<?php endforeach ?>
-	</select>
-<?php }
-
-/******************************************************************************/
-
-function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists, $seedID, $teamEntry){
-// Creates entry field or displays previously entered fighter
-// for the bracket position specified
-
-	$matchID = $matchInfo['matchID'];
-	if($fighterNum == 1){
-		$fighterID = 'fighter1ID';
-		$color = COLOR_CODE_1;
-	}else if($fighterNum == 2){
-		$fighterID = 'fighter2ID';
-		$color = COLOR_CODE_2; 
-	}else { 
-	 displayAlert("Error in 'finalistEntry' !!!!!!");
-	}
-	?>
-	
-<!-- If no data exists for the bracket position	-->
-	<?php if($matchInfo[$fighterID] == 0 || $matchInfo[$fighterID] == null):
-	
-		$class = '';
-		if($fighterNum == 1){
-			$class = "bracket-top-slot";
-		}
-		?>
-		
-		<div class='<?=$class?>'>
-							
-		<?php 
-			if(ALLOW['EVENT_SCOREKEEP'] == true){
-				// Staff and higher can add fighters
-				bracket_finalistDropDown($fighterNum, $matchID, $finalists, $seedID,$teamEntry);
-			} else {
-				// Blank for guests
-				echo "&nbsp;";
-			}
-		?>
-		
-		</div>
-		
-
-<!-- If data exists for the bracket position -->		
-	<?php else: 
-		$name = getFighterName($matchInfo['fighter'.$fighterNum.'ID'],null,null,$teamEntry);
-		$score = $matchInfo['fighter'.$fighterNum.'Score'];
-		$style = '';
-		
-		// If is match winner
-		if ($matchInfo['fighter'.$fighterNum.'ID'] == $matchInfo['winnerID']){
-			$style .= "font-weight: bold; ";
-		}
-		
-		$class = '';
-		if($fighterNum == 1){
-			$class = "bracket-top-slot";
-		}
-		
-		if(ALLOW['EVENT_SCOREKEEP'] == true){	// shows fighter color for staff only
-			$style .= "background-color: {$color}; ";
-		}
-		?>
-
-		<div class='<?=$class?>' style='<?=$style?> padding-left: 3px;'>
-			<?=$score?> <?=$name?>
-		</div>
-
-	<?php endif ?>
-
-<?php }
-
-/******************************************************************************/
-
-function bracket_management($tournamentID, $allBracketInfo, $finalists){
-	
-	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
-
-	?>
-
-<!-- Bracket Management -->
-	<div style='margin-top: 50px;'>&nbsp;</div>
-	
-	
-	<fieldset class='fieldset'>
-	<legend>Bracket Management</legend>
-
-	<div class='grid-x grid-padding-x'>
-		
-<!-- Create Bracket -->	
-
-	<?php if($allBracketInfo == null): ?>
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-			<div class='large-3 medium-4 cell'>
-				<a class='button expanded' data-open='createBracket' <?=LOCK_TOURNAMENT?>>
-					Create Bracket
-				</a>
-			</div>
-		<?php endif ?>
-		
-<!-- Bracket Exists -->
-	<?php else: ?>
-	
-	
-	
-	<!-- Delete Bracket -->
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-		<div class='large-3 medium-4 cell'>
-			<a class='button alert expanded' data-open='deleteBracket' <?=LOCK_TOURNAMENT?>>
-				Delete Bracket
-			</a>
-		</div>
-		<?php endif ?>
-
-	<?php endif ?>
-	
-	</div>
-
-	</fieldset>
-	
-	
-<!-- Create Bracket Box ------------------------------------------------------->
-
-	<?php $maxBracketSize = 64; ?>
-	<div class='reveal medium' id='createBracket' data-reveal>
-	<form method='POST'>
-	<fieldset <?=LOCK_TOURNAMENT?>>
-		<h5>Create Bracket</h5>
-		
-		<form method='POST'>
-	
-		<div class='input-group'>
-			<span class='input-group-label'>Number of Fighters:</span>
-			<input class='input-group-field' type='number' name='numWinnerBracketFighters'
-				min=2 max=<?=$maxBracketSize?> >
-		</div>
-		<div class='input-group grid-x'>
-			<span class='input-group-label small-12'>
-				Consolation Bracket for top # of Fighters:
-			</span>
-			<input class='input-group-field' type='number' 
-				name='numLooserBracketFighters' 
-				placeholder='Leave blank for single elim'
-				min=2 max=<?=$maxBracketSize?>>
-		</div>	
-	
-	
-	
-	<!-- Submit buttons -->
-		<div class='grid-x grid-margin-x'>
-			<button class='button success small-6 cell' name='formName' 
-				value='createBracket' <?=LOCK_TOURNAMENT?>>
-				Create
-			</button>
-			<button class='button secondary small-6 cell' data-close aria-label='Close modal' 
-				type='button' <?=LOCK_TOURNAMENT?>>
-				Cancel
-			</button>
-		</div>
-		</fieldset>
-		</form>
-		
-	<!-- Close button -->
-		<button class='close-button' data-close aria-label='Close modal' type='button'>
-			<span aria-hidden='true'>&times;</span>
-		</button>
-	</div>
-	
-	
-<!-- Delete Bracket Box ------------------------------------------------------->
-
-	<div class='reveal' id='deleteBracket' data-reveal>
-		<fieldset <?=LOCK_TOURNAMENT?>>
-		<form method='POST'>
-		<h4 class='text-center'>Warning!</h4>
-		<p>You are about to erase all finals brackets for this tournament.<BR>
-		This includes data from any matches in the winners & consolation brackets.</p>
-		
-		<div class='grid-x grid-margin-x'>
-		
-			<button class='button alert small-6 cell' name='formName' value='deleteBracket'
-				<?=LOCK_TOURNAMENT?>>
-				Delete Bracket
-			</button>
-			<button class='button secondary small-6 cell' data-close aria-label='Close modal' 
-				type='button' <?=LOCK_TOURNAMENT?>>
-				Cancel
-			</button>
-		
-		</div>
-		</fieldset>
-		<button class='close-button' data-close aria-label='Close modal' type='button'>
-			<span aria-hidden='true'>&times;</span>
-		</button>
-	</div>
-	
-<?php }
-
-/******************************************************************************/
-
-function bracket_display($bracketInfo, $finalists,$type,$bracketAdvancements){
-// Displays the bracket described by $bracket info	
-	
-// Initialization
-	if($bracketInfo == null){
-		return;
-	}
-
-	$tournamentID = $bracketInfo['tournamentID'];
-	$bracketLevels = $bracketInfo['bracketLevels'];
-	$bracketID = $bracketInfo['groupID'];
-	$teamEntry = isEntriesByTeam($tournamentID);
-	if($type == 'win' OR $type == 'winner' OR $type == 'winners'){
-		$isWinnersBracket = true;
-	} else {
-		$isWinnersBracket = false;
-	}
-
-	if($isWinnersBracket AND isset($bracketInfo['loserID'])){
-		$loserID = $bracketInfo['loserID'];
-		$isSingleElim = true;
-	} else {$isSingleElim = false;}
-
-	$bracketMatches = getBracketMatchesByPosition($bracketID);
-	
-	// Warning if there are ties
-	$numTies = getNumNoWinners($bracketID);
-	if($numTies > 0 && $_SESSION['bracketHelper'] == 'on'){
-		$_SESSION['bracketWarnings'][] = "
-		<u>Warning:</u> One of the elimination bracket matches has ended with no winner.<BR>
-		I hope you know what you are doing, because the bracket helper no longer does.
-		";
-	}
-	
-	
-	// php to generate css based on bracket properties
-	include('finalsCSS.php');	
-	?>
-
-<!-- Buttons above bracket -->	
-	<form method='POST' style='display:inline;'>
-	
-	<input type='hidden' name='formName' value='updateBracket'>
-	<input type='hidden' name='groupID' value='<?=$bracketID?>'>
-
-	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		
-		<button class= 'button success' name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
-			Add Fighters
-		</button>
-		<button class= 'button alert' name='updateBracket' value='clearMatches' <?=LOCK_TOURNAMENT?>>
-			Clear Selected
-		</button>
-			
-		<?php if(isset($_SESSION['bracketWarnings'])):
-			foreach($_SESSION['bracketWarnings'] as $type => $warning):
-				if($isWinnersBracket && $type === 'loser'){ continue; }
-				?>
-			
-				<div class='callout secondary' data-closable>
-					<?=$warning?>
-					<button class="close-button" aria-label="Dismiss secondary" type="button" data-close>
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-			<?php endforeach ?>
-			
-		<?php unset($_SESSION['bracketWarnings']); 
-		endif?>
-		
-	<?php endif; ?>
-
-<!-- Bracket display -->
-	<div id='tournament_box'>
-		
-	<?php	
-	for($currentLevel=$bracketLevels;$currentLevel >=1;$currentLevel--):
-		echo"<div class='tier'>";
-		insertTierName($currentLevel, $isWinnersBracket,$isSingleElim);
-		
-		if($isWinnersBracket){ 
-			$maxMatchesAtLevel = pow(2,$currentLevel-1);
-		} else {
-			$maxMatchesAtLevel = getNumEntriesAtLevel_consolation($currentLevel,'matches');
-		}
-		
-		for($bracketPosition = 1;$bracketPosition<=$maxMatchesAtLevel;$bracketPosition++):
-
-
-			if(isset($bracketMatches[$currentLevel][$bracketPosition])){
-				$matchInfo = $bracketMatches[$currentLevel][$bracketPosition];
-			} else {
-				$matchInfo = null;
-			}
-			
-			if($matchInfo == null){
-				$isNotBlank = false;
-			} else {$isNotBlank = true;}
-			
-			// Displays 3rd place match in single elims & bracket advancements
-			$seed1 = '';
-			$seed2 = '';
-			if($isWinnersBracket){
-				if($isSingleElim AND $currentLevel == 1){
-					$loserMatches = getBracketMatchesByPosition($loserID);
-					$matchInfo = $loserMatches[1][1];
-					if(isset($bracketAdvancements['losers'][$currentLevel][$bracketPosition][1]['rosterID'])){	
-						$seed1 = $bracketAdvancements['losers'][$currentLevel][$bracketPosition][1]['rosterID'];
-					}
-					if(isset($bracketAdvancements['losers'][$currentLevel][$bracketPosition][2]['rosterID'])){
-						$seed2 = $bracketAdvancements['losers'][$currentLevel][$bracketPosition][2]['rosterID'];
-					}
-				} else {
-					if(isset($bracketAdvancements['winners'][$currentLevel][$bracketPosition][1]['rosterID'])){
-						$seed1 = $bracketAdvancements['winners'][$currentLevel][$bracketPosition][1]['rosterID'];
-					}
-					if(isset($bracketAdvancements['winners'][$currentLevel][$bracketPosition][2]['rosterID'])){
-						$seed2 = $bracketAdvancements['winners'][$currentLevel][$bracketPosition][2]['rosterID'];
-					}
-				}
-			} else {
-				if(isset($bracketAdvancements['losers'][$currentLevel][$bracketPosition][1]['rosterID'])){	
-					$seed1 = $bracketAdvancements['losers'][$currentLevel][$bracketPosition][1]['rosterID'];
-				}
-				if(isset($bracketAdvancements['losers'][$currentLevel][$bracketPosition][2]['rosterID'])){
-					$seed2 = $bracketAdvancements['losers'][$currentLevel][$bracketPosition][2]['rosterID'];
-				}
-			}
-			
-			$name = "depth{$currentLevel}";
-			$matchID = $matchInfo['matchID'];
-			?>
-			
-<!--  Bracket level -->
-		<div class='<?=$name?>'>
-			<div class='centerCrap'>
-			<div class='grid-x grid-padding-x text-center' style='width:<?=$boxWidth?>px;'>
-				<div class='large-2 small-2 medium-2 align-self-middle text-center'>
-					<?php if($isNotBlank){
-						goToMatchButton($matchInfo);
-					} ?>
-				</div>
-				<div class='large-10 small-10 medium-10'>
-	
-				<?php if($isNotBlank): ?>
-					<?php bracket_finalistEntry(1,$matchInfo, $bracketInfo, $finalists,$seed1,$teamEntry); ?>
-					<?php bracket_finalistEntry(2,$matchInfo, $bracketInfo, $finalists,$seed2,$teamEntry); ?>
-					<a name='anchor<?=$matchID?>'></a>
-				<?php endif ?>	
-				</div>
-			</div>
-			</div>
-			
-		<!-- Vertical Lines -->
-			<?php if($currentLevel > 1 AND $isNotBlank 
-				AND ($isWinnersBracket OR $currentLevel % 2 == 0)):
-					
-				if($bracketPosition % 2 != 0){
-					$name .='_rightTop';
-				} else {
-					$name .= '_rightBottom';
-				} ?>
-			
-				<div class='<?=$name?>'>
-				</div>
-			<?php endif ?>
-			
-				
-			</div>
-			
-			<?php 
-			if($isSingleElim AND $currentLevel == 1 AND $isWinnersBracket){
-				$isSingleElim = false;
-				$currentLevel++;
-			}
-			?>
-			
-		<?php endfor ?>
-		</div>
-		
-	<?php endfor ?>
-	
-	</div>
-
-	</form>
-
-<?php }
-
-/******************************************************************************/
-
-function insertTierName($level, $type, $isSingleElim){
-// Inserts the name of the bracket level
-// Context dependent based on winners/consolation bracket	
-	
-	if($type == 1 OR $type == 'winner' OR $type=='winners'){
-		switch($level){
-			case 1:
-				if($isSingleElim){
-					$name = '3rd Place';
-				} else {
-					$name = '1st Place';
-				}
-				break;
-			case 2: 
-				$name = 'Semi-Finals';
-				break;
-			case 3:
-				$name = 'Quarter-Finals';
-				break;
-			default:
-				$name = 'Bracket';
-				break;
-		}
-	} else {
-		switch($level){
-			case 1:
-				$name = '3rd Place';
-				break;
-			default:
-				$bracketInfo = getBracketInformation($_SESSION['tournamentID']);
-				$max = $bracketInfo['loser']['numFighters']+2;
-				$n = getNumEntriesAtLevel_consolation($level,'fighters')+2;
-				if($n > $max){$n = $max;}
-				$name = "Top {$n}";
-				break;
-		}
-	}
-	
-	echo "<h3 class='center'>{$name}</h3>";
 }
 
 /******************************************************************************/
@@ -2486,9 +2309,9 @@ function goToMatchButton($matchInfo){
 	<?php else: ?>
 	
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-			<button class='button success hollow small' style='margin-bottom: 5px;' 
+			<button class='button success hollow tiny' style='margin-bottom: 5px;' 
 				name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
-				Add
+				&#10004;
 			</button>
 		<?php else: ?>
 			<BR>
@@ -2548,111 +2371,6 @@ function addYoutube($matchID, $divider = true){
 
 /******************************************************************************/
 
-function bracketHelperToggleButton($allBracketInfo, $finalists){
-// Creates a button to toggle the bracket helper on/off
-// If the helper will go into a 'try' state if it is attempted to be enabled
-// while there are incomplete pool matches, informing the user of the difficulty.
-
-	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
-	$tournamentID = $_SESSION['tournamentID'];
-	if($tournamentID == null){
-		setAlert(SYSTEM,'No tournamentID in bracketHelperToggleButton()');
-		return;
-	}
-	if(!isset($_SESSION['bracketHelper'])){
-		$_SESSION['bracketHelper'] = '';
-	}
-		
-// Checks if bracket helper is attempted to be turned on
-// and turns on if no incomplete matches
-
-	if($_SESSION['bracketHelper'] == 'try'){
-		$_SESSION['incompletePoolMatches'] = getTournamentIncompletes($tournamentID, 'pool');	
-		if($_SESSION['incompletePoolMatches'] == null){
-			$_SESSION['bracketHelper'] = 'on';
-		}	
-		
-	}
-	
-	// For the tooltip
-	$descriptionText = "Automatically seeds based on pool placements, 
-			and suggests bracket advancements based on fight winners.";
-	
-	
-	if($_SESSION['bracketHelper'] == 'on' && isset($allBracketInfo['loser'])){
-		// Warns the user that the bracket helper is not defined for consolation
-		// brackets that are not for a number of fighters equal to a power of 2
-		$s = (int)($allBracketInfo['loser']['numFighters']+2);
-	
-		if(($s & ($s - 1)) != 0){ // is not a power of 2
-			
-			$_SESSION['bracketWarnings']['loser'] = "<u>Warning:</u> 
-			Consolation Bracket Helper not configured for this size bracket.<BR>
-			Seeding results may be unpredictable.";
-		}
-	}
-	?>
-	
-<!-- Start display -->
-	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
-		<div class='callout secondary'>
-	<?php endif ?>
-	
-	<form method='POST' style='display:inline'>
-	
-	
-<!-- Text for the toggle button -->
-	<?php switch($_SESSION['bracketHelper']):
-		case 'on': ?>
-			<button class='button' value='toggleBracketHelper' name='formName' <?=LOCK_TOURNAMENT?>>
-				Disable Bracket Helper
-			</button>
-			<?php break;
-		case 'try': ?>
-			There are still incomplete pool matches. 
-			Finalize all matches before to ensure pool rankings are accurate.<BR>
-			<input type='hidden' name='formName' value='toggleBracketHelper'>
-			<button class='button secondary' value='toggleBracketHelper' name='formName' <?=LOCK_TOURNAMENT?>>
-				Cancel
-			</button>
-			<button class='button hollow warning' value='true' name='bracketHelperOverride' <?=LOCK_TOURNAMENT?>>
-				Override
-			</button>
-
-			<?php break;
-		case 'off': 
-		default: ?>
-			<button class='button' value='toggleBracketHelper' name='formName' <?=LOCK_TOURNAMENT?>> 
-				Enable Bracket Helper
-			</button>
-			<?php tooltip($descriptionText); ?>
-			<?php break;
-	endswitch; ?>
-	
-	</form>
-	
-<!-- Displays incomplete pool matches inhibiting bracket helper from enabling -->
-
-
-	<?php
-	if(isset($_SESSION['incompletePoolMatches'])){
-		displayIncompleteMatches($_SESSION['incompletePoolMatches']);
-	}
-	?>
-	
-	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
-		</div>
-	<?php endif ?>
-	
-	
-	
-	
-	
-
-<?php }
-
-/******************************************************************************/
-
 function displayIncompleteMatches($incompleteMatches){
 // Displays incomplete matches from a tournament
 // Used to show staff which events are not complete if they need to 
@@ -2667,7 +2385,7 @@ function displayIncompleteMatches($incompleteMatches){
 	<form method='POST'>
 	<input type='hidden' name='formName' value='goToMatch'>
 	
-	The following pool matches are incomplete:
+	The following pool matches are incomplete:<BR>
 	<?php foreach($incompleteMatches as $matchID):
 		$matchInfo = getMatchInfo($matchID);
 		$name1 = getFighterName($matchInfo['fighter1ID'],null,null,$matchInfo['teamEntry']);
@@ -2675,8 +2393,8 @@ function displayIncompleteMatches($incompleteMatches){
 		$poolName = getGroupName($matchInfo['groupID']);
 		?>
 		
-		<BR>
-		<button class='button' name='matchID' value='<?=$matchID?>'>
+		
+		<button class='button no-bottom' name='matchID' value='<?=$matchID?>'>
 			<?=$poolName?> - <?=$name1?> vs <?=$name2?>
 		</button>
 	
@@ -2745,7 +2463,145 @@ function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
 
 }
 
-/********************************************************************((********/
+/******************************************************************************/
+
+function autoFinalizeSpecificationBox($tournamentID){
+
+	if(getTournamentFormat($tournamentID) != FORMAT_MATCH
+		|| isBrackets($tournamentID) == false ){
+		return;
+
+	}
+
+	$tournamentID = (int)$tournamentID;
+
+?>
+
+	<div class='reveal tiny' id='autoFinalizeBox-<?=$tournamentID?>' data-reveal>
+		<h4>Auto Finalize Options</h4>
+
+		<?= autoFinalizeBracketForm($tournamentID) ?>
+
+	<!-- Reveal close button -->
+	<button class='close-button' data-close aria-label='Close modal' type='button'>
+		<span aria-hidden='true'>&times;</span>
+	</button>
+
+	</div>
+
+
+<?php
+}
+
+/******************************************************************************/
+
+function autoFinalizeBracketForm($tournamentID){
+
+	$sql = "SELECT numSubMatches
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$numSubMatches = (int)mysqlQuery($sql, SINGLE, 'numSubMatches');
+
+	if($numSubMatches != 0){
+		$showSubMatchOption = true;
+	} else {
+		$showSubMatchOption = false;
+	}
+?>
+
+	<form method='POST'>
+		<input type='hidden' name='tournamentID' value='<?=$tournamentID?>'>
+
+	<!-- Break Ties -->
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Use Tie-Breakers?
+				<?=tooltip("Normaly results are generated in the format 'Top 8, Top 16, etc..<BR>
+							Using a tie breaker will attempt to generate an ordered list using:
+							<BR>1) Win Percentage (including sub-matches)
+							<BR>2) Points +/-")?>
+			</span>
+
+			<div class='switch no-bottom input-group-field'>
+				<input class='switch-input' type='hidden'  
+					name='autoFinalizeSpecs[breakTies]' value=0>
+				<input class='switch-input polar-disables' type='checkbox' id='breakTies' 
+					name='autoFinalizeSpecs[breakTies]' value=1>
+				<label class='switch-paddle' for='breakTies'>
+				</label>
+			</div>
+		</div>
+
+	<!-- Limit Sub Matches -->
+		<?php if($showSubMatchOption == true): ?>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					<strong>Limit Sub-Match Calculations
+						<?=tooltip("Limit the number of sub-matches used in the Points +/- calculations
+								to the first <x>.
+								<BR> For example you may want to only include the first 2 of 3 matches.")?>
+					</strong>
+				</span>
+				<select class='input-group-field' 
+					name='autoFinalizeSpecs[subMatchLimit]'> 
+					<option value='0'></option>
+					<?php for($i = 1;$i<=$numSubMatches;$i++): ?>
+						<option value='<?=$i?>'>First <?=$i?> Match(es)</option>
+					<?php endfor ?>
+
+				</select>
+			</div>
+		<?php endif ?>
+
+
+		<!-- Submit buttons -->
+		<div class='grid-x grid-margin-x'>
+			<button class='success button small-6 cell' name='formName' 
+				value='autoFinalizeTournament'>
+				Auto Finalize Tournament
+			</button>
+			<button class='secondary button small-6 cell' 
+				data-close aria-label='Close modal' type='button'>
+				Cancel
+			</button>
+		</div>
+
+	</form>
+
+
+<?php
+}
+
+
+/******************************************************************************/
+
+function toggleClass($class,$text1,$text2 = null, $hide = false){
+// $type uses jQuery syntax to call a class or id. By default this uses classes 
+	if($text2 == null){
+		$text2 = $text1;
+	}
+
+	if($hide == false){
+		$hide1 = '';
+		$hide2 = 'hidden';
+	} else {
+		$hide1 = 'hidden';
+		$hide2 = '';
+	}
+
+?>
+
+	<a onclick="$('.<?=$class?>').toggle()" class='<?=$class?> <?=$hide1?>'>
+		<?=$text1?>
+	</a>
+	<a onclick="$('.<?=$class?>').toggle()" class='<?=$class?> <?=$hide2?>'>
+		<?=$text2?>
+	</a>
+
+<?php
+}
+
+/******************************************************************************/
 
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -761,18 +761,90 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Wessex_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = $standing['rosterID'];
+		$score = 0;
+
+		$sql = "SELECT matchID, winnerID
+				FROM eventMatches
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+		foreach($matches as $match){
+			$matchID = $match['matchID'];
+
+			$numMatches++;
+
+			if($match['winnerID'] == $rosterID){
+				$score += 3;
+			} elseif($match['winnerID'] == null){
+				$score += 1;
+			} else {
+				// Lost the match, no score.
+			}
+
+			$sql = "SELECT COUNT(*) AS numDoubles
+					FROM eventExchanges
+					WHERE matchID = {$matchID}
+					AND exchangeType = 'double'";
+			$numDoubles = (int)mysqlQuery($sql, SINGLE, 'numDoubles');
+
+			$score -= floor($numDoubles/2); // -1 for every second double.
+		}
+
+		if($numMatches != 0){
+			$score *= $normalizedMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+		
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standing['standingID']}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _StandingPoints_calculateScore($tournamentID, $groupSet = 1){
 	
-	$tournamentComponents = getTournamentComponents($tournamentID);
+	$tournamentComponents = getTournamentComponents($tournamentID,true);
 	$tournamentRoster = getTournamentRoster($tournamentID);
 	$basePointValue = getBasePointValue($tournamentID, null);
 
 	$tString = '';
-	foreach($tournamentComponents['fullList'] as $componentID){
+	foreach($tournamentComponents as $component){
+		$cTournamentID = (int)$component['cTournamentID'];
 		if($tString != ''){
 			$tString .= ', ';
 		}
-		$tString .= "$componentID";
+		$tString .= "$cTournamentID";
 	}
 
 	$fString = '';
@@ -795,20 +867,20 @@ function _StandingPoints_calculateScore($tournamentID, $groupSet = 1){
 		$sql = "SELECT standingID
 				FROM eventStandings
 				WHERE tournamentID = {$tournamentID}
-				AND rosterID = {$rosterID}";show($sql);
+				AND rosterID = {$rosterID}";
 		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
 
 		if($standingID == null){
 			$sql = "INSERT INTO eventStandings
 					(tournamentID, rosterID, groupType, score)
 					VALUES
-					({$tournamentID}, {$rosterID}, 'composite', {$score})";show($sql);
+					({$tournamentID}, {$rosterID}, 'composite', {$score})";
 			mysqlQuery($sql, SEND);
 		} else {
 			$sql = "UPDATE eventStandings
 					SET score = {$score}
 					WHERE standingID = {$standingID}";
-			mysqlQuery($sql, SEND);show($sql);
+			mysqlQuery($sql, SEND);
 		}
 
 		if($fString != ''){
@@ -828,6 +900,93 @@ function _StandingPoints_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _LpMeta_calculateScore($tournamentID, $groupSet = 1){
+	
+	$tournamentComponents = getTournamentComponents($tournamentID,true);
+	$tournamentRoster = getTournamentRoster($tournamentID);
+	$basePointValue = getBasePointValue($tournamentID, null);
+
+	$tString = '';
+	foreach($tournamentComponents as $component){
+		$cTournamentID = (int)$component['cTournamentID'];
+		if($tString != ''){
+			$tString .= ', ';
+		}
+		$tString .= "$cTournamentID";
+		$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
+	}
+
+	$fString = '';
+	foreach($tournamentRoster as $fighter){
+
+		$rosterID = $fighter['rosterID'];
+		$sql = "SELECT placing, highBound, lowBound, tournamentID
+				FROM eventPlacings
+				WHERE rosterID = {$rosterID}
+				AND tournamentID IN ({$tString})";
+		$tournamentPlacings = mysqlQuery($sql, ASSOC);
+
+		$score = 0;
+		$pointsForFighter = [];
+
+		foreach($tournamentPlacings as $placingData){
+			$num = $numEntries[$placingData['tournamentID']];
+			$points = ($num - ($placingData['placing'] - 1)) / $num;
+			$points *= $basePointValue;
+
+			if($points < 0){
+				$points = 0;
+			}
+		
+			$score += $points;
+			$pointsForFighter[] = $points;
+		}
+
+		// Subtract the standard deviation of scores from the average tournament score
+		$ptsFor = round($score,0);
+		if(count($pointsForFighter) != 0){
+			$ptsAgainst = round(standardDeviation($pointsForFighter),0);
+		} else {
+			$ptsAgainst = 0;
+		}
+		$score = $ptsFor - $ptsAgainst;
+
+
+		$sql = "SELECT standingID
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				AND rosterID = {$rosterID}";
+		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
+
+		if($standingID == null){
+			$sql = "INSERT INTO eventStandings
+					(tournamentID, rosterID, groupType, score, pointsFor, pointsAgainst)
+					VALUES
+					({$tournamentID}, {$rosterID}, 'composite', {$score}, {$ptsFor}, {$ptsAgainst})";
+			mysqlQuery($sql, SEND);
+		} else {
+			$sql = "UPDATE eventStandings
+					SET score = {$score}, pointsFor = {$ptsFor}, pointsAgainst = {$ptsAgainst}
+					WHERE standingID = {$standingID}";
+			mysqlQuery($sql, SEND);
+		}
+
+		if($fString != ''){
+			$fString .= ", ";
+		}
+		$fString .= "{$rosterID}";
+	}
+
+	// Delete any old standings hanging around from fighters without ranks
+	$sql = "DELETE FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND rosterID NOT IN ({$fString})";
+	mysqlQuery($sql, SEND);
+	
+}
+
+/******************************************************************************/
+
 function pool_ScoreFighters($tournamentID, $groupSet = 1){
 // Calls the appropriate funciton to score fighters given the tournament
 // scoring algorithm
@@ -837,7 +996,7 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_ScoreFighters()";
 		return;
 	}
-	
+
 	$formula = getScoreFormula($tournamentID);
 
 	if(substr($formula,0,1) !== '#'){
@@ -866,7 +1025,13 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 
 	$bracketInfo = getBracketInformation($tournamentID);
 	$ignores = getIgnores($tournamentID);
-	$numToElims = (int)$bracketInfo['winner']['numFighters'];
+
+	if(isset($bracketInfo[BRACKET_PRIMARY]['numFighters'])){
+		$numToElims = (int)$bracketInfo[BRACKET_PRIMARY]['numFighters'];
+	} else {
+		$numToElims = 0;
+	}
+	
 	$maxNumFields = 5;
 	$showTeams = (int)((bool)$showTeams);
 	$displayByPool = $_SESSION['displayByPool'];
@@ -1041,6 +1206,13 @@ function pool_GeneratePools($specifications){
 			
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
+
+	// This is a special mode
+	if($specifications['seedMethod'] == 'polar'){
+		pool_GeneratePolarPools($specifications);
+		return;
+	}
+
 	$groupSet = $specifications['groupSet'];
 	$lastGroupSet = $groupSet - 1;
 
@@ -1062,11 +1234,19 @@ function pool_GeneratePools($specifications){
 		$useSchools = false;
 	}
 
+	if($specifications['useSubGroups'] == true){
+		$useSubGroups = true;
+		$subGroupOrder = "subGroupNum DESC,";
+	} else {
+		$useSubGroups = false;
+		$subGroupOrder = "";
+	}
+
 	$useRatings = false;
 
 	switch($specifications['seedMethod']){
 		case 'seedList':
-			$sql = "SELECT rosterID, rating, schoolID
+			$sql = "SELECT rosterID, rating, schoolID, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
 					WHERE tournamentID = {$tournamentID}
@@ -1074,13 +1254,53 @@ function pool_GeneratePools($specifications){
 							FROM eventIgnores eI 
 							WHERE eI.rosterID = eTR.rosterID 
 							AND eI.tournamentID = {$tournamentID} ) = 0
-					ORDER BY rating DESC";
+					ORDER BY {$subGroupOrder} rating DESC";
 			$rankedList = mysqlQuery($sql, ASSOC);
 			$useRatings = true;
+
+			$sql = "SELECT MIN(rating) AS minRating, MAX(rating) AS maxRating, COUNT(*) AS numRated
+					FROM eventTournamentRoster as eTR
+					INNER JOIN eventRoster USING(rosterID)
+					WHERE tournamentID = {$tournamentID}
+					AND (	SELECT COUNT(*) 
+							FROM eventIgnores eI 
+							WHERE eI.rosterID = eTR.rosterID 
+							AND eI.tournamentID = {$tournamentID} ) = 0
+					AND rating != 0";
+			$ratingData = mysqlQuery($sql, SINGLE);
+
+			$ratingFix = false;
+			if($ratingData != null && $ratingData['numRated'] != 0){
+
+				$minRating = ($ratingData['maxRating'] - $ratingData['minRating']);
+				$minRating /= $ratingData['numRated'];
+				$minRating = $ratingData['minRating'] - $minRating;
+				$minRating = round($minRating,0);
+
+				if($minRating > 0) {
+					foreach($rankedList as $index => $fighter){
+						if($fighter['rating'] == 0){
+							$rankedList[$index]['rating'] = $minRating;
+							$ratingFix = true;
+						}
+					}
+
+					if($ratingFix == true){
+						setAlert(USER_ALERT,"<h5>You appear to have left some fighters unrated</h5>
+							A value of <strong class='red-text'>{$minRating}</strong>
+							has been applied to all unrated fighters.<BR><BR>
+							(<em>You can not turn this off,
+							having zero-rated fighters breaks things.</em>)");
+					}
+				}
+
+			}
+			
+
 			break;
 
 		case 'poolStanding':
-			$sql = "SELECT rosterID, rank, schoolID
+			$sql = "SELECT rosterID, rank, schoolID, subGroupNum
 					FROM eventStandings as eS
 					INNER JOIN eventRoster USING(rosterID)
 					WHERE tournamentID = {$tournamentID}
@@ -1091,7 +1311,7 @@ function pool_GeneratePools($specifications){
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
-					ORDER BY rank ASC";
+					ORDER BY {$subGroupOrder} rank ASC";
 			$rankedList = mysqlQuery($sql, ASSOC);
 			$useRatings = true;
 
@@ -1106,7 +1326,7 @@ function pool_GeneratePools($specifications){
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
-					ORDER BY rank ASC";
+					ORDER BY {$subGroupOrder} rank ASC";
 			$maxRank = mysqlQuery($sql, SINGLE, 'maxRank');
 			
 			foreach($rankedList as $index => $fighter){
@@ -1116,7 +1336,7 @@ function pool_GeneratePools($specifications){
 			break;
 		case 'random':
 		default:
-			$sql = "SELECT rosterID, 0 AS rating, schoolID
+			$sql = "SELECT rosterID, 0 AS rating, schoolID, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
 					WHERE tournamentID = {$tournamentID}
@@ -1126,9 +1346,39 @@ function pool_GeneratePools($specifications){
 							AND eI.tournamentID = {$tournamentID} 
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
-					ORDER BY RAND()";
+					ORDER BY {$subGroupOrder} RAND()";
 			$rankedList = mysqlQuery($sql, ASSOC);
 			break;
+	}
+
+// Sub Group Calculations
+	$highestSubGroup = 0;
+
+	if($useSubGroups == true){
+		$numInSubGroup = [];
+
+		foreach($rankedList as $fighter){
+			if($fighter['subGroupNum'] > 0){
+				@$numInSubGroup[$fighter['subGroupNum']]++;  // Might not exist, treat as zero.
+				if($fighter['subGroupNum'] > $highestSubGroup){
+					$highestSubGroup = $fighter['subGroupNum'] ;
+				}
+			} else {
+				break;
+			}
+		}
+
+		foreach($numInSubGroup as $subGroupNum => $num){
+			$reservedPools[$subGroupNum] = (int)ceil($num/$maxPoolSize);
+		}
+
+		// Sub Groups modify the tier behavior to make each sub-group it's own tier
+		$specifiedPoolsInTier = $poolsInTier;
+		$poolsInTier = $reservedPools[$highestSubGroup];
+		$workingSubGroup = $highestSubGroup;
+	} else {
+		$specifiedPoolsInTier = $poolsInTier;
+		$workingSubGroup = 0;
 	}
 
 	if($rankedList == null){
@@ -1164,12 +1414,20 @@ function pool_GeneratePools($specifications){
 			}
 		}
 	}
-
+$a = false;
 // Start going through list and assigning fighters
 	while(count($rankedList) > 0 && $numSpotsLeft > 0){
 
 		// Start and stop number for pools
-		$startPoolNum = $poolsInTier*($tier-1);
+		if(isset($endPoolNum)){
+			$startPoolNum = $endPoolNum + 1;
+			if($startPoolNum > $numberOfPools - 1){
+				break;
+			}
+		} else {
+			$startPoolNum = 0;
+		}
+		
 		if($poolsInTier == 0){
 			$endPoolNum = $numberOfPools - 1; // zero-indexed
 		} else{
@@ -1177,6 +1435,11 @@ function pool_GeneratePools($specifications){
 			if($endPoolNum > ($numberOfPools - 1) ){
 				$endPoolNum = $numberOfPools - 1;
 			}
+		}
+
+		$numSpotsLeft = $maxPoolSize* ($numberOfPools - $startPoolNum + 1);
+		if($numSpotsLeft <= 0){
+			break;
 		}
 
 		unset($numInPools);
@@ -1191,6 +1454,20 @@ function pool_GeneratePools($specifications){
 		}
 
 		foreach($rankedList as $index => $fighter){
+
+			if($workingSubGroup != 0
+				&& $workingSubGroup != $fighter['subGroupNum']){
+
+				// Switch to a new sub-group. Break the loop and re-calculate the tiers.
+				$workingSubGroup = $fighter['subGroupNum'];
+				if($workingSubGroup == 0){
+					$poolsInTier = $specifiedPoolsInTier;
+				} else {
+					$poolsInTier = $reservedPools[$workingSubGroup];
+				}
+				$tier++;
+				break;
+			}
 
 			$sizePoints = generate_PoolSizePoints($numInPools,$maxPoolSize);
 			if($useRatings == true){
@@ -1274,9 +1551,179 @@ function pool_GeneratePools($specifications){
 
 	}
 
+}
 
+/******************************************************************************/
 
+function pool_GeneratePolarPools($specifications){
+// Calculate advancements to move onto the next pool set using the parameters specified.
+// Parameters are the number of 
+			
+	$tournamentID = (int)$_SESSION['tournamentID'];
+	if($tournamentID == 0){return;}
+	$groupSet = $specifications['groupSet'];
+	$lastGroupSet = $groupSet - 1;
+
+	// determine which algorithim to use
+	$maxPoolSize = maxPoolSize();
+	if($maxPoolSize == 0){
+		setAlert(SYSTEM, "No maxPoolSize in pool_GeneratePolarPools()");
+		return;
+	}
+	$numberOfPools = count(getPools($tournamentID, $groupSet));
 	
+	$sql = "SELECT MAX(rating) AS maxRating1, MAX(rating2) AS maxRating2,
+					MIN(rating) AS minRating1, MIN(rating2) AS minRating2
+			FROM eventTournamentRoster
+			WHERE tournamentID = {$tournamentID}";
+	$limits = mysqlQuery($sql, SINGLE);
+	$range1 = $limits['maxRating1'] - $limits['minRating1'];
+	$range2 = $limits['maxRating2'] - $limits['minRating2'];
+
+	if($range1 == 0 || $range2 == 0){
+		setAlert(USER_ERROR,"Rating generation failure.
+			<BR>Rating and/or Rating2 don't have a range of data. Ratings can not all be the same.");
+		return;
+	}
+
+	$sql = "SELECT rosterID, rating, rating2, subGroupNum
+			FROM eventTournamentRoster
+			WHERE tournamentID = {$tournamentID}";
+	$ratings = mysqlQuery($sql, ASSOC);
+
+	$numToAssign = count($ratings);
+	$numAssigned = 0;
+	$maxSubGroup = 0;
+
+	foreach($ratings as $rating){
+		// Map the ratings on [-1,1]
+
+		if($rating['rating'] == 0 || $rating['rating2'] == 0){
+			setAlert(USER_ERROR,"Fighter(s) with zero ratings.<BR>
+				<em>All fighters <u>must</u> have Rating and Rating2 set
+				to use Polar Seeding.</em>");
+			return;
+		}
+
+		$x = (($rating['rating'] - $limits['minRating1']) / ($range1/2)) - 1;
+		$y = (($rating['rating2'] - $limits['minRating2']) / ($range2/2)) - 1;
+		$mag = sqrt(($x * $x) + ($y * $y));
+		if($mag == 0){
+			$angle = 0;
+		} elseif($y > 0) {
+			$angle = acos($x/$mag);
+		} else {
+			$angle = (2 * M_PI) - acos($x/$mag);
+		}
+
+		$p['mag'] = $mag;
+		$p['dir'] = $angle / (2 * M_PI); // Scale angle on [0,1]
+		$p['rosterID'] = $rating['rosterID'];
+
+		if($specifications['useSubGroups'] == true){
+			$subGroupNum = $rating['subGroupNum'];
+		} else {
+			$subGroupNum = 0;
+		}
+
+		if($subGroupNum > $maxSubGroup){
+			$maxSubGroup = $subGroupNum;
+		}
+		$polarList[$subGroupNum][] = $p;
+		@$fightersInSubGroup[$subGroupNum]++; // might not exist, treat as zero.
+		
+	}
+
+	$lowestPoolInBound = 0;
+
+	for($subGroupNum = $maxSubGroup; $subGroupNum >= 0; $subGroupNum--){
+
+		if(isset($polarList[$subGroupNum]) == false){
+			continue;
+		}
+		$subGroupList = $polarList[$subGroupNum];
+
+		if($subGroupNum != 0){
+			$numPoolsToUse = ceil($fightersInSubGroup[$subGroupNum]/$maxPoolSize);
+		} else {
+			$numPoolsToUse = $numberOfPools;
+		}
+		
+		// There are no more pools to use
+		if($lowestPoolInBound > ($numberOfPools - 1)){
+			break;
+		}
+
+		$highestPoolInBound = $lowestPoolInBound + $numPoolsToUse -1;
+		if($highestPoolInBound > ($numberOfPools - 1)){
+			$highestPoolInBound = ($numberOfPools - 1);
+		}
+		
+		$numPoolsInRange = ($highestPoolInBound - $lowestPoolInBound) + 1;
+
+		$poolPositions = [];
+		$poolSizes = [];
+		for($i = $lowestPoolInBound; $i <= $highestPoolInBound;$i++){
+
+			// The 0.5 offset 'shifts' the relative position of the pool in the list so that
+			// they are balanced between all the positions. eg: 4 pools, pool 0 is at 1/8 and
+			// pool 3 is at 7/8, instead of one being right at the edge.
+			$poolPositions[$i] = ($i+0.5)/$numPoolsInRange;
+			$poolSizes[$i] = 0;
+		}
+
+		// Sort each sub-group from highest magnitude to lowest
+		$sort1 = [];
+		foreach($subGroupList as $key => $entry){
+			$sort1[$key] = $entry['mag'];
+		}
+		array_multisort($sort1, SORT_DESC, $subGroupList);
+
+		foreach($subGroupList as $polarRating){
+
+			$closestPool = null;
+			$minDistance = 1;
+
+			foreach($poolPositions as $poolNum => $poolPosition){
+
+				$distanceToPool = abs($poolPosition - $polarRating['dir']);
+
+				// Handle 'wrap-arround'
+				if($distanceToPool > 0.5){
+					if($polarRating['dir'] > $poolPosition){
+						$poolPosition += 1;
+					} else {
+						$poolPosition -= 1;
+					}
+					$distanceToPool = abs($poolPosition - $polarRating['dir']);
+				}
+
+				if($distanceToPool < $minDistance){
+					$minDistance = $distanceToPool;
+					$closestPool = $poolNum;
+				}
+				
+			}
+
+			if($closestPool !== null){
+				$_SESSION['poolSeeds'][$closestPool][] = $polarRating['rosterID'];
+				$numAssigned++;
+				$poolSizes[$closestPool]++;
+				if($poolSizes[$closestPool] == $maxPoolSize){
+					unset($poolPositions[$closestPool]);
+				}
+			}
+
+		}
+
+		$lowestPoolInBound = $highestPoolInBound + 1;
+
+	}
+
+	if($numAssigned < $numToAssign){
+		$leftOut = $numToAssign - $numAssigned;
+		setAlert(USER_ERROR,"Could not find space for <strong>{$leftOut}</strong> fighters.");
+	}
 
 }
 
@@ -1327,6 +1774,7 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 		return;
 	}
 	$useTeams = (int)((bool)$useTeams);
+	$rankedPools = getRankedPools($tournamentID, $groupSet);
 
 // Load meta data on how to rank fighters
 	$sql = "SELECT poolWinnersFirst, 
@@ -1364,7 +1812,7 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 		return;
 	}
 
-	$orderBy = "ORDER BY {$meta['orderByField1']} {$meta['orderBySort1']}";
+	$orderBy = "{$meta['orderByField1']} {$meta['orderBySort1']}";
 
 	if($meta['orderByField2'] != '' 
 		&& ($meta['orderBySort2'] == 'ASC' || $meta['orderBySort2'] == 'DESC')){
@@ -1388,11 +1836,17 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 			WHERE tournamentID = {$tournamentID}
 			AND groupSet = {$groupSet}
 			AND isTeam = {$useTeams}
-			{$orderBy}";
+			ORDER BY {$orderBy}";
 
 	$rankedList = mysqlQuery($sql, ASSOC);
-	$ignores = getIgnores($tournamentID, 'soloAtSet');
 
+	if($rankedPools != null){
+		$rankedList = pool_RankFightersByPool($rankedPools, $rankedList, $tournamentID, 
+											  $groupSet, $useTeams, $orderBy);
+	}
+		
+
+	$ignores = getIgnores($tournamentID, 'soloAtSet');
 	$winnerPlacing = 1;
 	$loserPlacing = 1;
 
@@ -1445,6 +1899,99 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 
 	}
 	
+}
+
+/******************************************************************************/
+
+function pool_RankFightersByPool($rankedPools, $rankedList, 
+								 $tournamentID, $groupSet, 
+								 $useTeams, $orderBy){
+
+
+	$sql = "SELECT standingID, groupID, rosterID, groupRank, overlapSize, score
+			FROM eventStandings eS
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventGroupRankings USING(groupID) 
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}
+			AND isTeam = {$useTeams}
+			ORDER BY groupRank ASC, {$orderBy}";
+	$rankedByPoolList = mysqlQuery($sql, ASSOC);
+	
+	$maxPosition = count($rankedByPoolList) - 1;
+
+	$sql = "SELECT numFighters, groupID
+			FROM eventGroups
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}
+			AND groupType ='pool'";
+	$numInGroup = mysqlQuery($sql, KEY_SINGLES, 'groupID','numFighters');
+
+	$oldGroupID = null;
+	$poolPosition = 1;
+	$absPosition = 0;
+	$finalizedList = [];
+	$inOverlap = false;
+
+	foreach($rankedByPoolList as $index => $entry){
+		$groupID = $entry['groupID'];
+
+		if($oldGroupID != $groupID){
+			$oldGroupID = $groupID;
+			$poolPosition = 1;
+		}
+
+		if($inOverlap == true){
+
+			if($poolPosition <= $entry['overlapSize'])
+			{
+				$overlapList[$entry['rosterID']] = true;
+			} 
+
+			if(    $poolPosition > $entry['overlapSize']
+				|| $absPosition >= $maxPosition){
+
+				$overlapPlace = $overlapStart;
+				foreach($rankedList as $person){
+
+					if(isset($overlapList[$person['rosterID']]) == true){
+						$finalizedList[$overlapPlace] = $person;
+						$overlapPlace++;
+					}
+				}
+
+				if($poolPosition > $entry['overlapSize']){
+					$inOverlap = false;
+				unset($overlapList);
+				}
+
+			}
+
+		}
+
+		// Entering a new overlap region
+		if(    $inOverlap == false
+			&& $poolPosition > ($numInGroup[$groupID] - $entry['overlapSize'])
+			&& $absPosition != $maxPosition
+		){
+			$overlapStart = $absPosition;
+			$overlapList[$entry['rosterID']] = true;
+			$inOverlap = true;
+
+		}
+
+		if($inOverlap == false){
+			$finalizedList[$absPosition] = $entry;
+		}
+
+		$oldGroupID = $groupID;
+		$absPosition++;
+		$poolPosition++;
+
+	}
+
+
+	return $finalizedList;
 }
 
 /******************************************************************************/

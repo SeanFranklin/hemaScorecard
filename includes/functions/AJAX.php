@@ -15,6 +15,31 @@ include_once(BASE_URL.'includes/config.php');
 
 switch ($_REQUEST['mode']){
 	
+/******************************************************************************/
+
+case 'updateSession': {
+
+	$acceptedIndexes = array('tournamentID','groupID','matchID','groupSet',
+		'dayNum','shiftIndex');
+
+	$index = $_REQUEST['index'];
+	if(in_array($index, $acceptedIndexes)){
+		$_SESSION[$index] = $_REQUEST['value'];
+		echo 'Success';
+	} else {
+		echo 'Invalid Index';
+	}
+
+} break;
+
+/******************************************************************************/	
+
+case 'getSessionDayNum':{
+
+	echo json_encode($_SESSION['dayNum']);
+
+}
+
 /******************************************************************************/	
 
 case 'hasFought': {
@@ -55,7 +80,7 @@ case 'hasFought': {
 
 	$where = [];
 	if($rosterID != null){
-		$where[] = "(scoringID = {$rosterID} OR recievingID = {$rosterID}) ";
+		$where[] = "(scoringID = {$rosterID} OR receivingID = {$rosterID}) ";
 	}
 	if($matchID != null){
 		$where[] = "eventExchanges.matchID = {$matchID} ";
@@ -204,6 +229,34 @@ case 'updateMatchTime': {
 	mysqlQuery($sql, SEND);
 
 	
+} break;
+
+/******************************************************************************/
+
+case 'getScheduleBlockInfo':{
+
+	$blockID = (int)$_REQUEST['blockID'];
+	$info = logistics_getScheduleBlockInfo($blockID);
+
+	if($info['blockTypeID'] == SCHEDULE_BLOCK_TOURNAMENT){
+		$info['tournamentTitle'] = getTournamentName($info['tournamentID']);
+	} else {
+		$info['tournamentTitle'] = '';
+	}
+	$info['startTimeHr'] = min2hr($info['startTime']);
+	$info['endTimeHr'] = min2hr($info['endTime']);
+
+	$sql = "SELECT COUNT(*) AS numShifts
+			FROM logisticsScheduleShifts
+			WHERE blockID = {$blockID}
+			GROUP BY locationID";
+	$info['numShifts'] = mysqlQuery($sql, SINGLE,'numShifts');
+
+	
+	$info['instructors'] = logistics_getBlockInstructors($blockID);
+
+	echo json_encode($info);
+
 } break;
 
 /******************************************************************************/
