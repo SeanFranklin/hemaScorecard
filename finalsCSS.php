@@ -2,15 +2,12 @@
 <?php
 $boxWidth = 300;  //293 will match [5 levels = page width] but the lines don't line up as nicely
 
-if($isWinnersBracket){$maxMatches = pow(2,$bracketLevels-1);}
+if($bracketType == BRACKET_PRIMARY){$maxMatches = pow(2,$bracketLevels-1);}
 else {$maxMatches = getNumEntriesAtLevel_consolation($bracketLevels,'matches');}
 
 $totalHeight = $maxMatches * 100;
-$width = $bracketLevels * $boxWidth;
 
-if($isSingleElim){
-	$width += $boxWidth;
-}
+$width = $bracketLevelsToDisplay * $boxWidth;
 
 echo "#tournament_box .tier{
 		width: {$boxWidth}px;
@@ -29,7 +26,7 @@ echo"
 
 for($i=1;$i<=$bracketLevels;$i++){
 	
-	if($isWinnersBracket){
+	if($bracketType == BRACKET_PRIMARY){
 		$height = 100 / pow(2,$i-1);
 	} else {
 		$height = 100/getNumEntriesAtLevel_consolation($i,'matches');
@@ -76,17 +73,22 @@ for($i=1;$i<=$bracketLevels;$i++){
 	border-bottom: 2px solid black;
 }
 
+#tournament_box {
+	margin-bottom: 100px;
+}
+
 #tournament_box span { 
 	display:inline; 
-		position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100px;
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 100px;
 }
 
 #tournament_box em {
 	font-style: normal;
 	color: #666;
+
 }
 
 #tournament_box .centerCrap{

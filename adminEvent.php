@@ -22,6 +22,7 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	$defaults = getEventDefaults();
+	$roles = logistics_getRoles();
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail();
 	$eventDates = getEventDates($_SESSION['eventID']);
@@ -29,11 +30,18 @@ if($_SESSION['eventID'] == null){
 	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.
 	$formLock = 'disabled';
 	$passwordLock = 'disabled';
+
 	if(ALLOW['EVENT_MANAGEMENT'] == true){
 		$formLock = '';
 		$passwordLock = '';
 	} elseif(ALLOW['SOFTWARE_ASSIST'] == true) {
 		$passwordLock = '';
+		$testEventDisable = '';
+	}
+
+	$testEventDisable = '';
+	if($_SESSION['eventID'] == TEST_EVENT_ID && ALLOW['SOFTWARE_ASSIST'] == false){
+		$testEventDisable = "disabled";
 	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -41,7 +49,8 @@ if($_SESSION['eventID'] == null){
 ?>
 
 <!--  Event Settings  -------------------------------->
-	<fieldset class='fieldset' <?=$formLock?>>
+	<?php if($testEventDisable == null): ?>
+	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
 	<legend><h4>Event Status</h4></legend>
 	<form method='POST'>
 	
@@ -50,7 +59,7 @@ if($_SESSION['eventID'] == null){
 			<span class='input-group-label pointer'>
 				Event Status&nbsp;<img src='includes/images/help.png' data-open="statusTypes">
 			</span>
-			<select class='input-group-field' type='text' name='eventStatus'>
+			<select class='input-group-field' type='text' name='eventStatus' <?=$testEventDisable?> >
 				
 				<option <?=optionValue('hidden', getEventStatus())?> >
 					Under Construction
@@ -74,6 +83,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 	</form>
 	</fieldset>
+	<?php endif ?>
 	
 	<div class='reveal' id='statusTypes' data-reveal>
 		<ul>
@@ -266,8 +276,178 @@ if($_SESSION['eventID'] == null){
 	</fieldset>
 
 
-<!--  Event Information -------------------------------->
+<!--  Staff Settings  -------------------------------->
 	<fieldset class='fieldset' <?=$formLock?>>
+	<legend><h4>Staff Settings</h4></legend>
+	<form method='POST'>
+	<input type='hidden' name="eventSettings[staffRegistration][eventID]" 
+		value="<?=$_SESSION['eventID']?>">
+	
+	<div class='grid-x grid-margin-x'>
+	
+	<!-- Tournament name order -->
+		<div class='medium-6 large-4 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Assign Staff on Entry
+					<?=tooltip("This controls if the option to assign people as staff appears when entering people into the event using <em>Event Roster</em>.<BR>
+						You can always assign staff using the <em>Event Logistics</em> features.")?>
+					:
+				</span>
+				<select class='input-group-field' 
+					name='eventSettings[staffRegistration][addStaff]'>
+
+					<option value='weapon'>No</option>
+					<option <?=optionValue(1,$defaults['addStaff'])?> >Yes</option>
+
+				</select>
+			</div>
+		</div>
+		
+	<!-- Staff Competency -->
+		<div class='medium-6 large-4 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Default Staff Competency
+					<?=tooltip("You can assign numbers to staff members to help sort them by skill sets. Higher numbers are sorted to the top.
+					<BR><u>Example:</u>
+					<ol>
+					<li>Table Staff</li>
+					<li>Judges</li>
+					<li>Directors</li>
+					</ol>")?>
+					:
+				</span>
+				<select class='input-group-field' 
+					name='eventSettings[staffRegistration][staffCompetency]'>
+
+					<option <?=optionValue(0,$defaults['staffCompetency'])?> >Don't Use</option>
+					<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
+						<option <?=optionValue($i,$defaults['staffCompetency'])?> > <?=$i?> </option>
+					<?php endfor ?>
+
+				</select>
+			</div>
+		</div>
+
+	<!-- Target Hours -->
+		<div class='medium-6 large-4 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Default Target Hours
+					<?=tooltip("You can assign a target number of staffing hours for each staff member.
+								This is the default number that is applied to all staff.<BR>
+								<u>Note</u>: This is only applied when you add someone in as a staff member
+								for the first time. It will not change the target hours of staff already 
+								added to the event.")?>
+					:
+				</span>
+				<input type='number' class='input-group-field' value=<?=$defaults['staffHoursTarget']?>
+					name='eventSettings[staffRegistration][staffHoursTarget]' min=0 max=100>
+				</select>
+			</div>
+		</div>
+
+	<!-- Staff Competency -->
+		<div class='medium-6 large-4 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Staff Conflicts
+					<?=tooltip("Use this to not allow people to be scheduled into conflicting
+					staffing slots.
+					<BR><strong>WARNING:</strong>
+					<BR>This is not perfect. You need to double check the Staff Conflicts
+					page to be sure.
+					<BR><em>If you create conflicts and then turn this on, they won't 
+					be removed.</em>")?>
+					
+				</span>
+				<select class='input-group-field' 
+					name='eventSettings[staffRegistration][limitStaffConflicts]'>
+
+					<option <?=optionValue(STAFF_CONFLICTS_NO,$defaults['limitStaffConflicts'])?> >
+						No Checking
+					</option>
+					<option <?=optionValue(STAFF_CONFLICTS_HARD,$defaults['limitStaffConflicts'])?> >
+						Hard Limit
+					</option>
+
+				</select>
+			</div>
+		</div>
+	
+		<div class='medium-6 large-4 cell esr-assignCompetencies' >
+			<a onclick="toggleClass('esr-assignCompetencies')">
+				Assign competencies to roles &#x2193;
+			</a>
+		</div>
+
+		<fieldset class='fieldset large-12 cell esr-assignCompetencies hidden'>
+			<legend>
+				<a onclick="toggleClass('esr-assignCompetencies')">
+					Hide &#x2191;
+				</a>
+			</legend>
+
+			Assigning staff bellow these competencies to a position will generate a warning.
+
+			<div class='grid-x grid-margin-x'>
+			<div class='large-5 medium-7 cell'>
+			<table>
+				<tr>
+					<th>Role</th>
+					<th>Minimum Competency</th>
+				</tr>
+			<?php foreach($roles as $role): 
+				$roleID = $role['logisticsRoleID'];
+				if(	   $roleID == LOGISTICS_ROLE_UNKONWN
+					|| $roleID == LOGISTICS_ROLE_UNKONWN
+					|| $roleID == LOGISTICS_ROLE_GENERAL
+					|| $roleID == LOGISTICS_ROLE_PARTICIPANT){
+					continue;
+				}
+
+				if(isset($defaults['roleCompetency'][$roleID]) == true){
+					$selectValue = $defaults['roleCompetency'][$roleID];
+				} else {
+					$selectValue = null;
+				}
+				?>
+				<tr>
+					<td><?=$role['roleName']?></td>
+					<td>
+						<select name='eventSettings[staffRegistration][competencyCheck][<?=$roleID?>]' >
+
+							<option value='0'>- n/a -</option>
+							<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
+								<option <?=optionValue($i,$selectValue)?> > <?=$i?> </option>
+							<?php endfor ?>
+
+						</select>
+					</td>
+				</tr>
+			<?php endforeach ?>
+			</table>
+			</div>
+			</div>
+
+		</fieldset>
+		
+	<!-- Submit button -->
+		<div class='medium-6 large-4 cell'>
+			<button class='button success expanded' name='formName' value='staffRegistrationSettings'>
+				Update Staff Settings
+			</button>
+		</div>
+		
+	</div>
+	</form>
+	</fieldset>
+
+
+<!--  Event Information -------------------------------->
+	<?php if($testEventDisable == null): ?>
+	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
 	<legend><h4>Event Information</h4></legend>
 
 	<!-- Event Information -->
@@ -278,7 +458,7 @@ if($_SESSION['eventID'] == null){
 				<span class='input-group-label no-bottom'>Event Name:</span>
 				<input class='input-group-field no-bottom' type='text' 
 					name='newEventInfo[eventName]' 
-					value='<?=getEventName($_SESSION['eventID'],'raw')?>'>
+					value="<?=getEventName($_SESSION['eventID'],'raw')?>">
 			</div>
 			<em class='red-text'>Don't include a year, it will be added automatically!</em><BR><BR>
 		</div>
@@ -304,29 +484,33 @@ if($_SESSION['eventID'] == null){
 	</div>
 	</form>
 
-	<HR>
-
 	<!-- Contact E-mail -->
-	<form method='POST'>
-	<div class='grid-x grid-margin-x'>
-		<div class='large-6 input-group cell'>
-			<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
-			<input class='input-group-field' type='text' name='contactEmail' 
-				value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
-			<button class='button success input-group-button' name='formName'
-				value='setContactEmail'>
-				Update
-			</button>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_EMAIL'] == true): ?>
+		<HR>
+
+		<form method='POST'>
+		<div class='grid-x grid-margin-x'>
+			<div class='large-6 input-group cell'>
+				<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
+				<input class='input-group-field' type='text' name='contactEmail' 
+					value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
+				<button class='button success input-group-button' name='formName'
+					value='setContactEmail'>
+					Update
+				</button>
+			</div>
+		
 		</div>
-	
-	</div>
-	</form>
+		</form>
+	<?php endif ?>
 	</fieldset>
+	<?php endif ?>
 	
 		
 <!-- Change Staff Password ----------------------------------->
+	<?php if($testEventDisable == null): ?>
 	<form method='POST'>
-	<fieldset class='fieldset' <?=$passwordLock?>>
+	<fieldset class='fieldset' <?=$passwordLock?> <?=$testEventDisable?> >
 		<legend><h4>Change Password - Event Staff</h4></legend>
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
@@ -357,7 +541,7 @@ if($_SESSION['eventID'] == null){
 
 <!-- Change Admin Password ----------------------------------->
 	<form method='POST'>
-	<fieldset class='fieldset' <?=$passwordLock?>>
+	<fieldset class='fieldset' <?=$passwordLock?> <?=$testEventDisable?> >
 		<legend><h4>Change Password - Event Organizer</h4></legend>
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
@@ -385,6 +569,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 	</fieldset>
 	</form>
+	<?php endif ?>
 		
 	
 <?php }

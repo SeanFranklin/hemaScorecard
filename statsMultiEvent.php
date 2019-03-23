@@ -15,7 +15,7 @@
 $pageName = 'Event & Tournament Stats';
 include('includes/header.php');
 
-if(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){	
+if(ALLOW['STATS_ALL'] == false){
 	pageError('user');
 } else {
 	
@@ -125,7 +125,8 @@ function getTournamentExchangeStats($tournamentID){
 			FROM eventExchanges
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}";
+			WHERE tournamentID = {$tournamentID}
+			AND isPlaceholder = 0";
 	return  mysqlQuery($sql, SINGLE);
 }
 
@@ -201,7 +202,7 @@ function getTournamentsForStats($filters){
 
 	$sql = "SELECT tournamentID, eventID, tournamentWeaponID, 
 			tournamentPrefixID, tournamentGenderID, 
-			tournamentMaterialID, tournamentRankingID, tournamentElimID,
+			tournamentMaterialID, tournamentRankingID,
 			eventName, eventYear
 			FROM eventTournaments
 			INNER JOIN systemEvents USING(eventID)

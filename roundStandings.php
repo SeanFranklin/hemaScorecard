@@ -175,7 +175,11 @@ function showRoundStandings($groupSet, $ownDiv = true){
 			$sort1[$key] = $entry['score'];
 		}
 		
-		array_multisort($sort1, SORT_DESC, $scores);
+		if(isReverseScore($_SESSION['tournamentID']) == REVERSE_SCORE_NO){
+			array_multisort($sort1, SORT_DESC, $scores);
+		} else {
+			array_multisort($sort1, SORT_ASC, $scores);
+		}
 		?>
 		
 		<div class='large-4 medium-6 cell'>

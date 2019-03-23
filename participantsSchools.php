@@ -16,7 +16,9 @@ $pageName = 'School Management';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
+if(ALLOW['EVENT_MANAGEMENT'] == false 
+	&& ALLOW['SOFTWARE_ASSIST'] == false
+	&& ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
 	$schools = getSchoolListLong();

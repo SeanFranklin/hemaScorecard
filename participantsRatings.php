@@ -42,7 +42,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 		$sortString = 'name';
 	}
 
-	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
+	$tournamentRoster = getTournamentFighters($tournamentID,$sortString)
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,29 +54,53 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	
 	<div class='grid-x grid-padding-x'>
-	<div class='large-6 medium-8 cell'>			
+	<div class='large-7 medium-9 cell'>			
 	<input type='hidden' name='updateRatings[tournamentID]' value=<?= $tournamentID ?> >
 
 	<table>
 
 <!-- Table headers -->
-	<thead>
+	
 	<tr>
-		<th onclick="changeParticipantOrdering('ratingViewMode','name')"><a>Name</a></th>
-		<th onclick="changeParticipantOrdering('ratingViewMode','rating')"><a>Rating</a></th>
+		<th onclick="changeParticipantOrdering('ratingViewMode','name')">
+			<a>Name</a>
+		</th>
+		<th onclick="changeParticipantOrdering('ratingViewMode','rating')">
+			<a>Rating</a>
+			<?=tooltip("Ranked high to low.<BR><BR>
+						<em>aka</em>: High Score for good fighters, Low Score for un-good fighters.")?>
+		</th>
+		<th onclick="changeParticipantOrdering('ratingViewMode','subGroup')"><a>SubGroup</a>
+			<?=tooltip("This option is for keeping a number of people seperate when pools are assigned.<BR>
+						Ask for directions if you are planning on using this feature.")?>
+		</th>
+		<td>
+			<a onclick="toggleClass('rating2')" class='rating2' style='white-space:nowrap;' >
+				Use Rating 2 &#8594;
+				<?=tooltip("DO NOT USE unless you know what this does already.")?>
+			</a>
+			<a onclick="toggleClass('rating2')" class='rating2 hidden'>Rating 2 &#8592;</a>
+		</td>
 	</tr>
-	</thead>
+	
 	<tbody>
 
 	<?php foreach($tournamentRoster as $fighter): ?>
 		<tr>
-			<td>
+			<td  style='white-space:nowrap;'>
 				<?=getFighterName($fighter['rosterID'])?>
 			</td>
 			<td>
-				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>]'
+				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][rating]]'
 					value = '<?=$fighter['rating']?>'>
-					
+			</td>
+			<td>
+				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][subGroupNum]]'
+					value = '<?=$fighter['subGroupNum']?>'>
+			</td>
+			<td class='rating2 hidden'>
+				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][rating2]]'
+					value = '<?=$fighter['rating2']?>'>
 			</td>
 		</tr>
 	<?php endforeach ?>

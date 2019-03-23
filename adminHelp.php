@@ -366,7 +366,7 @@ If your tournament has Pool Sets (people fighting in multiple rounds of pools) y
 
 <BR><a name='createBrackets'></a><BR>
 <h5>Creating/Deleting Brackets</h5>
-Click on <strong><a href='finalsBracket1.php'>Finals Bracket</a></strong> in
+Click on <strong><a href='finalsBracket.php'>Finals Bracket</a></strong> in
 the lower navigational bar. This will give you the option to create a new
 bracket. Enter in the desired bracket size in the field <strong>Number of Fighters</strong>
 

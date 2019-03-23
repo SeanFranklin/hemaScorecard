@@ -29,11 +29,13 @@ if($tournamentID == null){
 } else {
 		
 	$poolSet = $_SESSION['groupSet'];
-	$matchList = getMatches($tournamentID, 'all', $poolSet);
+	$matchList = getPoolMatches($tournamentID, 'all', $poolSet);
 	$tournamentRoster = getTournamentRoster($tournamentID, '','full');
 	$schoolList = getSchoolList('schoolID');
 	$tournamentName = getTournamentName($tournamentID);
 	$matchScores = getAllPoolScores($tournamentID, $poolSet);
+	$eventRoster = getEventRoster();
+	$roles = logistics_getRoles();
 	
 	foreach((array)$matchList as $groupID => $pool){
 		$incompletes = false;
@@ -86,10 +88,17 @@ if($tournamentID == null){
 	<?php endif ?>	
 		
 <!-- Display pools -->	
-	<?php foreach((array)$matchList as $groupID => $pool): ?>
+	<?php foreach((array)$matchList as $groupID => $pool): 
+		$locationName = logistics_getGroupLocationName($groupID);
+		?>
 		
 		<a name='group<?=$groupID?>'></a>
-		<h5><?=$pool['groupName']?></h5>
+		<h5>
+			<?=$pool['groupName']?>
+			<?php if($locationName != null): ?>
+				<em style="font-size:.8em">(<?=$locationName?>)</em>
+			<?php endif ?>
+		</h5>
 		
 		<div class='grid-x grid-margin-x' name='group<?=$groupID?>'>	
 			<?php $matchNum = 0;
@@ -115,6 +124,7 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
 
 /******************************************************************************/
 

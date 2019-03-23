@@ -48,7 +48,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	$exchangeInfo = getMatchExchanges($matchID);
 
 // If it is the last match in the tournament the staff is asked to finalize the event
-	askForFinalization($tournamentID); 
+	askForFinalization($matchInfo); 
 	
 // If the livestream is active it asks to make this the displayed match
 	livestreamMatchSet($matchID);
@@ -63,12 +63,22 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	if(($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0) && $matchInfo['matchComplete'] == 0 
 		&& $matchInfo['ignoreMatch'] != 1 && ALLOW['EVENT_SCOREKEEP'] == false){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
-
 	}
+
+	$subMatchLock = subMatchBox($matchInfo);
+
+	if(LOCK_TOURNAMENT != null || $subMatchLock == true){
+		define("LOCK_MATCH", 'disabled');
+	} else {
+		define("LOCK_MATCH", '');
+	}
+	
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
+
+
 
 <!-- Warning if match is ignored -->
 	<?php if($matchInfo['ignoreMatch'] == 1): ?>
@@ -91,11 +101,12 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 <!-- Main column -->
 		<div class='medium-9 cell'>	
 			<?php backToListButton($matchInfo); ?>
+			<?php confirmStaffBox($matchInfo) ?>
 			
 			<!-- Fighter scores -->
 			<div class='large-12 cell'>
 				<form method='POST'>
-				<fieldset <?=LOCK_TOURNAMENT?>>
+				<fieldset <?=LOCK_MATCH?>>
 					<input type='hidden' name='formName' value='newExchange'>
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
@@ -122,7 +133,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		<?php
 		if(ALLOW['EVENT_SCOREKEEP'] == true 
 		   && $exchangesNotNumbered == false 
-		   && LOCK_TOURNAMENT ==''
+		   && LOCK_MATCH ==''
 		   && $matchInfo['matchComplete'] == false
 		   && count($exchangeInfo) > 0){
 			?>
@@ -188,6 +199,332 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+
+function subMatchBox($matchInfo){
+
+	if($matchInfo['isPlaceholder'] == 0 && $matchInfo['placeholderMatchID'] == null){
+		return;
+	}
+
+	if($matchInfo['isPlaceholder'] == 1){
+		$mainMatchID = $matchInfo['matchID'];
+	} else {
+		$mainMatchID = $matchInfo['placeholderMatchID'];
+	}
+
+	$allParts = getSubMatchParts($mainMatchID);
+	$lockMatch = false;
+	$showOverall = true;
+
+
+
+		// If there are sub matches, redirect to the first one.
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+
+		$uncompletedSubMatchID = 0;
+		foreach($allParts as $subMatch){
+			if($subMatch['isPlaceholder'] == 1){
+				continue;
+			}
+
+			if($subMatch['matchComplete'] == 0){
+				$uncompletedSubMatchID = (int)$subMatch['matchID'];
+				break;
+			}
+		}
+	
+		if($uncompletedSubMatchID != 0){
+				if(   $_SESSION['matchID'] != $uncompletedSubMatchID
+				   && $matchInfo['isPlaceholder'] == 1){
+
+				$_SESSION['matchID'] = $uncompletedSubMatchID;
+				redirect("scoreMatch.php");
+
+			} else{
+				$showOverall = false;
+			}
+
+
+		}
+			
+
+	}
+
+
+
+?>
+
+	<div class='callout small'>
+		<form method='POST'>
+			<input type='hidden' name='formName' value='goToMatch'>
+
+			<?php foreach($allParts as $match):
+
+				if($match['isPlaceholder'] == 1){
+					$name = "Overall Result";
+					if($showOverall == false){
+						continue;
+					}
+				} else {
+					$name = "Phase {$match['matchNumber']}";
+
+					// If the parts aren't complete don't let them change the match info
+					if($matchInfo['isPlaceholder'] == 1 && $match['matchComplete'] != 1){
+						$lockMatch = true;
+					}
+				}
+				if($match['matchID'] != $matchInfo['matchID']){
+					$class = 'hollow';
+				} else {
+					$class = '';
+				}
+
+
+				if($match['matchComplete'] == 1 || $match['ignoreMatch'] == 1){
+					if($match['isPlaceholder'] == 0){
+						$class.=' secondary';
+					}
+				} elseif($match['isPlaceholder'] == 1){
+					$class.=' secondary';
+				}
+
+				?>
+				<button class='button no-bottom <?=$class?>' value='<?=$match['matchID']?>' name='matchID'>
+					<?=$name?>
+				</button>
+			<?php endforeach ?>
+
+		</form>
+
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $matchInfo['isPlaceholder'] == 1): ?>
+			<span class='red-text'>This is the match summary, not an actual match.</span>
+			<?php if($lockMatch == true): ?>
+				You can not manualy overide the data until all sub-matches are concluded.
+			<?php else: ?>
+				<strong>Do not mess with anything here unless you really know what you are doing.</strong>
+			<?php endif ?>
+		<?php endif ?>
+
+	</div>
+
+<?php
+	return $lockMatch;
+}
+
+/******************************************************************************/
+
+function confirmStaffBox($matchInfo, $staffList = null){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
+		return;
+	}
+
+	$rolesList = logistics_getRoles();
+	$staffList = getEventRoster();
+	$matchStaffList = logistics_getMatchStaffSuggestion($matchInfo);
+	$hideRows = '';
+	$msIDcounter = -1;
+	$possibleStaffShifts = logistics_getMatchStaffShifts($matchInfo);
+	$totalRowsShowing = 0;
+
+?>
+
+	<div class='reveal' id='matchStaffConfirmBox' data-reveal>
+	
+		<h4>Check In Staff</h4>
+		<form method='POST'>
+		<input type='hidden' name='updateMatchStaff[matchID]' value='<?=$matchInfo['matchID']?>'>
+
+	<!-- Top button bar -->
+		<?php if($possibleStaffShifts != null): ?>
+			<a class='button hollow no-bottom' data-open='matchStaffLoadShiftBox'>
+				Get Staff From Schedule
+			</a>
+			<BR>
+		<?php endif ?>
+
+		[<strong>&#x2714;</strong>]: Already Checked In <BR>
+		[<strong>?</strong>]: Guess based on last staff in this ring. <BR>
+
+	
+		<em>
+			<?=toggleClass('hiddenCheckStaffRow','(Show More Rows &#8595;)','(Show Less Rows &#8593;)')?>
+		</em>
+
+	<!-- Data entry fields -->
+		<table>
+			<?php foreach($matchStaffList as $member): 
+				$msID = $member['matchStaffID'];
+				$totalRowsShowing++;
+				if($msID < 0){
+					$msID = $msIDcounter;
+					$msIDcounter--;
+					$isAlreadySet = '?';
+				} else {
+					$alreadySet[$member['rosterID']] = true;
+					$isAlreadySet = '&#x2714;';
+				}
+				?>
+				<tr>
+					<th>
+						<?=$isAlreadySet?>
+					</th>
+					<td>
+						<select name='updateMatchStaff[umsInfo][<?=$msID?>][rosterID]'>
+							<option value='<?=$member['rosterID']?>'>
+								<?=getFighterName($member['rosterID'])?>
+							</option>
+							<option value='0'>
+								- Delete Staff Member -
+							</option>
+						</select>
+					</td>
+					<td>
+						<select  name='updateMatchStaff[umsInfo][<?=$msID?>][logisticsRoleID]'>
+							<?php foreach($rolesList as $role):?>
+								<option <?=optionValue($role['logisticsRoleID'],$member['logisticsRoleID'])?> >
+									<?=$role['roleName']?>
+								</option>
+							<?php endforeach ?>
+						</select>
+					</td>
+
+			<?php endforeach ?>
+
+
+		<!-- Add New Staff -->	
+			<?php for($i=$msIDcounter;$i>=($msIDcounter-10);$i--): // Negative values for new staff
+				$totalRowsShowing++;
+				if($totalRowsShowing > 7){
+					$hideRows = "class='hiddenCheckStaffRow hidden'";
+				}
+				?>
+				<tr <?=$hideRows?> >
+					<td>
+						<!-- Always empty -->
+					</td>
+					<td>
+						<select name='updateMatchStaff[umsInfo][<?=$i?>][rosterID]'>
+							<option></option>
+							<?php foreach($staffList as $person):
+								if(isset($alreadySet[$person['rosterID']]) == true){
+									continue;
+								}?>
+
+								<option <?=optionValue($person['rosterID'],null)?> >
+									<?=getFighterName($person['rosterID'])?>
+								</option>
+
+							<?php endforeach ?>
+						</select>
+					</td>
+					<td>
+						<select  name='updateMatchStaff[umsInfo][<?=$i?>][logisticsRoleID]'>
+							<?php foreach($rolesList as $role):?>
+								<option <?=optionValue($role['logisticsRoleID'],null)?> >
+									<?=$role['roleName']?>
+								</option>
+							<?php endforeach ?>
+						</select>
+					</td>
+				</tr>
+			<?php endfor ?>
+
+		</table>
+
+
+
+
+	<!-- Submit buttons -->
+		<?php if(isset($alreadySet) == true){
+			$bText = 'Update Staff';
+			$bClass= 'hollow';
+		} else {
+			$bText = 'Check In Staff';
+			$bClass = '';
+		} ?>
+
+		<div class='grid-x grid-margin-x'>
+
+			<button class='button success small-6 cell <?=$bClass?>' name='formName' 
+				value='updateMatchStaff'>
+				<?=$bText?>
+			</button>
+
+			<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
+				Cancel
+			</button>
+		</div>
+
+		
+	
+		</form>
+
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+<!-- Load existing shift staff -->
+	<div class='reveal' id='matchStaffLoadShiftBox' data-reveal>
+		<form method="POST">
+
+			<input type='hidden' name='updateMatchStaffFromShift[matchID]' 
+				value='<?=$matchInfo['matchID']?>'>
+
+			<h4>Load Staffing Shift</h4>
+			Shifts avaliable for 
+			<em><?=getTournamentName($matchInfo['tournamentID'])?></em>,
+			<strong><?=logistics_getLocationName($matchInfo['locationID'])?></strong>
+
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Load Shift:
+				</span>
+				<select class='input-group-field' name='updateMatchStaffFromShift[shiftID]'>
+					<?php foreach($possibleStaffShifts as $shift): ?>
+						<option value='<?=$shift['shiftID']?>'>
+							<?=$shift['blockSubtitle']?>
+							<?=min2hr($shift['startTime'])?> - <?=min2hr($shift['endTime'])?>
+						</option>
+					<?php endforeach ?>
+				</select>
+			</div>
+
+			<div class='red-text'>
+				<strong><u>Warning</u>:</strong> This will over-write any staff you have already assigned
+			</div>
+
+
+		<!-- Submit buttons -->
+			<div class='grid-x grid-margin-x'>
+
+				<button class='button success small-6 cell' name='formName' value='updateMatchStaffFromShift'>
+					Confirm
+				</button>
+
+				<button class='button secondary small-6 cell' 
+					data-close aria-label='Close modal' type='button'>
+					Cancel
+				</button>
+
+			</div>
+
+		</form>
+
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+
+<?php
+}
+
 /******************************************************************************/
 
 function livestreamMatchSet($matchID){
@@ -215,28 +552,103 @@ function livestreamMatchSet($matchID){
 
 /******************************************************************************/
 
-function askForFinalization($tournamentID){
+function askForFinalization($matchInfo){
 /*	After the final match of a tournament has concluded this will prompt the 
 	scorekeeper to finalize the tournament results */
 	
-	if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
-	if(!isset($_SESSION['askForFinalization'])){ return; }
-	
-	unset($_SESSION['manualTournamentPlacing']);
+	if(    ALLOW['EVENT_SCOREKEEP'] == false
+		|| LOCK_TOURNAMENT != null){ return;}
+
+	$tournamentID = (int)$matchInfo['tournamentID'];
+
+	$finalize = false;
+	if(isset($_SESSION['askForFinalization']) == true){
+		
+		$finalize = true;
+		if(isBrackets($tournamentID) == true){
+			$finalize_bracket = true;
+			autoFinalizeSpecificationBox($tournamentID);
+		} else {
+			$finalize_bracket = false;
+		}
+		
+	}
+
+
+	$extend = false;
+	$shorten = false;
+	if(    $matchInfo['bracketLevel'] == 1
+		&& $matchInfo['bracketPosition'] > 1
+		&& $matchInfo['groupNumber'] == BRACKET_PRIMARY){
+
+		$bracketInfo = getBracketInformation($tournamentID);
+
+		if(    $bracketInfo['elimType'] == ELIM_TYPE_LOWER_BRACKET
+			&& $matchInfo['winnerID'] != null){
+
+			$extend = true;
+		}
+
+		if(    $bracketInfo['elimType'] == ELIM_TYPE_TRUE_DOUBLE
+			&& $matchInfo['bracketPosition'] >= 2
+			&& $matchInfo['lastExchange'] == null){
+			$shorten = true;
+		}
+		
+	}
+
+	if($finalize == false && $extend == false && $shorten == false){
+		return;
+	}
+
+
+
 	unset($_SESSION['askForFinalization']);
 	?>
 	
 	<div class='callout alert text-center'>
 	<form method='POST'>
-		This appears to be the last match of the tournament. 
-		Would you like to finalize the results?
-		<input type='hidden' name='formName' value='finalizeTournament'><BR><BR>
-		<button class='button no-bottom' name='tournamentID' value='<?=$tournamentID?>'>
-			Finalize Tournament
-		</button>
-		<button class='button secondary no-bottom' name='tournamentID' value='cancel'>
-			Do It Later
-		</button>
+	<input type='hidden' name='tournamentID' value='<?=$tournamentID?>'>
+
+		<?php if($extend == true): ?>
+			<p>Would you like to add second finals match to this double elim?</p>
+		<?php endif ?>
+
+		<?php if($finalize == true): ?>
+			<p>This appears to be the last match of the tournament. 
+			Would you like to finalize the results?</p>
+		<?php endif ?>
+
+		<?php if($shorten == true): ?>
+			Would you like to delet this match and have the previous match stand as the final result?
+			<BR>(Ignore this dialogue if you don't want to delete the match)
+			<BR>
+			<button class='button no-bottom alert' name='formName' value='removeTrueDoubleElim'>
+				Yes, Delete this match.
+			</button>
+
+		<?php else: ?>
+			<HR>
+			<?php if($extend == true): ?>
+				<button class='button no-bottom' name='formName' value='createTrueDoubleElim'>
+					Add Third Match
+				</button>
+			<?php endif ?>
+
+			<?php if($finalize_bracket == true): ?>
+				<a class='button no-bottom' data-open='autoFinalizeBox-<?=$tournamentID?>'>
+					Finalize Tournament
+				</a>
+			<?php elseif($finalize == true): ?>
+				<button class='button no-bottom' name='formName' value='autoFinalizeTournament'>
+					Finalize Tournament
+				</button>
+			<?php endif ?>
+
+			<button class='button secondary no-bottom'>
+				Do Nothing
+			</button>
+		<?php endif ?>
 	</form>
 	</div>
 	
@@ -252,7 +664,12 @@ function backToListButton($matchInfo){
 	Winners bracket match - Button returns to winners bracket
 	Consolation bracket match - Button returns to consolation bracket*/
 	
-	$matchID = $matchInfo['matchID'];
+	if($matchInfo['placeholderMatchID'] != null){
+		$matchID = $matchInfo['placeholderMatchID'];
+	} else {
+		$matchID = $matchInfo['matchID'];
+	}
+	
 	$name = getTournamentName();
 	?>
 	
@@ -260,7 +677,7 @@ function backToListButton($matchInfo){
 	
 	<div class='medium-shrink small-12 cell' style='margin-bottom: 10px;'>
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
-		<a class='button no-bottom' href='finalsBracket1.php'>
+		<a class='button no-bottom' href='finalsBracket.php'>
 			Back To Bracket
 		</a>
 		<a class='button no-bottom' href='poolMatches.php#anchor{<?=$matchID?>'>
@@ -273,16 +690,11 @@ function backToListButton($matchInfo){
 		</a>
 		
 	<?php else: ?>
-		<?php if(isInLosersBracket($matchID)): ?>
-			<a class='button no-bottom' href='finalsBracket2.php#anchor<?=$matchID?>'>
-				Back To Bracket
-			</a>
-		<?php else: ?>
-			<a class='button no-bottom' href='finalsBracket1.php#anchor<?=$matchID?>'>
-				Back To Bracket
-			</a>
-		<?php endif ?>
 		
+		<a class='button no-bottom' href='finalsBracket.php#anchor<?=$matchID?>'>
+			Back To Bracket
+		</a>
+
 	<?php endif ?>
 	</div>
 	
@@ -317,7 +729,7 @@ function dataEntryBox($matchInfo){
 	<?php if($matchInfo['matchComplete']): ?>
 		<div class='large-12 cell'>
 			<BR><button class='button success large' name='lastExchange' id='New_Exchange_Button'
-				value='clearLastExchange' <?=LOCK_TOURNAMENT?>>
+				value='clearLastExchange' <?=LOCK_MATCH?>>
 				Re-Open Match
 			</button>
 		</div>
@@ -417,7 +829,7 @@ function dataEntryBox($matchInfo){
 	<!-- Submit button -->
 	<div class='medium-6 cell '>
 		<button class='button large expanded' id='New_Exchange_Button'
-			name='lastExchange' value='noExchange' <?=LOCK_TOURNAMENT?>>
+			name='lastExchange' value='noExchange' <?=LOCK_MATCH?>>
 			Add: No Exchange
 		</button>
 			<div class='callout alert text-center hidden editExchangeWarningDiv'>
@@ -630,8 +1042,32 @@ function createSideBar($matchInfo){
 	$fighter1ID = $matchInfo['fighter1ID'];
 	$fighter2ID = $matchInfo['fighter2ID'];
 	$winnerID = $matchInfo['winnerID'];
+
 	$nextMatchInfo = getNextPoolMatch($matchInfo);
+	$matchNumInfo = getPoolMatchesLeft($matchInfo);
 	$doubles = getMatchDoubles($matchID);
+
+// Check if staff need to be confirmed
+	$staffConfirmActive = false;
+	$staffConfirmRequired = false;
+	if(ALLOW['EVENT_SCOREKEEP'] == true && $matchInfo['placeholderMatchID'] == null){
+		$checkInLevel = logistics_getTournamentStaffCheckInLevel($matchInfo['tournamentID']);
+
+		if($checkInLevel != STAFF_CHECK_IN_NONE){
+			$staffConfirmActive = true;
+		}
+
+		if($checkInLevel == STAFF_CHECK_IN_MANDATORY){
+			$staffConfirmRequired = !logistics_areMatchStaffCheckedIn($matchID);
+		}
+	}
+	
+
+	if(LOCK_MATCH == 'disabled' || $staffConfirmRequired == true){
+		$lockInputs = 'disabled';
+	} else {
+		$lockInputs = '';
+	}
 
 	if(isset($matchInfo['endType'])){
 		$endType = $matchInfo['endType'];
@@ -674,6 +1110,18 @@ function createSideBar($matchInfo){
 ///////////////////////////////////////////////// ?> 
 	
 	
+<!-- Staff Confirmation Mandatory Request -->
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $staffConfirmRequired == true): ?>
+		<div class='callout alert'>
+			<strong>
+				<a data-open='matchStaffConfirmBox'>
+					Match Staff must be confirmed
+				</a>
+			</strong>
+		</div>
+
+	<?php endif ?>
+
 	
 <!-- Match winner management/display -->
 	<?php if($endText1 != null || $endText2 != null): ?>
@@ -689,6 +1137,7 @@ function createSideBar($matchInfo){
 		<?php if(IS_TIMER): ?>
 			<input type='hidden' class='matchTime' id='matchTime' 
 				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
+			<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
 			<script>
 				window.onload = function(){
@@ -758,7 +1207,7 @@ function createSideBar($matchInfo){
 	<!-- Match Winner -->
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>		
 			<form method='POST'>
-			<fieldset <?=LOCK_TOURNAMENT?>>
+			<fieldset <?=$lockInputs?>>
 			<input type='hidden' name='formName' value='matchWinner'>
 			<input type='hidden' name='matchID' value='<?=$matchID?>'>
 			<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
@@ -768,14 +1217,14 @@ function createSideBar($matchInfo){
 			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
 				<button class='button large success no-bottom expanded conclude-match-button' 
 					style='background-color:<?=$colorCode1?>; '
-					name='matchWinnerID' value='<?=$fighter1ID?>' <?=LOCK_TOURNAMENT?>>
+					name='matchWinnerID' value='<?=$fighter1ID?>' <?=$lockInputs?> >
 					<?=$name1?>
 				</button>
 			</div>
 			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
 				<button class='button large success no-bottom expanded conclude-match-button' 
 				style='background-color:<?=$colorCode2?>;'
-					name='matchWinnerID' value='<?=$fighter2ID?>' <?=LOCK_TOURNAMENT?>>
+					name='matchWinnerID' value='<?=$fighter2ID?>' <?=$lockInputs?> >
 					<?=$name2?>
 				</button>
 			</div>
@@ -786,7 +1235,7 @@ function createSideBar($matchInfo){
 				<div class='small-12 cell'>
 				
 				<button class='button large hollow  expanded no-bottom' style='margin-top: 10px;'
-					name='matchWinnerID' value='tie' <?=LOCK_TOURNAMENT?>>
+					name='matchWinnerID' value='tie' <?=$lockInputs?>>
 				Tie
 				</button>
 				</div>
@@ -811,7 +1260,7 @@ function createSideBar($matchInfo){
 		<hr>
 
 		<form method='POST'>
-		<fieldset <?=LOCK_TOURNAMENT?>>
+		<fieldset <?=$lockInputs?>>
 		<input type='hidden' name='formName' value='matchWinner'>
 		<input type='hidden' name='matchID' value='<?=$matchID?>'>
 		<input type='hidden' class='matchTime' name='matchTime' value=''>
@@ -825,10 +1274,12 @@ function createSideBar($matchInfo){
 <!-- Go to next match buttons -->
 
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
+
+
 	<?php if(isset($nextMatchInfo)): ?>
 		<HR>
-
-		
+		This is match #: <?=$matchNumInfo['matchNumber']?>/<?=$matchNumInfo['numMatches']?>
+		<BR>
 		Next Match: <?= tooltip('Skipping matches which have fighters removed due to injury/disqualification');?> <BR>
 
 		<?php if($matchInfo['unconcludedMatchWarning'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
@@ -879,7 +1330,8 @@ function createSideBar($matchInfo){
 			<form method='POST'>
 			<input type='hidden' name='formName' value='goToMatch'>
 			
-			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
+			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' 
+				name='matchID' <?=$lockInputs?> >
 				<?=getCombatantName($nextMatchInfo['fighter1ID'])?>
 				<BR> <?=$name1?>
 				<BR><BR> vs.<BR>
@@ -896,10 +1348,23 @@ function createSideBar($matchInfo){
 
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
 		<HR><BR>
-		<a class='button warning large' href='poolMatches.php'>
+		<a class='button warning large' href='poolMatches.php' <?=$lockInputs?>>
 			End of Pool
 		</a>
 	<?php endif ?>
+	<?php endif ?>
+
+<!-- Staff Confirmation Optional Request -->
+	<?php if($staffConfirmActive == true && $staffConfirmRequired == false): ?>
+		<HR>
+		
+			<strong>
+				<a data-open='matchStaffConfirmBox'>
+					Edit Match Staff
+				</a>
+			</strong>
+		
+
 	<?php endif ?>
 	
 <!-- Switch fighter colors -->	
@@ -907,7 +1372,7 @@ function createSideBar($matchInfo){
 		<HR>
 		<form method='POST'>
 		<button class='button warning hollow no-bottom' name='formName' 
-			value='switchFighters' <?=LOCK_TOURNAMENT?>>
+			value='switchFighters' <?=$lockInputs?> >
 			Switch Fighter Colors
 		</button>
 		</form>
@@ -964,7 +1429,7 @@ function doublesText($doubles, $matchInfo){
 	<?php if($doubleOut && !$matchInfo['matchComplete'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
 		<button class='button large alert no-bottom conclude-match-button' name='matchWinnerID' 
-			value='doubleOut' <?=LOCK_TOURNAMENT?>>
+			value='doubleOut' <?=LOCK_MATCH?>>
 			Double Out
 		</button>
 	<?php endif ?>

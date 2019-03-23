@@ -30,6 +30,9 @@ if($_SESSION['tournamentID'] == null){
 	}
 	$tournamentList =  getTournamentSystemRosterIDs();
 	$allStandards = getCuttingQualificationsStandards();
+	$numToQual = 0;
+	$nonQualledFighters = [];
+	$qualledFighters = [];
 	
 	if(isset($qualList)){
 		foreach($tournamentList as $fighter){
@@ -47,6 +50,7 @@ if($_SESSION['tournamentID'] == null){
 				}
 			} else {
 				$entry['qualled'] = false;
+				$numToQual++;
 			}
 			
 			$displayMode = '';
@@ -187,6 +191,10 @@ if($_SESSION['tournamentID'] == null){
 	
 <!-- Display List of Fighters -->
 	<?php if($thisStandard != null): ?>
+
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+			<h4><strong><?=$numToQual?></strong> left to Qualify.</h4>
+		<?php endif ?>
 	<table>
 		
 	<!-- Header -->
@@ -241,7 +249,9 @@ if($_SESSION['tournamentID'] == null){
 								Update
 							</button>
 						<?php else: ?>
-							<strong>X</strong>
+							<strong>
+								&#x2714;
+							</strong>
 						<?php endif ?>
 					 <?php else: ?>
 						 <?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>

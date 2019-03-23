@@ -30,14 +30,28 @@ if($tournamentID == null){
 		$sortString = 'name';
 	}
 
-	if(ALLOW['EVENT_MANAGEMENT'] == true && $_SESSION['formatID'] != FORMAT_COMPOSITE){
-		define("ALLOW_EDITING", true);
-	} else {
+
+	if(ALLOW['EVENT_MANAGEMENT'] != true && $_SESSION['formatID'] != FORMAT_COMPOSITE){
 		define("ALLOW_EDITING", false);
+	} else {
+		if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
+			|| isCompositeRosterManual($tournamentID) == true){
+			define("ALLOW_EDITING", true);
+		} else {
+			define("ALLOW_EDITING", false);
+		}
 	}
 
 	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
 	$numFighters = count($tournamentRoster);
+
+	if($_SESSION['rosterViewMode'] == 'school'){
+		$schoolArrow = "&#8595";
+		$nameArrow = '';
+	} else {
+		$schoolArrow = "";
+		$nameArrow = "&#8595";
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +72,14 @@ if($tournamentID == null){
 <!-- Table headers -->
 	<thead>
 	<tr>
-		<th onclick="changeParticipantOrdering('rosterViewMode','name')"><a>Name</a></th>
-		<th onclick="changeParticipantOrdering('rosterViewMode','school')"><a>School</a></th>
+		<th onclick="changeParticipantOrdering('rosterViewMode','name')">
+			<a>Name <?=$nameArrow?></a>
+		</th>
+
+		<th onclick="changeParticipantOrdering('rosterViewMode','school')">
+			<a>School <?=$schoolArrow?></a>
+		</th>
+
 		<?php if(ALLOW_EDITING == true): //only event organizers ?>
 			<th>Remove</th>
 		<?php endif ?>
