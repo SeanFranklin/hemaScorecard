@@ -72,6 +72,34 @@ function changeParticipantOrdering(sortWhat,sortHow){
 
 }
 
+/******************************************************************************/
+
+function goToPersonalSchedule(rosterID){
+    
+    // Create form
+    var myForm = document.createElement("form");
+    myForm.method = 'POST';
+
+    // Form Name
+    var formName = document.createElement('input');
+    formName.type = 'hidden';
+    formName.value = 'personalSchedule';
+    formName.name = 'formName';
+    myForm.appendChild(formName);
+
+    // rosterID
+    var what = document.createElement('input');
+    what.type = 'hidden';
+    what.value = rosterID;
+    what.name = 'rosterID';
+    myForm.appendChild(what);
+
+    document.getElementsByTagName('body')[0].appendChild(myForm);
+
+    myForm.submit();
+
+}
+
 /**********************************************************************/
 
 function editParticipant(rosterID){
@@ -98,7 +126,6 @@ function editParticipant(rosterID){
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
             if(this.responseText.length > 1){ // If the fighter has already fought
-                console.log(this.responseText);
                 var data = JSON.parse(this.responseText);
                 fillInFields(data);
             }

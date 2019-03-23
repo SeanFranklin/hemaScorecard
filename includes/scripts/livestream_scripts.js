@@ -20,11 +20,8 @@ function getLivestreamMatchInfo(){
 	xhr.onreadystatechange = function (){
 		if(this.readyState == 4 && this.status == 200){
 			if(this.responseText.length > 1){
-				//console.log(this.responseText);
 				matchInfo= JSON.parse(this.responseText);
-				updateOverlay(matchInfo);
-				//console.log(getLivestreamMatchInfo.lastExch);
-				
+				updateOverlay(matchInfo);	
 			}
 		}
 	}
