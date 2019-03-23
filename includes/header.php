@@ -13,7 +13,8 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo();
-
+$vJ = '?=1.0.6'; // Javascript Version
+$vC = '?=1.0.4'; // CSS Version
 ?>
 
 <!doctype html>
@@ -38,10 +39,14 @@ $livestreamInfo = getLivestreamInfo();
 	">
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
     <title>HEMA Scorecard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
+    
     <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-    <!--<link rel="stylesheet" href="includes/foundation/css/foundation.css">-->
     <link rel="stylesheet" href="includes/foundation/css/app.css">
-    <link rel="stylesheet" href="includes/foundation/css/custom.css">
+    <link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
+
+
 
     <link rel='icon' href='includes\images\favicon.png'>
     
@@ -98,16 +103,25 @@ $livestreamInfo = getLivestreamInfo();
 
 			<!-- Fighter Management -->
 			<?php if($_SESSION['eventID'] != null):?>
-				<?php if(    ALLOW['EVENT_SCOREKEEP'] == true 
+				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true
+						  || ALLOW['EVENT_SCOREKEEP'] == true
 						  || ALLOW['VIEW_SETTINGS'] == true):?>
 					<li><a href='#'>Manage Fighters</a>
+
 						<ul class='menu vertical'>
 							<li><a href='participantsEvent.php'>Event Roster</a></li>
-							<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
-							<?php if(ALLOW['EVENT_MANAGEMENT'] == true
-									&& $_SESSION['formatID'] == FORMAT_MATCH): ?>
-								<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
-								<li><a href='statsResultsDump.php'>Export Results</a></li>
+							<li><a href='participantsCheckIn.php'>Check-In Participants</a></li>
+							
+							<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+
+								<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
+
+								<?php if( $_SESSION['formatID'] == FORMAT_MATCH): ?>
+									<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
+									<li><a href='statsResultsDump.php'>Export Results</a></li>
+									<li><a href='adminFighterInfo.php'>Fighter Exchanges</a></li>
+								<?php endif ?>
+
 							<?php endif ?>
 						</ul>
 					</li>
@@ -127,7 +141,6 @@ $livestreamInfo = getLivestreamInfo();
 							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
 							<li><a href='adminNewTournaments.php'>Add New Tournaments</a></li>
 							<li><a href='adminEvent.php'>Event Settings</a></li>
-							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
 						</ul>
 					</li>
 				<?php else: ?>
@@ -151,6 +164,41 @@ $livestreamInfo = getLivestreamInfo();
 					<li>
 						<a href='infoSummary.php'>Final Results</a>
 					</li>
+				<?php endif ?>
+			<?php endif ?>
+
+			<!-- Event Logistics -->
+			<?php if($_SESSION['eventID'] != null):
+				$isSchedule = logistics_isTournamentScheduleUsed($_SESSION['eventID']);
+				?>
+				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
+						  || ALLOW['VIEW_SETTINGS'] == true):?>
+					<li><a href='#'>Event Logistics</a>
+						<ul class='menu vertical'>
+							<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
+							<HR class='no-bottom no-top'>
+							<li><a href='participantsSchedules.php'>Indiviual Schedules</a></li>
+							<li><a href='logisticsParticipantHours.php'>Staffing Hours</a></li>
+							<?php if($isSchedule == true): ?>
+								<li><a href='logisticsStaffConflicts.php'>Staff Conflicts</a></li>
+								<li><a href='logisticsStaffGrid.php'>Full Staffing Grid</a></li>
+							<?php endif ?>
+							<HR class='no-bottom no-top'>
+							<?php if($isSchedule == true): ?>
+								<li><a href='logisticsStaffShifts.php'>Staffing Shifts</a></li>
+							<?php endif ?>
+							<li><a href='logisticsStaffRoster.php'>Staff Roster</a></li>
+							<?php if($isSchedule == true): ?>
+								<li><a href='logisticsStaffTemplates.php'>Staff Templates</a></li>
+							<?php endif ?>
+							<li><a href='logisticsLocations.php'>Event Locations</a></li>
+							
+							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
+						</ul>
+					</li>
+				<?php elseif($isSchedule == true
+							&& getEventStatus() == 'active'): ?>
+					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 				<?php endif ?>
 			<?php endif ?>
 
@@ -183,7 +231,7 @@ $livestreamInfo = getLivestreamInfo();
 							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
 							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
 							<?php if(  ALLOW['SOFTWARE_ADMIN'] == true): ?>
-								<HR>
+								<HR class='no-bottom no-top'>
 								<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
 								<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
 							<?php endif ?>
@@ -302,16 +350,13 @@ $livestreamInfo = getLivestreamInfo();
 		
 		// Tournament has brackets
 		if(isBrackets($_SESSION['tournamentID'])){
-			if(isDoubleElim()){
-				$navBarString .= "<li><a href='finalsBracket1.php'>Winners Bracket</a></li>
-									<li><a href='finalsBracket2.php'>Consolation Bracket</a></li>";
-			} else {
-				$navBarString .= "<li><a href='finalsBracket1.php'>Finals Bracket</a></li>";
-			}
+			
+			$navBarString .= "<li><a href='finalsBracket.php'>Finals Bracket</a></li>";
+			
 		} elseif ($_SESSION['formatID'] == FORMAT_MATCH 
 					&& ALLOW['EVENT_MANAGEMENT'] == true){
 
-			$navBarString .= "<li><a href='finalsBracket1.php'>Create Bracket</a></li>";
+			$navBarString .= "<li><a href='finalsBracket.php'>Create Bracket</a></li>";
 		}
 		
 		// Tournament has rounds
