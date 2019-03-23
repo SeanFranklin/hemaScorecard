@@ -130,7 +130,8 @@ function displayRound($roundInfo){
 			$matchID = $match['matchID'];
 			$rosterID = $match['fighter1ID'];
 			$name = getEntryName($rosterID);
-			$score = $match['fighter1Score']; ?>
+			$score = max([$match['fighter1Score'],$match['fighter2Score']]);
+			 ?>
 			
 			<div class='large-4 cell'>
 			<a name='match<?=$matchID?>'></a>

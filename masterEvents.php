@@ -34,7 +34,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 
 	echo "</div>";
 
-	
+		
 }
 
 include('includes/footer.php');
@@ -255,12 +255,12 @@ function entryFields($eventInfo = null){
 			<input class='no-bottom' type='date'
 				name='eventEndDate' value='<?=$eventInfo['eventEndDate']?>'>
 		</td>
-	</tr>		
+	</tr>
 	<tr>
-		<td>Country</td>
+		<td>City</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventCountry' value='<?=$eventInfo['eventCountry']?>'>
+				name='eventCity' value='<?=$eventInfo['eventCity']?>'>
 		</td>
 	</tr>
 	<tr>
@@ -270,13 +270,15 @@ function entryFields($eventInfo = null){
 				name='eventProvince' value='<?=$eventInfo['eventProvince']?>'>
 		</td>
 	</tr>
+	
 	<tr>
-		<td>City</td>
+		<td>Country</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventCity' value='<?=$eventInfo['eventCity']?>'>
+				name='eventCountry' value='<?=$eventInfo['eventCountry']?>'>
 		</td>
 	</tr>
+
 
 <?php }
 

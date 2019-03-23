@@ -117,16 +117,8 @@ if($_SESSION['eventID'] == null){
 			
 		<!-- Points -->
 			<td>
-				<select name='newAttack[<?=$i?>][attackPoints]'>
-					<option value=''></option>
-					<?php for($pts = 0; $pts <= 10; $pts++):
-						$selected = isSelected($attack['attackPoints'],$pts);
-						?>
-						<option value='<?=$pts?>' <?=$selected?>>
-							<?=$pts?>
-						</option>
-					<?php endfor ?>
-				</select>
+				<input type='number' name='newAttack[<?=$i?>][attackPoints]' step=0.1 min=0 max=10
+					placeholder='leave blank to delete' value='<?=$attack['attackPoints']?>' >
 			</td>
 		
 		</tr>
@@ -184,15 +176,8 @@ if($_SESSION['eventID'] == null){
 			
 		<!-- Points -->
 			<td>
-				<select name='newAttack[<?=$i?>][attackPoints]'>
-					<option></option>
-					<?php for($pts = 0; $pts <= 10; $pts++):
-						?>
-						<option value='<?=$pts?>'>
-							<?=$pts?>
-						</option>
-					<?php endfor ?>
-				</select>
+				<input type='number' name='newAttack[<?=$i?>][attackPoints]' 
+					step=0.1 min=0 max=10 placeholder='leave blank to delete'>
 			</td>
 		
 		</tr>

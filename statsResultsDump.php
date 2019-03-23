@@ -116,7 +116,7 @@ function exportTournament_SingleExchange($tournamentID){
 		return;
 	}
 	
-	$sql = "SELECT exchangeType, scoringID, recievingID, matchID
+	$sql = "SELECT exchangeType, scoringID, receivingID, matchID
 			FROM eventGroups
 			INNER JOIN eventMatches ON eventGroups.groupID = eventMatches.groupID
 			INNER JOIN eventExchanges USING(matchID)
@@ -148,7 +148,7 @@ function exportTournament_SingleExchange($tournamentID){
 			
 		foreach($wantedExchanges as $match){
 			$f1ID = $match['scoringID'];
-			$f2ID = $match['recievingID'];
+			$f2ID = $match['receivingID'];
 			$winID = $match['scoringID'];
 			$matchID = $match['matchID'];
 			

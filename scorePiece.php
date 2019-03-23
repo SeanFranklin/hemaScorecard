@@ -48,7 +48,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 	$name = getEntryName($matchInfo['fighter1ID']);
 	$school = $matchInfo['fighter1School'];
-	$score = $matchInfo['fighter1score'];
+	$score = max([$matchInfo['fighter1score'],$matchInfo['fighter2score']]);
 	$matchID = $matchInfo['matchID'];
 	
 	$exchanges = getMatchExchanges($matchID);
@@ -142,13 +142,15 @@ function askForFinalization($tournamentID){
 	
 	<div class='callout alert text-center'>
 	<form method='POST'>
+	<input type='hidden' name='tournamentID' value='<?=$tournamentID?>'>
+
 		This appears to be the last match of the tournament. 
 		Would you like to finalize the results?
-		<input type='hidden' name='formName' value='finalizeTournament'><BR><BR>
-		<button class='button no-bottom' name='tournamentID' value='<?=$tournamentID?>'>
+		<BR><BR>
+		<button class='button no-bottom' name='formName' value='autoFinalizeTournament'>
 			Finalize Tournament
 		</button>
-		<button class='button secondary no-bottom' name='tournamentID' value='cancel'>
+		<button class='button secondary no-bottom'>
 			Do It Later
 		</button>
 	</form>

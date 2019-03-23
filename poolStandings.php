@@ -34,9 +34,15 @@ if($tournamentID == null){
 		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
-	poolSetNavigation(true);
 
-	
+	if(getNumPools($_SESSION['groupSet'], $tournamentID) > 1){
+		$displayPoolsOption = true;
+	} else {
+		$displayPoolsOption = false;
+	}
+
+	poolSetNavigation($displayPoolsOption);
+
 	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
 
 	$teamRoster = getTournamentTeams($tournamentID);

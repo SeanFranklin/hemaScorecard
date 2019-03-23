@@ -55,6 +55,8 @@
 
 	define("ALL_GROUP_SETS",0);
 
+	define("TEST_EVENT_ID",2);
+
 // Tournament Related Constants
 
 	define("DEFAULT_COLOR_NAME_1",'RED');
@@ -63,8 +65,9 @@
 	define("DEFAULT_COLOR_CODE_2",'#66F');
 
 	define("DEFAULT_MAX_DOUBLES",3);
-	define("POOL_SIZE_LIMIT",10);
-	
+	define("POOL_SIZE_LIMIT",13);	// If you raise this you also need to add the match order to the table.
+	define("STAFF_COMPETENCY_MAX",9);
+
 	// The types of tournaments
 	define("FORMAT_NONE",0);
 	define("FORMAT_RESULTS",1);
@@ -83,10 +86,51 @@
 	define("ATTACK_CONTROL_DB",9);
 	define("ATTACK_AFTERBLOW_DB",13);
 
+	define("SUB_MATCH_ANALOG",0);
+	define("SUB_MATCH_DIGITAL",1);
+
+// Bracket Constants
+
+	define("BRACKET_PRIMARY",1);
+	define("BRACKET_SECONDARY",2);
+
+	define("ELIM_TYPE_SINGLE",1);
+	define("ELIM_TYPE_CONSOLATION",2);
+	define("ELIM_TYPE_LOWER_BRACKET",3);
+	define("ELIM_TYPE_TRUE_DOUBLE",4);
+
 // Display Related Constants
 
 	define("EVENT_ACTIVE_LIMIT",6);
 	define("EVENT_UPCOMING_LIMIT",1);
+
+// Logistics Constants
+
+	define("STAFF_CHECK_IN_NONE",0);
+	define("STAFF_CHECK_IN_ALLOWED",1);
+	define("STAFF_CHECK_IN_MANDATORY",2);
+
+	define("SCHEDULE_BLOCK_TOURNAMENT",1);
+	define("SCHEDULE_BLOCK_WORKSHOP",2);
+	define("SCHEDULE_BLOCK_STAFFING",3);
+	define("SCHEDULE_BLOCK_MISC",4);
+
+	define("SCHEDULE_COLOR_TOURNAMENT",'#1779ba');
+	define("SCHEDULE_COLOR_WORKSHOP","#3adb76");
+	define("SCHEDULE_COLOR_STAFFING","#ffae00");
+	define("SCHEDULE_COLOR_MISC","#BF5FFF");
+	define("SCHEDULE_COLOR_CONFLICT","#cc4b37");
+
+	define("LOGISTICS_ROLE_DIRECTOR",1);
+	define("LOGISTICS_ROLE_JUDGE",2);
+	define("LOGISTICS_ROLE_TABLE",3);
+	define("LOGISTICS_ROLE_UNKONWN",4);
+	define("LOGISTICS_ROLE_INSTRUCTOR",5);
+	define("LOGISTICS_ROLE_GENERAL",6);
+	define("LOGISTICS_ROLE_PARTICIPANT",7);
+
+	define("STAFF_CONFLICTS_NO",0);     // Don't check staff conflicts
+	define("STAFF_CONFLICTS_HARD",100); // Limit everything
 
 // Includes ////////////////////////////////////////////////////////////////////
 
@@ -267,12 +311,27 @@ function setPermissions(){
 					WHERE userName = '{$_SESSION['userName']}'";
 			$permData = mysqlQuery($sql, SINGLE);
 
-			$_SESSION['userID'] = $permData['userID'];
+			$_SESSION['userID'] = (int)$permData['userID'];
+			$eventID = (int)$_SESSION['eventID'];
 			unset($permData['userID']);
 
 			foreach($permData as $field => $bool){
 				if($bool == true){
 					$permissionsArray[$field] = true;
+				}
+			}
+
+			if($permissionsArray['EVENT_MANAGEMENT'] == false){
+				$sql = "SELECT 1
+						FROM systemUserEvents
+						WHERE userID = {$_SESSION['userID']}
+						AND eventID = {$eventID}";
+				$isAttached = (bool)mysqlQuery($sql, SINGLE);
+
+				if($isAttached == true){
+					$permissionsArray['EVENT_SCOREKEEP'] 	= true;
+					$permissionsArray['EVENT_MANAGEMENT'] 	= true;
+					$permissionsArray['STATS_EVENT'] 		= true;
 				}
 			}
 	}
@@ -346,6 +405,12 @@ function initializeSession(){
 
 	if(!isset($_SESSION['userName'])){
 		$_SESSION['userName'] = '';
+	}
+	if(!isset($_SESSION['rosterID'])){
+		$_SESSION['rosterID'] = 0;
+	}
+	if(!isset($_SESSION['dayNum'])){
+		$_SESSION['dayNum'] = 1;
 	}
 
 	if(!isset($_SESSION['alertMessages']['systemErrors'])){

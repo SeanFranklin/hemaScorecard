@@ -28,8 +28,161 @@ function setAlert($type,$message){
 }
 
 /******************************************************************************/
+define("DEBUG",false);
+function whittlePoolMatchOrder($groupID, $poolRoster, $matchOrder, $maxFights){
+/*
+$poolRoster format
+$poolRoster[#spotNum]['rosterID'] = ???
 
-function makePoolMatchOrder($groupRoster, $ignores = [], $groupSet = 1){
+Return format
+$matchList[#matchNum]['fighter1ID'] = ???
+$matchList[$matchNum]['fighter2ID'] = ???
+*/
+
+	$fightersUnAssigned = 0;
+	$newIndex = 1;
+	foreach($poolRoster as $fighter){
+		$fightersUnAssigned++;
+		$numMatches[$fighter['rosterID']] = 0;
+	}
+
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, ignoreMatch
+			FROM eventMatches AS eM
+			WHERE groupID = {$groupID}
+			AND (	SELECT COUNT(*)
+					FROM eventExchanges AS eE
+					WHERE eE.matchID = eM.matchID
+				) != 0";
+	$matchesStarted = mysqlQuery($sql, ASSOC);
+
+	foreach($matchesStarted as $match){
+		$f1ID = $match['fighter1ID'];
+		$f2ID = $match['fighter2ID'];
+
+		$tmp['fighter1ID'] = $f1ID;
+		$tmp['fighter2ID'] = $f2ID;
+		$newMatchOrder[$newIndex] = $tmp;
+
+		if($match['ignoreMatch'] != 1){
+			$numMatches[$f1ID]++;
+			$numMatches[$f2ID]++;
+
+			if($numMatches[$f1ID] == $maxFights){
+				$fightersUnAssigned--;
+			}
+			if($numMatches[$f2ID] == $maxFights){
+				$fightersUnAssigned--;
+			}
+		}
+
+		$haveAlreadyFought[$f1ID][$f2ID] = true;
+		$haveAlreadyFought[$f2ID][$f1ID] = true;
+
+		$newIndex++;
+	}
+
+
+	
+
+	$matchesInList = count($matchOrder);
+	$indexOffset = floor($matchesInList/2); // Don't start at match 1 to make it seem more random.
+
+
+	if(DEBUG){ echo "Max Fights: {$maxFights}<BR><table>"; }
+	$newMatchOrder = [];
+	for($i = 1; $i<=$matchesInList; $i++){
+
+		$matchIndex = $i + $indexOffset;
+		if($matchIndex > $matchesInList){
+			$matchIndex = $matchIndex - $matchesInList;
+		}
+		$match = $matchOrder[$matchIndex];
+
+		$f1ID = $match['fighter1ID'];
+		$f2ID = $match['fighter2ID'];
+
+		if(DEBUG){
+			echo "<tr><td>Match {$matchIndex}</td>";
+			echo "<td><em>{$fightersUnAssigned}</em></td>";
+			echo "<td>".getFighterName($f1ID)."({$numMatches[$f1ID]})</td>";
+			echo "<td>".getFighterName($f2ID)."({$numMatches[$f2ID]})</td>";
+		}
+
+		if(   isset($haveAlreadyFought[$f1ID][$f2ID]) == true
+		   || isset($haveAlreadyFought[$f1ID][$f2ID]) == true){
+
+			if(DEBUG){ echo "<td></td><td>duplicate</td>"; }
+			continue;
+		}
+
+
+		if(($numMatches[$f1ID] < $maxFights && $numMatches[$f2ID] < $maxFights)
+			|| ($fightersUnAssigned == 1
+				 && (   $numMatches[$f1ID] < $maxFights
+				 	 || $numMatches[$f2ID] < $maxFights
+				 	)
+				)
+			){
+
+			$numMatches[$f1ID]++;
+			$numMatches[$f2ID]++;
+
+			if($numMatches[$f1ID] == $maxFights){
+				$fightersUnAssigned--;
+			}
+			if($numMatches[$f2ID] == $maxFights){
+				$fightersUnAssigned--;
+			}
+
+			if(DEBUG){ echo "<td>added</td>"; }
+
+			$newMatchOrder[$newIndex] = $match;
+			$newIndex++;
+
+			if($fightersUnAssigned == 0){
+				break;
+			}
+ 
+		}
+
+		if(DEBUG){ echo "</tr>"; }
+	}
+
+	if(DEBUG){ echo "</table>"; }
+
+
+
+	return $newMatchOrder;
+
+}
+
+/******************************************************************************/
+
+function getRandomOpponent($groupSize, $positionsTaken){
+
+
+	$avaliableSpots = $groupSize - sizeof($positionsTaken);
+	if($avaliableSpots == 0){
+		return null;
+	}
+	
+	$findingOpponent = true;
+	$opponentNum = mt_rand(1,$groupSize);
+	do{
+		if(!isset($positionsTake[$opponentNum])){
+			return $opponentNum;
+		}
+		$opponentNum++;
+		if($opponentNum > $groupSize){
+			$opponentNum = 0;
+		}
+	} while($findingOpponent == true);
+}
+
+/******************************************************************************/
+
+function makePoolMatchOrderTeamVsTeam ($groupRoster, $ignores = [], $groupSet = 1){
 
 	$numTeams = count($groupRoster);
 
@@ -287,6 +440,54 @@ function isLivestreamValid($eventID=null){
 
 /******************************************************************************/
 
+function base60($num){
+// Returns the number in base 60 format, divided by a colon.
+// Would make sec -> min:sec or min -> hour:min
+
+	$a = floor($num/60);
+	$b = $num % 60;
+
+	if($b < 10){
+		$b = "0".$b;
+	}
+	return ($a.':'.$b);
+}
+
+/******************************************************************************/
+
+function min2hr($num, $AmPm = true){
+// Returns the number in base 60 format, divided by a colon.
+// Would make sec -> min:sec or min -> hour:min
+
+	$a = floor($num/60);
+	$b = $num % 60;
+
+	if($b < 10){
+		$b = "0".$b;
+	}
+
+	if($a == 0 || $a == 24){
+		$a = 12;
+		$type = 'am';
+	} elseif($a < 12){
+		$type = 'am';
+	} elseif($a == 12){
+		$type = 'pm';
+	} else {
+		$a = $a - 12;
+		$type = 'pm';
+	}
+
+	$retVal = ($a.':'.$b);
+	if($AmPm == true){
+		$retVal .= ' '.$type;
+	}
+
+	return $retVal;
+}
+
+/******************************************************************************/
+
 function autoRefreshTime($poolsInProgress){
 // Specifies the time interval that a page should be refreshed used for the match 
 // list pages. Returns 0 if no matches are in progress of if staff are logged in.
@@ -304,19 +505,19 @@ function autoRefreshTime($poolsInProgress){
 
 /******************************************************************************/
 
-function getBracketAdvancements($allBracketInfo, $finalists){
+function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubleElim = false){
 // Determines which fighters should be advanced into which spots in the bracket
 
 	if($allBracketInfo == null || $_SESSION['bracketHelper'] != 'on'){
 		return null;
 	}
 
-	$bracketID = $allBracketInfo['winner']['groupID'];
-	$bracketLevels = $allBracketInfo['winner']['bracketLevels'];
+	$bracketID = $allBracketInfo[BRACKET_PRIMARY]['groupID'];
+	$bracketLevels = $allBracketInfo[BRACKET_PRIMARY]['bracketLevels'];
 
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
 	
-	$fighterSeed = $numFighters = $allBracketInfo['winner']['numFighters'];
+	$fighterSeed = $numFighters = $allBracketInfo[BRACKET_PRIMARY]['numFighters'];
 	
 	$maxFightersAtLevel = pow(2,$bracketLevels);
 	$numFightersAtLevel = 2*count($bracketMatches[$bracketLevels]);
@@ -337,39 +538,65 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 		$matchNumber = ceil($position/2);
 		$fighterNumber = 2 - ($position % 2);
 		
-		$seed = [];
+
+		$seed = '';
 		if(isset($finalists[$fighterSeed-1]['rosterID']))
 		{
 			$seed = $finalists[$fighterSeed-1]['rosterID'];
 		}
-		$matchPositions['winners'][$currentLevel][$matchNumber][$fighterNumber]['rosterID'] = $seed;
+
+		$matchPositions[$currentLevel][$matchNumber][$fighterNumber]['rosterID'] = $seed;
 	}
 	
 	// Fighter positions for winners bracket based on bracket advancement
 	foreach((array)$bracketMatches as $bracketLevel => $levelMatches){
 		foreach($levelMatches as $bracketPosition => $matchInfo){
+			
 			if($matchInfo['winnerID'] != null){
 				$winnerID = $matchInfo['winnerID'];
 				
-				$nextLevel = $bracketLevel - 1;
-				$nextPosition = ceil($bracketPosition/2);
-				
-				if($bracketPosition % 2 == 1){
-					$matchPositions['winners'][$nextLevel][$nextPosition][1]['rosterID'] = $winnerID;
-				} else {
-					$matchPositions['winners'][$nextLevel][$nextPosition][2]['rosterID'] = $winnerID;
+				if($bracketLevel == 1 && $bracketPosition >= 2){
+					if($winnerID != null){
+						$matchPositions[1][$bracketPosition+1][1]['rosterID'] = $matchInfo['fighter1ID'];
+						$matchPositions[1][$bracketPosition+1][2]['rosterID'] = $matchInfo['fighter2ID'];
+					} 
+				} elseif($bracketLevel > 1){
+
+					$nextLevel = $bracketLevel - 1;
+					$nextPosition = ceil($bracketPosition/2);
+
+					if($bracketPosition % 2 == 1){
+						$matchPositions[$nextLevel][$nextPosition][1]['rosterID'] = $winnerID;
+						
+					} else {
+						$matchPositions[$nextLevel][$nextPosition][2]['rosterID'] = $winnerID;
+
+					}
+				} elseif(isset($allBracketInfo[BRACKET_SECONDARY]['groupID']) == true) {
+					// Used in ELIM_TYPE_TRUE_DOUBLE where there are multiple matches after the 
+					// end of the bracket.
+
+					// May not be set yet. Treat as null.
+					$secondaryMatches = getBracketMatchesByPosition(@$allBracketInfo[BRACKET_SECONDARY]['groupID']);
+					$secondaryWinner = @$secondaryMatches[1][$bracketPosition+1]['winnerID'];
+
+					$matchPositions[1][$bracketPosition+1][1]['rosterID'] = $winnerID;
+					$matchPositions[1][$bracketPosition+1][2]['rosterID'] = $secondaryWinner;
 				}
+
 			}
 		}
 		
 	}
-	
+
 
 	// Bronze Medal Match for Single Elim
-	if(!isset($allBracketInfo['loser'])){ //is single elim
+	if(!isset($allBracketInfo[BRACKET_SECONDARY]) && $numFighters >= 4){ //is single elim
 		// The loserID might not be set at the time of the call, in which case assign null
-		@$matchPositions['losers'][1][1][1]['rosterID'] = $bracketMatches[2][1]['loserID'];
-		@$matchPositions['losers'][1][1][2]['rosterID'] = $bracketMatches[2][2]['loserID'];
+		@$matchPositions[1][2][1]['rosterID'] = $matchPositions[1][1][1]['rosterID'];
+		@$matchPositions[1][2][2]['rosterID'] = $matchPositions[1][1][2]['rosterID'];
+		@$matchPositions[1][1][1]['rosterID'] = $bracketMatches[2][1]['loserID'];
+		@$matchPositions[1][1][2]['rosterID'] = $bracketMatches[2][2]['loserID'];
 	}
 	
 	
@@ -380,76 +607,106 @@ function getBracketAdvancements($allBracketInfo, $finalists){
 
 /******************************************************************************/
 
-function getLoserBracketAdvancements($allBracketInfo, $finalists){
+function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 // Determines which fighters should be advanced into which spots in the bracket
 //   IMPORTANT:	Behavior is undefined if the consolation bracket size 
 //				is not a power of 2. ie. top8, top16. 
 	
-	if(!isset( $allBracketInfo['loser']) || $allBracketInfo['loser'] == null){
+	if(!isset( $allBracketInfo[BRACKET_SECONDARY]) || $allBracketInfo[BRACKET_SECONDARY] == null){
 		return [];
 	}
 
-	$bracketID = $allBracketInfo['loser']['groupID'];
-	$bracketLevels = $allBracketInfo['loser']['bracketLevels'];
+	$bracketID = $allBracketInfo[BRACKET_SECONDARY]['groupID'];
+	$bracketLevels = $allBracketInfo[BRACKET_SECONDARY]['bracketLevels'];
 
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
-	$winnerBracketMatches = getBracketMatchesByPosition( $allBracketInfo['winner']['groupID']);
+	$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
 	$changeOverBracket = false;
 	
-	
+
 	$matchPositions = [];
-	for($bracketLevel = $bracketLevels; $bracketLevel >= 1; $bracketLevel--){
-		$matchesInLevel = pow(2, floor($bracketLevel/2));
-		
+	$numExtraMatchesAtEnd = 0;
+	foreach((array)$bracketMatches as $bracketLevel => $levelMatches){
+
 		if($bracketLevel % 2 == 0 AND $bracketLevel != $bracketLevels){
 			// Crosses fighters over to the other side of the bracket every second time they are added
 			$changeOverBracket = !$changeOverBracket;
 		} 
-		
-		for($pos = 1; $pos <= $matchesInLevel; $pos++){
+
+		$matchesInLevel = count($levelMatches);
+
+		foreach($levelMatches as $bracketPosition => $matchInfo){
+			$pos = $bracketPosition;
+
 			if($bracketLevel == $bracketLevels){
-				$winBLevel = (($bracketLevel+1)/2) + 1;
-				$winPos = ($pos*2) -1;
-				if(isset($winnerBracketMatches[$winBLevel][$winPos]['loserID'])){
-					$matchPositions['losers'][$bracketLevel][$pos][1]['rosterID'] = 
-						$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
-				}
+				// First column in the bracket, import all from primary
+				$method = "allPrimary";
+			} elseif(($bracketLevel + $numExtraMatchesAtEnd) % 2 == 0){
+				$method = "mixed";
+			} else {
+				$method = "allSecondary";
+			} 
 
-				if(isset($winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'])){
-					$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
-						$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];	
-				}	
-				continue;
+			if($bracketLevel == 1){
+				$numExtraMatchesAtEnd++;
 			}
-			
-			if($bracketLevel % 2 == 0){ 
-				$winBLevel = ($bracketLevel/2) + 1;
-				if($changeOverBracket){
-					$newPos = $matchesInLevel - $pos + 1;
-				} else {
-					$newPos = $pos;
-				}
-					
-				if(isset($winnerBracketMatches[$winBLevel][$pos]['loserID'])){
-					$matchPositions['losers'][$bracketLevel][$newPos][1]['rosterID'] = 
-						$winnerBracketMatches[$winBLevel][$pos]['loserID'];
-				}
-				
-				if(isset($bracketMatches[$bracketLevel+1][$pos]['winnerID'])){	
-					$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
-						$bracketMatches[$bracketLevel+1][$pos]['winnerID'];
-				}
 
-			} else { // Odd levels just get info from match before
-				
-				$oldPos = ($pos*2) - 1;
-				
-				$matchPositions['losers'][$bracketLevel][$pos][1]['rosterID'] = 
-					$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
-				
-				$matchPositions['losers'][$bracketLevel][$pos][2]['rosterID'] = 
-					$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
-				
+			switch($method){
+				case 'allPrimary':
+					$winBLevel = (($bracketLevel+1)/2) + 1;
+					$winPos = ($pos*2) -1;
+					if(isset($winnerBracketMatches[$winBLevel][$winPos]['loserID'])){
+						$matchPositions[$bracketLevel][$pos][1]['rosterID'] = 
+							$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
+					}
+
+					if(isset($winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'])){
+						$matchPositions[$bracketLevel][$pos][2]['rosterID'] = 
+							$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];	
+					}	
+					break;
+
+				case 'allSecondary':
+					$oldPos = ($pos*2) - 1;
+
+
+					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = 
+						$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
+					
+					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = 
+						$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
+					break;
+
+				case 'mixed':
+					$winBLevel = floor($bracketLevel/2) + 1;
+					$winPos = $pos;
+					$fetchBracketLevel = $bracketLevel + 1;
+					$fetchPos = $pos;
+
+					if($numExtraMatchesAtEnd != 0){
+						$newPos = $numExtraMatchesAtEnd;
+						$winPos = $numExtraMatchesAtEnd - 1;
+						$fetchBracketLevel = 1;
+						$fetchPos = $pos - 1;
+					} elseif($changeOverBracket){
+						$newPos = $matchesInLevel - $pos + 1;
+					} else {
+						$newPos = $pos;
+					}
+						
+					// Might not exist. Treat as null.
+					$fighter1 = @$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
+					$fighter2 = @$bracketMatches[$fetchBracketLevel][$fetchPos]['winnerID'];
+					
+					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = $fighter1;
+					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = $fighter2;
+
+
+					break;
+
+				default:
+					break;
+
 			}
 			
 		}
@@ -481,7 +738,22 @@ function checkPassword($input, $userName, $eventID = null){
 			$password = getEventOrganizerPassword($eventID);
 			break;
 		default:
-			$password = getUserPassword($userName);
+
+			$sql = "SELECT password
+					FROM systemUsers
+					WHERE userName = ?";
+
+			$stmt = $GLOBALS["___mysqli_ston"]->prepare($sql);
+			$stmt->bind_param("s",$userName);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($password);
+			$stmt->fetch();
+
+			if($stmt->num_rows == 0){
+				return false;
+			}
+
 			if($password === null){
 				return true;
 			}
@@ -507,7 +779,6 @@ function getBracketDepthByFighterCount($numFighters, $bracketType){
 	if($bracketType == 'loser'){$bracketType = 2;}
 	
 	if($bracketType == 1){
-		echo ceil(log($numFighters,2));
 		return ceil(log($numFighters,2));
 	} else if($bracketType == 2){
 		$bracketLevel = 1;

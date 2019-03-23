@@ -110,14 +110,20 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentNormalization($tournamentID);
 				edit_tournamentPoolWinners($tournamentID);
 
+				edit_tournamentTimeLimit($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
 				edit_tournamentMaxPoints($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
+				edit_tournamentLimitPoolMatches($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentOverrideDoubles($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
+				edit_tournamentNumSubMatches($tournamentID);
+				edit_tournamentSubMatchMode($tournamentID);
 				edit_tournamentTeams($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
+				edit_tournamentHideFinalResults($tournamentID);
+				edit_tournamentStaffCheckin($tournamentID);
 				?>
 			</div>
 			<BR>

@@ -19,7 +19,7 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	define("NUM_FINALISTS_DISPLAYED",4);
-	$tournamentList = getTournamentsFull();
+	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 
 	if(!isset($_SESSION['manualTournamentPlacing'])){
 		$_SESSION['manualTournamentPlacing'] = '';
@@ -39,10 +39,7 @@ if($_SESSION['eventID'] == null){
 			
 	<?php foreach((array)$tournamentList as $tournamentID => $data):
 		
-		$placings = getTournamentPlacings($tournamentID);
-
 		$isTeams = isTeams($tournamentID);
-		
 		$name = getTournamentName($tournamentID); 
 		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
 					style='cursor: pointer;'";
@@ -63,109 +60,20 @@ if($_SESSION['eventID'] == null){
 			<input type='hidden' name='formName' value='changeTournament'>
 			<input type='hidden' name='newPage' value='participantsTournament.php'>
 			<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
-			</form>	
-		
-		<!-- If no tournament results -->	
-			 <?php if(!isFinalized($tournamentID)): ?>
-				<?php if(ALLOW_EDITING):
-					if(@$_SESSION['manualTournamentPlacing'] == $tournamentID): // could be null
-						manualTournamentPlacing($tournamentID, $isTeams);
-						unset($_SESSION['manualTournamentPlacing']);
-					else: ?>
-						<?php if(isset($_SESSION['manualPlacingMessage'][$tournamentID])): ?>
-							<div class='callout secondary text-center'>
-								<?=$_SESSION['manualPlacingMessage'][$tournamentID]?>
-							</div>					
-						<?php endif ?>
-					
-						Results Not Finalized
-						<form method='POST'>
-						<input type='hidden' name='formName' value='finalizeTournament'>
-						<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
-						<?php if(!isResultsOnly($tournamentID)): ?>
-							<button class='button'>
-								Auto Finalize Tournament
-							</button>
-						<?php endif ?>
-						<button class='button secondary' name='enableManualTournamentPlacing' value='x'>
-							Manually Finalize Tournament
-						</button>
-						</form>
-					<?php endif ?>					
-				<?php endif ?>
-				</fieldset>
-				
-				<?php continue; ?>
+			</form>
+
+
+			<?php if(ALLOW_EDITING && @$_SESSION['manualPlacing']['tournamentID'] == $tournamentID): ?>
+
+				<?= manualTournamentPlacing($tournamentID, $isTeams); ?>
+
+			<?php else: ?>
+
+				<?= displayTournamentPlacings($tournamentID, $data, $isTeams) ?>
+				<?= manageTournamentPlacings($tournamentID)?>
+
 			<?php endif ?>
-			
-		<?php if(ALLOW_EDITING
-				&& isset($_SESSION['autoPlacingMessage'][$tournamentID])):
-			echo $_SESSION['autoPlacingMessage'][$tournamentID];
-			unset ($_SESSION['autoPlacingMessage'][$tournamentID]);
-		endif ?>
-
 		
-			
-		<!-- Display tournament placings -->
-			<table>
-				<?php 
-				$i = 0;
-				
-				$placingsToShow = sizeof($placings);
-
-				while($i < $placingsToShow):
-					
-					if($placings[$i]['lowBound'] != null){
-						if($placings[$i]['lowBound'] > 4){
-							break;
-						}
-					} elseif ($placings[$i]['placing'] > NUM_FINALISTS_DISPLAYED){
-						break;
-					}
-
-					$rosterID = $placings[$i]['rosterID'];
-					if($rosterID == null){continue;}
-
-					if($isTeams){
-						$name = getTeamName($rosterID);
-					} else {
-						$name = getEntryName($rosterID);
-					}
-					
-					if(isset($placings[$i]['schoolFullName'])){
-						$school = $placings[$i]['schoolFullName'];
-						if($placings[$i]['schoolBranch'] != null){
-							$school .= ", ".$placings[$i]['schoolBranch'];
-						}
-					} else {
-						$school = '';
-					}
-
-
-					$num = $placings[$i]['lowBound'];
-					if($num == null){ $num = $placings[$i]['placing']; }
-					$i++;?>
-					
-					<tr>
-						<td class='text-center'><?= $num ?></td>
-						<td><strong><?=$name?></strong></div></td>
-						<td><em><?= $school ?></em></td>
-					</tr>
-					
-				<?php endwhile ?>
-			</table>
-			
-		<!-- Button to remove results -->
-			<?php if(ALLOW_EDITING): ?>
-				<form method='POST'>
-				<input type='hidden' name='formName' value='finalizeTournament'>
-				<input type='hidden' name='finalizeTournament' value='revoke'>
-				<button class='button hollow' name='tournamentID' value='<?= $tournamentID ?>'>
-					Remove Final Results
-				</button>
-				</form>
-			<?php endif ?>
-			
 		</fieldset>
 			
 	<?php endforeach ?>
@@ -182,167 +90,396 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
+function displayTournamentPlacings($tournamentID, $data, $isTeams){
+
+
+	 if(($data['hideFinalResults'] == true)
+		&& (ALLOW['EVENT_SCOREKEEP'] == false)
+		&& (ALLOW['VIEW_SETTINGS'] == false)
+		&& (ALLOW['STATS_EVENT'] == false)){
+
+	 	echo "This tournament does not have placings.";
+	 	return;
+	 }
+
+	$placings = getTournamentPlacings($tournamentID);
+
+	if($placings == null){
+		return;
+	}
+
+// Calculate which results to show on the main screen
+	$i = 0;
+	$placingsToShow = sizeof($placings);
+	$placingDisplay1 = [];
+	while($i < $placingsToShow){
+		
+		if($placings[$i]['lowBound'] != null){
+			if($placings[$i]['lowBound'] > 4){
+				break;
+			}
+		} elseif ($placings[$i]['placing'] > NUM_FINALISTS_DISPLAYED){
+			break;
+		}
+
+		$rosterID = $placings[$i]['rosterID'];
+		if($rosterID == null){continue;}
+
+		if($isTeams){
+			$tmp['name'] = getTeamName($rosterID);
+		} else {
+			$tmp['name'] = getEntryName($rosterID);
+		}
+
+		
+		if(isset($placings[$i]['schoolFullName'])){
+			$tmp['school'] = $placings[$i]['schoolFullName'];
+			if($placings[$i]['schoolBranch'] != null){
+				$tmp['school'] .= ", ".$placings[$i]['schoolBranch'];
+			}
+		} else {
+			$tmp['school'] = '';
+		}
+
+
+		$tmp['place'] = $placings[$i]['lowBound'];
+		if($tmp['place'] == null){
+			$tmp['place'] = $placings[$i]['placing'];
+		}
+
+		$i++;
+
+		$placingDisplay1[] = $tmp;
+	}
+
+	/// NO NOT RE-SET i BETWEEN THESE TWO LOOPS /////
+
+// Calculate which results to show on the secondary display.
+	$placingDisplay2 = [];
+	for($i;$i<$placingsToShow;$i++){
+
+		switch($placings[$i]['placeType']){
+			case 'bracket':
+				$tmp['place'] = "Top ".$placings[$i]['placing'];
+				break;
+			case 'tie':
+				$tmp['place'] = $placings[$i]['lowBound']."<em>{Tie}</em>";
+				break;
+			default:
+				$tmp['place'] = $placings[$i]['placing'];
+				break;
+		}
+
+		$rosterID = $placings[$i]['rosterID'];
+		if($rosterID == null){continue;}
+
+		if($isTeams){
+			$tmp['name'] = getTeamName($rosterID);
+		} else {
+			$tmp['name'] = getEntryName($rosterID);
+		}
+
+		if(isset($placings[$i]['schoolFullName'])){
+			$tmp['school'] = $placings[$i]['schoolFullName'];
+			if($placings[$i]['schoolBranch'] != null){
+				$tmp['school'] .= ", ".$placings[$i]['schoolBranch'];
+			}
+		} else {
+			$tmp['school'] = '';
+		}
+
+		$placingDisplay2[] = $tmp;
+	}
+
+
+?>
+
+			
+<!-- Display the top 4 -->
+	<table>
+		<?php foreach($placingDisplay1 as $data):?>
+			
+			<tr>
+				<td class='text-center'>
+					<?= $data['place'] ?>
+				</td>
+				<td>
+					<strong><?=$data['name']?></strong>
+				</td>
+				<td>
+					<em><?= $data['school'] ?></em>
+				</td>
+			</tr>
+			
+		<?php endforeach ?>
+	</table>
+
+<!-- Display results above 4th place -->
+
+	<!-- Toggle visibility -->
+	<?php if($placingDisplay2 != null): ?>
+		<a class='extra-results-<?=$tournamentID?>' 
+			onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
+
+			Show More &#8595;
+		</a>
+
+		<!-- Display data -->
+		<div class='extra-results-<?=$tournamentID?> hidden'>
+
+			<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">Hide &#8593;</a>
+
+			<?php foreach($placingDisplay2 as $data):?>
+				<li>
+					<?=($data['place'])?> - <?=$data['name']?>
+					(<em><?=$data['school']?></em>)
+				</li>
+			<?php endforeach ?>
+		</div>
+	<?php endif ?>
+
+<?php
+}
+
+/******************************************************************************/
+
+function manageTournamentPlacings($tournamentID){
+
+	if(ALLOW_EDITING == false){
+		return;
+	}
+
+	
+
+	$tournamentID = (int)$tournamentID;
+
+	$isFinalized = isFinalized($tournamentID);
+
+	if($isFinalized == false && areAllMatchesFinished($tournamentID) == false){
+		$manualClass = 'secondary';
+		$autoDisable = 'disabled';
+	} else {
+		$manualClass = '';
+		$autoDisable = '';
+	}
+
+	if($isFinalized == false && isBrackets($tournamentID) == true){
+		autoFinalizeSpecificationBox($tournamentID);
+		$useSpecs = true;
+	} else{
+		$useSpecs = false;
+	}
+
+?>
+	<form method='POST'>
+	<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
+
+ 	<?php if($isFinalized == false): ?>
+
+		<?php if(!isResultsOnly($tournamentID)): ?>
+			<?php if($useSpecs == false): ?>
+				<button class='button no-bottom success' name='formName' 
+					value='autoFinalizeTournament' <?=$autoDisable?>>
+					Auto Finalize Tournament
+				</button>
+			<?php else: ?>
+				<a class='button no-bottom success' <?=$autoDisable?>
+					data-open='autoFinalizeBox-<?=$tournamentID?>'>
+					Auto Finalize Tournament
+				</a>
+			<?php endif ?>
+		<?php endif ?>
+
+		<button class='button hollow no-bottom <?=$manualClass?>' name='formName' value='editTournamentPlacings'>
+			Manually Finalize Tournament
+		</button>
+						
+	<?php else: ?>
+
+		<a class='button hollow no-bottom alert' data-open='deleteConfirmBox<?=$tournamentID?>'>
+			Remove Final Results
+		</a>
+		<button class='button hollow no-bottom' name='formName' value='editTournamentPlacings'>
+			Edit Final Results
+		</button>
+
+	<?php endif ?>	
+	</form>
+
+<!-- Delete Confirmation Box -->
+	<?php if($isFinalized == true): ?>
+	<div class='reveal tiny' id='deleteConfirmBox<?=$tournamentID?>' data-reveal>
+
+		<form method='POST'>
+		<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
+
+		<h4>Please Confirm Removal</h4>
+		<em>Removing the final results will not affect any match data, only the list of 
+		final placings.</em>
+		<HR>
+	<!-- Submit buttons -->
+		<div class='grid-x grid-margin-x'>
+
+			<button class='button alert small-6 cell' name='formName' value='removeTournamentPlacings'>
+				Yes, Remove Final Results
+			</button>
+
+			<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
+				Cancel
+			</button>
+		</div>
+
+		</form>
+	
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	
+	</div>
+	<?php endif ?>	
+		
+<?php
+}
+
+
+
+/******************************************************************************/
+
 function manualTournamentPlacing($tournamentID, $isTeams = false){
 
 	$roster = getTournamentCompetitors($tournamentID);
 	$max = sizeof($roster);
+
+	define("TIE_TOP",'↰');
+	define("TIE_MIDDLE",'|');
+	define("TIE_BOTTOM",'↲');
+	define("TIE_NO",'&nbsp;');
+
+	foreach($roster as $person){
+
+		if($isTeams){
+			$names[$person['rosterID']] = getTeamName($person['rosterID']);
+		} else {
+			$names[$person['rosterID']] = getEntryName($person['rosterID']);
+		}
+	}
+
+	$placings = [];
+	if(isset($_SESSION['manualPlacing']['data'])){
+		$placings = $_SESSION['manualPlacing']['data'];
+		$adjustToZeroIndex = 0;
+	} else {
+		$placings = getTournamentPlacingsForEdit($tournamentID);
+		$adjustToZeroIndex = 1;
+	}
+
+	if(areAllMatchesFinished($tournamentID) == false){
+		displayAlert("<strong> === WARNING === </strong><BR>
+			<span  class='red-text'>There are still unfinished matches in this tournament.</span><BR>
+			<em>It is highly advised that you ensure all matches are properly concluded.</em>",
+			'alert');
+	}
+
+	if(isset($_SESSION['manualPlacing']['message'])){
+		displayAlert($_SESSION['manualPlacing']['message']);
+	}
+
 	?>
-	
-	<?php if(isset($_SESSION['manualPlacingMessage'][$tournamentID])): ?>
-		<div class='callout secondary text-center'>
-			<?=$_SESSION['manualPlacingMessage'][$tournamentID]?>
-		</div>					
-	<?php endif ?>
-	
+
+	Click on squares to the right of names to set/clear ties.
 	<form method='POST'>
 	<input type='hidden' name='formName' value='finalizeTournament'>
 	<input type='hidden' name='tournamentID' value='<?= $tournamentID ?>'>
-	<input type='hidden' name='manualTournamentPlacing' value='1'>
 		
-
 	<?php 
-	$isTie = false;
+	$tieCounter = 0;
 	for($i=1;$i<=$max;$i++): 
-		// resets the tie counter if the last match wasn't part of a tie 
-		if($isTie != true){
-			$tieStartsAt = $i;
+
+
+		
+		if(@$placings[$i]['tie'] != 0){
+			$tieCounter++;
+			if($tieCounter == 1){
+				$placeNum = $i;
+				$tieMark = TIE_TOP;
+			} elseif($tieCounter == @$placings[$i]['tie']){
+				$tieCounter = 0;
+				$tieMark = TIE_BOTTOM;
+			} else {
+				$tieMark = TIE_MIDDLE;
+			}
+			$tieVal = @$placings[$i]['tie'];
+			$class = 'blue-text';
+
+		} else{
+			$tieCounter = 0;
+			$tieVal = 0;
+			$placeNum = $i;
+			$class = '';
+			$tieMark = TIE_NO;
 		}
 
-		//
-		$isTie = isset($_SESSION['ties'][$i]);
-		$extraClass = isSelected($isTie,'alert callout');
+		if($i != $max){
+			$cursor  = 'pointer';
+			$onClick = "onclick=\"placingsDeclareTie({$i},{$max})\"";
+		} else {
+			$cursor  = '';
+			$onClick = '';
+		}
 		
-	?>
+		?>
 	
 		<!-- Select field -->
 		<div class='input-group <?=$extraClass?>'>
-			<span class='input-group-label'><?= $i ?></span>
-			<select class='input-group-field' name='placing[<?= $i ?>]'>
+
+		<!-- Hidden inputs -->
+			<input type='hidden' id='place-value-<?=$i?>' value='<?=$placeNum?>'
+				name='tournamentPlacings[placings][<?=$i?>][place]' >
+			<input type='hidden' id='place-tie-<?=$i?>' value='<?=$tieVal?>'
+				name='tournamentPlacings[placings][<?=$i?>][tie]' >
+
+		<!-- Label for place -->
+			<span class='input-group-label <?=$class?>' id='place-label-<?=$i?>'><?=$placeNum?></span>
+
+
+		<!-- Select tournament participant -->
+			<select class='input-group-field' name='tournamentPlacings[placings][<?=$i?>][rosterID]'>
 				<option></option>";
-				<?php foreach($roster as $person):
+				<?php 
+				$checkAgainstID = @$placings[$i]['rosterID']; // Could not exist. Treat as null.
+				foreach($roster as $person):
 					$rosterID = $person['rosterID'];
-					if($isTeams){
-						$name = getTeamName($rosterID);
-					} else {
-						$name = getEntryName($rosterID);
-					}
-					
-					if(isset($_SESSION['lastManualPlacingAttempt'])){
-						$selectedID = @$_SESSION['lastManualPlacingAttempt'][$i];
-					} else {
-						$selectedID = @$_SESSION['overallScores'][$i-1];
-					}
+
+	
 					$selected = isSelected($rosterID, $selectedID);
 					 ?>
-					<option value='<?= $rosterID ?>' <?=$selected?>><?= $name ?></option>";
+					<option <?=optionValue($rosterID,$checkAgainstID)?> <?=$selected?> >
+						<?= $names[$rosterID] ?>
+					</option>";
 				<?php endforeach ?>
 			</select>
+
+		<!-- The field to toggle a tie on/off -->
+			<span class='input-group-label <?=$cursor?> ' <?=$onClick?>
+				style="font-family:'Courier New', Courier, monospace;" >
+				<strong class='blue-text' id='declare-tie-<?=$i?>'><?=$tieMark?></strong>
+			</span>
 		</div>
-		
-		<!-- If it is done displaying a block of tied fighters -->
-		<?php if(isset($_SESSION['ties'][$i]) && $_SESSION['ties'][$i] === 'end'): ?>
-			<div class='input-group'>
-				<span class='input-group-label'>Enter above fighters as a tie?</span>
-				<div class='switch no-bottom input-group-field'>
-					<input class='switch-input' type='checkbox' id='ties<?=$i?>' 
-						name='ties[<?=$tieStartsAt?>]' value='<?=$i?>' checked>
-					<label class='switch-paddle' for='ties<?=$i?>'>
-					</label>
-				</div>
-			</div>
-			<BR>
-			
-			<?php $isTie = false; ?>
-			
-		<?php endif ?>
+
 		
 	<?php endfor ?>
-	<button class='button' name='tournamentID' value='<?= $tournamentID ?>'>
+	<button class='button' name='formName' value='finalizeTournament'>
 		Finalize Tournament
 	</button>
-	<button class='button secondary' name='formName' value=''>
+	<button class='button secondary' name='formName' value='finalizeTournament-no'>
 		Cancel
 	</button>
 	
 	</form>
 	
 <?php
-	unset($_SESSION['lastManualPlacingAttempt']); 
-	unset($_SESSION['overallScores']);
-	unset($_SESSION['ties']);
-}
-
-/******************************************************************************
-
-function displayFullPlacings(){			---- Depreciated
-
-	$placings = getSchoolPoints();
-	$headers = array();
-	$headers1 = array();
-	$headers2 = array();
-	
-	// Generate Headers for beyond 4th place
-	foreach($placings as $place => $results){
-		foreach($results as $index => $placing){
-			switch($index){
-				case 'score': case 'schoolID': case 'schoolName':
-				case 1: case 2: case 3: case 4: continue;
-				default:
-						if(!is_int($index)){
-							$k = (int)substr($index,4);
-							$headers2[$k] = true;
-						} else {$headers1[$index] = true;}
-
-			}
-		}
-	}
-	
-	ksort($headers2); ksort($headers1);
-
-	foreach($headers1 as $k => $b){$headers[] = $k;}
-	foreach($headers2 as $k => $b){$headers[] = "Top ".$k;}
-	
-	
-
-	// Data Table
-	echo "<table class='data_table'>
-	<tr>
-		<th>Rank</th>
-		<th>School</th>
-		<th>Score</th>
-		<th>1st</th>
-		<th>2nd</th>
-		<th>3rd</th>
-		<th>4th</th>";
-	foreach($headers as $header){
-		echo "<th>{$header}</th>";
-	}
-echo "
-	</tr>";
-	
-	$i=0;
-
-	foreach($placings as $place => $results){
-
-		$name = getSchoolName($results['schoolID'], 'full', 'yes');
-		$score = $results['score'];
-		$i++;
-		echo"<tr>
-			<td>{$i}</td>
-			<td>{$name}</td>
-			<td>{$score}</td>
-			<td>{$results[1]}</td>
-			<td>{$results[2]}</td>
-			<td>{$results[3]}</td>
-			<td>{$results[4]}</td>";
-			foreach($headers as $index){
-				echo "<td>{$results[$index]}</td>";
-
-			}
-		echo "</tr>";
-		
-	}
-	echo "</table>";
+	unset($_SESSION['manualPlacing']);
 }
 
 /******************************************************************************/

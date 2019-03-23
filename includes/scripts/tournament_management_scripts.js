@@ -12,7 +12,8 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 	// Results Only
 	fieldsToDisplay [FORMAT_RESULTS] = {			
 		formatID: 'show',
-		isTeams: 'show'
+		isTeams: 'show',
+		hideFinalResults: 'show'
 	};
 	
 	// Matches 
@@ -34,7 +35,13 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		reverseScore: 'show',
 		isTeams: 'show',
 		poolWinnersFirst: 'show',
-		maxPoints: 'show'
+		maxPoints: 'show',
+		limitPoolMatches: 'show',
+		checkInStaff: 'show',
+		hideFinalResults: 'show',
+		numSubMatches: 'show',
+		subMatchMode: 'show',
+		timeLimit: 'show'
 	};
 	
 	// Solo
@@ -43,19 +50,20 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		rankingID: 'refresh',
 		baseValue: 'show',
 		isCuttingQual: 'show',
+		reverseScore: 'show',
 		isPrivate: 'show',
-		isTeams: 'show'
+		isTeams: 'show',
+		hideFinalResults: 'show'
 	};
 	
 	// Composite
 	fieldsToDisplay [FORMAT_COMPOSITE] = {
 		formatD: 'show',			 
 		rankingID: 'refresh',
-		baseValue: 'show'
+		baseValue: 'show',
+		hideFinalResults: 'show'
 	};
 
-	console.log(fieldsToDisplay);
-	
 	function toggleTournamentEntryDiv(){
 		var divID = $(this).attr('Id');
 		if(typeof divID !== 'string'){ return; }
@@ -118,17 +126,23 @@ function enableTournamentButton(tournamentID){
 		}
 
 		if(doubleID == 3){
+
 			netScoreMode = document.getElementById('notNetScore_select'+tournamentID).value;
+
 			if(netScoreMode.length == 0){
 				warrningMessages.push('Please select Net Score preference');
 			}
+
 			$("#overrideDoubles_div"+tournamentID).show();
-			console.log("!");
+
 			if($("#overrideDoubles_select"+tournamentID).val() != 0){
 				$("#maxDoubles_div"+tournamentID).show();
 			}
+
 		} else {
+
 			$("#overrideDoubles_div"+tournamentID).hide();
+			
 		}
 	}
 

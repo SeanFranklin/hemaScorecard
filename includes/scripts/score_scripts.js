@@ -422,23 +422,26 @@ function startTimer(){
 	}
 
 	timeDiv = document.getElementById("timerButton");
-	
+
 	if(timeDiv.classList.contains('running')){
+
 		timeDiv.classList.remove('running');
-		timeDiv.classList.remove('alert');
-		timeDiv.classList.add('success');
 		$('#manualTimerToggle').show();
 		clearInterval(timerClock);
 		$("#restartTimerInput").val(0);
+
 	} else {
+
 		timeDiv.classList.add('running');
-		timeDiv.classList.add('alert');
-		timeDiv.classList.remove('success');
 		$('#manualTimerToggle').hide();
 		$('#manualSetDiv').hide();
 		timerClock = setInterval(increaseTime,1000);
 		$("#restartTimerInput").val(1);
+
 	}
+
+	setTimerButtonColor($('#matchTime').val());
+
 }
 
 /******************************************************************************/
@@ -471,7 +474,8 @@ function increaseTime(){
 
 function updateMatchTimer(){
 	time = document.getElementById('matchTime').value;
-	
+	timeLimit = document.getElementById('timeLimit').value;
+
 	// Update the form fields
 	timerInputs = document.getElementsByClassName('matchTime');
 
@@ -480,7 +484,7 @@ function updateMatchTimer(){
 	}
 	
 	updateTimerDisplay(time);
-	
+
 	// Update the match time in the DB
 	var query = "mode=updateMatchTime";
 	query = query + "&matchID="+document.getElementById('matchID').value;
@@ -511,6 +515,63 @@ function updateTimerDisplay(time = null){
 
 	str = minutes.toString()+":"+seconds.toString();
 	document.getElementById('currentTime').innerHTML = str;
+
+	setTimerButtonColor(time);
+
+}
+
+
+/******************************************************************************/
+
+function setTimerButtonColor(time){
+
+	target = document.getElementById("timerButton");
+	time = time;
+
+	if( target.classList.contains('running') == true){
+		isRunning = true;
+	} else {
+		isRunning = false;
+	}
+
+	timeLimit = document.getElementById('timeLimit').value;
+
+
+	wasFilled = false;
+	if(timeLimit > 0 && (timeLimit - time) <= 0){
+		overTime = true;
+
+		if( target.classList.contains('hollow') == false){
+			wasFilled = true;
+		}
+
+	} else {
+		overTime = false;
+	}
+
+	target.classList.remove('success');
+	target.classList.remove('warning');
+	target.classList.remove('alert');
+	target.classList.remove('secondary');
+	target.classList.add('hollow');
+
+	if(overTime == false){
+		if(isRunning == true){
+			target.classList.add('alert');
+		} else {
+			target.classList.add('success');
+		}
+	} else {
+		if(isRunning == true){
+			target.classList.add('alert');
+			if(wasFilled == false){
+				target.classList.remove('hollow');
+			} 
+		} else {
+			target.classList.add('warning');
+		}
+	}
+
 }
 
 

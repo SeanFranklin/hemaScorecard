@@ -6,6 +6,29 @@
 }
 
 
+.confirmed-hours{
+  color: #3adb76;
+}
+
+.target-hours{
+  color: #1779ba;
+}
+
+.unconfirmed-hours{
+  color: #cc4b37;
+}
+
+.unscheduled-hours{
+  color: #ffae00;
+}
+
+.bold{
+  font-weight: bold;
+}
+
+.no-wrap{
+  white-space: nowrap;
+}
 
 @media (min-width: 200px) {
   .overlay-score {
@@ -173,8 +196,16 @@ select {
 	margin: 0px;
 }
 
+.no-padding {
+  padding: 0px;
+}
+
 .no-bottom {
 	margin-bottom: 0px;
+}
+
+.no-top {
+  margin-top: 0px;
 }
 
 .tournament-box {
@@ -189,8 +220,16 @@ select {
   cursor:pointer;
 }
 
+.grab {
+  cursor:grab;
+}
+
 .red-text {
   color: red;
+}
+
+.white-text {
+  color: white;
 }
 
 .grey-text {
@@ -199,6 +238,10 @@ select {
 
 .alert-text {
   color: #F04124;
+}
+
+.blue-text {
+  color: #1779ba;
 }
 
 .success-text {

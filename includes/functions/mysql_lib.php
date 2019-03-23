@@ -32,18 +32,28 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 	
 	checkMySQL();
 	switch($type){
+
+		// SEND
 		case 0:	// Return success only
 			$retVal = true;
 			break;
+
+		// INDEX
 		case 1:	// Return the new index (For inserts);
 			$retVal = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
 			break;
+
+		// RAW
 		case 2:	// Return the result objet
 			$retVal = $res;
 			break;
+
+		// ROWS
 		case 3: // Return the number of rows in the select statement
 			$retVal = mysqli_num_rows($res);
 			break;
+
+		// ASSOC	
         case 4: // Return an associated array of results
 	        $x = 0;
 	        $retVal = array();
@@ -51,14 +61,22 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 			    $retVal[$x++] = $result;
 			}
 			break;
+
+		// SINGLE	
 		case 5: // Return the first value queried
-			$result = mysqli_fetch_assoc($res);
-			if($key == null){
-				$retVal = $result;
+			if(is_bool($res)){ // There were no values
+				$retVal = null;
 			} else {
-				$retVal = $result[$key];
+				$result = mysqli_fetch_assoc($res);
+				if($key == null){
+					$retVal = $result;
+				} else {
+					$retVal = $result[$key];
+				}
 			}
 			break;
+
+		// KEY
 		case 6: // Return an associated array of results indexed by a field
 			if($key == null){return false;}
 			$retVal = array();
@@ -70,6 +88,8 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 				}
 			}
 			break;
+
+		// KEY_SINGLES	
 		case 7: // Return an array of single values indexed by a key
 			if($key == null || $key2 == null){return false;}
 			$retVal = array();
@@ -77,6 +97,8 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 				$retVal[$result[$key]] = $result[$key2];
 			}
 			break;
+
+		// SINGLES	
 		case 8: // Return an array of single values indexed by their order in the query
 			$retVal = array();
 			while($result = mysqli_fetch_assoc($res)){

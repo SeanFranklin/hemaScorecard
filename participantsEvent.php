@@ -14,7 +14,6 @@ $pageName = 'Event Roster';
 $jsIncludes[] = 'roster_management_scripts.js';
 include('includes/header.php');
 
-$tournamentList = getEventTournaments();
 $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
@@ -22,10 +21,15 @@ if($eventID == null){
 } else {
 	
 // Get information
-	$tournamentRosters = [];
-	foreach((array)$tournamentList as $tournamentID){
-		$tournamentRosters[$tournamentID] = getTournamentRoster($tournamentID,'rosterID');
-	}
+	$tournamentList = getEventTournaments();
+	$tournamentNames = getEventTournamentNames($tournamentList);
+	$tournamentEntries = getEntriesByFighter($tournamentList);
+	
+	$isTournamentScheduleUsed = logistics_isTournamentScheduleUsed($_SESSION['eventID']); 
+	$scheduleByRosterID = logistics_getScheduleByFighter($_SESSION['eventID']);
+	$scheduleBlockNames = logistics_getScheduleBlockNames($_SESSION['eventID']);
+
+
 	
 	$nameOrder = NAME_MODE;
 	if($nameOrder == null){
@@ -56,6 +60,7 @@ if($eventID == null){
 		
 		confirmDeleteReveal('eventRosterForm', 'deleteFromEvent', 'large');
 	/*		
+	///// This breaks the javascript by having two buttons////
 	<div style='display:inline'>
 	<span id='deleteButtonContainer2'>
 		<button class='button alert hollow' name='formName' value='deleteFromEvent' id='deleteButton2'>
@@ -67,7 +72,9 @@ if($eventID == null){
 	}
 
 // Display roster
-	displayEventRoster($roster, $tournamentRosters, $tournamentList);
+	displayEventRoster($roster, $isTournamentScheduleUsed,
+						$tournamentEntries, $tournamentNames,
+						$scheduleByRosterID, $scheduleBlockNames);
 
 }
 
@@ -78,7 +85,9 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function displayEventRoster($roster, $tournamentRosters, $tournamentList){
+function displayEventRoster($roster, $isTournamentScheduleUsed,
+							$tournamentEntries, $tournamentNames, 
+							$staffingBlocks, $scheduleBlockNames){
 // Displays table of fighters already registered, and which tournaments they are in
 	?>
 	
@@ -89,21 +98,15 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 	
 	<?php 	
 	
-	tableHeaders($tournamentList);
+	tableHeaders();
 	$i = 0;
 	
 	foreach ((array)$roster as $person):
 		
-		$rosterID = $person['rosterID']; 
+		$rosterID = $person['rosterID'];
+		$fullName = getFighterName($rosterID); 
 		$field1 = "tList-{$rosterID}";
 		$field2 = "tList2-{$rosterID}";
-		$tournamentNames = [];
-		foreach((array)$tournamentRosters as $tournamentID => $tournamentRoster){
-			
-			if(isset($tournamentRoster[$rosterID])){
-				$tournamentNames[] = getTournamentName($tournamentID);
-			}
-		}		
 		?>
 		
 		<tr class='pointer' id='divFor<?=$rosterID?>'
@@ -123,22 +126,6 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 			
 		<!-- Participant info -->
 			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
-				
-				<?php
-					$sql = "SELECT systemRosterID
-							FROM eventRoster
-							WHERE rosterID = {$rosterID}";
-					$systemRosterID = mysqlQuery($sql, SINGLE, 'systemRosterID');		
-					$sql = "SELECT count(rosterID) AS num
-							FROM eventRoster
-							WHERE systemRosterID = {$systemRosterID}";
-					$num = mysqlQuery($sql, SINGLE, 'num');
-
-
-
-				?>
-
-
 				<?=getFighterName($rosterID)?>
 			</td>
 
@@ -158,15 +145,56 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 		</tr>
 		<tr id='tList-<?=$rosterID?>' class='hidden'>
 		
-		<!-- Tournament Entries -->	
+		<!-- Entries & assignements -->	
 			<td colspan='100%' >
-				Tournament Entries for 
-				<u><?=$person['firstName']?> <?=$person['lastName']?></u>:
-				<?php foreach((array)$tournamentNames as $name):?>
-					<div class='shrink tournament-box'>
-						<?=$name?>
-					</div>
-				<?php endforeach?>
+
+
+			<!-- Tournament entries -->
+				<?php if(isset($tournamentEntries[$rosterID]) == true): ?>
+					Tournament Entries for 
+					<u><?=$fullName?></u>:
+
+					<?php foreach((array)$tournamentEntries[$rosterID] as $tournamentID):
+						$name = $tournamentNames[$tournamentID];
+						?>
+						<div class='shrink tournament-box'>
+							<?=$name?>
+						</div>
+					<?php endforeach?>
+				<?php else: ?>
+					<u><?=$person['firstName']?> <?=$person['lastName']?></u>
+					has no tournament entries
+				<?php endif ?>
+
+
+			<!-- Staffing assignments -->
+				<?php if((getEventStatus() != 'hidden' || getEventStatus() != 'upcoming')
+						|| (ALLOW['EVENT_MANAGEMENT'] == true)
+						|| (ALLOW['VIEW_SETTINGS'] == true)): ?>
+					
+					<?php if(isset($staffingBlocks[$rosterID]) == true): ?>
+						<BR><u><?=$fullName?></u> is also scheduled for:
+
+						<?php foreach((array)$staffingBlocks[$rosterID] as $shift):
+							$name = $scheduleBlockNames[$shift['blockID']];
+							?>
+							<div class='shrink tournament-box'>
+								<?php if($shift['blockTypeID'] != SCHEDULE_BLOCK_MISC): ?>
+									<u>Staffing</u>: 
+								<?php endif ?>
+								<?=$name?>
+							</div>
+						<?php endforeach?>
+					<?php endif ?>
+
+					<?php if($isTournamentScheduleUsed == true || isset($staffingAssignments[$rosterID])): ?>
+						<BR>
+						<a onclick="goToPersonalSchedule('<?=$rosterID?>')">
+							View Full Schedule for <?=$fullName?>	
+						</a>
+					<?php endif ?>
+				<?php endif ?>
+
 			</td>
 		</tr>
 		<tr id='tList2-<?=$rosterID?>' class='hidden'>
@@ -178,7 +206,7 @@ function displayEventRoster($roster, $tournamentRosters, $tournamentList){
 		$i++;
 		if($i >= 15){
 			$i=0;
-			tableHeaders($tournamentList);
+			tableHeaders();
 		}?>
 
 	<?php endforeach?>
@@ -317,6 +345,10 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 		$applyBackground = null;
 		$applyChecked = null;
 	}
+
+	$useStaff = logistics_isStaffAssignmentOnEventEntry($_SESSION['eventID']);
+	$dStaffCompetency = logistics_getDefaultStaffCompetency($_SESSION['eventID']);
+
 	?>
 	
 	
@@ -391,8 +423,15 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 		
 	<!-- Table headers -->
 		<table class='stack'>
+
 		<tr>
 			<th>Name</th>
+			<?php if($useStaff == true): ?>
+				<th><?=tooltip("Assign as a staff member for this event. 
+						The numbers are if you want to rate them based on their skillsets 
+						to help assign table/ judge/ director/ etc...")?>
+				</th>
+			<?php endif ?>
 			<th>Tournaments</th>
 		</tr>
 		
@@ -418,6 +457,18 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 				<input type='hidden' name='newParticipants[byID][<?=$k?>][schoolID]' value='<?=$schoolID?>'>
 			
 			</td>
+
+		<!-- Staffing -->
+			<?php if($useStaff == true): ?>
+				<td>
+					<select name='newParticipants[byID][<?=$k?>][staffCompetency]'>
+						<option value='0'>No</option>
+						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
+							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
+						<?php endfor ?>
+					</select>
+				</td>
+			<?php endif?>
 			
 			<td>
 			
@@ -464,6 +515,18 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 				</div>
 				<input type='hidden' name='newParticipants[new][<?=$k?>][schoolID]' value='<?=$schoolID?>'>
 			</td>
+
+		<!-- Staffing -->
+			<?php if($useStaff == true): ?>
+				<td>
+					<select name='newParticipants[new][<?=$k?>][staffCompetency]'>
+						<option value='0'>No</option>
+						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
+							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
+						<?php endfor ?>
+					</select>
+				</td>
+			<?php endif?>
 			
 		<!-- Tournaments -->	
 			<td>
@@ -584,7 +647,7 @@ function editParticipant($rosterID,$schoolList){
 			
 			
 			<p>This will completely remove <BR><strong id='editFullName'></strong><BR> from the event.</p>
-			<p>All information will be <u>perminantely</u> erased.</p>
+			<p>All information will be <u>permanently</u> erased.</p>
 			
 			
 			<HR>
@@ -621,23 +684,31 @@ function editParticipant($rosterID,$schoolList){
 
 /******************************************************************************/
 
-function tableHeaders($tournamentList, $removeDisabled = false){
+function tableHeaders(){
+
+	if($_SESSION['rosterViewMode'] == 'school'){
+		$schoolArrow = "&#8595";
+		$nameArrow = '';
+	} else {
+		$schoolArrow = "";
+		$nameArrow = "&#8595";
+	}
 ?>
 	
 	<thead >
 	<tr>
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true && !$removeDisabled):?>
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
 			<th>
 				<span class='hide-for-small-only'>Remove</span>
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
 		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center'>
-			<a>Name</a>
+			<a>Name <?=$nameArrow?></a>
 		</th>	
 
 		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center'>
-			<a>School</a>
+			<a>School <?=$schoolArrow?></a>
 		</th>
 	</tr>
 	</thead>

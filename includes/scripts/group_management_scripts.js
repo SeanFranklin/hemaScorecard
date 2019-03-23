@@ -81,6 +81,7 @@ function reOrderPools(button){
 	} else {
 		// Enable Editing
 		button.value = 'editing';
+		$(button).addClass('success');
 		button.innerHTML = 'Done';
 		mainDiv.disabled = true;
 		disableFields(mainDiv, true);

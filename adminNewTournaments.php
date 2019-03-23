@@ -70,14 +70,20 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentNormalization();
 			edit_tournamentPoolWinners();
 
+			edit_tournamentTimeLimit();
 			edit_tournamentMaxExchanges();
 			edit_tournamentMaxPoints();
 			edit_tournamentReverseScore();
+			edit_tournamentLimitPoolMatches();
 			edit_tournamentControlPoints();
 			edit_tournamentOverrideDoubles();
 			edit_tournamentCuttingQual();
+			edit_tournamentNumSubMatches();
+			edit_tournamentSubMatchMode();
 			edit_tournamentTeams();
 			edit_tournamentKeepPrivate();
+			edit_tournamentHideFinalResults();
+			edit_tournamentStaffCheckin();
 			?>
 		</div>			
 		
