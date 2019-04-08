@@ -118,7 +118,8 @@ if($_SESSION['eventID'] == null){
 		<!-- Points -->
 			<td>
 				<input type='number' name='newAttack[<?=$i?>][attackPoints]' step=0.1 min=0 max=10
-					placeholder='leave blank to delete' value='<?=$attack['attackPoints']?>' >
+					placeholder='leave blank to delete' value='<?=$attack['attackPoints']?>'
+					class='no-bottom' >
 			</td>
 		
 		</tr>
@@ -177,7 +178,8 @@ if($_SESSION['eventID'] == null){
 		<!-- Points -->
 			<td>
 				<input type='number' name='newAttack[<?=$i?>][attackPoints]' 
-					step=0.1 min=0 max=10 placeholder='leave blank to delete'>
+					step=0.1 min=0 max=10 placeholder='leave blank to delete'
+					class='no-bottom'>
 			</td>
 		
 		</tr>

@@ -53,40 +53,53 @@ if($_SESSION['eventID'] == null){
 	if($blockInfo != null){
 
 		$shifts = logistics_getScheduleBlockShifts($blockInfo['blockID']);
+		
+		if($blockInfo['blockTypeID'] == SCHEDULE_BLOCK_MISC){
 
-		if(logistics_limitStaffConflicts($_SESSION['eventID']) == STAFF_CONFLICTS_NO){
-			$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID']);
+			$eventRoster = getEventRoster();
+			$staffTemplate = [];
+
+			foreach($eventRoster as $person){
+				$rosterID = $person['rosterID'];
+				$assignableStaff[$rosterID]['optionName'] = getFighterName($rosterID);
+			}
+
+
 		} else {
-			$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID'], 
-															$blockInfo['tournamentID'] );
-		}
-
-		$staffTemplate = logistics_getStaffTemplate($blockInfo['tournamentID']);
-
-		// Get a count of how much each person has worked
-		foreach($assignableStaff as $rosterID => $person){
-			$hrsStaffed = logistics_getStaffingMinutes($rosterID, 
-														$_SESSION['eventID'], 
-														'comb');
-			$hrsStaffed = round($hrsStaffed/60,1);
-			$assignableStaff[$rosterID]['hrsStaffed'] = $hrsStaffed;
-		}
-
-		// Generate a name for each staff member to appear in the <select> options
-		foreach($assignableStaff as $rosterID => $staffMember){
-			$name = '';
-			if($showStaffCompetency == true){
-				$name .= "[".$staffMember['staffCompetency']."] ";
+			if(logistics_limitStaffConflicts($_SESSION['eventID']) == STAFF_CONFLICTS_NO){
+				$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID']);
+			} else {
+				$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID'], 
+																$blockInfo['tournamentID'] );
 			}
-			$name .= getFighterName($rosterID);
 
-			$hours = $hours = $staffMember['hrsStaffed'];
-			if($staffMember['staffHoursTarget'] !== null){
-				$hours .= "/".$staffMember['staffHoursTarget'];
+			$staffTemplate = logistics_getStaffTemplate($blockInfo['tournamentID']);
+
+			// Get a count of how much each person has worked
+			foreach($assignableStaff as $rosterID => $person){
+				$hrsStaffed = logistics_getStaffingMinutes($rosterID, 
+															$_SESSION['eventID'], 
+															'comb');
+				$hrsStaffed = round($hrsStaffed/60,1);
+				$assignableStaff[$rosterID]['hrsStaffed'] = $hrsStaffed;
 			}
-			$name .= " {".$hours." hrs}";
 
-			$assignableStaff[$rosterID]['optionName'] = $name;
+			// Generate a name for each staff member to appear in the <select> options
+			foreach($assignableStaff as $rosterID => $staffMember){
+				$name = '';
+				if($showStaffCompetency == true){
+					$name .= "[".$staffMember['staffCompetency']."] ";
+				}
+				$name .= getFighterName($rosterID);
+
+				$hours = $hours = $staffMember['hrsStaffed'];
+				if($staffMember['staffHoursTarget'] !== null){
+					$hours .= "/".$staffMember['staffHoursTarget'];
+				}
+				$name .= " {".$hours." hrs}";
+
+				$assignableStaff[$rosterID]['optionName'] = $name;
+			}
 		}
 
 		// Choses which panel is open by default
@@ -205,6 +218,9 @@ include('includes/footer.php');
 /******************************************************************************/
 
 function bulkAddBox($roles){
+
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+
 ?>
 	<div class='reveal' id='bulkStaffAssignBox' data-reveal>
 	
@@ -214,11 +230,12 @@ function bulkAddBox($roles){
 		<em>
 			<li>Assign all staff to training.</li>
 			<li>Assign all event participants to the dinner. </li>
+			<li>Assign all tournament participants to a rules briefing. </li>
 		</em>
 
 		<BR>
 		<div class='callout secondary'>
-			Plase take note:
+			Please take note:
 			<li>This will add everyone regardless of conflicts</li>
 			<li>If someone is already added it will not change their role.</li>
 			<li>Assigning people as Participants does not count as staffing hours.</li>
@@ -235,6 +252,12 @@ function bulkAddBox($roles){
 				<option disabled selected></option>
 				<option value='staff'>Event Staff</option>
 				<option value='all'>Event Participants</option>
+				<option disabled>---------</option>
+				<?php foreach($tournamentIDs as $tournamentID): ?>
+					<option value='<?=$tournamentID?>'>
+						Registered In: &lt;<?=getTournamentName($tournamentID)?>&gt;
+					</option>
+				<?php endforeach ?>
 			</select>
 		</div>
 
@@ -252,7 +275,7 @@ function bulkAddBox($roles){
 	<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
 
-			<button class='button success small-6 cell <?=$bClass?>' name='formName' 
+			<button class='button success small-6 cell' name='formName' 
 				value='bulkStaffAssign'>
 				Bulk Add
 			</button>
@@ -339,7 +362,7 @@ function shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTempl
 		<tr>
 			<th>
 				Staff Member
-				<?=tooltip("1) Shows avaliable staff members not entered in this tournament<BR>
+				<?=tooltip("1) Shows available staff members not entered in this tournament<BR>
 					2) If the event has no staff declared all event participants will be displayed.") ?>
 				</th>
 			<th>

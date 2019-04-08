@@ -46,6 +46,9 @@
 	define("KEY_SINGLES",7);
 	define("SINGLES",8);
 
+	define("SQL_FALSE",0);
+	define("SQL_TRUE",1);
+
 	define("FINALS","0");
 
 	define("DEFAULT_EVENT",1);

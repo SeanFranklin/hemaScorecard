@@ -79,6 +79,22 @@ if($tournamentID == null){
 		</div>			
 	<?php endif ?>
 
+	<?php if($_SESSION['formatID'] == FORMAT_COMPOSITE): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+			<form method='POST'>
+				<button class='button' name='formName' value='updateCompositeStandings'>
+					Force Standings Update
+				</button>
+				<input type='hidden' name='updateCompositeStandings[tournamentID]' 
+						value='<?=$_SESSION['tournamentID']?>'>
+				<?=tooltip("Standings are updated whenever a tournament is finalized or the 
+					components are modified. This is a manual correction 
+					if you do something else that can impact this list.")?>
+			</form>
+		<?php endif ?>
+		<em>Composite event standings only show results from finalized component tournaments.</em>
+
+	<?php endif ?>
 
 	<?php if($showFighters & $showTeams): ?>
 		<ul class="tabs" data-tabs id="example-tabs">

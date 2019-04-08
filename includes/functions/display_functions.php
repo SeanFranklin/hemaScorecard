@@ -856,12 +856,11 @@ function edit_tournamentMaxDoubles($tournamentID = 'new'){
 		<select name='updateTournament[maxDoubleHits]' 
 			id='maxDoubles_select<?=$tournamentID?>'>
 			
-			<?php for($i = 1; $i <= $maxDoublesLimit; $i++):
-				$selected = isSelected($i, $maxDoubles);
-				?>
-				
-				<option value=<?=$i?> <?=$selected?>><?=$i?></option>
+			<?php for($i = 1; $i <= $maxDoublesLimit; $i++):?>	
+				<option <?=optionValue($i,$maxDoubles)?> ><?=$i?></option>
 			<?php endfor ?>
+
+			<option <?=optionValue(0,$maxDoubles)?> >Unlimited :(</option>
 		</select>		
 	</div>
 	
@@ -1352,6 +1351,46 @@ function edit_tournamentStaffCheckin($tournamentID = 'new'){
 			<option <?=optionValue(STAFF_CHECK_IN_MANDATORY,$checkInStaff)?> >Mandatory </option>
 		</select>
 		
+	</div>
+	
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentRequireSignOff($tournamentID = 'new'){
+
+	$display = "hidden"; // Hidden for most cases
+	$requireSignOff = STAFF_CHECK_IN_NONE;
+
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		$formatID = getTournamentFormat($tournamentID);
+		if($formatID == FORMAT_MATCH){
+			$display = '';
+			
+			$sql = "SELECT requireSignOff
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$requireSignOff = (int)mysqlQuery($sql, SINGLE, 'requireSignOff');
+
+		}
+
+	} 
+	
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='requireSignOff_<?=$tournamentID?>' >
+			
+		Match Sign Off
+		<?=tooltip("Use this to require fighters to sign off on their scores after every match.")?>	
+		
+		<select name='updateTournament[requireSignOff]' id='requireSignOff_<?=$tournamentID?>'>
+			<option <?=optionValue(0,$requireSignOff)?> >No</option>
+			<option <?=optionValue(1,$requireSignOff)?> >Yes</option>
+		</select>
 	</div>
 	
 <?php }
@@ -1861,6 +1900,55 @@ function edit_tournamentMaxPoints($tournamentID = 'new'){
 
 /****************************************************(*************************/
 
+function edit_tournamentMaxPointSpread($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$display = "hidden"; // Hidden for most cases
+	$pointSpreadLimit = 20; // Arbitrary
+
+	$maxPointSpread = 0;
+	if($tournamentID != 'new' && (int)$tournamentID > 0){
+
+		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
+			$display = '';
+			
+			$sql = "SELECT maxPointSpread
+					FROM eventTournaments
+					WHERE tournamentID = {$tournamentID}";
+			$maxPointSpread = (int)mysqlQuery($sql, SINGLE, 'maxPointSpread');
+
+		}
+	}
+
+	?>
+	
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='maxPointSpread_div<?=$tournamentID?>' >
+			
+		Maximum Points Spread
+		<?php tooltip("Match will automaticaly conclude after this number is reached. <BR>
+			<strong>Leave blank for unlimited.</strong>"); ?>
+		<select name='updateTournament[maxPointSpread]' 
+			id='maxPointSpread_select<?=$tournamentID?>'>
+			
+			<option <?=optionValue(0,$maxPointSpread)?> >Unlimited</option>
+
+			<?php for($i = 1; $i <= $pointSpreadLimit; $i++):?>	
+				<option <?=optionValue($i,$maxPointSpread)?> ><?=$i?></option>
+			<?php endfor ?>
+
+
+		</select>	
+	</div>
+	
+<?php }
+
+/****************************************************(*************************/
+
 function edit_tournamentTimeLimit($tournamentID = 'new'){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1898,7 +1986,7 @@ function edit_tournamentTimeLimit($tournamentID = 'new'){
 		<?php tooltip("Match will automaticaly conclude after this time is reached. <BR>
 			<strong>Leave blank for unlimited.</strong>"); ?>
 		<input type='number' name='updateTournament[timeLimit]' value='<?=$timeLimit?>'
-			placeholder='Unlimited' min=0 max=100 class='text-center'>
+			placeholder='Unlimited' min=0 max=300 class='text-center'>
 	</div>
 	
 <?php }

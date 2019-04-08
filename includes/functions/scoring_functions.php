@@ -916,6 +916,10 @@ function _LpMeta_calculateScore($tournamentID, $groupSet = 1){
 		$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
 	}
 
+	if($tString == ''){
+		$tString = 'NULL';
+	}
+
 	$fString = '';
 	foreach($tournamentRoster as $fighter){
 
@@ -977,12 +981,17 @@ function _LpMeta_calculateScore($tournamentID, $groupSet = 1){
 		$fString .= "{$rosterID}";
 	}
 
+	if($fString == ''){
+		$fString = 'NULL';
+	}
+
+
 	// Delete any old standings hanging around from fighters without ranks
 	$sql = "DELETE FROM eventStandings
 			WHERE tournamentID = {$tournamentID}
 			AND rosterID NOT IN ({$fString})";
 	mysqlQuery($sql, SEND);
-	
+
 }
 
 /******************************************************************************/
@@ -1203,7 +1212,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 function pool_GeneratePools($specifications){
 // Calculate advancements to move onto the next pool set using the parameters specified.
 // Parameters are the number of 
-			
+
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
 
@@ -1300,10 +1309,12 @@ function pool_GeneratePools($specifications){
 			break;
 
 		case 'poolStanding':
-			$sql = "SELECT rosterID, rank, schoolID, subGroupNum
+			$sql = "SELECT rosterID, rank, schoolID, 0 AS subGroupNum
 					FROM eventStandings as eS
 					INNER JOIN eventRoster USING(rosterID)
-					WHERE tournamentID = {$tournamentID}
+					INNER JOIN eventTournamentRoster AS eTR USING(rosterID)
+					WHERE eS.tournamentID = {$tournamentID}
+					AND eTR.tournamentID = {$tournamentID}
 					AND groupSet = {$lastGroupSet}
 					AND (	SELECT COUNT(*) 
 							FROM eventIgnores eI 
@@ -2052,7 +2063,7 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 	// Prepare query to update team score
 		$fields = ['score', 'matches', 'wins', 'losses','ties','pointsFor','pointsAgainst',
 					'hitsFor','hitsAgainst','afterblowsFor','afterblowsAgainst',
-					'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst',
+					'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst', 'AbsPointsAwarded',
 					'numPenalties','penaltiesAgainstOpponents','penaltiesAgainst','doubleOuts'];
 		$selectClause = implode("), SUM(", $fields);
 		$selectClause = "SUM(".$selectClause.")";

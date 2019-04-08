@@ -30,12 +30,8 @@ if($tournamentID == null){
 		
 	$poolSet = $_SESSION['groupSet'];
 	$matchList = getPoolMatches($tournamentID, 'all', $poolSet);
-	$tournamentRoster = getTournamentRoster($tournamentID, '','full');
-	$schoolList = getSchoolList('schoolID');
 	$tournamentName = getTournamentName($tournamentID);
 	$matchScores = getAllPoolScores($tournamentID, $poolSet);
-	$eventRoster = getEventRoster();
-	$roles = logistics_getRoles();
 	
 	foreach((array)$matchList as $groupID => $pool){
 		$incompletes = false;
@@ -98,9 +94,17 @@ if($tournamentID == null){
 			<?php if($locationName != null): ?>
 				<em style="font-size:.8em">(<?=$locationName?>)</em>
 			<?php endif ?>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+				<a style="font-size:.8em" onclick="toggleClass('check-in-<?=$groupID?>')">
+					Check Fighters In ↓
+				</a>
+			<?php endif ?>
 		</h5>
 		
-		<div class='grid-x grid-margin-x' name='group<?=$groupID?>'>	
+		<div class='grid-x grid-margin-x' name='group<?=$groupID?>'>
+
+			<?=checkFightersIn($groupID)?>
+
 			<?php $matchNum = 0;
 			foreach ($pool as $matchID => $match){
 				
@@ -124,6 +128,95 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function checkFightersIn($groupID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$groupRoster = getGroupRoster($groupID);
+	$startOfForm = "";
+
+	foreach($groupRoster as $person){
+		$tmp['name'] = getFighterName($person['rosterID']);
+		$tmp['form'] = "checkInFighters[group][{$groupID}][{$person['rosterID']}]";
+
+		if($person['groupCheckIn'] == SQL_TRUE){
+			$tmp['checkin'] = 'checked';
+		} else {
+			$tmp['checkin'] = '';
+		}
+		if($person['groupGearCheck'] == SQL_TRUE){
+			$tmp['gearcheck'] = 'checked';
+		} else {
+			$tmp['gearcheck'] = '';
+		}
+		$fighterList[] = $tmp;
+	}
+
+
+?>
+	<div class='large-12 cell hidden check-in-<?=$groupID?>'>
+		
+		<form method='POST'>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Check-In</th>
+				<th>Gear Check</th>
+				<th>Update</th>
+			</tr>
+			<?php foreach($fighterList as $fighter): ?>
+				<tr>
+					<td>
+						<?=$fighter['name']?>
+					</td>
+				
+				<td>
+
+					<div class='switch text-center no-bottom'>
+						<input type='hidden' name='<?=$fighter['form']?>[checkin]' value='0'>
+						<input class='switch-input' type='checkbox' 
+							id='<?=$fighter['form']?>[checkin]' <?=$fighter['checkin']?>
+							name='<?=$fighter['form']?>[checkin]' value='1'>
+						<label class='switch-paddle' for='<?=$fighter['form']?>[checkin]'>
+						</label>
+					</div>
+				</td>
+
+				<td>
+
+					<div class='switch text-center no-bottom'>
+						<input type='hidden' name='<?=$fighter['form']?>[gearcheck]' value='0'>
+						<input class='switch-input' type='checkbox' 
+							id='<?=$fighter['form']?>[gearcheck]' <?=$fighter['gearcheck']?>
+							name='<?=$fighter['form']?>[gearcheck]' value='1'>
+						<label class='switch-paddle' for='<?=$fighter['form']?>[gearcheck]'>
+						</label>
+					</div>
+				</td>
+
+				<td class='text-center'>
+					<button class='button success hollow tiny no-bottom' 
+						name='formName' value='checkInFighters'>
+						<strong>✅</strong>
+					</button>
+				</td>
+
+				</tr>
+			<?php endforeach ?>
+
+	</table>
+		</form>
+
+
+	</div>
+	
+<?php
+}
 
 
 /******************************************************************************/

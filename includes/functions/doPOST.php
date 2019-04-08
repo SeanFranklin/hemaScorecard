@@ -19,8 +19,10 @@ function processPostData(){
 
 	///////////////////////////////////////////////////////////////////////
 	/* For debugging, commented out for regular use ///
-	$refreshPage = false;
-	define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
+	if(ALLOW['SOFTWARE_ADMIN'] == true){
+		$refreshPage = false;
+		define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
+	}
 	//define('SHOW_SESSION', true);
 	//////////////////////////////////////////////////////////////////////*/
 
@@ -207,6 +209,9 @@ function processPostData(){
 				$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
 				if(isset($_POST['matchID'])){$_SESSION['matchID'] = $_POST['matchID'];}
 				break;
+			case 'signOffFighters':
+				signOffFighters($_POST['signOffInfo']);
+				break;
 			
 					
 	// Finals
@@ -254,6 +259,9 @@ function processPostData(){
 				break;
 			case 'updateTournamentComponents':
 				updateTournamentComponents($_POST['compositeTournament']);
+				break;
+			case 'updateCompositeStandings':
+				updateCompositeTournamentStandings($_POST['updateCompositeStandings']['tournamentID']);
 				break;
 			case 'eventDefaultUpdate':
 				updateEventDefaults();
@@ -465,7 +473,7 @@ function processPostData(){
 		checkEvent();
 		unset($_SESSION['checkEvent']);
 	}
-	
+
 	if(isset($_SESSION['updatePoolStandings'])){
 		
 		foreach($_SESSION['updatePoolStandings'] as $tournamentID => $groupSet){
@@ -878,28 +886,31 @@ function addNewExchange(){
 		$matchInfo = getMatchInfo($matchID);
 
 		$matchConcluded = false;
-		if($matchCap['exchanges'] != 0){
-			if(shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']) == true){
-				autoConcludeMatch($matchInfo);
-				$matchConcluded = true;
-			}
-		}
-		if($matchConcluded == false && $matchCap['points'] != 0){
-			if(shouldMatchConcludeByPoints($matchInfo, $matchCap['points']) == true){
-				autoConcludeMatch($matchInfo);
-				$matchConcluded = true;
-			}
+
+		// Exchange Cap
+		if($matchConcluded == false){
+			$matchConcluded = shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']);
 		}
 
-		if($matchConcluded == false && $matchInfo['matchTime'] >= $matchCap['timeLimit']){
-			if(shouldMatchConcludeByTime($matchInfo) == true){
-				autoConcludeMatch($matchInfo);
-				$matchConcluded = true;
-			}
+		// Point Cap
+		if($matchConcluded == false){
+			$matchConcluded = shouldMatchConcludeByPoints($matchInfo, $matchCap['points']);
 		}
 
+		// Point Spread
+		if($matchConcluded == false){
+			$matchConcluded = shouldMatchConcludeBySpread($matchInfo, $matchCap['spread']);
+		}
+
+		// Time Limit
+		if($matchConcluded == false){
+			$matchConcluded = shouldMatchConcludeByTime($matchInfo);
+		}
+		
 		if($matchConcluded == true){
+			autoConcludeMatch($matchInfo);
 			updateMatch($matchInfo);
+			setAlert(USER_ALERT,"<strong>Match automatically concluded.</strong>");
 		}
 	}
 

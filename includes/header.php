@@ -13,8 +13,8 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo();
-$vJ = '?=1.0.6'; // Javascript Version
-$vC = '?=1.0.4'; // CSS Version
+$vJ = '?=1.0.8'; // Javascript Version
+$vC = '?=1.0.5'; // CSS Version
 ?>
 
 <!doctype html>

@@ -554,23 +554,27 @@ function logisticsBulkStaffAssign($info){
 		return;
 	}
 
-	switch($info['type']){
-		case 'staff':
-			$whereClause = 'AND staffCompetency != 0';
-			break;
-		case 'all':
-			$whereClause = '';
-			break;
-		default:
-			setAlert(SYSTEM,"Invalid type in logisticsBulkStaffAssign()");
-			return;
-	}
 
-	$sql = "SELECT rosterID
-			FROM eventRoster
-			WHERE eventID = {$eventID}
-			{$whereClause}";
-	$listToAdd = mysqlQuery($sql, SINGLES);
+	if($info['type'] == 'staff' || $info['type'] == 'all'){
+		if($info['type'] == 'staff'){
+			$whereClause = 'AND staffCompetency != 0';
+		} else {
+			$whereClause = '';
+		}
+
+		$sql = "SELECT rosterID
+				FROM eventRoster
+				WHERE eventID = {$eventID}
+				{$whereClause}";
+		$listToAdd = mysqlQuery($sql, SINGLES);
+	} else {
+		$tournamentID = (int)$info['type'];
+
+		$sql = "SELECT rosterID
+				FROM eventTournamentRoster
+				WHERE tournamentID = {$tournamentID}";
+		$listToAdd = mysqlQuery($sql, SINGLES);
+	}
 
 	foreach($listToAdd as $rosterID){
 		$rosterID = (int)$rosterID;
@@ -779,8 +783,11 @@ function addEventParticipantsByName(){
 		if(isset($fighter['staffCompetency'])){
 			if($fighter['staffCompetency'] >= 0){
 				$staffCompetency = (int)$fighter['staffCompetency'];
-				$staffHoursTarget = (int)$defaults['staffHoursTarget'];
 
+				$sql = "SELECT staffHoursTarget
+						FROM eventDefaults
+						WHERE eventID = {$eventID}";
+				$staffHoursTarget = (int)mysqlQuery($sql, SINGLE, 'staffHoursTarget');
 			}
 		}
 	
@@ -972,7 +979,7 @@ function addMatchWinner(){
 		default:
 			insertLastExchange($matchInfo, 'winner', $winnerID, 'null', 'null');
 	}
-	
+
 	$sql = "UPDATE eventMatches
 			SET winnerID = {$winnerID}, matchComplete = 1
 			WHERE matchID = {$matchID}";
@@ -1093,6 +1100,28 @@ function addMatchWinner(){
 
 	$_SESSION['updatePoolStandings'][$tournamentID] = getGroupSetOfMatch($matchID);
 	
+}
+
+/******************************************************************************/
+
+function signOffFighters($signOffData){
+
+	$matchID = (int)$signOffData['matchID'];
+
+	if(isset($signOffData[1]) && $signOffData[1] == SQL_TRUE){
+		$sql = "UPDATE eventMatches
+				SET signOff1 = 1
+				WHERE matchID = {$matchID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	if(isset($signOffData[2]) && $signOffData[2] == SQL_TRUE){
+		$sql = "UPDATE eventMatches
+				SET signOff2 = 1
+				WHERE matchID = {$matchID}";
+		mysqlQuery($sql, SEND);
+	}
+
 }
 
 /******************************************************************************/
@@ -1353,13 +1382,7 @@ function clearExchanges($matchID, $code){
 		
 // clear only the last exchange		
 	}else if(strcasecmp($code,'last') == 0){
-		
-		$sql = "SELECT *
-				FROM eventExchanges
-				WHERE matchID = {$matchID}
-				AND exchangeType = 'winner'";
-		$winner = mysqlQuery($sql, SINGLE, 'matchID');
-		
+	
 		$sql = "SELECT MAX(exchangeID) AS exchangeID 
 				FROM eventExchanges
 				WHERE matchID = {$matchID}";
@@ -1381,7 +1404,7 @@ function clearExchanges($matchID, $code){
 	}
 	
 	$sql = "UPDATE eventMatches
-			SET winnerID = null, matchComplete = 0
+			SET winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
 	
@@ -1418,16 +1441,49 @@ function combineSystemRosterIDs($baseID, $rosterIDs){
 function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.	
-	
-	if($matchInfo['matchComplete'] == 1 || $matchInfo['ignoreMatch'] == 1){ 
+
+	if($matchInfo['matchComplete'] == 1 
+		|| $matchInfo['ignoreMatch'] == 1
+		|| $maxPoints == 0
+	){ 
 		return false;
 	}
 
-	if($matchInfo['fighter1score'] >= $maxPoints || $matchInfo['fighter2score'] >= $maxPoints){
-		return true;
-	} else {
+	$shouldConclude = false;
+
+	if(	$matchInfo['fighter1score'] >= $maxPoints || $matchInfo['fighter2score'] >= $maxPoints){
+		$shouldConclude = true;
+		setAlert(USER_ALERT,"Point cap reached.");
+	}
+
+	return $shouldConclude;
+	
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeBySpread($matchInfo,$maxSpread){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
+
+	if($matchInfo['matchComplete'] == 1 
+		|| $matchInfo['ignoreMatch'] == 1
+		|| $maxSpread == 0
+	){ 
 		return false;
 	}
+
+	$spread = abs($matchInfo['fighter1score'] - $matchInfo['fighter2score']);
+
+	$shouldConclude = false;
+
+	if($spread >= $maxSpread){
+		$shouldConclude = true;
+		setAlert(USER_ALERT,"Point spread reached.");
+	}
+
+	return $shouldConclude;
+	
 }
 
 /******************************************************************************/
@@ -1438,12 +1494,13 @@ function shouldMatchConcludeByTime($matchInfo){
 	
 	if(    $matchInfo['matchComplete'] == 1 
 		|| $matchInfo['ignoreMatch'] == 1 
-		|| $matchInfo['timeLimit'] <= 0)
+		|| $matchInfo['timeLimit'] == 0)
 	{ 
 		return false;
 	}
 
 	if($matchInfo['matchTime'] >= $matchInfo['timeLimit']){
+		setAlert(USER_ALERT,"Time limit reached.");
 		return true;
 	} else {
 		return false;
@@ -1456,7 +1513,9 @@ function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.	
 	
-	if($matchInfo['matchComplete'] == 1 || $matchInfo['ignoreMatch'] == 1){ 
+	if(		$matchInfo['matchComplete'] == 1 
+		 || $matchInfo['ignoreMatch'] == 1
+		 || $maxExchanges == 0){ 
 		return false;
 	}
 
@@ -1467,6 +1526,7 @@ function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
 	$numExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
 
 	if($numExchanges >= $maxExchanges){
+		setAlert(USER_ALERT,"Exchange count reached.");
 		return true;
 	} else {
 		return false;
@@ -1843,6 +1903,7 @@ function createSecondaryBracket($tournamentID, $numFighters, $extendBracketBy = 
 
 				if($bracketLevel == 1 && $extendBracketBy != 0){
 					for($i=1;$i<=$extendBracketBy;$i++){
+						$bracketPosition++;
 						createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
 					}
 				}
@@ -2504,14 +2565,19 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 	}
 	
 	$numSets = getNumGroupSets($tournamentID);
-	
-	$placeNum = 0;
-	$overallScores = [];
+
+	$place = 1;
 	$index = 1;
+	foreach($placings['placings'] as $oldIndex => $data){
+		if($data['place'] >= $place){
+			$place = $data['place'] + 1;
+			$index = $oldIndex + 1;
+		}
+	}
+
 	$startOfTie = 0;
 	$endOfTie = 0;
 	$tieSize = 0;
-	$place = 0;
 	$hasTies = false;
 
 
@@ -2530,6 +2596,7 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 		foreach($roundData as $placing){
 
 			$rosterID = $placing['rosterID'];
+			$thisScore = round($placing['score'],3);
 
 			// Don't count the fight if their place was already recorded in a later round/bracket.
 			if(isset($assignedFighters[$rosterID])){
@@ -2544,7 +2611,7 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 			$assignedFighters[$rosterID] = true;
 
 			// Check if the fighter has tied with the previous one.
-			if((int)$placing['score'] === $oldScore){
+			if($thisScore === $oldScore){
 				$hasTies = true;
 				if($startOfTie == 0){
 					$startOfTie = $index-1;
@@ -2571,7 +2638,7 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 
 			// Set data for the next loop
 			$index++;
-			$oldScore = (int)$placing['score'];
+			$oldScore = $thisScore;
 		}
 	}
 
@@ -2709,7 +2776,6 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 	$tournamentID = (int)$tournamentID;
 	$unfinishedBracketMatches = false;
 
-	
 	if(isset($specs['breakTies']) == true && (int)$specs['breakTies'] != 0){
 		$breakTies = true;
 	} else {
@@ -3677,7 +3743,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 
 		$sql = "SELECT rosterID, matches, wins, losses, ties, pointsFor, pointsAgainst,
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst, doubles,
-					noExchanges, AbsPointsFor, AbsPointsAgainst, numPenalties, 
+					noExchanges, AbsPointsFor, AbsPointsAgainst, AbsPointsAwarded, numPenalties, 
 					penaltiesAgainstOpponents, penaltiesAgainst, doubleOuts
 				FROM eventStandings
 				WHERE tournamentID = {$tournamentID}
@@ -3704,6 +3770,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 						noExchanges 		= noExchanges + {$score['noExchanges']},
 						AbsPointsFor 		= AbsPointsFor + {$score['AbsPointsFor']},
 						AbsPointsAgainst 	= AbsPointsAgainst + {$score['AbsPointsAgainst']},
+						AbsPointsAwarded 	= AbsPointsAwarded + {$score['AbsPointsAwarded']},
 						numPenalties 		= numPenalties + {$score['numPenalties']},
 						penaltiesAgainstOpponents = penaltiesAgainstOpponents + {$score['penaltiesAgainstOpponents']},
 						penaltiesAgainst	= penaltiesAgainst + {$score['penaltiesAgainst']},
@@ -4293,10 +4360,11 @@ function updateEventTournaments(){
 					tournamentGenderID,	tournamentMaterialID, doubleTypeID,
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, formatID, tournamentRankingID,
-					maximumExchanges, maximumPoints, isCuttingQual, useTimer, useControlPoint,
+					maximumExchanges, maximumPoints, maxPointSpread, 
+					isCuttingQual, useTimer, useControlPoint,
 					isNotNetScore, basePointValue, overrideDoubleType, isPrivate, 
 					isReverseScore, isTeams, logicMode, poolWinnersFirst, limitPoolMatches,
-					checkInStaff, numSubMatches, subMatchMode, timeLimit
+					checkInStaff, numSubMatches, subMatchMode, timeLimit, requireSignOff
 					) VALUES (
 					{$eventID},
 					{$info['tournamentWeaponID']},
@@ -4313,6 +4381,7 @@ function updateEventTournaments(){
 					{$info['tournamentRankingID']},
 					{$info['maximumExchanges']},
 					{$info['maximumPoints']},
+					{$info['maxPointSpread']},
 					{$info['isCuttingQual']},
 					{$info['useTimer']},
 					{$info['useControlPoint']},
@@ -4328,7 +4397,8 @@ function updateEventTournaments(){
 					{$info['checkInStaff']},
 					{$info['numSubMatches']},
 					{$info['subMatchMode']},
-					{$info['timeLimit']}
+					{$info['timeLimit']},
+					{$info['requireSignOff']}
 					)";
 
 			mysqlQuery($sql, SEND);
@@ -4800,7 +4870,7 @@ function updateIgnoredFighters($manageFighterData){
 
 		$sql = "UPDATE eventMatches
 				INNER JOIN eventGroups USING(groupID)
-				SET ignoreMatch = 0ta 
+				SET ignoreMatch = 0
 				WHERE tournamentID = {$tournamentID}
 				AND groupSet = {$groupSet}
 				AND (groupType = 'pool' OR groupType = 'round')
@@ -4849,7 +4919,7 @@ function checkInFighters($checkInData){
 
 				$sql = "UPDATE eventTournamentRoster
 						SET tournamentGearCheck = {$gearcheck}, 
-							tournamentCheckIn = {$tournamentCheckIn}
+							tournamentCheckIn = {$checkin}
 						WHERE tournamentID = {$tournamentID}
 						AND rosterID = {$rosterID}";
 				mysqlQuery($sql, SEND);
@@ -4858,21 +4928,23 @@ function checkInFighters($checkInData){
 	}
 
 	if(isset($checkInData['group']) == true){
-		foreach($checkInData['group'] as $groupData){
+		foreach($checkInData['group'] as $groupID => $groupData){
 			$groupID = (int)$groupID;
 
-			foreach($eventData as $rosterID => $fighterData){
+			foreach($groupData as $rosterID => $fighterData){
 				$gearcheck = (int)$fighterData['gearcheck'];
 				$checkin = (int)$fighterData['checkin'];
 				$rosterID = (int)$rosterID;
 
 				$sql = "UPDATE eventGroupRoster
 						SET groupGearCheck = {$gearcheck}, 
-							groupCheckIn = {$tournamentCheckIn}
+							groupCheckIn = {$checkin}
 						WHERE groupID = {$groupID}
 						AND rosterID = {$rosterID}";
 				mysqlQuery($sql, SEND);
 			}
+
+			$_SESSION['jumpTo'] = "group{$groupID}";
 		}
 	}
 
@@ -5201,9 +5273,11 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 			$isPlaceholder = 1;
 		}
 
-		$sql = "DELETE FROM eventMatches
+		$sql = "DELETE eventMatches FROM eventMatches
+				INNER JOIN eventGroups USING(groupID)
 				WHERE placeholderMatchID IS NOT NULL
-				AND matchNumber > {$numSubMatches}";
+				AND matchNumber > {$numSubMatches}
+				AND tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
 
 	// Get pool data
@@ -5293,12 +5367,16 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 							WHERE matchID = {$matchID}
 							AND exchangeType = 'winner'";
 					$result = mysqlQuery($sql, SINGLE);
+
+					if($result['scoringID'] == ''){
+						$result['scoringID'] = 'null';
+					}
 					
 					if($result['scoringID'] != $matchAlreadyExists['winnerID']){
 						$sql = "UPDATE eventMatches
 								SET winnerID = {$result['scoringID']}
 								WHERE matchID = {$matchID}";
-						mysqlQuery($sql, SEND);
+						mysqlQuery($sql, SEND); 
 					}
 					
 					$goodMatchesInPool[$groupID][] = $matchID;
@@ -5734,6 +5812,7 @@ function updateTournamentComponents($componentData){
 	}
 
 	updateTournamentFighterCounts();
+	updateCompositeTournamentStandings($tournamentID);
 
 	setAlert(USER_ALERT,"Tournament components updated.");
 

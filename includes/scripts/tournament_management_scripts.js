@@ -41,7 +41,9 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		hideFinalResults: 'show',
 		numSubMatches: 'show',
 		subMatchMode: 'show',
-		timeLimit: 'show'
+		timeLimit: 'show',
+		requireSignOff: 'show',
+		maxPointSpread: 'show'
 	};
 	
 	// Solo
