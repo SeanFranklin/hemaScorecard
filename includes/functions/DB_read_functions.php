@@ -240,6 +240,31 @@ function isTeamLogic($tournamentID){
 
 /******************************************************************************/
 
+function isSignOffRequired($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	
+	$sql = "SELECT requireSignOff
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	return (bool)mysqlQuery($sql, SINGLE, 'requireSignOff');
+}
+
+/******************************************************************************/
+
+function getMatchSignOff($matchID){
+
+	$matchID = (int)$matchID;
+
+	$sql = "SELECT signOff1, signOff2
+			FROM eventMatches
+			WHERE matchID = {$matchID}";
+	return mysqlQuery($sql, SINGLE);
+}
+
+
+/******************************************************************************/
+
 function getMatchStageName($matchID){
 // Returns the name of the stage a match occured at.
 // ie. Pools, Elims, Gold Medal Match
@@ -430,6 +455,7 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 				@$fighterStats[$scoringID]['pointsFor'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
 				@$fighterStats[$scoringID]['AbsPointsFor'] += $exchange['scoreValue'];
 				@$fighterStats[$scoringID]['AbsPointsAgainst'] += $exchange['scoreDeduction'];
+				@$fighterStats[$scoringID]['AbsPointsAwarded'] += $exchange['scoreValue'];
 				@$fighterStats[$scoringID]['hitsFor']++;
 				
 				@$fighterStats[$receivingID]['pointsAgainst'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
@@ -503,6 +529,9 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 	$attributes[] = 'losses';
 	$attributes[] = 'doubleOuts';
 	$attributes[] = 'ties';
+	$attributes[] = 'AbsPointsAgainst';
+	$attributes[] = 'AbsPointsFor';
+	$attributes[] = 'AbsPointsAwarded';
 	
 	// Set all values not counted to zero
 	foreach($fighterStats as $fighterID => $fighter){
@@ -659,7 +688,7 @@ function getBracketMatchesByPosition($bracketID){
 		} else if ($entry['fighter2ID'] == $entry['winnerID'] && isset($entry['winnerID'])){
 			$matches[$bracketLevel][$bracketPosition]['loserID'] = $entry['fighter1ID'];
 		}
-		
+
 	}
 	
 	return $matches;
@@ -1150,6 +1179,7 @@ function getEntriesByFighter($tournamentIDs){
 			ORDER BY FIND_IN_SET(tournamentID, '{$setName}')";
 	$result = mysqlQuery($sql, ASSOC);
 
+	$entriesByFighter = [];
 	foreach($result as $entry){
 		$entriesByFighter[$entry['rosterID']][] = $entry['tournamentID'];
 	}
@@ -1939,7 +1969,8 @@ function getMatchCaps($tournamentID){
 		return;
 	}
 	
-	$sql = "SELECT maximumExchanges AS exchanges, maximumPoints AS points, timeLimit
+	$sql = "SELECT maximumExchanges AS exchanges, maximumPoints AS points, 
+			maxPointSpread AS spread, timeLimit
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	return ( mysqlQuery($sql, SINGLE) );
@@ -2327,6 +2358,9 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 		setAlert(SYSTEM,"No tournamentID in getPoolRosters()");
 		return;
 	}
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
 	
 	if($groupSet == 'all'){
 		$groupSet = null;
@@ -2372,6 +2406,24 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 
 /******************************************************************************/
 
+function getGroupRoster($groupID){
+
+	$groupID = (int)$groupID;
+
+	$orderName = NAME_MODE;
+	$sortString = "ORDER BY {$orderName}";
+
+	$sql = "SELECT rosterID, groupCheckIn, groupGearCheck
+			FROM eventGroupRoster
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster USING(systemRosterID)
+			WHERE groupID = {$groupID}
+			{$sortString}";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
 function logistics_getScheduleBlockName($blockID, $includeTime = null){
 
 	$blockID = (int)$blockID;
@@ -2392,8 +2444,8 @@ function logistics_getScheduleBlockName($blockID, $includeTime = null){
 
 	if($includeTime != null){
 
-		$t1 = base60($data['startTime']);
-		$t2 = base60($data['endTime']);
+		$t1 = min2hr($data['startTime'], false);
+		$t2 = min2hr($data['endTime'], false);
 
 		switch($includeTime){
 			case 'before':
@@ -4735,7 +4787,8 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 		$sortString = "ORDER BY systemRoster.{$orderName}";
 	}
 
-	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID, rating, subGroupNum, rating2
+	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID, 
+				rating, subGroupNum, rating2, tournamentCheckIn, tournamentGearCheck
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)

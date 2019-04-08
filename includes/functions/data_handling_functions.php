@@ -41,6 +41,8 @@ $matchList[$matchNum]['fighter2ID'] = ???
 
 	$fightersUnAssigned = 0;
 	$newIndex = 1;
+	$newMatchOrder = [];
+
 	foreach($poolRoster as $fighter){
 		$fightersUnAssigned++;
 		$numMatches[$fighter['rosterID']] = 0;
@@ -90,7 +92,7 @@ $matchList[$matchNum]['fighter2ID'] = ???
 
 
 	if(DEBUG){ echo "Max Fights: {$maxFights}<BR><table>"; }
-	$newMatchOrder = [];
+
 	for($i = 1; $i<=$matchesInList; $i++){
 
 		$matchIndex = $i + $indexOffset;
@@ -669,12 +671,12 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 				case 'allSecondary':
 					$oldPos = ($pos*2) - 1;
 
-
+					// winnerID could not exist
 					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = 
-						$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
+						@$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
 					
 					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = 
-						$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
+						@$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
 					break;
 
 				case 'mixed':
@@ -980,12 +982,18 @@ function checkCompositeTournaments($tournamentID){
 	
 		foreach($componentOf as $baseTournamentID){
 			
-			pool_ScoreFighters($baseTournamentID);
-
-			pool_RankFighters($baseTournamentID);
-			
+			updateCompositeTournamentStandings($baseTournamentID);
 		}
 	}
+}
+
+/******************************************************************************/
+
+function updateCompositeTournamentStandings($tournamentID){
+	
+	pool_ScoreFighters($tournamentID);
+	pool_RankFighters($tournamentID);
+
 }
 
 
