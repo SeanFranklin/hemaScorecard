@@ -114,6 +114,15 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					<?php dataEntryBox($matchInfo);	?>	
 				</fieldset>		
 				</form>
+
+				<?php if(	ALLOW['EVENT_SCOREKEEP'] == true
+						 && $matchInfo['matchComplete'] == 1
+						 && isSignOffRequired($matchInfo['tournamentID'])
+					 	){
+
+						signOffForm($matchInfo);
+				}?>
+
 			</div>
 			
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
@@ -198,7 +207,64 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 
+function signOffForm($matchInfo){
+
+	$signOffs = getMatchSignOff($matchInfo['matchID']);
+
+?>
+
+	<form method="POST" id='sign-off-form'>
+	<input class='hidden' name='formName' value='signOffFighters'>
+	<input class='hidden' name='signOffInfo[matchID]' value='<?=$matchInfo['matchID']?>'>
+
+	<div class='callout warning grid-x grid-margin-x text-center'>
+	<div class='small-12'>
+		<em>Clicking this box is considered a digital signature by the named individual.</em>
+	</div>
+	
+	<div class='small-6 cell'>
+		<h3><?=getFighterName($matchInfo['fighter1ID'])?></h3>
+	</div>
+	<div class='small-6 cell'>
+		<h3><?=getFighterName($matchInfo['fighter2ID'])?></h3>
+	</div>
+
+	<div class='small-6 cell'>
+		<?php if($signOffs['signOff1'] == 0): ?>
+			<BR>
+			<input type='checkbox' class='no-bottom' style="transform: scale(6)"
+				name = 'signOffInfo[1]' value='1'
+				onclick="$('#sign-off-form').submit()">
+			<BR>
+			<BR>
+		<?php else: ?>
+			<h3 class='no-bottom success-text'>Signed ✅</h3>
+		<?php endif ?>
+	</div>
+
+	<div class='small-6 cell'>
+	
+		<?php if($signOffs['signOff2'] == 0): ?>
+			<BR>
+			<input type='checkbox' class='no-bottom' style="transform: scale(6)"
+				name = 'signOffInfo[2]' value='1'
+				onclick="$('#sign-off-form').submit()">
+			<BR>
+			<BR>
+		<?php else: ?>
+			<h3 class='no-bottom success-text'>Signed ✅</h3>
+		<?php endif ?>
+	</div>
+
+	</div>
+	</form>
+	
+<?php
+}
+
+/******************************************************************************/
 
 function subMatchBox($matchInfo){
 
@@ -243,15 +309,9 @@ function subMatchBox($matchInfo){
 			} else{
 				$showOverall = false;
 			}
-
-
-		}
-			
-
+		}	
 	}
-
-
-
+//---------------------
 ?>
 
 	<div class='callout small'>
@@ -714,6 +774,30 @@ function dataEntryBox($matchInfo){
 	and the scorekeepers box bellow. Scorekeepers box only visiable if logged in.*/
 
 	$doubleTypes = getDoubleTypes($matchInfo['tournamentID']);
+
+	define("RE_OPEN_NO",0);
+	define("RE_OPEN_ANY",1);
+	define("RE_OPEN_CHECK",2);
+
+	$reOpenStatus = RE_OPEN_NO;
+	if(    $matchInfo['matchComplete'] == SQL_TRUE 
+		&& ALLOW['EVENT_SCOREKEEP'] == true){
+
+		
+		$signOffInfo = getMatchSignOff($matchInfo['matchID']);
+		$numSignOff = (int)$signOffInfo['signOff1'] + (int)$signOffInfo['signOff2'];
+
+		if($numSignOff == 0){
+			$reOpenStatus = RE_OPEN_ANY;
+		} elseif($numSignOff == 1){
+			$reOpenStatus = RE_OPEN_CHECK;
+		} elseif(ALLOW['EVENT_MANAGEMENT'] == true) {
+			$reOpenStatus = RE_OPEN_CHECK;
+		} else {
+			$reOpenStatus = RE_OPEN_NO;
+		}
+
+	}
 ?>	
 	
 <!-- Score boxes for individual fighters -->
@@ -726,15 +810,41 @@ function dataEntryBox($matchInfo){
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == false){ return; } ?>
 	
 	<!-- If match is complete the only option is to re-open it -->
-	<?php if($matchInfo['matchComplete']): ?>
+	<?php if($reOpenStatus != RE_OPEN_NO): ?>
 		<div class='large-12 cell'>
-			<BR><button class='button success large' name='lastExchange' id='New_Exchange_Button'
-				value='clearLastExchange' <?=LOCK_MATCH?>>
+			<?php if($reOpenStatus == RE_OPEN_CHECK): ?>
+				
+				<a class='re-open-match' onclick="toggleClass('re-open-match')">
+					Unlock Match
+				</a>
+				<span class='re-open-match hidden'>
+					<HR>
+					<h4>
+						<strong class='red-text'>Warning!</strong> Re-Opening the match will
+						<u>delete</u> the sign-off signatures.
+					</h4>
+					<HR class='no-bottom'>
+			<?php else: ?>
+				<span>
+			<?php endif ?>
+
+			
+			<BR>
+			<button class='button success large ' id='New_Exchange_Button' 
+				name='lastExchange' value='clearLastExchange' <?=LOCK_MATCH?>>
 				Re-Open Match
 			</button>
+			
+
+			</span>
+	
 		</div>
+
 		<?php return; ?>
 	<?php endif ?>
+
+<!-- Return if match is over -->
+	<?php if($matchInfo['matchComplete'] == SQL_TRUE){ return; } ?>
 
 <!-- Scoring form fields -->	
 	<div class='large-12 cell'>
@@ -1061,6 +1171,25 @@ function createSideBar($matchInfo){
 			$staffConfirmRequired = !logistics_areMatchStaffCheckedIn($matchID);
 		}
 	}
+
+// Check if fighters need to sign in scores
+	if(isSignOffRequired($matchInfo['tournamentID']) == true
+		&& $matchInfo['matchComplete'] == 1){
+
+		$signOffs = getMatchSignOff($matchID);
+		if($signOffs['signOff1'] == 1 && $signOffs['signOff2'] == 1){
+			$signOffPending = '';
+			$signOffMouse = '';
+		} else {
+			$signOffPending = 'disabled';
+			$signOffMouse = 'no-mouse';
+		}
+
+
+	} else {
+		$signOffPending = '';
+		$signOffMouse = '';
+	}
 	
 
 	if(LOCK_MATCH == 'disabled' || $staffConfirmRequired == true){
@@ -1331,7 +1460,7 @@ function createSideBar($matchInfo){
 			<input type='hidden' name='formName' value='goToMatch'>
 			
 			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' 
-				name='matchID' <?=$lockInputs?> >
+				name='matchID' <?=$lockInputs?> <?=$signOffPending?>>
 				<?=getCombatantName($nextMatchInfo['fighter1ID'])?>
 				<BR> <?=$name1?>
 				<BR><BR> vs.<BR>
@@ -1348,7 +1477,7 @@ function createSideBar($matchInfo){
 
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
 		<HR><BR>
-		<a class='button warning large' href='poolMatches.php' <?=$lockInputs?>>
+		<a class='button warning large <?=$signOffMouse?>' href='poolMatches.php' <?=$lockInputs?> <?=$signOffPending?> >
 			End of Pool
 		</a>
 	<?php endif ?>
@@ -1387,25 +1516,39 @@ function doublesText($doubles, $matchInfo){
 // adds button to declare match as a double out
 
 
-	$doubleOut = ifSet((int)$doubles >= (int)$matchInfo['maxDoubles'], true);
 	$reverseScore = isReverseScore($matchInfo['tournamentID']);
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'], $_SESSION['groupSet']);
 
-	if($reverseScore == REVERSE_SCORE_INJURY){
-		if(($matchInfo['fighter1score'] <= 0 && $matchInfo['fighter2score'] <= 0)
+	if(    (int)$matchInfo['maxDoubles'] != 0 
+		&& (int)$doubles >= (int)$matchInfo['maxDoubles']){
+
+		$doubleOut = true;
+
+	} else if($reverseScore == REVERSE_SCORE_INJURY){
+
+		if( 	(  $matchInfo['fighter1score'] <= 0 
+				&& $matchInfo['fighter2score'] <= 0)
 			|| ($basePointValue == 0)
 			)
 		{
-		$doubleOut = true;
-		}
-	} elseif($reverseScore == REVERSE_SCORE_GOLF){
-		if(($matchInfo['fighter1score'] >= $basePointValue && $matchInfo['fighter2score'] >= $basePointValue)
-			&& $basePointValue != 0){
 			$doubleOut = true;
 		}
-	}	
-	
 
+	} elseif($reverseScore == REVERSE_SCORE_GOLF){
+
+		if(		(  $matchInfo['fighter1score'] >= $basePointValue 
+				&& $matchInfo['fighter2score'] >= $basePointValue)
+			&& $basePointValue != 0)
+		{
+			$doubleOut = true;
+		}
+
+	} else {
+
+		$doubleOut = false;
+
+	}
+	
 	$class=ifSet($doubleOut,"class='red-text'");
 	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
 

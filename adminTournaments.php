@@ -113,6 +113,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentTimeLimit($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
 				edit_tournamentMaxPoints($tournamentID);
+				edit_tournamentMaxPointSpread($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentLimitPoolMatches($tournamentID);
 				edit_tournamentControlPoints($tournamentID);
@@ -123,6 +124,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentTeams($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				edit_tournamentHideFinalResults($tournamentID);
+				edit_tournamentRequireSignOff($tournamentID);
 				edit_tournamentStaffCheckin($tournamentID);
 				?>
 			</div>

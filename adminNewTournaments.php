@@ -73,6 +73,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentTimeLimit();
 			edit_tournamentMaxExchanges();
 			edit_tournamentMaxPoints();
+			edit_tournamentMaxPointSpread();
 			edit_tournamentReverseScore();
 			edit_tournamentLimitPoolMatches();
 			edit_tournamentControlPoints();
@@ -83,6 +84,7 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentTeams();
 			edit_tournamentKeepPrivate();
 			edit_tournamentHideFinalResults();
+			edit_tournamentRequireSignOff();
 			edit_tournamentStaffCheckin();
 			?>
 		</div>			

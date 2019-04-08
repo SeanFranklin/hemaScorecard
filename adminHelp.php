@@ -86,6 +86,21 @@ Thanks to Jayson Barrons with layout design and consultation.
 <legend><h4>Frequently Asked Questions</h4></legend>
 
 <ul class='faq-list'>
+
+<li>
+	<em>How do I get my event set up?</em>
+	Send the following information to
+	<span style="unicode-bidi:bidi-override; direction: rtl; text-decoration: italic">
+		<i>ac.nilknarfnaes@ameh</i>
+	</span>
+	<BR>&emsp;‣ Event Name
+	<BR>&emsp;‣ Start Date
+	<BR>&emsp;‣ End Date
+	<BR>&emsp;‣ City
+	<BR>&emsp;‣ State/Province
+	<BR>&emsp;‣ Country
+</li>
+
 <li>
 	<em>Why should I use HEMA Scorecard for my event?</em>
 	<a href='infoWhy.php'>What a great question!</a>
@@ -257,7 +272,7 @@ Invitational Longsword).
 Useful if you have an event you don't wish to use HEMA Scorecard for, but would like the 
 event participants to see their registrations in the software.</li>
 <li><u>Sparring Matches</u> - Most HEMA tournaments. This is any tournament where people (or teams) face each other in matches. <em>(This includes the old Pool & Bracket, Direct Bracket & Pool Sets modes)</em></li>
-<li><u>Scored Event</u> - An event where the participants compete for individual score, such as a cutting tournament.</li>
+<li><u>Solo Scored</u> - An event where the participants compete for individual score, such as a cutting tournament.</li>
 <li><u>Composite Event</u> - A tournament which doesn't have any results of it's own, but calculates based on the placings in other events.</li>
 
 <BR>

@@ -123,7 +123,7 @@ function bracketControl($allBracketInfo, $ringsInfo){
 		if(($s & ($s - 1)) != 0){ // is not a power of 2
 			
 			$_SESSION['bracketWarnings']['loser'] = "<u>Warning:</u> 
-			Consolation Bracket Helper not configured for this size bracket.<BR>
+			Bracket Helper not configured for this size bracket.<BR>
 			Seeding results may be unpredictable.";
 		}
 	}
@@ -152,11 +152,11 @@ function bracketControl($allBracketInfo, $ringsInfo){
 			<button class='button <?=$primary?> no-bottom' 
 				name='bracketView' value='<?=BRACKET_PRIMARY?>'>
 
-				Winners Bracket
+				Main Bracket
 			</button>
 
 			<button class='button <?=$secondary?> no-bottom' name='bracketView' value='<?=BRACKET_SECONDARY?>'>
-				Consolation Bracket
+				Secondary Bracket
 			</button>
 
 		</form>
@@ -336,7 +336,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 	
 <!-- Create Bracket Box ------------------------------------------------------->
 
-	<?php $maxBracketSize = 64; ?>
+	<?php $maxBracketSize = 128; ?>
 	<div class='reveal tiny grid-x grid-margin-x' id='createBracket' data-reveal>
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
@@ -351,10 +351,6 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 				min=2 max=<?=$maxBracketSize?> required >
 		</div>
 
-
-		
-		
-			
 		<h5>
 			Elimination Type
 			
@@ -424,7 +420,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		<form method='POST'>
 		<h4 class='text-center'>Warning!</h4>
 		<p>You are about to erase all finals brackets for this tournament.<BR>
-		This includes data from any matches in the winners & consolation brackets.</p>
+		This includes data from any matches in the Main and Secondary brackets.</p>
 		
 		<div class='grid-x grid-margin-x'>
 		
@@ -469,7 +465,7 @@ function displayBracket($bracketInfo,
 	$bracketLevelsToDisplay = $bracketLevels;
 
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
-	
+
 	if(    $bracketType == BRACKET_PRIMARY
 		&& $elimType == ELIM_TYPE_SINGLE 
 		&& isset($bracketInfo['secondaryID']) == true){

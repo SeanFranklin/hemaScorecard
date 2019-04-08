@@ -91,8 +91,9 @@ if($eventID == null){
 				</td>
 
 				<td class='text-center'>
-					<button class='button success hollow tiny' name='formName' value='checkInFighters'>
-						✓
+					<button class='button success hollow tiny no-bottom' 
+						name='formName' value='checkInFighters'>
+						<strong>✅</strong>
 					</button>
 				</td>
 

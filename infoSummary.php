@@ -20,6 +20,7 @@ if($_SESSION['eventID'] == null){
 	
 	define("NUM_FINALISTS_DISPLAYED",4);
 	$tournamentList = getTournamentsFull($_SESSION['eventID']);
+	$tournamentList = sortTournamentsForPlacings($tournamentList);
 
 	if(!isset($_SESSION['manualTournamentPlacing'])){
 		$_SESSION['manualTournamentPlacing'] = '';
@@ -88,12 +89,56 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+function sortTournamentsForPlacings($tournamentList){
+
+	foreach($tournamentList as $index => $data){
+		if($data['isFinalized'] == 1 && $data['hideFinalResults'] == 1){
+			$list[5][$index] = $data;
+			unset($tournamentList[$index]);
+		} elseif($data['formatID'] == FORMAT_COMPOSITE && $data['isFinalized'] == 1){
+			$list[1][$index] = $data;
+			unset($tournamentList[$index]);
+		} elseif($data['isFinalized'] == 1){
+			$list[2][$index] = $data;
+			unset($tournamentList[$index]);
+		} elseif($data['formatID'] == FORMAT_COMPOSITE){
+			$list[4][$index] = $data;
+			unset($tournamentList[$index]);
+		} else {
+			$list[3][$index] = $data;
+			unset($tournamentList[$index]);
+		}
+	}
+
+	for($i=1;$i<=5;$i++){
+		if(isset($list[$i]) == false){
+			continue;
+		}
+
+		foreach($list[$i] as $index => $data){
+			$sortedList[$index] = $data;
+		}
+	}
+
+	foreach($tournamentList as $index => $data){
+		$sortedList[$index] = $data;
+	}
+	return $sortedList;
+}
+
+
 /******************************************************************************/
 
 function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
 
-	 if(($data['hideFinalResults'] == true)
+	$placings = getTournamentPlacings($tournamentID);
+
+	if($placings == null){
+		return;
+	}
+
+	if(($data['hideFinalResults'] == true)
 		&& (ALLOW['EVENT_SCOREKEEP'] == false)
 		&& (ALLOW['VIEW_SETTINGS'] == false)
 		&& (ALLOW['STATS_EVENT'] == false)){
@@ -101,12 +146,6 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 	 	echo "This tournament does not have placings.";
 	 	return;
 	 }
-
-	$placings = getTournamentPlacings($tournamentID);
-
-	if($placings == null){
-		return;
-	}
 
 // Calculate which results to show on the main screen
 	$i = 0;
@@ -431,7 +470,7 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 		?>
 	
 		<!-- Select field -->
-		<div class='input-group <?=$extraClass?>'>
+		<div class='input-group'>
 
 		<!-- Hidden inputs -->
 			<input type='hidden' id='place-value-<?=$i?>' value='<?=$placeNum?>'
@@ -449,12 +488,8 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 				<?php 
 				$checkAgainstID = @$placings[$i]['rosterID']; // Could not exist. Treat as null.
 				foreach($roster as $person):
-					$rosterID = $person['rosterID'];
-
-	
-					$selected = isSelected($rosterID, $selectedID);
-					 ?>
-					<option <?=optionValue($rosterID,$checkAgainstID)?> <?=$selected?> >
+					$rosterID = $person['rosterID'];?>
+					<option <?=optionValue($rosterID,$checkAgainstID)?>>
 						<?= $names[$rosterID] ?>
 					</option>";
 				<?php endforeach ?>
