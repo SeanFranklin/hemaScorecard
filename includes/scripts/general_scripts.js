@@ -264,10 +264,16 @@ function placingsDeclareTie(place1, maxPlace){
              $("#place-value-"+i).val(i);
             $("#place-tie-"+i).val(0);
         } else {
-            tieSize++;
-            endOfTie = i;
-            if(startOfTie == 0){
+            if(state == TIE_TOP){
                 startOfTie = i;
+                tieSize++;
+            }
+            if(state == TIE_MIDDLE){
+                tieSize++;
+            }
+            if(state == TIE_BOTTOM || i == maxPlace){
+                tieSize++;
+                endOfTie = i;
             }
 
             $("#place-label-"+i).addClass('blue-text');
@@ -277,7 +283,7 @@ function placingsDeclareTie(place1, maxPlace){
         }
 
     // Detect end of a tie
-        if(tieSize != 0 && (state == TIE_NO || i == maxPlace)){
+        if(endOfTie != 0){
            
             for(j = startOfTie;j <= endOfTie; j++){
                 $("#place-tie-"+j).val(tieSize);
@@ -290,7 +296,6 @@ function placingsDeclareTie(place1, maxPlace){
         }
 
     }
-
 
 }
 
