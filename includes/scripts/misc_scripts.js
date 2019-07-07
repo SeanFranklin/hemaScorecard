@@ -92,3 +92,80 @@ function schoolInputPlaceholders(){
 	document.getElementById('schoolShort').placeholder = schoolFull.value;
 
 }
+
+/******************************************************************************/
+
+function hemaRatings_getByName(buttonID, name, systemRosterID){
+
+	$(buttonID).addClass("secondary");
+	$(buttonID).removeClass("warning");
+
+	name = encodeURIComponent(JSON.stringify(name));
+
+var path = null; // Hidden by request of HEMA Ratings
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", path, true);
+	xhr.send();
+
+	xhr.onreadystatechange = function (){
+		if(this.readyState == 4 && this.status == 200){
+			if(this.responseText.length > 0){ 
+				var data = JSON.parse(this.responseText);
+
+				var divName = "#divFor-"+systemRosterID;
+				$(divName).html("");
+				var isFirst = true;
+
+				data.forEach(function(fighterInfo){
+
+                    var str = "";
+
+                    if(isFirst){
+                    	isFirst = false;
+                    } else {
+                    	str = "<BR><BR>";
+                    }
+
+                    var str = str + "<span";
+                    if(name.toLowerCase() == fighterInfo['name'].toLowerCase()){
+                    	str = str + " class='red-text'";
+                    }
+                    str = str + ">";
+
+                    var hemaRatingsId = fighterInfo['id'];
+                    str = str + `<input type='checkbox' class='no-bottom'
+                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
+                    				value='${hemaRatingsId}'>`;
+
+                    str = str + "<strong>";
+                    
+                    str = str + fighterInfo['name'];
+                    str = str + "</strong><BR>";
+                    str = str + fighterInfo['clubName'];
+                    str = str + "<BR>";
+                    str = str + fighterInfo['nationality'];
+                    str = str + "</span>";
+
+                    $(divName).append(str);
+
+                });
+				
+			}
+		}
+	};
+}
+
+/******************************************************************************/
+
+function hemaRatings_getByNameAll(){
+
+
+	$(".hemaRatingsGetInfo").each(function(){
+		console.log(this);
+		(this).onclick();
+	});
+
+}
+
+/******************************************************************************/
