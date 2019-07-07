@@ -49,16 +49,16 @@
 	define("SQL_FALSE",0);
 	define("SQL_TRUE",1);
 
-	define("FINALS","0");
-
 	define("DEFAULT_EVENT",1);
 	define("DEFAULT_TOURNAMENT_ID",0);
+	define("TEST_EVENT_ID",2);
 	
 	define("DEFAULT_NAME_MODE", 'firstName');
 
+	define("FINALS","0");
 	define("ALL_GROUP_SETS",0);
 
-	define("TEST_EVENT_ID",2);
+	define("EXPORT_DIR",'exports/');
 
 // Tournament Related Constants
 

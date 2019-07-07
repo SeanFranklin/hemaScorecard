@@ -14,7 +14,7 @@ include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo();
 $vJ = '?=1.0.8'; // Javascript Version
-$vC = '?=1.0.5'; // CSS Version
+$vC = '?=1.0.6'; // CSS Version
 ?>
 
 <!doctype html>
@@ -197,7 +197,7 @@ $vC = '?=1.0.5'; // CSS Version
 						</ul>
 					</li>
 				<?php elseif($isSchedule == true
-							&& getEventStatus() == 'active'): ?>
+							&& (getEventStatus() == 'active' || getEventStatus() == 'archived')): ?>
 					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 				<?php endif ?>
 			<?php endif ?>
@@ -484,20 +484,21 @@ function eventNameForHeader(){
 function eventNameListSelectOptions($eventID){
 
 	
-	$eventList[] = getEventList('hidden');
-	$eventList[] = getEventList('upcoming');
-	$eventList[] = getEventList('active');
-	$eventList[] = getEventList('archived');
+	$eventList['Hidden '] = getEventList('hidden');
+	$eventList['Public '] = getEventList('upcoming') + getEventList('active');
+	$eventList['Archived '] = getEventList('archived');
 
 	if($eventID == null){
 		echo "<option selected disabled></option>";
 	} else {
-		foreach($eventList as $listPart){
+		foreach($eventList as $type => $listPart){
+			echo "<option disabled>{$type}------------------------</option>";
 			foreach((array)$listPart as $listEventID => $data){ ?>
 				<option <?=optionValue($listEventID, $eventID)?> >
-					<?=$data['eventName']?> <?=$data['eventYear']?>
+					&nbsp;&nbsp;<?=$data['eventName']?> <?=$data['eventYear']?>
 				</option>
 			<?php }
+			
 		}
 	}
 }
