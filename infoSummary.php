@@ -91,6 +91,7 @@ include('includes/footer.php');
 
 function sortTournamentsForPlacings($tournamentList){
 
+	$sortedList = [];
 	foreach($tournamentList as $index => $data){
 		if($data['isFinalized'] == 1 && $data['hideFinalResults'] == 1){
 			$list[5][$index] = $data;

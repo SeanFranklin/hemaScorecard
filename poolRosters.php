@@ -490,11 +490,11 @@ function poolSetBox($tournamentID){
 	
 	$currentNum = getNumGroupSets($tournamentID);
 	$attributes = getSetAttributes($tournamentID);
-	$normalizeSize = getNormalization($tournamentID);
-	if($normalizeSize < 2){
-		$normalizeSize = 'Auto';
+	$tNorm = getNormalization($tournamentID,null, true);
+	if($tNorm < 2){
+		$tNorm = 'Auto';
 	}
-
+	$tournamentNormalization = "Default ({$tNorm})";
 
 	?>
 	
@@ -570,8 +570,8 @@ function poolSetBox($tournamentID){
 			</span>
 			<select type='number' class='input-group-field' 
 				 name='normalizeSet[<?=$setNumber?>]'>
-				 <option value=0>Auto</option>
-				 <?php for($i=2;$i<=10;$i++): 
+				 <option value=0> <?= $tournamentNormalization?></option>
+				 <?php for($i=2;$i<=20;$i++): 
 					$selected = isSelected($i, @$setData['normalization']);
 					?>
 				 
@@ -938,7 +938,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 						$selected = isSelected($seedID,$entry['rosterID']);
 						if($isTeams == false){
 							$name = getFighterName($entry['rosterID'])." ";
-							$name .= "(".getSchoolName($entry['schoolID'],'abrev').")";
+							$name .= "(".getSchoolName($entry['schoolID'],'abbreviation').")";
 						} else {
 							$name = getTeamName($entry['rosterID']);
 						}
@@ -957,7 +957,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 			<?php $rosterID = $poolRoster[$i]['rosterID']; 
 				if($isTeams == false){
 					$name = getFighterName($rosterID)." ";
-					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abrev').")</em>";
+					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abbreviation').")</em>";
 				} else {
 					$name = getTeamName($rosterID);
 				}

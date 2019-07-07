@@ -39,6 +39,10 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<em>
 		This page is to show summaries of the number of certain types of exchanges each fighter has 
 		been involved in over the course of this tournament.
+		<BR>
+		<strong>✓</strong> indicates the fighter delivered the intial hit (Deductive AB), or higher valued hit (Full AB).
+		<BR>
+		<strong>✗</strong> indicates the fighter recieved the intial hit (Deductive AB), or landed the lower valued hit (Full AB).
 	</em>
 
 
@@ -59,6 +63,12 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 						</th>
 					<?php endforeach ?>
 
+					<?php foreach($rawData[$first_key]['points'] as $name => $data):?>
+						<th  style='white-space: nowrap'> 
+							<?=$name?>
+						</th>
+					<?php endforeach ?>
+
 				</tr>
 
 			</thead>
@@ -70,7 +80,13 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 					</td>
 				
 
-					<?php foreach($person['exchanges'] as $num):?>
+					<?php foreach((array)$person['exchanges'] as $num):?>
+						<td>
+							<?=$num?>
+						</td>
+					<?php endforeach ?>
+
+					<?php foreach((array)$person['points'] as $num):?>
 						<td>
 							<?=$num?>
 						</td>

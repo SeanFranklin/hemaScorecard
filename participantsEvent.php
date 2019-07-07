@@ -17,9 +17,9 @@ include('includes/header.php');
 $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
-	pageError('event');;
+	pageError('event');
 } else {
-	
+
 // Get information
 	$tournamentList = getEventTournaments();
 	$tournamentNames = getEventTournamentNames($tournamentList);

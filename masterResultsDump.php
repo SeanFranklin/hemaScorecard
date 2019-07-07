@@ -13,80 +13,54 @@
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-$pageName = 'Export Tournament Results';
+$pageName = 'HEMA Rankings Exporter';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(ALLOW['STATS_EVENT'] == false && ALLOW['STATS_ALL'] == false){
+} elseif(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){
 	pageError('user');
 } else {
 	$tournamentList_unsorted = getTournamentsFull();
 
 	
 	// Splits list into finalized tournaments first
-	$finalizedTournaments = [];
-	$unfinalizedTournaments = [];
 	foreach($tournamentList_unsorted as $tournamentID => $tournament){
 		if(isFinalized($tournamentID)){
-			$finalizedTournaments[$tournamentID] = $tournament;
+			$t1[$tournamentID] = $tournament;
 		} else {
-			$unfinalizedTournaments[$tournamentID] = $tournament;
+			$t2[$tournamentID] = $tournament;
 		}
 	}
 	
-	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
-	$email = getEventEmail();
+	$tournamentList = appendArray($t1, $t2);
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
-	<?php if(ALLOW['VIEW_EMAIL']):?>
-		<strong>Event Contact Information: </strong>
-		<a href='mailto:<?=$email?>'><?=$email?></a>
-	<?php endif ?>
-	<fieldset class='fieldset'>
-	<legend><h4>HEMA Ratings Format</h4></legend>
-	<form method='POST'>
-	<input type='hidden' name='formName' value='HemaRatingsExport'>
-	
-<!-- Export All -->
-	<!--<button class='button success' name='HemaRatingsExport' value='all'>
-		Export All
-	</button>
-	<?=tooltip("This will export the roster and all tournaments which are:
-	<li>Finalized</li><li>Versus Match format</li>")?>
-	<BR>-->
 
-<!-- Export roster -->
-	<button class='button' name='HemaRatingsExport' value='roster'>
+	<form method='POST'>
+	<input type='hidden' name='formName' value='resultsDump'>
+	
+	<button class='button' name='CsvDump' value='roster'>
 		Export Roster
 	</button>
-	<?php if(ALLOW['STATS_ALL'] == true): ?>
-		<i> - Remember to return any HEMA Ratings IDs not on this list!
-	<?php endif ?>
+	
 	<BR><BR>
 
-<!-- Export tournaments -->
 	<?php foreach((array)$tournamentList as $tournamentID => $tournament):
 		$name = getTournamentName($tournamentID);
-		$class = '';
+		if(isFinalized($tournamentID)){
+			$class = '';
 			$warning = null;
-
-
-		if(!isFinalized($tournamentID)){
+		} else {
 			$class = 'secondary';
-			$warning .= '<em> - Tournament not finalized</em>';
+			$warning = '<em> - Tournament not finalized</em>';
 		}
-
-		if(isTournamentPrivate($tournamentID)){
-			$class = 'alert';
-			$warning = '<em> - Request for private results</em>'.$warning;
-		} 
 		
 		
 		?>
-		<button class='button hollow <?=$class?>' name='HemaRatingsExport' value='<?=$tournamentID?>'>
+		<button class='button hollow <?=$class?>' name='CsvDump' value='<?=$tournamentID?>'>
 			Export <?=$name?>
 		</button>
 		<?=$warning?>
@@ -94,9 +68,6 @@ if($_SESSION['eventID'] == null){
 	<?php endforeach ?>
 
 	</form>
-
-	</fieldset>
-
 
 <?php }
 include('includes/footer.php');
@@ -124,7 +95,7 @@ function exportTournament_SingleExchange($tournamentID){
 		return;
 	}
 	
-	$sql = "SELECT exchangeType, scoringID, receivingID, matchID
+	$sql = "SELECT exchangeType, scoringID, recievingID, matchID
 			FROM eventGroups
 			INNER JOIN eventMatches ON eventGroups.groupID = eventMatches.groupID
 			INNER JOIN eventExchanges USING(matchID)
@@ -156,7 +127,7 @@ function exportTournament_SingleExchange($tournamentID){
 			
 		foreach($wantedExchanges as $match){
 			$f1ID = $match['scoringID'];
-			$f2ID = $match['receivingID'];
+			$f2ID = $match['recievingID'];
 			$winID = $match['scoringID'];
 			$matchID = $match['matchID'];
 			

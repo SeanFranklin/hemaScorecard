@@ -68,7 +68,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 			</td>
 			<td><?= $school['schoolFullName'] ?></td>
 			<td><?= $school['schoolShortName'] ?></td>
-			<td><?= $school['schoolAbreviation'] ?></td>
+			<td><?= $school['schoolAbbreviation'] ?></td>
 			<td><?= $school['schoolBranch'] ?></td>
 			<td><?= $school['schoolCountry'] ?></td>
 			<td><?= $school['schoolProvince'] ?></td>
@@ -96,7 +96,7 @@ function displaySchoolHeaders(){
 		<td></td>
 		<th>School Full Name</th>
 		<th>School Short Name</th>
-		<th>Abreviation</th>
+		<th>Abbreviation</th>
 		<th>Branch</th>
 		<th>Country</th>
 		<th>State/Province</th>
@@ -135,10 +135,10 @@ function editExistingSchool(){
 		</td>
 	</tr>
 	<tr>
-		<td>School Abreviation </td>
+		<td>School Abbreviation </td>
 		<td>
-			<input type='text' name='schoolAbreviation' required
-			value='<?= $schoolInfo['schoolAbreviation'] ?>' size='1'>
+			<input type='text' name='schoolAbbreviation' required
+			value='<?= $schoolInfo['schoolAbbreviation'] ?>' size='1'>
 		</td>
 	</tr>
 	<tr>
@@ -211,13 +211,13 @@ function addNewSchoolInput(){
 				id='schoolShort'>
 		</div>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'><strong>School Abreviation</strong> 
+			<span class='input-group-label small-5'><strong>School Abbreviation</strong> 
 				<?=tooltip("This is used as a shorthand for things like pool rosters, to help avoid people from the same school fighting.<BR>
 				Please keep it as short as possible, 3-5 characters.<BR>
 				(Max is 7)")?>:
 			</span>
-			<input class='input-group-field' type='text' name='schoolAbreviation'
-				id='schoolAbreviation' maxlength='7' placeholder='(keep it short)' required>
+			<input class='input-group-field' type='text' name='schoolAbbreviation'
+				id='schoolAbbreviation' maxlength='7' placeholder='(keep it short)' required>
 		</div>
 		<div class='input-group grid-x cell'>
 			<span class='input-group-label small-5'>School Branch</span>
@@ -250,12 +250,12 @@ function addNewSchoolInput(){
 		<li>Full Name: <em>Blood and Iron Martial Arts</em>
 		<li>Short Name: <em>Blood and Iron</em>
 		<li>Branch: <em>Burnaby</em></li>
-		<li>Abreviation: <em>BnI</em></ul>
+		<li>Abbreviation: <em>BnI</em></ul>
 		The school's branch will show up after the schools full name<BR>
 		
 		<em>Blood and Iron Martial Arts, <u>Burnaby</u></em><BR><BR>
 		If you don't fill in the short name the software will use the full name. 
-		If you don't fill in an abreviation the software will make one up 
+		If you don't fill in an abbreviation the software will make one up 
 		of all the capital letters in the name.
 	</div>
 	

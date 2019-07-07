@@ -19,7 +19,7 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif (   (getEventStatus() != 'active') 
+} elseif (   (getEventStatus() != 'active' && getEventStatus() != 'archived') 
 		   && (ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {

@@ -31,7 +31,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	} elseif($tournamentID == null){
 		redirect('infoSummary.php');
 	} elseif($matchID == null){
-		redirect('participantsRoster.php');
+		redirect('participantsEvent.php');
 	} else {
 		displayAlert("No Piece Selected<BR><a href='roundMatches.php'>Piece List</a>");
 	}

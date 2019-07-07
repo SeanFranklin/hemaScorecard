@@ -21,6 +21,8 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 
 	echo "<div class='grid-x'>";
 
+
+
 	if(isset($_SESSION['editEventID'])){
 		$eventID = $_SESSION['editEventID'];
 		unset($_SESSION['editEventID']);
@@ -29,6 +31,14 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 	} else {
 		addNewEventMenu();
 	}
+
+?>
+
+	<button class='button hollow secondary' onclick="$('.archived-event').toggle()">
+		Toggle Archived Events
+	</button>
+
+<?php
 
 	displayAdminEventList($eventList);
 
@@ -45,12 +55,14 @@ include('includes/footer.php');
 function displayAdminEventList($eventList){
 
 	// These are the fields displayed
-	$fieldsToDisplay = ['eventID',
-						'eventName',
+	$fieldsToDisplay = ['eventName',
 						'eventStartDate',
-						'eventCity',
 						'eventCountry',
 						'eventStatus'];
+	if(ALLOW['VIEW_EMAIL'] == true){
+		$fieldsToDisplay[] = 'organizerEmail';
+		$fieldsToDisplay[] = 'termsOfUseAccepted';
+	}
 	$archivedReached = false;
 										
 	?>
@@ -64,7 +76,13 @@ function displayAdminEventList($eventList){
 	
 <!-- Headers -->
 	<tr class='hide-for-small-only'>
-		<?php foreach($fieldsToDisplay as $fieldName): ?>
+		<th></th>
+		<?php foreach($fieldsToDisplay as $fieldName): 
+			if($fieldName == 'termsOfUseAccepted'){
+				$fieldName = 'Terms';
+			}
+			?>
+
 			<th><?=$fieldName?></th>
 		<?php endforeach ?>
 	</tr>
@@ -85,7 +103,7 @@ function displayAdminEventList($eventList){
 				}
 				break;
 			case 'archived':
-				$class = 'success-text';
+				$class = 'success-text hidden archived-event';
 				if($archivedReached == false){
 					$topBorder = ' table-top-border';
 				}
@@ -98,7 +116,7 @@ function displayAdminEventList($eventList){
 		}
 
 		?>
-		<tr>
+		<tr class='<?=$class?>'>
 			<td>
 				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['eventStatus'] != 'archived'): ?>
 					<button class='button tiny hollow no-bottom expanded' 
@@ -112,10 +130,19 @@ function displayAdminEventList($eventList){
 			</td>
 			
 			<?php foreach($fieldsToDisplay as $fieldName):
-				if($fieldName == 'eventID'){continue;}
 				$fieldValue = $info[$fieldName];
+
+				if($fieldName == 'termsOfUseAccepted'){
+					if($fieldValue == '0'){
+						$fieldValue = "<strong class='red-text'>✗</strong>";
+					} else {
+						$fieldValue = "<span class='grey-text'>✓</span>";
+					}
+				}
+
+
 				?>
-				<td class='<?=$class?><?=$topBorder?>'><?=$fieldValue?></td>
+				<td class='<?=$topBorder?>'><?=$fieldValue?></td>
 			<?php endforeach ?>
 		</tr>
 	<?php endforeach ?>
@@ -166,7 +193,11 @@ function addNewEventMenu(){
 
 function editEventMenu($eventID,$eventInfo){
 	
-	$num = rand(0,999);		// random number acting as a delete confirmation
+	$num = 0;
+	while($num < 100){
+		$num = rand(0,999);		// random number acting as a delete confirmation
+	}
+
 	$eventStatus = getEventStatus($eventID);
 	$statusType = array('active','upcoming','hidden','default','archived');
 	$e_mail = getEventEmail($eventID);
@@ -232,42 +263,42 @@ function entryFields($eventInfo = null){
 		<td>Event Name</td>
 		<td>
 			<input class='no-bottom' type='text' required
-				name='eventName' value='<?=$eventInfo['eventName']?>'>
+				name='eventName' value="<?=$eventInfo['eventName']?>">
 		</td>
 	</tr>
 	<tr>
-		<td>Abreviation</td>
+		<td>Abbreviation</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventAbreviation' value='<?=$eventInfo['eventAbreviation']?>'>
+				name='eventAbbreviation' value="<?=$eventInfo['eventAbbreviation']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>Start Date</td>
 		<td>
 			<input class='no-bottom' type='date' required
-				name='eventStartDate' value='<?=$eventInfo['eventStartDate']?>'>
+				name='eventStartDate' value="<?=$eventInfo['eventStartDate']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>End Date</td>
 		<td>
 			<input class='no-bottom' type='date'
-				name='eventEndDate' value='<?=$eventInfo['eventEndDate']?>'>
+				name='eventEndDate' value="<?=$eventInfo['eventEndDate']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>City</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventCity' value='<?=$eventInfo['eventCity']?>'>
+				name='eventCity' value="<?=$eventInfo['eventCity']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>Province/State</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventProvince' value='<?=$eventInfo['eventProvince']?>'>
+				name='eventProvince' value="<?=$eventInfo['eventProvince']?>">
 		</td>
 	</tr>
 	
@@ -275,10 +306,9 @@ function entryFields($eventInfo = null){
 		<td>Country</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventCountry' value='<?=$eventInfo['eventCountry']?>'>
+				name='eventCountry' value="<?=$eventInfo['eventCountry']?>">
 		</td>
 	</tr>
-
 
 <?php }
 
