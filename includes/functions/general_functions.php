@@ -65,6 +65,23 @@ function optionValue($value, $selectValue = null){
 
 /******************************************************************************/
 
+function chk($value, $compare = null){
+// For use in setting checkboxes to true/false
+// It is OK to suppress errors on inputs, non-existant values are acceptable inputs.	
+
+	if(isset($value) == false){
+		return '';
+	} elseif($compare == null && $value != false){
+		return 'checked';
+	} elseif($compare == $value){
+		return 'checked';
+	} else {
+		return '';
+	}
+}
+
+/******************************************************************************/
+
 function plrl($num){
 // Returns an 's' if the number is not 1.
 // Used for writing things like 1 Point vs 2 Points

@@ -959,25 +959,38 @@ function addMatchWinner(){
 	$matchID = $_POST['matchID'];
 	$matchInfo = getMatchInfo($matchID);
 
+	$tournamentID = (int)$matchInfo['tournamentID'];
+	$winnerID = $_POST['matchWinnerID'];
+	$lastExchangeID = (int)$_POST['lastExchangeID'];
+
 	if($matchInfo['matchComplete'] == 1){
 		return;
 	}
 
-	$tournamentID = (int)$matchInfo['tournamentID'];
+	$sql = "SELECT MAX(exchangeID) AS maxExchangeID
+			FROM eventExchanges
+			WHERE matchID = {$matchID}";
+	$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
 
-	$winnerID = $_POST['matchWinnerID'];
-	
+	if($maxExchangeID != $lastExchangeID){
+		setAlert(USER_ERROR, "Attempting to add exchanges out of order.
+			<BR><i>This can be because you clicked the submit button multiple times,
+				or another user is also adding exchanges to this match.<BR>
+			<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
+		return;
+	}
+
 	switch($winnerID){
 		case 'doubleOut':
 			$winnerID = 'null';
-			insertLastExchange($matchInfo, 'doubleOut', 'null', 'null', 'null');
+			insertLastExchange($matchInfo, $lastExchangeID, 'doubleOut', 'null', 'null', 'null');
 			break;
 		case 'tie':
 			$winnerID = 'null';
-			insertLastExchange($matchInfo, 'tie', 'null', 'null', 'null');
+			insertLastExchange($matchInfo, $lastExchangeID, 'tie', 'null', 'null', 'null');
 			break;
 		default:
-			insertLastExchange($matchInfo, 'winner', $winnerID, 'null', 'null');
+			insertLastExchange($matchInfo, $lastExchangeID, 'winner', $winnerID, 'null', 'null');
 	}
 
 	$sql = "UPDATE eventMatches
@@ -990,7 +1003,7 @@ function addMatchWinner(){
 	}
 
 // Deal with sub-matches
-	if($matchInfo['placeholderMatchID'] != null){
+	if($matchInfo['placeholderMatchID'] != null){ 
 		$matchNumber = (int)$matchInfo['matchNumber'];
 		$placeholderMatchID = (int)$matchInfo['placeholderMatchID'];
 		$exchangeNumber = $matchNumber - 1;
@@ -1056,14 +1069,14 @@ function addMatchWinner(){
 					WHERE exchangeID = {$exchangeID}";
 			mysqlQuery($sql, SEND);
 		}
-	
+
 
 	// Auto Conclude match if necessary
 		$sql = "DELETE FROM eventExchanges
 				WHERE matchID = {$placeholderMatchID}
-				AND exchangeType = 'winner'
-				OR exchangeType = 'doubleOut'
-				OR exchangeType = 'tie'";
+				AND (	exchangeType = 'winner'
+					 OR exchangeType = 'doubleOut'
+					 OR exchangeType = 'tie')";
 		mysqlQuery($sql, SEND);
 
 		$sql = "UPDATE eventMatches
@@ -1084,8 +1097,6 @@ function addMatchWinner(){
 				break;
 			}
 		}
-
-		
 
 		updateMatch($placeholderMatchInfo);
 
@@ -1135,7 +1146,7 @@ function addNewEvent(){
 	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
 	
 	$sql = "INSERT INTO systemEvents
-			(eventName, eventAbreviation, eventYear, eventStartDate,
+			(eventName, eventAbbreviation, eventYear, eventStartDate,
 			eventEndDate, eventCountry, eventProvince, eventCity,
 			eventStatus, staffPassword, organizerPassword)
 			VALUES
@@ -1148,7 +1159,7 @@ function addNewEvent(){
 		
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssssss", 
-			$_POST['eventName'], $_POST['eventAbreviation'],
+			$_POST['eventName'], $_POST['eventAbbreviation'],
 			$eventYear, $eventStartDate,
 			$eventEndDate, $_POST['eventCountry'], 
 			$_POST['eventProvince'], $_POST['eventCity'],
@@ -1188,7 +1199,7 @@ function addNewSchool(){
 	
 	$schoolFullName = $_POST['schoolFullName'];
 	$schoolShortName = $_POST['schoolShortName'];
-	$schoolAbreviation = $_POST['schoolAbreviation'];
+	$schoolAbbreviation = $_POST['schoolAbbreviation'];
 	$schoolBranch = $_POST['schoolBranch'];
 	$schoolCountry = $_POST['schoolCountry'];
 	$schoolProvince = $_POST['schoolProvince'];
@@ -1198,24 +1209,25 @@ function addNewSchool(){
 	if($schoolFullName == null){$schoolFullName = $schoolShortName;}
 	if($schoolFullName == null || $schoolShortName == null){return;}
 	
-	if($schoolAbreviation == null){
+	if($schoolAbbreviation == null){
 		$nameArray = str_split($schoolFullName);
 		foreach($nameArray as $char){
 			if(ctype_upper($char)){
-				$schoolAbreviation .= $char;
+				$schoolAbbreviation .= $char;
 			}
 		}
 	}
 	
 	$sql = "INSERT INTO systemSchools
-			(schoolFullName, schoolShortName, schoolAbreviation, schoolBranch,
+			(schoolFullName, schoolShortName, schoolAbbreviation, schoolBranch,
 			schoolCountry, schoolProvince, schoolCity)
 			VALUES
 			(?,?,?,?,?,?,?)";
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "sssssss", $schoolFullName, $schoolShortName, $schoolAbreviation,
-	 $schoolBranch, $schoolCountry, $schoolProvince, $schoolCity);
+	$bind = mysqli_stmt_bind_param($stmt, "sssssss", $schoolFullName, 
+				$schoolShortName, $schoolAbbreviation,
+	 			$schoolBranch, $schoolCountry, $schoolProvince, $schoolCity);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 }
@@ -1354,60 +1366,92 @@ function checkRoundRoster($tournamentID, $groupID = null){
 
 /******************************************************************************/
 
-function clearExchanges($matchID, $code){
+function clearExchangeLast($matchID, $lastExchangeID){
 // clears exchanges from a match	
 
-	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
+		setAlert(USER_ERROR, "You must be logged in to do that.");
+		return;
+	}
 
-// clear all exchanges
-	if(strcasecmp($code,'all') == 0){
+	$matchID = (int)$matchID;
+	$lastExchangeID = (int)$lastExchangeID;
 
-		$sql = "DELETE FROM eventExchanges 
-				WHERE matchID = {$matchID}";
-		mysqlQuery($sql, SEND);
-		
-		$sql = "UPDATE eventMatches
-				SET fighter1Score = null,
-				fighter2Score = null
-				WHERE matchID = {$matchID}";
-		mysqlQuery($sql, SEND);
-		
-		$sql = "UPDATE eventMatches
-				SET matchTime = 0
-				WHERE matchID = {$matchID}";
-		mysqlQuery($sql, SEND);
-		
-// clear only the last exchange		
-	}else if(strcasecmp($code,'last') == 0){
+	$sql = "SELECT MAX(exchangeID) AS maxExchangeID 
+			FROM eventExchanges
+			WHERE matchID = {$matchID}";
+
+	$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
 	
-		$sql = "SELECT MAX(exchangeID) AS exchangeID 
-				FROM eventExchanges
-				WHERE matchID = {$matchID}";
-		$result = mysqlQuery($sql, SINGLE);
-		
-		$exchangeID = $result['exchangeID'];
-		
-		if($exchangeID != null){
-			$sql = "DELETE FROM eventExchanges
-					WHERE exchangeID = {$exchangeID}";
-			mysqlQuery($sql, SEND);
-		}
-		
+	if($maxExchangeID != $lastExchangeID){
+
+		setAlert(USER_ERROR, "Attempting to add exchanges out of order.
+			<BR><i>This can be because you clicked the submit button multiple times,
+				or another user is also adding exchanges to this match.<BR>
+			<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
+
+	} else{
+
 		$sql = "DELETE FROM eventExchanges
-			WHERE matchID = {$matchID}
-			AND exchangeType = 'winner'";
+				WHERE exchangeID = {$maxExchangeID}";
 		mysqlQuery($sql, SEND);
+
+		clearExchangeWinners($matchID);
 
 	}
+	
+}
+
+/******************************************************************************/
+
+function clearExchangeAll($matchID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
+		setAlert(USER_ERROR, "You must be logged in to do that.");
+		return;
+	}
+
+	$matchID = (int)$matchID;
+
+	$sql = "DELETE FROM eventExchanges 
+			WHERE matchID = {$matchID}";
+	mysqlQuery($sql, SEND);
+	
+	$sql = "UPDATE eventMatches
+			SET fighter1Score = null,
+				fighter2Score = null
+			WHERE matchID = {$matchID}";
+	mysqlQuery($sql, SEND);
+	
+	$sql = "UPDATE eventMatches
+			SET matchTime = 0
+			WHERE matchID = {$matchID}";
+	mysqlQuery($sql, SEND);
+
+	clearExchangeWinners($matchID);
+
+}
+
+/******************************************************************************/
+
+function clearExchangeWinners($matchID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
+		setAlert(USER_ERROR, "You must be logged in to do that.");
+		return;
+	}
+
+	$matchID = (int)$matchID;
+
+	$sql = "DELETE FROM eventExchanges
+			WHERE matchID = {$matchID}
+			AND exchangeType IN ('winner','doubleOut','tie')";
+	mysqlQuery($sql, SEND);
 	
 	$sql = "UPDATE eventMatches
 			SET winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
-	
 }
 
 /******************************************************************************/
@@ -1444,15 +1488,41 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 
 	if($matchInfo['matchComplete'] == 1 
 		|| $matchInfo['ignoreMatch'] == 1
-		|| $maxPoints == 0
 	){ 
 		return false;
 	}
 
 	$shouldConclude = false;
 
-	if(	$matchInfo['fighter1score'] >= $maxPoints || $matchInfo['fighter2score'] >= $maxPoints){
-		$shouldConclude = true;
+	$reverseScore = isReverseScore($matchInfo['tournamentID']);
+
+	switch($reverseScore){
+		case REVERSE_SCORE_INJURY:
+
+			if(    ($matchInfo['lastExchange'] != 0)
+				&& (   $matchInfo['fighter1score'] <= 0 
+					|| $matchInfo['fighter2score'] <= 0)
+			  ){
+
+				$shouldConclude = true;
+			}
+			break;
+
+		case REVERSE_SCORE_NO:
+		case REVERSE_SCORE_GOLD:
+		default:
+
+			if(    ($maxPoints != 0)
+				&& (   $matchInfo['fighter1score'] >= $maxPoints 
+					|| $matchInfo['fighter2score'] >= $maxPoints)
+			  ){
+
+				$shouldConclude = true;
+			}
+			break;
+	}
+	
+	if($shouldConclude == true){
 		setAlert(USER_ALERT,"Point cap reached.");
 	}
 
@@ -1545,8 +1615,10 @@ function autoConcludeMatch($matchInfo){
 	}
 
 	$_POST['matchID'] = $matchInfo['matchID'];
+	$_POST['lastExchangeID'] = $matchInfo['lastExchange'];
 	
-	if(getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
+	if($matchInfo['maxDoubles'] != 0 
+		&& getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
 
 		$_POST['matchWinnerID'] = 'doubleOut';
 
@@ -2204,11 +2276,11 @@ function editEvent(){
 	if($_POST['eventEndDate'] == ''){
 		$_POST['eventEndDate'] = $_POST['eventStartDate'];
 	}
-	
+
 	$sql = "UPDATE systemEvents
 			SET
 			eventName=?, 
-			eventAbreviation=?,
+			eventAbbreviation=?,
 			eventYear=?,
 			eventStartDate=?,
 			eventEndDate=?, 
@@ -2220,7 +2292,7 @@ function editEvent(){
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssss", 
-			$_POST['eventName'], $_POST['eventAbreviation'],
+			$_POST['eventName'], $_POST['eventAbbreviation'],
 			$eventYear, $_POST['eventStartDate'],
 			$_POST['eventEndDate'], $_POST['eventCountry'], 
 			$_POST['eventProvince'], $_POST['eventCity'],
@@ -3074,7 +3146,8 @@ function breakBracketTies($tournamentID,$placings, $specs){
 
 /******************************************************************************/
 
-function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn, $scoreDeductionIn, 
+function insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, 
+							$rosterID, $scoreValueIn, $scoreDeductionIn, 
 							$refPrefix = null, $refType = null, $refTarget = null, $exchangeID = null){
 // records a new exchange into the match	
 	
@@ -3107,6 +3180,21 @@ function insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValueIn,
 	}
 	if($refTarget == null){
 		$refTarget = 'NULL';
+	}
+
+	$lastExchangeID = (int)$lastExchangeID;
+	
+	$sql = "SELECT MAX(exchangeID) AS maxExchangeID
+			FROM eventExchanges
+			WHERE matchID = $matchID";
+	$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
+
+	if($maxExchangeID != $lastExchangeID){
+		setAlert(USER_ERROR, "Attempting to add exchanges out of order.
+			<BR><i>This can be because you clicked the submit button multiple times,
+				or another user is also adding exchanges to this match.<BR>
+			<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
+		return;
 	}
 
 	if($exchangeID == null){
@@ -3664,6 +3752,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 		$teamString = "AND isTeam = 0";
 	}
 
+	$basePointValue = (int)getBasePointValue($tournamentID,$groupSet);
+
 
 // Find out what exists in the DB so it is known what needs to be updated vs inserted
 	$sql = "SELECT standingID, rosterID, groupID
@@ -3694,6 +3784,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = null){
 
 // Go through each fighter and record their stats
 	foreach((array)$allFighterStats as $rosterID => $fighterStats){
+
+		$fighterStats['basePointValue'] = $basePointValue;
 
 		// If the standings already exist
 		if(isset($standingsToUpdate[$rosterID])){
@@ -4574,11 +4666,119 @@ function updateEventTournaments(){
 
 /******************************************************************************/
 
+function importTournamentSettings($config){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		setAlert(USER_ERROR,"You must log in to do that.");
+		return;
+	}
+
+	$targetID = (int)$config['targetID'];
+	$sourceID = 0;
+	if($config['sourceID1'] != ''){
+		$sourceID = (int)$config['sourceID1'];
+	} elseif ($config['sourceID2'] != ''){
+		$sourceID = (int)$config['sourceID2'];
+	}
+
+	if($sourceID == 0){
+		setAlert(USER_ERROR,"No import source selected.");
+		return;
+	}
+
+	$sql = "SELECT * 
+			FROM eventTournaments
+			WHERE tournamentID = {$sourceID}";
+	$sourceSettings = mysqlQuery($sql, SINGLE);
+
+// List of things not to import
+	$doNotImport = ['eventID','tournamentID','tournamentWeaponID','tournamentPrefixID',
+					'tournamentGenderID', 'tournamentMaterialID','tournamentSuffixID',
+					'numParticipants', 'tournamentStatus', 'isFinalized', 'numGroupSets'];
+
+	foreach($doNotImport as $index){
+		unset($sourceSettings[$index]);
+	}
+
+	$_POST['updateTournament'] = $sourceSettings;
+	$_POST['updateType'] = 'update';
+	$_POST['modifyTournamentID'] = $targetID;
+
+
+	$sql = "SELECT eventName, eventYear
+			FROM eventTournaments
+			INNER JOIN systemEvents USING(eventID)
+			WHERE tournamentID = {$sourceID}";
+	$name = mysqlQuery($sql, SINGLE);
+
+	$sourceEventName = $name['eventName']." ".$name['eventYear'];
+	$sourceTournamentName = getTournamentName($sourceID);
+
+	setAlert(USER_ALERT,"Settings updated to match <strong>[{$sourceEventName}] {$sourceTournamentName}</strong>");
+
+	updateEventTournaments();
+	
+}
+
+/******************************************************************************/
+
+function importTournamentAttacks($config){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		setAlert(USER_ERROR,"You must log in to do that.");
+		return;
+	}
+
+	$targetID = (int)$config['targetID'];
+	$sourceID = 0;
+	if($config['sourceID1'] != ''){
+		$sourceID = (int)$config['sourceID1'];
+	} elseif ($config['sourceID2'] != ''){
+		$sourceID = (int)$config['sourceID2'];
+	}
+
+	if($sourceID == 0){
+		setAlert(USER_ERROR,"No import source selected.");
+		return;
+	}
+
+	$sql = "DELETE FROM eventAttacks
+			WHERE tournamentID = {$targetID}";
+	mysqlQuery($sql, SEND);
+
+
+	$sql = "INSERT INTO eventAttacks
+			(tournamentID, attackPrefix, attackTarget, attackType, attackPoints, attackNumber)
+				SELECT {$targetID}, attackPrefix, attackTarget, attackType, attackPoints, attackNumber
+				FROM eventAttacks
+				WHERE tournamentID = {$sourceID}";
+	mysqlQuery($sql, SEND);
+
+	$sql = "SELECT eventName, eventYear
+			FROM eventTournaments
+			INNER JOIN systemEvents USING(eventID)
+			WHERE tournamentID = {$sourceID}";
+	$name = mysqlQuery($sql, SINGLE);
+
+	$sourceEventName = $name['eventName']." ".$name['eventYear'];
+	$sourceTournamentName = getTournamentName($sourceID);
+
+	setAlert(USER_ALERT,"Attacks updated to match <strong>[{$sourceEventName}] {$sourceTournamentName}</strong>");
+
+}
+
+/******************************************************************************/
+
 function deleteEventTournament(){
 	
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		setAlert(USER_ERROR,"You must log in to do that.");
+		return;
+	}
+
 // Delete an existing tournament		
 
-	$tournamentID = $_POST['deleteTournamentID'];
+	$tournamentID = (int)$_POST['deleteTournamentID'];
 	$sql = "DELETE FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
@@ -4610,7 +4810,7 @@ function updateExistingSchool(){
 	
 	$schoolFullName = $_POST['schoolFullName'];
 	$schoolShortName = $_POST['schoolShortName'];
-	$schoolAbreviation = $_POST['schoolAbreviation'];
+	$schoolAbbreviation = $_POST['schoolAbbreviation'];
 	$schoolBranch = $_POST['schoolBranch'];
 	$schoolCountry = $_POST['schoolCountry'];
 	$schoolProvince = $_POST['schoolProvince'];
@@ -4619,7 +4819,7 @@ function updateExistingSchool(){
 	$sql = "UPDATE systemSchools SET
 			schoolFullName = ?,
 			schoolShortName = ?,
-			schoolAbreviation = ?,
+			schoolAbbreviation = ?,
 			schoolBranch = ?,
 			schoolCountry = ?,
 			schoolProvince = ?,
@@ -4628,7 +4828,7 @@ function updateExistingSchool(){
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssss", $schoolFullName, 
-			$schoolShortName, $schoolAbreviation, $schoolBranch, 
+			$schoolShortName, $schoolAbbreviation, $schoolBranch, 
 			$schoolCountry, $schoolProvince, $schoolCity);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
@@ -4659,7 +4859,7 @@ function updateFinalsBracket(){
 			mysqlSetRecordToDefault('eventMatches',
 				"WHERE matchID = {$matchID} OR placeholderMatchID = {$matchID}", $notNull);
 			
-			clearExchanges($matchID,'all');
+			clearExchangeAll($matchID);
 
 			// Deal with sub-matches
 			$sql = "SELECT matchID
@@ -4667,8 +4867,8 @@ function updateFinalsBracket(){
 					WHERE placeholderMatchID = {$matchID}";
 			$matchList = mysqlQuery($sql, SINGLES);
 
-			foreach((array)$matchList as $mID){
-				clearExchanges($mID,'all');
+			foreach((array)$matchList as $subMatchID){
+				clearExchangeAll($subMatchID);
 			}
 
 			$sql = "DELETE FROM logisticsStaffMatches
@@ -4716,10 +4916,12 @@ function updateFinalsBracket(){
 function updateHemaRatingsInfo($fighters){
 
 	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
+	if($fighters == null){return;}
 
+	foreach($fighters['hemaRatingsIdFor'] as $systemRosterID => $HemaRatingsID){
+		$HemaRatingsID = (int)$HemaRatingsID;
+		$systemRosterID = (int)$systemRosterID;
 
-	foreach($fighters as $systemRosterID => $fighter){
-		$HemaRatingsID = (int)$fighter['HemaRatingsID'];
 		if($HemaRatingsID == 0){
 			$HemaRatingsID = "NULL";
 		}
@@ -4733,19 +4935,9 @@ function updateHemaRatingsInfo($fighters){
 		if(count($duplicates) == 0){
 
 			$sql = "UPDATE systemRoster
-					SET HemaRatingsID = {$HemaRatingsID}, 
-					firstName = ?,
-					lastName = ?
-					WHERE systemRosterID = ?";
-
-			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-			// "s" means the database expects a string
-			$bind = mysqli_stmt_bind_param($stmt, "ssi", 
-				$fighter['firstName'], $fighter['lastName'],$systemRosterID);
-			$exec = mysqli_stmt_execute($stmt);
-			mysqli_stmt_close($stmt);
-
-			
+					SET HemaRatingsID = {$HemaRatingsID} 
+					WHERE systemRosterID = {$systemRosterID}";
+			mysqlQuery($sql, SEND);
 
 		} else {
 			// If someone with that Rating ID exists in the system.
@@ -5820,18 +6012,20 @@ function updateTournamentComponents($componentData){
 
 /******************************************************************************/
 
-function updateTournamentFighterCounts($tournamentID = null){
+function updateTournamentFighterCounts($tournamentID = null, $eventID = null){
 	
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	if($tournamentID != null){
 		$tournamentList[] = $tournamentID;
 	} else {
-		$tournamentList = getEventTournaments();
+		$tournamentList = getEventTournaments($eventID);
 	}
 
 	$tournamentID = (int)$tournamentID;
 	
 	foreach((array)$tournamentList as $tournamentID){
+
+		$tournamentID = (int)$tournamentID;
 
 		$sql = "UPDATE eventTournaments
 				SET numParticipants = (SELECT COUNT(*)
