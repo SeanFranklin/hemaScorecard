@@ -42,6 +42,17 @@ if($_SESSION['eventID'] == null){
 
 	<?php foreach((array)$tournamentList as $tournamentID => $tournament):
 
+	/********/
+		// In the past all tournaments were displayed. Due to poor coding and 
+		// overuse of SQL calls this became too slow for large events.
+		// Removing this code will make it go back.
+		if($tournamentID != $_SESSION['tournamentID']){
+			continue;
+		} else {
+			$isActiveItem = 'is-active';
+		}
+	/**********/
+
 		$numParticipants = $tournament['numParticipants'];
 		$divName = "tournament".$tournamentID;
 		$name = getTournamentName($tournamentID);
@@ -77,8 +88,9 @@ if($_SESSION['eventID'] == null){
 				</div>
 			<?php endif ?>
 
-			<form method='POST'>
+			
 			<fieldset <?=$isLocked?> <?=$formLock?> >
+			<form method='POST'>
 				
 			<input type='hidden' name='formName' value='updateTournamentInfo'>
 			<input type='hidden' name='modifyTournamentID' value='<?=$tournamentID?>'>
@@ -144,13 +156,20 @@ if($_SESSION['eventID'] == null){
 					style='float:middle' <?=$isLocked?>  <?=$formLock?>>
 					Change Point Values
 				</button>
+				<a class='button warning' onclick="$('#import-for-<?=$tournamentID?>').toggle()"
+					<?=$isLocked?>  <?=$formLock?>>
+					Import/Copy
+				</a>
 				<a class='button alert' data-open='boxFor-<?=$tournamentID?>' 
 					style='float:right' <?=$isLocked?>  <?=$formLock?>>
 					Delete Tournament
 				</a>
 			</div>
-			</fieldset>
 			</form>
+			<?=importSettingsForm($tournamentID)?>
+
+			</fieldset>
+			
 
 			
 			<?php 
@@ -163,8 +182,9 @@ if($_SESSION['eventID'] == null){
 		</li>
 		
 	<?php endforeach ?>
-
+	
 	</ul>
+	<i>Use tournaments selection in upper left to change tournament.</i>
 
 
 <?php }
@@ -172,6 +192,66 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function importSettingsForm($tournamentID){
+	$thisTournaments = getEventTournaments($_SESSION['eventID']);
+	$allTournaments = getAllEventTournaments($_SESSION['eventID']);
+?>
+	<div id='import-for-<?=$tournamentID?>' class='hidden warning callout cell'>
+	<form method='POST'>
+		<input type='hidden' name='importTournamentSettings[targetID]' value='<?=$tournamentID?>'>
+
+		<h4>Import Tournament Settings</h4>
+		<p>
+	    This will import <strong>ALL</strong> settings from the selected tournament except:<BR>
+		- Names<BR>
+		- Group Set information<BR>
+		- Pre-defined tournament attacks
+		</p>
+
+		<div class='callout alert'>
+			<strong>IMPORTANT!!</strong><BR>
+			This is meant as a feature to save time, but <u>does not</u> absolve you of needing to make sure
+			that your tournaments are set up correctly. <BR>
+			Options may have changed since an past event was run, 
+			or the options might not work the same way.<BR>
+			<span class='red-text'>CHECK THAT THE IMPORTED SETTINGS WORK!</span>
+		</div>
+
+		<p>From this event:
+		<select name='importTournamentSettings[sourceID1]'>
+			<option></option>
+			<?php foreach($thisTournaments as $tournamentID):?>
+				<option <?=optionValue($tournamentID, null)?> >
+					<?=getTournamentName($tournamentID)?>
+				</option>
+			<?php endforeach ?>
+		</select>
+		</p>
+
+		<p>
+		From other events:<BR>
+		<select name='importTournamentSettings[sourceID2]'>
+			<option></option>
+			<?php foreach($allTournaments as $tournamentID => $tournament):?>
+				<option <?=optionValue($tournamentID, null)?> >
+					<?=$tournament['eventName']?> [<?=$tournament['tournamentName']?>]
+				</option>
+			<?php endforeach ?>
+		</select>
+		</p>
+
+		<button class='button success' name='formName' value='importTournamentSettings'>
+			Import
+		</button>
+
+	</form>
+	</div>
+	
+<?php
+}
 
 /******************************************************************************/
 

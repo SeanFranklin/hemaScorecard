@@ -28,7 +28,7 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
 
 	if($res == null){
-		insertLastExchange($matchInfo, 'scored', 'null', $basePointValue, 0);
+		insertLastExchange($matchInfo, null, 'scored', 'null', $basePointValue, 0);
 		if($numToAdd == 0){
 			updateMatch($matchInfo);
 			if(isLastPiece($_SESSION['tournamentID'])){
@@ -38,7 +38,7 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 	}
 	
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, 'pending', 'null', 0, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', 0, 0);	
 	}
 	
 }
@@ -162,7 +162,7 @@ function _JNCR_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
 	}
 	
 }
@@ -258,8 +258,6 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 			</td>
 
 			<td style='padding: 2px;'>
-				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
-					value='<?=$cutPoints?>' name='scores[<?=$exchangeID?>][cutPoints]'>-->
 				<select class='no-bottom' name='scores[<?=$exchangeID?>][cutPoints]'>
 					<?php if($cutPoints==''):?>
 						<option value=''></option>
@@ -275,8 +273,6 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 				</select>
 			</td>
 			<td style='padding: 2px;'>
-				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
-					value='<?=$upperPoints?>' name='scores[<?=$exchangeID?>][upperPoints]'>-->
 				<select class='no-bottom' name='scores[<?=$exchangeID?>][upperPoints]'>
 					<?php if($upperPoints==''):?>
 						<option value=''></option>
@@ -284,15 +280,13 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 					<option value='4'>4</option>
 					<option value='3'>3</option>
 					<option value='2'>2</option>
-					<option value='1'>2</option>
+					<option value='1'>1</option>
 					<option <?=optionValue(0,$upperPoints)?> >0</option>
 					<option value='-10'>-10</option>
 					<option value='-20'>-20</option>
 				</select>
 			</td>
 			<td style='padding: 2px;'>
-				<!--<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
-					value='<?=$lowerPoints?>' name='scores[<?=$exchangeID?>][lowerPoints]'>-->
 				<select class='no-bottom' name='scores[<?=$exchangeID?>][lowerPoints]'>
 					<?php if($lowerPoints==''):?>
 						<option value=''></option>
@@ -300,7 +294,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 					<option value='4'>4</option>
 					<option value='3'>3</option>
 					<option value='2'>2</option>
-					<option value='1'>2</option>
+					<option value='1'>1</option>
 					<option <?=optionValue(0,$lowerPoints)?> >0</option>
 					<option value='-10'>-10</option>
 					<option value='-20'>-20</option>
@@ -416,7 +410,7 @@ function _PureScore_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
 	}
 	
 }
@@ -542,7 +536,7 @@ function _RSScutting_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
 	}
 	
 }
@@ -1189,21 +1183,64 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 
 	echo"</table>";
 
-	
-	if($numPoolWinners != 0){
-		if($numPoolWinners == 1){
-			$s = "Pool winners ranked above all non pool winners.";
-		} else {
-			$s = "Top {$numPoolWinners} from each pool ranked above rest.";
-		}
-		echo "<p><em>*{$s}</em></p>";
+	pool_standingsExplanation($tournamentID, $stopAtSetText, $lastToElimSet);
+
+}
+
+/******************************************************************************/
+
+function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracketSize = false){
+
+	$description = getRankingDescriptionByTournament($tournamentID);
+	if($description['description'] == ''){
+		$description['description'] = 'No description provided in Database.';
 	}
 
-	if($stopAtSetText == true){
-		echo "<p class='grey-text'><em>
-			*names in grey have withdrawn and will not advance to the next stage.
-			</em></p>";
+	$winnerText = '';
+	if($description['poolWinnersFirst'] != 0){
+		if($description['poolWinnersFirst'] == 1){
+			$s = "Pool winners (names in italics) are ranked above all non pool winners.";
+		} else {
+			$s = "Top {$description['poolWinnersFirst']} fighters from each pool (names in italics) are ranked above the rest of the competitors.";
+		}
+		$winnerText = "<p><em>{$s}</em></p>";
 	}
+
+?>
+
+	<i><a onclick="$('.standings-explanation').toggle()" class='standings-explanation'>
+		How are the standings calculated?
+	</a></i>
+
+	<fieldset class='hidden standings-explanation fieldset '>
+		<legend>
+			<a onclick="$('.standings-explanation').toggle()">
+				How are the standings calculated?
+			</a>
+		</legend>
+
+		<?=$winnerText?>
+
+		<?php if($bracketSize == true): ?>
+			<p>The horizontal line represents the <u>size</u> of the bracket.<BR>
+			The individuals advancing may be different depending on injuries, withdrawls, or tournament organizer whims.</p>
+		<?php endif ?>
+
+		<?php if($stopAtSetText == true): ?>
+			<p class='grey-text'>
+				<em>
+					*names in grey have withdrawn and will not advance to the next stage.
+				</em>
+			</p>
+		<?php endif ?>
+
+	
+		<pre><?=$description['description']?></pre>
+
+
+	</fieldset>
+
+<?php
 
 }
 
@@ -1755,7 +1792,7 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 	} else {
 		$numberOfMatches = getNormalization($tournamentID, $groupSet) - 1;
 	}
-	
+
 	foreach((array)$fighterStats as $rosterID => $fighterData){
 
 		$matchesFought = $fighterData['matches'];

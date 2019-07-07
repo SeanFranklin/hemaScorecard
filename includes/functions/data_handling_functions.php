@@ -424,6 +424,41 @@ function uploadCsvFile($fileName){
 
 /******************************************************************************/
 
+function uploadZipFile($filesToZip){
+
+    $zip = new ZipArchive();
+    $zipName = EXPORT_DIR."export.zip";
+
+    //create the file and throw the error if unsuccessful
+    if ($zip->open($zipName, ZipArchive::CREATE )!==TRUE) {
+        exit("cannot open export\n");
+    }
+
+
+    //add each files of $file_name array to archive
+    foreach($filesToZip as $files)
+    {
+        $zip->addFile(EXPORT_DIR.$files);
+    }
+    $zip->close();
+
+    if (file_exists($zipName)) {
+		header('Content-Type: application/zip');
+		header('Content-Disposition: attachment; filename="'.basename($zipName).'"');
+		header('Content-Length: ' . filesize($zipName));
+
+		flush();
+		readfile($zipName);
+		// delete file
+		unlink($zipName);
+ 
+   }
+
+
+}
+
+/******************************************************************************/
+
 function isLivestreamValid($eventID=null){
 	
 	$info = getLivestreamInfo($eventID);

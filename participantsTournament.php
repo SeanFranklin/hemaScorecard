@@ -31,27 +31,34 @@ if($tournamentID == null){
 		$sortString = 'name';
 	}
 
+ 	
 
-	if(ALLOW['EVENT_MANAGEMENT'] != true){
-		define("ALLOW_EDITING", false);
-	} else {
-		if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
-			|| isCompositeRosterManual($tournamentID) == true){
-			define("ALLOW_EDITING", true);
-		} else {
+
+	if(LOCK_TOURNAMENT == ''){
+		if(ALLOW['EVENT_MANAGEMENT'] != true){
 			define("ALLOW_EDITING", false);
-		}
-	}
-
-	if(ALLOW['EVENT_SCOREKEEP'] != true){
-		define("ALLOW_CHECKIN", false);
-	} else {
-		if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
-			|| isCompositeRosterManual($tournamentID) == true){
-			define("ALLOW_CHECKIN", true);
 		} else {
-			define("ALLOW_CHECKIN", false);
+			if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
+				|| isCompositeRosterManual($tournamentID) == true){
+				define("ALLOW_EDITING", true);
+			} else {
+				define("ALLOW_EDITING", false);
+			}
 		}
+
+		if(ALLOW['EVENT_SCOREKEEP'] != true){
+			define("ALLOW_CHECKIN", false);
+		} else {
+			if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
+				|| isCompositeRosterManual($tournamentID) == true){
+				define("ALLOW_CHECKIN", true);
+			} else {
+				define("ALLOW_CHECKIN", false);
+			}
+		}
+	} else {
+		define("ALLOW_EDITING", false);
+		define("ALLOW_CHECKIN", false);
 	}
 
 	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
@@ -67,7 +74,7 @@ if($tournamentID == null){
 <!-- Page Structure -->
 	
 	<form method='POST' id='tournamentRosterForm'>
-	<fieldset <?=LOCK_TOURNAMENT?>>
+	<fieldset>
 	
 	<div class='grid-x grid-padding-x'>
 	<div class='large-8 medium-10 cell'>

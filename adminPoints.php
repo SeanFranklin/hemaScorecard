@@ -49,6 +49,11 @@ if($_SESSION['eventID'] == null){
 <button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>> 
 	Submit
 </button>
+<a class='button warning' onclick="$('#import-attacks').toggle()" <?=$formLock?> >
+	Import/Copy
+</a>
+
+<?=importAttacksForm($_SESSION['tournamentID'])?>
 
 <table class='stack'>
 	<tr>
@@ -200,6 +205,52 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
+function importAttacksForm($tournamentID){
+    $thisTournaments = getEventTournaments($_SESSION['eventID']);
+	$allTournaments = getAllEventTournaments($_SESSION['eventID']);
+?>
+
+
+	<div id='import-attacks' class='hidden warning callout cell'>
+	<form method='POST'>
+		<input type='hidden' name='importTournamentAttacks[targetID]' value='<?=$tournamentID?>'>
+
+		<h4>Import Tournament Attacks</h4>
+		<p>
+	    This will import the attacks from the selected tournament <strong>delete all existing attacks.</strong>
+		</p>
+
+		<p>From this event:
+		<select name='importTournamentAttacks[sourceID1]'>
+			<option></option>
+			<?php foreach($thisTournaments as $tournamentID):?>
+				<option <?=optionValue($tournamentID, null)?> >
+					<?=getTournamentName($tournamentID)?>
+				</option>
+			<?php endforeach ?>
+		</select>
+		</p>
+
+		<p>
+		From other events:<BR>
+		<select name='importTournamentAttacks[sourceID2]'>
+			<option></option>
+			<?php foreach($allTournaments as $tournamentID => $tournament):?>
+				<option <?=optionValue($tournamentID, null)?> >
+					<?=$tournament['eventName']?> [<?=$tournament['tournamentName']?>]
+				</option>
+			<?php endforeach ?>
+		</select>
+		</p>
+
+		<button class='button success' name='formName' value='importTournamentAttacks'>
+			Import
+		</button>
+
+	</form>
+	</div>
+<?php
+}
 
 /******************************************************************************/
 

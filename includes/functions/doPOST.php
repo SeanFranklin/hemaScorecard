@@ -271,7 +271,13 @@ function processPostData(){
 				break;
 			case 'deleteTournament':
 				deleteEventTournament();
-				break;	
+				break;
+			case 'importTournamentSettings':
+				importTournamentSettings($_POST['importTournamentSettings']);
+				break;
+			case 'importTournamentAttacks':
+				importTournamentAttacks($_POST['importTournamentAttacks']);
+				break;
 			case 'editTournamentPlacings':
 				$_SESSION['manualPlacing']['tournamentID'] = $_POST['tournamentID'];
 				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
@@ -352,11 +358,8 @@ function processPostData(){
 			case 'duplicateNameSearchType':
 				$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
 				break;
-			case 'HemaRatingsList':
-				$_SESSION['HemaRatingsBounds'] = $_POST['HemaRatingsBounds'];
-				break;
 			case 'HemaRatingsUpdate':
-				updateHemaRatingsInfo($_POST['systemRosterID']);
+				updateHemaRatingsInfo(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
 
 	// Logistics Cases
@@ -599,21 +602,26 @@ function changePage($newPage){
 /******************************************************************************/
 
 function exportHemaRatings($informationType){
-	if($informationType == 'roster'){
+
+	if($informationType == 'all'){
+
+		$csvNames[0] = createEventRoster_HemaRatings($_SESSION['eventID'], EXPORT_DIR);
+		uploadZipFile($csvNames);
+
+	} elseif($informationType == 'roster'){
 		
-		$fileName = createEventRoster_HemaRatings($_SESSION['eventID'], "exports/");
+		$fileName = createEventRoster_HemaRatings($_SESSION['eventID'], EXPORT_DIR);
+		uploadCsvFile($fileName);
 
 	} elseif(is_numeric($informationType)){
 
-		$fileName = createTournamentResults_HemaRatings($informationType,"exports/");
+		$fileName = createTournamentResults_HemaRatings($informationType, EXPORT_DIR);
+		uploadCsvFile($fileName);
 
 	} else{
 
 		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to exportHemaRatings()';
-		return;
 	}
-
-	uploadCsvFile($fileName);
 
 }
 
@@ -844,32 +852,33 @@ function addNewExchange(){
 	$f2ID = $matchInfo['fighter2ID'];
 
 	$exchangeID = $scoring['exchangeID'];
+	$lastExchangeID = $_POST['lastExchangeID'];
 
 	//return;
 	switch ($_POST['lastExchange']){
 		case 'scoringHit':
-			calculateLastExchange($matchInfo,$scoring);
+			calculateLastExchange($matchInfo,$scoring, $lastExchangeID);
 			break;
 		case 'penalty':
-			insertPenalty($matchInfo,$scoring);
+			insertPenalty($matchInfo,$scoring, $lastExchangeID);
 			break;
 		case 'noQuality':
 			if($scoring[$f1ID]['hit'] == 'noQuality'){	$id = $f1ID;}
 			if($scoring[$f2ID]['hit'] == 'noQuality'){	$id = $f2ID;}
 			if($id == null){ break; }
-			insertLastExchange($matchInfo, 'noQuality', $id, 'null', 'null', null, null, null, $exchangeID);
+			insertLastExchange($matchInfo, $lastExchangeID, 'noQuality', $id, 'null', 'null', null, null, null, $exchangeID);
 			break;
 		case 'doubleHit':
-			insertLastExchange($matchInfo, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
+			insertLastExchange($matchInfo, $lastExchangeID, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
 			break;
 		case 'noExchange':
-			insertLastExchange($matchInfo, 'noExchange', 'null', 'null', 'null', null, null, null, $exchangeID);
+			insertLastExchange($matchInfo, $lastExchangeID, 'noExchange', 'null', 'null', 'null', null, null, null, $exchangeID);
 			break;
 		case 'clearLastExchange':
-			clearExchanges($matchID,'last');
+			clearExchangeLast($matchID, $lastExchangeID);
 			break;
 		case 'clearAllExchanges':
-			clearExchanges($matchID,'all');
+			clearExchangeAll($matchID);
 			break;
 		default:
 			$_SESSION['alertMessages']['systemErrors'][] = "Could not figure out the exchange type in doUpdateMatch.php()";
@@ -919,7 +928,7 @@ function addNewExchange(){
 
 /******************************************************************************/
 
-function calculateLastExchange($matchInfo, $scoring){
+function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 // determine which type of scoring is in effect so the exchange 
 // can be added appropriately
 
@@ -943,11 +952,11 @@ function calculateLastExchange($matchInfo, $scoring){
 	$doubleTypes = getDoubleTypes($tournamentID);
 	
 	if($doubleTypes['afterblowDisabled'] == true){
-		noAfterblowScoring($matchInfo, $scoring);
+		noAfterblowScoring($matchInfo, $scoring, $lastExchangeID);
 	} else if($doubleTypes['afterblowType'] == 'deductive'){
-		deductiveAfterblowScoring($matchInfo, $scoring);
+		deductiveAfterblowScoring($matchInfo, $scoring, $lastExchangeID);
 	} else if($doubleTypes['afterblowType'] == 'full'){
-		fullAfterblowScoring($matchInfo, $scoring);
+		fullAfterblowScoring($matchInfo, $scoring, $lastExchangeID);
 	}
 
 	
@@ -957,7 +966,7 @@ function calculateLastExchange($matchInfo, $scoring){
 
 /******************************************************************************/
 
-function deductiveAfterblowScoring($matchInfo,$scoring){
+function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 // scoring calculations for Deductive Afterblow
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -1020,13 +1029,13 @@ function deductiveAfterblowScoring($matchInfo,$scoring){
 		$scoreDeduction = $scoring[$rosterID]['afterblow'];
 	}
 	
-	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, 
+	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
 					$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 }
 
 /******************************************************************************/
 
-function insertPenalty($matchInfo, $scoring){
+function insertPenalty($matchInfo, $scoring, $lastExchangeID){
 // inserts an exchange as a penalty
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -1039,14 +1048,14 @@ function insertPenalty($matchInfo, $scoring){
 	if($scoring[$id1]['penalty'] != 0){
 		$scoreValue = $scoring[$id1]['penalty'];
 		$rosterID = $id1;
-		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 
+		insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
 							0, null, null, null, $exchangeID);
 	}
 	
 	if($scoring[$id2]['penalty'] != 0){
 		$scoreValue = $scoring[$id2]['penalty'];
 		$rosterID = $id2;
-		insertLastExchange($matchInfo, 'penalty', $rosterID, $scoreValue, 
+		insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
 							0, null, null, null, $exchangeID);
 	}
 }
@@ -1054,7 +1063,7 @@ function insertPenalty($matchInfo, $scoring){
 
 /******************************************************************************/
 
-function fullAfterblowScoring($matchInfo,$scoring){
+function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 // scoring calculations for Full Afterblow	
 	
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -1160,13 +1169,13 @@ function fullAfterblowScoring($matchInfo,$scoring){
 	}
 	
 	
-	insertLastExchange($matchInfo, $exchangeType, $rosterID, $scoreValue, 
+	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
 		$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 }
 
 /******************************************************************************/
 
-function noAfterblowScoring($matchInfo,$scoring){
+function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 // scoring calculations for No Afterblow
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -1184,7 +1193,7 @@ function noAfterblowScoring($matchInfo,$scoring){
 	
 	// Checks if points are entered for both fighters
 	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
-		insertLastExchange($matchInfo, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
+		insertLastExchange($matchInfo, $lastExchangeID, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
 		return;
 	}
 	
@@ -1227,7 +1236,7 @@ function noAfterblowScoring($matchInfo,$scoring){
 		$rosterID = $otherID;
 	}
 	
-	insertLastExchange($matchInfo, 'clean', $rosterID, $scoreValue,
+	insertLastExchange($matchInfo, $lastExchangeID, 'clean', $rosterID, $scoreValue,
 						$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 
 }
@@ -1376,10 +1385,10 @@ function logUserIn($logInData){
 		$userName = $logInData['userName'];
 	} elseif($type == 'logInStaff'){
 		$userName = "eventStaff";
-		$eventID = $logInData['eventID'];
+		$eventID = (int)@$logInData['eventID'];
 	} elseif($type == 'logInOrganizer'){
 		$userName = "eventOrganizer";
-		$eventID = $logInData['eventID'];
+		$eventID = (int)@$logInData['eventID'];
 	} else {
 		logUserOut();
 	}

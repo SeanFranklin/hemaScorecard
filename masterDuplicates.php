@@ -369,6 +369,7 @@ function changeSearchButton($text,$value){
 		$currentSearch = $_SESSION['duplicateNameSearchType'];
 	}
 
+	$class='';
 	if($currentSearch != $value){
 		$class = 'hollow';
 	}

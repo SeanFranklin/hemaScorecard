@@ -31,7 +31,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	} elseif($tournamentID == null){
 		redirect('infoSummary.php');
 	} elseif($matchID == null){
-		redirect('participantsRoster.php');
+		redirect('participantsEvent.php');
 	} else {
 		displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
 	}
@@ -73,7 +73,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		define("LOCK_MATCH", '');
 	}
 	
-	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
@@ -108,6 +107,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 				<form method='POST'>
 				<fieldset <?=LOCK_MATCH?>>
 					<input type='hidden' name='formName' value='newExchange'>
+					<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 						<input type='hidden' class='exchangeID' name='score[exchangeID]'>
@@ -977,7 +977,11 @@ function fighterDataEntryBox($matchInfo,$num){
 	$fighterName = getCombatantName($id);
 	$fighterSchool = $matchInfo[$pre.'School'];
 	$score = $matchInfo[$pre.'score'];
-	if($score == null){$score=0;};
+
+	if($score === null){
+		$score = "/";
+	}
+
 	
 	$doubleTypes = getDoubleTypes($tournamentID);
 	$maxPoints = 8;
@@ -1152,6 +1156,7 @@ function createSideBar($matchInfo){
 	$fighter1ID = $matchInfo['fighter1ID'];
 	$fighter2ID = $matchInfo['fighter2ID'];
 	$winnerID = $matchInfo['winnerID'];
+	$lastExchangeID = $matchInfo['lastExchange'];
 
 	$nextMatchInfo = getNextPoolMatch($matchInfo);
 	$matchNumInfo = getPoolMatchesLeft($matchInfo);
@@ -1338,6 +1343,7 @@ function createSideBar($matchInfo){
 			<form method='POST'>
 			<fieldset <?=$lockInputs?>>
 			<input type='hidden' name='formName' value='matchWinner'>
+			<input type='hidden' name='lastExchangeID' value='<?=$lastExchangeID?>'>
 			<input type='hidden' name='matchID' value='<?=$matchID?>'>
 			<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 		
@@ -1391,6 +1397,7 @@ function createSideBar($matchInfo){
 		<form method='POST'>
 		<fieldset <?=$lockInputs?>>
 		<input type='hidden' name='formName' value='matchWinner'>
+		<input type='hidden' name='lastExchangeID' value='<?=$lastExchangeID?>'>
 		<input type='hidden' name='matchID' value='<?=$matchID?>'>
 		<input type='hidden' class='matchTime' name='matchTime' value=''>
 
@@ -1519,6 +1526,7 @@ function doublesText($doubles, $matchInfo){
 	$reverseScore = isReverseScore($matchInfo['tournamentID']);
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'], $_SESSION['groupSet']);
 
+	$doubleOut = false;
 	if(    (int)$matchInfo['maxDoubles'] != 0 
 		&& (int)$doubles >= (int)$matchInfo['maxDoubles']){
 
@@ -1527,7 +1535,8 @@ function doublesText($doubles, $matchInfo){
 	} else if($reverseScore == REVERSE_SCORE_INJURY){
 
 		if( 	(  $matchInfo['fighter1score'] <= 0 
-				&& $matchInfo['fighter2score'] <= 0)
+				&& $matchInfo['fighter2score'] <= 0
+				&& $matchInfo['lastExchange'] != 0)
 			|| ($basePointValue == 0)
 			)
 		{
@@ -1549,7 +1558,7 @@ function doublesText($doubles, $matchInfo){
 
 	}
 	
-	$class=ifSet($doubleOut,"class='red-text'");
+	$class = ifSet($doubleOut,"class='red-text'");
 	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
 
 	switch ($doubles){
@@ -1583,10 +1592,11 @@ function doublesText($doubles, $matchInfo){
 
 function unconcludedMatchWarning($matchInfo){
 
-	$useWarning = isUnconcludedMatchWarning($matchInfo);
+	$warningSize = isUnconcludedMatchWarning($matchInfo);
 
-	if($useWarning && ALLOW['EVENT_SCOREKEEP'] == true){
-		$string = "<strong>The last two matches have not been concluded.</strong><BR>
+	if($warningSize != 0 && ALLOW['EVENT_SCOREKEEP'] == true){
+
+		$string = "<strong>The last <span class='red-text'>{$warningSize}</span> matches have not been concluded.</strong><BR>
 		Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
 		<i>If a match is not fought due to injury/disqualification, be sure that an event organizer removes them from the pool scoring calculations.</i>
 		<form method='POST'>
@@ -1596,10 +1606,12 @@ function unconcludedMatchWarning($matchInfo){
 
 		";
 		displayAlert($string,'warning');
-
+		$isWarning = true;
+	} else {
+		$isWarning = false;
 	}
 
-	return $useWarning;
+	return $isWarning;
 
 }
 

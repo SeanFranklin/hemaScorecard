@@ -21,6 +21,7 @@ if($tournamentID == null){
 	redirect('participantsTournament.php');
 } else {
 
+	$tournamentList = [];
 	$tournamentList = getTournamentsFull();
 	$tournamentComponents = getTournamentComponents($tournamentID);
 

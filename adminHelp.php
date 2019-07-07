@@ -71,12 +71,31 @@ Developed by: Sean Franklin<BR>
 have to teach myself how to code and do this?'</em>
 
 <BR><BR>
-<strong style='display:inline'>Terms of Use:</strong> This software is free to use by all event organizers provided that:<ul>
+
+<strong>About</strong><BR>
+HEMA Scorecard is intended to make information about <em>Historical European Martial Arts</em> tournaments publicly accessible.<BR>
+All* information captured by the software is public ably viewable on line, or can be requested as part of a statistical data dump.
+<BR><em>*Naturally we aren't sharing event organizer's contact info.</em>
+
+<BR><BR>
+
+<strong>Terms of Use</strong><BR>
+This software is free to use by all event organizers provided that:
+<ul>
+<li>You are running a HEMA tournament. (If you are doing re-enactment or sport fencing flash me some money and we can talk. :p )</li>
 <li>Record all exchanges as they happen. This means recording all the No Exchanges, 
 and if the score is 3 points minus 1 you record it as that, not as 2 points.</li>
-<li>Don't do anything egregious to piss me off.</li></ul>
-Thanks to Jayson Barrons with layout design and consultation.
-<BR><BR><a href='#topOfPage'>Back to Top</a>
+<li>You haven't done anything egregious to piss me off.</li>
+</ul>
+
+<strong>Thanks To</strong>
+<ul>
+<li>The HEMA Alliance for hosting and advertising.</li>
+<li>Jayson Barrons with layout design and consultation.</li>
+<li>Any of you event organizers who gave feedback and feature requests.</li>
+</ul>
+
+<a href='#topOfPage'>Back to Top</a>
 </fieldset>
 
 
