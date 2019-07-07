@@ -5,6 +5,13 @@
   text-decoration: line-through;
 }
 
+.easter-egg:hover {
+    color: red !important;
+}
+
+.easter-egg{
+    color: white !important;
+}
 
 .confirmed-hours{
   color: #3adb76;
@@ -28,6 +35,10 @@
 
 .no-wrap{
   white-space: nowrap;
+}
+
+.no-mouse{
+  pointer-events: none;
 }
 
 @media (min-width: 200px) {
