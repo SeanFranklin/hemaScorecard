@@ -3182,19 +3182,21 @@ function insertLastExchange($matchInfo, $lastExchangeID, $exchangeType,
 		$refTarget = 'NULL';
 	}
 
-	$lastExchangeID = (int)$lastExchangeID;
-	
-	$sql = "SELECT MAX(exchangeID) AS maxExchangeID
-			FROM eventExchanges
-			WHERE matchID = $matchID";
-	$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
+	if($lastExchangeID !== null){
+		$lastExchangeID = (int)$lastExchangeID;
+		
+		$sql = "SELECT MAX(exchangeID) AS maxExchangeID
+				FROM eventExchanges
+				WHERE matchID = $matchID";
+		$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
 
-	if($maxExchangeID != $lastExchangeID){
-		setAlert(USER_ERROR, "Attempting to add exchanges out of order.
-			<BR><i>This can be because you clicked the submit button multiple times,
-				or another user is also adding exchanges to this match.<BR>
-			<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
-		return;
+		if($maxExchangeID != $lastExchangeID){
+			setAlert(USER_ERROR, "Attempting to add exchanges out of order.
+				<BR><i>This can be because you clicked the submit button multiple times,
+					or another user is also adding exchanges to this match.<BR>
+				<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
+			return;
+		}
 	}
 
 	if($exchangeID == null){
