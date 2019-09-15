@@ -755,6 +755,71 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _FobDagger_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = $standing['rosterID'];
+		$score = 0;
+
+		$sql = "SELECT COUNT(*) AS numMatches
+				FROM eventMatches
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$numMatches = (int)mysqlQuery($sql, SINGLE, 'numMatches');
+
+		$controlPrefix = (int)ATTACK_CONTROL_DB;
+		$sql = "SELECT COUNT(*) AS numControlPoints
+				FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE scoringID = {$rosterID}
+				AND tournamentID = {$tournamentID}
+				AND refPrefix = {$controlPrefix}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$score = (int)mysqlQuery($sql, SINGLE, 'numControlPoints');
+		
+
+
+		if($numMatches != 0){
+			$score *= $normalizedMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+		
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standing['standingID']}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 	$tournamentID = (int)$tournamentID;
@@ -782,6 +847,7 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 				FROM eventMatches
 				INNER JOIN eventGroups USING(groupID)
 				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
 				AND groupType = 'pool'
 				AND groupSet = {$groupSet}
 				AND ignoreMatch = 0
