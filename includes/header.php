@@ -12,9 +12,14 @@
 
 include_once('includes/config.php');
 
+$eventStatus = null;
+if($_SESSION['eventID'] != null){
+	$eventStatus = getEventStatus($_SESSION['eventID']);
+}
+
 $livestreamInfo = getLivestreamInfo();
 $vJ = '?=1.0.8'; // Javascript Version
-$vC = '?=1.0.6'; // CSS Version
+$vC = '?=1.0.7'; // CSS Version
 ?>
 
 <!doctype html>
@@ -119,7 +124,7 @@ $vC = '?=1.0.6'; // CSS Version
 								<?php if( $_SESSION['formatID'] == FORMAT_MATCH): ?>
 									<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
 									<li><a href='statsResultsDump.php'>Export Results</a></li>
-									<li><a href='adminFighterInfo.php'>Fighter Exchanges</a></li>
+									<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
 								<?php endif ?>
 
 							<?php endif ?>
@@ -197,7 +202,7 @@ $vC = '?=1.0.6'; // CSS Version
 						</ul>
 					</li>
 				<?php elseif($isSchedule == true
-							&& (getEventStatus() == 'active' || getEventStatus() == 'archived')): ?>
+							&& ($eventStatus == 'active' ||$eventStatus == 'archived')): ?>
 					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 				<?php endif ?>
 			<?php endif ?>
@@ -214,6 +219,19 @@ $vC = '?=1.0.6'; // CSS Version
 				<?php else: ?>
 					<li>
 						<!-- Show nothing -->
+					</li>
+				<?php endif ?>
+
+			<!-- Stats for non-users -->
+				<?php if(	($eventStatus == 'active' || $eventStatus == 'archived')
+						 && (ALLOW['STATS_ALL'] == false)
+						 && (ALLOW['EVENT_MANAGEMENT'] == false)):?>
+					<li><a href='#'>Event Stats</a>
+						<ul class='menu vertical'>
+							<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
+							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
+							<li><a href='statsEvent.php'>Participants/Schools</a></li>
+						</ul>
 					</li>
 				<?php endif ?>
 
@@ -458,9 +476,14 @@ function livestreamAlert($info, $pageName){
 /******************************************************************************/
 function eventNameForHeader(){
 // Add the event name or prompty to select an event
-
 	$eventID = $_SESSION['eventID'];
-	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true): ?>
+	$page = basename($_SERVER['PHP_SELF']);
+
+	if((ALLOW['SOFTWARE_EVENT_SWITCHING'] == true)
+	    || (($_SESSION['userName'] == ''))
+			&& (   ($page == 'statsFighterSummary.php')
+				|| ($page == 'statsTournaments.php')
+				|| ($page == 'statsEvent.php') )): ?>
 		<form method='POST'>
 		<input type='hidden' name='formName' value='selectEvent'>	
 		<div class='grid-x align-center'>
@@ -483,9 +506,13 @@ function eventNameForHeader(){
 
 function eventNameListSelectOptions($eventID){
 
+	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
+		$eventList['Hidden '] = getEventList('hidden');
+		$eventList['Public '] = getEventList('upcoming') + getEventList('active');
+	} else {
+		$eventList['Active '] = getEventList('active');
+	}
 	
-	$eventList['Hidden '] = getEventList('hidden');
-	$eventList['Public '] = getEventList('upcoming') + getEventList('active');
 	$eventList['Archived '] = getEventList('archived');
 
 	if($eventID == null){

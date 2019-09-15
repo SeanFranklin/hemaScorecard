@@ -235,6 +235,10 @@ select {
   cursor:grab;
 }
 
+.bold {
+  font-weight: bold;
+}
+
 .red-text {
   color: red;
 }

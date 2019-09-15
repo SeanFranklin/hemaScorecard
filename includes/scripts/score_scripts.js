@@ -397,12 +397,10 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 
 					if(recievedData['refresh'] == true){
 						location.reload();
-					} else if(recievedData['matchTime'] > 0) {
-						$('#currentTimeDiv').show();
+					} else {
+						
 						$('#matchTime').val(recievedData['matchTime'])
 						updateTimerDisplay();
-					} else {
-						$('#currentTimeDiv').hide();
 					}
 				}
 			}
@@ -513,7 +511,8 @@ function updateTimerDisplay(time = null){
 		seconds = "0"+seconds.toString();
 	}
 
-	str = minutes.toString()+":"+seconds.toString();
+
+	str = minutes.toString()+":"+seconds.toString(); console.log(str);
 	document.getElementById('currentTime').innerHTML = str;
 
 	setTimerButtonColor(time);
@@ -526,6 +525,9 @@ function updateTimerDisplay(time = null){
 function setTimerButtonColor(time){
 
 	target = document.getElementById("timerButton");
+	if(target == null){
+		return;
+	}
 	time = time;
 
 	if( target.classList.contains('running') == true){

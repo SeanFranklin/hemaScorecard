@@ -61,7 +61,7 @@ function createTournamentResults_HemaRatings($tournamentID, $dir = "exports/"){
 	$sql = "SELECT eventID
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
-	$eventID = mysqlQuery($sql, SINGLE, 'tournamentID');
+	$eventID = mysqlQuery($sql, SINGLE, 'eventID');
 	$eventName = getEventName($eventID);
 
 	$fileName = "{$dir}{$tournamentName}.csv";
@@ -72,6 +72,7 @@ function createTournamentResults_HemaRatings($tournamentID, $dir = "exports/"){
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
+			AND placeholderMatchID IS NULL
 			AND (exchangeType = 'winner' OR exchangeType = 'doubleOut' OR exchangeType = 'tie')";
 	$finishedMatches = mysqlQuery($sql, ASSOC);
 	

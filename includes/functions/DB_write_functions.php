@@ -2609,6 +2609,7 @@ function generateTournamentPlacings($tournamentID, $specs){
 			if(isBrackets($tournamentID) == true){
 				$placings = generateTournamentPlacings_bracket($tournamentID, $specs);
 			}
+
 			// deliberate fall through
 		case FORMAT_COMPOSITE:
 			if(isset($placings) == false){
@@ -2616,6 +2617,7 @@ function generateTournamentPlacings($tournamentID, $specs){
 			}
 
 			generateTournamentPlacings_set($tournamentID, $placings);
+
 			break;
 		default:
 			displayAlert(USER_ERROR,"Automatic placing generation not supported for this mode.");
@@ -2635,17 +2637,17 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 	} else {
 		$assignedFighters = [];
 	}
-	
+
 	$numSets = getNumGroupSets($tournamentID);
 
 	$place = 1;
-	$index = 1;
 	foreach($placings['placings'] as $oldIndex => $data){
 		if($data['place'] >= $place){
 			$place = $data['place'] + 1;
-			$index = $oldIndex + 1;
 		}
 	}
+
+	$index = max(array_keys($placings['placings'])) + 1 ;
 
 	$startOfTie = 0;
 	$endOfTie = 0;
@@ -2670,7 +2672,8 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 			$rosterID = $placing['rosterID'];
 			$thisScore = round($placing['score'],3);
 
-			// Don't count the fight if their place was already recorded in a later round/bracket.
+			// Don't count the fight if their place was 
+			// already recorded in a later round/bracket.
 			if(isset($assignedFighters[$rosterID])){
 				continue; 
 			}
@@ -2847,6 +2850,8 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 
 	$tournamentID = (int)$tournamentID;
 	$unfinishedBracketMatches = false;
+	$bracketPlacings = [];
+	$indexToStartCombine = 1;
 
 	if(isset($specs['breakTies']) == true && (int)$specs['breakTies'] != 0){
 		$breakTies = true;
@@ -2854,6 +2859,7 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		$breakTies = false;
 	}
 	$index = 1;
+	$indexToStartCombine = 1;
 
 	$sql = "SELECT groupID, groupName
 			FROM eventGroups
@@ -2911,7 +2917,6 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		$unfinishedBracketMatches = true;
 	}
 
-
 	if($unfinishedBracketMatches == true){
 		// Don't try to update the rest of the matches.
 	} elseif(isset($bracketInfo[BRACKET_SECONDARY]) == true){
@@ -2932,10 +2937,8 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 					$tmp['place'] = $high;
 					$tmp['tie'] = $high - $low + 1;
 					$tmp['bracket'] = true;
-					$placings['placings'][$index] = $tmp;
+					$bracketPlacings[] = $tmp;
 					$assignedFighters[$tmp['rosterID']] = true;
-					$index++;
-
 				} else {
 					$unfinishedBracketMatches = true;
 					break 2;
@@ -2960,9 +2963,8 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 					$tmp['place'] = $high;
 					$tmp['tie'] = $high - $low + 1;
 					$tmp['bracket'] = true;
-					$placings['placings'][$index] = $tmp;
+					$bracketPlacings[] = $tmp;
 					$assignedFighters[$tmp['rosterID']] = true;
-					$index++;
 
 				} else {
 					$unfinishedBracketMatches = true;
@@ -2972,13 +2974,25 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		}
 	}
 
+	// Since the bracket placings were determined by working through the bracket from
+	// the start up they are in reverse order. This combines them into the overal placings
+	// structure (which has the top 4 already) by steping through the loop backwards to
+	// make sure they are in the right order.
+	$stepThrough = 	count($bracketPlacings) -1 ;
+	while($stepThrough >= 0){
+		$placings['placings'][$index] = $bracketPlacings[$stepThrough];
+		$stepThrough--;
+		$index++;
+	}
+
+
 	if($breakTies == true){
 		$placings['placings'] = breakBracketTies($tournamentID, $placings['placings'], $specs);
 	}
 
 	// This needs to be returned and passed into the rating calculation for sets.
 	$placings['assignedFighters'] = $assignedFighters;
-	
+
 	if($unfinishedBracketMatches == true){
 
 		setAlert(USER_ALERT, "Ties detected in tournament. Please confirm results. ");

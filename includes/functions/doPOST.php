@@ -1089,7 +1089,6 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$score1 = $at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
 		
-		
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = $at2['attackPoints'];
 		$scoring[$id2]['hit'] = $score2;
@@ -1099,6 +1098,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		} elseif($at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){
 			$afterblowPrefix = 2;
 		}
+
 
 	} else {
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode in fullAfterblowScoring()";
@@ -1122,6 +1122,13 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 			$rPrefix = (int)$_POST['attackModifier'];
 			$scoreValue += getControlPointValue();
 		}
+
+		if(    $at1['attackPrefix'] == ATTACK_CONTROL_DB 
+			|| $at2['attackPrefix'] == ATTACK_CONTROL_DB){
+
+			$rPrefix = (int)ATTACK_CONTROL_DB;
+		}
+
 		
 	} else {//both hit
 
@@ -1311,7 +1318,7 @@ function checkSession(){
 function changeEvent($eventID, $logoutInhibit = false){
 // Changes event to the parameter provided and redirects to a
 // landing page determined by the login type
-	
+
 	if($_SESSION['eventID'] == $eventID){
 		$eventChanged = false;
 	} else {
@@ -1352,14 +1359,20 @@ function changeEvent($eventID, $logoutInhibit = false){
 		$landingPage = 'infoSummary.php';
 	}
 
+	$origianlPage = basename($_SERVER['PHP_SELF']);
+
 	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
 		if(basename($_SERVER['PHP_SELF']) == "adminLogin.php"){
 			$landingPage = 'infoSelect.php';
-		} elseif(basename($_SERVER['PHP_SELF']) == "infoSelect.php"){
+		} elseif($origianlPage == "infoSelect.php"){
 			$landingPage = 'infoSummary.php';
 		} else {
 			$landingPage = null;
 		}
+	} elseif (   ($origianlPage == 'statsFighterSummary.php')
+			  || ($origianlPage == 'statsTournaments.php')
+			  || ($origianlPage == 'statsEvent.php')){
+		$landingPage = null;
 	}
 
 
