@@ -102,7 +102,9 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 
 	name = encodeURIComponent(JSON.stringify(name));
 
-var path = null; // Hidden by request of HEMA Ratings
+	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?token=2GsAmX8k8HHZ995Ga8V7WCthu38hg52f27UUxJsk&";
+	path = path + "fighterName=" + name;
+	path = path + "&fbclid=IwAR1H0lDdj43iqHCB7Eqm3T36j5b4u8EMZ6lSYeIEXbEBIRmOoXVTxzbrCEE"; 
 
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", path, true);
