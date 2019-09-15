@@ -35,6 +35,9 @@ if($_SESSION['eventID'] == null){
 	$existingAttacks = getTournamentAttacks();
 	$i = 0;
 
+	// Ability to import attacks from other tournaments
+	importAttacksForm($_SESSION['tournamentID'])
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -52,8 +55,9 @@ if($_SESSION['eventID'] == null){
 <a class='button warning' onclick="$('#import-attacks').toggle()" <?=$formLock?> >
 	Import/Copy
 </a>
-
-<?=importAttacksForm($_SESSION['tournamentID'])?>
+<i>
+	Leave the points field blank to delete an entry
+</i>
 
 <table class='stack'>
 	<tr>
@@ -123,7 +127,7 @@ if($_SESSION['eventID'] == null){
 		<!-- Points -->
 			<td>
 				<input type='number' name='newAttack[<?=$i?>][attackPoints]' step=0.1 min=0 max=10
-					placeholder='leave blank to delete' value='<?=$attack['attackPoints']?>'
+					value='<?=$attack['attackPoints']?>'
 					class='no-bottom' >
 			</td>
 		

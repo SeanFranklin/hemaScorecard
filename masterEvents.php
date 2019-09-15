@@ -61,7 +61,34 @@ function displayAdminEventList($eventList){
 						'eventStatus'];
 	if(ALLOW['VIEW_EMAIL'] == true){
 		$fieldsToDisplay[] = 'organizerEmail';
-		$fieldsToDisplay[] = 'termsOfUseAccepted';
+		$fieldsToDisplay[] = 'Setup';
+
+		foreach($eventList as $eventID => $data){
+
+			$isTournaments = true;
+			$isParticipants = true;
+			if($eventList[$eventID]['eventStatus'] != 'archived'){
+				$eventID = (int)$eventID;
+				$sql = "SELECT COUNT(*) as numTournaments
+						FROM eventTournaments
+						WHERE eventID = {$eventID}";
+				$isTournaments = (bool)mysqlQuery($sql, SINGLE, 'numTournaments');
+
+				$sql = "SELECT COUNT(*) as numParticipants
+						FROM eventRoster
+						WHERE eventID = {$eventID}";
+				$isParticipants = (bool)mysqlQuery($sql, SINGLE, 'numParticipants');
+
+				$str = '';
+				$str = notSetMark($eventList[$eventID]['termsOfUseAccepted'])." ";
+				$str .= notSetMark($isTournaments)." ";
+				$str .= notSetMark($isParticipants)." ";
+				$eventList[$eventID]['Setup'] = $str;
+			}
+
+
+		}
+
 	}
 	$archivedReached = false;
 										
@@ -77,13 +104,15 @@ function displayAdminEventList($eventList){
 <!-- Headers -->
 	<tr class='hide-for-small-only'>
 		<th></th>
-		<?php foreach($fieldsToDisplay as $fieldName): 
-			if($fieldName == 'termsOfUseAccepted'){
-				$fieldName = 'Terms';
-			}
-			?>
-
-			<th><?=$fieldName?></th>
+		<?php foreach($fieldsToDisplay as $fieldName): ?>
+			<th>
+				<?=$fieldName?>	
+				<?php 
+					if($fieldName == 'Setup'):
+						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added");
+					endif 
+				?>
+			</th>
 		<?php endforeach ?>
 	</tr>
 	
@@ -129,20 +158,10 @@ function displayAdminEventList($eventList){
 				<?php endif ?>
 			</td>
 			
-			<?php foreach($fieldsToDisplay as $fieldName):
-				$fieldValue = $info[$fieldName];
-
-				if($fieldName == 'termsOfUseAccepted'){
-					if($fieldValue == '0'){
-						$fieldValue = "<strong class='red-text'>✗</strong>";
-					} else {
-						$fieldValue = "<span class='grey-text'>✓</span>";
-					}
-				}
-
-
-				?>
-				<td class='<?=$topBorder?>'><?=$fieldValue?></td>
+			<?php foreach($fieldsToDisplay as $fieldName): ?>
+					<td class='<?=$topBorder?>'>
+						<?=$info[$fieldName]?>
+					</td>
 			<?php endforeach ?>
 		</tr>
 	<?php endforeach ?>

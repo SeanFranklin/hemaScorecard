@@ -15,9 +15,13 @@
 $pageName = 'Event Summary';
 include('includes/header.php');
 
+$eventStatus = getEventStatus($_SESSION['eventID']);
+
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(ALLOW['STATS_EVENT'] == false){	
+} elseif(    ($eventStatus != 'archived' && $eventStatus != 'active')
+	&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)
+    && (ALLOW['STATS_EVENT'] != true)){
 	pageError('user');
 } else {
 	
@@ -37,8 +41,18 @@ if($_SESSION['eventID'] == null){
 		}
 		arsort($clubTotals);
 	}
+
 	$numUnknown = $clubTotals[1];
-	$totalParticipants = 0; // Placeholder, it is set in a loop bellow.
+
+	$totalTournamentEntries = 0; // Placeholder, it is set in a loop bellow.
+	foreach((array)$tournamentList as $ID => $tournament){
+
+		$tmp['name'] = getTournamentName($ID);
+		$tmp['number'] = $tournament['numParticipants'];
+		$totalTournamentEntries += $tmp['number'];
+
+		$tournamentDisplayList[] = $tmp;
+	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -50,10 +64,13 @@ if($_SESSION['eventID'] == null){
 	<div class='large-6 medium-10 small-12'>
 	
 	
-	<div class='callout text-center'>
+	<div class='callout success text-center'>
 		<h5>
 			Total Event Participants:
-			<strong><?=$numParticipants?></strong>
+			<strong><?=$numParticipants?></strong><BR>
+
+			Total Tournament Registrations:
+			<strong><?=$totalTournamentEntries?></strong>
 		</h5>
 	</div>
 	
@@ -61,24 +78,19 @@ if($_SESSION['eventID'] == null){
 	<caption>Participant Numbers</caption>
 	
 
-	<?php foreach((array)$tournamentList as $ID => $tournament): 
-		$name = getTournamentName($ID);
-		$numbers = $tournament['numParticipants'];
-		$totalParticipants += $numbers;
-		?>
-		
+	<?php foreach((array)$tournamentDisplayList as $data): ?>
 		<tr>
-			<td><?=$name?></td>
-			<td class='text-center'><?=$numbers?></td>
+			<td><?=$data['name']?></td>
+			<td class='text-right'><?=$data['number']?></td>
 		</tr>
 	<?php endforeach ?>
 	
 		<tr style='border-top:solid 1px'>
-			<th>
-				<em>Total Entries:</em>
+			<th class='text-right'>
+				<em>Total:</em>
 			</th>
-			<th class='text-center'>
-				<em><?=$totalParticipants?></em>
+			<th class='text-right'>
+				<em><?=$totalTournamentEntries?></em>
 			</th>
 		</tr>
 	</table>

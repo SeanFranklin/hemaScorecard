@@ -745,7 +745,7 @@ function backToListButton($matchInfo){
 		</a>
 		
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
-		<a class='button expanded no-bottom' href='poolMatches.php#anchor<?=$matchID?>'>
+		<a class='button small-expanded no-bottom' href='poolMatches.php#anchor<?=$matchID?>'>
 			Back To Match List
 		</a>
 		
@@ -756,6 +756,14 @@ function backToListButton($matchInfo){
 		</a>
 
 	<?php endif ?>
+
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+		<a class='button no-bottom hollow' 
+			onclick="window.open('scoreMatchDisplay.php','scoreDisplayWindow','toolbar=0,location=0,menubar=0')">
+			Display Window
+		</a>
+	<?php endif ?>
+
 	</div>
 	
 	<!-- Tournament name -->

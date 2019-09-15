@@ -12,9 +12,13 @@
 $pageName = 'Tournament Summary';
 include('includes/header.php');
 
+$eventStatus = getEventStatus($_SESSION['eventID']);
+
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(ALLOW['STATS_EVENT'] == false){
+} elseif(    ($eventStatus != 'archived' && $eventStatus != 'active')
+	&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)
+    && (ALLOW['STATS_EVENT'] != true)){
 	pageError('user');
 } else {
 	
@@ -89,11 +93,11 @@ function tournamentTargetTable($stats){
 	<!-- Headers -->
 		<tr>
 			<th>Tournament</th>
-			<th>1</th>
-			<th>2</th>
-			<th>3</th>
-			<th>4</th>
-			<th>5</th>
+			<th>1 pt</th>
+			<th>2 pts</th>
+			<th>3 pts</th>
+			<th>4 pts</th>
+			<th>5 pts</th>
 		</tr>
 
 	<?php foreach((array)$stats as $tournamentID => $data):
