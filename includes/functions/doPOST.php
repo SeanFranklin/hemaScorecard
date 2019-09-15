@@ -1088,7 +1088,6 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
 		$score1 = $at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
-		show($at1);
 		
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = $at2['attackPoints'];
