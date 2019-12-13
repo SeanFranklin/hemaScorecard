@@ -5,9 +5,9 @@
 *******************************************************************************/
 
 	define("PRIMARY_DATABASE","ScorecardV5");
-	define("DATABASE_HOST","127.0.0.1");
-	define("DATABASE_USER","");
-	define("DATABASE_PASSWORD","");
+	define("DATABASE_HOST","db");
+	define("DATABASE_USER","user");
+	define("DATABASE_PASSWORD","passw0rd");
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
