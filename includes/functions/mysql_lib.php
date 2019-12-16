@@ -68,7 +68,7 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 				$retVal = null;
 			} else {
 				$result = mysqli_fetch_assoc($res);
-				if($key == null){
+				if($key == null || $result == null){
 					$retVal = $result;
 				} else {
 					$retVal = $result[$key];

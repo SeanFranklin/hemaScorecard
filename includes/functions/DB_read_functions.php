@@ -937,9 +937,9 @@ function getEventExchanges($eventID = null){
 					break;
 				case 'noQuality':
 					$tournamentStats[$tournamentID]['noQuality'] += 1;
+					break;
 				default:
-					continue;
-				break;
+					break;
 			}
 			$pointVal = $data['scoreValue'];
 
@@ -2953,7 +2953,10 @@ function getGroupInfo($groupID){
 /******************************************************************************/
 
 function getEventDefaults($eventID = null){
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null) {
+		$eventID = $_SESSION['eventID'];
+	}
+	
 	if($eventID == null){
 		// Not an error, can return a null result
 		return null;
@@ -3843,12 +3846,12 @@ function getSchoolRosterNotInEvent($schoolID, $eventID = null){
 	
 	$orderName = NAME_MODE;
 	
-	$sql = "SELECT system.systemRosterID
-			FROM systemRoster AS system
-			LEFT JOIN eventRoster AS event ON system.systemRosterID = event.systemRosterID AND event.eventID = {$eventID}
-			WHERE system.schoolID = {$schoolID}
-			AND event.eventID IS null
-			ORDER BY {$orderName} ASC"; 
+	$sql = "SELECT s.systemRosterID
+			FROM systemRoster AS s
+			LEFT JOIN eventRoster AS e ON s.systemRosterID = e.systemRosterID AND e.eventID = {$eventID}
+			WHERE s.schoolID = {$schoolID}
+			AND e.eventID IS null
+			ORDER BY s.{$orderName} ASC"; 
  
 	return mysqlQuery($sql, ASSOC);
 	

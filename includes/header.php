@@ -270,7 +270,7 @@ $vC = '?=1.0.7'; // CSS Version
 				<li><a href='adminHelp.php'>Help/About</a></li>
 				
 			<!-- Livestream -->
-				<?php if($livestreamInfo['isLive'] == 1): ?>
+				<?php if(($livestreamInfo['isLive'] ?? null) == 1): ?>
 					<li><a class='button warning hollow' href='livestream.php'>Livestream</a></li>
 				<?php endif ?>
 				
@@ -446,7 +446,7 @@ function livestreamAlert($info, $pageName){
 	
 	if(strpos($pageName, 'Livestream') !== false) { return; }
 	if(isset($_SESSION['hideLivestreamAlert']) && $_SESSION['hideLivestreamAlert'] == true){ return; }
-	if($info['isLive'] != 1){ return; }
+	if(($info['isLive'] ?? null) != 1){ return; }
 	
 	?>
 	
