@@ -703,7 +703,7 @@ function tableHeaders(){
 	
 	<thead >
 	<tr>
-		<?php if(ALLOW_EDITING == false):?>
+		<?php if(ALLOW_EDITING == true):?>
 			<th>
 				<span class='hide-for-small-only'>Remove</span>
 				<span class='show-for-small-only'>X</span>
