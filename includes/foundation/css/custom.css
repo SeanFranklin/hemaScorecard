@@ -251,6 +251,10 @@ select {
   color: grey;
 }
 
+.black-text {
+  color: black;
+}
+
 .alert-text {
   color: #F04124;
 }
