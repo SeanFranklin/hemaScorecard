@@ -97,14 +97,27 @@ function schoolInputPlaceholders(){
 
 function hemaRatings_getByName(buttonID, name, systemRosterID){
 
+	if(typeof HEMA_RATINGS_TOKEN === 'undefined'){
+		alert("No Token");
+		return;
+	}
+
 	$(buttonID).addClass("secondary");
 	$(buttonID).removeClass("warning");
 
 	name = encodeURIComponent(JSON.stringify(name));
+	
+	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?";
+	path = path + "token=" + HEMA_RATINGS_TOKEN;
+	path = path + "&fighterName=" + name;
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME; 
 
-	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?token=2GsAmX8k8HHZ995Ga8V7WCthu38hg52f27UUxJsk&";
-	path = path + "fighterName=" + name;
-	path = path + "&fbclid=IwAR1H0lDdj43iqHCB7Eqm3T36j5b4u8EMZ6lSYeIEXbEBIRmOoXVTxzbrCEE"; 
+	/* Unused code to fetch fighter by ID
+	var path = "http://hemaranking.azurewebsites.net/api/OrganizerToolsApi/GetById/?";
+	path = path + "token=" + HEMA_RATINGS_TOKEN;
+	path = path + "&id=6=";
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_ID; 
+	*/
 
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", path, true);
@@ -162,6 +175,10 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 
 function hemaRatings_getByNameAll(){
 
+	if(typeof HEMA_RATINGS_TOKEN === 'undefined'){
+		alert("No Token");
+		return;
+	}
 
 	$(".hemaRatingsGetInfo").each(function(){
 		console.log(this);
