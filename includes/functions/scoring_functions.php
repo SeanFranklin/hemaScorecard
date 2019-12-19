@@ -1057,7 +1057,7 @@ function _LpMeta_calculateScore($tournamentID, $groupSet = 1){
 /******************************************************************************/
 
 function pool_ScoreFighters($tournamentID, $groupSet = 1){
-// Calls the appropriate funciton to score fighters given the tournament
+// Calls the appropriate function to score fighters given the tournament
 // scoring algorithm
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
@@ -1089,7 +1089,7 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 /******************************************************************************/
 
 function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
-// Calls the appropriate funciton to display the fighters pool standings 
+// Calls the appropriate function to display the fighters pool standings 
 // given the tournament scoring algorithm
 
 	$bracketInfo = getBracketInformation($tournamentID);
@@ -1260,6 +1260,8 @@ function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracke
 	$description = getRankingDescriptionByTournament($tournamentID);
 	if($description['description'] == ''){
 		$description['description'] = 'No description provided in Database.';
+	} elseif((int)$description['basePointValue'] != 0) {
+		$description['description'] .= "<BR><BR>Base Point Value: {$description['basePointValue']}";
 	}
 
 	$winnerText = '';

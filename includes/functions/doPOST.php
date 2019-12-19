@@ -16,7 +16,6 @@ function _select_above(){
 
 function processPostData(){
 
-
 	///////////////////////////////////////////////////////////////////////
 	/* For debugging, commented out for regular use ///
 	if(ALLOW['SOFTWARE_ADMIN'] == true){
@@ -286,8 +285,8 @@ function processPostData(){
 			case 'autoFinalizeTournament':
 				$tID = $_POST['tournamentID'];
 				if($tID == 0){
+					// Do nothing. It is a request to exit editing mode.
 					break;
-					// Do nothing. It is a cancel request.
 				} elseif($formName == 'finalizeTournament'){
 					recordTournamentPlacings($tID,$_POST['tournamentPlacings']);
 				} else {
@@ -334,7 +333,10 @@ function processPostData(){
 			case 'SubmitToS':
 				processToS($_POST['ToS']);
 				break;
-
+			case 'hemaRatings_UpdateEventInfo':
+				hemaRatings_updateEventInfo($_POST['eventHemaRatings']);
+				break;
+			
 
 	// Admin Cases
 			case 'editExistingSchool':
@@ -358,8 +360,8 @@ function processPostData(){
 			case 'duplicateNameSearchType':
 				$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
 				break;
-			case 'HemaRatingsUpdate':
-				updateHemaRatingsInfo(@$_POST['hemaRatings']); // may be empty, that's ok.
+			case 'hemaRatings_UpdateFighterIDs':
+				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
 
 	// Logistics Cases
@@ -410,8 +412,8 @@ function processPostData(){
 			case 'dataFilters':
 				setDataFilters();
 				break;
-			case 'HemaRatingsExport':
-				exportHemaRatings($_POST['HemaRatingsExport']);
+			case 'hemaRatings_ExportCsv':
+				hemaRatings_ExportCsv($_POST['HemaRatingsExport']);
 				break;
 			case 'toggleStatsType':
 				$_SESSION['StatsInfo']['displayType'] = $_POST['statsType']['display'];
@@ -601,26 +603,31 @@ function changePage($newPage){
 
 /******************************************************************************/
 
-function exportHemaRatings($informationType){
+function hemaRatings_ExportCsv($informationType){
 
 	if($informationType == 'all'){
 
-		$csvNames[0] = createEventRoster_HemaRatings($_SESSION['eventID'], EXPORT_DIR);
+		$csvNames[0] = hemaRatings_createEventRosterCsv($_SESSION['eventID'], EXPORT_DIR);
 		uploadZipFile($csvNames);
+
+	} elseif($informationType == 'eventInfo'){
+
+		$fileName = hemaRatings_createEventInfoCsv($_SESSION['eventID'], EXPORT_DIR);
+		uploadCsvFile($fileName);
 
 	} elseif($informationType == 'roster'){
 		
-		$fileName = createEventRoster_HemaRatings($_SESSION['eventID'], EXPORT_DIR);
+		$fileName = hemaRatings_createEventRosterCsv($_SESSION['eventID'], EXPORT_DIR);
 		uploadCsvFile($fileName);
 
 	} elseif(is_numeric($informationType)){
 
-		$fileName = createTournamentResults_HemaRatings($informationType, EXPORT_DIR);
+		$fileName = hemaRatings_createTournamentResultsCsv($informationType, EXPORT_DIR);
 		uploadCsvFile($fileName);
 
 	} else{
 
-		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to exportHemaRatings()';
+		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to hemaRatings_ExportCsv()';
 	}
 
 }
@@ -1027,6 +1034,10 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	} else {
 		$exchangeType = 'afterblow';
 		$scoreDeduction = $scoring[$rosterID]['afterblow'];
+
+		if($scoreDeduction > $scoreValue){
+			$scoreDeduction = $scoreValue;
+		}
 	}
 	
 	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
@@ -1359,19 +1370,19 @@ function changeEvent($eventID, $logoutInhibit = false){
 		$landingPage = 'infoSummary.php';
 	}
 
-	$origianlPage = basename($_SERVER['PHP_SELF']);
+	$originalPage = basename($_SERVER['PHP_SELF']);
 
 	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
 		if(basename($_SERVER['PHP_SELF']) == "adminLogin.php"){
 			$landingPage = 'infoSelect.php';
-		} elseif($origianlPage == "infoSelect.php"){
+		} elseif($originalPage == "infoSelect.php"){
 			$landingPage = 'infoSummary.php';
 		} else {
 			$landingPage = null;
 		}
-	} elseif (   ($origianlPage == 'statsFighterSummary.php')
-			  || ($origianlPage == 'statsTournaments.php')
-			  || ($origianlPage == 'statsEvent.php')){
+	} elseif (   ($originalPage == 'statsFighterSummary.php')
+			  || ($originalPage == 'statsTournaments.php')
+			  || ($originalPage == 'statsEvent.php')){
 		$landingPage = null;
 	}
 

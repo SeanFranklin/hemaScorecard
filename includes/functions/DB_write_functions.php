@@ -49,7 +49,7 @@ function deleteFromEvent(){
 	
 	$_SESSION['checkEvent']['all'] = true;
 	
-	updateTournamentFighterCounts();
+	updateTournamentFighterCounts(null, $eventID);
 	
 }
 
@@ -677,7 +677,7 @@ function addEventParticipantsByID(){
 		
 	}
 	
-	updateTournamentFighterCounts();
+	updateTournamentFighterCounts(null, $eventID);
 	
 }
 
@@ -825,7 +825,7 @@ function addEventParticipantsByName(){
 		}
 	}
 	
-	updateTournamentFighterCounts();
+	updateTournamentFighterCounts(null, $eventID);
 	
 }
 
@@ -1258,7 +1258,7 @@ function addToTournament(){
 		mysqlQuery($sql, SEND);
 	}
 
-	updateTournamentFighterCounts($tournamentID);
+	updateTournamentFighterCounts($tournamentID, null);
 }
 
 /******************************************************************************/
@@ -2212,7 +2212,7 @@ function deleteFromTournament(){
 		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS; 
 	}
 	
-	updateTournamentFighterCounts($tournamentID);
+	updateTournamentFighterCounts($tournamentID, null);
 	
 }
 
@@ -2495,7 +2495,7 @@ function editEventParticipant(){
 	}
 	
 	$_SESSION['jumpTo'] = "anchor{$rosterID}";
-	updateTournamentFighterCounts();
+	updateTournamentFighterCounts(null, $eventID);
 }
 
 /******************************************************************************/
@@ -2641,13 +2641,13 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 	$numSets = getNumGroupSets($tournamentID);
 
 	$place = 1;
-	foreach($placings['placings'] as $oldIndex => $data){
+	foreach(@(array)$placings['placings'] as $oldIndex => $data){ // May not exist, ignore the entry.
 		if($data['place'] >= $place){
 			$place = $data['place'] + 1;
 		}
 	}
 
-	$index = max(array_keys($placings['placings'])) + 1 ;
+	$index = @max(array_keys($placings['placings'])) + 1 ; // May not exist, treat as zero.
 
 	$startOfTie = 0;
 	$endOfTie = 0;
@@ -4420,8 +4420,8 @@ function updateEventTournaments(){
 		return;
 	}
 	
-	$eventID = $_SESSION['eventID'];
-	if($eventID == null){return;}
+	$eventID = (int)$_SESSION['eventID'];
+	if($eventID == 0){return;}
 
 	$defaults = getEventDefaults($eventID);
 	$info = $_POST['updateTournament'];
@@ -4929,7 +4929,7 @@ function updateFinalsBracket(){
 
 /******************************************************************************/
 
-function updateHemaRatingsInfo($fighters){
+function hemaRatings_updateFighterIDs($fighters){
 
 	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
 	if($fighters == null){return;}
@@ -4972,6 +4972,77 @@ function updateHemaRatingsInfo($fighters){
 	}
 
 	setAlert(USER_ALERT,"HEMA Ratings IDs updated");
+}
+
+/******************************************************************************/
+
+function hemaRatings_updateEventInfo($info){
+
+	$eventID = (int)$info['eventID'];
+
+	$sql = "SELECT hemaRatingInfoID
+			FROM eventHemaRatingsInfo
+			WHERE eventID = {$eventID}";
+	$hemaRatingInfoID = (int)mysqlQuery($sql, SINGLE, 'hemaRatingInfoID');
+
+	if($hemaRatingInfoID == 0){
+		$sql = "INSERT INTO eventHemaRatingsInfo
+				(eventID)
+				VALUES
+				({$eventID})";
+		mysqlQuery($sql, SEND);
+
+		$hemaRatingInfoID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);	
+	}
+
+	$organizingSchool = (int)$info['organizingSchool'];
+	
+	if($info['eventConform'] == ""){
+		$eventConform = "NULL";
+	} else {
+		$eventConform = (int)$info['eventConform'];
+	}
+
+	if($info['allMatchesFought'] == ""){
+		$allMatchesFought = "NULL";
+	} else {
+		$allMatchesFought = (int)$info['allMatchesFought'];
+	}
+	
+	if($info['missingMatches'] == ""){
+		$missingMatches = "NULL";
+	} else {
+		$missingMatches = (int)$info['missingMatches'];
+	}
+
+	$sql = "UPDATE eventHemaRatingsInfo
+			SET organizingSchool = {$organizingSchool},
+			socialMediaLink = ?,
+			photoLink = ?,
+			submitterName = ?,
+			submitterEmail = ?,
+			organizerName = ?,
+			eventConform = {$eventConform},
+			allMatchesFought = {$allMatchesFought},
+			missingMatches = {$missingMatches},
+			notes = ?
+			WHERE hemaRatingInfoID = {$hemaRatingInfoID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "ssssss", 
+				$info['socialMediaLink'],
+				$info['photoLink'],
+				$info['submitterName'],
+				$info['submitterEmail'],
+				$info['organizerName'],
+				$info['notes']
+			);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+	setAlert(USER_ALERT,"HEMA Ratings information updated");
+
 }
 
 /******************************************************************************/

@@ -8,7 +8,151 @@
 
 /******************************************************************************/
 
-function createEventRoster_HemaRatings($eventID = null, $dir = "exports/"){
+function readTournamentOption($tournamentID, $optionID){
+	$tournamentID = (int)$tournamentID;
+	$optionID = (int)$optionID;
+
+	$sql = "SELECT optionValue
+			FROM eventTournamentOptions
+			WHERE tournamentID = {$tournamentID}
+			AND optionID = {$optionID}";
+	return ( (int)mysqlQuery($sql, SINGLE, 'optionValue') );
+}
+
+/******************************************************************************/
+
+function hemaRatings_getSystemCount(){
+
+	$formatID = (int)FORMAT_MATCH;
+	$sql = "SELECT COUNT(DISTINCT(systemRosterID)) as num
+			FROM eventTournamentRoster
+			INNER JOIN eventTournaments USING(tournamentID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE formatID = {$formatID}";
+	$inSystem['total'] = (int)mysqlQuery($sql, SINGLE, 'num');
+
+	$sql = "SELECT COUNT(DISTINCT(systemRosterID)) as num
+			FROM eventTournamentRoster
+			INNER JOIN eventTournaments USING(tournamentID)
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster USING(systemRosterID)
+			WHERE formatID = {$formatID}
+			AND HemaRatingsID IS NOT NULL";
+	$inSystem['rated'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$inSystem['unrated'] = $inSystem['total'] - $inSystem['rated'];
+
+	return $inSystem;
+}
+
+/******************************************************************************/
+
+function hemaRatings_getUnrated(){
+	
+	$formatID = (int)FORMAT_MATCH;
+	$sql = "SELECT DISTINCT(systemRosterID), sR.schoolID, systemSchools.schoolCountry, 
+				schoolShortName, firstName
+			FROM eventTournamentRoster
+			INNER JOIN eventTournaments USING(tournamentID)
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster AS sR USING(systemRosterID)
+			INNER JOIN systemSchools ON sR.schoolID = systemSchools.schoolID
+			WHERE formatID = {$formatID}
+			AND HemaRatingsID IS NULL
+			ORDER BY schoolShortName ASC, firstName ASC";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
+function hemaRatings_GetEventInfo($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT CONCAT(eventName, ' ', eventYear) AS eventName, eventStartDate,
+		 		eventCountry,eventProvince, eventCity, 
+				(	SELECT schoolFullName
+					FROM systemSchools
+					WHERE schoolID = organizingSchool) AS schoolName,
+				socialMediaLink, photoLink, submitterName, submitterEmail,
+				organizerName, organizerEmail,
+				eventConform, allMatchesFought, missingMatches, notes,
+				organizingSchool
+			FROM systemEvents
+			LEFT JOIN eventHemaRatingsInfo USING(eventID)
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE);
+}
+
+/******************************************************************************/
+
+function hemaRatings_GetEventRosterForExport($eventID){
+	if($eventID == null){
+		setAlert(SYSTEM,"No eventID in hemaRatings_GetEventRosterForExport()");
+		return;
+	}
+	
+	// The schoolID in eventRoster and systemRoste may not be the same
+	// School in event is what they were at the time of the event, in
+	// the system it is the school from the latest appearance
+	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.schoolCountry, sys.HemaRatingsID
+			FROM eventRoster ev
+			INNER JOIN systemRoster sys ON sys.systemRosterID = ev.systemRosterID
+			INNER JOIN systemSchools sch ON ev.schoolID = sch.schoolID
+			WHERE ev.eventID = {$eventID}";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
+function hemaRatings_getFighterID($systemRosterID){
+	$systemRosterID = (int)$systemRosterID;
+
+	$sql = "SELECT HemaRatingsID
+			FROM systemRoster
+			WHERE systemRosterID = {$systemRosterID}";
+	return mysqlQuery($sql, SINGLE, 'HemaRatingsID');
+
+}
+
+/******************************************************************************/
+
+function hemaRatings_createEventInfoCsv($eventID = null, $dir = "exports/"){
+
+// Get roster/event information	
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){
+		setAlert(SYSTEM,"No Event ID in createRosterCsv");
+		return;
+	}
+
+	$eventInfo = hemaRatings_GetEventInfo($eventID);
+
+	$eventRoster = hemaRatings_GetEventRosterForExport($eventID);
+	$fileName = "{$dir}eventInfo.csv";
+
+// Create the CSV file	
+	$fp = fopen($fileName, 'w');
+
+	foreach($eventInfo as $field => $data){
+		if($field == 'organizingSchool'){
+			// This is the schoolID, not the school name. Don't export this.
+			continue;
+		}
+
+		$name = hemaRatings_getFieldDisplayName($field);
+
+		fputs($fp, "{$name},{$data} ");
+		fputs($fp, PHP_EOL);
+
+	}
+
+	fclose($fp);
+
+	return $fileName;
+}
+
+/******************************************************************************/
+
+function hemaRatings_CreateEventRosterCsv($eventID = null, $dir = "exports/"){
 // Creates a .csv file with the eventRoster
 // Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
@@ -20,7 +164,7 @@ function createEventRoster_HemaRatings($eventID = null, $dir = "exports/"){
 		return;
 	}
 
-	$eventRoster = getEventRosterForExport($eventID);
+	$eventRoster = hemaRatings_GetEventRosterForExport($eventID);
 	$eventName = getEventName($eventID);
 	$fileName = "{$dir}fighters.csv";
 
@@ -46,7 +190,97 @@ function createEventRoster_HemaRatings($eventID = null, $dir = "exports/"){
 
 /******************************************************************************/
 
-function createTournamentResults_HemaRatings($tournamentID, $dir = "exports/"){
+function hemaRatings_isEventInfoRequired($field){
+
+	switch($field){
+		case 'eventName':
+		case 'eventStartDate':
+		case 'eventCountry':
+		case 'eventCity':
+		case 'socialMediaLink':
+		case 'photoLink':
+		case 'submitterName':
+		case 'submitterEmail':
+		case 'eventConform':
+		case 'allMatchesFought':
+		case 'missingMatches':
+			return true;
+		default:
+			return false;	
+	}
+
+}
+
+/******************************************************************************/
+
+function hemaRatings_lockFieldUntilComplete($field){
+
+	switch($field){
+		case 'submitterName':
+		case 'submitterEmail':
+		case 'eventConform':
+		case 'allMatchesFought':
+		case 'missingMatches':
+			return true;
+		default:
+			return false;	
+	}
+
+}
+
+/******************************************************************************/
+
+function hemaRatings_getFieldDisplayName($field){
+
+	switch($field){
+		case 'eventName':			return 	'Event Name';		break;
+		case 'eventStartDate':		return 	'Event Start Date';	break;
+		case 'eventCountry':		return 	'Event Country';	break;
+		case 'eventProvince':		return 	'Event State/Province';	break;
+		case 'eventCity':			return 	'Event City';	break;
+		case 'organizingSchool':	return 	'Organizing School';	break;
+		case 'schoolName':			return 	'Organizing School';	break;
+		case 'socialMediaLink':		return 	'Social Media Link';	break;
+		case 'photoLink':			return 	'Photo Link';	break;
+		case 'submitterName':		return 	'Submitter Name';	break;
+		case 'submitterEmail':		return 	'Submitter E-mail';	break;
+		case 'organizerName':		return 	'Organizer Name';	break;
+		case 'organizerEmail':		return 	'Organizer E-mail';	break;
+		case 'eventConform':		return 	'Does the event conform to the HEMA Ratings event criteria?';	break;
+		case 'allMatchesFought':	return "Are there any fights in the submitted results that didn't happen?"; break;
+		case 'missingMatches':		return 'Are there any missing fights in the data?';	break;
+		case 'notes':				return 'Additional notes';	break;
+		default:
+			return null;	
+	}
+
+}
+
+/******************************************************************************/
+
+function hemaRatings_isEventInfoComplete($eventID, $hemaRatingInfo = null){
+
+	if($hemaRatingInfo == null){
+		$hemaRatingInfo = hemaRatings_GetEventInfo($eventID);
+	}
+
+	foreach($hemaRatingInfo as $field => $value){
+		if(hemaRatings_isEventInfoRequired($field) == false){
+			continue;
+		}
+
+		if($value == null){
+			return false;
+		}
+	}
+
+	return true;
+	
+}
+
+/******************************************************************************/
+
+function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"){
 // Creates a .csv file with the results of all tournament matches
 // Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
@@ -1336,25 +1570,6 @@ function getEventStatus($eventID = null){
 
 /******************************************************************************/
 
-function getEventRosterForExport($eventID){
-	if($eventID == null){
-		setAlert(SYSTEM,"No eventID in getEventRosterForExport()");
-		return;
-	}
-	
-	// The schoolID in eventRoster and systemRoste may not be the same
-	// School in event is what they were at the time of the event, in
-	// the system it is the school from the latest appearance
-	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.schoolCountry, sys.HemaRatingsID
-			FROM eventRoster ev
-			INNER JOIN systemRoster sys ON sys.systemRosterID = ev.systemRosterID
-			INNER JOIN systemSchools sch ON ev.schoolID = sch.schoolID
-			WHERE ev.eventID = {$eventID}";
-	return mysqlQuery($sql, ASSOC);
-}
-
-/******************************************************************************/
-
 function getFighterExchanges($rosterID, $weaponID){
 
 	// Exchanges with the fighter scoring
@@ -2031,61 +2246,6 @@ function getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID){
 	$result = mysqlQuery($sql, ASSOC);
 	return count($result);
 	
-}
-
-/******************************************************************************/
-
-function hemaRatings_getSystemCount(){
-
-	$formatID = (int)FORMAT_MATCH;
-	$sql = "SELECT COUNT(DISTINCT(systemRosterID)) as num
-			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			INNER JOIN eventRoster USING(rosterID)
-			WHERE formatID = {$formatID}";
-	$inSystem['total'] = (int)mysqlQuery($sql, SINGLE, 'num');
-
-	$sql = "SELECT COUNT(DISTINCT(systemRosterID)) as num
-			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			INNER JOIN eventRoster USING(rosterID)
-			INNER JOIN systemRoster USING(systemRosterID)
-			WHERE formatID = {$formatID}
-			AND HemaRatingsID IS NOT NULL";
-	$inSystem['rated'] = (int)mysqlQuery($sql, SINGLE, 'num');
-	$inSystem['unrated'] = $inSystem['total'] - $inSystem['rated'];
-
-	return $inSystem;
-}
-
-/******************************************************************************/
-
-function hemaRatings_getUnrated(){
-	
-	$formatID = (int)FORMAT_MATCH;
-	$sql = "SELECT DISTINCT(systemRosterID), sR.schoolID, systemSchools.schoolCountry, 
-				schoolShortName, firstName
-			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			INNER JOIN eventRoster USING(rosterID)
-			INNER JOIN systemRoster AS sR USING(systemRosterID)
-			INNER JOIN systemSchools ON sR.schoolID = systemSchools.schoolID
-			WHERE formatID = {$formatID}
-			AND HemaRatingsID IS NULL
-			ORDER BY schoolShortName ASC, firstName ASC";
-	return mysqlQuery($sql, ASSOC);
-}
-
-/******************************************************************************/
-
-function getHemaRatingsID($systemRosterID){
-	$systemRosterID = (int)$systemRosterID;
-
-	$sql = "SELECT HemaRatingsID
-			FROM systemRoster
-			WHERE systemRosterID = {$systemRosterID}";
-	return mysqlQuery($sql, SINGLE, 'HemaRatingsID');
-
 }
 
 /******************************************************************************/
@@ -5276,7 +5436,7 @@ function getTournamentsFull($eventID = null){
 // returns an unsorted array of all tournaments at the event, and all attributes 
 // associated with each	
 // indexed by tournamentID
-	
+
 	if($eventID == null){$eventID = $_SESSION['eventID'];}
 	if($eventID == null){
 		setAlert(SYSTEM,"No eventID in getTournamentsFull()");
@@ -5949,6 +6109,37 @@ function isFinalized($tournamentID){
 
 /******************************************************************************/
 
+function areAllTournamentsFinalized($eventID){
+	
+	$eventID = (int)$eventID;
+	$allAllFinalized = false;
+	
+	$sql = "SELECT COUNT(*) AS numUnfinalized
+			FROM eventTournaments
+			WHERE eventID = {$eventID}
+			AND isFinalized = 0";
+	$numUnfinalized = (int)mysqlQuery($sql, SINGLE, 'numUnfinalized');
+	
+
+	if($numUnfinalized == 0){
+
+		// Second check to make sure there actually are tournaments at all.
+		$sql = "SELECT COUNT(*) AS numTournaments
+				FROM eventTournaments
+				WHERE eventID = {$eventID}";
+		$numTotal = (int)mysqlQuery($sql, SINGLE, 'numTournaments');
+
+		if($numTotal != 0){
+			$allAllFinalized = true;
+		} 
+	}
+	
+	return $allAllFinalized;
+
+}
+
+/******************************************************************************/
+
 function isDoubleHits($tournamentID = null){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){
@@ -6123,7 +6314,7 @@ function getRankingTypeDescriptions(){
 function getRankingDescriptionByTournament($tournamentID){
 	$tournamentID = (int)$tournamentID;
 
-	$sql = "SELECT description, poolWinnersFirst
+	$sql = "SELECT description, poolWinnersFirst, basePointValue
 			FROM eventTournaments AS eT
 			INNER JOIN systemRankings USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
