@@ -45,8 +45,15 @@ if($eventID == null){
 	$roster = getEventRoster($sortString);
 	$schoolList = getSchoolList();
 
-// For entering new participants
 	if(ALLOW['EVENT_MANAGEMENT'] == true){
+		define("ALLOW_EDITING", true);
+	} else {
+		define("ALLOW_EDITING", false);
+	}
+
+
+// For entering new participants
+	if(ALLOW_EDITING == true){
 		if(!isset($_SESSION['addEventParticipantsMode'])){
 			$_SESSION['addEventParticipantsMode'] = '';
 		}
@@ -113,7 +120,7 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 			>
 		
 		<!-- Deletion checkboxes -->
-			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+			<?php if(ALLOW_EDITING == true): ?>
 				<td>
 					<a name="anchor<?=$rosterID?>"></a>
 					<input type='checkbox' name='deleteFromEvent[<?=$rosterID?>]'
@@ -213,8 +220,7 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 	
 	</table>
 
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-		
+	<?php if(ALLOW_EDITING == true): ?>
 		<span id='deleteButtonContainer'>
 			<button class='button alert hollow' name='formName' value='deleteFromEvent' id='deleteButton'>
 				Delete Selected
@@ -229,7 +235,7 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 /******************************************************************************/
 
 function addNewParticipantsButtons(){
-	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
+	if(ALLOW_EDITING == false){ return; }
 	?>
 
 	<div style='display:inline-block'>
@@ -328,7 +334,7 @@ function displayEntryConflicts(){
 function addNewParticipantsBySchool($tournamentList,$schoolList){
 // Interface to add participants to the event
 
-	if(ALLOW['EVENT_MANAGEMENT'] == false){ return;}
+	if(ALLOW_EDITING == false){ return;}
 	if(!isset($_SESSION['newParticipantsSchoolID'])){
 		$_SESSION['newParticipantsSchoolID'] = '';
 	}
@@ -558,7 +564,7 @@ function editParticipant($rosterID,$schoolList){
 // Edit the information attributed with a participant
 // Values to be filled in by Javascript
 
-	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
+	if(ALLOW_EDITING == false){ return; }
 	$tournamentIDs = getEventTournaments();
 	?>
 	
@@ -697,7 +703,7 @@ function tableHeaders(){
 	
 	<thead >
 	<tr>
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
+		<?php if(ALLOW_EDITING == false):?>
 			<th>
 				<span class='hide-for-small-only'>Remove</span>
 				<span class='show-for-small-only'>X</span>

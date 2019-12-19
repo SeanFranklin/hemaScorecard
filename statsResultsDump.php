@@ -37,6 +37,17 @@ if($_SESSION['eventID'] == null){
 	
 	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
 	$email = getEventEmail();
+
+	$eventExportClass = '';
+	$eventExportErrText = '';
+	if(areAllTournamentsFinalized($_SESSION['eventID']) == false){
+		$eventExportClass = "alert hollow";
+		$eventExportErrText = "<em>Unfinalized Tournaments.</em> ";
+	}
+	if(hemaRatings_isEventInfoComplete($_SESSION['eventID']) == false){
+		$eventExportClass = "alert hollow";
+		$eventExportErrText = "<em>Form incomplete</em> ";
+	}
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -48,7 +59,7 @@ if($_SESSION['eventID'] == null){
 	<fieldset class='fieldset'>
 	<legend><h4>HEMA Ratings Format</h4></legend>
 	<form method='POST'>
-	<input type='hidden' name='formName' value='HemaRatingsExport'>
+	<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
 	
 <!-- Export All -->
 	<!--<button class='button success' name='HemaRatingsExport' value='all'>
@@ -59,12 +70,21 @@ if($_SESSION['eventID'] == null){
 	<BR>-->
 
 <!-- Export roster -->
+	<button class='button <?=$eventExportClass?>' name='HemaRatingsExport' value='eventInfo'>
+		Export Event Information
+	</button>
+	<?=$eventExportErrText?>
+
+
+	<BR>
+
 	<button class='button' name='HemaRatingsExport' value='roster'>
 		Export Roster
 	</button>
 	<?php if(ALLOW['STATS_ALL'] == true): ?>
 		<i> - Remember to return any HEMA Ratings IDs not on this list!
 	<?php endif ?>
+
 	<BR><BR>
 
 <!-- Export tournaments -->

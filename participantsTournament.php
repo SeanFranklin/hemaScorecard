@@ -31,34 +31,20 @@ if($tournamentID == null){
 		$sortString = 'name';
 	}
 
- 	
 
-
-	if(LOCK_TOURNAMENT == ''){
-		if(ALLOW['EVENT_MANAGEMENT'] != true){
-			define("ALLOW_EDITING", false);
-		} else {
-			if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
-				|| isCompositeRosterManual($tournamentID) == true){
-				define("ALLOW_EDITING", true);
-			} else {
-				define("ALLOW_EDITING", false);
-			}
-		}
-
-		if(ALLOW['EVENT_SCOREKEEP'] != true){
-			define("ALLOW_CHECKIN", false);
-		} else {
-			if(    $_SESSION['formatID'] != FORMAT_COMPOSITE
-				|| isCompositeRosterManual($tournamentID) == true){
-				define("ALLOW_CHECKIN", true);
-			} else {
-				define("ALLOW_CHECKIN", false);
-			}
-		}
-	} else {
+	// Check if editing the event tournament roster, or if checking fighters in is allowed.
+	if(   (LOCK_TOURNAMENT != '')
+	   || (ALLOW['EVENT_SCOREKEEP'] == false)
+	){
 		define("ALLOW_EDITING", false);
 		define("ALLOW_CHECKIN", false);
+	} else {
+		define("ALLOW_CHECKIN", true);
+		if(ALLOW['EVENT_MANAGEMENT'] == true){
+			define("ALLOW_EDITING", true);
+		} else {
+			define("ALLOW_EDITING", false);
+		}
 	}
 
 	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
@@ -193,30 +179,28 @@ include('includes/footer.php');
 
 function tournamentRosterManagement($eventRoster, $namesEntered){
 
-	if(ALLOW['EVENT_SCOREKEEP'] == false){
+	if(ALLOW_EDITING == false){
 		return;
 	}
 
 ?>
 
 <!-- Delete participants -->
-	<?php if(ALLOW_EDITING == true): ?>
-		<?php confirmDeleteReveal('tournamentRosterForm', 'deleteFromTournamentRoster', 'large'); ?>
-		<span id='deleteButtonContainer'>
-			<button class='button alert hollow' name='formName' value='deleteFromTournamentRoster' 
-				id='deleteButton' <?=LOCK_TOURNAMENT?>>
-				Delete Selected
-			</button>
-		</span>
-	<?php endif ?>
 
-	<?php if(ALLOW_EDITING == true): ?>
-		&nbsp;
-		<a class='button hollow' onclick="toggleClass('add-fighters')" <?=LOCK_TOURNAMENT?>>
-			Add Fighters
-			<span class='add-fighters'>↓</span>
-			<span class='add-fighters hidden'>↑</span>
-		</a>
+	<?php confirmDeleteReveal('tournamentRosterForm', 'deleteFromTournamentRoster', 'large'); ?>
+	<span id='deleteButtonContainer'>
+		<button class='button alert hollow' name='formName' value='deleteFromTournamentRoster' 
+			id='deleteButton' <?=LOCK_TOURNAMENT?>>
+			Delete Selected
+		</button>
+	</span>
+
+	&nbsp;
+	<a class='button hollow' onclick="toggleClass('add-fighters')" <?=LOCK_TOURNAMENT?>>
+		Add Fighters
+		<span class='add-fighters'>↓</span>
+		<span class='add-fighters hidden'>↑</span>
+	</a>
 
 <!-- Add new participants -->
 	<div class='hidden add-fighters'>
@@ -247,10 +231,6 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 			Add Fighters
 		</button>
 	</div>
-
-	
-	<?php endif ?>
-
 
 <?php
 }

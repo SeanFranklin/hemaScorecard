@@ -93,7 +93,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 			$setInfo[$index]['numTournaments'] = getNumTournamentAppearances($fighter['systemRosterID']);
 			$setInfo[$index]['fullName'] =  getFighterNameSystem($fighter['systemRosterID'],'last');
 			$setInfo[$index]['schoolName'] = getSchoolName($fighter['schoolID'],'full');
-			$setInfo[$index]['HemaRatingsID'] =  getHemaRatingsID($fighter['systemRosterID']);
+			$setInfo[$index]['HemaRatingsID'] =  hemaRatings_getFighterID($fighter['systemRosterID']);
 			$name = getFighterNameSystem($fighter['systemRosterID'],'array');
 			?>
 
