@@ -22,10 +22,17 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	$inSystem = hemaRatings_getSystemCount();
 	$unratedFighters = hemaRatings_getUnrated();
 
-
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
+	<script>
+		<?php if(ALLOW['SOFTWARE_ADMIN'] == true):?>
+			var HEMA_RATINGS_TOKEN = "<?=HEMA_RATINGS_TOKEN?>";
+			var HEMA_RATINGS_BY_NAME = "<?=HEMA_RATINGS_BY_NAME?>";
+			var HEMA_RATINGS_BY_NAME = "<?=HEMA_RATINGS_BY_ID?>";
+		<?php endif ?>
+	</script>
+
 
 <!-- Search fields and filters -->
 	Total Number of Fighters in System: <?=$inSystem['total']?> |
@@ -73,7 +80,7 @@ function displayUnratedFighters($fighterList){
 		<tr>
 			<td>
 				<button class='button success tiny no-bottom hollow'
-					name='formName' value='HemaRatingsUpdate'>
+					name='formName' value='HemaRatings_UpdateFighterIDs'>
 					✓
 				</button>
 

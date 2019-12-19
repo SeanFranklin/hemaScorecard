@@ -102,6 +102,7 @@ function redirect($url){
 
 function appendArray($a1, $a2){
 	
+	$out = [];
 	foreach((array)$a1 as $index => $data){
 		$out[$index] = $data;
 	}

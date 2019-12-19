@@ -1982,7 +1982,7 @@ function edit_tournamentTimeLimit($tournamentID = 'new'){
 	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
 		id='timeLimit_div<?=$tournamentID?>' >
 			
-		Time Limit
+		Time Limit [seconds]
 		<?php tooltip("Match will automaticaly conclude after this time is reached. <BR>
 			<strong>Leave blank for unlimited.</strong>"); ?>
 		<input type='number' name='updateTournament[timeLimit]' value='<?=$timeLimit?>'
@@ -2692,12 +2692,27 @@ function toggleClass($class,$text1,$text2 = null, $hide = false){
 /******************************************************************************/
 
 function notSetMark($isSet){
-
+// Returns a x if not set a ✓ if set.
+// Emphasizes if it is not set.
 
 	if($isSet == false){
 		$str = "<strong class='red-text'>✗</strong>";
 	} else {
 		$str = "<span class='grey-text'>✓</span>";
+	}
+	return $str;
+}
+
+/******************************************************************************/
+
+function isSetMark($isSet){
+// Returns a x if not set a ✓ if set.
+// Emphasizes if it is not set.
+
+	if($isSet == false){
+		$str = "<span class='grey-text'>_</span>";
+	} else {
+		$str = "<strong class='success-text'>✓</strong>";
 	}
 	return $str;
 }

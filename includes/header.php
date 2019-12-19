@@ -146,6 +146,7 @@ $vC = '?=1.0.7'; // CSS Version
 							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
 							<li><a href='adminNewTournaments.php'>Add New Tournaments</a></li>
 							<li><a href='adminEvent.php'>Event Settings</a></li>
+							<li><a href='adminHemaRatings.php'>HEMA Ratings</a></li>
 						</ul>
 					</li>
 				<?php else: ?>
@@ -293,11 +294,12 @@ $vC = '?=1.0.7'; // CSS Version
 	
 	<!-- START Page Title --------------------------------------------->
 	
-	<?php if($_SESSION['eventID'] != null && !isset($hidePageTitle)): ?>
+	<?php if(   ($_SESSION['eventID'] != null && !isset($hidePageTitle))
+			 || (isset($forcePageTitle)) ): ?>
 		<div class='hero-title'>
 			
 		<!-- Event Name -->
-		<h1> 
+		<h1>
 		<?php eventNameForHeader(); ?>
 		</h1>
 		
@@ -512,22 +514,24 @@ function eventNameListSelectOptions($eventID){
 	} else {
 		$eventList['Active '] = getEventList('active');
 	}
+
 	
 	$eventList['Archived '] = getEventList('archived');
 
 	if($eventID == null){
-		echo "<option selected disabled></option>";
-	} else {
-		foreach($eventList as $type => $listPart){
-			echo "<option disabled>{$type}------------------------</option>";
-			foreach((array)$listPart as $listEventID => $data){ ?>
-				<option <?=optionValue($listEventID, $eventID)?> >
-					&nbsp;&nbsp;<?=$data['eventName']?> <?=$data['eventYear']?>
-				</option>
-			<?php }
-			
-		}
+		echo "<option selected disabled>* No Event Selected *</option>";
+	} 
+
+	foreach($eventList as $type => $listPart){
+		echo "<option disabled>{$type}------------------------</option>";
+		foreach((array)$listPart as $listEventID => $data){ ?>
+			<option <?=optionValue($listEventID, $eventID)?> >
+				&nbsp;&nbsp;<?=$data['eventName']?> <?=$data['eventYear']?>
+			</option>
+		<?php }
+		
 	}
+	
 }
 
 /******************************************************************************/

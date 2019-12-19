@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Manage System Events";
+$forcePageTitle = true;
 include('includes/header.php');
 
 if(ALLOW['SOFTWARE_ASSIST'] == false){
@@ -83,7 +84,17 @@ function displayAdminEventList($eventList){
 				$str = notSetMark($eventList[$eventID]['termsOfUseAccepted'])." ";
 				$str .= notSetMark($isTournaments)." ";
 				$str .= notSetMark($isParticipants)." ";
+				$str .= "<span class='black-text'>|</span>";
+				$str .= isSetMark(areAllTournamentsFinalized($eventID));
+				$str .= isSetMark(hemaRatings_isEventInfoComplete($eventID));
+
+
 				$eventList[$eventID]['Setup'] = $str;
+
+			} else {
+
+				$eventList[$eventID]['Setup'] = '';
+
 			}
 
 
@@ -109,7 +120,9 @@ function displayAdminEventList($eventList){
 				<?=$fieldName?>	
 				<?php 
 					if($fieldName == 'Setup'):
-						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added");
+						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
+							----------
+							<BR>4) Tournaments Finalized<BR>5) HEMA Ratings Info");
 					endif 
 				?>
 			</th>
@@ -158,8 +171,17 @@ function displayAdminEventList($eventList){
 				<?php endif ?>
 			</td>
 			
-			<?php foreach($fieldsToDisplay as $fieldName): ?>
-					<td class='<?=$topBorder?>'>
+			<?php foreach($fieldsToDisplay as $fieldName): 
+
+				if($fieldName == 'Setup'){
+					$noWrap = "style='white-space: nowrap;'";
+				} else {
+					$noWrap = '';
+				}
+
+				?>
+
+					<td class='<?=$topBorder?>' <?=$noWrap?> >
 						<?=$info[$fieldName]?>
 					</td>
 			<?php endforeach ?>
