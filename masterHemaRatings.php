@@ -91,7 +91,7 @@ function displayUnratedFighters($fighterList){
 
 			<td><?=$name?></td>
 			<td><?=getSchoolName($fighter['schoolID'])?></td>
-			<td><?=$fighter['schoolCountry']?></td>
+			<td><?=$fighter['countryName']?></td>
 			<td id='divFor-<?=$fighter['systemRosterID']?>'>
 				<a class='button hollow warning tiny no-bottom hemaRatingsGetInfo' 
 					onclick="hemaRatings_getByName(this,`<?=$name?>`,<?=$fighter['systemRosterID']?>)">

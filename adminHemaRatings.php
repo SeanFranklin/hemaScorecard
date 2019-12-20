@@ -30,7 +30,7 @@ if($_SESSION['eventID'] == null){
 	$dataEntries[] 						= ['header','Event Information'];
 	$dataEntries['eventName'] 			= ['locked',''];
 	$dataEntries['eventStartDate'] 		= ['locked',''];
-	$dataEntries['eventCountry'] 		= ['locked',''];
+	$dataEntries['countryIso2'] 		= ['locked',''];
 	$dataEntries['eventProvince'] 		= ['locked',''];
 	$dataEntries['eventCity'] 			= ['locked',''];
 	$dataEntries['organizingSchool'] 	= ['select',''];
