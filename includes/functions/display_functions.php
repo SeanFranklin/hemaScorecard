@@ -259,9 +259,9 @@ function displayEventButton($eventID, $eventInfo){
 		if(isset($location)){ $location .= ', '; }
 		$location .= $eventInfo['eventProvince'];
 	}
-	if($eventInfo['eventCountry'] != null){
+	if($eventInfo['countryName'] != null){
 		if(isset($location)){ $location .= ', '; }
-		$location .= $eventInfo['eventCountry'];
+		$location .= $eventInfo['countryName'];
 	}
 
 	$location = rtrim($location,', \t');
@@ -2697,6 +2697,31 @@ function isSetMark($isSet){
 		$str = "<strong class='success-text'>✓</strong>";
 	}
 	return $str;
+}
+
+/******************************************************************************/
+
+function selectCountry($name, $selected = null, $countryList = null, $classes = null){
+
+	if($countryList == null){
+		$countryList = getCountryList();
+	}
+
+
+	echo "<select name='{$name}' class='{$classes}' required>";
+	
+	if($selected == null){
+		echo "<option selected disabled></option>";
+	}
+
+	foreach($countryList as $countryIso2 => $countryName){
+		echo "<option value='{$countryIso2}'".isSelected($countryIso2, $selected).">";
+		echo $countryName;
+		echo "</option>";
+	}
+
+	echo "</select>";
+
 }
 
 /******************************************************************************/
