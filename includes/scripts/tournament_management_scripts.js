@@ -29,7 +29,6 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		allowTies: 'show',
 		isCuttingQual: 'show',
 		maxExchanges: 'show',
-		useTimer: 'show',
 		controlPoint: 'show',
 		isPrivate: 'show',
 		reverseScore: 'show',
@@ -43,6 +42,7 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		subMatchMode: 'show',
 		timeLimit: 'show',
 		requireSignOff: 'show',
+		timerCountdown: 'show',
 		maxPointSpread: 'show'
 	};
 	

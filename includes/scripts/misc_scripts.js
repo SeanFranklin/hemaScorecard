@@ -128,44 +128,55 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 			if(this.responseText.length > 0){ 
 				var data = JSON.parse(this.responseText);
 
-				var divName = "#divFor-"+systemRosterID;
-				$(divName).html("");
-				var isFirst = true;
 
-				data.forEach(function(fighterInfo){
+				if(data.length == 0){
 
-                    var str = "";
+					$("#hema-ratings-unidentifed-warning").show();
+					$('#unrated-row-'+systemRosterID).remove();
 
-                    if(isFirst){
-                    	isFirst = false;
-                    } else {
-                    	str = "<BR><BR>";
-                    }
+				} else {
 
-                    var str = str + "<span";
-                    if(name.toLowerCase() == fighterInfo['name'].toLowerCase()){
-                    	str = str + " class='red-text'";
-                    }
-                    str = str + ">";
+					var divName = "#divFor-"+systemRosterID;
+					$(divName).html("");
+					var isFirst = true;
 
-                    var hemaRatingsId = fighterInfo['id'];
-                    str = str + `<input type='checkbox' class='no-bottom'
-                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
-                    				value='${hemaRatingsId}'>`;
+					data.forEach(function(fighterInfo){
 
-                    str = str + "<strong>";
-                    
-                    str = str + fighterInfo['name'];
-                    str = str + "</strong><BR>";
-                    str = str + fighterInfo['clubName'];
-                    str = str + "<BR>";
-                    str = str + fighterInfo['nationality'];
-                    str = str + "</span>";
+	                    var str = "";
 
-                    $(divName).append(str);
+	                    if(isFirst){
+	                    	isFirst = false;
+	                    } else {
+	                    	str = "<BR><BR>";
+	                    }
 
-                });
+	                    var str = str + "<span";
+	                    if(name.toLowerCase() == fighterInfo['name'].toLowerCase()){
+	                    	str = str + " class='red-text'";
+	                    }
+	                    str = str + ">";
+
+	                    var hemaRatingsId = fighterInfo['id'];
+	                    str = str + `<input type='checkbox' class='no-bottom'
+	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
+	                    				value='${hemaRatingsId}'>`;
+
+	                    str = str + "<strong>";
+	                    
+	                    str = str + fighterInfo['name'];
+	                    str = str + "</strong><BR>";
+	                    str = str + fighterInfo['clubName'];
+	                    str = str + "<BR>";
+	                    str = str + fighterInfo['nationality'];
+	                    str = str + "</span>";
+
+	                    $(divName).append(str);
+
+	                });
+				}
 				
+			} else {
+				alert("!");
 			}
 		}
 	};
