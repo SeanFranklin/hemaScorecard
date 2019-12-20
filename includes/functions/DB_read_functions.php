@@ -1299,9 +1299,8 @@ function getEventListFULL(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	$sql = "SELECT * 
-			FROM 
-			systemEvents
+	$sql = "SELECT *
+			FROM systemEvents
 			ORDER BY eventStartDate DESC";
 	return mysqlQuery($sql, KEY, 'eventID');
 
@@ -2016,6 +2015,24 @@ function getMatchExchanges($matchID = null){
 
 	return $result;
 	
+}
+
+/******************************************************************************/
+
+function isTimerCountdown($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	$timerCountdown = false;
+
+	if($tournamentID != 0){
+		$sql = "SELECT timerCountdown
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$timerCountdown = (bool)mysqlQuery($sql, SINGLE, 'timerCountdown');
+	}
+
+	return $timerCountdown;
+
 }
 
 /******************************************************************************/
@@ -3139,7 +3156,6 @@ function getEventDefaults($eventID = null){
 		$defaults['nameDisplay'] = 'firstName';
 		$defaults['tournamentDisplay'] = 'weapon';
 		$defaults['tournamentSorting'] = 'numGrouped';
-		$defaults['useTimer'] = 0;
 		$defaults['useControlPoint'] = 0;
 		$defaults['staffCompetency'] = 0;
 		$defaults['addStaff'] = 0;
@@ -4970,6 +4986,17 @@ function getTournamentCompetitors($tournamentID = null, $sortType = null, $exclu
 
 	}
 
+}
+
+/******************************************************************************/
+
+function getTournamentEventID($tournamentID){
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT eventID
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	return mysqlQuery($sql, SINGLE, 'eventID');
 }
 
 /******************************************************************************/

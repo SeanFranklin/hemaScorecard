@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.4.1deb2ubuntu2.1
--- http://www.phpmyadmin.net
+-- version 4.4.15.9
+-- https://www.phpmyadmin.net
 --
--- Host: localhost
--- Generation Time: Dec 19, 2019 at 10:59 PM
--- Server version: 5.7.28-0ubuntu0.16.04.2
--- PHP Version: 7.0.33-0ubuntu0.16.04.7
+-- Host: 127.0.0.1
+-- Generation Time: Dec 20, 2019 at 12:44 AM
+-- Server version: 5.6.37
+-- PHP Version: 7.1.8
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -26,12 +26,12 @@ SET time_zone = "+00:00";
 -- Table structure for table `eventAttacks`
 --
 
-CREATE TABLE `eventAttacks` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `attackPrefix` int(10) UNSIGNED DEFAULT NULL,
-  `attackTarget` int(10) UNSIGNED DEFAULT NULL,
-  `attackType` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventAttacks` (
+  `tableID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `attackPrefix` int(10) unsigned DEFAULT NULL,
+  `attackTarget` int(10) unsigned DEFAULT NULL,
+  `attackType` int(10) unsigned DEFAULT NULL,
   `attackPoints` float NOT NULL DEFAULT '0',
   `attackNumber` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -42,11 +42,11 @@ CREATE TABLE `eventAttacks` (
 -- Table structure for table `eventAttributes`
 --
 
-CREATE TABLE `eventAttributes` (
-  `attributeID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventAttributes` (
+  `attributeID` int(10) unsigned NOT NULL,
   `attributeBool` tinyint(1) DEFAULT NULL,
   `attributeText` text,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
   `attributeType` varchar(255) NOT NULL,
   `attributeValue` float DEFAULT NULL,
   `attributeGroupSet` int(11) DEFAULT NULL
@@ -58,10 +58,10 @@ CREATE TABLE `eventAttributes` (
 -- Table structure for table `eventComponents`
 --
 
-CREATE TABLE `eventComponents` (
-  `componentID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `componentTournamentID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventComponents` (
+  `componentID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `componentTournamentID` int(10) unsigned NOT NULL,
   `useResult` tinyint(1) NOT NULL DEFAULT '0',
   `useRoster` tinyint(1) NOT NULL DEFAULT '0',
   `isExclusive` tinyint(1) NOT NULL DEFAULT '0'
@@ -73,10 +73,10 @@ CREATE TABLE `eventComponents` (
 -- Table structure for table `eventCutStandards`
 --
 
-CREATE TABLE `eventCutStandards` (
-  `qualID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `standardID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventCutStandards` (
+  `qualID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `standardID` int(10) unsigned NOT NULL,
   `date` date NOT NULL,
   `qualValue` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -87,19 +87,18 @@ CREATE TABLE `eventCutStandards` (
 -- Table structure for table `eventDefaults`
 --
 
-CREATE TABLE `eventDefaults` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
-  `color1ID` int(10) UNSIGNED NOT NULL DEFAULT '1',
-  `color2ID` int(10) UNSIGNED NOT NULL DEFAULT '2',
-  `maxPoolSize` int(10) UNSIGNED NOT NULL DEFAULT '5',
-  `maxDoubleHits` int(10) UNSIGNED NOT NULL DEFAULT '3',
-  `normalizePoolSize` int(10) UNSIGNED NOT NULL DEFAULT '0',
+CREATE TABLE IF NOT EXISTS `eventDefaults` (
+  `tableID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
+  `color1ID` int(10) unsigned NOT NULL DEFAULT '1',
+  `color2ID` int(10) unsigned NOT NULL DEFAULT '2',
+  `maxPoolSize` int(10) unsigned NOT NULL DEFAULT '5',
+  `maxDoubleHits` int(10) unsigned NOT NULL DEFAULT '3',
+  `normalizePoolSize` int(10) unsigned NOT NULL DEFAULT '0',
   `allowTies` tinyint(1) NOT NULL DEFAULT '0',
   `nameDisplay` varchar(255) NOT NULL DEFAULT 'firstName',
   `tournamentDisplay` varchar(255) NOT NULL DEFAULT 'weapon',
   `tournamentSorting` varchar(255) NOT NULL DEFAULT 'numGrouped',
-  `useTimer` tinyint(1) NOT NULL DEFAULT '0',
   `useControlPoint` int(11) NOT NULL DEFAULT '0',
   `staffCompetency` int(11) NOT NULL DEFAULT '0',
   `addStaff` tinyint(1) NOT NULL DEFAULT '0',
@@ -113,19 +112,19 @@ CREATE TABLE `eventDefaults` (
 -- Table structure for table `eventExchanges`
 --
 
-CREATE TABLE `eventExchanges` (
-  `exchangeID` int(10) UNSIGNED NOT NULL,
-  `matchID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventExchanges` (
+  `exchangeID` int(10) unsigned NOT NULL,
+  `matchID` int(10) unsigned DEFAULT NULL,
   `exchangeType` varchar(255) NOT NULL,
-  `scoringID` int(10) UNSIGNED DEFAULT NULL,
-  `receivingID` int(10) UNSIGNED DEFAULT NULL,
+  `scoringID` int(10) unsigned DEFAULT NULL,
+  `receivingID` int(10) unsigned DEFAULT NULL,
   `scoreValue` float DEFAULT NULL,
   `scoreDeduction` float DEFAULT NULL,
   `exchangeNumber` int(11) NOT NULL DEFAULT '0',
   `exchangeTime` int(11) DEFAULT NULL,
-  `refPrefix` int(10) UNSIGNED DEFAULT NULL,
-  `refTarget` int(10) UNSIGNED DEFAULT NULL,
-  `refType` int(10) UNSIGNED DEFAULT NULL,
+  `refPrefix` int(10) unsigned DEFAULT NULL,
+  `refTarget` int(10) unsigned DEFAULT NULL,
+  `refType` int(10) unsigned DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -135,9 +134,9 @@ CREATE TABLE `eventExchanges` (
 -- Table structure for table `eventGroupRankings`
 --
 
-CREATE TABLE `eventGroupRankings` (
-  `groupRankingID` int(10) UNSIGNED NOT NULL,
-  `groupID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventGroupRankings` (
+  `groupRankingID` int(10) unsigned NOT NULL,
+  `groupID` int(10) unsigned NOT NULL,
   `groupRank` int(11) NOT NULL,
   `overlapSize` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -148,13 +147,13 @@ CREATE TABLE `eventGroupRankings` (
 -- Table structure for table `eventGroupRoster`
 --
 
-CREATE TABLE `eventGroupRoster` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `groupID` int(10) UNSIGNED DEFAULT NULL,
-  `rosterID` int(10) UNSIGNED DEFAULT NULL,
-  `poolPosition` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventGroupRoster` (
+  `tableID` int(10) unsigned NOT NULL,
+  `groupID` int(10) unsigned DEFAULT NULL,
+  `rosterID` int(10) unsigned DEFAULT NULL,
+  `poolPosition` int(10) unsigned DEFAULT NULL,
   `participantStatus` varchar(255) DEFAULT 'normal',
-  `tournamentTableID` int(10) UNSIGNED DEFAULT NULL,
+  `tournamentTableID` int(10) unsigned DEFAULT NULL,
   `groupCheckIn` tinyint(1) NOT NULL DEFAULT '0',
   `groupGearCheck` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -165,18 +164,18 @@ CREATE TABLE `eventGroupRoster` (
 -- Table structure for table `eventGroups`
 --
 
-CREATE TABLE `eventGroups` (
-  `groupID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventGroups` (
+  `groupID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
   `groupType` varchar(255) NOT NULL,
   `groupNumber` int(11) DEFAULT NULL,
   `groupName` varchar(255) DEFAULT NULL,
   `groupSet` int(11) NOT NULL DEFAULT '1',
   `bracketLevels` tinyint(4) DEFAULT NULL,
-  `numFighters` int(10) UNSIGNED DEFAULT NULL,
+  `numFighters` int(10) unsigned DEFAULT NULL,
   `groupStatus` varchar(255) DEFAULT NULL,
   `groupComplete` tinyint(1) NOT NULL DEFAULT '0',
-  `locationID` int(10) UNSIGNED DEFAULT NULL
+  `locationID` int(10) unsigned DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -185,10 +184,10 @@ CREATE TABLE `eventGroups` (
 -- Table structure for table `eventHemaRatingsInfo`
 --
 
-CREATE TABLE `eventHemaRatingsInfo` (
-  `hemaRatingInfoID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
-  `organizingSchool` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventHemaRatingsInfo` (
+  `hemaRatingInfoID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
+  `organizingSchool` int(10) unsigned DEFAULT NULL,
   `socialMediaLink` text,
   `photoLink` text,
   `submitterName` varchar(255) DEFAULT NULL,
@@ -206,10 +205,10 @@ CREATE TABLE `eventHemaRatingsInfo` (
 -- Table structure for table `eventIgnores`
 --
 
-CREATE TABLE `eventIgnores` (
+CREATE TABLE IF NOT EXISTS `eventIgnores` (
   `ignoreID` int(11) NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `rosterID` int(10) UNSIGNED NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `rosterID` int(10) unsigned NOT NULL,
   `ignoreAtSet` int(11) NOT NULL DEFAULT '0',
   `stopAtSet` int(11) NOT NULL DEFAULT '0',
   `soloAtSet` int(11) NOT NULL DEFAULT '0'
@@ -221,11 +220,11 @@ CREATE TABLE `eventIgnores` (
 -- Table structure for table `eventLivestreamMatches`
 --
 
-CREATE TABLE `eventLivestreamMatches` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventLivestreamMatches` (
+  `tableID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
   `matchNumber` int(11) NOT NULL,
-  `matchID` int(10) UNSIGNED NOT NULL
+  `matchID` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -234,14 +233,14 @@ CREATE TABLE `eventLivestreamMatches` (
 -- Table structure for table `eventLivestreams`
 --
 
-CREATE TABLE `eventLivestreams` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventLivestreams` (
+  `tableID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
   `isLive` tinyint(1) NOT NULL DEFAULT '0',
   `chanelName` varchar(255) NOT NULL,
   `platform` varchar(255) NOT NULL,
   `useOverlay` tinyint(1) NOT NULL DEFAULT '0',
-  `matchID` int(10) UNSIGNED DEFAULT NULL
+  `matchID` int(10) unsigned DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -250,17 +249,17 @@ CREATE TABLE `eventLivestreams` (
 -- Table structure for table `eventMatches`
 --
 
-CREATE TABLE `eventMatches` (
-  `matchID` int(10) UNSIGNED NOT NULL,
-  `groupID` int(10) UNSIGNED DEFAULT NULL,
-  `matchNumber` int(10) UNSIGNED DEFAULT NULL,
-  `fighter1ID` int(10) UNSIGNED DEFAULT NULL,
-  `fighter2ID` int(10) UNSIGNED DEFAULT NULL,
-  `winnerID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventMatches` (
+  `matchID` int(10) unsigned NOT NULL,
+  `groupID` int(10) unsigned DEFAULT NULL,
+  `matchNumber` int(10) unsigned DEFAULT NULL,
+  `fighter1ID` int(10) unsigned DEFAULT NULL,
+  `fighter2ID` int(10) unsigned DEFAULT NULL,
+  `winnerID` int(10) unsigned DEFAULT NULL,
   `fighter1Score` float DEFAULT NULL,
   `fighter2Score` float DEFAULT NULL,
-  `bracketPosition` int(10) UNSIGNED DEFAULT NULL,
-  `bracketLevel` int(10) UNSIGNED DEFAULT NULL,
+  `bracketPosition` int(10) unsigned DEFAULT NULL,
+  `bracketLevel` int(10) unsigned DEFAULT NULL,
   `matchComplete` tinyint(1) DEFAULT '0',
   `signOff1` tinyint(1) NOT NULL DEFAULT '0',
   `signOff2` tinyint(1) NOT NULL DEFAULT '0',
@@ -269,7 +268,7 @@ CREATE TABLE `eventMatches` (
   `reversedColors` tinyint(1) NOT NULL DEFAULT '0',
   `matchTime` int(11) DEFAULT NULL,
   `isPlaceholder` tinyint(1) NOT NULL DEFAULT '0',
-  `placeholderMatchID` int(10) UNSIGNED DEFAULT NULL
+  `placeholderMatchID` int(10) unsigned DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -278,10 +277,10 @@ CREATE TABLE `eventMatches` (
 -- Table structure for table `eventPlacings`
 --
 
-CREATE TABLE `eventPlacings` (
-  `placeID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `rosterID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `eventPlacings` (
+  `placeID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `rosterID` int(10) unsigned NOT NULL,
   `placing` int(11) NOT NULL,
   `highBound` int(11) DEFAULT NULL,
   `lowBound` int(11) DEFAULT NULL,
@@ -294,11 +293,11 @@ CREATE TABLE `eventPlacings` (
 -- Table structure for table `eventRoster`
 --
 
-CREATE TABLE `eventRoster` (
-  `rosterID` int(10) UNSIGNED NOT NULL,
-  `systemRosterID` int(10) UNSIGNED DEFAULT NULL,
-  `eventID` int(10) UNSIGNED DEFAULT NULL,
-  `schoolID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventRoster` (
+  `rosterID` int(10) unsigned NOT NULL,
+  `systemRosterID` int(10) unsigned DEFAULT NULL,
+  `eventID` int(10) unsigned DEFAULT NULL,
+  `schoolID` int(10) unsigned DEFAULT NULL,
   `publicNotes` text,
   `privateNotes` text,
   `isTeam` tinyint(1) NOT NULL DEFAULT '0',
@@ -314,11 +313,11 @@ CREATE TABLE `eventRoster` (
 -- Table structure for table `eventStandings`
 --
 
-CREATE TABLE `eventStandings` (
-  `standingID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED DEFAULT NULL,
-  `groupID` int(10) UNSIGNED DEFAULT NULL,
-  `rosterID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventStandings` (
+  `standingID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned DEFAULT NULL,
+  `groupID` int(10) unsigned DEFAULT NULL,
+  `rosterID` int(10) unsigned DEFAULT NULL,
   `groupType` varchar(255) NOT NULL,
   `groupSet` int(11) NOT NULL DEFAULT '1',
   `normalized` tinyint(1) DEFAULT '0',
@@ -353,11 +352,11 @@ CREATE TABLE `eventStandings` (
 -- Table structure for table `eventTeamRoster`
 --
 
-CREATE TABLE `eventTeamRoster` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `teamID` int(10) UNSIGNED DEFAULT NULL,
-  `rosterID` int(10) UNSIGNED DEFAULT NULL,
-  `tournamentRosterID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventTeamRoster` (
+  `tableID` int(10) unsigned NOT NULL,
+  `teamID` int(10) unsigned DEFAULT NULL,
+  `rosterID` int(10) unsigned DEFAULT NULL,
+  `tournamentRosterID` int(10) unsigned DEFAULT NULL,
   `memberRole` varchar(255) NOT NULL DEFAULT 'member',
   `memberName` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -368,10 +367,10 @@ CREATE TABLE `eventTeamRoster` (
 -- Table structure for table `eventTournamentRoster`
 --
 
-CREATE TABLE `eventTournamentRoster` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED DEFAULT NULL,
-  `rosterID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `eventTournamentRoster` (
+  `tableID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned DEFAULT NULL,
+  `rosterID` int(10) unsigned DEFAULT NULL,
   `rating` int(11) NOT NULL DEFAULT '0',
   `subGroupNum` int(11) NOT NULL DEFAULT '0',
   `rating2` int(11) DEFAULT NULL,
@@ -385,33 +384,33 @@ CREATE TABLE `eventTournamentRoster` (
 -- Table structure for table `eventTournaments`
 --
 
-CREATE TABLE `eventTournaments` (
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
-  `tournamentWeaponID` int(10) UNSIGNED NOT NULL,
-  `tournamentPrefixID` int(10) UNSIGNED DEFAULT NULL,
-  `tournamentGenderID` int(10) UNSIGNED DEFAULT NULL,
-  `tournamentMaterialID` int(10) UNSIGNED DEFAULT NULL,
-  `tournamentSuffixID` int(10) UNSIGNED DEFAULT NULL,
-  `tournamentRankingID` int(10) UNSIGNED DEFAULT NULL,
-  `doubleTypeID` int(10) UNSIGNED DEFAULT '2',
-  `formatID` int(10) UNSIGNED DEFAULT '2',
+CREATE TABLE IF NOT EXISTS `eventTournaments` (
+  `tournamentID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
+  `tournamentWeaponID` int(10) unsigned NOT NULL,
+  `tournamentPrefixID` int(10) unsigned DEFAULT NULL,
+  `tournamentGenderID` int(10) unsigned DEFAULT NULL,
+  `tournamentMaterialID` int(10) unsigned DEFAULT NULL,
+  `tournamentSuffixID` int(10) unsigned DEFAULT NULL,
+  `tournamentRankingID` int(10) unsigned DEFAULT NULL,
+  `doubleTypeID` int(10) unsigned DEFAULT '2',
+  `formatID` int(10) unsigned DEFAULT '2',
   `numGroupSets` int(11) NOT NULL DEFAULT '1',
-  `numParticipants` int(10) UNSIGNED DEFAULT '0',
+  `numParticipants` int(10) unsigned DEFAULT '0',
   `normalizePoolSize` int(11) DEFAULT '0',
-  `color1ID` int(10) UNSIGNED DEFAULT '1',
-  `color2ID` int(10) UNSIGNED DEFAULT '2',
-  `maxPoolSize` int(10) UNSIGNED NOT NULL DEFAULT '5',
-  `maxDoubleHits` int(10) UNSIGNED NOT NULL DEFAULT '3',
+  `color1ID` int(10) unsigned DEFAULT '1',
+  `color2ID` int(10) unsigned DEFAULT '2',
+  `maxPoolSize` int(10) unsigned NOT NULL DEFAULT '5',
+  `maxDoubleHits` int(10) unsigned NOT NULL DEFAULT '3',
   `maximumExchanges` int(11) DEFAULT NULL,
   `maximumPoints` int(11) DEFAULT NULL,
   `maxPointSpread` int(11) NOT NULL DEFAULT '0',
   `basePointValue` int(11) NOT NULL DEFAULT '0',
   `allowTies` tinyint(1) NOT NULL DEFAULT '0',
+  `timerCountdown` tinyint(1) NOT NULL DEFAULT '0',
   `tournamentStatus` varchar(255) DEFAULT NULL,
   `isCuttingQual` tinyint(1) NOT NULL DEFAULT '0',
   `isFinalized` tinyint(1) NOT NULL DEFAULT '0',
-  `useTimer` tinyint(1) NOT NULL DEFAULT '0',
   `timeLimit` int(11) NOT NULL DEFAULT '0',
   `useControlPoint` int(11) NOT NULL DEFAULT '0',
   `isNotNetScore` tinyint(1) NOT NULL DEFAULT '0',
@@ -435,9 +434,9 @@ CREATE TABLE `eventTournaments` (
 -- Table structure for table `logisticsLocations`
 --
 
-CREATE TABLE `logisticsLocations` (
-  `locationID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsLocations` (
+  `locationID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
   `locationName` varchar(255) NOT NULL,
   `hasMatches` tinyint(1) NOT NULL DEFAULT '1',
   `hasClasses` tinyint(1) NOT NULL DEFAULT '1'
@@ -449,10 +448,10 @@ CREATE TABLE `logisticsLocations` (
 -- Table structure for table `logisticsLocationsBlocks`
 --
 
-CREATE TABLE `logisticsLocationsBlocks` (
-  `blockLocationID` int(10) UNSIGNED NOT NULL,
-  `blockID` int(10) UNSIGNED NOT NULL,
-  `locationID` int(10) UNSIGNED NOT NULL
+CREATE TABLE IF NOT EXISTS `logisticsLocationsBlocks` (
+  `blockLocationID` int(10) unsigned NOT NULL,
+  `blockID` int(10) unsigned NOT NULL,
+  `locationID` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -461,10 +460,10 @@ CREATE TABLE `logisticsLocationsBlocks` (
 -- Table structure for table `logisticsLocationsMatches`
 --
 
-CREATE TABLE `logisticsLocationsMatches` (
-  `matchLocationID` int(10) UNSIGNED NOT NULL,
-  `locationID` int(10) UNSIGNED DEFAULT NULL,
-  `matchID` int(10) UNSIGNED DEFAULT NULL
+CREATE TABLE IF NOT EXISTS `logisticsLocationsMatches` (
+  `matchLocationID` int(10) unsigned NOT NULL,
+  `locationID` int(10) unsigned DEFAULT NULL,
+  `matchID` int(10) unsigned DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -473,14 +472,14 @@ CREATE TABLE `logisticsLocationsMatches` (
 -- Table structure for table `logisticsScheduleBlocks`
 --
 
-CREATE TABLE `logisticsScheduleBlocks` (
-  `blockID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsScheduleBlocks` (
+  `blockID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
   `dayNum` int(11) NOT NULL,
   `startTime` int(11) NOT NULL,
   `endTime` int(11) NOT NULL,
-  `blockTypeID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED DEFAULT NULL,
+  `blockTypeID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned DEFAULT NULL,
   `blockTitle` varchar(255) DEFAULT NULL,
   `blockSubtitle` varchar(255) DEFAULT NULL,
   `blockDescription` text,
@@ -495,10 +494,10 @@ CREATE TABLE `logisticsScheduleBlocks` (
 -- Table structure for table `logisticsScheduleShifts`
 --
 
-CREATE TABLE `logisticsScheduleShifts` (
-  `shiftID` int(10) UNSIGNED NOT NULL,
-  `blockID` int(10) UNSIGNED NOT NULL,
-  `locationID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsScheduleShifts` (
+  `shiftID` int(10) unsigned NOT NULL,
+  `blockID` int(10) unsigned NOT NULL,
+  `locationID` int(10) unsigned NOT NULL,
   `startTime` int(11) NOT NULL,
   `endTime` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -509,10 +508,10 @@ CREATE TABLE `logisticsScheduleShifts` (
 -- Table structure for table `logisticsStaffCompetency`
 --
 
-CREATE TABLE `logisticsStaffCompetency` (
-  `staffCompetencyID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL,
-  `logisticsRoleID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsStaffCompetency` (
+  `staffCompetencyID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL,
+  `logisticsRoleID` int(10) unsigned NOT NULL,
   `staffCompetency` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -522,11 +521,11 @@ CREATE TABLE `logisticsStaffCompetency` (
 -- Table structure for table `logisticsStaffMatches`
 --
 
-CREATE TABLE `logisticsStaffMatches` (
-  `matchStaffID` int(10) UNSIGNED NOT NULL,
-  `matchID` int(10) UNSIGNED NOT NULL,
-  `rosterID` int(10) UNSIGNED NOT NULL,
-  `logisticsRoleID` int(10) UNSIGNED NOT NULL
+CREATE TABLE IF NOT EXISTS `logisticsStaffMatches` (
+  `matchStaffID` int(10) unsigned NOT NULL,
+  `matchID` int(10) unsigned NOT NULL,
+  `rosterID` int(10) unsigned NOT NULL,
+  `logisticsRoleID` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -535,11 +534,11 @@ CREATE TABLE `logisticsStaffMatches` (
 -- Table structure for table `logisticsStaffShifts`
 --
 
-CREATE TABLE `logisticsStaffShifts` (
-  `staffShiftID` int(10) UNSIGNED NOT NULL,
-  `shiftID` int(10) UNSIGNED NOT NULL,
-  `rosterID` int(10) UNSIGNED NOT NULL,
-  `logisticsRoleID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsStaffShifts` (
+  `staffShiftID` int(10) unsigned NOT NULL,
+  `shiftID` int(10) unsigned NOT NULL,
+  `rosterID` int(10) unsigned NOT NULL,
+  `logisticsRoleID` int(10) unsigned DEFAULT NULL,
   `checkedIn` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -549,10 +548,10 @@ CREATE TABLE `logisticsStaffShifts` (
 -- Table structure for table `logisticsStaffTemplates`
 --
 
-CREATE TABLE `logisticsStaffTemplates` (
-  `staffTemplateID` int(10) UNSIGNED NOT NULL,
-  `tournamentID` int(10) UNSIGNED NOT NULL,
-  `logisticsRoleID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `logisticsStaffTemplates` (
+  `staffTemplateID` int(10) unsigned NOT NULL,
+  `tournamentID` int(10) unsigned NOT NULL,
+  `logisticsRoleID` int(10) unsigned NOT NULL,
   `numStaff` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -562,8 +561,8 @@ CREATE TABLE `logisticsStaffTemplates` (
 -- Table structure for table `systemAttacks`
 --
 
-CREATE TABLE `systemAttacks` (
-  `attackID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemAttacks` (
+  `attackID` int(10) unsigned NOT NULL,
   `attackClass` varchar(255) NOT NULL,
   `attackCode` varchar(255) NOT NULL,
   `attackText` varchar(255) NOT NULL
@@ -575,8 +574,8 @@ CREATE TABLE `systemAttacks` (
 -- Table structure for table `systemBlockTypes`
 --
 
-CREATE TABLE `systemBlockTypes` (
-  `blockTypeID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemBlockTypes` (
+  `blockTypeID` int(10) unsigned NOT NULL,
   `typeName` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -586,8 +585,8 @@ CREATE TABLE `systemBlockTypes` (
 -- Table structure for table `systemColors`
 --
 
-CREATE TABLE `systemColors` (
-  `colorID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemColors` (
+  `colorID` int(10) unsigned NOT NULL,
   `colorName` varchar(255) NOT NULL,
   `colorCode` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -598,10 +597,10 @@ CREATE TABLE `systemColors` (
 -- Table structure for table `systemCutQualifications`
 --
 
-CREATE TABLE `systemCutQualifications` (
-  `qualID` int(10) UNSIGNED NOT NULL,
-  `systemRosterID` int(10) UNSIGNED DEFAULT NULL,
-  `standardID` int(10) UNSIGNED DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `systemCutQualifications` (
+  `qualID` int(10) unsigned NOT NULL,
+  `systemRosterID` int(10) unsigned DEFAULT NULL,
+  `standardID` int(10) unsigned DEFAULT NULL,
   `date` date DEFAULT NULL,
   `qualValue` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -612,8 +611,8 @@ CREATE TABLE `systemCutQualifications` (
 -- Table structure for table `systemCutStandards`
 --
 
-CREATE TABLE `systemCutStandards` (
-  `standardID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemCutStandards` (
+  `standardID` int(10) unsigned NOT NULL,
   `standardName` varchar(255) NOT NULL,
   `standardCode` varchar(255) NOT NULL,
   `standardText` text
@@ -625,8 +624,8 @@ CREATE TABLE `systemCutStandards` (
 -- Table structure for table `systemDoubleTypes`
 --
 
-CREATE TABLE `systemDoubleTypes` (
-  `doubleTypeID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemDoubleTypes` (
+  `doubleTypeID` int(10) unsigned NOT NULL,
   `doubleTypeName` varchar(255) NOT NULL,
   `doublesDisabled` tinyint(1) NOT NULL,
   `afterblowDisabled` tinyint(1) NOT NULL,
@@ -639,8 +638,8 @@ CREATE TABLE `systemDoubleTypes` (
 -- Table structure for table `systemEvents`
 --
 
-CREATE TABLE `systemEvents` (
-  `eventID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemEvents` (
+  `eventID` int(10) unsigned NOT NULL,
   `eventName` varchar(255) NOT NULL,
   `eventAbbreviation` varchar(255) DEFAULT NULL,
   `eventLeague` varchar(255) DEFAULT NULL,
@@ -667,8 +666,8 @@ CREATE TABLE `systemEvents` (
 -- Table structure for table `systemFormats`
 --
 
-CREATE TABLE `systemFormats` (
-  `formatID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemFormats` (
+  `formatID` int(10) unsigned NOT NULL,
   `formatName` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -678,8 +677,8 @@ CREATE TABLE `systemFormats` (
 -- Table structure for table `systemLogisticsRoles`
 --
 
-CREATE TABLE `systemLogisticsRoles` (
-  `logisticsRoleID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemLogisticsRoles` (
+  `logisticsRoleID` int(10) unsigned NOT NULL,
   `roleName` varchar(255) NOT NULL,
   `roleSortImportance` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -690,8 +689,8 @@ CREATE TABLE `systemLogisticsRoles` (
 -- Table structure for table `systemMatchOrder`
 --
 
-CREATE TABLE `systemMatchOrder` (
-  `tableID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemMatchOrder` (
+  `tableID` int(10) unsigned NOT NULL,
   `numberOfFighters` tinyint(4) DEFAULT NULL,
   `matchNumber` tinyint(4) DEFAULT NULL,
   `fighter1` tinyint(4) DEFAULT NULL,
@@ -704,11 +703,11 @@ CREATE TABLE `systemMatchOrder` (
 -- Table structure for table `systemRankings`
 --
 
-CREATE TABLE `systemRankings` (
-  `tournamentRankingID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemRankings` (
+  `tournamentRankingID` int(10) unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
-  `formatID` int(10) UNSIGNED NOT NULL,
-  `numberOfInstances` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `formatID` int(10) unsigned NOT NULL,
+  `numberOfInstances` int(10) unsigned NOT NULL DEFAULT '0',
   `description` text,
   `displayFunction` varchar(255) DEFAULT NULL,
   `scoringFunction` varchar(255) DEFAULT NULL,
@@ -739,15 +738,15 @@ CREATE TABLE `systemRankings` (
 -- Table structure for table `systemRoster`
 --
 
-CREATE TABLE `systemRoster` (
-  `systemRosterID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemRoster` (
+  `systemRosterID` int(10) unsigned NOT NULL,
   `firstName` varchar(255) DEFAULT NULL,
   `middleName` varchar(255) DEFAULT NULL,
   `lastName` varchar(255) DEFAULT NULL,
   `nickname` varchar(255) DEFAULT NULL,
   `gender` varchar(255) DEFAULT NULL,
-  `schoolID` int(10) UNSIGNED DEFAULT NULL,
-  `HemaRatingsID` int(10) UNSIGNED DEFAULT NULL,
+  `schoolID` int(10) unsigned DEFAULT NULL,
+  `HemaRatingsID` int(10) unsigned DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `rosterCountry` varchar(255) DEFAULT NULL,
   `rosterProvince` varchar(255) DEFAULT NULL,
@@ -763,10 +762,10 @@ CREATE TABLE `systemRoster` (
 -- Table structure for table `systemRosterNotDuplicate`
 --
 
-CREATE TABLE `systemRosterNotDuplicate` (
-  `tableID` int(10) UNSIGNED NOT NULL,
-  `rosterID1` int(10) UNSIGNED NOT NULL,
-  `rosterID2` int(10) UNSIGNED NOT NULL
+CREATE TABLE IF NOT EXISTS `systemRosterNotDuplicate` (
+  `tableID` int(10) unsigned NOT NULL,
+  `rosterID1` int(10) unsigned NOT NULL,
+  `rosterID2` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -775,8 +774,8 @@ CREATE TABLE `systemRosterNotDuplicate` (
 -- Table structure for table `systemSchools`
 --
 
-CREATE TABLE `systemSchools` (
-  `schoolID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemSchools` (
+  `schoolID` int(10) unsigned NOT NULL,
   `schoolFullName` varchar(255) NOT NULL,
   `schoolShortName` varchar(255) DEFAULT NULL,
   `schoolBranch` varchar(255) DEFAULT NULL,
@@ -793,14 +792,14 @@ CREATE TABLE `systemSchools` (
 -- Table structure for table `systemTournaments`
 --
 
-CREATE TABLE `systemTournaments` (
-  `tournamentTypeID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemTournaments` (
+  `tournamentTypeID` int(10) unsigned NOT NULL,
   `tournamentTypeMeta` varchar(255) DEFAULT NULL,
   `tournamentType` varchar(255) DEFAULT NULL,
   `Pool_Bracket` tinyint(1) NOT NULL DEFAULT '1',
   `Pool_Sets` tinyint(1) NOT NULL DEFAULT '1',
   `Scored_Event` tinyint(1) NOT NULL DEFAULT '1',
-  `numberOfInstances` int(10) UNSIGNED DEFAULT NULL,
+  `numberOfInstances` int(10) unsigned DEFAULT NULL,
   `description` text,
   `functionName` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -811,10 +810,10 @@ CREATE TABLE `systemTournaments` (
 -- Table structure for table `systemUserEvents`
 --
 
-CREATE TABLE `systemUserEvents` (
+CREATE TABLE IF NOT EXISTS `systemUserEvents` (
   `userTournamentID` int(11) NOT NULL,
-  `userID` int(10) UNSIGNED NOT NULL,
-  `eventID` int(10) UNSIGNED NOT NULL
+  `userID` int(10) unsigned NOT NULL,
+  `eventID` int(10) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -823,8 +822,8 @@ CREATE TABLE `systemUserEvents` (
 -- Table structure for table `systemUsers`
 --
 
-CREATE TABLE `systemUsers` (
-  `userID` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `systemUsers` (
+  `userID` int(10) unsigned NOT NULL,
   `userName` varchar(255) NOT NULL,
   `password` varchar(255) DEFAULT NULL,
   `userEmail` varchar(255) NOT NULL,
@@ -921,13 +920,6 @@ ALTER TABLE `eventGroups`
   ADD PRIMARY KEY (`groupID`),
   ADD KEY `tournamentID` (`tournamentID`),
   ADD KEY `locationID` (`locationID`);
-
---
--- Indexes for table `eventHemaRatingsInfo`
---
-ALTER TABLE `eventHemaRatingsInfo`
-  ADD PRIMARY KEY (`hemaRatingInfoID`),
-  ADD KEY `hemaRatingInfoID` (`hemaRatingInfoID`);
 
 --
 -- Indexes for table `eventIgnores`
@@ -1190,8 +1182,8 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- Indexes for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  ADD PRIMARY KEY (`schoolID`);
-ALTER TABLE `systemSchools` ADD FULLTEXT KEY `schoolFullName` (`schoolFullName`);
+  ADD PRIMARY KEY (`schoolID`),
+  ADD FULLTEXT KEY `schoolFullName` (`schoolFullName`);
 
 --
 -- Indexes for table `systemTournaments`
@@ -1221,232 +1213,227 @@ ALTER TABLE `systemUsers`
 -- AUTO_INCREMENT for table `eventAttacks`
 --
 ALTER TABLE `eventAttacks`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2628;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventAttributes`
 --
 ALTER TABLE `eventAttributes`
-  MODIFY `attributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1708;
+  MODIFY `attributeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventComponents`
 --
 ALTER TABLE `eventComponents`
-  MODIFY `componentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `componentID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventCutStandards`
 --
 ALTER TABLE `eventCutStandards`
-  MODIFY `qualID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `qualID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventDefaults`
 --
 ALTER TABLE `eventDefaults`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=300;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177023;
+  MODIFY `exchangeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
 ALTER TABLE `eventGroupRankings`
-  MODIFY `groupRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `groupRankingID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventGroupRoster`
 --
 ALTER TABLE `eventGroupRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20394;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventGroups`
 --
 ALTER TABLE `eventGroups`
-  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5479;
---
--- AUTO_INCREMENT for table `eventHemaRatingsInfo`
---
-ALTER TABLE `eventHemaRatingsInfo`
-  MODIFY `hemaRatingInfoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `groupID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventIgnores`
 --
 ALTER TABLE `eventIgnores`
-  MODIFY `ignoreID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=231;
+  MODIFY `ignoreID` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventLivestreamMatches`
 --
 ALTER TABLE `eventLivestreamMatches`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventLivestreams`
 --
 ALTER TABLE `eventLivestreams`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventMatches`
 --
 ALTER TABLE `eventMatches`
-  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52409;
+  MODIFY `matchID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventPlacings`
 --
 ALTER TABLE `eventPlacings`
-  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8690;
+  MODIFY `placeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6412;
+  MODIFY `rosterID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventStandings`
 --
 ALTER TABLE `eventStandings`
-  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131209;
+  MODIFY `standingID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventTeamRoster`
 --
 ALTER TABLE `eventTeamRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=228;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12557;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=676;
+  MODIFY `tournamentID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
 ALTER TABLE `logisticsLocations`
-  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135;
+  MODIFY `locationID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
 ALTER TABLE `logisticsLocationsBlocks`
-  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=945;
+  MODIFY `blockLocationID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsMatches`
 --
 ALTER TABLE `logisticsLocationsMatches`
-  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3280;
+  MODIFY `matchLocationID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleBlocks`
 --
 ALTER TABLE `logisticsScheduleBlocks`
-  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=502;
+  MODIFY `blockID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleShifts`
 --
 ALTER TABLE `logisticsScheduleShifts`
-  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=606;
+  MODIFY `shiftID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsStaffCompetency`
 --
 ALTER TABLE `logisticsStaffCompetency`
-  MODIFY `staffCompetencyID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `staffCompetencyID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsStaffMatches`
 --
 ALTER TABLE `logisticsStaffMatches`
-  MODIFY `matchStaffID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3110;
+  MODIFY `matchStaffID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsStaffShifts`
 --
 ALTER TABLE `logisticsStaffShifts`
-  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2139;
+  MODIFY `staffShiftID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `logisticsStaffTemplates`
 --
 ALTER TABLE `logisticsStaffTemplates`
-  MODIFY `staffTemplateID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `staffTemplateID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemAttacks`
 --
 ALTER TABLE `systemAttacks`
-  MODIFY `attackID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `attackID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemBlockTypes`
 --
 ALTER TABLE `systemBlockTypes`
-  MODIFY `blockTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `blockTypeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemColors`
 --
 ALTER TABLE `systemColors`
-  MODIFY `colorID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `colorID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemCutQualifications`
 --
 ALTER TABLE `systemCutQualifications`
-  MODIFY `qualID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=268;
+  MODIFY `qualID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemCutStandards`
 --
 ALTER TABLE `systemCutStandards`
-  MODIFY `standardID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `standardID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemDoubleTypes`
 --
 ALTER TABLE `systemDoubleTypes`
-  MODIFY `doubleTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `doubleTypeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=138;
+  MODIFY `eventID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemFormats`
 --
 ALTER TABLE `systemFormats`
-  MODIFY `formatID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `formatID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemLogisticsRoles`
 --
 ALTER TABLE `systemLogisticsRoles`
-  MODIFY `logisticsRoleID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `logisticsRoleID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemMatchOrder`
 --
 ALTER TABLE `systemMatchOrder`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=365;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemRankings`
 --
 ALTER TABLE `systemRankings`
-  MODIFY `tournamentRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `tournamentRankingID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemRoster`
 --
 ALTER TABLE `systemRoster`
-  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3063;
+  MODIFY `systemRosterID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemRosterNotDuplicate`
 --
 ALTER TABLE `systemRosterNotDuplicate`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `tableID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=544;
+  MODIFY `schoolID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemTournaments`
 --
 ALTER TABLE `systemTournaments`
-  MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `tournamentTypeID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemUserEvents`
 --
 ALTER TABLE `systemUserEvents`
-  MODIFY `userTournamentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `userTournamentID` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `systemUsers`
 --
 ALTER TABLE `systemUsers`
-  MODIFY `userID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `userID` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- Constraints for dumped tables
 --

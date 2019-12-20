@@ -503,16 +503,32 @@ function updateTimerDisplay(time = null){
 	if(time == null){
 		time = $('#matchTime').val()
 	}
-	
-	minutes = Math.floor(time/60);
-	seconds = time - (minutes * 60);
+
+	if(document.getElementById('timerCountdown').value == 0){
+		displayTime = time;
+	} else {
+		// In timer countdown mode
+		displayTime = document.getElementById('timeLimit').value - time;
+	}
+
+	var neg = '';
+	if(displayTime < 0){
+		if($("#hideNegativeTime").length != 0){
+			displayTime = 0;
+		} else {
+			displayTime = Math.abs(displayTime);
+			neg = '-';
+		}
+	}
+
+	minutes = Math.floor(displayTime/60);
+	seconds = displayTime - (minutes * 60);
 
 	if(seconds < 10){
 		seconds = "0"+seconds.toString();
 	}
 
-
-	str = minutes.toString()+":"+seconds.toString(); console.log(str);
+	str = neg+minutes.toString()+":"+seconds.toString();
 	document.getElementById('currentTime').innerHTML = str;
 
 	setTimerButtonColor(time);
@@ -580,6 +596,7 @@ function setTimerButtonColor(time){
 /******************************************************************************/
 
 function manualTimeSet(){
+
 	var minutes = parseInt($('#timerMinutes').val());
 	if (Number.isInteger(minutes) == false){
 		minutes = 0;
@@ -591,6 +608,11 @@ function manualTimeSet(){
 	}
 
 	time = (60 * minutes) + seconds;
+
+	// If the timer is in countdown mode, need to do some manual calculations.
+	if(document.getElementById('timerCountdown').value != 0){
+		time = document.getElementById('timeLimit').value - time;
+	}
 
 	document.getElementById('matchTime').value = time;
 	updateMatchTimer();

@@ -207,7 +207,7 @@ $conn = connectToDB();
 // Tournament Specific Constants
 	if($_SESSION['tournamentID'] != null){
 		$tournamentID = $_SESSION['tournamentID'];
-		$sql = "SELECT isFinalized, useTimer, isTeams, logicMode, formatID
+		$sql = "SELECT isFinalized, isTeams, logicMode, formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$tSettings = mysqlQuery($sql, SINGLE);
@@ -215,12 +215,7 @@ $conn = connectToDB();
 	// Tournament Concluded	
 		if($tSettings['isFinalized'] == 1){
 			define("LOCK_TOURNAMENT", 'disabled');
-		}
-		
-	// Use timer in the matches
-		if($tSettings['useTimer'] == 1){
-			define("IS_TIMER", true);
-		}
+		}	
 
 	// Use timer in the matches
 		if($tSettings['logicMode'] != ''){
@@ -231,7 +226,6 @@ $conn = connectToDB();
 		$_SESSION['formatID'] = $tSettings['formatID'];
 		
 	}
-	if(!defined('IS_TIMER')){ define("IS_TIMER", false); }
 	if(!defined('LOCK_TOURNAMENT')){ define("LOCK_TOURNAMENT", ''); }
 	if(!defined('LOGIC_MODE')){ define("LOGIC_MODE", 'normal'); }
 	

@@ -119,17 +119,6 @@ if($_SESSION['eventID'] == null){
 		<?php colorSelectDropDown(1,$defaults['color1ID']); ?>
 		<?php colorSelectDropDown(2,$defaults['color2ID']); ?>
 		
-	<!-- Match Timer -->
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Use Match Timer:</span>
-
-			<select class='input-group-field' type='text' name='useTimer'>
-				<?php $selected = isSelected(1, $defaults['useTimer']);?>
-				<option value=0>No</option>
-				<option value=1 <?=$selected?>>Yes</option>
-			</select>
-		</div>
-		
 	<!-- Double Hits -->
 		<div class='medium-6 large-4 cell input-group'>
 			<span class='input-group-label'>Maximum Double Hits:</span>

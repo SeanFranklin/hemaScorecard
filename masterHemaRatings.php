@@ -39,6 +39,11 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	Number Rated: <?=$inSystem['rated']?> |
 	Number Unrated: <?=$inSystem['unrated']?>
 
+	<div class='hidden callout alert' id='hema-ratings-unidentifed-warning'>
+		<strong>Warning!</strong> Some name could not be found on HEMA Ratings and have been hidden.<BR>
+		<em>You need to refresh the page to get them back. </em>
+	</div>
+
 	<a class='button hollow success' onclick="hemaRatings_getByNameAll()">
 		Check All
 	</a>
@@ -77,10 +82,10 @@ function displayUnratedFighters($fighterList){
 		$name = getFighterNameSystem($fighter['systemRosterID']);
 		?>
 
-		<tr>
+		<tr id='unrated-row-<?=$fighter['systemRosterID']?>'>
 			<td>
 				<button class='button success tiny no-bottom hollow'
-					name='formName' value='HemaRatings_UpdateFighterIDs'>
+					name='formName' value='hemaRatings_UpdateFighterIDs'>
 					✓
 				</button>
 

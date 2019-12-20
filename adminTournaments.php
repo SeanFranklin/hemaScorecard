@@ -113,7 +113,6 @@ if($_SESSION['eventID'] == null){
 				
 			<div id='optionalFields_<?=$tournamentID?>' class='grid-x grid-padding-x text-center'>
 				<?php
-				edit_tournamentTimer($tournamentID);
 				edit_tournamentTies($tournamentID);
 				edit_tournamentColors($tournamentID, 1);
 				edit_tournamentColors($tournamentID, 2);
@@ -123,6 +122,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentPoolWinners($tournamentID);
 
 				edit_tournamentTimeLimit($tournamentID);
+				edit_tournamentTimerCountdown($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
 				edit_tournamentMaxPoints($tournamentID);
 				edit_tournamentMaxPointSpread($tournamentID);
