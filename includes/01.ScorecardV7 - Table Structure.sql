@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 20, 2019 at 01:04 AM
+-- Generation Time: Dec 20, 2019 at 02:08 PM
 -- Server version: 5.7.28-0ubuntu0.16.04.2
 -- PHP Version: 7.0.33-0ubuntu0.16.04.7
 
@@ -594,6 +594,20 @@ CREATE TABLE `systemColors` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `systemCountries`
+--
+
+CREATE TABLE `systemCountries` (
+  `countryIso2` varchar(2) NOT NULL,
+  `countryTitle` varchar(80) NOT NULL,
+  `countryName` varchar(80) NOT NULL,
+  `countryIso3` char(3) DEFAULT NULL,
+  `countryNumCode` smallint(6) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `systemCutQualifications`
 --
 
@@ -647,7 +661,7 @@ CREATE TABLE `systemEvents` (
   `eventStartDate` date DEFAULT NULL,
   `eventEndDate` date DEFAULT NULL,
   `regionCode` int(11) DEFAULT NULL,
-  `eventCountry` varchar(255) DEFAULT NULL,
+  `countryIso2` varchar(2) NOT NULL DEFAULT 'AQ',
   `eventProvince` varchar(255) DEFAULT NULL,
   `eventCity` varchar(255) DEFAULT NULL,
   `staffPassword` varchar(255) DEFAULT NULL,
@@ -782,7 +796,7 @@ CREATE TABLE `systemSchools` (
   `schoolAbbreviation` varchar(255) DEFAULT NULL,
   `schoolCity` varchar(255) DEFAULT NULL,
   `schoolProvince` varchar(255) DEFAULT NULL,
-  `schoolCountry` varchar(255) DEFAULT NULL,
+  `countryIso2` varchar(2) DEFAULT NULL,
   `schoolAddress` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -1119,6 +1133,12 @@ ALTER TABLE `systemColors`
   ADD PRIMARY KEY (`colorID`);
 
 --
+-- Indexes for table `systemCountries`
+--
+ALTER TABLE `systemCountries`
+  ADD PRIMARY KEY (`countryIso2`);
+
+--
 -- Indexes for table `systemCutQualifications`
 --
 ALTER TABLE `systemCutQualifications`
@@ -1142,7 +1162,9 @@ ALTER TABLE `systemDoubleTypes`
 -- Indexes for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  ADD PRIMARY KEY (`eventID`);
+  ADD PRIMARY KEY (`eventID`),
+  ADD KEY `countryIso2` (`countryIso2`),
+  ADD KEY `countryIso2_2` (`countryIso2`);
 
 --
 -- Indexes for table `systemFormats`
@@ -1189,7 +1211,8 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- Indexes for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  ADD PRIMARY KEY (`schoolID`);
+  ADD PRIMARY KEY (`schoolID`),
+  ADD KEY `countryIso2` (`countryIso2`);
 ALTER TABLE `systemSchools` ADD FULLTEXT KEY `schoolFullName` (`schoolFullName`);
 
 --
@@ -1245,7 +1268,7 @@ ALTER TABLE `eventDefaults`
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177025;
+  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177031;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
@@ -1255,12 +1278,12 @@ ALTER TABLE `eventGroupRankings`
 -- AUTO_INCREMENT for table `eventGroupRoster`
 --
 ALTER TABLE `eventGroupRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20394;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20397;
 --
 -- AUTO_INCREMENT for table `eventGroups`
 --
 ALTER TABLE `eventGroups`
-  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5479;
+  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5481;
 --
 -- AUTO_INCREMENT for table `eventHemaRatingsInfo`
 --
@@ -1285,17 +1308,17 @@ ALTER TABLE `eventLivestreams`
 -- AUTO_INCREMENT for table `eventMatches`
 --
 ALTER TABLE `eventMatches`
-  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52409;
+  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52412;
 --
 -- AUTO_INCREMENT for table `eventPlacings`
 --
 ALTER TABLE `eventPlacings`
-  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8690;
+  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8729;
 --
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6412;
+  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6417;
 --
 -- AUTO_INCREMENT for table `eventStandings`
 --
@@ -1305,37 +1328,37 @@ ALTER TABLE `eventStandings`
 -- AUTO_INCREMENT for table `eventTeamRoster`
 --
 ALTER TABLE `eventTeamRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=228;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 --
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12557;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12573;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=677;
+  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=679;
 --
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
 ALTER TABLE `logisticsLocations`
-  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135;
+  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
 ALTER TABLE `logisticsLocationsBlocks`
-  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=945;
+  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=947;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsMatches`
 --
 ALTER TABLE `logisticsLocationsMatches`
-  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3280;
+  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3282;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleBlocks`
 --
 ALTER TABLE `logisticsScheduleBlocks`
-  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=502;
+  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=503;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleShifts`
 --
@@ -1670,6 +1693,12 @@ ALTER TABLE `systemCutQualifications`
   ADD CONSTRAINT `cuttingqualifications_ibfk_2` FOREIGN KEY (`standardID`) REFERENCES `systemCutStandards` (`standardID`) ON UPDATE CASCADE;
 
 --
+-- Constraints for table `systemEvents`
+--
+ALTER TABLE `systemEvents`
+  ADD CONSTRAINT `systemEvents_ibfk_1` FOREIGN KEY (`countryIso2`) REFERENCES `systemCountries` (`countryIso2`);
+
+--
 -- Constraints for table `systemRankings`
 --
 ALTER TABLE `systemRankings`
@@ -1687,6 +1716,12 @@ ALTER TABLE `systemRoster`
 ALTER TABLE `systemRosterNotDuplicate`
   ADD CONSTRAINT `systemRosterNotDuplicate_ibfk_1` FOREIGN KEY (`rosterID1`) REFERENCES `systemRoster` (`systemRosterID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `systemRosterNotDuplicate_ibfk_2` FOREIGN KEY (`rosterID2`) REFERENCES `systemRoster` (`systemRosterID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `systemSchools`
+--
+ALTER TABLE `systemSchools`
+  ADD CONSTRAINT `systemSchools_ibfk_1` FOREIGN KEY (`countryIso2`) REFERENCES `systemCountries` (`countryIso2`);
 
 --
 -- Constraints for table `systemUserEvents`
