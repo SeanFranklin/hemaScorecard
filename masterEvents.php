@@ -58,7 +58,7 @@ function displayAdminEventList($eventList){
 	// These are the fields displayed
 	$fieldsToDisplay = ['eventName',
 						'eventStartDate',
-						'eventCountry',
+						'countryName',
 						'eventStatus'];
 	if(ALLOW['VIEW_EMAIL'] == true){
 		$fieldsToDisplay[] = 'organizerEmail';
@@ -331,7 +331,7 @@ function entryFields($eventInfo = null){
 	<tr>
 		<td>City</td>
 		<td>
-			<input class='no-bottom' type='text' 
+			<input class='no-bottom' type='text'
 				name='eventCity' value="<?=$eventInfo['eventCity']?>">
 		</td>
 	</tr>
@@ -346,8 +346,7 @@ function entryFields($eventInfo = null){
 	<tr>
 		<td>Country</td>
 		<td>
-			<input class='no-bottom' type='text' 
-				name='eventCountry' value="<?=$eventInfo['eventCountry']?>">
+			<?=selectCountry("countryIso2", $eventInfo['countryIso2'], null, 'no-bottom');?>
 		</td>
 	</tr>
 

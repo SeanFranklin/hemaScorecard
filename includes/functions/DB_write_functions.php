@@ -1147,7 +1147,7 @@ function addNewEvent(){
 	
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
-			eventEndDate, eventCountry, eventProvince, eventCity,
+			eventEndDate, countryIso2, eventProvince, eventCity,
 			eventStatus, staffPassword, organizerPassword)
 			VALUES
 			(?,?,?,?,?,?,?,?,?,?,?)";
@@ -1161,7 +1161,7 @@ function addNewEvent(){
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssssss", 
 			$_POST['eventName'], $_POST['eventAbbreviation'],
 			$eventYear, $eventStartDate,
-			$eventEndDate, $_POST['eventCountry'], 
+			$eventEndDate, $_POST['countryIso2'], 
 			$_POST['eventProvince'], $_POST['eventCity'],
 			$_POST['eventStatus'],$passwordHash,$passwordHash);
 	$exec = mysqli_stmt_execute($stmt);
@@ -1201,7 +1201,7 @@ function addNewSchool(){
 	$schoolShortName = $_POST['schoolShortName'];
 	$schoolAbbreviation = $_POST['schoolAbbreviation'];
 	$schoolBranch = $_POST['schoolBranch'];
-	$schoolCountry = $_POST['schoolCountry'];
+	$countryIso2 = $_POST['countryIso2'];
 	$schoolProvince = $_POST['schoolProvince'];
 	$schoolCity = $_POST['schoolCity'];
 
@@ -1220,14 +1220,14 @@ function addNewSchool(){
 	
 	$sql = "INSERT INTO systemSchools
 			(schoolFullName, schoolShortName, schoolAbbreviation, schoolBranch,
-			schoolCountry, schoolProvince, schoolCity)
+			countryIso2, schoolProvince, schoolCity)
 			VALUES
 			(?,?,?,?,?,?,?)";
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssss", $schoolFullName, 
 				$schoolShortName, $schoolAbbreviation,
-	 			$schoolBranch, $schoolCountry, $schoolProvince, $schoolCity);
+	 			$schoolBranch, $countryIso2, $schoolProvince, $schoolCity);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 }
@@ -2284,7 +2284,7 @@ function editEvent(){
 			eventYear=?,
 			eventStartDate=?,
 			eventEndDate=?, 
-			eventCountry=?, 
+			countryIso2=?, 
 			eventProvince=?, 
 			eventCity=?,
 			eventStatus=?
@@ -2294,7 +2294,7 @@ function editEvent(){
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssss", 
 			$_POST['eventName'], $_POST['eventAbbreviation'],
 			$eventYear, $_POST['eventStartDate'],
-			$_POST['eventEndDate'], $_POST['eventCountry'], 
+			$_POST['eventEndDate'], $_POST['countryIso2'], 
 			$_POST['eventProvince'], $_POST['eventCity'],
 			$_POST['eventStatus']);
 	$exec = mysqli_stmt_execute($stmt);
@@ -4827,7 +4827,7 @@ function updateExistingSchool(){
 	$schoolShortName = $_POST['schoolShortName'];
 	$schoolAbbreviation = $_POST['schoolAbbreviation'];
 	$schoolBranch = $_POST['schoolBranch'];
-	$schoolCountry = $_POST['schoolCountry'];
+	$countryIso2 = $_POST['countryIso2'];
 	$schoolProvince = $_POST['schoolProvince'];
 	$schoolCity = $_POST['schoolCity'];
 	
@@ -4836,7 +4836,7 @@ function updateExistingSchool(){
 			schoolShortName = ?,
 			schoolAbbreviation = ?,
 			schoolBranch = ?,
-			schoolCountry = ?,
+			countryIso2 = ?,
 			schoolProvince = ?,
 			schoolCity = ?
 			WHERE schoolID = {$schoolID}";
@@ -4844,7 +4844,7 @@ function updateExistingSchool(){
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssss", $schoolFullName, 
 			$schoolShortName, $schoolAbbreviation, $schoolBranch, 
-			$schoolCountry, $schoolProvince, $schoolCity);
+			$countryIso2, $schoolProvince, $schoolCity);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 
@@ -4929,8 +4929,6 @@ function updateFinalsBracket(){
 /******************************************************************************/
 
 function hemaRatings_updateFighterIDs($fighters){
-
-
 
 	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
 	if($fighters == null){return;}

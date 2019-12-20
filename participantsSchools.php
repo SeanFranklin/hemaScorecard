@@ -43,6 +43,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 		addNewSchoolInput();
 	}
 	
+
 	
 	?>
 	
@@ -70,7 +71,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 			<td><?= $school['schoolShortName'] ?></td>
 			<td><?= $school['schoolAbbreviation'] ?></td>
 			<td><?= $school['schoolBranch'] ?></td>
-			<td><?= $school['schoolCountry'] ?></td>
+			<td><?= $school['countryName'] ?></td>
 			<td><?= $school['schoolProvince'] ?></td>
 			<td><?= $school['schoolCity'] ?></td>
 		</tr>
@@ -151,8 +152,7 @@ function editExistingSchool(){
 	<tr>
 		<td>School Country </td>
 		<td>
-			<input type='text' name='schoolCountry' 
-			value='<?= $schoolInfo['schoolCountry'] ?>'>
+			<?=selectCountry("countryIso2", $schoolInfo['countryIso2']);?>
 		</td>
 	</tr>
 	<tr>
@@ -225,8 +225,7 @@ function addNewSchoolInput(){
 		</div>
 		<div class='input-group grid-x cell'>
 			<span class='input-group-label small-5'><strong>School Country</strong></span>
-			<input class='input-group-field' type='text' name='schoolCountry'
-				id='schoolCountry' placeholder='- Mandatory -' required>
+			<?=selectCountry("countryIso2", null, null, "input-group-field");?>
 		</div>
 		<div class='input-group grid-x cell'>
 			<span class='input-group-label small-5'>School Province</span>

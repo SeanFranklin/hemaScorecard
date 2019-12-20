@@ -49,13 +49,14 @@ function hemaRatings_getSystemCount(){
 function hemaRatings_getUnrated(){
 	
 	$formatID = (int)FORMAT_MATCH;
-	$sql = "SELECT DISTINCT(systemRosterID), sR.schoolID, systemSchools.schoolCountry, 
+	$sql = "SELECT DISTINCT(systemRosterID), sR.schoolID, countryName, 
 				schoolShortName, firstName
 			FROM eventTournamentRoster
 			INNER JOIN eventTournaments USING(tournamentID)
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster AS sR USING(systemRosterID)
 			INNER JOIN systemSchools ON sR.schoolID = systemSchools.schoolID
+			INNER JOIN systemCountries USING(countryIso2)
 			WHERE formatID = {$formatID}
 			AND HemaRatingsID IS NULL
 			ORDER BY schoolShortName ASC, firstName ASC";
@@ -68,7 +69,7 @@ function hemaRatings_GetEventInfo($eventID){
 	$eventID = (int)$eventID;
 
 	$sql = "SELECT CONCAT(eventName, ' ', eventYear) AS eventName, eventStartDate,
-		 		eventCountry,eventProvince, eventCity, 
+		 		countryIso2,eventProvince, eventCity, 
 				(	SELECT schoolFullName
 					FROM systemSchools
 					WHERE schoolID = organizingSchool) AS schoolName,
@@ -93,7 +94,7 @@ function hemaRatings_GetEventRosterForExport($eventID){
 	// The schoolID in eventRoster and systemRoste may not be the same
 	// School in event is what they were at the time of the event, in
 	// the system it is the school from the latest appearance
-	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.schoolCountry, sys.HemaRatingsID
+	$sql = "SELECT sys.systemRosterID, sch.schoolFullName, sch.countryIso2, sys.HemaRatingsID
 			FROM eventRoster ev
 			INNER JOIN systemRoster sys ON sys.systemRosterID = ev.systemRosterID
 			INNER JOIN systemSchools sch ON ev.schoolID = sch.schoolID
@@ -175,7 +176,7 @@ function hemaRatings_CreateEventRosterCsv($eventID = null, $dir = "exports/"){
 
 		fputs($fp, getFighterNameSystem($fields['systemRosterID'], 'first').",");
 		fputs($fp, $fields['schoolFullName'].",");
-		fputs($fp, $fields['schoolCountry'].",");
+		fputs($fp, $fields['countryIso2'].",");
 		fputs($fp, ",");
 		fputs($fp, $fields['HemaRatingsID']);	
 		
@@ -195,7 +196,7 @@ function hemaRatings_isEventInfoRequired($field){
 	switch($field){
 		case 'eventName':
 		case 'eventStartDate':
-		case 'eventCountry':
+		case 'countryIso2':
 		case 'eventCity':
 		case 'socialMediaLink':
 		case 'photoLink':
@@ -235,7 +236,7 @@ function hemaRatings_getFieldDisplayName($field){
 	switch($field){
 		case 'eventName':			return 	'Event Name';		break;
 		case 'eventStartDate':		return 	'Event Start Date';	break;
-		case 'eventCountry':		return 	'Event Country';	break;
+		case 'countryIso2':			return 	'Event Country';	break;
 		case 'eventProvince':		return 	'Event State/Province';	break;
 		case 'eventCity':			return 	'Event City';	break;
 		case 'organizingSchool':	return 	'Organizing School';	break;
@@ -940,6 +941,17 @@ function getColors(){
 
 /******************************************************************************/
 
+function getCountryList(){
+
+	$sql = "SELECT countryIso2, countryName
+			FROM systemCountries
+			ORDER BY countryName ASC";
+	return mysqlQuery($sql, KEY_SINGLES, 'countryIso2', 'countryName');
+
+}
+
+/******************************************************************************/
+
 function getCuttingStandard($tournamentID = null){
 	
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
@@ -1233,10 +1245,10 @@ function getEventList($eventStatus, $order = null, $limit = null){
 		$eventUpcomingLimit = EVENT_UPCOMING_LIMIT-1;
 
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventEndDate, countryName, eventProvince, eventCity, 
 				eventStatus
-				FROM 
-				systemEvents
+				FROM systemEvents
+				INNER JOIN systemCountries USING(countryIso2)
 				WHERE (		(eventStatus LIKE 'archived')
 						OR (eventStatus LIKE 'active'
 							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventActiveLimit} )
@@ -1251,10 +1263,10 @@ function getEventList($eventStatus, $order = null, $limit = null){
 
 	} elseif($eventStatus == 'old'){
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventEndDate, countryName, eventProvince, eventCity, 
 				eventStatus
-				FROM 
-				systemEvents
+				FROM systemEvents
+				INNER JOIN systemCountries USING(countryIso2)
 				WHERE eventStatus IN ('archived', 'active', 'upcoming')
 				ORDER BY eventStartDate DESC, eventEndDate DESC";
 		return mysqlQuery($sql, KEY, 'eventID');	
@@ -1282,10 +1294,10 @@ function getEventList($eventStatus, $order = null, $limit = null){
 		}
 		
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, eventCountry, eventProvince, eventCity, 
+				eventEndDate, countryName, eventProvince, eventCity, 
 				eventStatus 
-				FROM 
-				systemEvents
+				FROM systemEvents
+				INNER JOIN systemCountries USING(countryIso2)
 				WHERE eventStatus LIKE '{$eventStatus}'
 				ORDER BY eventStartDate {$order}, eventEndDate {$order}
 				{$limitString}";
@@ -1299,8 +1311,9 @@ function getEventListFULL(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	$sql = "SELECT *
+	$sql = "SELECT systemEvents.*, countryName
 			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
 			ORDER BY eventStartDate DESC";
 	return mysqlQuery($sql, KEY, 'eventID');
 
@@ -3867,6 +3880,7 @@ function getSetAttributes($tournamentID){
 	
 }
 
+
 /******************************************************************************/
 
 function getSchoolInfo($schoolID){
@@ -3895,8 +3909,9 @@ function getSchoolList($sortString = null){
 		$sortString = "ORDER BY schoolShortName, schoolBranch";
 	}
 	
-	$sql = "SELECT schoolShortName, schoolID, schoolBranch, schoolAbbreviation, schoolCountry
+	$sql = "SELECT schoolShortName, schoolID, schoolBranch, schoolAbbreviation, countryName
 			FROM systemSchools
+			INNER JOIN systemCountries USING(countryIso2)
 			{$sortString}";
 	$allSchools = mysqlQuery($sql, ASSOC);
 
@@ -3906,7 +3921,7 @@ function getSchoolList($sortString = null){
 
 /******************************************************************************/
 
-function getSchoolListLONG($sortString = null){
+function getSchoolListLong($sortString = null){
 // return a sorted array of all schools in the database 	
 	
 	if(isset($sortString)){
@@ -3915,8 +3930,11 @@ function getSchoolListLONG($sortString = null){
 		$sortString = "ORDER BY schoolShortName, schoolBranch";
 	}
 	
-	$sql = "SELECT *
+	$sql = "SELECT schoolID, schoolFullName, schoolShortName, schoolBranch, 
+				schoolAbbreviation, schoolCity, schoolProvince, countryIso2, 
+				countryName
 			FROM systemSchools
+			INNER JOIN systemCountries USING(countryIso2)
 			{$sortString}";
 	$allSchools = mysqlQuery($sql, ASSOC);
 
