@@ -76,8 +76,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
-
-
+	<!-- Set the timer mode -->
+	<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($tournamentID)?>'>
 
 <!-- Warning if match is ignored -->
 	<?php if($matchInfo['ignoreMatch'] == 1): ?>
@@ -1276,10 +1276,10 @@ function createSideBar($matchInfo){
 	<?php else: ?>
 
 	<!-- Timer -->
-		<?php if(IS_TIMER): ?>
-			<input type='hidden' class='matchTime' id='matchTime' 
-				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-			<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
+		
+		<input type='hidden' class='matchTime' id='matchTime' 
+			name='matchTime' value='<?=$matchInfo['matchTime']?>'>
+		<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
 			<script>
 				window.onload = function(){
@@ -1329,7 +1329,7 @@ function createSideBar($matchInfo){
 				    });
 			</script>
 
-			<?php if($matchInfo['matchTime'] > 0){
+			<?php if($matchInfo['matchTime'] != 0){
 				$hideTimer = '';
 			} else {
 				$hideTimer = 'hidden';
@@ -1344,7 +1344,7 @@ function createSideBar($matchInfo){
 			</div>
 
 		<?php endif?>
-		<?php endif ?>
+
 
 	<!-- Match Winner -->
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>		
