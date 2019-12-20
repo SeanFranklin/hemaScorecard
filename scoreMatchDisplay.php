@@ -337,7 +337,7 @@ function matchInfoDisplay($matchInfo){
 			<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
 			<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
 			<input type='hidden' name='hideNegativeTime' value='1' id='hideNegativeTime'>
-			<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($tournamentID)?>'>
+			<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($matchInfo['tournamentID'])?>'>
 
 			<script>
 				window.addEventListener("load",function(event) {
