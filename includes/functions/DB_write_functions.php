@@ -4468,7 +4468,7 @@ function updateEventTournaments(){
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, formatID, tournamentRankingID,
 					maximumExchanges, maximumPoints, maxPointSpread, 
-					isCuttingQual, useControlPoint, timerCountdown
+					isCuttingQual, useControlPoint, timerCountdown,
 					isNotNetScore, basePointValue, overrideDoubleType, isPrivate, 
 					isReverseScore, isTeams, logicMode, poolWinnersFirst, limitPoolMatches,
 					checkInStaff, numSubMatches, subMatchMode, timeLimit, requireSignOff
