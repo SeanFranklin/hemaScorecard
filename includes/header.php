@@ -18,8 +18,8 @@ if($_SESSION['eventID'] != null){
 }
 
 $livestreamInfo = getLivestreamInfo();
-$vJ = '?=1.0.8'; // Javascript Version
-$vC = '?=1.0.7'; // CSS Version
+$vJ = '?=1.0.9'; // Javascript Version
+$vC = '?=1.0.8'; // CSS Version
 ?>
 
 <!doctype html>
