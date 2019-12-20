@@ -1310,6 +1310,44 @@ function edit_tournamentTies($tournamentID = 'new'){
 
 /******************************************************************************/
 
+function edit_tournamentTimerCountdown($tournamentID = 'new'){
+// Select menu for whether or not the tournament allows ties
+// Calls to javascrip on change to alter the form based	on it's selection
+// Appears as a checkbox to create a new tournament if no parameter is passed
+	
+
+	$formatID = getTournamentFormat($tournamentID);
+	if($formatID == FORMAT_MATCH){
+		$display = '';
+	} else {
+		$display = "hidden"; 
+	}
+	
+	$timerCountdown = isTimerCountdown($tournamentID);
+	$selected = isSelected(1 == $timerCountdown);
+	
+	?>
+	
+
+<!-- Start display -->
+	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
+		id='timerCountdown_div<?=$tournamentID?>' >
+			
+		Timer Mode	
+		
+		<select name='updateTournament[timerCountdown]'
+			id='timerCountdown_select<?=$tournamentID?>'>
+			<option value='0'>Count Up</option>
+			<option value='1' <?=$selected?>>Count Down</option>
+		</select>
+		
+	</div>
+	
+<?php }
+
+
+/******************************************************************************/
+
 function edit_tournamentStaffCheckin($tournamentID = 'new'){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection
@@ -1552,62 +1590,6 @@ function edit_tournamentNetScore($tournamentID = 'new'){
 			<option <?=$nullOptionSelected?> disabled></option>
 			<option <?=optionValue(0,$noNetScore);?> >Yes</option>
 			<option <?=optionValue(1,$noNetScore);?> >No</option>
-			
-		</select>
-		
-	</div>
-	
-<?php }
-
-/******************************************************************************/
-
-function edit_tournamentTimer($tournamentID = 'new'){
-// Select menu for whether or not the tournament uses a timer
-// Calls to javascrip on change to alter the form based	on it's selection
-// Appears as a checkbox to create a new tournament if no parameter is passed
-	
-
-	$display = "hidden"; // Hidden for most cases
-
-	if($tournamentID != 'new' && (int)$tournamentID > 0){
-
-		if(getTournamentFormat($tournamentID) == FORMAT_MATCH){
-			$display = '';
-			
-			$sql = "SELECT useTimer
-					FROM eventTournaments
-					WHERE tournamentID = {$tournamentID}";
-			$useTimer = (int)mysqlQuery($sql, SINGLE, 'useTimer');
-
-		} else {
-			$useTimer = 0;
-		}
-	} elseif($tournamentID == 'new') {
-		$eventID = $_SESSION['eventID'];
-		
-		$sql = "SELECT useTimer
-				FROM eventDefaults
-				WHERE eventID = {$eventID}";
-				
-				
-		$useTimer = (int)mysqlQuery($sql, SINGLE, 'useTimer');
-	}
-	$selected = isSelected(1 == $useTimer);
-	
-	?>
-	
-
-
-<!-- Start display -->
-	<div class='medium-6 large-3 cell tournament-edit-box <?=$display?>' 
-		id='useTimer_div<?=$tournamentID?>' >
-			
-		Use Timer
-		
-		<select name='updateTournament[useTimer]'
-			id='useTimer_select<?=$tournamentID?>'>
-			<option value='0'>No</option>
-			<option value='1' <?=$selected?>>Yes</option>
 			
 		</select>
 		

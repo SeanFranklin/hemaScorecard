@@ -4271,7 +4271,6 @@ function updateEventDefaults(){
 	$color2ID = $_POST['color2ID'];
 	$maxPoolSize = $_POST['maxPoolSize'];
 	$allowTies = $_POST['allowTies'];
-	$useTimer = $_POST['useTimer'];
 	$controlPoint = $_POST['controlPoint'];
 	
 	$sql = "DELETE FROM eventDefaults
@@ -4280,10 +4279,10 @@ function updateEventDefaults(){
 	
 	$sql = "INSERT INTO eventDefaults
 			(eventID, color1ID, color2ID, maxPoolSize, useControlPoint,
-			maxDoubleHits, normalizePoolSize, allowTies, useTimer)
+			maxDoubleHits, normalizePoolSize, allowTies)
 			VALUES
 			($eventID, $color1ID, $color2ID, $maxPoolSize, $controlPoint,
-			$maxDoubles, $normPoolSize, $allowTies, $useTimer)";
+			$maxDoubles, $normPoolSize, $allowTies)";
 	mysqlQuery($sql, SEND);
 
 	$_SESSION['alertMessages']['userAlerts'][] = "Event Defaults Updated";
@@ -4469,7 +4468,7 @@ function updateEventTournaments(){
 					normalizePoolSize, color1ID, color2ID, maxPoolSize, 
 					maxDoubleHits, formatID, tournamentRankingID,
 					maximumExchanges, maximumPoints, maxPointSpread, 
-					isCuttingQual, useTimer, useControlPoint,
+					isCuttingQual, useControlPoint, timerCountdown
 					isNotNetScore, basePointValue, overrideDoubleType, isPrivate, 
 					isReverseScore, isTeams, logicMode, poolWinnersFirst, limitPoolMatches,
 					checkInStaff, numSubMatches, subMatchMode, timeLimit, requireSignOff
@@ -4491,8 +4490,8 @@ function updateEventTournaments(){
 					{$info['maximumPoints']},
 					{$info['maxPointSpread']},
 					{$info['isCuttingQual']},
-					{$info['useTimer']},
 					{$info['useControlPoint']},
+					{$info['timerCountdown']},
 					{$info['isNotNetScore']},
 					{$info['basePointValue']},
 					{$info['overrideDoubleType']},
@@ -4638,7 +4637,7 @@ function updateEventTournaments(){
 			break;
 	}
 	
-	// Update total tournament counts across all events
+// Update total tournament counts across all events
 	$sql = "SELECT tournamentWeaponID
 			FROM eventTournaments";
 	$res = mysqlQuery($sql, ASSOC);
@@ -4659,7 +4658,7 @@ function updateEventTournaments(){
 		mysqlQuery($sql, SEND);
 	}
 	
-	// Update number of instances for ranking algorthms
+// Update number of instances for ranking algorthms
 	$sql = "SELECT tournamentRankingID, COUNT(1) AS numInstances
 			FROM eventTournaments
 			GROUP BY tournamentRankingID";
@@ -4930,6 +4929,8 @@ function updateFinalsBracket(){
 /******************************************************************************/
 
 function hemaRatings_updateFighterIDs($fighters){
+
+
 
 	if(ALLOW['SOFTWARE_ASSIST'] == false){ return;}
 	if($fighters == null){return;}
@@ -6084,6 +6085,7 @@ function updateTournamentComponents($componentData){
 		}
 	}
 
+	// Clear the roster if the tournament goes from auto to manual roster management.
 	if($wasRosterComponents == true && $isRosterComponents == false){
 		$sql = "DELETE FROM eventTournamentRoster
 				WHERE tournamentID = {$tournamentID}";
