@@ -2028,7 +2028,7 @@ function isTimerCountdown($tournamentID){
 		$sql = "SELECT timerCountdown
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$timerCountdown = (bool)mysqlQuery($sql, SINGLE, 'timerCountdown');
+		$timerCountdown = (int)mysqlQuery($sql, SINGLE, 'timerCountdown');
 	}
 
 	return $timerCountdown;
