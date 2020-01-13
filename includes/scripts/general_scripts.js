@@ -7,7 +7,7 @@ const AJAX_LOCATION = "/includes/functions/AJAX.php";
 const FORMAT_RESULTS    = 1;
 const FORMAT_MATCH      = 2;
 const FORMAT_SOLO       = 3;
-const FORMAT_COMPOSITE  = 4;
+const FORMAT_META       = 4;
 
 // Arrows
 const TIE_TOP     = '↰';

@@ -37,14 +37,11 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 	
 <!-- Add New School -->
 	<?php 
-	if(isset($_SESSION['editSchoolID'])){
-		editExistingSchool();
-	} else {
-		addNewSchoolInput();
-	}
-	
-
-	
+		if(isset($_SESSION['editSchoolID'])){
+			editExistingSchool();
+		} else {
+			addNewSchoolInput();
+		}
 	?>
 	
 <!-- Display Existing Schools -->

@@ -58,8 +58,8 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		hideFinalResults: 'show'
 	};
 	
-	// Composite
-	fieldsToDisplay [FORMAT_COMPOSITE] = {
+	// Meta-tournament
+	fieldsToDisplay [FORMAT_META] = {
 		formatD: 'show',			 
 		rankingID: 'refresh',
 		baseValue: 'show',
@@ -150,14 +150,14 @@ function enableTournamentButton(tournamentID){
 
 // Check modes relating to score/rankings
 
-	if(formatID == FORMAT_MATCH || formatID == FORMAT_SOLO || formatID == FORMAT_COMPOSITE){
+	if(formatID == FORMAT_MATCH || formatID == FORMAT_SOLO || formatID == FORMAT_META){
 		rankingID = document.getElementById('rankingID_select'+tournamentID).value;
 		if(rankingID.length == 0){
 			warrningMessages.push('Please select Ranking Type');
 		}
 	}
 
-	if(formatID == FORMAT_SOLO || formatID == FORMAT_COMPOSITE){
+	if(formatID == FORMAT_SOLO || formatID == FORMAT_META){
 		baseValue = document.getElementById('baseValue_select'+tournamentID).value;
 		if(baseValue == '' || baseValue < 0 || baseValue > 100){
 			warrningMessages.push('Please input a Base Score Value');

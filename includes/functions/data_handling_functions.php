@@ -1003,32 +1003,11 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
-function checkCompositeTournaments($tournamentID){
-// Check if the tournament was a component of another tournament,
-// and if so then update the scores of that one.
-
-	$tournamentID = (int)$tournamentID;
-
-	if(isPartOfComposite($tournamentID)){
-		$sql = "SELECT tournamentID AS baseTournamentID
-				FROM eventComponents
-				WHERE componentTournamentID = {$tournamentID}";
-		$componentOf = mysqlQuery($sql, SINGLES, 'baseTournamentID');
+function updateMetaTournamentStandings($mTournamentID){
 	
-		foreach($componentOf as $baseTournamentID){
-			
-			updateCompositeTournamentStandings($baseTournamentID);
-		}
-	}
-}
-
-/******************************************************************************/
-
-function updateCompositeTournamentStandings($tournamentID){
+	meta_ScoreFighters($mTournamentID);
+	pool_RankFighters($mTournamentID); // Once fighters have been scored they are ranked just the same as they would be in a regular pool.
 	
-	pool_ScoreFighters($tournamentID);
-	pool_RankFighters($tournamentID);
-
 }
 
 
@@ -1049,10 +1028,13 @@ function groupList($list, $key){
 
 /******************************************************************************/
 
-function implode2int($array, $default = ""){
+function implode2int($array){
+// Creates a comma separated string of all array values, and typecasts all values
+// to an integer type (to protect against SQL injection).
+// Returns 0 is the array is empty.
 
 	if($array == null){
-		return $default;
+		return 0;
 	}
 
 	foreach($array as $key => $item){

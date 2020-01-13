@@ -19,9 +19,12 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif (   (getEventStatus() != 'active' && getEventStatus() != 'archived') 
-		   && (ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false)){
+} elseif (    (getEventStatus() == 'hidden') 
+		   && (ALLOW['EVENT_MANAGEMENT'] == false)
+		   && (ALLOW['VIEW_SETTINGS'] == false) ){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
 } else {
 
 	// If they are just viewing the page without management permisions all the forms are locked.

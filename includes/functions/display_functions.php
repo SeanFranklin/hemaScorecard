@@ -190,7 +190,7 @@ function checkForTermsOfUse(){
 			<div class='cell' style='margin-bottom:1em;'>
 				<strong>All data from a tournament must be recorded accurately and un-abridged</strong>
 				<BR>
-				<i>You may feel this is stupid, but it is important to us. We've put in hundreds of hours developing this for your benefit. At lest humor us. ;)</i>
+				<i>You may feel this is stupid, but it is important to us. We've put in hundreds of hours developing this for your benefit. At least humor us. ;)</i>
 				<BR>
 				<div style='margin-left: 20px;'>
 					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][2]'>
@@ -464,10 +464,14 @@ function edit_tournamentFormatType($tournamentID = 'new'){
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a select box to create a new tournament if no parameter is passed
 	
-	$sql = "SELECT formatID, formatName
-			FROM systemFormats";
-	$formatTypes = mysqlQuery($sql, KEY_SINGLES, 'formatID', 'formatName');
-	
+	if($_SESSION['isMetaEvent'] == false){
+		$sql = "SELECT formatID, formatName
+				FROM systemFormats";
+		$formatTypes = mysqlQuery($sql, KEY_SINGLES, 'formatID', 'formatName');
+	} else {
+		$formatTypes[FORMAT_META] = 'Meta Event';
+	}
+
 	if($tournamentID != 'new' && (int)$tournamentID > 0){
 		$sql = "SELECT formatID
 				FROM eventTournaments
@@ -701,7 +705,7 @@ function edit_tournamentBasePoints($tournamentID = 'new'){
 		$result = mysqlQuery($sql, SINGLE);
 		
 		if($result['formatID'] == FORMAT_SOLO 
-			|| $result['formatID'] == FORMAT_COMPOSITE
+			|| $result['formatID'] == FORMAT_META
 			|| $result['isReverseScore'] > REVERSE_SCORE_NO){
 			$display = '';
 			
@@ -1035,9 +1039,7 @@ function edit_tournamentSubMatchMode($tournamentID = 'new'){
 		if($data['formatID'] == FORMAT_MATCH){
 			$display = '';
 		}
-
-	} 
-	
+	}
 	?>
 	
 
@@ -1712,8 +1714,8 @@ function edit_tournamentHideFinalResults($tournamentID = 'new'){
 		id='hideFinalResults_div<?=$tournamentID?>' >
 			
 		Show Final Results<?=tooltip("Disable this to not show the overall tournament results.<BR>
-			<BR>eg: Not showing the final results of tournaments that are components of a composite
-			event.")?>
+			<BR>eg: Not showing the final results of tournaments that 
+			are components of a meta-tournament.")?>
 		
 		<select name='updateTournament[hideFinalResults]'
 			id='hideFinalResults_select<?=$tournamentID?>'>
@@ -2074,6 +2076,7 @@ function matchHistoryBar($matchInfo){
 // Getting info and formating for summary
 	$matchID = $matchInfo['matchID'];
 	$exchangeInfo = getMatchExchanges($matchID);
+
 	if(count($exchangeInfo) == 0){
 		return;
 	}
@@ -2086,7 +2089,6 @@ function matchHistoryBar($matchInfo){
 	$colorCode1 = COLOR_CODE_1;
 	$colorCode2 = COLOR_CODE_2;
 	$isZeroNumberedExchanges = false;
-	$showExchTime = false;
 	
 	foreach($exchangeInfo as $exchange){
 	// Check if there are old exchanges in the system which don't have an exchange order assigned.
@@ -2107,7 +2109,6 @@ function matchHistoryBar($matchInfo){
 			}
 
 			$exchanges[$i]['time'] = "{$m}:{$s}";
-			$showExchTime = true;
 		} else {
 			$exchanges[$i]['time'] = '';
 		}
@@ -2157,7 +2158,11 @@ function matchHistoryBar($matchInfo){
 
 			case "penalty":
 				$exchanges[$i][$index1][1] = "<b>P</b>";
-				$exchanges[$i][$index1][2] = "<b>".$exchange['scoreValue']."</b>";	
+				$exchanges[$i][$index1][2] = "<b>".$exchange['scoreValue']."</b>";
+
+				if($exchange['refType'] != null || $exchange['refTarget'] != null){
+					$penalties[$i] = getPenaltyInfo($exchange['exchangeID']); 
+				}
 
 				break;
 
@@ -2220,7 +2225,7 @@ function matchHistoryBar($matchInfo){
 	}
 
 /* Function to display each exchange on regular screens ***/
-	function displayExchangeReg($exchange, $num = null, $showExchTime = false){
+	function displayExchangeReg($exchange, $num = null, $background = null){
 		$colorCode1 = COLOR_CODE_1;
 		$colorCode2 = COLOR_CODE_2;
 		
@@ -2233,7 +2238,7 @@ function matchHistoryBar($matchInfo){
 		$b2 = $exchange[2][2];
 		if($b2 == null){$b2 = "&nbsp;";}
 
-		if($showExchTime && $exchange['time'] == ''){
+		if($exchange['time'] == ''){
 			$exchange['time'] = "0:00";
 		}	
 		
@@ -2244,19 +2249,25 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$odd= "opacity:0.92;";
 		}
+
+		$back1 = 'f1-BG';
+		$back2 = 'f2-BG';
+		if($background != null){
+			$back1 = $background;
+			$back2 = $background;
+		}
+
 		
 		?>	
 		
 		<div class='shrink text-center' style='width: 40px'>
-			<?php if($showExchTime): ?>
-				<div class='cell <?=$class?>'>
-					<?=$exchange['time']?>
-				</div>
-			<?php endif ?>
-			<div class='cell f1-BG' style='<?=$odd?>'>
+			<div class='cell <?=$class?>'>
+				<?=$exchange['time']?>
+			</div>
+			<div class='cell <?=$back1?>' style='<?=$odd?>'>
 				<?=$t1?><BR><?=$t2?>
 			</div>
-			<div class='cell f2-BG' style='<?=$odd?>'>
+			<div class='cell <?=$back2?>' style='<?=$odd?>'>
 				<?=$b1?><BR><?=$b2?>
 			</div>
 		</div>
@@ -2265,7 +2276,7 @@ function matchHistoryBar($matchInfo){
 	}
 	
 /* Function to display each exchange on small screens ***/
-	function displayExchangeSmall($exchange, $num = null, $showExchTime = false){
+	function displayExchangeSmall($exchange, $num = null, $background = null){
 		$colorCode1 = COLOR_CODE_1;
 		$colorCode2 = COLOR_CODE_2;
 		
@@ -2278,7 +2289,7 @@ function matchHistoryBar($matchInfo){
 		$b2 = $exchange[2][2];
 		if($b2 == null){$b2 = "&nbsp;";}
 		
-		if($showExchTime && $exchange['time'] == ''){
+		if($exchange['time'] == ''){
 			$exchange['time'] = "0:00";
 		}	
 
@@ -2289,27 +2300,30 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$odd= "opacity:0.92;";
 		}
+
+		$back1 = 'f1-BG';
+		$back2 = 'f2-BG';
+		if($background != null){
+			$back1 = $background;
+			$back2 = $background;
+		}
 		
 		?>	
 		
 		<tr class='old-exch-mini'>
 			<td class='<?=$class?>'>
-				<?php if($showExchTime){
-					echo $exchange['time'];
-				} else {
-					echo $num;
-				} ?>
+				<?=$exchange['time']?>
 			</td>
-			<td class='f1-BG' style='<?=$odd?>'>
+			<td class='<?=$back1?>' style='<?=$odd?>'>
 				<?=$t1?>
 			</td>
-			<td class='f1-BG' style='<?=$odd?>'>
+			<td class='<?=$back1?>' style='<?=$odd?>'>
 				<?=$t2?>
 			</td>
-			<td class='f2-BG' style='<?=$odd?>'>
+			<td class='<?=$back2?>' style='<?=$odd?>'>
 				<?=$b1?>
 			</td>
-			<td class='f2-BG' style='<?=$odd?>'>
+			<td class='<?=$back2?>' style='<?=$odd?>'>
 				<?=$b2?>
 			</td>
 		</tr>
@@ -2318,13 +2332,30 @@ function matchHistoryBar($matchInfo){
 	}
 	
 /***************************************************/
+
 ?>		
 
 <!-- Normal size fight history -->
 	<div class='large-12 cell black-border hide-for-small-only'>	
 	<div class='grid-x grid-padding-x'>
 		<?php foreach($exchanges as $num => $exchange){
-			displayExchangeReg($exchange, $num, $showExchTime);
+
+			switch(@$penalties[$num]['card']){
+				case 'yellowCard':
+					$penaltyColor = 'penalty-card-yellow';
+					break;
+				case 'redCard':
+					$penaltyColor = 'penalty-card-red';
+					break;
+				case 'blackCard':
+					$penaltyColor = 'penalty-card-black';
+					break;
+				default:
+					$penaltyColor = null;
+					break;
+			}
+		
+			displayExchangeReg($exchange, $num, $penaltyColor);
 		} ?>
 	</div>
 	</div>
@@ -2335,16 +2366,53 @@ function matchHistoryBar($matchInfo){
 	<table>
 	<caption>Match Exchanges</caption>	
 	<?php foreach($exchanges as $num => $exchange){
-		displayExchangeSmall($exchange, $num, $showExchTime);
+
+			switch(@$penalties[$num]['card']){
+				case 'yellowCard':
+					$penaltyColor = 'penalty-card-yellow';
+					break;
+				case 'redCard':
+					$penaltyColor = 'penalty-card-red';
+					break;
+				case 'blackCard':
+					$penaltyColor = 'penalty-card-black';
+					break;
+				default:
+					$penaltyColor = null;
+					break;
+			}
+
+		displayExchangeSmall($exchange, $num, $penaltyColor);
 	} ?>
 	</table>
 	</div>
+
+	<?php if(isset($penalties) == true):?>
+		<div class='small-12 cell'>
+
+			<ul>
+			<h5>Penalties:</h5>
+
+			<?php foreach($penalties as $penalty): ?>
+				<li>
+					<strong><?=getFighterName($penalty['rosterID'])?></strong>
+					<?php if($penalty['name'] != ''){echo "[".$penalty['name']."]";}?>
+					: <em><?=$penalty['action']?></em>
+				</li>
+			<?php endforeach ?>
+			</ul>
+
+		</div>
+	<?php endif ?>
+
+	
 
 
 <?php 
 	return $isZeroNumberedExchanges;
 
 }
+
 
 /******************************************************************************/
 

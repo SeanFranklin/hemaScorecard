@@ -28,8 +28,6 @@ if($eventID == null){
 	$isTournamentScheduleUsed = logistics_isTournamentScheduleUsed($_SESSION['eventID']); 
 	$scheduleByRosterID = logistics_getScheduleByFighter($_SESSION['eventID']);
 	$scheduleBlockNames = logistics_getScheduleBlockNames($_SESSION['eventID']);
-
-
 	
 	$nameOrder = NAME_MODE;
 	if($nameOrder == null){
@@ -45,7 +43,7 @@ if($eventID == null){
 	$roster = getEventRoster($sortString);
 	$schoolList = getSchoolList();
 
-	if(ALLOW['EVENT_MANAGEMENT'] == true){
+	if(ALLOW['EVENT_MANAGEMENT'] == true && $_SESSION['isMetaEvent'] == false){
 		define("ALLOW_EDITING", true);
 	} else {
 		define("ALLOW_EDITING", false);

@@ -17,6 +17,7 @@ include('includes/header.php');
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');
 $hiddenEvents = getEventList('hidden');
+$metaEvents = getEventList('meta');
 
 if(isset($_SESSION['failedLogIn'])){
 	$defaultEventID = $_SESSION['failedLogIn']['eventID'];
@@ -75,6 +76,8 @@ if($typeSelect == null){
 					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
 					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
 					<?php populateEventSelectFields($hiddenEvents, $defaultEventID); ?>
+					<option disabled>-------------------------------</option>
+					<?php populateEventSelectFields($metaEvents, $defaultEventID); ?>
 				</select>
 			</label>
 		

@@ -35,6 +35,8 @@ if($tournamentID == null){
 	// Check if editing the event tournament roster, or if checking fighters in is allowed.
 	if(   (LOCK_TOURNAMENT != '')
 	   || (ALLOW['EVENT_SCOREKEEP'] == false)
+	   || ($_SESSION['isMetaEvent'] == true)
+	   || ($_SESSION['formatID'] == FORMAT_META && isMetaTournamentRosterManual($tournamentID) == false)
 	){
 		define("ALLOW_EDITING", false);
 		define("ALLOW_CHECKIN", false);

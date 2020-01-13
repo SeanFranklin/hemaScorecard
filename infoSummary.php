@@ -96,13 +96,13 @@ function sortTournamentsForPlacings($tournamentList){
 		if($data['isFinalized'] == 1 && $data['hideFinalResults'] == 1){
 			$list[5][$index] = $data;
 			unset($tournamentList[$index]);
-		} elseif($data['formatID'] == FORMAT_COMPOSITE && $data['isFinalized'] == 1){
+		} elseif($data['formatID'] == FORMAT_META && $data['isFinalized'] == 1){
 			$list[1][$index] = $data;
 			unset($tournamentList[$index]);
 		} elseif($data['isFinalized'] == 1){
 			$list[2][$index] = $data;
 			unset($tournamentList[$index]);
-		} elseif($data['formatID'] == FORMAT_COMPOSITE){
+		} elseif($data['formatID'] == FORMAT_META){
 			$list[4][$index] = $data;
 			unset($tournamentList[$index]);
 		} else {

@@ -20,7 +20,9 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } elseif(logistics_isTournamentScheduleUsed($_SESSION['eventID']) == false){
 	displayAlert("A schedule has not been created for this event.");
-}  else {
+}  elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
+} else {
 
 	// If they are just viewing the page without management permisions all the forms are locked.
 	if(ALLOW['EVENT_MANAGEMENT'] == true){

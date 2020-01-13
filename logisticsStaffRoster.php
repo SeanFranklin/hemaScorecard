@@ -18,6 +18,8 @@ if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false) {
 	pageError('user');
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
 } else {
 
 	// If they are just viewing the page without management permisions all the forms are locked.
@@ -139,7 +141,7 @@ if($_SESSION['eventID'] == null){
 				<button class='button alert' name='formName' value='deleteStaffList' <?=$formLock?> >
 					Delete Selected
 				</button><BR>
-				<em>(Deleting a staff memeber will remove them from all of their shifts, but not from matches
+				<em>(Deleting a staff member will remove them from all of their shifts, but not from matches
 				they have been checked in to.)</em>
 
 			</form>

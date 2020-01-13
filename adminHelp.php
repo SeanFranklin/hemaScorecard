@@ -292,7 +292,7 @@ Useful if you have an event you don't wish to use HEMA Scorecard for, but would 
 event participants to see their registrations in the software.</li>
 <li><u>Sparring Matches</u> - Most HEMA tournaments. This is any tournament where people (or teams) face each other in matches. <em>(This includes the old Pool & Bracket, Direct Bracket & Pool Sets modes)</em></li>
 <li><u>Solo Scored</u> - An event where the participants compete for individual score, such as a cutting tournament.</li>
-<li><u>Composite Event</u> - A tournament which doesn't have any results of it's own, but calculates based on the placings in other events.</li>
+<li><u>Meta Event</u> - A tournament which doesn't have any results of it's own, but calculates based on the placings in other events.</li>
 
 <BR>
 <strong>Doubles/Afterblows</strong> specifies the afterblow model that will be used in scoring. 

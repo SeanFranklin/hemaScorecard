@@ -198,8 +198,11 @@ function processPostData(){
 			case 'matchWinner':
 				addMatchWinner();
 				break;
-			case 'switchFighters':
-				switchMatchFighters();
+			case 'swapMatchFighters':
+				swapMatchFighters($_POST['swapMatchFighters']['matchID']);
+				break;
+			case 'updateSubMatchesByMatch':
+				updateSubMatchesByMatch($_POST['updateSubMatchesByMatch']);
 				break;
 			case 'YouTubeLink':
 				updateYouTubeLink();
@@ -241,7 +244,30 @@ function processPostData(){
 			case 'toggleBracketHelper':
 				toggleBracketHelper();
 				break;
-				
+
+
+	// Meta-Tournament Cases
+			case 'changeSourceMetaEvent':
+				$_SESSION['metaTournamentComponentSource'] = $_POST['changeEventSource']['eventID'];
+				break;
+			case 'updateMetaTournamentComponents':
+				updateMetaTournamentComponents($_POST['sourceTournaments']);
+				break;
+			case 'updateMetaTournamentSettings':
+				updateMetaTournamentSettings($_POST['metaTournament']);
+				break;
+			case 'updateMetaStandings':
+				updateMetaTournamentStandings($_POST['updateMetaStandings']['tournamentID']);
+				break;
+			case 'addTournamentComponentGroup':
+				addTournamentComponentGroup($_POST['addComponentGroup']);
+				break;
+			case 'updateTournamentComponentGroups':
+				updateTournamentComponentGroups($_POST['updateTournamentComponentGroups']);
+				break;
+			case 'deleteTournamentComponentGroups':
+				deleteTournamentComponentGroups($_POST['deleteTournamentComponentGroups']);
+				break;	
 				
 	// Event Organzer Cases
 			case 'ignoreFightersInTournament':
@@ -255,12 +281,6 @@ function processPostData(){
 				break;
 			case 'updatePasswords':
 				updatePasswords($_POST['changePasswords']);
-				break;
-			case 'updateTournamentComponents':
-				updateTournamentComponents($_POST['compositeTournament']);
-				break;
-			case 'updateCompositeStandings':
-				updateCompositeTournamentStandings($_POST['updateCompositeStandings']['tournamentID']);
 				break;
 			case 'eventDefaultUpdate':
 				updateEventDefaults();
@@ -297,7 +317,6 @@ function processPostData(){
 					}
 					generateTournamentPlacings($tID, $specs);
 				}
-				checkCompositeTournaments($tID);
 				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'finalizeTournament-no':
@@ -305,7 +324,6 @@ function processPostData(){
 				break;
 			case 'removeTournamentPlacings':
 				removeTournamentPlacings($_POST['tournamentID']);
-				checkCompositeTournaments($_POST['tournamentID']);
 				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'goToPointsPage':
@@ -521,6 +539,7 @@ function checkEvent(){
 
 	if(isset($_SESSION['checkEvent']['all']) && $_SESSION['checkEvent']['all'] === true){
 		$tournamentIDs = getEventTournaments();
+
 		foreach((array)$tournamentIDs as $tournamentID){
 			$formatID = getTournamentFormat($tournamentID);
 
@@ -538,6 +557,7 @@ function checkEvent(){
 	}
 	
 	// If it has been specified to check only certain tournament in the event
+	$mTournamentIDs = [];
 	foreach($_SESSION['checkEvent'] as $tournamentID => $tournament){
 		$formatID = getTournamentFormat($tournamentID);
 
@@ -548,16 +568,23 @@ function checkEvent(){
 			// Check everything in the tournament
 			if(isset($tournament['all']) && $tournament['all'] === true){
 				if(isPools($tournamentID)){
+
 					checkGroupOrders($tournamentID);
 					updatePoolMatchList($tournamentID, 'tournament');
+
 				}
 				if($formatID == FORMAT_SOLO){
 					
 					checkGroupOrders($tournamentID);
 					checkRoundRoster($tournamentID);
 					updateRoundMatchList();
+
+				} elseif($formatID == FORMAT_META){
+
+					$mTournamentIDs[] = $tournamentID;
+
 				}
-				
+			
 			// Only check the pool orders/names	
 			} elseif(isset($tournament['order']) && $tournament['order'] === true){
 				checkGroupOrders($tournamentID);
@@ -580,6 +607,8 @@ function checkEvent(){
 			updatePoolStandings($tournamentID, ALL_GROUP_SETS);
 		}
 	}
+	updateTournamentFighterCounts(null, $_SESSION['eventID']);
+
 	unset($_SESSION['checkEvent']);
 	
 }
@@ -940,7 +969,7 @@ function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 // can be added appropriately
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	$tournamentID = $matchInfo['tournamentID'];
 	
 	$scoring = array_filter_recursive($scoring);
@@ -948,7 +977,7 @@ function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
-	
+
 	// Return if there was no initial hit for either fighter
 	// Suppress error because not existing is logically the same as 0 or null.
 	if(@!$scoring[$id1]['hit'] AND @!$scoring[$id2]['hit']){
@@ -1049,26 +1078,24 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 function insertPenalty($matchInfo, $scoring, $lastExchangeID){
 // inserts an exchange as a penalty
 
-	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
 
-	$matchID = $matchInfo['matchID'];
-	$id1 =$matchInfo['fighter1ID'];
-	$id2 = $matchInfo['fighter2ID'];
+	$matchID 	= $matchInfo['matchID'];
 	$exchangeID = $scoring['exchangeID'];
-	
-	if($scoring[$id1]['penalty'] != 0){
-		$scoreValue = $scoring[$id1]['penalty'];
-		$rosterID = $id1;
-		insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
-							0, null, null, null, $exchangeID);
+	$scoreValue = $scoring['penalty']['value'];
+	$card 		= $scoring['penalty']['card'];
+	$action		= $scoring['penalty']['action'];
+	$rosterID 	= $scoring['penalty']['rosterID'];
+
+	if(isReverseScore($matchInfo['tournamentID']) == true){
+		$scoreValue = $scoreValue * -1;
 	}
 	
-	if($scoring[$id2]['penalty'] != 0){
-		$scoreValue = $scoring[$id2]['penalty'];
-		$rosterID = $id2;
-		insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
-							0, null, null, null, $exchangeID);
-	}
+	insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
+						0, null, $card, $action, $exchangeID);
+	
 }
 
 
@@ -1337,6 +1364,7 @@ function changeEvent($eventID, $logoutInhibit = false){
 		$eventChanged = true;
 		$_SESSION['eventID'] = $eventID;
 		$_SESSION['eventName'] = getEventName($eventID);
+		$_SESSION['isMetaEvent'] = isMetaEvent($eventID);
 		
 		// If there is only one tournament in the event it is selected by deafult
 		$IDs = getEventTournaments();
@@ -1350,6 +1378,7 @@ function changeEvent($eventID, $logoutInhibit = false){
 		$_SESSION['scheduleID'] = '';
 		$_SESSION['rosterID'] = '';
 		$_SESSION['blockID'] = '';
+		$_SESSION['metaTournamentComponentSource'] = '';
 		$_SESSION['dayNum'] = logistics_getCurrentDayNum($_SESSION['eventID']);
 
 		// Log user out if switching event
