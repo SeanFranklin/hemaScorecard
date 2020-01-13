@@ -18,8 +18,8 @@ if($_SESSION['eventID'] != null){
 }
 
 $livestreamInfo = getLivestreamInfo();
-$vJ = '?=1.0.9'; // Javascript Version
-$vC = '?=1.0.8'; // CSS Version
+$vJ = '?=1.1.0'; // Javascript Version
+$vC = '?=1.0.9'; // CSS Version
 ?>
 
 <!doctype html>
@@ -174,7 +174,9 @@ $vC = '?=1.0.8'; // CSS Version
 			<?php endif ?>
 
 			<!-- Event Logistics -->
-			<?php if($_SESSION['eventID'] != null):
+			<?php if(   ($_SESSION['eventID'] != null)
+			         && (isMetaEvent($_SESSION['eventID']) == false)
+			        ):
 				$isSchedule = logistics_isTournamentScheduleUsed($_SESSION['eventID']);
 				?>
 				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
@@ -183,7 +185,7 @@ $vC = '?=1.0.8'; // CSS Version
 						<ul class='menu vertical'>
 							<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 							<HR class='no-bottom no-top'>
-							<li><a href='participantsSchedules.php'>Indiviual Schedules</a></li>
+							<li><a href='participantsSchedules.php'>Individual Schedules</a></li>
 							<li><a href='logisticsParticipantHours.php'>Staffing Hours</a></li>
 							<?php if($isSchedule == true): ?>
 								<li><a href='logisticsStaffConflicts.php'>Staff Conflicts</a></li>
@@ -350,8 +352,8 @@ $vC = '?=1.0.8'; // CSS Version
 			}
 		}
 
-		// Tournament is a composite event
-		if($_SESSION['formatID'] == FORMAT_COMPOSITE){
+		// Tournament is a meta-tournament
+		if($_SESSION['formatID'] == FORMAT_META){
 			$navBarString .= "<li><a href='participantsComponents.php'>Tournament Components</a></li>
 								<li><a href='poolStandings.php'>Standings</a></li>";
 		}
@@ -511,10 +513,10 @@ function eventNameListSelectOptions($eventID){
 	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
 		$eventList['Hidden '] = getEventList('hidden');
 		$eventList['Public '] = getEventList('upcoming') + getEventList('active');
+		$eventList['Meta '] = getEventList('meta');
 	} else {
 		$eventList['Active '] = getEventList('active');
 	}
-
 	
 	$eventList['Archived '] = getEventList('archived');
 

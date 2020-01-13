@@ -76,7 +76,7 @@
 	define("FORMAT_RESULTS",1);
 	define("FORMAT_MATCH",2);
 	define("FORMAT_SOLO",3);
-	define("FORMAT_COMPOSITE",4);
+	define("FORMAT_META",4);
 
 	define("NO_AFTERBLOW",1);
 	define("DEDUCTIVE_AFTERBLOW",2);
@@ -134,6 +134,23 @@
 
 	define("STAFF_CONFLICTS_NO",0);     // Don't check staff conflicts
 	define("STAFF_CONFLICTS_HARD",100); // Limit everything
+
+
+// Options Defines
+
+
+	// Match Options
+	$options['M']['NUM_SUB_MATCHES'] = 2;
+	$options['M']['SWAP_FIGHTERS'] = 3;
+	
+	// Tournament Options
+	$options['T']["META_ROSTER_MODE"] = 1;
+		define("META_ROSTER_MODE_INCLUSIVE",0);
+		define("META_ROSTER_MODE_EXCLUSIVE",1);
+		define("META_ROSTER_MODE_EXTENDED",2);
+
+	define('OPTION',$options);
+
 
 // Includes ////////////////////////////////////////////////////////////////////
 
@@ -239,7 +256,7 @@ $conn = connectToDB();
 // Match Colors
 	if($_SESSION['tournamentID'] != null){
 		$tournamentID = $_SESSION['tournamentID'];
-		$sql = "SELECT colorName, colorCode
+		$sql = "SELECT colorName, colorCode, contrastCode
 				FROM eventTournaments, systemColors
 				WHERE eventTournaments.tournamentID = {$tournamentID}
 				AND color1ID = colorID";
@@ -247,8 +264,9 @@ $conn = connectToDB();
 
 		define("COLOR_NAME_1",$result['colorName']);
 		define("COLOR_CODE_1",$result['colorCode']);
+		define("COLOR_CONTRAST_CODE_1",$result['contrastCode']);
 		
-		$sql = "SELECT colorName, colorCode
+		$sql = "SELECT colorName, colorCode, contrastCode
 				FROM eventTournaments, systemColors
 				WHERE tournamentID = {$tournamentID}
 				AND color2ID = colorID";
@@ -256,12 +274,16 @@ $conn = connectToDB();
 
 		define("COLOR_NAME_2",$result['colorName']);
 		define("COLOR_CODE_2",$result['colorCode']);
+		define("COLOR_CONTRAST_CODE_2",$result['contrastCode']);
 	}
 	
 	if(!defined('COLOR_NAME_1')){ define("COLOR_NAME_1", null); }
 	if(!defined('COLOR_NAME_2')){ define("COLOR_NAME_2", null); }
 	if(!defined('COLOR_CODE_1')){ define("COLOR_CODE_1", null); }
 	if(!defined('COLOR_CODE_2')){ define("COLOR_CODE_2", null); }
+	if(!defined('COLOR_CONTRAST_CODE_1')){ define("COLOR_CONTRAST_CODE_1", '#000'); }
+	if(!defined('COLOR_CONTRAST_CODE_2')){ define("COLOR_CONTRAST_CODE_2", '#000'); }
+
 
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
@@ -386,6 +408,9 @@ function initializeSession(){
 	}
 	if(!isset($_SESSION['eventID'])){
 		$_SESSION['eventID'] = '';
+	}
+	if(!isset($_SESSION['isMetaEvent'])){
+		$_SESSION['isMetaEvent'] = false;
 	}
 	if(!isset($_SESSION['tournamentID'])){
 		$_SESSION['tournamentID'] = '';
