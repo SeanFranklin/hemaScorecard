@@ -87,6 +87,12 @@ $vC = '?=1.0.6'; // CSS Version
 		.f2-BG {
 			background-color: <?= COLOR_CODE_2 ?>;
 		}
+		.f1-text {
+			color: <?= COLOR_CONTRAST_CODE_1 ?>;
+		}
+		.f2-text {
+			color: <?= COLOR_CONTRAST_CODE_2 ?>;
+		}
 	</style>
 
 	<body style="height: 100vh; background-color:black">
@@ -110,7 +116,12 @@ $vC = '?=1.0.6'; // CSS Version
 	<div class='grid-y medium-grid-frame' 
 		style='height: 100vh; font-size:0;'>
 
+		<div class='cell shrink'>
+
 		<div class='cell shrink text-center align-middle'style='background:black;'>
+
+
+
 			<span style='display:inline-block; height:100%; vertical-align: middle; padding-right: 20px'>
 				<img src="includes/images/favicon2.png" style='height:5vh'>
 			</span>
@@ -146,6 +157,13 @@ $vC = '?=1.0.6'; // CSS Version
 			</div>
 		</div>
 
+		<div class='cell auto'>
+			<div class='grid-x grid-padding-x'>
+				<?=displayFighterPenalties($matchInfo,1)?>
+				<?=displayFighterPenalties($matchInfo,2)?>
+			</div>
+		</div>
+
 	</div>
 
 
@@ -162,27 +180,26 @@ include('includes/footer.php');
 function fighterNameDisplay($matchInfo, $num){
 	$bold = '';
 	if($num == 1){
-		$colorCode = COLOR_CODE_1;
+		
 		$fighterName = getFighterName($matchInfo['fighter1ID']);
-		$align = 'text-left';
+		$class = 'f1-BG f1-text text-left';
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$bold = 'bold';
 		}
 	} else {
-		$colorCode = COLOR_CODE_2;
 		$fighterName = getFighterName($matchInfo['fighter2ID']);
-		$align = 'text-right';
+		$class = 'f2-BG f2-text text-right';
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
 			$bold = 'bold';
 		}
 	}
-
 ?>
-	<div class='small-6 cell medium-cell-block-y <?=$align?> <?=$bold?>' 
-		style='background-color: <?=$colorCode?>; border-<?=$border?>: 2px solid;
-		text-shadow: 0px 0px 1vh #FFF;'>
+
+	<div class='small-6 cell medium-cell-block-y <?=$class?> <?=$bold?>' 
+		style='border-<?=$border?>: 2px solid black;'>
+
 		<span style='font-size: 5.5vw;'> 
 			
 			<?=$fighterName?>
@@ -190,6 +207,7 @@ function fighterNameDisplay($matchInfo, $num){
 		</span>
 
 	</div>
+
 <?php
 }
 
@@ -198,27 +216,24 @@ function fighterNameDisplay($matchInfo, $num){
 function fighterSchoolDisplay($matchInfo, $num){
 	$bold = '';
 	if($num == 1){
-		$colorCode = COLOR_CODE_1;
 		$schoolName = $matchInfo['fighter1School'];
-		$align = 'text-left';
+		$class = 'f1-BG f1-text text-left';
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$bold = 'bold';
 		}
 	} else {
-		$colorCode = COLOR_CODE_2;
 		$schoolName = $matchInfo['fighter2School'];
-		$align = 'text-right';
+		$class = 'f2-BG f2-text text-right';
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
 			$bold = 'bold';
 		}
 	}
-
 ?>
-	<div class='small-6 cell medium-cell-block-y <?=$align?> <?=$bold?>' 
-		style='background-color: <?=$colorCode?>; border-<?=$border?>: 2px solid;
-		text-shadow: 0px 0px 1vh #FFF;'>
+
+	<div class='small-6 cell medium-cell-block-y <?=$class?> <?=$bold?>' 
+		style='border-<?=$border?>: 2px solid black;'>
 		<i>
 			<?php if(isTeamLogic($matchInfo['tournamentID']) == false): ?>
 				<span style='font-size:65px;'> <?=$schoolName?></span>
@@ -227,6 +242,7 @@ function fighterSchoolDisplay($matchInfo, $num){
 			<?php endif ?>
 		</i>
 	</div>
+
 <?php
 }
 
@@ -236,16 +252,16 @@ function fighterScoreDisplay($matchInfo, $num){
 
 	$bold = '';
 	if($num == 1){
-		$colorCode = COLOR_CODE_1;
 		$colorName = COLOR_NAME_1;
+		$class = 'f1-BG f1-text';
 		$score = $matchInfo['fighter1score'];
 
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$bold = 'bold';
 		}
 	} else {
-		$colorCode = COLOR_CODE_2;
 		$colorName = COLOR_NAME_2;
+		$class = 'f2-BG f2-text';
 		$score = $matchInfo['fighter2score'];
 
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
@@ -258,9 +274,8 @@ function fighterScoreDisplay($matchInfo, $num){
 	}
 
 ?>
-	<div class='small-4 cell medium-cell-block-y text-center <?=$bold?>' 
-		style='background-color: <?=$colorCode?>; border-top: 4px solid;
-		text-shadow: 0px 0px 2vh #FFF;'>
+	<div class='small-4 cell medium-cell-block-y text-center <?=$class?> <?=$bold?>' 
+		style='border-top: 4px solid black;'>
 		
 		<span style='font-size:30vh;'><?=$score?></span>
 
@@ -278,19 +293,17 @@ function matchInfoDisplay($matchInfo){
 		$endType = '';
 	}
 
-	$endColor = '';
+	$class = '';
 	switch($endType){
 		case 'winner':
 			$endText1 = 'Winner';
 			if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
-
+				$class = 'f1-BG f1-text';
 				$endText2 = COLOR_NAME_1;
-				$endColor = COLOR_CODE_1;
 
 			} elseif($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
-				
+				$class = 'f2-BG f2-text';
 				$endText2 = COLOR_NAME_2;
-				$endColor = COLOR_CODE_2;
 			}
 			break;
 		case 'tie':
@@ -320,8 +333,11 @@ function matchInfoDisplay($matchInfo){
 		<?php if($endType != ''): ?>
 
 			<span style='font-size:4vw'><?=$endText1?></span>
-			<div class='match-winner-name black-text' style='background-color:<?=$endColor?>;'>
-				<span style='font-size:5.5vw; color: black; text-shadow: 0px 0px 2vh #FFF;'><?=$endText2?></span>
+			<div class='match-winner-name black-text  <?=$class?> '>
+				<span style='font-size:5.5vw;'>
+					<?=$endText2?>
+						
+					</span>
 			</div>
 
 	<!-- Match is ignored -->
@@ -434,6 +450,49 @@ function doublesTextDisplay($matchInfo){
 		<?=$string?>		
 	</span>
 	
+<?php
+}
+
+/******************************************************************************/
+
+function displayFighterPenalties($matchInfo, $num){
+	$penaltyList = getFighterMatchPenalties($matchInfo['matchID'], $num);
+
+	if($num == 2){
+		$class = 'text-right';
+	} else {
+		$class = '';
+	}
+?>
+	
+	<div class='cell small-6 <?=$class?>'>
+
+	<?php foreach($penaltyList as $penalty): 
+
+		switch($penalty['card']){
+			case 'yellowCard':
+				$class = 'penalty-card-yellow';
+				break;
+			case 'redCard':
+				$class = 'penalty-card-red';
+				break;
+			case 'blackCard':
+				$class = 'penalty-card-black';
+				break;
+			default:
+				continue 2;
+				break;
+		}
+
+		?>
+
+		<span class='<?=$class?> penalty-card-display' style='font-size: 2.5vw'>
+			<?=$penalty['name']?>
+		</span>
+	<?php endforeach ?>
+
+	</div>
+
 <?php
 }
 

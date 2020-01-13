@@ -21,6 +21,8 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } elseif(logistics_isTournamentScheduleUsed($_SESSION['eventID']) == false){
 	displayAlert("A schedule has not been created for this event.");
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
 } else {
 
 	define("TIME_INTERVAL",30);

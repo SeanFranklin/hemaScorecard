@@ -23,7 +23,7 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
 	pageError('tournament');
-} elseif($_SESSION['formatID'] != FORMAT_MATCH && $_SESSION['formatID'] != FORMAT_COMPOSITE){
+} elseif($_SESSION['formatID'] != FORMAT_MATCH && $_SESSION['formatID'] != FORMAT_META){
 	if($_SESSION['formatID'] == FORMAT_SOLO && ALLOW['VIEW_SETTINGS'] == false){
 		// redirects to the rounds if they happen to go to the pools
 		// page while in a rounds tournament
@@ -44,6 +44,7 @@ if($tournamentID == null){
 	poolSetNavigation($displayPoolsOption);
 
 	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
+	$incompleteComponents = getIncompletComponents($tournamentID);
 
 	$teamRoster = getTournamentTeams($tournamentID);
 	$fighterRoster = getTournamentFighters($tournamentID,'rosterID','full');
@@ -79,20 +80,25 @@ if($tournamentID == null){
 		</div>			
 	<?php endif ?>
 
-	<?php if($_SESSION['formatID'] == FORMAT_COMPOSITE): ?>
+	<?php if($_SESSION['formatID'] == FORMAT_META): ?>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<form method='POST'>
-				<button class='button' name='formName' value='updateCompositeStandings'>
-					Force Standings Update
+				<button class='button' name='formName' value='updateMetaStandings'>
+					Update Standings
 				</button>
-				<input type='hidden' name='updateCompositeStandings[tournamentID]' 
+				<input type='hidden' name='updateMetaStandings[tournamentID]' 
 						value='<?=$_SESSION['tournamentID']?>'>
-				<?=tooltip("Standings are updated whenever a tournament is finalized or the 
-					components are modified. This is a manual correction 
-					if you do something else that can impact this list.")?>
 			</form>
 		<?php endif ?>
-		<em>Composite event standings only show results from finalized component tournaments.</em>
+
+		<?php if($incompleteComponents != null): ?>
+			<em>
+				The following tournaments have not yet been factored into the standings:<BR>
+				<?php foreach($incompleteComponents as $cTournamentID): ?>
+					<li><?=getEventAndTournamentName($cTournamentID)?></li>
+				<?php endforeach ?>
+			</em>
+		<?php endif ?>
 
 	<?php endif ?>
 

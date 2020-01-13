@@ -18,6 +18,8 @@ if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false) {
 	pageError('user');
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
 } else {
 	
 	// If they are just viewing the page without management permisions all the forms are locked.

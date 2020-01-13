@@ -27,7 +27,9 @@ if($_SESSION['eventID'] == null){
 } elseif (   (getEventStatus() == 'hidden' || getEventStatus() == 'upcoming') 
 		   && (ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false)){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
-}  else {
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
+} else {
 
 	$eventDays = getEventDays($_SESSION['eventID']);
 

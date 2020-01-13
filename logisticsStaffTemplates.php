@@ -22,7 +22,9 @@ if($_SESSION['eventID'] == null){
 	pageError('tournament');
 } elseif(logistics_isTournamentScheduleUsed($_SESSION['eventID']) == false){
 	displayAlert("A schedule has not been created for this event.");
-}  else {
+} elseif($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
+} else {
 
 	$roles = logistics_getRoles();
 	$template = logistics_getStaffTemplate($_SESSION['tournamentID']);

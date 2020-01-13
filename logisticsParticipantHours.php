@@ -19,6 +19,10 @@ $createSortableDataTable[] = 'particiantsScheduleMatchesTable';
 
 include('includes/header.php');
 
+if($_SESSION['isMetaEvent'] == true){
+	redirect('infoSummary.php');
+} 
+
 $tournamentID = $_SESSION['tournamentID'];
 
 if($_SESSION['eventID'] == null){

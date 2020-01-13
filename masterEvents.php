@@ -155,6 +155,12 @@ function displayAdminEventList($eventList){
 			default:
 				$class = '';
 				break;
+
+		}
+
+		// Add a marking to indicate if something is a meta-event
+		if($info['isMetaEvent'] == 1){
+			$info['eventName'] = '<strong>[M]</strong> '.$info['eventName'];
 		}
 
 		?>
@@ -210,6 +216,21 @@ function addNewEventMenu(){
 		<table class='stack'>
 			<?php entryFields(); ?>
 			<tr>
+				<td>
+					Meta Event
+				</td>
+				<td>
+					<input type='hidden' name='isMetaEvent' value='0'>
+					<input class='switch-input' type='checkbox' id='isMetaEvent' 
+						name='isMetaEvent' value='1' >
+					<label class='switch-paddle' for='isMetaEvent'>
+					</label>
+				</td>
+			</tr>
+
+
+
+			<tr>
 				<td>Event Status:</td>
 				<td>
 					<select name='eventStatus'>
@@ -234,11 +255,6 @@ function addNewEventMenu(){
 
 function editEventMenu($eventID,$eventInfo){
 	
-	$num = 0;
-	while($num < 100){
-		$num = rand(0,999);		// random number acting as a delete confirmation
-	}
-
 	$eventStatus = getEventStatus($eventID);
 	$statusType = array('active','upcoming','hidden','default','archived');
 	$e_mail = getEventEmail($eventID);
@@ -275,22 +291,37 @@ function editEventMenu($eventID,$eventInfo){
 					</select>
 				</td>
 			</tr>
+			<tr>
+				<td class='no-wrap'>
+					Organizer E-mail
+				</td>
+				<td>
+					<u><?=$e_mail?></u>
+				</td>
+			</tr>
 		</table>
-		
+
+		<?php if($eventInfo['isMetaEvent']==1): ?>
+			<div class='text-center callout warning'>
+				<h6>Meta-Event</h6>
+			</div>
+		<?php endif ?>
+
 	<!-- Submit buttons -->
-	
-		<button class='button success' name='editEvent' value=1 >Update Event</button>
-		<button class='button secondary' name='formName'>Cancel</button>
-		
+		<button class='button success no-bottom' name='editEvent' value=1 >Update Event</button>
+		<button class='button secondary no-bottom' name='formName'>Cancel</button>
+
 	<!-- Delete event & confirmation -->
 		<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
-			<BR><?=$num?>
-			<input type='hidden' value='<?=$num?>' name='confirmDelete'>
-			<button class='button alert hollow small' name='deleteEvent' value='Delete Event'>Delete Event</button>
-			<input type='text' name='deleteCode' size='1'>
+			<HR><em>Type <strong>delete-[event name] [year]</strong> to delete.</em>
+			<div class='input-group'>
+				<input class='input-group-field no-bottom' type='text' name='deleteConfirmationCode' size='1'>
+				<button class='button alert hollow small input-group-button no-bottom' 
+					name='deleteEvent' value='Delete Event'>Delete Event</button>
+			</div>
 		<?php endif ?>
 	</form>
-	Organizer E-mail: <strong><u><?=$e_mail?></u></strong>
+	
 	</fieldset>
 
 <?php }

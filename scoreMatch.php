@@ -45,8 +45,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		$matchInfo['restartTimer'] = false;
 	}
 
-	$exchangeInfo = getMatchExchanges($matchID);
-
 // If it is the last match in the tournament the staff is asked to finalize the event
 	askForFinalization($matchInfo); 
 	
@@ -101,6 +99,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		<div class='medium-9 cell'>	
 			<?php backToListButton($matchInfo); ?>
 			<?php confirmStaffBox($matchInfo) ?>
+			<?php addPenaltyBox($matchInfo) ?>
 			
 			<!-- Fighter scores -->
 			<div class='large-12 cell'>
@@ -110,7 +109,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-						<input type='hidden' class='exchangeID' name='score[exchangeID]'>
+						<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
 					<?php dataEntryBox($matchInfo);	?>	
 				</fieldset>		
 				</form>
@@ -131,69 +130,15 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			
 			
 		</div>
-		
-<!-- Side column -->
+
+	<!-- Side column -->
 		<div class='medium-3 cell text-center callout'>
 			<?php createSideBar($matchInfo); ?>
 		</div>
-		<!-- Exchange history -->
-			
+
+	<!-- Exchange history -->	
 		<?php $exchangesNotNumbered = matchHistoryBar($matchInfo); ?>
-		<?php
-		if(ALLOW['EVENT_SCOREKEEP'] == true 
-		   && $exchangesNotNumbered == false 
-		   && LOCK_MATCH ==''
-		   && $matchInfo['matchComplete'] == false
-		   && count($exchangeInfo) > 0){
-			?>
-			<div class='large-12 cell'>	
-			<BR>
-			<button class='button' id='editExchangeButton' data-open='editExchangeBox'>
-				Edit Exchange
-			</button>
-			<button class='button hidden warning' id='cancelEditExchangeButton' onclick="editExchange('')">
-				Cancel Editing
-			</button>
 
-			<div class='reveal tiny' id='editExchangeBox' data-reveal>
-				
-				
-				<h5>Edit Exchange</h5>
-				
-				<?php foreach($exchangeInfo as $exchange): 
-
-					if($exchange['exchangeType'] == 'winner'
-					   || $exchange['exchangeType'] == 'tie'
-					   || $exchange['exchangeType'] == 'doubleOut'){
-						break;
-					}
-					?>
-					<a class='button hollow small-6 cell' data-close aria-label='Close modal' 
-						type='button' 
-						onclick="editExchange('<?=$exchange['exchangeID']?>',
-												'<?=$exchange['exchangeTime']?>')">
-						[Edit #<?=$exchange['exchangeNumber']?>] 
-						<?=convertExchangeIntoText($exchange, $matchInfo['fighter1ID'])?>
-					</a>
-				<?php endforeach ?>
-
-				<a class='button secondary small-6 cell' data-close aria-label='Close modal' 
-					type='button' onclick="editExchange('')">
-					Cancel
-				</a>
-
-				<!-- Close button -->
-				<button class='close-button' data-close aria-label='Close modal' type='button'>
-					<span aria-hidden='true'>&times;</span>
-				</button>
-			</div>
-		</div>
-			<?php
-		}
-
-
-		?>
-			
 	</div>
 	
 <!-- Youtube -->
@@ -282,9 +227,7 @@ function subMatchBox($matchInfo){
 	$lockMatch = false;
 	$showOverall = true;
 
-
-
-		// If there are sub matches, redirect to the first one.
+	// If there are sub matches, redirect to the first one.
 	if(ALLOW['EVENT_SCOREKEEP'] == true){
 
 		$uncompletedSubMatchID = 0;
@@ -622,6 +565,7 @@ function askForFinalization($matchInfo){
 	$tournamentID = (int)$matchInfo['tournamentID'];
 
 	$finalize = false;
+	$finalize_bracket = false;
 	if(isset($_SESSION['askForFinalization']) == true){
 		
 		$finalize = true;
@@ -691,7 +635,7 @@ function askForFinalization($matchInfo){
 			<HR>
 			<?php if($extend == true): ?>
 				<button class='button no-bottom' name='formName' value='createTrueDoubleElim'>
-					Add Third Match
+					Add Match
 				</button>
 			<?php endif ?>
 
@@ -896,7 +840,9 @@ function dataEntryBox($matchInfo){
 		
 	<!-- Clear last exchange -->
 	<tr>
-		<td>Clear Last Exchange</td>
+		<td>
+			<span class='Clear_Last_Radio'>Clear Last Exchange</span>
+		</td>
 		<td>
 			<div class='switch no-bottom'>
 			<input class='switch-input' type='radio' name='mod'
@@ -909,15 +855,11 @@ function dataEntryBox($matchInfo){
 	</tr>
 	<!-- Penalty -->
 	<tr>
-		<td>Penalty</td>
+		<td>Penalty / Warning</td>
 		<td>
-			<div class='switch no-bottom'>
-			<input class='switch-input' type='radio' name='mod' 
-				value='penalty' id='Penalty_Radio'
-				onchange="modifiersRadioButtons()" >
-			<label class='switch-paddle' for='Penalty_Radio'>
-			</label>
-			</div>
+			<a class='button hollow no-bottom small' data-open='addPenaltyBox'>
+				More...
+			</a>
 		</td>
 	</tr>
 	
@@ -950,11 +892,14 @@ function dataEntryBox($matchInfo){
 			name='lastExchange' value='noExchange' <?=LOCK_MATCH?>>
 			Add: No Exchange
 		</button>
-			<div class='callout alert text-center hidden editExchangeWarningDiv'>
-		<strong>Warning: </strong>
-		You are editing an old exchange, not inserting a new one!<BR>
-		<a class='button alert hollow' onclick="editExchange('')">Cancel Editing</a>
-	</div>
+
+		<div class='callout alert text-center hidden editExchangeWarningDiv'>
+			<strong>Warning: </strong>
+			You are editing an old exchange, not inserting a new one!<BR>
+			<a class='button alert hollow' onclick="editExchange('')">
+				Cancel Editing
+			</a>
+		</div>
 	</div>
 	
 	</div>
@@ -1074,33 +1019,9 @@ function fighterDataEntryBox($matchInfo,$num){
 					</div>
 				<?php endif ?>
 
-				
-			<!-- Penalty score select -->	
-				<div id='<?=$pre?>_penalty_div' class='hidden'>
-					<div class='input-group grid-x'>
-						<span class='input-group-label large-4 medium-6 small-12'>
-							Penalty
-						</span>
-						
-						<select class='input-group-field'
-							name='score[<?=$id?>][penalty]' 
-							id='<?=$pre?>_penalty_dropdown' 
-							onchange="penaltyDropDownChange(this)">
-							<option value=''></option>
-							<?php for($i = 1; $i <=$maxPoints;$i++): 
-								if(isReverseScore($tournamentID) == REVERSE_SCORE_GOLF){
-									$penaltyVal = $i;
-								} else {
-									$penaltyVal = -$i;
-								}
-								?>
-								<option value='<?=$penaltyVal?>'><?=$penaltyVal?> Points</option>
-							<?php endfor ?>
-						</select>
-					</div>
-				</div>
-			
 			</div>
+
+			<?=showFighterPenalties($num)?>
 		</div>
 	</div>
 
@@ -1146,6 +1067,105 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 	</select>
 <?php					
 }
+
+/******************************************************************************/
+
+function addPenaltyBox($matchInfo){
+
+	if(   ALLOW['EVENT_SCOREKEEP'] == false
+	   || LOCK_MATCH != ''
+	   || $matchInfo['matchComplete'] == true){
+
+		return;
+	}
+
+	$maxPenalty = -30; // Arbitrary Number
+	$cards = getPenaltyColors();
+	$actions = getPenaltyActions();
+
+	?>
+	
+	<div class='reveal tiny' id='addPenaltyBox' data-reveal>
+
+		<h5>Insert Penalty</h5>
+		
+		<form method='POST'>
+			<input type='hidden' name='formName' value='newExchange'>
+			<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
+			<input type='hidden' class='exchangeID' name='score[exchangeID]'>
+
+		<!-- Select colors -->
+			<strong>[<?=COLOR_NAME_1?>]</strong>
+			<input type='radio' name='score[penalty][rosterID]' required
+				value='<?=$matchInfo['fighter1ID']?>' ><BR>
+
+			<strong>[<?=COLOR_NAME_2?>]</strong>
+			<input type='radio' name='score[penalty][rosterID]' 
+				value='<?=$matchInfo['fighter2ID']?>'>
+			
+		<!-- Point deduction -->
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Point Deduction
+				</span>
+				<select class='input-group-field' name='score[penalty][value]'>
+					<?php for($penaltyVal = 0; $penaltyVal >= $maxPenalty; $penaltyVal--): ?>
+						<option value='<?=$penaltyVal?>'><?=$penaltyVal?> Points</option>
+					<?php endfor ?>
+				</select>
+			</div>
+
+		<!-- Color/card selection -->
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Color
+				</span>
+				<select class='input-group-field' name='score[penalty][card]'>
+					<option value=''>None</option>
+					<?php foreach($cards as $attackID => $name): ?>
+						<option value='<?=$attackID?>'>
+							<?=$name?>
+						</option>
+					<?php endforeach ?>
+				</select>
+			</div>
+
+		<!-- Infraction selection -->
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Violation
+				</span>
+				<select class='input-group-field' name='score[penalty][action]'>
+					<option value=''>None</option>
+					<?php foreach($actions as $attackID => $name): ?>
+						<option value='<?=$attackID?>'>
+							<?=$name?>
+						</option>
+					<?php endforeach ?>
+				</select>
+			</div>
+
+
+		<!-- Submit buttons -->
+			<div class='grid-x grid-margin-x'>
+				<button class='button success small-6 cell' name='lastExchange' value='penalty'>
+					Add
+				</button>
+				<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
+					Cancel
+				</button>
+			</div>
+			
+			<!-- Close button -->
+			<button class='close-button' data-close aria-label='Close modal' type='button'>
+				<span aria-hidden='true'>&times;</span>
+			</button>
+
+		</form>
+		
+	</div>
+	
+<?php }
 
 /******************************************************************************/
 
@@ -1510,19 +1530,167 @@ function createSideBar($matchInfo){
 		
 
 	<?php endif ?>
-	
-<!-- Switch fighter colors -->	
-	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<HR>
-		<form method='POST'>
-		<button class='button warning hollow no-bottom' name='formName' 
-			value='switchFighters' <?=$lockInputs?> >
-			Switch Fighter Colors
-		</button>
-		</form>
-	<?php endif ?>
+
+	<?=matchOptionsBox($matchInfo)?>	
 	
 <?php }
+
+/******************************************************************************/
+
+function matchOptionsBox($matchInfo){
+
+	if(    ALLOW['EVENT_SCOREKEEP'] == false
+	    || LOCK_TOURNAMENT == true
+		|| $matchInfo['matchComplete'] == 1){
+		return;
+	}
+
+	$maxSubMatches = 7; /// Arbitrary number
+
+	$mainMatchID = $matchInfo['placeholderMatchID'];
+	if($mainMatchID == null){
+		$mainMatchID = $matchInfo['matchID'];
+	}
+
+	$subMatchMode 			= getSubMatchMode($matchInfo['tournamentID']);
+	$numSubMatches 			= getNumSubMatchesByMatch($mainMatchID);
+	$exchangeInfo 			= getMatchExchanges($matchInfo['matchID']);
+
+	$showSubMatchOption = false;
+	if(   isFinalsMatch($mainMatchID) == 1
+	   && getNumSubMatches($matchInfo['tournamentID']) == 0){
+	   	// Only allow editing of sub matches for finals in tournaments 
+	   	// that aren't already sub-match tournaments.
+		$showSubMatchOption = true;
+	}
+
+
+?>
+
+	<HR>
+	<a class='button warning hollow no-bottom expanded' data-open='matchOptionsBox'>
+		Match Options
+	</a>
+
+	<div class='reveal' id='matchOptionsBox' data-reveal>
+		<h4>Match Options</h4>
+
+		<?php if($matchInfo['lastExchange'] != null): ?>
+			<HR>
+			<button class='button no-bottom' id='editExchangeButton' data-open='editExchangeBox'>
+				Edit Previous Exchange
+			</button>
+			<button class='button hidden warning no-bottom' id='cancelEditExchangeButton' 
+				onclick="editExchange('')">
+				Cancel Editing
+			</button>
+
+
+			<div class='reveal tiny' id='editExchangeBox' data-reveal>
+				
+				
+				<h5>Edit Exchange</h5>
+				
+				<?php foreach($exchangeInfo as $exchange): 
+
+					if($exchange['exchangeType'] == 'winner'
+					   || $exchange['exchangeType'] == 'tie'
+					   || $exchange['exchangeType'] == 'doubleOut'){
+						break;
+					}
+					?>
+					<a class='button hollow small-6 cell' data-close aria-label='Close modal' 
+						type='button' 
+						onclick="editExchange('<?=$exchange['exchangeID']?>',
+												'<?=$exchange['exchangeTime']?>')">
+						[Edit #<?=$exchange['exchangeNumber']?>] 
+						<?=convertExchangeIntoText($exchange, $matchInfo['fighter1ID'])?>
+					</a>
+				<?php endforeach ?>
+
+				<a class='button secondary small-6 cell' data-close aria-label='Close modal' 
+					type='button' onclick="editExchange('')">
+					Cancel
+				</a>
+
+				<!-- Close button -->
+				<button class='close-button' data-close aria-label='Close modal' type='button'>
+					<span aria-hidden='true'>&times;</span>
+				</button>
+			</div>
+
+		<?php endif ?>
+
+		<HR>
+		<form method='POST'>
+			<input type='hidden' name='swapMatchFighters[matchID]' value='<?=$_SESSION['matchID']?>'>
+			<button class='button warning no-bottom' name='formName' value='swapMatchFighters'>
+				Switch Fighter Colors
+			</button>
+		</form>
+
+		<?php if($showSubMatchOption == true): ?>
+
+			<HR>
+
+			<form method='POST'>
+
+			<input type='hidden' name='updateSubMatchesByMatch[matchID]' 
+				value='<?=$mainMatchID?>'>
+
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Number of Sub-Matches 
+					<?=tooltip("Sub-matches will create multiple stages for this match.
+						<BR><u>Example</u>: A best 2 out of 3 finals match.")?>
+				</span>
+				<select class='input-group-field' name='updateSubMatchesByMatch[numSubMatches]'>
+					<option value='0'>0 (single match)</option>
+					<?php for($i = 2; $i<=$maxSubMatches; $i++): ?>
+						<option <?=optionValue($i, $numSubMatches)?> >
+							<?=$i?>
+						</option>
+					<?php endfor ?>
+				</select>
+			</div>
+
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Sub-Match Mode
+					<?=tooltip("<u>Analog</u>: The points from all sub-matches are added to determine
+						the match winner.
+						<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches, 
+						regardless of what the scores were.")?>
+				</span>
+				<select class='input-group-field' name='updateSubMatchesByMatch[subMatchMode]'>
+					<option <?=optionValue(SUB_MATCH_ANALOG,$subMatchMode)?> >	Analog 	</option>
+					<option <?=optionValue(SUB_MATCH_DIGITAL,$subMatchMode)?> >	Digital	</option>
+				</select>
+			</div>
+
+			<em><u>Note</u>: Changing the Sub-Match Mode affects all sub-matches in the tournament.</em>
+			<BR>
+
+			<button class='button success no-bottom' name='formName' value='updateSubMatchesByMatch'>
+				Update Sub-Match Settings
+			</button>
+
+			</form>
+		<?php endif // if($matchInfo['bracketLevel'] == 1)?> 
+	
+		<HR>
+
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -1595,6 +1763,39 @@ function doublesText($doubles, $matchInfo){
 	<?php endif ?>
 	
 <?php }
+
+/******************************************************************************/
+
+function showFighterPenalties($num){
+	$penaltyList = getFighterMatchPenalties($_SESSION['matchID'], $num);
+?>
+	
+	<?php foreach($penaltyList as $penalty): 
+
+		switch($penalty['card']){
+			case 'yellowCard':
+				$class = 'penalty-card-yellow';
+				break;
+			case 'redCard':
+				$class = 'penalty-card-red';
+				break;
+			case 'blackCard':
+				$class = 'penalty-card-black';
+				break;
+			default:
+				continue 2;
+				break;
+		}
+
+		?>
+
+		<span class='<?=$class?> penalty-card-display'>
+			<?=$penalty['name']?>
+		</span>
+	<?php endforeach ?>
+
+<?php
+}
 
 /******************************************************************************/
 
