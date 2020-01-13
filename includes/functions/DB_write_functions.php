@@ -9,6 +9,65 @@
 
 /******************************************************************************/
 
+function writeOption($type, $id, $optionEnum, $optionValue){
+
+	$id = (int)$id;
+	$optionValue = (int)$optionValue;
+
+	switch($type){
+		case 't':
+		case 'T':
+			$table = 'eventTournamentOptions';
+			$column = 'tournamentID';
+			$optionID = (int)OPTION['T'][$optionEnum];
+			break;
+		case 'm':
+		case 'M':
+			$table = 'eventMatchOptions';
+			$column = 'matchID';
+			$optionID = (int)OPTION['M'][$optionEnum];
+			break;
+		default:
+			$optionID = 0;
+	}
+
+	if($optionID == 0){
+		return;
+	}
+
+	if($optionValue == 0){
+		$sql = "DELETE FROM {$table}
+				WHERE {$column} = {$id}
+				AND optionID = {$optionID}";
+	} else {
+
+		$optionValue = (int)$optionValue;
+
+		$sql = "SELECT optionValue
+				FROM {$table}
+				WHERE {$column} = {$id}";
+		$currentValue = (int)mysqlQuery($sql, SINGLE, 'optionValue');
+
+		if($currentValue == 0){
+			$sql = "INSERT INTO {$table}
+					({$column}, optionID, optionValue)
+					VALUES 
+					({$id},{$optionID},{$optionValue})";
+		} else {
+			$sql = "UPDATE {$table}
+					SET optionValue = {$optionValue}
+					WHERE {$column} = {$id}
+					AND optionID = {$optionID}";
+		}
+		
+	}
+
+	mysqlQuery($sql, SEND);
+
+}
+
+/******************************************************************************/
+
 function deleteFromEvent(){
 	
 	$eventID = $_SESSION['eventID'];
@@ -1144,13 +1203,14 @@ function addNewEvent(){
 	$num = mt_rand(100,999);
 	$password = "temp{$num}";
 	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+	$isMetaEvent = (int)((BOOLEAN)$_POST['isMetaEvent']);
 	
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
 			eventEndDate, countryIso2, eventProvince, eventCity,
-			eventStatus, staffPassword, organizerPassword)
+			eventStatus, staffPassword, organizerPassword, isMetaEvent)
 			VALUES
-			(?,?,?,?,?,?,?,?,?,?,?)";
+			(?,?,?,?,?,?,?,?,?,?,?, {$isMetaEvent})";
 	
 	$eventStartDate = $_POST['eventStartDate'];
 	if($eventStartDate == null){$eventStartDate = date('Y-m-d H:i:s');}
@@ -1159,11 +1219,18 @@ function addNewEvent(){
 		
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssssss", 
-			$_POST['eventName'], $_POST['eventAbbreviation'],
-			$eventYear, $eventStartDate,
-			$eventEndDate, $_POST['countryIso2'], 
-			$_POST['eventProvince'], $_POST['eventCity'],
-			$_POST['eventStatus'],$passwordHash,$passwordHash);
+				$_POST['eventName'], 
+				$_POST['eventAbbreviation'],
+				$eventYear, 
+				$eventStartDate,
+				$eventEndDate, 
+				$_POST['countryIso2'], 
+				$_POST['eventProvince'], 
+				$_POST['eventCity'],
+				$_POST['eventStatus'],
+				$passwordHash,
+				$passwordHash
+			);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
@@ -1509,7 +1576,7 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 			break;
 
 		case REVERSE_SCORE_NO:
-		case REVERSE_SCORE_GOLD:
+		case REVERSE_SCORE_GOLF:
 		default:
 
 			if(    ($maxPoints != 0)
@@ -2251,15 +2318,18 @@ function editEvent(){
 	$name = getEventName($eventID);
 	
 	if(isset($_POST['deleteEvent'])){
+		$deleteCode = "delete-".$name;
 		
-		if($_POST['confirmDelete'] == $_POST['deleteCode']){
+		if($_POST['deleteConfirmationCode'] == $deleteCode){
 			$sql = "DELETE FROM systemEvents
 					WHERE eventID = {$eventID}";
 			mysqlQuery($sql, SEND);
 			$_SESSION['alertMessages']['userAlerts'][] = "\"{$name}\" deleted";
 			
 		} else {
-			$_SESSION['alertMessages']['userErrors'][] = "\"{$name}\" not deleted<BR>Confirmation number incorrect";
+			$_SESSION['alertMessages']['userErrors'][] = "\"{$name}\" not deleted
+				<BR>Confirmation code incorrect. 
+				<BR>'{$deleteCode}' is the correct code.";
 		}
 		return;
 	}
@@ -2292,10 +2362,14 @@ function editEvent(){
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "sssssssss", 
-			$_POST['eventName'], $_POST['eventAbbreviation'],
-			$eventYear, $_POST['eventStartDate'],
-			$_POST['eventEndDate'], $_POST['countryIso2'], 
-			$_POST['eventProvince'], $_POST['eventCity'],
+			$_POST['eventName'], 
+			$_POST['eventAbbreviation'],
+			$eventYear, 
+			$_POST['eventStartDate'],
+			$_POST['eventEndDate'],
+			$_POST['countryIso2'], 
+			$_POST['eventProvince'], 
+			$_POST['eventCity'],
 			$_POST['eventStatus']);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
@@ -2611,7 +2685,7 @@ function generateTournamentPlacings($tournamentID, $specs){
 			}
 
 			// deliberate fall through
-		case FORMAT_COMPOSITE:
+		case FORMAT_META:
 			if(isset($placings) == false){
 				$placings = [];
 			}
@@ -4099,45 +4173,52 @@ function setLivestreamMatch($eventID = null){
 
 /******************************************************************************/
 
-function switchMatchFighters($matchID = null){
+function swapMatchFighters($matchID){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){
-		$_SESSION['alertMessages']['systemErrors'][] = "No matchID in switchMatchFighters()";
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		return;
 	}
-		
-	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score, reversedColors
+
+// Update match option
+	$isReversed = readOption('M',$matchID,'SWAP_FIGHTERS');
+
+	if($isReversed == 0){
+		$isReversed = 1;
+	} else {
+		$isReversed = 0;
+	}
+
+	writeOption('M',$matchID,'SWAP_FIGHTERS',$isReversed);
+
+// Swap match information	
+	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score
 			FROM eventMatches
 			WHERE matchID = {$matchID}";
 	$info = mysqlQuery($sql, SINGLE);
 	
-	foreach((array)$info as $index => $data){
-	// replaces null values with string for SQL insertion
-		if($data === null){
-			$info[$index] = 'null';
-		}
+	$f1ID = (int)$info['fighter1ID'];
+	$f2ID = (int)$info['fighter2ID'];
+	if($info['fighter1Score'] === null){
+		$f1Score = 'NULL';
+	} else {
+		$f1Score = (int)$info['fighter1Score'];
 	}
-	
-	$f1ID = $info['fighter1ID'];
-	$f2ID = $info['fighter2ID'];
-	$f1Score = $info['fighter1Score'];
+
 	$f2Score = $info['fighter2Score'];
-	
-	if(@$info['reversedColors'] == 1){ 
-		$rColors = 0;
-	} else { 
-		$rColors = 1; 
+	if($f2Score === null){
+		$f2Score = 'NULL';
+	} else {
+		$f2Score = (int)$info['fighter2Score'];
 	}
+
 	
 	$sql = "UPDATE eventMatches
 			SET fighter1ID = {$f2ID},
 			fighter2ID = {$f1ID},
 			fighter1Score = {$f2Score},
-			fighter2Score = {$f1Score},
-			reversedColors = {$rColors}
+			fighter2Score = {$f1Score}
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
 
@@ -5485,7 +5566,7 @@ function updateRoundMatchList($tournamentID = null){
 function updatePoolMatchList($ID, $type, $tIdIn = null){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	switch($type){
 		case 'group':
 		case 'pool':
@@ -5551,11 +5632,14 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 			$isPlaceholder = 1;
 		}
 
+		// Don't clear the sub-matches from the final bracket level, this might be a 
+		// multi-stage final which was added in a non sub-match tournament.
 		$sql = "DELETE eventMatches FROM eventMatches
 				INNER JOIN eventGroups USING(groupID)
 				WHERE placeholderMatchID IS NOT NULL
 				AND matchNumber > {$numSubMatches}
-				AND tournamentID = {$tournamentID}";
+				AND tournamentID = {$tournamentID}
+				AND (bracketLevel != 1 OR bracketLevel IS NULL)";
 		mysqlQuery($sql, SEND);
 
 	// Get pool data
@@ -5665,8 +5749,13 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 				}
 				
 			//Check if the match exists in a similar capacity
-				$sql = "SELECT matchID, matchNumber, winnerID, fighter1Score, fighter2Score, reversedColors
-						FROM eventMatches
+
+				$optionID = (int)OPTION['M']['SWAP_FIGHTERS'];
+				$sql = "SELECT eM.matchID, matchNumber, winnerID, fighter1Score, fighter2Score, 
+								optionValue AS fightersSwapped
+						FROM eventMatches AS eM
+						LEFT JOIN eventMatchOptions AS eMO ON eM.matchID = eMO.matchID
+							AND eMO.optionID = {$optionID}
 						WHERE groupID = {$groupID}
 						AND fighter1ID = {$fighter2ID}
 						AND fighter2ID = {$fighter1ID}";
@@ -5675,7 +5764,7 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 				$matchID = $backwardsMatch['matchID'];
 				
 				if($backwardsMatch != null){
-					if($backwardsMatch['reversedColors'] == 1){
+					if($backwardsMatch['fightersSwapped'] == 1){
 					// Doesn't correct the match if it should be reversed
 						$goodMatchesInPool[$groupID][] = $matchID;
 						continue;
@@ -5828,7 +5917,96 @@ function updateSubMatches($matchID, $numSubMatches, $fighter1ID, $fighter2ID, $g
 				({$groupID},{$goodMatches},{$fighter1ID},{$fighter2ID},{$matchID})";
 		mysqlQuery($sql, SEND);
 	}
-					
+
+	$sql = "DELETE FROM eventMatches
+			WHERE placeholderMatchID = {$matchID}
+			AND matchNumber > {$numSubMatches}";
+	mysqlQuery($sql, SEND);
+				
+}
+
+/******************************************************************************/
+
+function updateSubMatchesByMatch($specs){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+
+	$matchID 		= (int)$specs['matchID'];
+	$numSubMatches 	= (int)$specs['numSubMatches'];
+	$subMatchMode 	= (int)$specs['subMatchMode'];
+
+	if($numSubMatches == 1){
+		$numSubMatches = 0;
+	}
+
+	$sql = "SELECT COUNT(*) AS numExchanges
+			FROM eventMatches AS eM
+			INNER JOIN eventExchanges AS eE USING(matchID)
+			WHERE matchID = {$matchID}
+			OR placeholderMatchID = {$matchID}";
+	$hasExchanges = (bool)mysqlQuery($sql, SINGLE, 'numExchanges');
+
+	if($hasExchanges == true){
+		setAlert(USER_ERROR,"Can not change the number of sub-matches in a match which
+			already has exchanges. Clear all exchanges from the match and sub-matches before
+			changing the number of sub-matches.");
+		return;
+	}
+
+	$sql = "SELECT tournamentID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE matchID = {$matchID}";
+	$tournamentID = (int)mysqlQuery($sql, SINGLE, 'tournamentID');
+
+	$sql = "UPDATE eventTournaments
+			SET subMatchMode = {$subMatchMode}
+			WHERE tournamentID = {$tournamentID}";
+	mysqlQuery($sql, SEND);	
+
+
+	if($numSubMatches == 0){
+		$sql = "UPDATE eventMatches
+				SET isPlaceholder = 0
+				WHERE matchID = {$matchID}";
+		mysqlQuery($sql, SEND);
+
+		$sql = "DELETE FROM eventMatches
+				WHERE placeholderMatchID = {$matchID}";
+		mysqlQuery($sql, SEND);
+
+	} else {
+		$sql = "UPDATE eventMatches
+				SET isPlaceholder = 1
+				WHERE matchID = {$matchID}";
+		mysqlQuery($sql, SEND);
+
+		$sql = "SELECT fighter1ID, fighter2ID, groupID
+				FROM eventMatches
+				WHERE matchID = {$matchID}";
+		$res = mysqlQuery($sql, SINGLE);
+
+		updateSubMatches($matchID, 
+						$numSubMatches, 
+						$res['fighter1ID'], 
+						$res['fighter2ID'], 
+						$res['groupID']);
+	}
+
+
+	// The user might be in one of the sub-matches which was deleted. If so then the
+	// session value needs to be set back to the base match.
+	$sessionMatchID = (int)$_SESSION['matchID'];
+	$sql = "SELECT COUNT(*) AS numMatches
+			FROM eventMatches
+			WHERE matchID = {$sessionMatchID}";
+	$matchStillExists = (bool)mysqlQuery($sql, SINGLE, 'numMatches');
+
+	if($matchStillExists == false)
+	{
+		$_SESSION['matchID'] = $matchID;
+	}
+	
 
 }
 
@@ -6028,70 +6206,133 @@ function updateTournamentCuttingStandard($tournamentID = null){
 
 /******************************************************************************/
 
-function updateTournamentComponents($componentData){
+function updateMetaTournamentComponents($componentData){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
-	$tournamentID = (int)$componentData['tournamentID'];
-	$isExclusive = (int)$componentData['isExclusive'];
+	$mTournamentID = (int)$componentData['metaTournamentID'];
+	if(isset($componentData['componentTournamentIDs']) == null ){
+		return;	
+	}
 
-	$wasRosterComponents = (bool)count(getTournamentComponents($tournamentID,null,true));
-	$isRosterComponents = false;
-
-	foreach($componentData['tournamentIDs'] as $cTournamentID => $data){
+	foreach((array)$componentData['componentTournamentIDs'] as $cTournamentID => $isComponent){
 		$cTournamentID = (int)$cTournamentID;
-		// A tournament can't be a component of itself
-		if($cTournamentID == $tournamentID){ continue;}
-	
-		$useResult = (int)$data['useResult'];
-		$useRoster = (int)$data['useRoster'];
 
-		if($useResult == 0 && $useRoster == 0){
+	// Not part of meta-tournament
+		if(($isComponent == 0)){
 
-			$sql = "DELETE FROM eventComponents
-					WHERE tournamentID = {$tournamentID}
+			$sql = "DELETE FROM eventTournamentComponents
+					WHERE metaTournamentID = {$mTournamentID}
 					AND componentTournamentID = {$cTournamentID}";
-			mysqlQuery($sql, SEND);
+			mysqlQuery($sql, SINGLE);
 
+	// Is part of meta-tournament
 		} else {
 
-			$sql = "SELECT componentID
-					FROM eventComponents
-					WHERE tournamentID = {$tournamentID}
+			$sql = "SELECT tournamentComponentID
+					FROM eventTournamentComponents
+					WHERE metaTournamentID = {$mTournamentID}
 					AND componentTournamentID = {$cTournamentID}";
-			$componentID = (int)mysqlQuery($sql, SINGLE, 'componentID');
+			$tournamentComponentID = (int)mysqlQuery($sql, SINGLE, 'tournamentComponentID');
 
-			if($useRoster != 0){
-				$isRosterComponents = true;
-			}
+			if($tournamentComponentID == 0){
 
-			if($componentID == 0){
-				$sql = "INSERT INTO eventComponents
-						(tournamentID, componentTournamentID, useResult, useRoster, isExclusive)
-						VALUES
-						({$tournamentID}, {$cTournamentID}, {$useResult}, {$useRoster}, {$isExclusive})";
-				mysqlQuery($sql, SEND);
+				$sql = "SELECT formatID
+						FROM eventTournaments
+						WHERE tournamentID = {$cTournamentID}";
+				$componentFormatID = (int)mysqlQuery($sql, SINGLE, 'formatID');
+
+				if($componentFormatID == FORMAT_META)
+				{
+					$name = getTournamentName($cTournamentID);
+					// Allowing meta tournaments to be components of other meta tournaments
+					// would allow the posibilty of horrible feedback loops.
+					setAlert(USER_ERROR,"You can not add a meta-tournament as a component of another
+						meta-tournament.<BR><strong>{$name}</strong> not added as a component.");
+
+					$sql = "DELETE FROM eventTournamentComponents
+							WHERE metaTournamentID = {$mTournamentID}
+							AND componentTournamentID = {$cTournamentID}";
+					mysqlQuery($sql, SINGLE);
+
+				} else {
+					$sql = "INSERT INTO eventTournamentComponents
+								(metaTournamentID, componentTournamentID)
+								VALUES 
+								({$mTournamentID}, {$cTournamentID})";
+						mysqlQuery($sql, SINGLE);
+				}
 			} else {
-				$sql = "UPDATE eventComponents
-						SET useRoster = {$useRoster}, 
-							useResult = {$useResult}, 
-							isExclusive = {$isExclusive}
-						WHERE componentID = {$componentID}";
-				mysqlQuery($sql, SEND);
+				// If it already exists there is no need to modify.
 			}
 
 		}
+
+	}
+
+	updateTournamentFighterCounts($mTournamentID,getTournamentEventID($mTournamentID) );
+}
+
+/******************************************************************************/
+
+function updateMetaTournamentSettings($componentData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
+
+	$mTournamentID = (int)$componentData['mTournamentID'];
+
+	$rosterMode = (int)$componentData['rosterMode'];
+	writeOption('T',$mTournamentID, 'META_ROSTER_MODE', $rosterMode);
+
+	$wasRosterComponents = (bool)count(getMetaTournamentComponents($mTournamentID,null,true));
+	$isRosterComponents = false;
+
+	foreach($componentData['components'] as $tournamentComponentID => $data){
+		$tournamentComponentID = (int)$tournamentComponentID;
+		$cTournamentID = (int)$data['cTournamentID'];
+
+		$useResult = (int)$data['useResult'];
+		$useRoster = (int)$data['useRoster'];
+		if($rosterMode != META_ROSTER_MODE_EXCLUSIVE){
+			$ignoreRoster = 0;
+		} else {
+			$ignoreRoster = (int)$data['ignoreRoster'];
+		}
+
+		if($useRoster != 0 && $ignoreRoster != 0){
+			$ignoreRoster = 0;
+			setAlert(USER_ERROR,"You have chosen to ignore a roster that your tournament is based on.
+				This isn't a valid option, and has been cleared.");
+		}
+
+		$sql = "UPDATE eventTournamentComponents
+				SET useRoster = {$useRoster}, 
+					useResult = {$useResult},
+					ignoreRoster = {$ignoreRoster}
+				WHERE tournamentComponentID = {$tournamentComponentID}";
+		mysqlQuery($sql, SEND);
+
+		// Check to see if any of the components are using the roster. If not it is manual.
+		if($useRoster != 0){
+			$isRosterComponents = true;
+		}
+
 	}
 
 	// Clear the roster if the tournament goes from auto to manual roster management.
-	if($wasRosterComponents == true && $isRosterComponents == false){
-		$sql = "DELETE FROM eventTournamentRoster
-				WHERE tournamentID = {$tournamentID}";
-		mysqlQuery($sql, SEND);
+	if($isRosterComponents == false){
+		setAlert(USER_ALERT,"You have not selected any tournaments to draw a roster from. 
+			Roster for this tournament is in manual mode.");
+
+		if($wasRosterComponents == true){
+			$sql = "DELETE FROM eventTournamentRoster
+					WHERE tournamentID = {$mTournamentID}";
+			mysqlQuery($sql, SEND);
+		}
+
 	}
 
-	updateTournamentFighterCounts();
-	updateCompositeTournamentStandings($tournamentID);
+	updateTournamentFighterCounts($mTournamentID,getTournamentEventID($mTournamentID));
 
 	setAlert(USER_ALERT,"Tournament components updated.");
 
@@ -6099,16 +6340,184 @@ function updateTournamentComponents($componentData){
 
 /******************************************************************************/
 
-function updateTournamentFighterCounts($tournamentID = null, $eventID = null){
-	
-	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	if($tournamentID != null){
-		$tournamentList[] = $tournamentID;
-	} else {
-		$tournamentList = getEventTournaments($eventID);
+function addTournamentComponentGroup($specs){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
 	}
 
-	$tournamentID = (int)$tournamentID;
+	$mTournamentID = (int)$specs['mTournamentID'];
+	$usedComponents = (int)$specs['usedComponents'];
+	$numComponents = (int)$specs['numComponents'];
+
+	if($usedComponents >= $numComponents){
+		setAlert(USER_ERROR,"The number of components used must be less than the total
+			number of components. (Or else the group is meaningless)<BR>
+			<strong>New component group not added</strong>");
+		return;
+	}
+
+	$sql = "INSERT INTO eventTournamentCompGroups
+			(metaTournamentID, usedComponents, numComponents)
+			VALUES
+			({$mTournamentID}, {$usedComponents}, {$numComponents})";
+	mysqlQuery($sql, SEND);
+
+	setAlert(USER_ALERT,"New component group added");
+}
+
+/******************************************************************************/
+
+function updateTournamentComponentGroups($specs){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$mTournamentID = (int)$specs['mTournamentID'];
+	$groupItemsToAdd = [];
+
+	foreach($specs['groups'] as $componentGroupID => $info){
+
+		$componentGroupID 	= (int)$componentGroupID;
+		$usedComponents 	= (int)$info['usedComponents'];
+		$numComponents 		= (int)$info['numComponents'];
+
+		if($usedComponents >= $numComponents){
+			setAlert(USER_ERROR,"The number of components used must be less than the total
+				number of components. (Or else the group is meaningless).<BR>
+				<strong>Some Component groups could not be updated.</strong>");
+			continue;
+		}
+
+		$sql = "SELECT COUNT(*) AS currentNumComponents
+				FROM eventTournamentCompGroupItems
+				WHERE componentGroupID = {$componentGroupID}";
+		$numItemsInGroup = (int)mysqlQuery($sql, SINGLE, 'currentNumComponents');
+
+		if($numItemsInGroup > $numComponents){
+			setAlert(USER_ERROR,"You have tried to shrink a component group to a size less than the number of tournaments it already includes. Delete tournaments first and try again.<BR>
+				<strong>Some Component groups could not be updated.</strong>");
+			continue;
+		}
+
+		$sql = "UPDATE eventTournamentCompGroups
+				SET usedComponents = {$usedComponents}, numComponents = {$numComponents}
+				WHERE componentGroupID = {$componentGroupID}";
+		mysqlQuery($sql, SEND);
+
+		$cTournamentIDstr = implode2int($info['items']);
+
+		$sql = "DELETE eventTournamentCompGroupItems FROM eventTournamentCompGroupItems
+				INNER JOIN eventTournamentComponents USING(tournamentComponentID)
+				WHERE componentGroupID = {$componentGroupID}
+				AND componentTournamentID NOT IN ({$cTournamentIDstr})";
+		mysqlQuery($sql, SEND);
+
+		$sql = "SELECT componentTournamentID AS cTournamentID
+				FROM eventTournamentCompGroupItems
+				INNER JOIN eventTournamentCompGroups USING(componentGroupID)
+				INNER JOIN eventTournamentComponents USING(tournamentComponentID)
+				WHERE componentGroupID = {$componentGroupID}";
+		$existing = mysqlQuery($sql, KEY_SINGLES, 'cTournamentID', 'cTournamentID');
+
+		foreach($info['items'] as $cTournamentID){
+
+			if(    isset($existing[$cTournamentID]) == true
+				|| $cTournamentID == null ){
+				continue;
+			}
+
+			$temp 						= [];
+			$temp['componentGroupID'] 	= (int)$componentGroupID;
+			$temp['cTournamentID'] 		= (int)$cTournamentID;
+			$groupItemsToAdd[] 			= $temp;
+		}
+		
+	}
+
+	if($groupItemsToAdd != null){
+
+		$doubleAdd = false;
+
+		$sql = "SELECT componentTournamentID AS cTournamentID
+				FROM eventTournamentCompGroupItems
+				INNER JOIN eventTournamentComponents USING(tournamentComponentID)
+				WHERE metaTournamentID = {$mTournamentID}";
+		$existing = mysqlQuery($sql, KEY_SINGLES, 'cTournamentID', 'cTournamentID');
+
+		foreach($groupItemsToAdd as $item){
+
+			if(isset($existing[$item['cTournamentID']]) == true){
+				$doubleAdd = true;
+				continue;
+			}
+
+			$sql = "INSERT INTO eventTournamentCompGroupItems
+					(componentGroupID, tournamentComponentID)
+					VALUES 
+					(	{$temp['componentGroupID']}, 
+						( 	SELECT tournamentComponentID
+							FROM eventTournamentComponents
+							WHERE metaTournamentID = {$mTournamentID}
+							AND componentTournamentID = {$item['cTournamentID']} 
+						)
+					)";
+			mysqlQuery($sql, SEND);
+			$existing[$item['cTournamentID']] = true;
+
+		}
+
+		if($doubleAdd == true){
+			setAlert(USER_ERROR,"The same tournament component was listed in multiple groups.<BR>
+				Tournament components can only belong to a single group.
+				<strong>Please re-check groups</strong>");
+		}
+	}
+
+	updateMetaTournamentStandings($mTournamentID);
+	setAlert(USER_ALERT,"Component groups updated");
+
+}
+
+/******************************************************************************/
+
+function deleteTournamentComponentGroups($specs){
+
+	if(   ALLOW['EVENT_MANAGEMENT'] == false
+	   || isset($specs['componentGroupIDsToDelete']) == false){
+	   	
+		return;
+	}
+
+	$componentsToDeleteStr = implode2int($specs['componentGroupIDsToDelete']);
+
+	$sql = "DELETE FROM eventTournamentCompGroups
+			WHERE componentGroupID IN ({$componentsToDeleteStr})";
+	mysqlQuery($sql, SEND);
+
+	updateMetaTournamentStandings($specs['mTournamentID']);
+
+}
+
+/******************************************************************************/
+
+function updateTournamentFighterCounts($tournamentID, $eventID){
+	
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+
+	// If a tournamentID is provided then only update that tournament. 
+	// If an eventID is provided then update all event tournaments.
+	if($tournamentID != null){
+		$tournamentList[] = $tournamentID;
+		$eventID = getTournamentEventID($tournamentID);
+	} elseif($eventID != null) {
+		$tournamentList = getEventTournaments($eventID);
+	} else {
+		return;
+	}
+
+	updateMetaTournamentRosters($tournamentList, $eventID);
 	
 	foreach((array)$tournamentList as $tournamentID){
 
@@ -6120,134 +6529,264 @@ function updateTournamentFighterCounts($tournamentID = null, $eventID = null){
 										WHERE tournamentID = {$tournamentID})
 				WHERE tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
+
+		$tournamentsUpdated[] = $tournamentID;
 	}
 
-// Check if there is a composite tournament
-	$sql = "SELECT eventID
-			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}";
-	$eventID = (int)mysqlQuery($sql, SINGLE, 'eventID');
+}
 
-	$compFormatNum = (int)FORMAT_COMPOSITE;
+/******************************************************************************/
+
+function updateMetaTournamentRosters($tournamentList, $eventID){
+
+	if($tournamentList == null || ALLOW['EVENT_MANAGEMENT'] == false){ 
+		return; 
+	}
+	$eventID = (int)$eventID;
+	
+// Update event roster of meta-events
+	updateMetaEventRoster($eventID);
+
+// Find which tournaments are meta-tournaments
+	$allTournaments = implode2int($tournamentList);
+	$FORMAT_META = (int)FORMAT_META;
+	
 	$sql = "SELECT tournamentID
 			FROM eventTournaments
-			WHERE formatID = {$compFormatNum}
-			AND eventID = {$eventID}";
-	$compositeTournaments = mysqlQuery($sql, SINGLES, 'tournamentID');
+			WHERE formatID = {$FORMAT_META}
+			AND tournamentID IN({$allTournaments})";
+	$metaTournamentIDs = mysqlQuery($sql, SINGLES, "tournamentIDs");
 
-	if($compositeTournaments == null){
+	// There are no meta tournaments, nothing to do.
+	if($metaTournamentIDs == null){
 		return;
 	}
 
-	// Process composite tournaments ------------------------
-	foreach($compositeTournaments as $tournamentID){
-		$tournamentID = (int)$tournamentID;
+// 	Update meta-tournament
 
-		if(isCompositeRosterManual($tournamentID) == true){
+	foreach($metaTournamentIDs as $mTournamentID){
+		$mTournamentID = (int)$mTournamentID;
+
+	// Get components of tournament
+		$sql = "SELECT componentTournamentID as cTournamentID
+				FROM eventTournamentComponents
+				WHERE metaTournamentID = {$mTournamentID}
+				AND useRoster = 1";
+		$componentsList = mysqlQuery($sql, SINGLES, "cTournamentID");
+
+		// If there is no components set then the meta-tournament is in manual
+		// roster mode. Don't update the roster.
+		if($componentsList == null){
 			continue;
 		}
 
-		$tournamentComponents = getTournamentComponents($tournamentID,null,true);
-		
-		if($tournamentComponents == null){
-			// Delete any fighters not still in the tournaments
+	// Create list of who should be in the tournament
+
+		$metaTournamentMode = readOption('T',$mTournamentID,'META_ROSTER_MODE');
+		$numComponents 		= count($componentsList);
+		$componentsListStr 	= implode2int($componentsList);
+		$exclusiveClause 	= '';
+
+		if($metaTournamentMode == META_ROSTER_MODE_EXTENDED){
+
+			$numComponents = 1;
+
+		} elseif ($metaTournamentMode == META_ROSTER_MODE_EXCLUSIVE){
+
+			$sql = "SELECT componentTournamentID as cTournamentID
+					FROM eventTournamentComponents
+					WHERE ignoreRoster = 1
+					AND metaTournamentID = {$mTournamentID}";
+			$tournamentsToIgnore = mysqlQuery($sql, SINGLES, "cTournamentID");
+			$tournamentsToIgnoreStr = implode2int($tournamentsToIgnore);
+
+			$exclusiveClause = 
+					"AND (
+					SELECT DISTINCT systemRosterID
+					FROM eventTournamentRoster AS eTR3
+					INNER JOIN eventRoster AS eR3 USING(rosterID)
+					INNER JOIN eventTournaments AS eT3 USING(tournamentID)
+					WHERE eT3.eventID IN (	SELECT DISTINCT eT4.eventID
+											FROM eventTournaments eT4
+											WHERE eT4.tournamentID IN ({$componentsListStr})
+											)
+					AND eR3.systemRosterID = eR.systemRosterID
+					AND eT3.formatID != {$FORMAT_META}
+					AND eT3.tournamentID NOT IN ({$tournamentsToIgnoreStr})
+					AND eT3.tournamentID NOT IN ({$componentsListStr})
+					) IS NULL";
+
+		}
+
+		$sql = "SELECT DISTINCT systemRosterID
+				FROM eventTournamentRoster eTR
+				INNER JOIN eventRoster AS eR USING(rosterID)
+				WHERE tournamentID IN ({$componentsListStr})
+				AND (	SELECT COUNT(*)
+						FROM eventTournamentRoster eTR2
+						INNER JOIN eventRoster eR2 USING(rosterID)
+						WHERE eR2.systemRosterID = eR.systemRosterID 
+						AND tournamentID IN ({$componentsListStr})
+					) >= {$numComponents}
+				{$exclusiveClause}";
+
+		$mTournamentRosterSys = mysqlQuery($sql, SINGLES, 'systemRosterID');
+
+		// If roster is empty, no need to continue operations on this meta-tournament.
+		if($mTournamentRosterSys == null){
 			$sql = "DELETE FROM eventTournamentRoster
-					WHERE tournamentID = {$tournamentID}";
+					WHERE tournamentID = {$mTournamentID}";
 			mysqlQuery($sql, SEND);
-
 			continue;
 		}
 
-		$tString = '';
-		$numComponents = 0;
-		$isExclusive = false;
-		foreach($tournamentComponents as $component){
-			$cTournamentID = (int)$component['cTournamentID'];
-			if($tString != ''){
-				$tString .= ", ";
+		$systemRosterString = implode2int($mTournamentRosterSys);
+		$sql = "SELECT rosterID, systemRosterID
+				FROM eventRoster
+				WHERE eventID = {$eventID}
+				AND systemRosterID IN ({$systemRosterString})";
+
+		$mTournamentRoster = mysqlQuery($sql, KEY_SINGLES, 'systemRosterID', 'rosterID');
+		$mTournamentRosterString = implode2int($mTournamentRoster);
+
+
+		if(false){
+
+			$systemRosterString = '';
+			foreach($mTournamentRoster as $systemRosterID => $rosterID){
+				if($systemRosterString != ''){
+					$systemRosterString .= " ,";
+				}
+
+				$systemRosterString .= (int)$systemRosterID;
 			}
-			$tString .= "{$cTournamentID}";
-			$numComponents++;
 
-			if($component['isExclusive'] != 0){
-				$isExclusive = true;
-			}
-		}
+			$sql = "SELECT componentTournamentID as cTournamentID
+					FROM eventTournamentComponents
+					WHERE ignoreRoster = 1
+					AND metaTournamentID = {$mTournamentID}";
+			$tournamentsToIgnore = mysqlQuery($sql, SINGLES, "cTournamentID");
+			$tournamentsToIgnoreStr = implode2int($tournamentsToIgnore);
 
-		if($tString == ''){
-			$tString = '0';
-		}
-
-		if($isExclusive == true){
-			$compositeFormat = FORMAT_COMPOSITE;
-			$exclusiveClause = "AND (	SELECT COUNT(*)
-									FROM eventTournamentRoster as eTR3
-									INNER JOIN eventTournaments USING(tournamentID)
-									WHERE eTR1.rosterID = eTR3.rosterID 
-									AND tournamentID != {$tournamentID}
-									AND eventID = {$eventID}
-									AND formatID != {$compositeFormat})
-								= {$numComponents}";
-		} else {
-			$exclusiveClause = '';
-		}
-
-		$sql = "SELECT DISTINCT rosterID
-				FROM eventTournamentRoster as eTR1
-				WHERE (	SELECT COUNT(*)
-						FROM eventTournamentRoster as eTR2
-						WHERE eTR1.rosterID = eTR2.rosterID
-						AND eTR2.tournamentID IN ({$tString}) )
-					= {$numComponents}
-				{$exclusiveClause}
-				";
-
-		$tournamentRoster = mysqlQuery($sql, SINGLES, 'rosterID');
-
-		$rString = '';
-		$numParticipants = 0;
-		foreach($tournamentRoster as $rosterID){
-			
-			if($rString != ''){
-				$rString .= ", ";
-			}
-			$rString .= "{$rosterID}";
-			$numParticipants++;
-
-			$sql = "SELECT COUNT(*) AS isIn
+			$sql = "SELECT DISTINCT systemRosterID
 					FROM eventTournamentRoster
-					WHERE tournamentID = {$tournamentID}
-					AND rosterID = {$rosterID}";
-			$isAlreadyEntered = (bool)mysqlQuery($sql, SINGLE, 'isIn');
+					INNER JOIN eventRoster AS eR USING(rosterID)
+					INNER JOIN eventTournaments AS eT USING(tournamentID)
+					WHERE eT.eventID IN (	SELECT DISTINCT eT2.eventID
+											FROM eventTournaments eT2
+											WHERE eT2.tournamentID IN ({$componentsListStr})
+											)
+					AND systemRosterID IN ({$systemRosterString})
+					AND formatID != {$FORMAT_META}
+					AND tournamentID NOT IN ({$tournamentsToIgnoreStr})
+					AND tournamentID NOT IN ({$componentsListStr})";
 
-			if($isAlreadyEntered == false){
-				$sql = "INSERT INTO eventTournamentRoster
-						(rosterID, tournamentID)
-						VALUES
-						({$rosterID}, {$tournamentID})";
-				mysqlQuery($sql, SEND);
+			$nonExclusiveFighters = mysqlQuery($sql, SINGLES, 'systemRosterID');
+
+			foreach($nonExclusiveFighters as $systemRosterID){
+				unset($mTournamentRoster[$systemRosterID]);
 			}
 		}
 
-		if($rString == ''){
-			$rString = '0';
+		$mTournamentRosterString = implode2int($mTournamentRoster);
+
+	// Delete who shouldn't be in
+		$sql = "DELETE FROM eventTournamentRoster
+				WHERE tournamentID = {$mTournamentID}
+				AND rosterID NOT IN ({$mTournamentRosterString})";
+		mysqlQuery($sql, SEND);
+
+	// Determine who needs to be added to the tournament.
+		$sql = "SELECT eR.rosterID
+				FROM eventRoster AS eR
+				LEFT JOIN eventTournamentRoster eTR ON eR.rosterID = eTR.rosterID
+					AND tournamentID = {$mTournamentID}
+				WHERE eR.rosterID IN ({$mTournamentRosterString})
+				AND tournamentID IS NULL";
+
+		$rosterIDsToAdd = mysqlQuery($sql, SINGLES, "rosterID");
+
+		foreach($rosterIDsToAdd as $rosterID){
+			
+
+			$sql = "INSERT INTO eventTournamentRoster
+					(tournamentID, rosterID)
+					VALUES 
+					({$mTournamentID},{$rosterID})";
+			mysqlQuery($sql, SEND);
 		}
 
-		// Delete any fighters not still in the tournaments
-		$sql = "DELETE FROM eventTournamentRoster
-				WHERE tournamentID = {$tournamentID}
-				AND rosterID NOT IN ({$rString})";
-		mysqlQuery($sql, SEND);
-
-		// Finaly update the participant count.
-		$sql = "UPDATE eventTournaments
-		SET numParticipants = {$numParticipants}
-		WHERE tournamentID = {$tournamentID}";
-		mysqlQuery($sql, SEND);
+	updateMetaTournamentStandings($mTournamentID);
 
 	}
+}
 
+/******************************************************************************/
 
+function updateMetaEventRoster($eventID){
+
+	$eventID = (int)$eventID;
+	if(isMetaEvent($eventID) == false){
+		return;
+	}
+
+// Determine which component tournaments to draw the roster from
+	$sql = "SELECT componentTournamentID
+			FROM eventTournamentComponents eCT
+			INNER JOIN eventTournaments AS eT ON eCT.metaTournamentID = eT.tournamentID
+			WHERE useRoster = 1
+			AND eventID = {$eventID}";
+	$componentTournaments = mysqlQuery($sql, SINGLES, 'componentTournamentID');
+	
+// Get all fighters who should be entered
+	if($componentTournaments != null){
+		$componentTournamentStr = implode2int($componentTournaments);
+
+		$sql = "SELECT DISTINCT systemRosterID
+				FROM eventTournamentRoster
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID IN ({$componentTournamentStr})";
+		$systemRosterIDs = mysqlQuery($sql, SINGLES, 'rosterID');
+	} else {
+		$systemRosterIDs = null;
+	}
+
+	if($componentTournaments == null || $systemRosterIDs == null){
+
+		$sql = "DELETE FROM eventRoster
+				WHERE eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+
+	} else {
+
+		$systemRosterIDsStr = implode2int($systemRosterIDs);
+
+	// Delete people who shouldn't be in
+		$sql = "DELETE FROM eventRoster
+				WHERE eventID = {$eventID}
+				AND systemRosterID NOT IN ({$systemRosterIDsStr})";
+		mysqlQuery($sql, SEND);
+
+	// Add people who should be in
+		$sql = "SELECT systemRosterID, systemRoster.schoolID
+				FROM systemRoster
+				WHERE systemRosterID IN ({$systemRosterIDsStr})
+				AND systemRosterID NOT IN (	SELECT systemRosterID
+											FROM eventRoster
+											WHERE eventID = {$eventID})";
+		$rosterIDsToAdd = mysqlQuery($sql, ASSOC);
+
+		foreach($rosterIDsToAdd as $fighter){
+			$systemRosterID = (int)$fighter['systemRosterID'];
+			$schoolID = (int)$fighter['schoolID'];
+
+			$sql = "INSERT INTO eventRoster
+					(systemRosterID, eventID, schoolID)
+					VALUES 
+					({$systemRosterID},{$eventID},{$schoolID})";
+			mysqlQuery($sql, SEND);
+		}
+	}
 
 }
 

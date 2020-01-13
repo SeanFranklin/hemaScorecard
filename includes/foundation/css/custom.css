@@ -1,8 +1,25 @@
 /* Added By Sean **************************************************************/
 
-
 .strike-through{
   text-decoration: line-through;
+}
+
+.penalty-card-display{
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+}
+
+.penalty-card-yellow{
+  background-color: #FFFF55;
+}
+
+.penalty-card-red{
+  background-color: #F04124;
+}
+
+.penalty-card-black{
+  background-color: #000000;
+  color: #FFFFFF;
 }
 
 .easter-egg:hover {

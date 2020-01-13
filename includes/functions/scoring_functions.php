@@ -892,165 +892,287 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
-function _StandingPoints_calculateScore($tournamentID, $groupSet = 1){
+function _LpDeviation_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 	
-	$tournamentComponents = getTournamentComponents($tournamentID,true);
-	$tournamentRoster = getTournamentRoster($tournamentID);
-	$basePointValue = getBasePointValue($tournamentID, null);
+	$scoreData['score'] = 0;
+	$pointsForFighter = [];
 
-	$tString = '';
-	foreach($tournamentComponents as $component){
-		$cTournamentID = (int)$component['cTournamentID'];
-		if($tString != ''){
-			$tString .= ', ';
+// Score the fighters from 0 to [BasePointValue] in each component based on their
+// overall placing in each component, and sum the values
+	foreach($tournamentPlacings as $placingData){
+		$num = $numEntries[$placingData['tournamentID']];
+		$points = ($num - ($placingData['placing'] - 1)) / $num;
+		$points *= $basePointValue;
+
+		if($points < 0){
+			$points = 0;
 		}
-		$tString .= "$cTournamentID";
+
+		$scoreData['score']+= $points;
+		$pointsForFighter[] = $points;
 	}
 
-	$fString = '';
-	foreach($tournamentRoster as $fighter){
-		$rosterID = $fighter['rosterID'];
-		$sql = "SELECT placing, highBound, lowBound
-				FROM eventPlacings
-				WHERE rosterID = {$rosterID}
-				AND tournamentID IN ({$tString})";
-		$tournamentPlacings = mysqlQuery($sql, ASSOC);
-
-		$score = 0;
-		foreach($tournamentPlacings as $placingData){
-			$points = $basePointValue - $placingData['placing'] + 1;
-			if($points > 0){
-				$score += $points;
-			}
-		}
-
-		$sql = "SELECT standingID
-				FROM eventStandings
-				WHERE tournamentID = {$tournamentID}
-				AND rosterID = {$rosterID}";
-		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
-
-		if($standingID == null){
-			$sql = "INSERT INTO eventStandings
-					(tournamentID, rosterID, groupType, score)
-					VALUES
-					({$tournamentID}, {$rosterID}, 'composite', {$score})";
-			mysqlQuery($sql, SEND);
-		} else {
-			$sql = "UPDATE eventStandings
-					SET score = {$score}
-					WHERE standingID = {$standingID}";
-			mysqlQuery($sql, SEND);
-		}
-
-		if($fString != ''){
-			$fString .= ", ";
-		}
-		$fString .= "{$rosterID}";
+// Subtract the standard deviation of scores from the average tournament score
+	$scoreData['pointsFor'] = round($scoreData['score'],0);
+	if(count($pointsForFighter) != 0){
+		$scoreData['pointsAgainst'] = round(standardDeviation($pointsForFighter),0);
+	} else {
+		$scoreData['pointsAgainst'] = 0;
 	}
+	$scoreData['score'] = $scoreData['pointsFor'] - $scoreData['pointsAgainst'];
 
-	// Delete any old standings hanging around from fighters without ranks
-	$sql = "DELETE FROM eventStandings
-			WHERE tournamentID = {$tournamentID}
-			AND rosterID NOT IN ({$fString})";
-	mysqlQuery($sql, SEND);
-	
+	return($scoreData);
 
 }
 
 /******************************************************************************/
 
-function _LpMeta_calculateScore($tournamentID, $groupSet = 1){
+function _PlacingCountdown_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 	
-	$tournamentComponents = getTournamentComponents($tournamentID,true);
-	$tournamentRoster = getTournamentRoster($tournamentID);
-	$basePointValue = getBasePointValue($tournamentID, null);
+	$scoreData['score'] = 0;
+	$pointsForFighter = [];
 
-	$tString = '';
+// Score the fighters from 0 to [BasePointValue] in each component based on their
+// overall placing in each component, and sum the values
+	$scoreData['pointsFor'] = 0;
+	$scoreData['pointsAgainst'] = 0;
+	$scoreData['score'] = 0;
+
+	foreach((array)$tournamentPlacings as $placingData){
+		$scoreData['pointsFor'] += $basePointValue;
+		$against = ($placingData['placing'] - 1);
+		if($against < 0){
+			$against = 0;
+		}
+		$scoreData['pointsAgainst'] += $against;
+	}
+
+	$scoreData['score'] = $scoreData['pointsFor'] - $scoreData['pointsAgainst'];
+
+	return($scoreData);
+
+}
+
+/******************************************************************************/
+
+function meta_ScoreFighters($mTournamentID){
+// Calls the appropriate function to score fighters given the tournament
+// scoring algorithm
+
+	$mTournamentID = (int)$mTournamentID;
+
+	$formula = getScoreFormula($mTournamentID);
+	$scoreFuncName = "_".substr($formula,1)."_calculateScore";
+	
+	$tournamentComponents = getMetaTournamentComponents($mTournamentID,true);
+	$basePointValue = (int)getBasePointValue($mTournamentID, null);
+
+// Get all fighters and standings
+	$sql = "SELECT rosterID, systemRosterID
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID = {$mTournamentID}";
+	$tournamentRoster = (array)mysqlQuery($sql, KEY_SINGLES, 'systemRosterID','rosterID');
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$mTournamentID}";
+	$standingIDs = mysqlQuery($sql, KEY_SINGLES, 'rosterID','standingID');
+
+// Query string for all component tournaments
+	$notFinalized = [];
+	$cTournamentIDs = [];
+	$rosterIDs = [];
+	
 	foreach($tournamentComponents as $component){
 		$cTournamentID = (int)$component['cTournamentID'];
-		if($tString != ''){
-			$tString .= ', ';
+
+		if($component['isFinalized'] == 0){
+			$notFinalized[] = $cTournamentID;
+		} else {
+			$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
+			$cTournamentIDs[] = $cTournamentID;
 		}
-		$tString .= "$cTournamentID";
-		$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
+
 	}
 
-	if($tString == ''){
-		$tString = 'NULL';
-	}
+	if(count($cTournamentIDs) != 0){
+		$tString = implode2int($cTournamentIDs);
 
-	$fString = '';
-	foreach($tournamentRoster as $fighter){
+		$sql = "UPDATE eventTournamentComponents
+				SET resultsCalculated = CASE
+										WHEN componentTournamentID IN ({$tString}) THEN 1
+										ELSE 0 END
+				WHERE metaTournamentID = {$mTournamentID}";
+		mysqlQuery($sql, SEND);
 
-		$rosterID = $fighter['rosterID'];
-		$sql = "SELECT placing, highBound, lowBound, tournamentID
+		if($notFinalized != null){
+			$str = "Tournament standings for 
+				<strong>".getTournamentName($mTournamentID)."</strong> recalculated. 
+				The following components are not finalized and have not been included:";
+
+			foreach($notFinalized as $cTournamentID){
+				$eventName = getEventName(getTournamentEventID($cTournamentID));
+				$tournamentName = getTournamentName($cTournamentID);
+
+
+
+				$str .= "<li>".
+					"<strong>[{$eventName}]</strong>: ".
+					" <em>{$tournamentName}</em>".
+					"</li>";
+			}
+
+			setAlert(USER_ALERT,$str);
+
+			if(isFinalized($mTournamentID) == true){
+				setAlert(USER_ALERT,"<span class='red-text'><strong>WARNING!!!!</strong>
+					You have just changed the standings for a meta-tournament that is <u>already finalized</u>!!<BR> This is going to mess everything up, you should remove the final results, and re-generate the placings once all standings are complete.</span>");
+			}
+		}
+
+
+	// Get all the tournament placings
+		$sql = "SELECT systemRosterID, placing, highBound, lowBound, tournamentID
 				FROM eventPlacings
-				WHERE rosterID = {$rosterID}
-				AND tournamentID IN ({$tString})";
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID IN ({$tString})";
 		$tournamentPlacings = mysqlQuery($sql, ASSOC);
 
-		$score = 0;
-		$pointsForFighter = [];
+		$placingByFighter = [];
+		foreach($tournamentPlacings as $placing){
+			$placingByFighter[$placing['systemRosterID']][$placing['tournamentID']] = $placing;
+		}
 
-		foreach($tournamentPlacings as $placingData){
-			$num = $numEntries[$placingData['tournamentID']];
-			$points = ($num - ($placingData['placing'] - 1)) / $num;
-			$points *= $basePointValue;
-
-			if($points < 0){
-				$points = 0;
-			}
+		// get the results of all teams participating
+		$sql = "SELECT sR.systemRosterID, placing, highBound, lowBound, eP.tournamentID
+				FROM eventPlacings AS eP
+				INNER JOIN eventTeamRoster AS eTR ON eP.rosterID = eTR.teamID
+					AND memberRole = 'member'
+				INNER JOIN eventRoster AS eR ON eTR.rosterID = eR.rosterID
+				INNER JOIN systemRoster AS sR ON eR.systemRosterID = sR.systemRosterID
+				WHERE eP.tournamentID IN ({$tString})";
+		$tournamentPlacings = mysqlQuery($sql, ASSOC);
+		foreach($tournamentPlacings as $placing){
+			$placingByFighter[$placing['systemRosterID']][$placing['tournamentID']] = $placing;
+		}
 		
-			$score += $points;
-			$pointsForFighter[] = $points;
+
+
+
+
+	// Loop through all fighters and generate their scores
+		$placingByFighter = meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tString);
+		
+		foreach($tournamentRoster as $systemRosterID => $rosterID){
+
+			if(isset($placingByFighter[$systemRosterID]) == false){
+				continue;
+			}
+
+			$rosterID = (int)$rosterID;
+			$rosterIDs[] = $rosterID;
+			$systemRosterID = (int)$systemRosterID;
+
+		// Calculate score for the tournament algorithm
+			$scoreData = call_user_func($scoreFuncName,
+										$placingByFighter[$systemRosterID],
+										$basePointValue,
+										$numEntries);
+
+			//If any of the fields don't exist it is the same as being zero.
+			$score = (int)@$scoreData['score'];
+			$pointsFor = (int)@$scoreData['pointsFor'];
+			$pointsAgainst = (int)@$scoreData['pointsAgainst'];
+
+
+		// Update standings table
+			if(isset($standingIDs[$rosterID]) == false){
+
+				$sql = "INSERT INTO eventStandings
+						(tournamentID, rosterID, groupType, score, 
+							pointsFor, pointsAgainst, basePointValue)
+						VALUES
+						({$mTournamentID}, {$rosterID}, 'meta', {$score}, 
+							{$pointsFor}, {$pointsAgainst}, {$basePointValue})";
+				mysqlQuery($sql, SEND);
+
+			} else {
+
+				$standingID = (int)$standingIDs[$rosterID];
+				$sql = "UPDATE eventStandings
+						SET score = {$score}, pointsFor = {$pointsFor}, 
+							pointsAgainst = {$pointsAgainst}, basePointValue = {$basePointValue}
+						WHERE standingID = {$standingID}";
+				mysqlQuery($sql, SEND);
+
+			}
+
 		}
+	} // if(count($cTournamentIDs) != 0)
 
-		// Subtract the standard deviation of scores from the average tournament score
-		$ptsFor = round($score,0);
-		if(count($pointsForFighter) != 0){
-			$ptsAgainst = round(standardDeviation($pointsForFighter),0);
-		} else {
-			$ptsAgainst = 0;
-		}
-		$score = $ptsFor - $ptsAgainst;
-
-
-		$sql = "SELECT standingID
-				FROM eventStandings
-				WHERE tournamentID = {$tournamentID}
-				AND rosterID = {$rosterID}";
-		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
-
-		if($standingID == null){
-			$sql = "INSERT INTO eventStandings
-					(tournamentID, rosterID, groupType, score, pointsFor, pointsAgainst)
-					VALUES
-					({$tournamentID}, {$rosterID}, 'composite', {$score}, {$ptsFor}, {$ptsAgainst})";
-			mysqlQuery($sql, SEND);
-		} else {
-			$sql = "UPDATE eventStandings
-					SET score = {$score}, pointsFor = {$ptsFor}, pointsAgainst = {$ptsAgainst}
-					WHERE standingID = {$standingID}";
-			mysqlQuery($sql, SEND);
-		}
-
-		if($fString != ''){
-			$fString .= ", ";
-		}
-		$fString .= "{$rosterID}";
-	}
-
-	if($fString == ''){
-		$fString = 'NULL';
-	}
-
-
-	// Delete any old standings hanging around from fighters without ranks
+// Delete any old standings hanging around from fighters without ranks
+	$fString = implode2int($rosterIDs);
+	
 	$sql = "DELETE FROM eventStandings
-			WHERE tournamentID = {$tournamentID}
+			WHERE tournamentID = {$mTournamentID}
 			AND rosterID NOT IN ({$fString})";
 	mysqlQuery($sql, SEND);
+
+}
+
+/******************************************************************************/
+
+function meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tString){
+// Looks for any tournaments which are part of component groups, which means
+// that only the top <x> placings from a group should be used.
+
+	$conflicts = [];
+	$componentGroups = getComponentGroups($mTournamentID);
+
+	foreach($componentGroups as $cGroupID => $cGroup){
+		if(isset($cGroup['items']) == false || count($cGroup['items']) <= 1){
+			continue;
+		}
+		$cString = implode2int($cGroup['items']);
+		$usedComponents = (int)$cGroup['usedComponents'];
+
+		$sql = "SELECT sR.systemRosterID, COUNT(*) AS numInGroup, 
+					'{$cString}' AS cString, '{$usedComponents}' AS usedComponents
+				FROM eventPlacings AS eP
+				INNER JOIN eventRoster AS eR USING(rosterID)
+				INNER JOIN systemRoster AS sR USING(systemRosterID)
+				WHERE eP.tournamentID IN ({$cString})
+				GROUP BY sR.systemRosterID	
+					HAVING numInGroup > {$usedComponents}"; 
+		$groupConflicts = mysqlQuery($sql, ASSOC);
+
+		if($groupConflicts != null){
+			$conflicts = array_merge($conflicts,$groupConflicts);
+		}	
+	}
+
+	foreach($conflicts as $conflict){
+
+		$systemRosterID = (int)$conflict['systemRosterID'];
+		$usedComponents = (int)$conflict['usedComponents'];
+		$cString = $conflict['cString'];
+
+		$sql = "SELECT tournamentID, placing, systemRosterID
+				FROM eventPlacings
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE systemRosterID = {$systemRosterID}
+					AND tournamentID IN ({$cString})
+				ORDER BY placing ASC
+				LIMIT 9999 OFFSET {$usedComponents}";
+		$tournamentsToNotInclude = mysqlQuery($sql, SINGLES, 'tournamentID');
+		
+		foreach($tournamentsToNotInclude as $tournamentID){
+			unset($placingByFighter[$systemRosterID][$tournamentID]);
+		}
+	}
+	
+	return $placingByFighter;
 
 }
 
@@ -1129,18 +1251,18 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	}
 
 	
-	$orderBy = "rank ASC";
+	$orderBy = "eS.rank ASC";
 	if($displayByPool == true){
 		$orderBy = "groupNumber ASC, ".$orderBy;
 		$numToElims = 0;
 	}
 
-	$sql1 = "SELECT rank, rosterID, groupID {$selectStr} ";
-	$sql2 =	"FROM eventStandings
+	$sql1 = "SELECT eS.rank, rosterID, groupID {$selectStr} ";
+	$sql2 =	"FROM eventStandings AS eS
 			INNER JOIN eventRoster USING(rosterID)
 			LEFT JOIN eventGroups USING(groupID)
-			WHERE eventStandings.tournamentID = {$tournamentID}
-			AND eventStandings.groupSet = {$groupSet}
+			WHERE eS.tournamentID = {$tournamentID}
+			AND eS.groupSet = {$groupSet}
 			AND isTeam = {$showTeams}
 			ORDER BY {$orderBy}";
 	$sql = $sql1.$sql2;
@@ -1302,9 +1424,7 @@ function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracke
 			</p>
 		<?php endif ?>
 
-	
 		<pre><?=$description['description']?></pre>
-
 
 	</fieldset>
 
@@ -2007,8 +2127,8 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 			$loserPlacing++;
 		}
 
-		$sql = "UPDATE eventStandings
-				SET rank = {$placing}
+		$sql = "UPDATE eventStandings AS eS
+				SET eS.rank = {$placing}
 				WHERE standingID = {$standingID}";
 			
 		mysqlQuery($sql, SEND);

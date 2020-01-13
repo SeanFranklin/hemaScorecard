@@ -10,13 +10,13 @@ function isValidExchange(){
 	
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	
+	var exchangeID = parseInt(document.getElementById('exchangeID').value);
 	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
 	var radioValOverlap = false;
 	var isValid = true;
 	
-	if(radioVal == "hit" || radioVal == "penalty"){
+	if(radioVal == "hit"){
 		radioValOverlap = true;
 	}
 	
@@ -28,6 +28,10 @@ function isValidExchange(){
 		if(fighter1Score.value != "" && fighter2Score.value != ""){
 			isValid = false;
 		}
+	}
+
+	if(isNaN(exchangeID) == false && radioVal == 'clearLast'){
+		isValid = false;
 	}
 
 // An afterblow is selected with no score
@@ -47,19 +51,6 @@ function isValidExchange(){
 		&& (radioValOverlap == false))
 		{
 		isValid = false;
-	}
-
-// Penalty mode
-	if(radioVal == "penalty"){
-		var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
-		var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
-
-		if( fighter1Score.value != "" || fighter2Score.value != ""){
-			isValid = false;
-		}
-		if(fighter1Penalty.value == "" && fighter2Penalty.value == ""){
-			isValid = false;
-		}
 	}
 
 // Control Points
@@ -84,70 +75,13 @@ function isValidExchange(){
 
 /************************************************************************************/
 
-function penaltyDropDownChange(){
-
-	var exchButton = document.getElementById('New_Exchange_Button');
-	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-
-	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
-	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
-
-	
-	$('#fighter1_score_dropdown').prop('selectedIndex',0);
-	$('#fighter2_score_dropdown').prop('selectedIndex',0);
-
-	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
-		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
-		fighter1Afterblow.selectedIndex = 0;
-		fighter1Afterblow.disabled = "disabled";
-
-		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
-		fighter2Afterblow.selectedIndex = 0;
-		fighter2Afterblow.disabled = "disabled";
-	}
-
-	document.getElementById('fighter1_penalty_div').classList.remove('hidden');
-	document.getElementById('fighter2_penalty_div').classList.remove('hidden');
-
-	setExchButtonClasses("alert");
-	
-	if(fighter1Penalty.value != "" || fighter2Penalty.value != ""){
-		document.getElementById('Penalty_Radio').checked = 'checked';
-		exchButton.value = "penalty";
-		exchButton.disabled = false;
-		exchButton.innerHTML = "Add: Penalty";
-	} else if(radioVal == "penalty") {
-		exchButton.disabled = true;
-		exchButton.innerHTML = "Select Penalty Value";
-		exchButton.value = "penalty";
-	} else {
-		exchButton.disabled = true;
-		exchButton.innerHTML = "Invalid Input";
-		exchButton.value = "";
-	}
-
-	isValidExchange();
-	
-}
-
-/************************************************************************************/
-
 function scoreDropdownChange(selectID){
 	var exchButton = document.getElementById('New_Exchange_Button');
 	
 
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter1Penalty = document.getElementById('fighter1_penalty_dropdown');
-	
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var fighter2Penalty = document.getElementById('fighter2_penalty_dropdown');
-	
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-	
-	document.getElementById('fighter1_penalty_div').classList.add('hidden');
-	document.getElementById('fighter2_penalty_div').classList.add('hidden');
-	fighter1Penalty.selectedIndex = 0;
-	fighter2Penalty.selectedIndex = 0;
 	
 	document.getElementById('NA_Radio').checked = 'checked';
 
@@ -228,7 +162,6 @@ function scoreDropdownChange(selectID){
 			exchButton.innerHTML = "Add: No Quality";
 
 			setExchButtonClasses("hollow");
-		} else if(fighter1Penalty.value !== "" && fighter2Penalty.value !== ""){
 			
 		} else {
 			exchButton.value = "scoringHit";
@@ -270,8 +203,6 @@ function modifiersRadioButtons(){
 	
 	$('#fighter1_score_dropdown').prop('selectedIndex',0);
 	$('#fighter2_score_dropdown').prop('selectedIndex',0);
-	$('#fighter1_penalty_dropdown').prop('selectedIndex',0);
-	$('#fighter2_penalty_dropdown').prop('selectedIndex',0);
 	fighter1Control = document.getElementById('fighter1_control_check');
 	fighter2Control = document.getElementById('fighter2_control_check');
 	if(fighter1Control != null && fighter2Control != null){
@@ -286,8 +217,6 @@ function modifiersRadioButtons(){
 		$('#fighter2_afterblow_dropdown').prop('selectedIndex',0);
 	}
 
-	document.getElementById('fighter1_penalty_div').classList.add('hidden');
-	document.getElementById('fighter2_penalty_div').classList.add('hidden');
 	
 	switch(radioVal){
 		case 'noExch':
@@ -310,9 +239,6 @@ function modifiersRadioButtons(){
 			exchButton.innerHTML = "Remove: All Exchanges";
 			setExchButtonClasses("alert hollow");
 			break;
-		case 'penalty':
-			penaltyDropDownChange();
-			break;
 	}
 	
 	isValidExchange();
@@ -332,6 +258,8 @@ function editExchange(exchangeID, exchangeTime){
 		$('body').css('background-color', '');
 		$('.timer-input').attr("disabled",false);
 		$('.conclude-match-button').attr("disabled",false);
+		$('#Clear_Last_Radio').attr('disabled',false);
+		$('.Clear_Last_Radio').css('text-decoration','none');
 		
 		disableTimer = false;
 		$('#matchTime').attr('value',originalMatchTime);
@@ -344,11 +272,14 @@ function editExchange(exchangeID, exchangeTime){
 		$('body').css('background-color', '#ddd');
 		$('.timer-input').attr("disabled",'disabled');
 		$('.conclude-match-button').attr("disabled",'disabled');
+		$('#Clear_Last_Radio').attr('disabled','disabled');
+		$('.Clear_Last_Radio').css('text-decoration','line-through');
 
 		disableTimer = true;
 		originalMatchTime = document.getElementById('matchTime').value
 		$('#matchTime').attr('value',exchangeTime);
 		updateTimerDisplay();
+		isValidExchange();
 	}
 
 }
