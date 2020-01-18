@@ -1088,10 +1088,6 @@ function insertPenalty($matchInfo, $scoring, $lastExchangeID){
 	$card 		= $scoring['penalty']['card'];
 	$action		= $scoring['penalty']['action'];
 	$rosterID 	= $scoring['penalty']['rosterID'];
-
-	if(isReverseScore($matchInfo['tournamentID']) == true){
-		$scoreValue = $scoreValue * -1;
-	}
 	
 	insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
 						0, null, $card, $action, $exchangeID);

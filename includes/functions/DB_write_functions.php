@@ -5415,28 +5415,27 @@ function updateMatch($matchInfo){
 			if($exchange['scoringID'] == $matchInfo['fighter1ID']){
 
 				$fighter1Score += $exchange['scoreValue'];
-				if($doubleTypes['isNotNetScore'] == 1
+				if(    $doubleTypes['isNotNetScore'] == 1
 					&& $doubleTypes['afterblowType'] == 'full') {
 					$fighter2Score += $exchange['scoreDeduction'];
 				} else {
 					$fighter1Score -= $exchange['scoreDeduction'];
 				}
 
-				if($exchange['exchangeType'] == 'penalty'){
-					if($reverseScore == REVERSE_SCORE_INJURY){
-						$fighter1Score -= $exchange['scoreValue'];
-						$fighter2Score -= $exchange['scoreValue'];
-					} elseif ($reverseScore == REVERSE_SCORE_GOLF){
-						$fighter1Score -= $exchange['scoreValue'];
-						$fighter2Score += $exchange['scoreValue'];
-					}
-					
+				// If the exchange was a penalty and the score mode is reversed, then 
+				// the score value has to be applied to a different fighter.
+				if(   $exchange['exchangeType'] == 'penalty'
+				   && $reverseScore != REVERSE_SCORE_NO){
+
+					$fighter1Score -= $exchange['scoreValue'];
+					$fighter2Score -= $exchange['scoreValue'];
+				
 				}
 
 			} else if($exchange['scoringID'] == $matchInfo['fighter2ID']){
 
 				$fighter2Score += $exchange['scoreValue'];
-				if($doubleTypes['isNotNetScore'] == 1
+				if(    $doubleTypes['isNotNetScore'] == 1
 					&& $doubleTypes['afterblowType'] == 'full') {
 
 					$fighter1Score += $exchange['scoreDeduction'];
@@ -5444,15 +5443,14 @@ function updateMatch($matchInfo){
 					$fighter2Score -= $exchange['scoreDeduction'];
 				}
 
-				if($exchange['exchangeType'] == 'penalty'){
-					if($reverseScore == REVERSE_SCORE_INJURY){
-						$fighter1Score -= $exchange['scoreValue'];
-						$fighter2Score -= $exchange['scoreValue'];
-					} elseif ($reverseScore == REVERSE_SCORE_GOLF){
-						$fighter1Score += $exchange['scoreValue'];
-						$fighter2Score -= $exchange['scoreValue'];
-					}
-					
+				// If the exchange was a penalty and the score mode is reversed, then 
+				// the score value has to be applied to a different fighter.
+				if(   $exchange['exchangeType'] == 'penalty'
+				   && $reverseScore != REVERSE_SCORE_NO){
+
+					$fighter1Score -= $exchange['scoreValue'];
+					$fighter2Score -= $exchange['scoreValue'];
+				
 				}
 
 
