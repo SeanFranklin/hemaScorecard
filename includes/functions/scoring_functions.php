@@ -892,6 +892,41 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
+	
+	$scoreData['score'] = 0;
+	$scoreData['pointsFor'] = 0;
+	$scoreData['pointsAgainst'] = 0;
+	$pointsForFighter = [];
+
+// Score the fighters from 0 to [BasePointValue] in each component based on their
+// overall placing in each component, and sum the values
+	foreach($tournamentPlacings as $placingData){
+		$num = $numEntries[$placingData['tournamentID']];
+		if($num != 0){
+			$points = ($num - ($placingData['placing'] - 1)) / $num;
+			$points *= $basePointValue;
+
+			if($points < 0){
+				$points = 0;
+			}
+		} else {
+			$points = $basePointValue;
+		}
+
+		$scoreData['score'] += $points;
+		$scoreData['pointsFor']++;
+	}
+
+// Subtract the standard deviation of scores from the average tournament score
+	$scoreData['score'] = round($scoreData['score'],0);
+
+	return($scoreData);
+
+}
+
+/******************************************************************************/
+
 function _LpDeviation_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 	
 	$scoreData['score'] = 0;
@@ -901,11 +936,16 @@ function _LpDeviation_calculateScore($tournamentPlacings, $basePointValue, $numE
 // overall placing in each component, and sum the values
 	foreach($tournamentPlacings as $placingData){
 		$num = $numEntries[$placingData['tournamentID']];
-		$points = ($num - ($placingData['placing'] - 1)) / $num;
-		$points *= $basePointValue;
+		if($num != 0){
+			$points = ($num - ($placingData['placing'] - 1)) / $num;
+			$points *= $basePointValue;
 
-		if($points < 0){
-			$points = 0;
+			if($points < 0){
+				$points = 0;
+			}
+
+		} else {
+			$points = $basePointValue;
 		}
 
 		$scoreData['score']+= $points;
@@ -990,8 +1030,15 @@ function meta_ScoreFighters($mTournamentID){
 		if($component['isFinalized'] == 0){
 			$notFinalized[] = $cTournamentID;
 		} else {
-			$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
+
+			if(isEntriesByTeam($cTournamentID) == false){
+				$numEntries[$cTournamentID] = getNumTournamentEntries($cTournamentID);
+			} else {
+				$numEntries[$cTournamentID] = getNumTournamentGroups($cTournamentID);
+			}
+			
 			$cTournamentIDs[] = $cTournamentID;
+
 		}
 
 	}
