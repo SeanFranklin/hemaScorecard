@@ -2732,11 +2732,11 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 	// Loop through all the sets backward, because the later results are more important.
 	for($set = $numSets; $set >= 1; $set--){
 
-		$sql = "SELECT rosterID, rank, score
-				FROM eventStandings
+		$sql = "SELECT rosterID, eS.rank, score
+				FROM eventStandings AS eS
 				WHERE tournamentID = {$tournamentID}
 				AND groupSet = {$set}
-				ORDER BY rank ASC";
+				ORDER BY eS.rank ASC";
 		$roundData = mysqlQuery($sql, ASSOC);
 	
 		$oldScore = null;

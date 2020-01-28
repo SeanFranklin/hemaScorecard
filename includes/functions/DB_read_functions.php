@@ -5406,6 +5406,20 @@ function getNumTournamentEntries($tournamentID){
 
 /******************************************************************************/
 
+function getNumTournamentGroups($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT COUNT(*) AS numTeams
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID = {$tournamentID}
+			AND isTeam = 1";
+	return (int)mysqlQuery($sql, SINGLE, 'numTeams');
+}
+
+/******************************************************************************/
+
 function getTournamentRoster($tournamentID = null, $sortType = null, $excluded = null){
 // returns a sorted array of all fighters in a tournament
 // indexed by rosterID	
@@ -5609,7 +5623,7 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 				$teamClause = "AND isTeam = 0";
 			}
 		
-			$sql = "SELECT rosterID, rank, score, wins, losses, ties, pointsFor, 
+			$sql = "SELECT rosterID, eventStandings.rank, score, wins, losses, ties, pointsFor, 
 					pointsAgainst, doubles, matches,
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst
 					FROM eventStandings
@@ -5619,7 +5633,7 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 					{$groupSet}
 					{$ignoreWhere}
 					{$teamClause}
-					ORDER BY rank ASC";
+					ORDER BY eventStandings.rank ASC";
 		}
 
 		$rankedList = mysqlQuery($sql, ASSOC);
