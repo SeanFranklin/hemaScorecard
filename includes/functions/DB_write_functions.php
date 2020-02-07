@@ -2574,6 +2574,98 @@ function editEventParticipant(){
 
 /******************************************************************************/
 
+function addAdditionalParticipants($data){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = $data['eventID'];
+
+	foreach($data['list'] as $person){
+		if($person['firstName'] == '' && $person['lastName'] == ''){
+			continue;
+		}
+
+		$sql = "INSERT INTO eventRosterAdditional 
+				(firstName, lastName, registrationType, eventID)
+				VALUES
+				(?,?,?,?)
+				";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "ssii", 
+										$person['firstName'], 
+										$person['lastName'], 
+										$person['type'],
+										$eventID);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	}
+
+	setAlert(USER_ALERT,"Registrations added to non-participant list.");
+
+}
+
+/******************************************************************************/
+
+function updateAdditionalParticipants($data){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($data['list'] as $additionalRosterID => $person){
+		if($person['firstName'] == '' && $person['lastName'] == ''){
+			setError("Can not update to a blank name.<BR>
+				<strong>{$person['firstName']} {$person['lastName']}</strong>
+				not updated.");
+			continue;
+		}
+
+		$sql = "UPDATE eventRosterAdditional 
+				SET firstName = ?,
+				lastName = ?,
+				registrationType = ?
+				WHERE additionalRosterID = {$additionalRosterID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "ssi", 
+										$person['firstName'], 
+										$person['lastName'], 
+										$person['type']);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	}
+
+	setAlert(USER_ALERT,"Registrations updated.");
+
+}
+
+/******************************************************************************/
+
+function deleteAdditionalParticipants($data){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($data['IDsToDelete'] as $additionalRosterID){
+		$additionalRosterID = (int)$additionalRosterID;
+
+		$sql = "DELETE FROM eventRosterAdditional
+				WHERE additionalRosterID = {$additionalRosterID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT,"Registrations deleted.");
+
+}
+
+/******************************************************************************/
+
 function recordTournamentPlacings($tournamentID,$input){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
@@ -4611,7 +4703,7 @@ function updateEventTournaments(){
 				} elseif(@$info['doubleTypeID'] == DEDUCTIVE_AFTERBLOW){
 					$info['doubleTypeID'] = FULL_AFTERBLOW;
 					$info['isNotNetScore'] = 1;
-					setAlert(USER_ERROR,"Reverse sScore mode is not compatable
+					setAlert(USER_ERROR,"Reverse Score mode is not compatible
 					 with deductive afterblow scoring. 
 					 <BR>Afterblow type has been changed to <u>Full Afterblow</u>
 					 with <u>Use Net Points</u> option set to <i>No</i>.");
@@ -5263,6 +5355,25 @@ function checkInFighters($checkInData){
 						SET eventWaiver = {$waiver}, eventCheckIn = {$checkin}
 						WHERE rosterID = {$rosterID}";
 				mysqlQuery($sql, SEND);
+				
+
+			}
+		}
+	}
+
+	if(isset($checkInData['additional']) == true){
+		foreach($checkInData['additional'] as $additionalsData){
+
+			foreach($additionalsData as $additionalRosterID => $fighterData){
+				$waiver = (int)$fighterData['waiver'];
+				$checkin = (int)$fighterData['checkin'];
+				$additionalRosterID = (int)$additionalRosterID;
+
+				$sql = "UPDATE eventRosterAdditional
+					SET eventWaiver = {$waiver}, eventCheckIn = {$checkin}
+					WHERE additionalRosterID = {$additionalRosterID}";
+				mysqlQuery($sql, SEND);
+				
 			}
 		}
 	}
