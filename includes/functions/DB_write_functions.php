@@ -4701,12 +4701,12 @@ function updateEventTournaments(){
 				if(isset($info['doubleTypeID']) == false){
 					$info['doubleTypeID'] = NO_AFTERBLOW;
 				} elseif(@$info['doubleTypeID'] == DEDUCTIVE_AFTERBLOW){
-					/*$info['doubleTypeID'] = FULL_AFTERBLOW;
+					$info['doubleTypeID'] = FULL_AFTERBLOW;
 					$info['isNotNetScore'] = 1;
 					setAlert(USER_ERROR,"Reverse Score mode is not compatible
 					 with deductive afterblow scoring. 
 					 <BR>Afterblow type has been changed to <u>Full Afterblow</u>
-					 with <u>Use Net Points</u> option set to <i>No</i>.");*/
+					 with <u>Use Net Points</u> option set to <i>No</i>.");
 				} elseif (@$info['doubleTypeID'] == FULL_AFTERBLOW && $info['isNotNetScore'] == 0){
 					$info['isNotNetScore'] = 1;
 					setAlert(USER_ERROR,"Reverse Score mode only functions without
