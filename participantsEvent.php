@@ -252,6 +252,9 @@ function addNewParticipantsButtons(){
 		<a class='button hollow secondary' href='participantsSchools.php'>
 			Add New Schools
 		</a>
+		<a class='button hollow secondary' href='participantsAdditional.php'>
+			Non-Participating Entries
+		</a>
 		<BR>
 	</form>
 	</div>
