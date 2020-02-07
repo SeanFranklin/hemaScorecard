@@ -1526,6 +1526,22 @@ function getEventRoster($sortString = null, $staffInfo = false){
 
 /******************************************************************************/
 
+function getEventAdditionalParticipants($eventID){
+
+	$sortString = NAME_MODE;
+	$eventID = (int)$eventID;
+	
+	$sql = "SELECT firstName, lastName, registrationType, additionalRosterID 
+			FROM eventRosterAdditional
+			WHERE eventID = {$eventID}
+			ORDER BY registrationType ASC, {$sortString}";
+	$roster = mysqlQuery($sql, ASSOC);
+	
+	return $roster;
+}
+
+/******************************************************************************/
+
 function getCheckInStatus($ID, $type){
 
 
@@ -1539,6 +1555,24 @@ function getCheckInStatus($ID, $type){
 			INNER JOIN systemRoster USING(systemRosterID)
 			WHERE eventID = {$eventID}
 			{$sortString}";
+
+	return mysqlQuery($sql, ASSOC);
+
+}
+
+/******************************************************************************/
+
+function getCheckInStatusAdditional($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sortString = NAME_MODE;
+
+	$sql = "SELECT firstName, lastName, registrationType,
+				additionalRosterID, eventWaiver, eventCheckIn
+			FROM eventRosterAdditional
+			WHERE eventID = {$eventID}
+			ORDER BY registrationType ASC, {$sortString}";
 
 	return mysqlQuery($sql, ASSOC);
 
@@ -2048,6 +2082,27 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 	}
 	
 	return $name;
+}
+
+/******************************************************************************/
+
+function getAdditionalName($additionalRosterID){
+
+	$additionalRosterID = (int)$additionalRosterID;
+
+	$sql = "SELECT firstName, lastName
+			FROM eventRosterAdditional
+			WHERE additionalRosterID = {$additionalRosterID}";
+	$result = mysqlQuery($sql, SINGLE);
+
+	if(NAME_MODE == 'lastName' ){
+		$name = $result['lastName'].", ".$result['firstName'];
+	} else {
+		$name = $result['firstName']." ".$result['lastName'];
+	}
+
+	return $name;
+
 }
 
 /******************************************************************************/

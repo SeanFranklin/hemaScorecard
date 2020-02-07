@@ -92,6 +92,15 @@ function processPostData(){
 				addEventParticipantsByName();
 				addEventParticipantsByID();	
 				break;
+			case 'addAdditionalParticipants':
+				addAdditionalParticipants($_POST['addAdditional']);
+				break;
+			case 'updateAdditionalParticipants':
+				updateAdditionalParticipants($_POST['updateAdditional']);
+				break;
+			case 'deleteAdditionalParticipants':
+				deleteAdditionalParticipants($_POST['deleteAdditional']);
+				break;
 			case 'deleteFromEvent':
 				deleteFromEvent();
 				break;
@@ -1006,7 +1015,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 // scoring calculations for Deductive Afterblow
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
@@ -1067,6 +1076,10 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		if($scoreDeduction > $scoreValue){
 			$scoreDeduction = $scoreValue;
 		}
+	}
+
+	if(isReverseScore() != REVERSE_SCORE_NO){
+		$rosterID = $otherID; 
 	}
 	
 	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
