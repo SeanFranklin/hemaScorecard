@@ -444,6 +444,9 @@ function initializeSession(){
 	if(!isset($_SESSION['alertMessages']['userAlerts'])){
 		$_SESSION['alertMessages']['userAlerts'] = [];
 	}
+	if(!isset($_SESSION['alertMessages']['userWarnings'])){
+		$_SESSION['alertMessages']['userAlerts'] = [];
+	}
 
 	if(!isset($_SESSION['rosterViewMode'])){
 		$_SESSION['rosterViewMode'] = [];

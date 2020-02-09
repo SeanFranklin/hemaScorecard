@@ -174,10 +174,10 @@ function enableTournamentButton(tournamentID){
 
 	if($('#reverseScore_select'+tournamentID).val() > 0){
 		if($('#doubleID_select'+tournamentID).val() == 2){
-			warrningMessages.push('Reverse Score can not be used with Deductive Afterblow');
+			//warrningMessages.push('Reverse Score can not be used with Deductive Afterblow');
 		}
 		if($('#doubleID_select'+tournamentID).val() == 3 && $('#notNetScore_select'+tournamentID).val() == 0){
-			warrningMessages.push('Reverse Score can not be used with No Net Points');
+			warrningMessages.push('Reverse Score can not be used with Net Points enabled');
 		}
 	}
 
