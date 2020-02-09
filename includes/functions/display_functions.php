@@ -33,9 +33,14 @@ function displayPageAlerts(){
 // Error messages for the user.
 
 	foreach((array)$_SESSION['alertMessages']['userErrors'] as $message){
-		displayAlert("<strong>Error: </strong>".$message,'warning');
+		displayAlert("<strong>Error: </strong>".$message,'alert');
 	}
 	$_SESSION['alertMessages']['userErrors'] = [];
+
+	foreach((array)$_SESSION['alertMessages']['userWarnings'] as $message){
+		displayAlert("<strong>Warning: </strong>".$message, 'warning');
+	}
+	$_SESSION['alertMessages']['userWarnings'] = [];
 
 // Alert messages for the user (ie confirmation messages)
 	$alertMessage = '';

@@ -15,6 +15,9 @@ function setAlert($type,$message){
 		case USER_ERROR:
 			$class = 'userErrors';
 			break;
+		case USER_WARNING:
+			$class = 'userWarnings';
+			break;
 		case USER_ALERT:
 			$class = 'userAlerts';
 			break;
