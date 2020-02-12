@@ -157,9 +157,34 @@ function showHideScheduleBlocks(){
 		Staffing Locations
 	</a>
 
+	<?=displayFloorMap()?>
+
 </div>
 
 <?php
+}
+
+/******************************************************************************/
+
+function displayFloorMap(){
+
+	$pathName = "includes/images/floormaps/{$_SESSION['eventID']}.jpg";
+
+	/* Don't display anything unless a floor map exists. */
+	if(file_exists($pathName) == false){
+		return;
+	}
+
+?>
+
+	<a class='button tiny alert hollow' id='floor-map-toggle-button'
+		onclick="logistics_toggleFloormap()">
+		Event Map
+	</a>
+
+	<img class='hidden' id='floor-map' src='<?=$pathName?>'>
+
+<?
 }
 
 /******************************************************************************/
