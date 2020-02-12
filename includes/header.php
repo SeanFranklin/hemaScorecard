@@ -18,7 +18,7 @@ if($_SESSION['eventID'] != null){
 }
 
 $livestreamInfo = getLivestreamInfo();
-$vJ = '?=1.1.1'; // Javascript Version
+$vJ = '?=1.1.2'; // Javascript Version
 $vC = '?=1.0.9'; // CSS Version
 ?>
 
