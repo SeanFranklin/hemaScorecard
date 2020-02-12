@@ -419,6 +419,19 @@ function logistics_sdtToggle(classClicked){
 
 /******************************************************************************/
 
+function logistics_toggleFloormap(){
+
+    if($("#floor-map-toggle-button").hasClass("hollow") == true){
+        $("#floor-map-toggle-button").removeClass("hollow");
+    } else {
+        $("#floor-map-toggle-button").addClass("hollow");
+    }
+
+    $("#floor-map").toggle();
+}
+
+/******************************************************************************/
+
 function logistics_bulkAddStaff(shiftID){
 
     $("#bsa-shiftID").val(shiftID);
