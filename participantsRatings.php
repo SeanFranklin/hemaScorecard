@@ -16,6 +16,7 @@ $lockedTournamentWarning = true;
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
 $jsIncludes[] = 'roster_management_scripts.js';
+
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -48,8 +49,15 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 ////////////////////////////////////////////////////////////////////////////////
 ?>	
 
+
 <!-- Page Structure -->
 	
+	<a onclick="$('.hema-ratings-id').toggle()">
+		Show HEMA Ratings ID
+	</a>
+	<?=tooltip('Shows the ID from the HEMA Ratings database so you can look fighters up more easily. (Ability to import ratings directly is a work in progress.) No HEMA Ratings ID means that there is none saved in the HEMA Scorecard database.')?>
+
+
 	<form method='POST' id='tournamentRatingsForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 	
@@ -71,7 +79,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 						<em>aka</em>: High Score for good fighters, Low Score for un-good fighters.")?>
 		</th>
 		<th onclick="changeParticipantOrdering('ratingViewMode','subGroup')"><a>SubGroup</a>
-			<?=tooltip("This option is for keeping a number of people seperate when pools are assigned.<BR>
+			<?=tooltip("This option is for keeping a number of people separate when pools are assigned.<BR>
 						Ask for directions if you are planning on using this feature.")?>
 		</th>
 		<td>
@@ -88,6 +96,9 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<?php foreach($tournamentRoster as $fighter): ?>
 		<tr>
 			<td  style='white-space:nowrap;'>
+				<span class='hidden hema-ratings-id'>
+					| <?=hemaRatings_getFighterIDfromRosterID($fighter['rosterID'])?> | 
+				</span>
 				<?=getFighterName($fighter['rosterID'])?>
 			</td>
 			<td>
@@ -130,6 +141,12 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 }
 
 include('includes/footer.php');	
+
+/******************************************************************************/
+
+
+
+
 
 /******************************************************************************/
 

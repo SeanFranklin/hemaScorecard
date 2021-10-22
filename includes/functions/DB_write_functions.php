@@ -1164,12 +1164,32 @@ function addMatchWinner(){
 		if($readyToConclude == true){
 			autoConcludeMatch($placeholderMatchInfo);
 		}
-
-		
 	}
 
+	saveMatchScoresheet($matchInfo);
 	$_SESSION['updatePoolStandings'][$tournamentID] = getGroupSetOfMatch($matchID);
 	
+}
+
+/******************************************************************************/
+
+function saveMatchScoresheet($matchInfo)
+{
+
+	$scoresheet = createMatchScoresheet($matchInfo);
+	$matchID = (int)$matchInfo['matchID'];
+	$tournamentID = (int)$matchInfo['tournamentID'];
+	$eventID = (int)getTournamentEventID($matchInfo['tournamentID']);
+
+	$sql = "INSERT INTO eventScoresheets
+			(eventID, tournamentID, matchID, scoresheet)
+			VALUES 
+			({$eventID},{$tournamentID},{$matchID},?)";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	$bind = mysqli_stmt_bind_param($stmt, "s", $scoresheet);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
 }
 
 /******************************************************************************/
@@ -1326,6 +1346,167 @@ function addToTournament(){
 	}
 
 	updateTournamentFighterCounts($tournamentID, null);
+}
+
+/******************************************************************************/
+
+function importTournamentRoster($input){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
+
+	// If the values don't exist they can be considered as zero
+	$toID = @(int)$input['toTournamentID'];
+	$fromID = @(int)$input['fromTournamentID'];
+	$minPlacing = @(int)$input['minPlacing'];
+	$maxPlacing = @(int)$input['maxPlacing'];
+
+	if($toID == 0 || $fromID == 0){
+		setAlert(USER_ERROR,"Invalid tournament selection<BR>
+			No fighters imported.");
+		return;
+	}
+
+	
+// Protection against cross tournament imports.
+	// To enable this the functionality would have to change to a systemRosterID base.
+	$sql = "SELECT eventID
+			FROM eventTournaments
+			WHERE (tournamentID = {$fromID}
+			OR tournamentID = {$toID})";
+	$IDs = mysqlQuery($sql, SINGLES, 'eventID');
+
+	if((int)$IDs[0] != (int)$IDs[1] || (int)$IDs[0] == 0){
+		setAlert(USER_ERROR,"You can not import rosters from a tournament that is not part of this event.<BR>
+			No fighters imported.");
+		return;
+	}
+
+// Get list to import
+
+	$listStart = null;
+	if($maxPlacing != 0 || $minPlacing != 0){
+
+		if(isFinalized($fromID) == false){
+			setAlert(USER_ERROR,"<em>".getTournamentName($fromID)."</em> is not finalized, and has no final results to pull seeding from. <BR> No fighters imported.");
+			return;
+		}
+
+		$limitClause = "";
+		if($maxPlacing != 0){
+			$limitClause .= "AND placing <= {$maxPlacing} ";
+		}
+		if($minPlacing != 0){
+			$limitClause .= "AND placing >= {$minPlacing} ";
+			$listStart = $minPlacing;
+		} else {
+			$listStart = 1;
+		}
+
+		$sql = "SELECT rosterID, placeType
+				FROM eventPlacings
+				WHERE tournamentID = {$fromID}
+				{$limitClause}
+				ORDER BY placing ASC";
+		$roster = mysqlQuery($sql, ASSOC);
+
+		$isTies = false;
+		foreach($roster as $fighter){
+			$fightersToImport[] = $fighter['rosterID'];
+			if($fighter['placeType'] == 'tie'){
+				$isTies = true;
+			}
+		}
+		
+		if($isTies == true){
+			setAlert(USER_WARNING,"Ties detected in the import group. Double check that the correct number of people we imported.");
+		}
+
+	} else {
+
+		$roster = getTournamentRoster($fromID);
+		foreach($roster as $fighter){
+			$fightersToImport[] = $fighter['rosterID'];
+		}
+	}
+
+
+// Add the fighters
+	$fightersAdded = [];
+	foreach($fightersToImport as $rosterID){//insert data into table
+		$rosterID = (int)$rosterID;
+		if($rosterID == 0){continue;}
+		
+		//check if they are already entered
+		$sql = "SELECT rosterID FROM eventTournamentRoster
+				WHERE tournamentID = {$toID}
+				AND rosterID = {$rosterID}"; 
+		$result = mysqlQuery($sql, SINGLE);
+		if(isset($result)){
+			$alreadyIn[$rosterID] = true;
+			continue;
+		}
+		
+		$sql = "INSERT INTO eventTournamentRoster
+				(tournamentID, rosterID)
+				VALUES
+				({$toID}, {$rosterID})";
+		mysqlQuery($sql, SEND);
+		
+	}
+
+
+// Generate confirmation text message
+
+	$toImportIds = implode2int($fightersToImport);
+	$sql = "SELECT rosterID
+			FROM eventTournamentRoster
+			WHERE tournamentID = {$toID}
+			AND rosterID NOT IN ({$toImportIds})";
+	$alreadyInIDs = mysqlQuery($sql, SINGLES, 'rosterID');
+
+
+	$addedStr = "<div class='text-left'>";
+
+	// Who was added
+	$addedStr .= "Imported the following fighters:";
+
+	if($listStart != 0){
+		$addedStr .= "<ol start='{$listStart}'>";
+	} else {
+		$addedStr .= "<ul>";
+	}
+
+
+	foreach($fightersToImport as $rosterID){
+		$addedStr .= "<li>".getFighterName($rosterID);
+		if(isset($alreadyIn[$rosterID]) == true){
+			$addedStr .= " (<em>already entered</em>)";
+		}
+		$addedStr .= "</li>";
+	}
+
+	if($listStart != 0){
+		$addedStr .= "</ol>";
+	} else {
+		$addedStr .= "</ul>";
+	}
+	
+
+	// Who was already in, but wasn't in the import list
+	if($alreadyInIDs != null){
+		$addedStr .= "The following fighters were already in the tournament and are <u>not</u> part of the import list. No fighters were removed.<ul>";
+		foreach($alreadyInIDs as $rosterID){
+			$addedStr .= "<li>".getFighterName($rosterID)."</li>";
+		}
+	}
+	$addedStr .= "</ul>";
+
+
+	$addedStr .= "</div>";
+	setAlert(USER_ALERT,$addedStr);
+
+	updateTournamentFighterCounts($toID, null);
+
 }
 
 /******************************************************************************/
@@ -6130,9 +6311,13 @@ function updateSubMatchesByMatch($specs){
 
 function updatePoolSets(){
 
-	$tournamentID = $_SESSION['tournamentID'];
+	$tournamentID = (int)$_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
-	
+
+	$numGroupSets = (int)$_POST['numPoolSets'];
+	if($numGroupSets < 1){
+		$numGroupSets = 1;
+	}
 	
 // Cumulative sets
 	$sql = "DELETE FROM eventAttributes
@@ -6141,7 +6326,10 @@ function updatePoolSets(){
 	mysqlQuery($sql, SEND);
 	
 	foreach((array)$_POST['cumulativeSet'] as $groupSet => $bool){
-		if($groupSet > $_POST['numPoolSets']){break;}
+
+		$groupSet = (int)$groupSet;
+		if($groupSet > $numGroupSets){break;}
+
 		$sql = "INSERT INTO eventAttributes
 				(tournamentID, attributeType, attributeGroupSet, attributeBool) 
 				VALUES 
@@ -6157,8 +6345,12 @@ function updatePoolSets(){
 	mysqlQuery($sql, SEND);
 	
 	foreach((array)$_POST['normalizeSet'] as $groupSet => $normalization){
+
+		$groupSet = (int)$groupSet;
+		
+
 		if($normalization == ''){ continue; }
-		if($groupSet > $_POST['numPoolSets']){break;}
+		if($groupSet > $numGroupSets){break;}
 		
 		$sql = "INSERT INTO eventAttributes
 				(tournamentID, attributeType, attributeGroupSet, attributeValue) 
@@ -6172,17 +6364,18 @@ function updatePoolSets(){
 	if(isset($_POST['numPoolSets'])){
 
 		$numExistingSets = getNumGroupSets($tournamentID);
+		
 
 		$sql = "UPDATE eventTournaments
-				SET numGroupSets = {$_POST['numPoolSets']}
+				SET numGroupSets = {$numGroupSets}
 				WHERE tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
 		
-		if($_SESSION['groupSet'] > $_POST['numPoolSets']){
+		if($_SESSION['groupSet'] > $numGroupSets){
 			$_SESSION['groupSet'] = 1;
 		}
 
-		for($groupSet = $numExistingSets + 1; $groupSet <= $_POST['numPoolSets']; $groupSet++){
+		for($groupSet = $numExistingSets + 1; $groupSet <= $numGroupSets; $groupSet++){
 			$sql = "INSERT INTO eventAttributes
 					(attributeBool, tournamentID, attributeType, attributeGroupSet)
 					VALUES
@@ -6192,17 +6385,17 @@ function updatePoolSets(){
 		
 		$sql = "DELETE FROM eventGroups
 				WHERE tournamentID = {$tournamentID}
-				AND groupSet > {$_POST['numPoolSets']}";
+				AND groupSet > {$numGroupSets}";
 		mysqlQuery($sql, SEND);
 		
 		$sql = "DELETE FROM eventAttributes
 				WHERE tournamentID = {$tournamentID}
-				AND attributeGroupSet > {$_POST['numPoolSets']}";
+				AND attributeGroupSet > {$numGroupSets}";
 		mysqlQuery($sql, SEND);
 	}
 	
 // Set names
-	renameGroups($_POST['numPoolSets']);
+	renameGroups($numGroupSets);
 		
 }
 
@@ -6912,7 +7105,9 @@ function updateNumberOfGroupSets(){
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
 	
-	$num = $_POST['numGroupSets'];
+	$num = (int)$_POST['numGroupSets'];
+	if($num < 1){$num = 1;}
+
 	$sql = "UPDATE eventTournaments SET numGroupSets = {$num}
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);

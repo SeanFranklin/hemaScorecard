@@ -98,6 +98,16 @@ $vC = '?=1.0.6'; // CSS Version
 	<body style="height: 100vh; background-color:black">
 
 <?php
+
+	if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
+	{
+		$leftFighter = 2;
+		$rightFighter = 1;
+	} else {
+		$leftFighter = 1;
+		$rightFighter = 2;
+	}
+	
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -135,25 +145,25 @@ $vC = '?=1.0.6'; // CSS Version
 
 		<div class='cell shrink medium-cell-block-container'>
 			<div class='grid-x grid-padding-x'>
-				<?=fighterNameDisplay($matchInfo,1)?>
-				<?=fighterNameDisplay($matchInfo,2)?>
+				<?=fighterNameDisplay($matchInfo,$leftFighter,'left')?>
+				<?=fighterNameDisplay($matchInfo,$rightFighter,'right')?>
 			</div>
 		</div>
 
 		<div class='cell shrink '>
 			<div class='grid-x grid-padding-x'>
-				<?=fighterSchoolDisplay($matchInfo,1)?>
-				<?=fighterSchoolDisplay($matchInfo,2)?>
+				<?=fighterSchoolDisplay($matchInfo,$leftFighter,'left')?>
+				<?=fighterSchoolDisplay($matchInfo,$rightFighter,'right')?>
 			</div>
 		</div>
 
 		<div class='cell auto'>
 			<div class='grid-x grid-padding-x'>
-				<?=fighterScoreDisplay($matchInfo,1)?>
+				<?=fighterScoreDisplay($matchInfo,$leftFighter,'left')?>
 
 				<?=matchInfoDisplay($matchInfo)?>
 
-				<?=fighterScoreDisplay($matchInfo,2)?>
+				<?=fighterScoreDisplay($matchInfo,$rightFighter,'right')?>
 			</div>
 		</div>
 
@@ -177,27 +187,33 @@ include('includes/footer.php');
 ////////////////////////////////////////////////////////////////////////////////
 /******************************************************************************/
 
-function fighterNameDisplay($matchInfo, $num){
-	$bold = '';
-	if($num == 1){
+function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
+	$class = '';
+	if($fighterNum == 1){
 		
 		$fighterName = getFighterName($matchInfo['fighter1ID']);
-		$class = 'f1-BG f1-text text-left';
+		$class = 'f1-BG f1-text';
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
 	} else {
 		$fighterName = getFighterName($matchInfo['fighter2ID']);
-		$class = 'f2-BG f2-text text-right';
+		$class = 'f2-BG f2-text';
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
+	}
+
+	if($pageSide == 'left'){
+		$class .= ' text-left';
+	} else {
+		$class .= ' text-right';
 	}
 ?>
 
-	<div class='small-6 cell medium-cell-block-y <?=$class?> <?=$bold?>' 
+	<div class='small-6 cell medium-cell-block-y <?=$class?>' 
 		style='border-<?=$border?>: 2px solid black;'>
 
 		<span style='font-size: 5.5vw;'> 
@@ -213,26 +229,34 @@ function fighterNameDisplay($matchInfo, $num){
 
 /******************************************************************************/
 
-function fighterSchoolDisplay($matchInfo, $num){
-	$bold = '';
-	if($num == 1){
+function fighterSchoolDisplay($matchInfo, $fighterNum, $pageSide){
+	$class = '';
+
+	if($fighterNum == 1){
 		$schoolName = $matchInfo['fighter1School'];
-		$class = 'f1-BG f1-text text-left';
+		$class .= 'f1-BG f1-text';
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
 	} else {
 		$schoolName = $matchInfo['fighter2School'];
-		$class = 'f2-BG f2-text text-right';
+		$class .= 'f2-BG f2-text';
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
 	}
+
+	if($pageSide == 'left'){
+		$class .= ' text-left';
+	} else {
+		$class .= ' text-right';
+	}
+
 ?>
 
-	<div class='small-6 cell medium-cell-block-y <?=$class?> <?=$bold?>' 
+	<div class='small-6 cell medium-cell-block-y <?=$class?>' 
 		style='border-<?=$border?>: 2px solid black;'>
 		<i>
 			<?php if(isTeamLogic($matchInfo['tournamentID']) == false): ?>
@@ -248,24 +272,24 @@ function fighterSchoolDisplay($matchInfo, $num){
 
 /******************************************************************************/
 
-function fighterScoreDisplay($matchInfo, $num){
+function fighterScoreDisplay($matchInfo, $fighterNum, $pageSide){
 
-	$bold = '';
-	if($num == 1){
+	$class = '';
+	if($fighterNum == 1){
 		$colorName = COLOR_NAME_1;
-		$class = 'f1-BG f1-text';
+		$class .= 'f1-BG f1-text';
 		$score = $matchInfo['fighter1score'];
 
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
 	} else {
 		$colorName = COLOR_NAME_2;
-		$class = 'f2-BG f2-text';
+		$class .= 'f2-BG f2-text';
 		$score = $matchInfo['fighter2score'];
 
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
-			$bold = 'bold';
+			$class .= ' bold';
 		}
 	}
 
@@ -274,7 +298,7 @@ function fighterScoreDisplay($matchInfo, $num){
 	}
 
 ?>
-	<div class='small-4 cell medium-cell-block-y text-center <?=$class?> <?=$bold?>' 
+	<div class='small-4 cell medium-cell-block-y text-center <?=$class?>' 
 		style='border-top: 4px solid black;'>
 		
 		<span style='font-size:30vh;'><?=$score?></span>

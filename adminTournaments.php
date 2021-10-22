@@ -88,6 +88,7 @@ if($_SESSION['eventID'] == null){
 				</div>
 			<?php endif ?>
 
+			<input type='hidden' id='doesBracketExist<?=$tournamentID?>' value=<?=isBrackets($tournamentID)?>>
 			
 			<fieldset <?=$isLocked?> <?=$formLock?> >
 			<form method='POST'>
@@ -141,10 +142,31 @@ if($_SESSION['eventID'] == null){
 				?>
 			</div>
 			<BR>
+
+			<? if(isFinalsSubMatches($tournamentID) && getNumSubMatches($tournamentID) == 0): ?>
+				<div class='callout warning'>
+					<h4 class='red-text'>WARNING</h4>
+					You have a finals match with sub matches created in it. If you update these settings you will 
+					<u>overwrite</u> the settings for your finals matches to zero sub matces. 
+					<BR>
+					<strong>THIS WILL PERMINATLY ERASE MATCHES</strong>
+					<BR>
+					<em><u>Example</u>: If you have 3 sub-matches in the gold medal round, and you update this form 
+					with 'Use Sub Matches' set to 'No', it will delete all the sub matches and you would 
+				    lose your results for the finals.</em>
+					<BR>
+					<strong class='red-text'>Do not click 'Update' unless you are <u>very</u> sure you know what you are doing.</strong>
+				</div>
+			<?php endif ?>
+
 			<div id='tournamentWarnings_<?=$tournamentID?>'>
 				<BR>
 			</div>
+
 			<div>
+
+				
+
 				<button class='button success' name='updateType' value='update' 
 					id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>  <?=$formLock?>>
 					Update <?=$name?>
@@ -215,7 +237,7 @@ function importSettingsForm($tournamentID){
 			<strong>IMPORTANT!!</strong><BR>
 			This is meant as a feature to save time, but <u>does not</u> absolve you of needing to make sure
 			that your tournaments are set up correctly. <BR>
-			Options may have changed since an past event was run, 
+			Options may have changed since a past event was run, 
 			or the options might not work the same way.<BR>
 			<span class='red-text'>CHECK THAT THE IMPORTED SETTINGS WORK!</span>
 		</div>

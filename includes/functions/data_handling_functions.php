@@ -1050,5 +1050,62 @@ function implode2int($array){
 
 /******************************************************************************/
 
+function createMatchScoresheet($matchInfo)
+{
+
+	$eventID = (int)getTournamentEventID($matchInfo['tournamentID']);
+	$eventName = getEventName($eventID);
+
+	$tournamentName = getTournamentName($matchInfo['tournamentID']);
+	$groupName = getGroupName($matchInfo['groupID']);
+
+	if($groupName == 'Bracket'){
+		$groupInfo = "{$matchInfo['groupName']} bracket (#{$matchInfo['groupID']})";
+		$groupInfo .= "\nLevel: ".$matchInfo['bracketLevel'].", Position: ".$matchInfo['bracketPosition'];
+	} else {
+		$groupInfo = "{$matchInfo['groupName']} (#{$matchInfo['groupID']})";
+		$groupInfo .= ", Set ".getGroupSetOfMatch($matchInfo['matchID']);
+	}	
+
+	$groupInfo .= "\n";
+
+	$colors = getTournamentColors($matchInfo['tournamentID']);
+
+	$id2color[$matchInfo['fighter1ID']] = $colors[1];
+	$id2color[$matchInfo['fighter2ID']] = $colors[2];
+
+	$scoresheet = "(#".$matchInfo['matchID'].")\n";
+	$scoresheet .= "{$eventName} (#{$eventID})\n";
+	$scoresheet .= "{$tournamentName} (#{$matchInfo['tournamentID']})\n";
+	$scoresheet .= $groupInfo;
+	$scoresheet .= $colors[1].": ".getFighterName($matchInfo['fighter1ID'])." [".$matchInfo['fighter1score']."]\n";
+	$scoresheet .= $colors[2].": ".getFighterName($matchInfo['fighter2ID'])." [".$matchInfo['fighter2score']."]\n";
+
+	$exchanges = getMatchExchanges($matchInfo['matchID']);
+
+
+	foreach($exchanges as $e){
+		$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
+		$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";	
+		if((int)$e['refPrefix'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($e['refPrefix']);
+		}
+		if((int)$e['refTarget'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($e['refTarget']);
+		}
+		if((int)$e['refType'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($e['refType']);
+		}
+	}
+
+
+	return ($scoresheet);
+}
+
+/******************************************************************************/
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

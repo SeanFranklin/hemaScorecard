@@ -34,6 +34,7 @@
 	define("SYSTEM",1);
 	define("USER_ERROR",2);
 	define("USER_ALERT",3);
+	define("USER_WARNING",4);
 
 	// mysqlQuery() function codes
 	define("SEND",0);
@@ -255,7 +256,7 @@ $conn = connectToDB();
 
 // Match Colors
 	if($_SESSION['tournamentID'] != null){
-		$tournamentID = $_SESSION['tournamentID'];
+		$tournamentID = (int)$_SESSION['tournamentID'];
 		$sql = "SELECT colorName, colorCode, contrastCode
 				FROM eventTournaments, systemColors
 				WHERE eventTournaments.tournamentID = {$tournamentID}
@@ -405,6 +406,7 @@ function initializeSession(){
 		$_SESSION['alertMessages']['systemErrors'] = [];
 		$_SESSION['alertMessages']['userErrors'] = [];
 		$_SESSION['alertMessages']['userAlerts'] = [];
+		$_SESSION['alertMessages']['userWarnings'] = [];
 	}
 	if(!isset($_SESSION['eventID'])){
 		$_SESSION['eventID'] = '';

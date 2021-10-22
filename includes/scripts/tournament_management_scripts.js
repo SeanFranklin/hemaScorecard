@@ -189,6 +189,16 @@ function enableTournamentButton(tournamentID){
 	}
 
 
+// Num Sub Matches
+	numSubMatches = Number($('#numSubMatches_select'+tournamentID).val());
+	numSubMatches_original = Number($('#numSubMatches_select'+tournamentID).data('original'));
+	doesBracketExist = Boolean($('#doesBracketExist'+tournamentID).val());
+	
+
+	if(numSubMatches != numSubMatches_original && doesBracketExist == true){
+		warrningMessages.push('Can not change number of sub matches once a bracket is created. You must delete bracket to change the number.');
+	}
+
 // Set warning messages
 
 	if(warrningMessages.length == 0){
@@ -273,4 +283,12 @@ function edit_formatType(tournamentID){
 			}
 		}
 	}
+}
+
+/**********************************************************************/
+
+function edit_numSubMatches(tournamentID){
+
+	enableTournamentButton(tournamentID);
+
 }

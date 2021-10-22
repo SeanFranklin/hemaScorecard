@@ -54,6 +54,7 @@ if($tournamentID == null){
 	$numFighters = count($tournamentRoster);
 
 	$startOfForm = "checkInFighters[tournament][{$tournamentID}]";
+	importRosterBox();
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -185,6 +186,8 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 		return;
 	}
 
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+
 ?>
 
 <!-- Delete participants -->
@@ -202,6 +205,12 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 		Add Fighters
 		<span class='add-fighters'>↓</span>
 		<span class='add-fighters hidden'>↑</span>
+	</a>
+
+	&nbsp;
+	<a class='button hollow warning hidden add-fighters' data-open='importFromTournament'>
+		Import From Other Tournament
+		<?=tooltip("Populate this tournament with the entries from another tournament. Can be used to reduce dupication or import the top seeds from another tournament.")?>
 	</a>
 
 <!-- Add new participants -->
@@ -235,6 +244,73 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 	</div>
 
 <?php
+}
+
+/******************************************************************************/
+
+function importRosterBox(){
+	if(ALLOW_EDITING == false){
+		return;
+	}
+
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+?>
+
+<!-- Import participants -->
+	<div class='reveal medium' id='importFromTournament' data-reveal>
+		<form method='POST'>
+		<h5>Import Roster:</h5>
+
+		<input class='hidden' name='importTournamentRoster[toTournamentID]' value=<?=$_SESSION['tournamentID']?> >
+		
+		<div class='input-group'>
+			<span class='input-group-label'>Tournament</span>
+			<select class='input-group-field' name='importTournamentRoster[fromTournamentID]'>
+				<option selected disabled></option>
+				<?php foreach($tournamentIDs as $tournamentID):
+					if($tournamentID == $_SESSION['tournamentID']){
+						continue;
+					}
+					?>
+					<option value='<?=$tournamentID?>'><?=getTournamentName($tournamentID)?></option>
+				<?php endforeach ?>
+			</select>
+		</div>
+
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Seeding 
+				<?=tooltip("Inport only the final placings of the above tournament, within this range. Leave blank to import the entire roster.<p><strong>Note:</strong> This can only be used on finalized tournaments</p>")?>
+			</span>
+			<input type='number' class='input-group-field' name='importTournamentRoster[minPlacing]'>
+			<span class='input-group-label'>
+				to
+			</span>
+			<input type='number' class='input-group-field' name='importTournamentRoster[maxPlacing]'>
+		</div>
+
+
+	<!-- Submit buttons -->
+		<div class='grid-x grid-margin-x'>
+			<button class='success button small-6 cell' name='formName' value='importTournamentRoster'>
+				Update
+			</button>
+			<button class='secondary button small-6 cell' data-close aria-label='Close modal' type='button'>
+				Cancel
+			</button>
+		</div>
+		</form>
+		
+	<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	
+	</div>
+
+
+<?php
+
 }
 
 /******************************************************************************/
