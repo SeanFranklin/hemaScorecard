@@ -85,6 +85,7 @@ function displayAdminEventList($eventList){
 				$str .= notSetMark($isTournaments)." ";
 				$str .= notSetMark($isParticipants)." ";
 				$str .= "<span class='black-text'>|</span>";
+				$str .= isSetMark(areMatchesStarted($eventID));
 				$str .= isSetMark(areAllTournamentsFinalized($eventID));
 				$str .= isSetMark(hemaRatings_isEventInfoComplete($eventID));
 
@@ -122,7 +123,7 @@ function displayAdminEventList($eventList){
 					if($fieldName == 'Setup'):
 						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
 							----------
-							<BR>4) Tournaments Finalized<BR>5) HEMA Ratings Info");
+							<BR>4) Matches Fought<BR>5) Tournaments Finalized<BR>6) HEMA Ratings Info");
 					endif 
 				?>
 			</th>
@@ -266,12 +267,21 @@ function editEventMenu($eventID,$eventInfo){
 	}
 	?>
 	
+
+
 	<fieldset class='fieldset cell large-6'>
 	<legend><h4>Edit Event</h4></legend>
+
+		
+
+
 	<form method='POST'>
+
+
 		<input type='hidden' name='eventID' value='<?=$eventID?>'>
 		<input type='hidden' name='formName' value='editEvent'>
-		
+		<input type='hidden' name='changeEventTo' value='<?=$eventID?>'>
+
 	<!-- Data fields -->
 		<table>
 			<?php entryFields($eventInfo); ?>
@@ -310,6 +320,7 @@ function editEventMenu($eventID,$eventInfo){
 	<!-- Submit buttons -->
 		<button class='button success no-bottom' name='editEvent' value=1 >Update Event</button>
 		<button class='button secondary no-bottom' name='formName'>Cancel</button>
+		<button class='button no-bottom' name='formName' value='selectEvent'>Go To Event</button>
 
 	<!-- Delete event & confirmation -->
 		<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>

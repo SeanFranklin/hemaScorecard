@@ -705,14 +705,18 @@ function backToListButton($matchInfo){
 		<a class='button no-bottom hollow' 
 			onclick="window.open('scoreMatchDisplay.php','scoreDisplayWindow','toolbar=0,location=0,menubar=0')">
 			Display Window
+			<?=tooltip("Opens a display window to put onto a projector. This window will <u>not</u> update itself when you switch to a different match. You will need to click the <strong>Display Window</strong> button to have the display window update to your currently active match.")?>
 		</a>
+
+		<?=priorPenaltiesWarning($matchInfo);?>
+
 	<?php endif ?>
 
 	</div>
 	
 	<!-- Tournament name -->
 	<div class='auto text-center cell hide-for-small-only' >
-		<h5><?=$name?></h5>
+		<h5 class='inline-block'><?=$name?></h5>
 	</div>
 
 	</div>
@@ -753,9 +757,17 @@ function dataEntryBox($matchInfo){
 ?>	
 	
 <!-- Score boxes for individual fighters -->
-	<div class='grid-x grid-margin-x'>		
-		<?php fighterDataEntryBox($matchInfo,1); ?>
-		<?php fighterDataEntryBox($matchInfo,2); ?>
+	<div class='grid-x grid-margin-x'>	
+		<?php
+			if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
+			{
+				fighterDataEntryBox($matchInfo,2);
+				fighterDataEntryBox($matchInfo,1);
+			} else {
+				fighterDataEntryBox($matchInfo,1);
+				fighterDataEntryBox($matchInfo,2); 
+			}
+		?>
 	</div>
 	
 	
@@ -1377,20 +1389,35 @@ function createSideBar($matchInfo){
 		
 			Winner:
 			<div class='grid-x'>
-			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
-				<button class='button large success no-bottom expanded conclude-match-button' 
-					style='background-color:<?=$colorCode1?>; '
-					name='matchWinnerID' value='<?=$fighter1ID?>' <?=$lockInputs?> >
-					<?=$name1?>
-				</button>
-			</div>
-			<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
-				<button class='button large success no-bottom expanded conclude-match-button' 
-				style='background-color:<?=$colorCode2?>;'
-					name='matchWinnerID' value='<?=$fighter2ID?>' <?=$lockInputs?> >
-					<?=$name2?>
-				</button>
-			</div>
+
+			<?php 
+				$winButton1 = "
+				<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
+					<button class='button large success no-bottom expanded conclude-match-button' 
+						style='background-color:{$colorCode1}; '
+						name='matchWinnerID' value='{$fighter1ID}' {$lockInputs} >
+						{$name1}
+					</button>
+				</div>";
+
+				$winButton2 = "
+				<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
+					<button class='button large success no-bottom expanded conclude-match-button' 
+						style='background-color:{$colorCode2}; '
+						name='matchWinnerID' value='{$fighter2ID}' {$lockInputs} >
+						{$name2}
+					</button>
+				</div>";
+
+				if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
+				{
+					echo $winButton2;
+					echo $winButton1;
+				} else {
+					echo $winButton1;
+					echo $winButton2;
+				}
+			?>
 		
 		<!-- Tie -->	
 			<?php if((int)$matchInfo['fighter1score'] == (int)$matchInfo['fighter2score'] 
@@ -1627,6 +1654,13 @@ function matchOptionsBox($matchInfo){
 			<button class='button warning no-bottom' name='formName' value='swapMatchFighters'>
 				Switch Fighter Colors
 			</button>
+
+			<button class='button no-bottom warning hollow' name='formName' value='flipMatchSides'>
+				Swap Fighter Sides
+				<?=tooltip("Swap fighters right/left on the Display Window, while keeping colors the same.<BR><BR>
+						You will need to press the <strong>Display Window</strong> button again to refresh the window.")?>
+			</button>
+
 		</form>
 
 		<?php if($showSubMatchOption == true): ?>
@@ -1796,6 +1830,51 @@ function showFighterPenalties($num){
 
 <?php
 }
+
+
+function priorPenaltiesWarning($matchInfo){
+
+	$eventID = $_SESSION['eventID'];
+	$priorPenalties = getEventPenalties($eventID, [$matchInfo['fighter1ID'],$matchInfo['fighter2ID']]);
+	if($priorPenalties == null || ALLOW['EVENT_SCOREKEEP'] == false)
+	{
+		return;
+	}
+		
+?>
+
+	<a class='button no-bottom hollow alert' data-open='veiwPenaltiesBox'>
+		! Prior Penalties !
+	</a>
+
+
+<!-- Box for penalty info display -->
+	<div class='reveal medium' id='veiwPenaltiesBox' data-reveal>
+
+		<h5>Prior Penalties</h5>
+		The fighters have accrued the following penalties over <u>all</u> tournaments in this event.
+		<i>Use, or don't use, this information as event procedure dictates.</i>
+
+		<?php
+			$rosterID = 0;
+			foreach($priorPenalties as $penalty){
+				if($rosterID != $penalty['scoringID'])
+				{
+					$rosterID = $penalty['scoringID'];
+					echo "<HR><h5>".getFighterName($rosterID)."</h5>";
+				}
+
+				displayPenalty($penalty);
+			}
+		?>
+
+	<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	</div>
+
+<?php }
 
 /******************************************************************************/
 
