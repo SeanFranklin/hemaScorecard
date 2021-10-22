@@ -192,10 +192,89 @@ function hemaRatings_getByNameAll(){
 	}
 
 	$(".hemaRatingsGetInfo").each(function(){
-		console.log(this);
+		//console.log(this);
 		(this).onclick();
 	});
 
+}
+
+/******************************************************************************/
+
+function hemaRatings_getById(hemaRatingsID){
+
+	if(typeof HEMA_RATINGS_TOKEN === 'undefined'){
+		alert("No Token");
+		return;
+	}
+
+	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?";
+	path = path + "token=" + HEMA_RATINGS_TOKEN;
+	path = path + "&id=6=" + hemaRatingsID;
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME; 
+
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", path, true);
+	xhr.send();
+
+	xhr.onreadystatechange = function (){
+		if(this.readyState == 4 && this.status == 200){
+			if(this.responseText.length > 0){ 
+				var data = JSON.parse(this.responseText);
+
+
+				if(data.length == 0){
+
+					$("#hema-ratings-unidentifed-warning").show();
+					$('#unrated-row-'+systemRosterID).remove();
+
+				} else {
+
+
+					var divName = "#divFor-"+systemRosterID;
+					$(divName).html("");
+					var isFirst = true;
+
+					data.forEach(function(fighterInfo){
+
+	                    var str = "";
+
+	                    if(isFirst){
+	                    	isFirst = false;
+	                    } else {
+	                    	str = "<BR><BR>";
+	                    }
+
+	                    var str = str + "<span";
+	                    if(name.toLowerCase() == fighterInfo['name'].toLowerCase()){
+	                    	str = str + " class='red-text'";
+	                    }
+	                    str = str + ">";
+
+	                    var hemaRatingsId = fighterInfo['id'];
+	                    str = str + `<input type='checkbox' class='no-bottom'
+	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
+	                    				value='${hemaRatingsId}'>`;
+
+	                    str = str + "<strong>";
+	                    
+	                    str = str + fighterInfo['name'];
+	                    str = str + "</strong><BR>";
+	                    str = str + fighterInfo['clubName'];
+	                    str = str + "<BR>";
+	                    str = str + fighterInfo['nationality'];
+	                    str = str + "</span>";
+
+	                    $(divName).append(str);
+
+	                });
+				}
+				
+			} else {
+				alert("!");
+			}
+		}
+	};
 }
 
 /******************************************************************************/
