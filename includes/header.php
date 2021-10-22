@@ -125,9 +125,11 @@ $vC = '?=1.0.9'; // CSS Version
 									<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
 									<li><a href='statsResultsDump.php'>Export Results</a></li>
 									<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
+									<li><a href='statsFighterPenalties.php'>Fighter Penalties</a></li>
 								<?php endif ?>
 
 							<?php endif ?>
+
 						</ul>
 					</li>
 				<?php else: ?>
@@ -164,6 +166,7 @@ $vC = '?=1.0.9'; // CSS Version
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
+							<li><a href='statsScoresheets.php'>Scoresheets</a></li>
 						</ul>
 					</li>
 				<?php else: ?>
