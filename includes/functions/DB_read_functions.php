@@ -136,6 +136,19 @@ function hemaRatings_getFighterID($systemRosterID){
 
 /******************************************************************************/
 
+function hemaRatings_getFighterIDfromRosterID($rosterID){
+	$rosterID = (int)$rosterID;
+
+	$sql = "SELECT HemaRatingsID
+			FROM eventRoster
+			INNER JOIN systemRoster USING(systemRosterID)
+			WHERE rosterID = {$rosterID}";
+	return mysqlQuery($sql, SINGLE, 'HemaRatingsID');
+
+}
+
+/******************************************************************************/
+
 function hemaRatings_createEventInfoCsv($eventID = null, $dir = "exports/"){
 
 // Get roster/event information	
@@ -1745,7 +1758,6 @@ function getEventStatus($eventID = null){
 			WHERE eventID = {$eventID}";
 	
 	return mysqlQuery($sql, SINGLE, 'eventStatus');
-	
 }
 
 /******************************************************************************/
@@ -1770,6 +1782,47 @@ function getFighterMatchPenalties($matchID, $num){
 			WHERE matchID = {$matchID}
 			AND scoringID = {$fighter}";
 	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
+function getEventPenalties($eventID, $fighterIDs = null){
+
+	$eventID = (int)$eventID;
+
+	$idClause  = null;
+	if($fighterIDs != null)
+	{
+		$idClause = "AND scoringID IN (".implode2int($fighterIDs).")";
+	}
+
+	$sql = "SELECT scoringID, tournamentID, groupID, receivingID,
+			(SELECT attackCode
+			FROM systemAttacks sA2
+			WHERE sA2.attackID = eE.refType) AS card,					
+			(SELECT attackText
+			FROM systemAttacks sA2
+			WHERE sA2.attackID = eE.refType) AS cardName,
+			(SELECT attackText
+			FROM systemAttacks sA3
+			WHERE sA3.attackID = eE.refTarget) AS action,
+			(SELECT count(*) as p
+			FROM eventExchanges as eE2
+			WHERE eE2.scoringID = eE.scoringID
+			AND eventID = {$eventID}
+			AND exchangeType = 'penalty') as numPenalties
+		FROM eventExchanges AS eE
+		INNER JOIN eventMatches USING(matchID)
+		INNER JOIN eventGroups USING(groupID)
+		INNER JOIN eventTournaments USING(tournamentID)
+		WHERE eventID = {$eventID}
+		AND exchangeType = 'penalty'
+		{$idClause}
+		ORDER BY numPenalties DESC, tournamentID DESC";
+
+	$penalties = mysqlQuery($sql, ASSOC);
+
+	return($penalties);
 }
 
 
@@ -2157,8 +2210,15 @@ function getGroupName($groupID){
 	$sql = "SELECT groupName
 			FROM eventGroups
 			WHERE groupID = {$groupID}";
-	return mysqlQuery($sql, SINGLE, 'groupName');
+	$name =  mysqlQuery($sql, SINGLE, 'groupName');
+
+
+	if($name == 'winner' || $name == 'loser')
+	{
+		$name = "Bracket";
+	}
 	
+	return ($name);
 }
 
 /******************************************************************************/
@@ -2639,6 +2699,20 @@ function getNumSubMatches($tournamentID){
 
 /******************************************************************************/
 
+function isFightingStarted($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT exchangeID
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}";
+	return (bool)mysqlQuery($sql, SINGLE);
+}
+
+/******************************************************************************/
+
 function getNumSubMatchesByMatch($matchID){
 
 	$matchID = (int)$matchID;
@@ -2658,6 +2732,24 @@ function getSubMatchMode($tournamentID){
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE, 'subMatchMode');
 }
+
+/******************************************************************************/
+
+function isFinalsSubMatches($tournamentID){
+	
+	$tournamentID = (int)$tournamentID;
+	
+	$sql = "SELECT matchID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND isPlaceholder != 0
+			AND bracketLevel = 1";
+	$isFinalsSubMatches = (bool)mysqlQuery($sql, SINGLE);
+
+	return $isFinalsSubMatches;
+	
+} 
 
 /******************************************************************************/
 
@@ -2887,6 +2979,65 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 
 	
 	return $pools;
+}
+
+/******************************************************************************/
+
+function getTournamentRosterByLocation($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	$entryList = [];
+
+// Entries in the pools
+	$sql = "SELECT rosterID, locationID, groupID
+			FROM eventGroupRoster
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}";
+	$entries = mysqlQuery($sql, ASSOC);
+
+	foreach((array)$entries as $entry){
+
+		$tmp['fighterName'] = getFighterName($entry['rosterID']);
+		$tmp['groupName'] = getGroupName($entry['groupID']);
+		$tmp['location'] = logistics_getLocationName($entry['locationID']);
+		$entryList[] = $tmp;
+
+	}
+
+// Entries in the brackets
+	$sql = "SELECT fighter1ID as rosterID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'elim'
+
+			UNION DISTINCT
+
+			SELECT fighter2ID as rosterID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'elim'
+			";
+	$rosterIDs = mysqlQuery($sql, SINGLES);
+
+	foreach($rosterIDs as $rosterID){
+
+		$tmp['fighterName'] = getFighterName($rosterID);
+		$tmp['groupName'] = "Elimination Bracket";
+		$tmp['location'] = '';
+		$entryList[] = $tmp;
+	}
+
+// Sort the results by name
+	if($entryList != null){
+		foreach($entryList as $key => $entry){
+			$sort1[$key] = $entry['fighterName'];
+		}	
+		array_multisort($sort1, SORT_ASC, $entryList);
+	}
+
+	return($entryList);
 }
 
 /******************************************************************************/
@@ -6493,6 +6644,27 @@ function areAllTournamentsFinalized($eventID){
 
 /******************************************************************************/
 
+function areMatchesStarted($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT count(*) AS num
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE matchComplete = 1
+			AND eventID = {$eventID}";
+	$num = (int)mysqlQuery($sql, SINGLE, 'num');
+
+	if($num >= 10){
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+/******************************************************************************/
+
 function isDoubleHits($tournamentID = null){
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){
@@ -6703,6 +6875,64 @@ function getDisplayFunctionName($tournamentID){
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'displayFunction');
 	return $name;
+}
+
+/******************************************************************************/
+
+function getTournamentColors($tournamentID)
+{
+// This is not zero indexed so that the array index maps to the fight number.
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT colorName
+			FROM eventTournaments AS eT
+			INNER JOIN systemColors AS sC ON eT.color1ID = colorID 
+			WHERE tournamentID = {$tournamentID}";
+	$color[1] = mysqlQuery($sql, SINGLE, 'colorName');
+
+	$sql = "SELECT colorName
+			FROM eventTournaments AS eT
+			INNER JOIN systemColors AS sC ON eT.color2ID = colorID 
+			WHERE tournamentID = {$tournamentID}";
+	$color[2] = mysqlQuery($sql, SINGLE, 'colorName');
+
+	return ($color);
+
+}
+
+/******************************************************************************/
+
+function getAttackName($attackID)
+{
+	$attackID = (int)$attackID;
+
+	$sql = "SELECT attackText
+			FROM systemAttacks
+			WHERE attackID = {$attackID}";
+	return (mysqlQuery($sql, SINGLE, 'attackText'));
+}
+
+/******************************************************************************/
+
+function getScoresheets($eventID, $tournamentID)
+{
+	$eventID = (int)$eventID;
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID != 0){
+		$whereClause = "tournamentID = {$tournamentID}";
+	} elseif ($eventID != 0) {
+		$whereClause = "eventID = {$eventID}";
+	} else {
+		return ([]);
+	}
+
+	$sql = "SELECT matchID, scoresheet
+			FROM eventScoresheets
+			WHERE {$whereClause}
+			ORDER BY tournamentID, matchID, scoresheetID";
+	return (mysqlQuery($sql, ASSOC));
+
 }
 
 /******************************************************************************/

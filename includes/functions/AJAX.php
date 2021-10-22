@@ -377,6 +377,14 @@ case 'getLivestreamMatch':{
 } break;
 
 /******************************************************************************/
+
+case 'isFightingStarted':{
+	echo json_encode(isFightingStarted($tournamentID));
+	return;
+
+} break;
+
+/******************************************************************************/
 }
 
 

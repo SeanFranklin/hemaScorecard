@@ -313,6 +313,38 @@ function displayEventButton($eventID, $eventInfo){
 
 /******************************************************************************/
 
+function displayPenalty($penalty){
+	
+	switch($penalty['card']){
+		case 'yellowCard':
+			$class = 'penalty-card-yellow';
+			break;
+		case 'redCard':
+			$class = 'penalty-card-red';
+			break;
+		case 'blackCard':
+			$class = 'penalty-card-black';
+			break;
+		default:
+			$class = '';
+			break;
+	}
+
+?>
+	<div class='<?=$class?> penalty-card-display'>
+		
+		<strong><?=$penalty['cardName']?>: </strong>
+		<i><?=$penalty['action']?></i>
+		<BR>
+		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong>
+		 <?=getGroupName($penalty['groupID'])?> (vs <?=getFighterName($penalty['receivingID'])?>)
+	</div>
+
+
+<?php }
+
+/******************************************************************************/
+
 function confirmDeleteReveal($formID, $formName){
 	
 	?>
@@ -1007,7 +1039,9 @@ function edit_tournamentNumSubMatches($tournamentID = 'new'){
 					face off with each weapon set one after another.")?>
 
 		<select name='updateTournament[numSubMatches]'
-			id='numSubMatches_select<?=$tournamentID?>'>
+			id='numSubMatches_select<?=$tournamentID?>'
+			onchange="edit_numSubMatches(<?=$tournamentID?>)"
+			data-original='<?=$numSubMatches?>' >
 				<option value=0>No</option>
 				<?php for($i = 2; $i <= 9; $i++): ?>
 					
@@ -1018,6 +1052,8 @@ function edit_tournamentNumSubMatches($tournamentID = 'new'){
 			
 		</select>		
 	</div>
+
+
 	
 <?php }
 

@@ -119,6 +119,9 @@ function processPostData(){
 			case 'deleteFromTournamentRoster':
 				deleteFromTournament();
 				break;
+			case 'importTournamentRoster':
+				importTournamentRoster($_POST['importTournamentRoster']);
+				break;
 			case 'updateFighterRatings':
 				updateFighterRatings($_POST['updateRatings']);
 				break;
@@ -222,6 +225,9 @@ function processPostData(){
 				break;
 			case 'signOffFighters':
 				signOffFighters($_POST['signOffInfo']);
+				break;
+			case 'flipMatchSides':
+				$_SESSION['flipMatchSides'] = !(@(bool)$_SESSION['flipMatchSides']); //If it doesn't exist it is logically the same as false
 				break;
 			
 					
@@ -434,6 +440,9 @@ function processPostData(){
 			case 'updateStaffTemplates':
 				logisticsUpdateStaffTemplates($_POST['staffTemplateInfo']);
 				break;
+			case 'setFighterListColumns':
+				$_SESSION['fighterListColumns'] = $_POST['fighterListColumns'];
+				break;
 				
 	// Stats Cases
 			case 'dataFilters':
@@ -448,7 +457,15 @@ function processPostData(){
 			case 'tournamentDataFilters':
 				$_SESSION['tDataFilters'] = $_POST['tDataFilter'];
 				break;
-				
+			case 'statsFilterData':
+				$_SESSION['statsIDs']['systemRosterID'] 		= @(int)$_POST['statsIDs']['systemRosterID'];
+				$_SESSION['statsIDs']['eventID'] 				= @(int)$_POST['statsIDs']['eventID'];
+				$_SESSION['statsIDs']['tournamentWeaponID'] 	= @(int)$_POST['statsIDs']['tournamentWeaponID'];
+				$_SESSION['statsIDs']['tournamentPrefixID'] 	= @(int)$_POST['statsIDs']['tournamentPrefixID'];
+				$_SESSION['statsIDs']['tournamentGenderID']	= @(int)$_POST['statsIDs']['tournamentGenderID'];
+				$_SESSION['statsIDs']['tournamentMaterialID'] 	= @(int)$_POST['statsIDs']['tournamentMaterialID'];
+				$_SESSION['statsIDs']['tournamentRankingID'] 	= @(int)$_POST['statsIDs']['tournamentRankingID'];
+				break;
 				
 	// Cutting Qualification Cases
 			case 'newCutQuals':
@@ -625,7 +642,7 @@ function checkEvent(){
 /******************************************************************************/
 
 function changeTournament($tournamentID){
-	$_SESSION['tournamentID'] = $tournamentID;
+	$_SESSION['tournamentID'] = (int)$tournamentID;
 	$_SESSION['matchID'] = '';
 	$_SESSION['bracketHelper'] = '';
 	$_SESSION['groupSet'] = 1;
