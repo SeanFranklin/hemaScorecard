@@ -165,6 +165,7 @@ $vC = '?=1.0.9'; // CSS Version
 						<ul class='menu vertical'>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
+							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
 							<li><a href='statsScoresheets.php'>Scoresheets</a></li>
 						</ul>
@@ -236,6 +237,7 @@ $vC = '?=1.0.9'; // CSS Version
 						<ul class='menu vertical'>
 							<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
+							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
 						</ul>
 					</li>
