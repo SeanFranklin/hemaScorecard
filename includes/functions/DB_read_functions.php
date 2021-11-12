@@ -3858,6 +3858,49 @@ function getLivestreamMatchOrder($eventID = null){
 	return mysqlQuery($sql, KEY_SINGLES, 'matchNumber', 'matchID');
 }
 
+
+/******************************************************************************/
+
+function logistics_getWorkshopStats($eventID){
+	$eventID = (int)$eventID;
+	$blockID = (int)SCHEDULE_BLOCK_WORKSHOP;
+	$roleID = (int)LOGISTICS_ROLE_INSTRUCTOR;
+
+	$sql = "SELECT blockID, startTime, endTime
+			FROM logisticsScheduleBlocks
+			WHERE eventID = {$eventID}
+			AND blockTypeID = {$blockID}";
+
+	$courseBlocks = mysqlQuery($sql, ASSOC);
+
+	$workshops['number'] = 0;
+	$workshops['hours'] = 0;
+	foreach($courseBlocks as $block){
+		$workshops['number']++;
+		$workshops['hours'] += $block['endTime'] - $block['startTime'];
+	}
+
+	$workshops['hours'] = round($workshops['hours']/60,1);
+
+	$sql = "SELECT DISTINCT(rosterID) AS rosterID, lastName, firstName
+			FROM logisticsStaffShifts
+			INNER JOIN logisticsScheduleShifts USING(shiftID)
+			INNER JOIN logisticsScheduleBlocks AS lSB USING(blockID)
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster USING(systemRosterID)
+			WHERE lSB.eventID = {$eventID}
+			AND blockTypeID = {$blockID}
+			AND logisticsRoleID = {$roleID}
+			ORDER BY lastName ASC, firstName DESC";
+
+	$workshops['instructors'] = (array)mysqlQuery($sql, ASSOC);
+	$workshops['numInstructors'] = count($workshops['instructors']);
+
+
+	return $workshops;
+
+}
+
 /******************************************************************************/
 
 function logistics_getEventSchedule($eventID, $dayNum = null, $withShifts = false){
