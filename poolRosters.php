@@ -329,7 +329,7 @@ function poolStandingsSetBox($tournamentID, $allPools){
 
 		<div class='grid-x grid-margin-x'>
 			<div class='cell large-6 medium-12 small-6'>
-				For: <strong class='red-text'><?=getSetName($_SESSION['groupSet'])?></strong>
+				For: <strong class='red-text'><?=getSetName($_SESSION['groupSet'], $_SESSION['tournamentID'])?></strong>
 			</div>
 			<div class='cell large-6 medium-12 small-6 text-right'>
 				<a onclick="toggle('rank-by-pool-explanation')"><em>What is this?</em></a>
@@ -490,7 +490,7 @@ function poolSetBox($tournamentID){
 	
 	$currentNum = getNumGroupSets($tournamentID);
 	$attributes = getSetAttributes($tournamentID);
-	$tNorm = getNormalization($tournamentID,null, true);
+	$tNorm = getNormalization($tournamentID);
 	if($tNorm < 2){
 		$tNorm = 'Auto';
 	}
@@ -670,7 +670,7 @@ function autoPopluateButton($numPools, $enabled){
 	}
 
 	$tournamentID = (int)$_SESSION['tournamentID'];
-	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']-1);
+	$incompleteMatches = getTournamentPoolIncompletes($tournamentID, $_SESSION['groupSet']-1);
 	?>
 
 	<?php if($enabled == true): ?>
@@ -694,6 +694,7 @@ function autoPopluateButton($numPools, $enabled){
 	<form method='POST'>
 
 		<input type='hidden' name='generatePools[groupSet]' value='<?=$_SESSION['groupSet']?>'>
+		<input type='hidden' name='generatePools[tournamentID]' value='<?=$tournamentID?>'>
 
 		<?php if($incompleteMatches != null): ?>
 			<div id='incompleteMatchesDiv' class='callout'>
@@ -862,8 +863,8 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	$poolNum = $poolInfo['groupNumber'];
 
 	$schoolList = getSchoolList();
-	$maxPoolSize = max(count($poolRoster),maxPoolSize());
-	$numPools = getNumPools($_SESSION['groupSet']);
+	$maxPoolSize = max(count($poolRoster),maxPoolSize($_SESSION['tournamentID']));
+	$numPools = getNumPools($_SESSION['groupSet'], $_SESSION['tournamentID']);
 	$index = $poolNum - 1;
 	?>
 	

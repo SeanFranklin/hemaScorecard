@@ -21,7 +21,7 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['STATS_EVENT'] == false && ALLOW['STATS_ALL'] == false){
 	pageError('user');
 } else {
-	$tournamentList_unsorted = getTournamentsFull();
+	$tournamentList_unsorted = getTournamentsFull($_SESSION['eventID']);
 
 	
 	// Splits list into finalized tournaments first
@@ -36,7 +36,7 @@ if($_SESSION['eventID'] == null){
 	}
 	
 	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
-	$email = getEventEmail();
+	$email = getEventEmail($_SESSION['eventID']);
 
 	$eventExportClass = '';
 	$eventExportErrText = '';

@@ -32,7 +32,7 @@ if($_SESSION['eventID'] == null){
 	$targets = getAllAttackTargets();
 	$types = getAllAttackTypes();
 	$prefixes = getAllAttackPrefixes();
-	$existingAttacks = getTournamentAttacks();
+	$existingAttacks = getTournamentAttacks($_SESSION['tournamentID']);
 	$i = 0;
 
 	// Ability to import attacks from other tournaments
@@ -224,7 +224,7 @@ include('includes/footer.php');
 
 function importAttacksForm($tournamentID){
     $thisTournaments = getEventTournaments($_SESSION['eventID']);
-	$allTournaments = getAllEventTournaments($_SESSION['eventID']);
+	$allTournaments = getSystemTournaments();
 ?>
 
 

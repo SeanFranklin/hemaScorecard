@@ -158,17 +158,16 @@ function checkForTermsOfUse(){
 		return;
 
 // Don't need to sign ToS
-	} elseif($_SESSION['userName'] != 'eventOrganizer' || isEventTermsAccepted()){
+	} elseif($_SESSION['userName'] != 'eventOrganizer' || isEventTermsAccepted($_SESSION['eventID'])){
 		return;
 
 // If they need to sign ToS, kicks them back to the log in page. 
 // This won't let them leave the log-in screen until they sign the ToS or log out
 	} elseif($pageName != 'adminLogIn.php'){
-		header('Location: adminLogIn.php');
-		exit;
+		refreshPage('adminLogIn.php');
 	}
 
-	$email = getEventEmail();
+	$email = getEventEmail($_SESSION['eventID']);
 
 	?>
 
@@ -1223,6 +1222,7 @@ function edit_tournamentColors($tournamentID = 'new', $num){
 // on the value of $num.
 // Appears or disapears as controled by javascript.
 	
+	$num = (int)$num;
 	if($num != 1 AND $num != 2){ return; }
 	
 	$display = "hidden"; // Hidden for most cases
@@ -2045,8 +2045,8 @@ function poolSetNavigation($displayByPoolsButton = false){
 	
 	
 // Check that the tournament has pool sets
-	$tournamentID = $_SESSION['tournamentID'];
-	if($tournamentID == null){
+	$tournamentID = (int)$_SESSION['tournamentID'];
+	if($tournamentID == 0){
 	 displayAlert('No Tournament selected for poolSetNavigation in display_functions.php');
 		return;
 	}

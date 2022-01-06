@@ -26,7 +26,7 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	$roster = getEventRoster(null);
-	$tournamentList = getTournamentsFull(null);
+	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 
 	$numParticipants = count($roster);
 	

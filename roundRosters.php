@@ -345,7 +345,7 @@ function roundManagement($numGroupSets, $multiRoundDisplay){
 /******************************************************************************/
 
 function stageOptionsBox($numGroupSets){
-	$tournamentBase = getBasePointValue(null, null);
+	$tournamentBase = getBasePointValue($_SESSION['tournamentID'], null);
 
 	?>
 	
@@ -356,13 +356,13 @@ function stageOptionsBox($numGroupSets){
 		
 		Base score for:
 		<?php for($i=1;$i<=$numGroupSets;$i++): ?>
-			<?php $stageBase = getBasePointValue(null, $i, true);
+			<?php $stageBase = getBasePointValue($_SESSION['tournamentID'], $i, true);
 			
 			 ?>
 			<div class='input-group grid-x'>
 				
 				<span class='input-group-label small-8 medium-12 large-8'>
-					<?=getSetName($i); ?>
+					<?=getSetName($i, $_SESSION['tournamentID']); ?>
 				</span>
 				<input type='number' class='input-group-field no-bottom' 
 					name='baseScore[<?=$i?>]' value='<?=$stageBase?>' placeholder='<?=$tournamentBase?>'>
@@ -510,7 +510,7 @@ function createRoundsBox($numGroupSets){
 
 function changeRoundNamesBox($multiRoundDisplay = true){
 	
-	$rounds = getRounds();
+	$rounds = getRounds($_SESSION['tournamentID']);
 	$roundNum = 0;
 	$oldSet = 0;
 	?>
@@ -521,7 +521,7 @@ function changeRoundNamesBox($multiRoundDisplay = true){
 
 	<?php foreach($rounds as $round): 
 		$set = $round['groupSet'];
-		$setName = getSetName($set);
+		$setName = getSetName($set, $_SESSION['tournamentID']);
 		if($setName == "Stage {$set}"){ 
 			$setName = null;
 		}

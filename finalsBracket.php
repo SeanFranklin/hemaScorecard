@@ -223,7 +223,7 @@ function bracketHelperToggleButton(){
 // and turns on if no incomplete matches
 
 	if($_SESSION['bracketHelper'] == 'try'){
-		$_SESSION['incompletePoolMatches'] = getTournamentIncompletes($tournamentID, 'pool');	
+		$_SESSION['incompletePoolMatches'] = getTournamentPoolIncompletes($tournamentID);	
 		if($_SESSION['incompletePoolMatches'] == null){
 			$_SESSION['bracketHelper'] = 'on';
 		}	

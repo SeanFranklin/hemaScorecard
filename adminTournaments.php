@@ -27,7 +27,7 @@ if($_SESSION['eventID'] == null){
 		$formLock = '';
 	}
 
-	$tournamentList = getTournamentsFull();
+	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 	if(count($tournamentList) == 1){
 		$isActiveItem = 'is-active';
 	} else {
@@ -219,7 +219,7 @@ include('includes/footer.php');
 
 function importSettingsForm($tournamentID){
 	$thisTournaments = getEventTournaments($_SESSION['eventID']);
-	$allTournaments = getAllEventTournaments($_SESSION['eventID']);
+	$allTournaments = getSystemTournaments();
 ?>
 	<div id='import-for-<?=$tournamentID?>' class='hidden warning callout cell'>
 	<form method='POST'>

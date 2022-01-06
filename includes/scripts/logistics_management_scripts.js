@@ -93,7 +93,8 @@ function logistics_esbPopulateForm(){
                     $("#esb-blockDescription").val(data['blockDescription']);
                     $("#esb-blockLink").val(data['blockLink']);
                     $("#esb-blockLinkDescription").val(data['blockLinkDescription']);
-
+                    $("#esb-blockAttributeExperience").val(data['blockAttributes']['experience']);
+                    $("#esb-blockAttributeEquipment").val(data['blockAttributes']['equipment']);
                     
                     // Start time
                     var hour = Math.floor(data['startTime']/60);
@@ -109,9 +110,12 @@ function logistics_esbPopulateForm(){
 
                     // Tournament rings
                     $('.esb-locationID').prop('checked', false);
+                    var numLocationsLoaded = 0;
                     data['locationIDs'].forEach(function(locationID){
                         $("#esb-location-"+locationID).prop('checked', true);
+                        numLocationsLoaded++;
                     });
+                    $("#esb-numLocationsLoaded").val(numLocationsLoaded);
 
                     // Submit button text
                     $("#esb-submitButton").html("Update Schedule Block");
@@ -127,12 +131,39 @@ function logistics_esbPopulateForm(){
 
 function logistics_esbRingCheck(checkboxID){
 
-    if($("#esb-blockID").val() != 0 
-        && $(checkboxID).prop('checked') == false){
+    var suppressWarning = false;
+
+    if($("#esb-numLocationsLoaded").val() == 1){
+
+        var numChecked = 0;
+
+        $('.esb-locationID').each(function(){
+            if(this.checked == true){
+                numChecked++;
+            }
+        });
+
+        if(numChecked == 1){
+            suppressWarning = true;
+        }
+    }
+
+    if(suppressWarning == true){
+
+        // If it is a single location moving then no warning is needed. Only when
+        // multiple locations are involved at the same time.
+        $("#esb-warningLog").html(``);
+
+    } else if(   $("#esb-blockID").val() != 0 
+              && $(checkboxID).prop('checked') == false){
 
         $("#esb-warningLog").html(`<li>Software is unpredictable if you remove locations 
             with staff assigned.<BR>You have been warned.`);
+
+    } else {
+        // Leave remaining warnings in place
     }
+
 }
 
 /**********************************************************************/
@@ -302,7 +333,18 @@ function logistics_displayBlockDescription(blockID){
                 $("#sbd-link").attr("href", data['blockLink']);
                 $("#sbd-linkDescription").html(data['blockLinkDescription']);
                 $("#sbd-time").html(data['startTimeHr']+' - '+data['endTimeHr']);
-                
+
+                if(data['blockAttributes']['experience'].length != 0){
+                     $("#sbd-experience").html("<u>Experience Level</u>: " + data['blockAttributes']['experience']);
+                } else {
+                    $("#sbd-experience").html("");
+                }
+
+                if(data['blockAttributes']['equipment'].length != 0){
+                    $("#sbd-equipment").html("<u>Equipment</u>: " + data['blockAttributes']['equipment']);
+                } else {
+                    $("#sbd-equipment").html("");
+                }
 
                 $("#sbd-instructors").html("");
                

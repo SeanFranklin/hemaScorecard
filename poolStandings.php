@@ -43,7 +43,7 @@ if($tournamentID == null){
 
 	poolSetNavigation($displayPoolsOption);
 
-	$incompleteMatches = getTournamentIncompletes($tournamentID,'pool', $_SESSION['groupSet']);
+	$incompleteMatches = getTournamentPoolIncompletes($tournamentID, $_SESSION['groupSet']);
 	$incompleteComponents = getIncompletComponents($tournamentID);
 
 	$teamRoster = getTournamentTeams($tournamentID);

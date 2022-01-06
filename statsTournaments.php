@@ -26,13 +26,13 @@ if($_SESSION['eventID'] == null){
 		$_SESSION['StatsInfo']['displayType'] = 'percent';
 	}
 
-	$exchangesByTournament = getEventExchanges();
+	$exchangesByTournament = getEventExchanges($_SESSION['eventID']);
 	
 	$stats = getEventStats($exchangesByTournament);
 	$overall = $stats['overall'];
 	unset($stats['overall']);
 	
-	$matchTotals = getNumEventMatches();
+	$matchTotals = getNumEventMatches($_SESSION['eventID']);
 	$overall['matches'] = $matchTotals['matches'];
 	$overall['pieces'] = $matchTotals['pieces'];
 	

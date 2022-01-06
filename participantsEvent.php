@@ -285,41 +285,45 @@ function displayEntryConflicts(){
 	<?php // Fighters which already exists in the system
 	 
 	$k = 99; // An arbitrarialy large index for the fighters to be added. Has to be above the maximum that can be added at a time normally
-	foreach(@(array)$_SESSION['rosterEntryConflicts']['alreadyExists'] as $fighterData):
+	foreach(@(array)$_SESSION['rosterEntryConflicts']['alreadyExists'] as $conflict):
 		
-		$systemRosterID = $fighterData['systemRosterID'];
+		$systemRosterID = $conflict['queryData']['systemRosterID'];
 		$name = getFighterNameSystem($systemRosterID);
-		$systemRosterID = $fighterData['systemRosterID'];
-		$systemSchoolID = $fighterData['systemSchoolID'];
-		$enteredSchoolID = $fighterData['enteredSchoolID'];
-		$systemName = getSchoolName($systemSchoolID, 'long', 'branch');
-		$enteredName = getSchoolName($enteredSchoolID, 'long', 'branch');
+		
+		$dbSchoolID = $conflict['queryData']['schoolID'];
+		$dbSchoolName = getSchoolName($dbSchoolID, 'long', 'branch');
+
+		$postSchoolID = $conflict['postData']['schoolID'];
+		$postSchoolName = getSchoolName($postSchoolID, 'long', 'branch');
+
+		$staffCompetency = $conflict['postData']['staffCompetency'];
+
 		?>
 				
-		<b><?=$name?></b> already exists in the system, from <u><?=$systemName?></u><BR>
+		<b><?=$name?></b> already exists in the system, from <u><?=$dbSchoolName?></u><BR>
 		
 		<?php //The school they are registered with in the system?>
-		<input type='hidden' name='newParticipants[byID][<?=$k?>][systemRosterID]' value='<?=$systemRosterID?>'>
-		<input type='radio' checked name='newParticipants[byID][<?=$k?>][schoolID]' value='<?=$systemSchoolID?>'>
-		Enter From <i><?=$systemName?></i><BR>
+		<input type='hidden' name='newParticipants[<?=$k?>][systemRosterID]' value='<?=$systemRosterID?>'>
+		<input type='radio' checked name='newParticipants[<?=$k?>][schoolID]' value='<?=$dbSchoolID?>'>
+		Enter from <i><?=$dbSchoolName?></i> (what the database has)<BR>
 		
 		<?php //The school the user tried to enter them with?>		
-		<input type='radio' name='newParticipants[byID][<?=$k?>][schoolID]' value='<?=$enteredSchoolID?>'>
-		<input type='hidden' name='newParticipants[byID][<?=$k?>][changeSchoolID]' value='<?=$enteredSchoolID?>'>
-		Enter From <i><?=$enteredName?></i><BR>
+		<input type='radio' name='newParticipants[<?=$k?>][schoolID]' value='<?=$postSchoolID?>'>
+		Enter from <i><?=$postSchoolName?></i> (what you entered)<BR>
 		
-		<input type='radio' name='newParticipants[byID][<?=$k?>][schoolID]' value=''>
-		Don't Enter
+		<input type='radio' name='newParticipants[<?=$k?>][schoolID]' value=''>
+		Screw it, don't enter them at all
 				
-		<?php foreach((array)$fighterData['tournamentIDs'] as $tournamentID):?>
-			<input type='hidden' name='newParticipants[byID][<?=$k ?>][tournamentIDs][]' value=<?=$tournamentID?>>
+		<input type='hidden' name='newParticipants[<?=$k?>][staffCompetency]' value='<?=$staffCompetency?>'>
+		<?php foreach((array)@$conflict['postData']['tournamentIDs'] as $tournamentID):?>
+			<input type='hidden' name='newParticipants[<?=$k ?>][tournamentIDs][]' value=<?=$tournamentID?>>
 		<?php endforeach?>
 		<HR>
 		<?php $k++;?>
 	<?php endforeach?>
 
 	<button class='button hollow text-center' name='formName' value='addEventParticipants'>
-		Confirm
+		Confirm All
 	</button>
 	
 	</form>
@@ -411,8 +415,8 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 <!-- Information for new participants -->
 	<?php if($schoolID != null):
 
-		$schoolRoster = getSchoolRosterNotInEvent($schoolID);
-		$tournamentNames = getTournamentsAlphabetical();
+		$schoolRoster = getSchoolRosterNotInEvent($schoolID, $_SESSION['eventID']);
+		$tournamentNames = getTournamentsAlphabetical($_SESSION['eventID']);
 		$numInSchool = count($schoolRoster);
 		$numSpotsToDisplay = 6;
 		$i=1; 	//counter to make each list item unique
@@ -442,15 +446,17 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			<th>Tournaments</th>
 		</tr>
 		
-	<!-- Existing fighters from systemRoster -->
+	<!-- Existing fighters from systemRoster -------------------------------------->
 		<?php if($numID < 1): ?>
 			<tr><td colspan='100%'>There are no more fighters from this club left in the database</td></tr>
 		<?php endif ?>
+
 		<?php for ($k = 1 ; $k <= $numID; $k++):?>
 			<tr>
 		<!-- Name -->
 			<td>
-				<select name='newParticipants[byID][<?=$k?>][systemRosterID]'>
+
+				<select name='newParticipants[<?=$k?>][systemRosterID]'>
 					<option></option>
 				<?php foreach($schoolRoster as $fighter): 
 				
@@ -461,14 +467,16 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 				<?php endforeach?>
 			
 				</select>
-				<input type='hidden' name='newParticipants[byID][<?=$k?>][schoolID]' value='<?=$schoolID?>'>
+				<input type='hidden' name='newParticipants[<?=$k?>][firstName]' value=''>
+				<input type='hidden' name='newParticipants[<?=$k?>][lastName]' value=''>
+				<input type='hidden' name='newParticipants[<?=$k?>][schoolID]' value='<?=$schoolID?>'>
 			
 			</td>
 
 		<!-- Staffing -->
 			<?php if($useStaff == true): ?>
 				<td>
-					<select name='newParticipants[byID][<?=$k?>][staffCompetency]'>
+					<select name='newParticipants[<?=$k?>][staffCompetency]'>
 						<option value='0'>No</option>
 						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
 							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
@@ -483,7 +491,7 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			<?php foreach((array)$tournamentNames as $tournamentID => $tName):?>
 				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this, 'skipCheck')"
 					<?=$applyBackground?>>
-				<input type='checkbox' name='newParticipants[byID][<?=$k?>][tournamentIDs][<?=$i?>]' 
+				<input type='checkbox' name='newParticipants[<?=$k?>][tournamentIDs][<?=$i?>]' 
 					value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden' <?=$applyChecked?>>
 				<?=$tName?>
 				</div>
@@ -494,9 +502,9 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 		<?php endfor?>
 
 
-	<!-- New fighters -->
-		<?php for ($k = 1 ; $k <= $numNew; $k++):
-			if($k == 1){
+	<!-- New fighters -------------------------------------->
+		<?php for ($k = ($numID + 1) ; $k <= ($numNew + $numID); $k++):
+			if($k == ($numID + 1)){
 				$style = "style='border-top:solid 1px;'";
 			} else {
 				$style = '';
@@ -505,28 +513,30 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			<tr <?=$style?>>
 		<!-- Name -->
 			<td>
+				<input type='hidden' name='newParticipants[<?=$k?>][systemRosterID]' value='0'>
+
 				<div class='input-group no-margin' style='min-width:300px;'>
-				<?php if(NAME_MODE == 'firstName'): ?>
-				<input type='text' name='newParticipants[new][<?=$k?>][firstName]' 
-					class='input-group-field no-margin' 
-					placeholder='First Name'>
-				<?php endif ?>
-				<input type='text' name='newParticipants[new][<?=$k?>][lastName]' 
-					class='input-group-field no-margin'
-					placeholder='Last Name'>
-				<?php if(NAME_MODE != 'firstName'): ?>
-				<input type='text' name='newParticipants[new][<?=$k?>][firstName]' 
-					class='input-group-field no-margin'
-					placeholder='First Name'>
-				<?php endif ?>
+					<?php if(NAME_MODE == 'firstName'): ?>
+					<input type='text' name='newParticipants[<?=$k?>][firstName]' 
+						class='input-group-field no-margin' 
+						placeholder='First Name'>
+					<?php endif ?>
+					<input type='text' name='newParticipants[<?=$k?>][lastName]' 
+						class='input-group-field no-margin'
+						placeholder='Last Name'>
+					<?php if(NAME_MODE != 'firstName'): ?>
+					<input type='text' name='newParticipants[<?=$k?>][firstName]' 
+						class='input-group-field no-margin'
+						placeholder='First Name'>
+					<?php endif ?>
 				</div>
-				<input type='hidden' name='newParticipants[new][<?=$k?>][schoolID]' value='<?=$schoolID?>'>
+				<input type='hidden' name='newParticipants[<?=$k?>][schoolID]' value='<?=$schoolID?>'>
 			</td>
 
 		<!-- Staffing -->
 			<?php if($useStaff == true): ?>
 				<td>
-					<select name='newParticipants[new][<?=$k?>][staffCompetency]'>
+					<select name='newParticipants[<?=$k?>][staffCompetency]'>
 						<option value='0'>No</option>
 						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
 							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
@@ -540,7 +550,7 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 			<?php foreach((array)$tournamentNames as $tournamentID => $tName):?>
 				<div class='shrink tournament-box' onclick="toggleCheckbox('checkbox-<?=$i?>', this, 'skipCheck')"
 					<?=$applyBackground?>>
-				<input type='checkbox' name='newParticipants[new][<?=$k?>][tournamentIDs][<?=$i?>]' 
+				<input type='checkbox' name='newParticipants[<?=$k?>][tournamentIDs][<?=$i?>]' 
 				value='<?=$tournamentID?>' id='checkbox-<?=$i?>' class='hidden' <?=$applyChecked?>>
 					<?=$tName?>
 				</div>

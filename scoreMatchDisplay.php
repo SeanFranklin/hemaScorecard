@@ -410,7 +410,7 @@ function doublesTextDisplay($matchInfo){
 // adds smiley and frowny faces depending on the number of double hits
 // adds button to declare match as a double out
 
-	if(isDoubleHits() == false){
+	if(isDoubleHits($matchInfo['tournamentID']) == false){
 		return;
 	}
 

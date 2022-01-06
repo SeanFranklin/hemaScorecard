@@ -15,13 +15,43 @@ function show($array){
 
 /******************************************************************************/
 
-function refreshPage(){
+function refreshPage($page = null, $params = null, $anchor = null){
 
-	$url = strtok($_SERVER['PHP_SELF'], "#");
-	$url .= "#" . ($_SESSION['jumpTo'] ?? ''); // could be empty, treated as null
+	if($page == null){
+		$page = strtok($_SERVER['PHP_SELF'], "#");
+	} else {
+		$page = "/".$page;
+	}
+
+	if($params == null){
+		$params = getSessionUrlParameter();
+	} else {
+		$params = "?".$params;
+	}
+
+	if($anchor == null){
+		$anchor = "#" . ($_SESSION['jumpTo'] ?? ''); // could be empty, treated as null
+	} else {
+		$anchor = "#".$anchor;
+	}
 	unset($_SESSION['jumpTo']);
+
+	$url = $page.$params.$anchor;
+
 	header('Location: '.$url);
 	exit;
+}
+
+/******************************************************************************/
+
+function getSessionUrlParameter(){
+
+	$params['e'] = (int)$_SESSION['eventID'];
+	$params['t'] = (int)$_SESSION['tournamentID'];
+	$params['m'] = (int)$_SESSION['matchID'];
+	$_SESSION['urlParameter'] = "?".http_build_query($params);
+
+	return($_SESSION['urlParameter']);
 }
 
 /******************************************************************************/
@@ -237,6 +267,7 @@ function mysqlSetRecordToDefault($tableName, $whereClause, $fieldsToKeep){
 	if($whereClause == null){return;}
 	
 	if(is_string($fieldsToKeep)){
+		// If a single field is passed, instead of an array of fields, convert to a single entry array
 		$a = $fieldsToKeep;
 		unset($fieldsToKeep);
 		$fieldsToKeep[] = $a;
@@ -266,48 +297,6 @@ function mysqlSetRecordToDefault($tableName, $whereClause, $fieldsToKeep){
 	$sql = rtrim($sql,', \t\n');
 	$sql .= " ".$whereClause;
 	
-	mysqlQuery($sql, SEND);
-}
-
-/******************************************************************************/
-
-function mysqlSetRecordToNull($tableName, $whereClause, $fieldsToKeep){
-	// Sets the values of all fields on $tableName to null
-	// Function affects rows identified by $whereClause
-	// and ignores the fields named in the array $fieldsToKeep
-	
-	if($whereClause == null){return;}
-	
-	if(is_string($fieldsToKeep)){
-		$a = $fieldsToKeep;
-		unset($fieldsToKeep);
-		$fieldsToKeep[] = $a;
-	}
-	
-	$sql = "SHOW COLUMNS FROM {$tableName}";
-	$result = mysqlQuery($sql, ASSOC);
-	
-	foreach($result as $record){
-		$name = $record['Field'];
-		if($record['Key'] != 'PRI'){
-			$fieldNames[$name] = true;
-		}
-	}
-	
-	foreach($fieldsToKeep as $field){
-		unset($fieldNames[$field]);
-	}
-	
-	$sql = "UPDATE {$tableName}
-			SET ";
-	foreach($fieldNames as $name => $true){
-		$sql .= "{$name}= null, ";
-		
-	}
-
-	$sql = rtrim($sql,', \t\n');
-	$sql .= " ".$whereClause;
-
 	mysqlQuery($sql, SEND);
 }
 

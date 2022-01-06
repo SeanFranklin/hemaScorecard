@@ -106,7 +106,10 @@ function hemaRatings_GetEventInfo($eventID){
 /******************************************************************************/
 
 function hemaRatings_GetEventRosterForExport($eventID){
-	if($eventID == null){
+
+	$eventID = (int)$eventID;
+
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in hemaRatings_GetEventRosterForExport()");
 		return;
 	}
@@ -149,11 +152,11 @@ function hemaRatings_getFighterIDfromRosterID($rosterID){
 
 /******************************************************************************/
 
-function hemaRatings_createEventInfoCsv($eventID = null, $dir = "exports/"){
+function hemaRatings_createEventInfoCsv($eventID, $dir = "exports/"){
 
 // Get roster/event information	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No Event ID in createRosterCsv");
 		return;
 	}
@@ -186,7 +189,7 @@ function hemaRatings_createEventInfoCsv($eventID = null, $dir = "exports/"){
 
 /******************************************************************************/
 
-function hemaRatings_CreateEventRosterCsv($eventID = null, $dir = "exports/"){
+function hemaRatings_createEventRosterCsv($eventID = null, $dir = "exports/"){
 // Creates a .csv file with the eventRoster
 // Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
@@ -505,6 +508,7 @@ function getMatchStageName($matchID){
 // Returns the name of the stage a match occured at.
 // ie. Pools, Elims, Gold Medal Match
 
+	$matchID = (int)$matchID;
 	
 	$sql = "SELECT groupType, groupSet, groupName, bracketLevel, groupID, tournamentID
 			FROM eventMatches
@@ -554,27 +558,29 @@ function getMatchStageName($matchID){
 
 /******************************************************************************/
 
-function getAllPoolScores($tournamentID = null, $poolSet = 1){
+function getAllPoolScores($tournamentID, $groupSet){
 // returns the scores of all the pool matches in the current tournament
 // indexed by matchID	
-	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getAllPoolScores()");
 		return;
 	}
-	
-	if($poolSet == 'all'){
-		$groupSet = null;
+
+	$groupSet = (int)$groupSet;
+
+	if($groupSet < 1){
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$poolSet}";
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
 	$sql = "SELECT matchID, fighter2Score, fighter1Score 
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE eventGroups.tournamentID = {$tournamentID}
-			{$groupSet}" ;
+			{$groupSetClause}" ;
 			
 	return mysqlQuery($sql, KEY, 'matchID');
 	
@@ -632,11 +638,13 @@ function getAttackAttributes($tableID){
 
 /******************************************************************************/
 
-function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poolSet = 1){
+function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 //gets all the exchanges in a tournament by fighter
 		
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getAllTournamentExchanges()");
 		return;
 	}
@@ -649,10 +657,10 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 		$whereClause = null;
 	} 
 	
-	if($poolSet == 'all'){
-		$groupSet = null;
+	if($groupSet == 'all'){
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$poolSet}";
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
 	$sql = "SELECT exchangeID, exchangeType, scoringID, receivingID, 
@@ -661,7 +669,7 @@ function getAllTournamentExchanges($tournamentID = null, $groupType = null, $poo
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
 			WHERE eventGroups.tournamentID = {$tournamentID}
-			{$groupSet}
+			{$groupSetClause}
 			{$whereClause}
 			AND ignoreMatch != 1
 			AND isPlaceholder = 0";
@@ -792,14 +800,16 @@ function getBasePointValue($tournamentID, $groupSet, $returnNulls = null){
 // $returnNulls will return the value from the eventAttributes table, even
 // if it has never been set
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getBasePointValue()");
 		return;
 	}
 
 	// Check if set has it's own base value
-	if($groupSet !== null){
+	if($groupSet != 0){
 		$sql = "SELECT attributeValue
 				FROM eventAttributes
 				WHERE tournamentID = {$tournamentID}
@@ -890,7 +900,8 @@ function getBracketMatchesByPosition($bracketID){
 // indexed by bracketLevel (depth in the tree) 
 // and bracketPosition (position on it's level)
 	
-	if($bracketID == null){
+	$bracketID = (int)$bracketID;
+	if($bracketID == 0){
 		setAlert(SYSTEM,"No bracketID in getBracketMatchesByPosition()");
 		return;
 	}
@@ -944,7 +955,7 @@ function isFinalsMatch($matchID){
 	$res = mysqlQuery($sql, SINGLE);
 
 	if($res['placeholderMatchID'] != null){
-		$placeholderMatchID = $res['placeholderMatchID'];
+		$placeholderMatchID = (int)$res['placeholderMatchID'];
 		$sql = "SELECT bracketLevel, placeholderMatchID
 				FROM eventMatches
 				WHERE matchID = {$placeholderMatchID}";
@@ -980,10 +991,10 @@ function getCountryList(){
 
 /******************************************************************************/
 
-function getCuttingStandard($tournamentID = null){
+function getCuttingStandard($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getCuttingStandard()");
 		return;
 	}	
@@ -998,10 +1009,10 @@ function getCuttingStandard($tournamentID = null){
 
 /******************************************************************************/
 
-function getControlPointValue($tournamentID = null){
+function getControlPointValue($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getControlPointValue()");
 		return;
 	}	
@@ -1017,7 +1028,10 @@ function getControlPointValue($tournamentID = null){
 
 function getCumulativeScores($group1ID, $group2ID){
 
-	if($group1ID == null || $group2ID == null){
+	$group1ID = (int)$group1ID;
+	$group2ID = (int)$group2ID;
+
+	if($group1ID == 0 || $group2ID == 0){
 		setAlert(SYSTEM,"No group1ID or group2ID in getCumulativeScores()");
 		return;
 	}
@@ -1029,7 +1043,7 @@ function getCumulativeScores($group1ID, $group2ID){
 	$round2Results = mysqlQuery($sql, ASSOC);
 	
 	foreach($round2Results as $result){
-		$rosterID = $result['fighter1ID'];
+		$rosterID = (int)$result['fighter1ID'];
 		$score = $result['fighter1Score'];
 		
 		if($score === null){ // Has not competed yet
@@ -1125,8 +1139,9 @@ function getEventDays($eventID){
 
 function getDoubleTypes($tournamentID = null){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getDoubleTypes()");
 		return;
 	}	
@@ -1144,9 +1159,10 @@ function getDoubleTypes($tournamentID = null){
 
 /******************************************************************************/
 
-function getEventEmail($eventID = null){
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+function getEventEmail($eventID){
+
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getEventEmail");
 		return;
 	}
@@ -1161,11 +1177,11 @@ function getEventEmail($eventID = null){
 
 /******************************************************************************/
 
-function getEventExchanges($eventID = null){
+function getEventExchanges($eventID){
 // gets summary counts of all exchanges in the event
 
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getEventExchanes()");
 		return;
 	}
@@ -1175,6 +1191,8 @@ function getEventExchanges($eventID = null){
 
 	$tournamentStats = [];
 	foreach($tournaments as $tournamentID){
+
+		$tournamentID = (int)$tournamentID;
 
 		$sql = "SELECT exchangeType, scoreValue
 				FROM eventExchanges
@@ -1231,10 +1249,10 @@ function getEventExchanges($eventID = null){
 
 /******************************************************************************/
 
-function getEventIncompletes($eventID = null){
+function getEventIncompletes($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getEventIncompletes()");
 		return;
 	}
@@ -1292,6 +1310,7 @@ function getEventList($eventStatus, $order = null, $limit = null, $isMetaEvent =
 
 
 	} elseif($eventStatus == 'old'){
+
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
 				eventEndDate, countryName, eventProvince, eventCity, 
 				eventStatus
@@ -1303,6 +1322,7 @@ function getEventList($eventStatus, $order = null, $limit = null, $isMetaEvent =
 		return mysqlQuery($sql, KEY, 'eventID');	
 
 	} elseif($eventStatus == 'meta') {
+
 		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
 				eventEndDate, countryName, eventProvince, eventCity, 
 				eventStatus
@@ -1310,8 +1330,10 @@ function getEventList($eventStatus, $order = null, $limit = null, $isMetaEvent =
 				INNER JOIN systemCountries USING(countryIso2)
 				WHERE isMetaEvent = 1
 				ORDER BY eventStartDate DESC, eventEndDate DESC";
-		return mysqlQuery($sql, KEY, 'eventID');	
+		return mysqlQuery($sql, KEY, 'eventID');
+
 	} else {
+
 		if(!isset($validValues[$eventStatus])){
 			setAlert(SYSTEM,'Invalid eventStatus in getEventList()');
 			return null;
@@ -1347,6 +1369,26 @@ function getEventList($eventStatus, $order = null, $limit = null, $isMetaEvent =
 
 /******************************************************************************/
 
+function getHiddenEventListForUser($userID){
+
+	$userID = (int)$userID; 
+
+	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
+			eventEndDate, countryName, eventProvince, eventCity, 
+			eventStatus 
+			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
+			INNER JOIN systemUserEvents USING(eventID)
+			WHERE eventStatus LIKE 'hidden'
+			AND isMetaEvent = 0
+			AND userID = {$userID}
+			ORDER BY eventStartDate DESC, eventEndDate DESC";
+
+	return mysqlQuery($sql, KEY, 'eventID');
+}
+
+/******************************************************************************/
+
 function getEventListFULL(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
@@ -1375,6 +1417,7 @@ function getEventListSmall(){
 /******************************************************************************/
 
 function getEventComponentTournaments($eventID, $mTournamentID){
+
 	$eventID = (int)$eventID;
 	$mTournamentID = (int)$mTournamentID;
 	$formatMeta = (int)FORMAT_META;
@@ -1466,7 +1509,8 @@ function getComponentGroups($mTournamentID){
 function getEventName($eventID, $rawName = false){
 	//return the event name in form 'Test Event 1999'
 	
-	if($eventID == null){ //if no event is selected
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		return null;
 	}
 	
@@ -1534,7 +1578,7 @@ function getEventRoster($sortString = null, $staffInfo = false){
 	$roster = mysqlQuery($sql, ASSOC);
 	
 	return $roster;
-	
+
 }
 
 /******************************************************************************/
@@ -1555,10 +1599,9 @@ function getEventAdditionalParticipants($eventID){
 
 /******************************************************************************/
 
-function getCheckInStatus($ID, $type){
+function getCheckInStatusEvent($eventID){
 
-
-	$eventID = (int)$ID;
+	$eventID = (int)$eventID;
 
 	$orderName = NAME_MODE;
 	$sortString = "ORDER BY {$orderName}";
@@ -1631,10 +1674,12 @@ function getEventTournamentNames($tournamentIDs){
 
 /******************************************************************************/
 
-function getEventTournaments($eventID = null){
+function getEventTournaments($eventID = 0){
+
+	$eventID = (int)$eventID;
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	if($eventID == 0){$eventID = $_SESSION['eventID'];}
+	if($eventID == 0){
 		// Not an error, just return an empty result
 		return null;
 	}
@@ -1648,7 +1693,7 @@ function getEventTournaments($eventID = null){
 		return mysqlQuery($sql, SINGLES);		
 	} 
 	
-// Sort alphabeticaly
+// Sort alphabetically
 	if($_SESSION['dataModes']['tournamentSort'] == 'nameSort'){
 		$sql = "SELECT tournamentID
 				FROM eventTournaments
@@ -1707,8 +1752,7 @@ function getEventTournaments($eventID = null){
 
 /******************************************************************************/
 
-function getAllEventTournaments($eventID = null){
-	$eventID = (int)$eventID;
+function getSystemTournaments(){
 
 	$sql = "SELECT eventName, eventYear, tournamentID, eventID, tournamentWeaponID AS weaponID,
 					tournamentPrefixID AS prefixID, tournamentMaterialID AS materialID,
@@ -1745,10 +1789,12 @@ function getAllEventTournaments($eventID = null){
 
 /******************************************************************************/
 
-function getEventStatus($eventID = null){
+function getEventStatus($eventID = 0){
+
+	$eventID = (int)$eventID;
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	if($eventID == 0){$eventID = $_SESSION['eventID'];}
+	if($eventID == 0){
 		setAlert(SYSTEM,"Invalid eventID in getEventStatus()");
 		return;
 	}
@@ -1798,19 +1844,19 @@ function getEventPenalties($eventID, $fighterIDs = null){
 
 	$sql = "SELECT scoringID, tournamentID, groupID, receivingID,
 			(SELECT attackCode
-			FROM systemAttacks sA2
-			WHERE sA2.attackID = eE.refType) AS card,					
+				FROM systemAttacks sA2
+				WHERE sA2.attackID = eE.refType) AS card,					
 			(SELECT attackText
-			FROM systemAttacks sA2
-			WHERE sA2.attackID = eE.refType) AS cardName,
+				FROM systemAttacks sA2
+				WHERE sA2.attackID = eE.refType) AS cardName,
 			(SELECT attackText
-			FROM systemAttacks sA3
-			WHERE sA3.attackID = eE.refTarget) AS action,
+				FROM systemAttacks sA3
+				WHERE sA3.attackID = eE.refTarget) AS action,
 			(SELECT count(*) as p
-			FROM eventExchanges as eE2
-			WHERE eE2.scoringID = eE.scoringID
-			AND eventID = {$eventID}
-			AND exchangeType = 'penalty') as numPenalties
+				FROM eventExchanges as eE2
+				WHERE eE2.scoringID = eE.scoringID
+				AND eventID = {$eventID}
+				AND exchangeType = 'penalty') as numPenalties
 		FROM eventExchanges AS eE
 		INNER JOIN eventMatches USING(matchID)
 		INNER JOIN eventGroups USING(groupID)
@@ -1832,14 +1878,14 @@ function getPenaltyInfo($exchangeID){
 	$exchangeID = (int)$exchangeID;
 
 	$sql = "SELECT (SELECT attackText
-					FROM systemAttacks sA
-					WHERE sA.attackID = eE.refType) AS name,
+						FROM systemAttacks sA
+						WHERE sA.attackID = eE.refType) AS name,
 					(SELECT attackCode
-					FROM systemAttacks sA2
-					WHERE sA2.attackID = eE.refType) AS card,
+						FROM systemAttacks sA2
+						WHERE sA2.attackID = eE.refType) AS card,
 					(SELECT attackText
-					FROM systemAttacks sA3
-					WHERE sA3.attackID = eE.refTarget) AS action,
+						FROM systemAttacks sA3
+						WHERE sA3.attackID = eE.refTarget) AS action,
 					scoringID AS rosterID
 			FROM eventExchanges eE
 			WHERE exchangeID = {$exchangeID}";
@@ -1850,6 +1896,9 @@ function getPenaltyInfo($exchangeID){
 /******************************************************************************/
 
 function getFighterExchanges($rosterID, $weaponID){
+
+	$rosterID = (int)$rosterID;
+	$weaponID = (int)$weaponID;
 
 	// Exchanges with the fighter scoring
 	$sql = "SELECT exchangeType, scoreValue
@@ -1863,12 +1912,12 @@ function getFighterExchanges($rosterID, $weaponID){
 			AND isPlaceholder = 0";
 	$result1 = mysqlQuery($sql, ASSOC);
 	
-	// Deliniator to note two different data sets when stepping through the result
+	// Deliminator to note two different data sets when stepping through the result
 	$r[0]['exchangeType'] = '*';
 	$r[0]['scoreValue'] = '0';
 	$result1 = array_merge($result1, $r);
 	
-	// Exchanges with the fighter recieving
+	// Exchanges with the fighter receiving
 	$sql = "SELECT exchangeType, scoreValue
 			FROM eventExchanges
 			INNER JOIN eventMatches USING(matchID)
@@ -1956,6 +2005,7 @@ function getCombatantName($rosterID, $splitName = null, $nameMode = null){
 function isEntriesByTeam($tournamentID){
 // Returns TRUE if it is a team event which has teams being entered
 
+	$tournamentID = (int)$tournamentID;
 	$sql = "SELECT isTeams, logicMode
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
@@ -1987,6 +2037,7 @@ function isEntriesByTeam($tournamentID){
 function isMatchesByTeam($tournamentID){
 // Returns TRUE if it is a team event which has teams fighting teams
 
+	$tournamentID = (int)$tournamentID;
 	$sql = "SELECT isTeams, logicMode
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
@@ -2018,7 +2069,8 @@ function isMatchesByTeam($tournamentID){
 
 function getTeamName($teamID, $splitName = null, $returnType = null){
 
-	if($teamID == null){
+	$teamID = (int)$teamID;
+	if($teamID == 0){
 		setAlert(SYSTEM,"No rosterID in getFighterName()");
 		return;
 	}
@@ -2101,7 +2153,9 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 /******************************************************************************/
 
 function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false){
-	if($rosterID == null){
+
+	$rosterID = (int)$rosterID;
+	if($rosterID == 0){
 		setAlert(SYSTEM,"No rosterID in getFighterName()");
 		return;
 	}
@@ -2161,7 +2215,9 @@ function getAdditionalName($additionalRosterID){
 /******************************************************************************/
 
 function getFighterNameSystem($systemRosterID, $nameMode = null){
-	if($systemRosterID == null){
+
+	$systemRosterID = (int)$systemRosterID;
+	if($systemRosterID == 0){
 		setAlert(SYSTEM,"No rosterID in getFighterName()");
 		return;
 	}
@@ -2201,8 +2257,59 @@ function getFighterNameSystem($systemRosterID, $nameMode = null){
 
 /******************************************************************************/
 
+function getSystemRosterIDbyName($firstName, $lastName){
+
+	$sql = "SELECT systemRosterID, schoolID
+			FROM systemRoster
+			WHERE firstName = ?
+				AND lastName = ?"; // SQL with parameters
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "ss", $firstName, $lastName);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_bind_result($stmt, $systemRosterID, $schoolID);
+	mysqli_stmt_fetch($stmt);
+	mysqli_stmt_close($stmt);
+
+	$result['systemRosterID'] = (int)$systemRosterID;
+	$result['schoolID'] = (int)$schoolID;
+
+	return $result;
+}
+
+/******************************************************************************/
+
+function getRosterIDbySystemID($eventID, $systemRosterID){
+
+	$eventID = (int)$eventID;
+	$systemRosterID = (int)$systemRosterID;
+
+	$sql = "SELECT rosterID
+			FROM eventRoster
+			WHERE eventID = {$eventID}
+			AND systemRosterID = {$systemRosterID}";
+	return (int)mysqlQuery($sql, SINGLE, 'rosterID');
+}
+
+/******************************************************************************/
+
+function getSchoolIDbySystemID($systemRosterID){
+
+	$systemRosterID = (int)$systemRosterID;
+
+	$sql = "SELECT schoolID
+			FROM systemRoster
+			WHERE systemRosterID = {$systemRosterID}";
+	return (int)mysqlQuery($sql, SINGLE, 'schoolID');
+}
+
+/******************************************************************************/
+
 function getGroupName($groupID){
-	if($groupID == null){
+
+	$groupID = (int)$groupID;
+	if($groupID == 0){
 		setAlert(SYSTEM,"No groupID in getGroupName()");
 		return;
 	}
@@ -2225,7 +2332,8 @@ function getGroupName($groupID){
 
 function getGroupNumber($groupID){
 
-	if($groupID == null){
+	$groupID = (int)$groupID;
+	if($groupID == 0){
 		setAlert(SYSTEM,"No groupID in getGroupNumber()");
 		return;
 	}
@@ -2239,10 +2347,10 @@ function getGroupNumber($groupID){
 
 /******************************************************************************/
 
-function getIgnores($tournamentID = null, $type = '', $setNumber = 0){
+function getIgnores($tournamentID, $type = '', $setNumber = 0){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getIgnores()");
 		return;
 	}
@@ -2288,7 +2396,8 @@ function getIgnores($tournamentID = null, $type = '', $setNumber = 0){
 function getMatchDoubles($matchID){
 // returns the number of doubles in a match	
 
-	if($matchID == null){
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in getMatchDoubles()");
 		return;
 	}
@@ -2303,10 +2412,11 @@ function getMatchDoubles($matchID){
 
 /******************************************************************************/
 
-function getMatchExchanges($matchID = null){
+function getMatchExchanges($matchID){
 // returns an unsorted 	array of all exchanges in a match
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){
+
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in getMatchExchanges()");
 		return;
 	}
@@ -2323,6 +2433,21 @@ function getMatchExchanges($matchID = null){
 
 	return $result;
 	
+}
+
+/******************************************************************************/
+
+function getNumMatchScoringExchanges($matchID){
+
+	$matchID = (int)$matchID;
+
+	$sql = "SELECT COUNT(*) AS numExchanges
+			FROM eventExchanges
+			WHERE matchID = {$matchID}
+			AND exchangeType IN ('clean','afterblow','double')";
+	$numExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
+
+	return $numExchanges;
 }
 
 /******************************************************************************/
@@ -2345,17 +2470,17 @@ function isTimerCountdown($tournamentID){
 
 /******************************************************************************/
 
-function getMatchInfo($matchID = null){
+function getMatchInfo($matchID = 0){
 // returns and array of information about a match:
 // 	- tournamentID, matchID, fighterIDs, fighter names, match type (pool/final)
 // 	- afterblow and doubles type, maximum doubles
 	
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){
+	$matchID = (int)$matchID;
+	if($matchID == 0){$matchID = $_SESSION['matchID'];}
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in getMatchInfo()");
 		return;
 	}
-	$matchID = (int)$matchID;
 
 	$sql = "SELECT fighter1ID, fighter2ID, winnerID, matchID,
 			fighter1score, fighter2score, matchComplete, ignoreMatch, bracketPosition,
@@ -2364,10 +2489,10 @@ function getMatchInfo($matchID = null){
 			WHERE matchID = {$matchID}";
 	$matchInfo = mysqlQuery($sql, SINGLE);
 
-	$id1 = $matchInfo['fighter1ID'];
-	$id2 = $matchInfo['fighter2ID'];
+	$id1 = (int)$matchInfo['fighter1ID'];
+	$id2 = (int)$matchInfo['fighter2ID'];
 
-	if($id1 != null){
+	if($id1 != 0){
 		$sql = "SELECT eventRoster.schoolID
 				FROM eventRoster
 				INNER JOIN systemRoster ON systemRoster.systemRosterID = eventRoster.systemRosterID
@@ -2381,7 +2506,7 @@ function getMatchInfo($matchID = null){
 		}
 	}
 
-	if($id2 != null){
+	if($id2 != 0){
 		$sql = "SELECT eventRoster.schoolID
 				FROM eventRoster
 				INNER JOIN systemRoster ON systemRoster.systemRosterID = eventRoster.systemRosterID
@@ -2451,7 +2576,8 @@ function getMatchInfo($matchID = null){
 
 function getRoundMatches($groupID){
 	
-	if($groupID == null){
+	$groupID = (int)$groupID;
+	if($groupID == 0){
 		setAlert(SYSTEM,"No groupID in getRoundMatches()");
 		return;
 	}
@@ -2462,18 +2588,16 @@ function getRoundMatches($groupID){
 			ORDER BY matchNumber ASC";
 	return mysqlQuery($sql, ASSOC);
 	
-	
 }
 
 /******************************************************************************/
 
-function getPoolMatches($tournamentID = null, $exclude = null, $poolSet = 1){
+function getPoolMatches($tournamentID, $exclude = null, $groupSet = 1){
 // return an unsorted array of all pool matches and their fighters and winners
 // indexed by groupID and matchID	
 	
-
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getMatches()");
 		return;
 	}
@@ -2484,10 +2608,11 @@ function getPoolMatches($tournamentID = null, $exclude = null, $poolSet = 1){
 		$exclude = null;
 	}
 	
-	if($poolSet == 'all'){
-		$groupSet = null;
+	if($groupSet == 'all'){
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$poolSet}";
+		$groupSet = (int)$groupSet;
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
 	$sql = "SELECT eventMatches.matchID, eventMatches.groupID, 
@@ -2499,7 +2624,7 @@ function getPoolMatches($tournamentID = null, $exclude = null, $poolSet = 1){
 			AND eventMatches.groupID = eventGroups.groupID
 			AND eventGroups.groupType = 'pool'
 			AND eventMatches.placeholderMatchID IS NULL
-			{$groupSet}
+			{$groupSetClause}
 			{$exclude}
 			ORDER BY eventMatches.matchNumber ASC, eventGroups.groupNumber ASC";
 	$allMatches = (array)mysqlQuery($sql, ASSOC);
@@ -2559,6 +2684,11 @@ function getMatchCaps($tournamentID){
 /******************************************************************************/
 
 function getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID){
+
+	$rosterID1 = (int)$rosterID1;
+	$rosterID2 = (int)$rosterID2;
+	$tournamentID = (int)$tournamentID;
+
 	$sql = "SELECT matchID
 			FROM eventMatches
 			INNER JOIN eventGroups ON eventMatches.groupID = eventGroups.groupID
@@ -2575,10 +2705,10 @@ function getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID){
 
 /******************************************************************************/
 
-function getNameMode(){
+function getNameMode($eventID){
 	
-	$eventID = $_SESSION['eventID'];
-	if($eventID == null){ return 'firstName';}
+	$eventID = (int)$eventID;
+	if($eventID == 0){ return 'firstName';}
 	
 	$sql = "SELECT nameDisplay
 			FROM eventDefaults
@@ -2654,10 +2784,10 @@ function getPoolMatchesLeft($matchInfo){
 
 /******************************************************************************/
 
-function getNumEventMatches($eventID = null){
+function getNumEventMatches($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getNumEventMatches()");
 		return;
 	}
@@ -2726,6 +2856,7 @@ function getNumSubMatchesByMatch($matchID){
 /******************************************************************************/
 
 function getSubMatchMode($tournamentID){
+
 	$tournamentID = (int)$tournamentID;
 	$sql = "SELECT subMatchMode
 			FROM eventTournaments
@@ -2768,8 +2899,10 @@ function getSubMatchParts($matchID){
 /******************************************************************************/
 
 function getNumParticipants($tournamentID){
-	// counts the number of participants in a tournament
-	if($tournamentID == null){
+// counts the number of participants in a tournament
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getNumParticipants()");
 		return;
 	}
@@ -2785,9 +2918,12 @@ function getNumParticipants($tournamentID){
 
 /******************************************************************************/
 
-function getNumPools($groupSet, $tournamentID = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function getNumPools($groupSet, $tournamentID){
+
+	$groupSet = (int)$groupSet;
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getNumPools()");
 		return;
 	}
@@ -2806,10 +2942,10 @@ function getNumPools($groupSet, $tournamentID = null){
 
 /******************************************************************************/
 
-function getNumGroupSets($tournamentID = null){
+function getNumGroupSets($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getNumGroupSets()");
 		return;
 	}
@@ -2826,6 +2962,7 @@ function getNumGroupSets($tournamentID = null){
 
 function getEventStaffPassword($eventID){
 	
+	$eventID = (int)$eventID;
 	$sql = "SELECT staffPassword
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
@@ -2836,6 +2973,7 @@ function getEventStaffPassword($eventID){
 
 function getEventOrganizerPassword($eventID){
 	
+	$eventID = (int)$eventID;
 	$sql = "SELECT organizerPassword
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
@@ -2846,7 +2984,8 @@ function getEventOrganizerPassword($eventID){
 
 function getPoolMatchOrder($groupID, $groupRoster){
 
-	if($groupID == null ){
+	$groupID = (int)$groupID;
+	if($groupID == 0 ){
 		setAlert(SYSTEM,"No groupID in getPoolMatchOrder()");
 		return;
 	}
@@ -2877,31 +3016,37 @@ function getPoolMatchOrder($groupID, $groupRoster){
 
 /******************************************************************************/
 
-function getPoolTeamRosters($tournamentID = null, $groupSet = 1){
+function getPoolTeamRosters($tournamentID, $groupSet = 1){
 // returns an unsorted array of the rosters of each group
 // indexed by groupID and poolPosition (order of each fighter in the pool)	
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	$tournamentID = (int)$tournamentID;
 	if($tournamentID == null){
 		setAlert(SYSTEM,"No tournamentID in getPoolTeamRosters()");
 		return;
 	}
 	
 	if($groupSet == 'all'){
-		$groupSet = null;
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$groupSet}";
+		$groupSet = (int)$groupSet;
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 
 	$sql = "SELECT groupID
 			FROM eventGroups
 			WHERE tournamentID = {$tournamentID}
-			{$groupSet}";
+			{$groupSetClause}";
 	
 	$poolList = mysqlQuery($sql, SINGLES, 'groupID');
 
 	$pools = [];
 	foreach($poolList as $groupID){
+		
+		$groupID = (int)$groupID;
+		if($groupID == 0){ 
+			continue;
+		}
 		$pools[$groupID] = [];
 
 		$sql = "SELECT rosterID as teamID
@@ -2910,6 +3055,12 @@ function getPoolTeamRosters($tournamentID = null, $groupSet = 1){
 		$poolTeams = mysqlQuery($sql,SINGLES);
 
 		foreach($poolTeams as $teamID){
+
+			$teamID = (int)$teamID;
+			if($teamID == 0){ 
+				continue;
+			}
+
 			$sql = "SELECT rosterID
 					FROM eventTeamRoster
 					WHERE teamID = {$teamID}
@@ -2926,29 +3077,28 @@ function getPoolTeamRosters($tournamentID = null, $groupSet = 1){
 
 /******************************************************************************/
 
-function getPoolRosters($tournamentID = null, $groupSet = 1){
+function getPoolRosters($tournamentID, $groupSetMode){
 // returns an unsorted array of the rosters of each group
 // indexed by groupID and poolPosition (order of each fighter in the pool)	
-	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getPoolRosters()");
 		return;
 	}
 
-	$tournamentID = (int)$tournamentID;
-	$groupSet = (int)$groupSet;
-	
-	if($groupSet == 'all'){
-		$groupSet = null;
+	if($groupSetMode == 'all'){
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$groupSet}";
+		$groupSet = (int)$groupSetMode;
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 
 	$sql = "SELECT groupID
 			FROM eventGroups
 			WHERE tournamentID = {$tournamentID}
-			{$groupSet}";
+			{$groupSetClause}";
 	
 	$poolList = mysqlQuery($sql, SINGLES, 'groupID');
 
@@ -2963,7 +3113,7 @@ function getPoolRosters($tournamentID = null, $groupSet = 1){
 			INNER JOIN eventGroups USING(groupID)
 			INNER JOIN eventRoster USING(rosterID)
 			WHERE eventGroups.tournamentID = {$tournamentID}
-			{$groupSet}
+			{$groupSetClause}
 			ORDER BY eventGroupRoster.poolPosition ASC";
 	
 
@@ -3107,7 +3257,7 @@ function logistics_getEventScheduleConflicts($eventID){
 	$conflicts = [];
 
 	foreach($ringsInfo as $ringInfo){
-		$locationID = $ringInfo['locationID'];
+		$locationID = (int)$ringInfo['locationID'];
 
 		$sql = "SELECT blockID, dayNum, locationID, startTime, endTime 
 				FROM logisticsLocationsBlocks
@@ -3247,6 +3397,20 @@ function logistics_getScheduleBlockInfo($blockID){
 	$locations = mysqlQuery($sql, SINGLES, 'locationID');
 
 	$data['locationIDs'] = $locations;
+
+	$data['blockAttributes']['experience'] = "";
+	$data['blockAttributes']['equipment'] = "";
+	$sql = "SELECT blockAttributeType, blockAttributeText
+			FROM logisticsBlockAttributes
+			WHERE blockID = {$blockID}
+			AND (blockAttributeType = 'experience' 
+				OR blockAttributeType = 'equipment')";
+	$attributes = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($attributes as $att){
+		$data['blockAttributes'][$att['blockAttributeType']] = $att['blockAttributeText'];
+	}
+
 
 	return($data);
 
@@ -3438,19 +3602,20 @@ function logistics_getRoleCompetencies($eventID){
 
 /******************************************************************************/
 
-function getPools($tournamentID = null, $groupSet = 1){
+function getPools($tournamentID, $groupSelection = 1){
 // returns a sorted array of all pools, by pool number
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getPools()");
 		return;
 	}
 	
-	if($groupSet == 'all'){
-		$groupWhere = null;
+	if($groupSelection == 'all'){
+		$groupSetClause = null;
 	} else {
-		$groupWhere = "AND eventGroups.groupSet = {$groupSet}";
+		$groupSet = (int)$groupSelection;
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
 	$sql = "SELECT groupID, groupName, groupComplete, groupSet,
@@ -3458,7 +3623,7 @@ function getPools($tournamentID = null, $groupSet = 1){
 			FROM eventGroups
 			WHERE tournamentID = {$tournamentID}
 			AND groupType = 'pool'
-			{$groupWhere}
+			{$groupSetClause}
 			ORDER BY groupNumber ASC";
 
 	$pools = mysqlQuery($sql, ASSOC);
@@ -3468,19 +3633,21 @@ function getPools($tournamentID = null, $groupSet = 1){
 
 /******************************************************************************/
 
-function getRankedPools($tournamentID = null, $groupSet = 1){
+function getRankedPools($tournamentID = 0, $groupSelection = 1){
 // returns a sorted array of all pools, by pool number
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getPools()");
 		return;
 	}
 	
-	if($groupSet == 'all'){
-		$groupWhere = null;
+	if($groupSelection == 'all'){
+		$groupSetClause = null;
 	} else {
-		$groupWhere = "AND eventGroups.groupSet = {$groupSet}";
+		$groupSet = (int)$groupSelection;
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
 	$sql = "SELECT groupID, groupSet, groupRank, overlapSize
@@ -3488,7 +3655,7 @@ function getRankedPools($tournamentID = null, $groupSet = 1){
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
 			AND groupType = 'pool'
-			{$groupWhere}
+			{$groupSetClause}
 			ORDER BY groupSet DESC, groupRank ASC";
 
 	$pools = mysqlQuery($sql, ASSOC);
@@ -3515,9 +3682,10 @@ function arePoolsRanked($tournamentID, $groupSet){
 
 /******************************************************************************/
 
-function getGroupSetOfMatch($matchID = null){
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){
+function getGroupSetOfMatch($matchID){
+
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in getGroupSetOfMatch()");
 		return;
 	}
@@ -3532,13 +3700,12 @@ function getGroupSetOfMatch($matchID = null){
 /******************************************************************************/
 
 function getGroupInfo($groupID){
-// 
 
-	if($groupID == null){
+	$groupID = (int)$groupID;
+	if($groupID == 0){
 		setAlert(SYSTEM,"No groupID in getGroupInfo()");
 		return;
 	}
-	
 	
 	$sql = "SELECT groupID, groupName, groupNumber, groupComplete, groupSet
 			FROM eventGroups
@@ -3550,17 +3717,13 @@ function getGroupInfo($groupID){
 
 /******************************************************************************/
 
-function getEventDefaults($eventID = null){
-	if($eventID == null) {
-		$eventID = $_SESSION['eventID'];
-	}
-	
-	if($eventID == null){
+function getEventDefaults($eventID){
+
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		// Not an error, can return a null result
 		return null;
 	}
-
-	$eventID = (int)$eventID;
 	
 	$sql = "SELECT *
 			FROM eventDefaults
@@ -3596,57 +3759,52 @@ function getEventDefaults($eventID = null){
 
 /******************************************************************************/
 
-function getTournamentIncompletes($tournamentID = null, $type = null, $poolSet = 1){
+function getTournamentPoolIncompletes($tournamentID, $groupSet = 0){
 // Returns the status of the tournament pools (complete etc...)
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
-		setAlert(SYSTEM,"No tournamentID in getTournamentIncompletes()");
+
+	$groupSet = (int)$groupSet;
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in getTournamentPoolIncompletes()");
 		return;
 	}
-	if($poolSet < 1){
-		return null;
-	} elseif($poolSet == 'all'){
-		$groupSet = null;
+
+	if($groupSet == 0){
+		$groupSetClause = null;
 	} else {
-		$groupSet = "AND eventGroups.groupSet = {$poolSet}";
+		$groupSetClause = "AND eventGroups.groupSet = {$groupSet}";
 	}
 	
-	$sql = "SELECT matchID, groupType
+	$sql = "SELECT matchID
 			FROM eventMatches
 			INNER JOIN eventGroups ON eventGroups.groupID = eventMatches.groupID
 			WHERE eventGroups.tournamentID = {$tournamentID}
 			AND matchComplete != 1
-			{$groupSet}
+			AND groupType = 'pool'
+			{$groupSetClause}
 			AND ignoreMatch != 1";
-	$result = mysqlQuery($sql, ASSOC);
+	$incompleteMatches = (array)mysqlQuery($sql, SINGLES, 'matchID');
 
-	foreach($result as $match){
-		$incompleteMatches[$match['groupType']][] = $match['matchID'];
-	}
-
-	if(!isset($incompleteMatches)){
-		// No incomplete matches
-		return null;
-	} elseif($type != null){
-		return @$incompleteMatches[$type]; // Might be empty
-	} else {
-		return $incompleteMatches;
-	}
+	return $incompleteMatches;
+	
 
 }
 
 /******************************************************************************/
 
-function getRounds($tournamentID = null, $groupSet = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function getRounds($tournamentID , $groupSet = 0){
+
+	$groupSet = (int)$groupSet;
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getRounds()");
 		return;
 	}
 	
-	$set = '';
-	if($groupSet != null){
+	if($groupSet != 0){
 		$set = "AND groupSet = {$groupSet}";
+	} else {
+		$set = '';
 	}
 	
 	$sql = "SELECT groupID, groupName, groupSet, groupNumber
@@ -3665,12 +3823,11 @@ function getRounds($tournamentID = null, $groupSet = null){
 function getRoundScores($groupID){
 // Returns an array of fighters in the round, sorted by score
 	
-	if($groupID == null){
+	$groupID = (int)$groupID;
+	if($groupID == 0){
 		setAlert(SYSTEM,"No groupID in getRoundScores()");
 		return;
 	}
-
-	$groupID = (int)$groupID;
 
 	$matches= getRoundMatches($groupID);
 	$scores = [];
@@ -3728,7 +3885,7 @@ function getListForNextRound($tournamentID, $groupSet, $groupNumber){
 	$ignores = getIgnores($tournamentID);
 	
 	if($groupSet == 1 && $groupNumber == 1){
-		$r = getTournamentCompetitors();
+		$r = getTournamentCompetitors($tournamentID);
 		foreach($r as $index => $fighter){
 			if(@$ignores[$fighter['rosterID']]['stopAtSet'] > 0){
 				// the array value not existing is logically the same as being zero
@@ -3808,10 +3965,10 @@ function getListForNextRound($tournamentID, $groupSet, $groupNumber){
 
 /******************************************************************************/
 
-function getLivestreamInfo($eventID = null){
+function getLivestreamInfo($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		// Not an error, return no information
 		return null;
 	}
@@ -3826,10 +3983,10 @@ function getLivestreamInfo($eventID = null){
 
 /******************************************************************************/
 
-function getLivestreamMatch($eventID = null){
+function getLivestreamMatch($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"getLivestreamMatch()");
 		return;
 	}
@@ -3843,10 +4000,10 @@ function getLivestreamMatch($eventID = null){
 
 /******************************************************************************/
 
-function getLivestreamMatchOrder($eventID = null){
+function getLivestreamMatchOrder($eventID){
 	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"getLivestreamMatchOrder()");
 		return;
 	}
@@ -3862,6 +4019,7 @@ function getLivestreamMatchOrder($eventID = null){
 /******************************************************************************/
 
 function logistics_getWorkshopStats($eventID){
+
 	$eventID = (int)$eventID;
 	$blockID = (int)SCHEDULE_BLOCK_WORKSHOP;
 	$roleID = (int)LOGISTICS_ROLE_INSTRUCTOR;
@@ -3903,14 +4061,9 @@ function logistics_getWorkshopStats($eventID){
 
 /******************************************************************************/
 
-function logistics_getEventSchedule($eventID, $dayNum = null, $withShifts = false){
+function logistics_getEventSchedule($eventID, $withShifts = false){
 
 	$eventID = (int)$eventID;
-	if($dayNum != null){
-		$dayClause = 'AND dayNum = {$dayNum}';
-	} else {
-		$dayClause = '';
-	}
 
 	if($withShifts == true){
 		$shiftClause = "AND (	SELECT COUNT(*)
@@ -3924,7 +4077,6 @@ function logistics_getEventSchedule($eventID, $dayNum = null, $withShifts = fals
 					blockTitle, blockSubtitle, blockDescription
 			FROM logisticsScheduleBlocks AS blocks
 			WHERE eventID = {$eventID}
-			{$dayClause}
 			{$shiftClause}
 			ORDER BY dayNum ASC, startTime ASC";
 	$scheduleData = mysqlQuery($sql, ASSOC);
@@ -3939,15 +4091,11 @@ function logistics_getEventSchedule($eventID, $dayNum = null, $withShifts = fals
 		$scheduleData[$index]['locationIDs'] = mysqlQuery($sql, SINGLES,'locationID');
 	}
 
-	if($dayNum != null){
-		return $scheduleData;
-	} else {
-		$sortedSchedule = [];
-		foreach($scheduleData as $item){
-			$sortedSchedule[$item['dayNum']][] = $item;
-		}
+	$sortedSchedule = [];
+	foreach($scheduleData as $item){
+		$sortedSchedule[$item['dayNum']][] = $item;
 	}
-
+	
 	return $sortedSchedule;
 	
 
@@ -4081,15 +4229,19 @@ function logistics_getGroupLocationName($groupID){
 
 /******************************************************************************/
 
-function getNormalization($tournamentID, $groupSet = 1, $returnRawValue = false){
-	if($tournamentID == null){
+function getNormalization($tournamentID, $groupSet = 0){
+
+	$groupSet = (int)$groupSet;
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getNormalization()");
 		return;
 	}
 	
 	$value = null;
+
 	// Checks to see if the set has it's own normalization size
-	if($groupSet != null){
+	if($groupSet != 0){
 		
 		$sql = "SELECT attributeValue
 				FROM eventAttributes
@@ -4107,42 +4259,45 @@ function getNormalization($tournamentID, $groupSet = 1, $returnRawValue = false)
 		$value =  mysqlQuery($sql, SINGLE, 'normalizePoolSize');
 	}
 
-	if($returnRawValue){
-		return $value;
+	if($groupSet == 0){
+		// If there was no group set specified then we don't do any auto-detect size 
+		// for normalization and simply return the value retrieved by the query.
+	} else {	
+		if($value < 2){
+			// A value of less than 2 means the normalization is set to auto detect
+			$numFightersInPool = [];
+			$pools = getPools($tournamentID, $groupSet);
+			
+			foreach($pools as $pool){
+				if($pool['numFighters'] < 1){ continue; }
+				if(!isset($numFightersInPool[$pool['numFighters']])){
+					$numFightersInPool[$pool['numFighters']] = 0;
+				}
+
+				$numFightersInPool[$pool['numFighters']]++;
+			}
+
+			$highestInstances = 0;
+			$value = 0;
+
+			foreach((array)$numFightersInPool as $fighters => $instances){
+				if($instances > $highestInstances){
+					$value = $fighters;
+					$highestInstances = $instances;
+				} elseif($instances == $highestInstances){
+					// If there is a tie it goes with the lower number
+					$value = $fighters;
+				}
+
+			}
+		}
+
+		if($value < 2){
+			// If the value is still less than two, force it to two
+			$value = 2;
+		}
 	}
 	
-	// A value of 0 means the normalization is set to auto detect
-	$numFightersInPool = [];
-	if($value < 2 && $groupSet != null){
-		$pools = getPools($tournamentID, $groupSet);
-		
-		foreach($pools as $pool){
-			if($pool['numFighters'] < 1){ continue; }
-			if(!isset($numFightersInPool[$pool['numFighters']])){
-				$numFightersInPool[$pool['numFighters']] = 0;
-			}
-
-			$numFightersInPool[$pool['numFighters']]++;
-		}
-		
-		$highestInstances = 0;
-		$value = 0;
-
-		foreach((array)$numFightersInPool as $fighters => $instances){
-			if($instances > $highestInstances){
-				$value = $fighters;
-				$highestInstances = $instances;
-			} elseif($instances == $highestInstances){
-				// If there is a tie it goes with the lower number
-				$value = $fighters;
-			}
-		}
-	}
-
-	if($value < 2){
-		$value = 2;
-	}
-
 	return $value;
 	
 }
@@ -4151,6 +4306,9 @@ function getNormalization($tournamentID, $groupSet = 1, $returnRawValue = false)
 
 function getNormalizationCumulative($tournamentID, $groupSet = 1){
 	
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
 	$sql = "SELECT MAX(attributeGroupSet) as groupSet
 			FROM eventAttributes
 			WHERE tournamentID = {$tournamentID}
@@ -4158,10 +4316,11 @@ function getNormalizationCumulative($tournamentID, $groupSet = 1){
 			AND attributeType = 'cumulative'
 			AND attributeBool = FALSE ";
 	$startAtSet = (int)mysqlQuery($sql, SINGLE, 'groupSet');
+
 	if($startAtSet < 1){
 		$startAtSet = 1;
 	}
-	
+
 	return getNormalization($tournamentID, $groupSet);
 
 }
@@ -4171,6 +4330,8 @@ function getNormalizationCumulative($tournamentID, $groupSet = 1){
 
 function getNormalizationAveraged($tournamentID, $groupSet = 1){
 
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
 
 	$sql = "SELECT MAX(attributeGroupSet) as groupSet
 			FROM eventAttributes
@@ -4223,10 +4384,12 @@ function getNormalizationAveraged($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
-function getSetName($setNumber, $tournamentID = null){
+function getSetName($setNumber, $tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$setNumber = (int)$setNumber;
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getSetName()");
 		return;
 	}
@@ -4290,8 +4453,9 @@ function getSetName($setNumber, $tournamentID = null){
 /******************************************************************************/
 
 function getSetAttributes($tournamentID){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getSetAttributes()");
 		return;
 	}
@@ -4336,7 +4500,8 @@ function getSetAttributes($tournamentID){
 function getSchoolInfo($schoolID){
 // return a sorted array of all schools in the database 	
 	
-	if($schoolID == null){
+	$schoolID = (int)$schoolID;
+	if($schoolID == 0){
 		setAlert(SYSTEM,"No schoolID in getSchoolInfo()");
 		return;
 	}
@@ -4350,19 +4515,13 @@ function getSchoolInfo($schoolID){
 
 /******************************************************************************/
 
-function getSchoolList($sortString = null){
+function getSchoolList(){
 // return a sorted array of all schools in the database 	
-	
-	if(isset($sortString)){
-		$sortString = "ORDER BY ".$sortString;
-	} else {
-		$sortString = "ORDER BY schoolShortName, schoolBranch";
-	}
-	
+
 	$sql = "SELECT schoolShortName, schoolID, schoolBranch, schoolAbbreviation, countryName
 			FROM systemSchools
 			INNER JOIN systemCountries USING(countryIso2)
-			{$sortString}";
+			ORDER BY schoolShortName, schoolBranch";
 	$allSchools = mysqlQuery($sql, ASSOC);
 
 	
@@ -4371,32 +4530,27 @@ function getSchoolList($sortString = null){
 
 /******************************************************************************/
 
-function getSchoolListLong($sortString = null){
+function getSchoolListLong(){
 // return a sorted array of all schools in the database 	
-	
-	if(isset($sortString)){
-		$sortString = "ORDER BY ".$sortString;
-	} else {
-		$sortString = "ORDER BY schoolShortName, schoolBranch";
-	}
-	
+
 	$sql = "SELECT schoolID, schoolFullName, schoolShortName, schoolBranch, 
 				schoolAbbreviation, schoolCity, schoolProvince, countryIso2, 
 				countryName
 			FROM systemSchools
 			INNER JOIN systemCountries USING(countryIso2)
-			{$sortString}";
+			ORDER BY schoolShortName, schoolBranch";
 	$allSchools = mysqlQuery($sql, ASSOC);
 
-	
 	return $allSchools;
 }
 
 
 /******************************************************************************/
 
-function getSchoolName($schoolID = null, $nameType = null, $includeBranch = null){
-	if($schoolID == null){
+function getSchoolName($schoolID, $nameType = null, $includeBranch = null){
+
+	$schoolID = (int)$schoolID;
+	if($schoolID == 0){
 		return '';
 	} 
 	
@@ -4428,14 +4582,15 @@ function getSchoolName($schoolID = null, $nameType = null, $includeBranch = null
 
 /******************************************************************************/
 
-function getSchoolPoints($eventID = null){
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+function getSchoolPoints($eventID){
+
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID for updateSchoolPoints()");
 		return;
 	}
 	
-	$tournamentList = getTournamentsFull();
+	$tournamentList = getTournamentsFull($eventID);
 	$fullPlacings = array();
 	$points = array();
 
@@ -4476,14 +4631,16 @@ function getSchoolPoints($eventID = null){
 
 /******************************************************************************/
 
-function getSchoolRosterNotInEvent($schoolID, $eventID = null){
+function getSchoolRosterNotInEvent($schoolID, $eventID){
 
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getSchoolRosterNotInEvent()");
 		return;
 	}
-	if($schoolID == null){ 
+
+	$schoolID = (int)$schoolID;
+	if($schoolID == 0){ 
 		setAlert(SYSTEM,"No schoolID in getSchoolRosterNotInEvent()");
 		return;
 	}	
@@ -4503,10 +4660,10 @@ function getSchoolRosterNotInEvent($schoolID, $eventID = null){
 
 /******************************************************************************/
 
-function getScoreFormula($tournamentID = null){
+function getScoreFormula($tournamentID){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getScoreFormula()");
 		return;
 	}
@@ -4522,30 +4679,35 @@ function getScoreFormula($tournamentID = null){
 
 /******************************************************************************/
 
-function getSystemRoster($tournamentID = null){
+function getSystemRoster($tournamentID = 0){
 	
 // return a sorted array of all fighters in the system
 
 	$orderName = NAME_MODE;
 	$sortString = "ORDER BY {$orderName} ASC";
+	$tournamentID = (int)$tournamentID;
 
-	if($tournamentID == null){
+
+	if($tournamentID == 0){
+
 		$sql = "SELECT systemRosterID
 				FROM systemRoster
 				{$sortString}";
 
 		return mysqlQuery($sql, SINGLES, 'systemRosterID');
+
+	} else {
+
+		$sql = "SELECT systemRoster.systemRosterID
+				FROM eventTournamentRoster
+				INNER JOIN eventRoster USING(rosterID)
+				INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
+				WHERE tournamentID = {$tournamentID}
+				{$sortString}";
+
+		return mysqlQuery($sql, SINGLES, 'systemRosterID');
+
 	}
-
-	$sql = "SELECT systemRoster.systemRosterID
-			FROM eventTournamentRoster
-			INNER JOIN eventRoster USING(rosterID)
-			INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
-			WHERE tournamentID = {$tournamentID}
-			{$sortString}";
-
-	return mysqlQuery($sql, SINGLES, 'systemRosterID');
-	
 	
 }
 
@@ -4563,6 +4725,8 @@ function getTournamentWeaponsList(){
 /******************************************************************************/
 
 function getNumNoWinners($groupID){
+
+	$groupID = (int)$groupID;
 	
 	$sql = "SELECT matchID
 			FROM eventMatches
@@ -4576,11 +4740,11 @@ function getNumNoWinners($groupID){
 	
 /******************************************************************************/
 
-function getTournamentAttacks($tournamentID = null){
+function getTournamentAttacks($tournamentID){
 // Get the unique attacks attributed to a tournament
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentAttacks()");
 		return;
 	}
@@ -4668,16 +4832,18 @@ function getPenaltyActions(){
 
 /******************************************************************************/
 
-function getTournamentAttributeName($ID = null){
+function getTournamentAttributeName($tournamentTypeID = 0){
 	//the name of any tournament attribute given it's ID
-	if($ID == null){
+
+	$tournamentTypeID = (int)$tournamentTypeID;
+	if($tournamentTypeID == 0){
 		return null;
 	}
 	
-	$sql = "SELECT tournamentType FROM systemTournaments
-			WHERE tournamentTypeID = {$ID}";
-	$out = mysqlQuery($sql, SINGLE);
-	return $out['tournamentType'];
+	$sql = "SELECT tournamentType 
+			FROM systemTournaments
+			WHERE tournamentTypeID = {$tournamentTypeID} ";
+	return  mysqlQuery($sql, SINGLE, 'tournamentType');
 }
 
 /******************************************************************************/
@@ -4891,8 +5057,9 @@ function logistics_isBlockStaffed($blockID, $blockTypeID, $tournamentID = null){
 
 
 	foreach($shifts as $shiftID){
-		$shiftID = (int)$shiftID;
 
+		$shiftID = (int)$shiftID;
+		$isStaffed = true;
 
 		$sql = "SELECT logisticsRoleID, COUNT(*) AS num
 				FROM logisticsStaffShifts
@@ -4900,8 +5067,6 @@ function logistics_isBlockStaffed($blockID, $blockTypeID, $tournamentID = null){
 				GROUP BY logisticsRoleID";
 		$staffOnShift = mysqlQuery($sql, KEY_SINGLES, 'logisticsRoleID','num');
 
-
-		$isStaffed = true;
 		switch($blockTypeID){
 			case SCHEDULE_BLOCK_WORKSHOP:
 				if(!isset($staffOnShift[LOGISTICS_ROLE_INSTRUCTOR])
@@ -5379,7 +5544,6 @@ function logistics_getParticipantSchedule($rosterID, $eventID){
 
 	return $schedule;
 
-
 }
 
 /******************************************************************************/
@@ -5463,10 +5627,10 @@ function logistics_findStaffOverCompetency($eventID){
 
 /******************************************************************************/
 
-function getTournamentCompetitors($tournamentID = null, $sortType = null, $excluded = null){
+function getTournamentCompetitors($tournamentID, $sortType = null, $excluded = null){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentCompetitors()");
 		return;
 	}
@@ -5476,13 +5640,13 @@ function getTournamentCompetitors($tournamentID = null, $sortType = null, $exclu
 	} else {
 
 		$sql = "SELECT eventRoster.rosterID, systemSchools.schoolShortName, 
-		systemSchools.schoolAbbreviation
-		FROM eventTournamentRoster
-		INNER JOIN eventRoster USING(rosterID)
-		LEFT JOIN systemRoster USING(systemRosterID)
-		LEFT JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
-		WHERE eventTournamentRoster.tournamentID = {$tournamentID}
-		AND eventRoster.isTeam = 1";	
+					systemSchools.schoolAbbreviation
+				FROM eventTournamentRoster
+				INNER JOIN eventRoster USING(rosterID)
+				LEFT JOIN systemRoster USING(systemRosterID)
+				LEFT JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
+				WHERE eventTournamentRoster.tournamentID = {$tournamentID}
+				AND eventRoster.isTeam = 1";	
 			
 		if($sortType == 'rosterID'){
 			return mysqlQuery($sql,KEY,'rosterID');
@@ -5510,6 +5674,12 @@ function getTournamentEventID($tournamentID){
 function getTournamentFighters($tournamentID, $sortType = null, $excluded = null){
 
 	$excludeTheDiscounted = null;
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in getTournamentFighters()");
+		return;
+	}
 	
 	$orderName = NAME_MODE;
 	
@@ -5669,12 +5839,12 @@ function getNumTournamentGroups($tournamentID){
 
 /******************************************************************************/
 
-function getTournamentRoster($tournamentID = null, $sortType = null, $excluded = null){
+function getTournamentRoster($tournamentID, $sortType = null, $excluded = null){
 // returns a sorted array of all fighters in a tournament
 // indexed by rosterID	
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentRoster()");
 		return;
 	}
@@ -5712,7 +5882,8 @@ function getTournamentRoster($tournamentID = null, $sortType = null, $excluded =
 
 function getTournamentPlacings($tournamentID){
 	
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentPlacings()");
 		return;
 	}
@@ -5775,9 +5946,10 @@ function getTournamentPlacingsForEdit($tournamentID){
 
 /******************************************************************************/
 
-function getTournamentsAlphabetical($eventID = null){
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+function getTournamentsAlphabetical($eventID){
+
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getTournamentsAlphabetical()");
 		return;
 	}
@@ -5803,6 +5975,7 @@ function getTournamentsAlphabetical($eventID = null){
 /******************************************************************************/
 
 function getTournamentFormat($tournamentID){
+
 	$tournamentID = (int)$tournamentID;
 
 	$sql = "SELECT formatID
@@ -5814,15 +5987,13 @@ function getTournamentFormat($tournamentID){
 
 /******************************************************************************/
 
-function getTournamentLogic($tournamentID = null){
+function getTournamentLogic($tournamentID){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentLogic()");
 		return;
 	}
-
-	$tournamentID = (int)$tournamentID;
 
 	$sql = "SELECT logicMode
 			FROM eventTournaments
@@ -5832,9 +6003,10 @@ function getTournamentLogic($tournamentID = null){
 
 /******************************************************************************/
 
-function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType = 'pool', $advancementsOnly = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function getTournamentStandings($tournamentID, $poolSet = 1, $groupType = 'pool', $advancementsOnly = null){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentStandings()");
 		return;
 	}
@@ -5852,12 +6024,16 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 	if($poolSet == 'all'){
 		$groupSet = null;
 	} else {
-		if($poolSet == null){$poolSet = $_SESSION['groupSet'];}
+		if($poolSet == null){
+			$poolSet = (int)$_SESSION['groupSet'];
+		}
 		$groupSet = "AND eventStandings.groupSet = {$poolSet}";
 	}
 	
 	if($groupType == 'pool'){
+
 		$orderName = NAME_MODE;
+
 		if(isNoPools($tournamentID)){
 			$sql = "SELECT eventRoster.rosterID
 					FROM eventTournamentRoster
@@ -5865,7 +6041,9 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 					INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
 					WHERE eventTournamentRoster.tournamentID = {$tournamentID}
 					ORDER BY {$orderName} ASC";
+
 		} else {
+
 			if(isMatchesByTeam($tournamentID)){
 				$teamClause = "AND isTeam = 1";
 			} else {
@@ -5963,8 +6141,8 @@ function getTournamentStandings($tournamentID = null, $poolSet = 1, $groupType =
 
 function getTournamentWeapon($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getTournamentWeapon()");
 		return;
 	}
@@ -5979,13 +6157,13 @@ function getTournamentWeapon($tournamentID){
 
 /******************************************************************************/
 
-function getTournamentsFull($eventID = null){
+function getTournamentsFull($eventID){
 // returns an unsorted array of all tournaments at the event, and all attributes 
 // associated with each	
 // indexed by tournamentID
 
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in getTournamentsFull()");
 		return;
 	}
@@ -6010,9 +6188,10 @@ function getTournamentsFull($eventID = null){
 
 /******************************************************************************/
 
-function getYouTube($matchID = null){
-	if($matchID == null){$matchID = $_SESSION['matchID'];}
-	if($matchID == null){
+function getYouTube($matchID){
+
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in getYouTube()");
 		return;
 	}
@@ -6027,11 +6206,11 @@ function getYouTube($matchID = null){
 
 /******************************************************************************/
 
-function isDoubleElim($tournamentID = null){
+function isDoubleElim($tournamentID){
 	// returns true if the tournament has a double elim bracket
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isDoubleElim()");
 		return;
 	}
@@ -6043,8 +6222,11 @@ function isDoubleElim($tournamentID = null){
 			AND groupNumber = 2";
 	$num = mysqlQuery($sql, SINGLE, 'numFighters');
 	
-	if($num > 2){return true;}
-	else {return false;}
+	if($num > 2){
+		return true;
+	}else {
+		return false;
+	}
 	
 }
 
@@ -6068,8 +6250,8 @@ function isPools($tournamentID){
 
 function isResultsOnly($tournamentID){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isResultsOnly()");
 		return;
 	}
@@ -6086,10 +6268,16 @@ function isResultsOnly($tournamentID){
 
 /******************************************************************************/
 
-function isCumulative($groupSet, $tournamentID = null){
+function isCumulative($groupSet, $tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$groupSet = (int)$groupSet;
+	if($groupSet == 0){
+		setAlert(SYSTEM,"No groupSet in isCumulative()");
+		return;
+	}
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isCumulative()");
 		return;
 	}
@@ -6107,6 +6295,12 @@ function isCumulative($groupSet, $tournamentID = null){
 function isCumulativeRounds($tournamentID){
 // Checks to see if there is only one round per group set
 // Used to change how rounds are displayed
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in isCumulativeRounds()");
+		return;
+	}
 
 	$sql = "SELECT groupSet
 			FROM eventGroups
@@ -6150,10 +6344,10 @@ function isBrackets($tournamentID){
 
 /******************************************************************************/
 
-function isTies($tournamentID = null){
+function isTies($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return false;}
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){return false;}
 	
 	$sql = "SELECT allowTies
 			FROM eventTournaments
@@ -6165,10 +6359,11 @@ function isTies($tournamentID = null){
 
 /******************************************************************************/
 
-function isTeams($tournamentID = null){
+function isTeams($tournamentID = 0){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return false;}
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == 0){return false;}
 	
 	$sql = "SELECT isTeams
 			FROM eventTournaments
@@ -6182,6 +6377,9 @@ function isTeams($tournamentID = null){
 
 function getFighterTeam($rosterID, $tournamentID){
 
+	$rosterID = (int)$rosterID;
+	$tournamentID = (int)$tournamentID;
+
 	$sql = "SELECT teamID
 			FROM eventTeamRoster team
 			INNER JOIN eventTournamentRoster tourn ON team.tournamentRosterID = tourn.tableID
@@ -6194,12 +6392,11 @@ function getFighterTeam($rosterID, $tournamentID){
 
 /******************************************************************************/
 
-function getTournamentTeams($tournamentID = null){
-
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return false;}
+function getTournamentTeams($tournamentID = 0){
 
 	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
+	if($tournamentID == 0){return false;}
 
 	$sql = "SELECT eventRoster.rosterID as rosterID, NULL AS schoolID, eventRoster.rosterID as teamID 
 			FROM eventTournamentRoster
@@ -6213,11 +6410,12 @@ function getTournamentTeams($tournamentID = null){
 
 /******************************************************************************/
 
-function getTeamRosters($tournamentID = null){
+function getTeamRosters($tournamentID){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return null;}
 	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		return null;
+	}
 
 	$sql = "SELECT teamRost.rosterID, teamRost.teamID, teamRost.tableID 
 			FROM eventTeamRoster as teamRost
@@ -6266,13 +6464,13 @@ function getTeamRoster($teamID, $role = 'member'){
 
 /******************************************************************************/
 
-function getUngroupedRoster($tournamentID = null){
+function getUngroupedRoster($tournamentID){
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return null;}
 	$tournamentID = (int)$tournamentID;
-
-
+	if($tournamentID == 0){
+		return null;
+	}
+	
 	$sql = "SELECT t1.rosterID
 			FROM eventTeamRoster t1
 			INNER JOIN eventTournamentRoster t2 ON t1.tournamentRosterID = t2.tableID
@@ -6307,7 +6505,8 @@ function getUngroupedRoster($tournamentID = null){
 
 function isInProgress($tournamentID, $type = null){
 	
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		return false;
 	}
 
@@ -6390,7 +6589,7 @@ function isInProgress($tournamentID, $type = null){
 		$rounds = getRounds($tournamentID, $maxGroupSet);
 
 		foreach($rounds as $round){
-			$groupID = $round['groupID'];
+			$groupID = (int)$round['groupID'];
 			
 			$sql = "SELECT COUNT(*) AS numComplete
 					FROM eventMatches
@@ -6424,7 +6623,9 @@ function isInProgress($tournamentID, $type = null){
 /******************************************************************************/
 
 function isInLosersBracket($matchID){
-	if($matchID == null){
+
+	$matchID = (int)$matchID;
+	if($matchID == 0){
 		setAlert(SYSTEM,"No matchID in isInLosersBracket()");
 		return;
 	}
@@ -6448,10 +6649,10 @@ function isInLosersBracket($matchID){
 
 /******************************************************************************/
 
-function isEventArchived($eventID = null){
+function isEventArchived($eventID){
 			
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){
+	$eventID = (int)$eventID;
+	if($eventID == 0){
 		setAlert(SYSTEM,"No eventID in isEventArchived()");
 		return;
 	}
@@ -6471,10 +6672,13 @@ function isEventArchived($eventID = null){
 
 /******************************************************************************/
 
-function isEventTermsAccepted($eventID = null){
+function isEventTermsAccepted($eventID){
 
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){return 0;}
+	$eventID = (int)$eventID;
+	if($eventID == 0){
+		setAlert(SYSTEM,"No eventID in isEventTermsAccepted()");
+		return false;
+	}
 
 	$sql = "SELECT termsOfUseAccepted
 			FROM systemEvents
@@ -6489,6 +6693,7 @@ function isLastPiece($tournamentID){
 // Determines if all pieces in a tournament have been concluded
 // Looks for pieces w/o score, groups w/o matches, and sets w/o groups
 
+	$tournamentID = (int)$tournamentID;
 	if(areAllMatchesFinished($tournamentID) == false){ 
 		return false;
 	}
@@ -6501,6 +6706,9 @@ function isLastPiece($tournamentID){
 	
 	
 	foreach($groups as $groupID){
+
+		$groupID = (int)$groupID;
+
 		$sql = "SELECT COUNT(*) AS numMatches
 				FROM eventMatches
 				WHERE groupID = {$groupID}";
@@ -6569,6 +6777,7 @@ function isLastMatch($tournamentID){
 // Check if the tournament is complete
 // Used to prompt user to finalize tournament if it is.
 
+	$tournamentID = (int)$tournamentID;
 	if(areAllMatchesFinished($tournamentID) == false){ 
 		return false;
 	}
@@ -6598,10 +6807,11 @@ function isLastMatch($tournamentID){
 
 /******************************************************************************/
 
-function isReverseScore($tournamentID = null){
+function isReverseScore($tournamentID = 0){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = (int)$_SESSION['tournamentID'];}
+	if($tournamentID == 0){
 		return null;
 	}
 
@@ -6613,9 +6823,10 @@ function isReverseScore($tournamentID = null){
 
 /******************************************************************************/
 
-function isNoPools($tournamentID = null, $poolSet = 1){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function isNoPools($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isNoPools()");
 		return;
 	}
@@ -6639,8 +6850,9 @@ function isNoPools($tournamentID = null, $poolSet = 1){
 
 function isFinalized($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return false;}
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){$tournamentID = (int)$_SESSION['tournamentID'];}
+	if($tournamentID == 0){return false;}
 	
 	$sql = "SELECT isFinalized
 			FROM eventTournaments
@@ -6708,9 +6920,10 @@ function areMatchesStarted($eventID){
 
 /******************************************************************************/
 
-function isDoubleHits($tournamentID = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function isDoubleHits($tournamentID){
+	
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isDoubleHits()");
 		return;
 	}
@@ -6730,9 +6943,10 @@ function isDoubleHits($tournamentID = null){
 
 /******************************************************************************/
 
-function isFullAfterblow($tournamentID = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function isFullAfterblow($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in isFullAfterblow()");
 		return;
 	}
@@ -6770,6 +6984,7 @@ function isTournamentPrivate($tournamentID){
 /******************************************************************************/
 
 function isUnconcludedMatchWarning($matchInfo){
+
 	$groupID = (int)$matchInfo['groupID'];
 	$matchNumber = (int)$matchInfo['matchNumber'];
 
@@ -6812,14 +7027,13 @@ function isUnconcludedMatchWarning($matchInfo){
 
 /******************************************************************************/
 
-function maxPoolSize($tournamentID = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+function maxPoolSize($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in maxPoolSize()");
 		return;
 	}
-	
-	// This is where you should fetch the max pool size for this tournament
 	
 	$sql = "SELECT maxPoolSize
 			FROM eventTournaments
@@ -6828,21 +7042,34 @@ function maxPoolSize($tournamentID = null){
 	
 	return $maxPoolSize;
 	
-	
 }
 
 /******************************************************************************/
 
-function selectTournamentIdItem($item, $tournamentID = null){
+function selectTournamentIdItem($item, $tournamentID){
 	//returns the attribute of a specified field for a tournament
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in selectTournamentIdItem()");
 		return;
 	}
+
+	switch($item){
+		case 'tournamentWeaponID': {$field = 'tournamentWeaponID'; break;}
+		case 'tournamentPrefixID': {$field = 'tournamentPrefixID'; break;}
+		case 'tournamentSuffixID': {$field = 'tournamentSuffixID'; break;}
+		case 'tournamentGenderID': {$field = 'tournamentGenderID'; break;}
+		case 'tournamentMaterialID': {$field = 'tournamentMaterialID'; break;}
+		default:
+			{
+				setAlert(SYSTEM,"Invalid field in selectTournamentIdItem()");
+				return;
+				break;
+			}
+	}
 	
-	$sql = "SELECT {$item}
+	$sql = "SELECT {$field}
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE, $item);
@@ -6850,12 +7077,10 @@ function selectTournamentIdItem($item, $tournamentID = null){
 
 /******************************************************************************/
 
-/******************************************************************************/
-
 function getScoringFunctionName($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getRoundScoringFunctionName()");
 		return;
 	}
@@ -6906,8 +7131,8 @@ function getTournamentRankingTypeID($tournamentID){
 
 function getDisplayFunctionName($tournamentID){
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		setAlert(SYSTEM,"No tournamentID in getDisplayFunctionName()");
 		return;
 	}
@@ -6977,6 +7202,68 @@ function getScoresheets($eventID, $tournamentID)
 	return (mysqlQuery($sql, ASSOC));
 
 }
+
+
+/******************************************************************************/
+
+function getEventEndDate($eventID){
+	
+	$eventID = (int)$eventID;
+	if($eventID == 0){return;}
+	
+	$sql = "SELECT GREATEST(eventStartDate, eventEndDate) AS eventDate
+			FROM systemEvents
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE, 'eventDate');
+	
+}
+
+/******************************************************************************/
+
+function doesUserHavePermission($systemUserID, $eventID, $permission){
+// This function checks if a user EITHER:
+// - Has the specified permissions globally
+// - Has admin privileges for the event in question
+
+	$systemUserID = (int)$systemUserID;
+	$eventID = (int)$eventID;
+	$isAdmin = false;
+
+// Function input validation to ensure a valid permission was passed
+	$permissionsList = 
+		['EVENT_YOUTUBE','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
+		'SOFTWARE_EVENT_SWITCHING','SOFTWARE_ASSIST','SOFTWARE_ADMIN',
+		'STATS_EVENT','STATS_ALL',
+		'VIEW_HIDDEN','VIEW_SETTINGS','VIEW_EMAIL'];
+	$validPermissionType = false;
+
+	foreach($permissionsList as $valid){
+		if($valid == $permission){
+			$validPermissionType = true;
+			break;
+		}
+	}
+
+// Check user
+	if($validPermissionType == true){
+		$sql = "SELECT {$permission}
+				FROM systemUsers
+				WHERE userID = {$systemUserID}";
+		$isAdmin = (boolean)((int)mysqlQuery($sql, SINGLE, $permission));
+
+		if($isAdmin == false){
+			$sql = "SELECT count(*) AS num
+					FROM systemUserEvents
+					WHERE userID = {$systemUserID}
+					AND eventID = {$eventID}";
+			$isAdmin = (boolean)((int)mysqlQuery($sql, SINGLE, 'num'));
+		}
+	}
+
+	return $isAdmin;
+
+}
+
 
 /******************************************************************************/
 

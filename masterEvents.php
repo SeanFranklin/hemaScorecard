@@ -267,16 +267,10 @@ function editEventMenu($eventID,$eventInfo){
 	}
 	?>
 	
-
-
 	<fieldset class='fieldset cell large-6'>
 	<legend><h4>Edit Event</h4></legend>
 
-		
-
-
 	<form method='POST'>
-
 
 		<input type='hidden' name='eventID' value='<?=$eventID?>'>
 		<input type='hidden' name='formName' value='editEvent'>
