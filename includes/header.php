@@ -17,8 +17,8 @@ if($_SESSION['eventID'] != null){
 	$eventStatus = getEventStatus($_SESSION['eventID']);
 }
 
-$livestreamInfo = getLivestreamInfo();
-$vJ = '?=1.1.2'; // Javascript Version
+$livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
+$vJ = '?=1.1.4'; // Javascript Version
 $vC = '?=1.0.9'; // CSS Version
 ?>
 
@@ -394,7 +394,7 @@ $vC = '?=1.0.9'; // CSS Version
 		}
 		
 		// Tournament has cutting quallification
-		if(isCuttingQual()){ 				
+		if(isCuttingQual($_SESSION['tournamentID'])){ 				
 			$navBarString .= "<li><a href='cutQualsTournament.php'>Cutting Qualification</a></li>";
 		}
 
@@ -605,10 +605,21 @@ function tournamentListForHeader(){
 function debugging(){
 
 	if(defined("SHOW_POST") && SHOW_POST === true){
-		echo "---- POST -------------------------------------------------------";
-		show($_SESSION['post']);
+
+		if(isset($_SESSION['urlNav']) && defined("SHOW_URL_NAV") && SHOW_URL_NAV === true){
+
+			echo "---- URL_NAV ----------------------------------------------------";
+			show($_SESSION['urlNav']);
+
+		} else {
+			echo "---- POST -------------------------------------------------------";
+			show($_SESSION['post']);
+		}
 	}
+
 	unset($_SESSION['post']);
+	unset($_SESSION['urlNav']);
+
 	if(defined("SHOW_SESSION") && SHOW_SESSION === true){
 		echo "---- SESSION ----------------------------------------------------";
 		show($_SESSION);

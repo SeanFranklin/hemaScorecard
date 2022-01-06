@@ -201,7 +201,7 @@ $conn = connectToDB();
 	if(!isset($_SESSION['groupSet'])){$_SESSION['groupSet'] = 1;}
 	
 // Name mode  -- this MUST go before processPostData
-	$defaults = getEventDefaults();
+	$defaults = getEventDefaults($_SESSION['eventID']);
 	$nameMode = $defaults['nameDisplay'];
 	if($nameMode == ''){
 		$nameMode = DEFAULT_NAME_MODE;
@@ -249,7 +249,7 @@ $conn = connectToDB();
 	
 	
 // Event Display Modes
-	$defaults = getEventDefaults(); // Have to re-load as it could change with POST
+	$defaults = getEventDefaults($_SESSION['eventID']); // Have to re-load as it could change with POST
 	$_SESSION['dataModes']['tournamentDisplay'] = $defaults['tournamentDisplay'];
 	$_SESSION['dataModes']['tournamentSort'] = $defaults['tournamentSorting'];
 
@@ -425,6 +425,9 @@ function initializeSession(){
 	}
 	if(!isset($_SESSION['formatID']) || $_SESSION['formatID'] == null){
 		$_SESSION['formatID'] = '';
+	}
+	if(!isset($_SESSION['userID'])){
+		$_SESSION['userID'] = 0;
 	}
 
 	if(!isset($_SESSION['userName'])){
