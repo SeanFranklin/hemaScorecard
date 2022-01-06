@@ -54,7 +54,6 @@ if($_SESSION['eventID'] == null){
 	displayBlockDescription();
 	displayScheduleConflicts($conflicts);
 
-
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
@@ -199,6 +198,8 @@ function displayBlockDescription(){
 		<div id='sbd-instructors'></div>
 		<div id='sbd-time'></div>
 		<HR>
+		<div id='sbd-experience'></div>
+		<div id='sbd-equipment'></div>
 		<div id='sbd-description' style='white-space: pre-wrap'></div>
 		<div>
 			<a id='sbd-link' target="_blank"><span id='sbd-linkDescription'></span></a>
@@ -296,6 +297,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 
 	<input type='hidden' name='editScheduleBlock[blockID]' value='0' id='esb-blockID' >
 	<input type='hidden' name='formName' value='editScheduleBlock' >
+	<input type='hidden' id='esb-numLocationsLoaded' value='0' >
 	<input type='hidden' name='editScheduleBlock[eventID]' value='<?=$_SESSION['eventID']?>' >
 
 	<div class='grid-x grid-margin-x'>
@@ -472,6 +474,25 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 			<input type='text' class='input-group-field' id='esb-blockLinkDescription'
 				name='editScheduleBlock[blockLinkDescription]'
 				placeholder="eg: 'Rules Document'">
+		</div>
+
+	<!-- Block Link -->
+		<div class='input-group large-6 cell'>
+			<span class='input-group-label'>
+				Equipment:
+			</span>
+			<input type='text' class='input-group-field' id='esb-blockAttributeEquipment'
+				name='editScheduleBlock[blockEquipment]' 
+				placeholder="Optional">
+		</div>
+
+		<div class='input-group large-6 cell'>
+			<span class='input-group-label'>
+				Experience Levels: 
+			</span>
+			<input type='text' class='input-group-field' id='esb-blockAttributeExperience'
+				name='editScheduleBlock[blockExperience]'
+				placeholder="Optional">
 		</div>
 
 

@@ -21,7 +21,7 @@ if($_SESSION['eventID'] == null){
 } elseif(USER_TYPE < USER_SUPER_ADMIN && USER_TYPE != USER_STATS){
 	pageError('user');
 } else {
-	$tournamentList_unsorted = getTournamentsFull();
+	$tournamentList_unsorted = getTournamentsFull($_SESSION['eventID']);
 
 	
 	// Splits list into finalized tournaments first

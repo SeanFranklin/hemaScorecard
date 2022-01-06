@@ -21,6 +21,8 @@ $upcomingEvents = getEventList('upcoming');
 
 if(ALLOW['VIEW_HIDDEN']){
 	$hiddenEvents = getEventList('hidden');
+} else if($_SESSION['userID'] != 0) {
+	$hiddenEvents = getHiddenEventListForUser($_SESSION['userID']);
 } else {
 	// Check if someone made their event public without even creating a tournament.
 	// If so then don't show it to regular users.
@@ -65,7 +67,7 @@ $recentEvents = getEventList('recent', 'DESC', 4);
 <input type='hidden' name='formName' value='selectEvent'>
 
 <!-- Hidden Events -->
-	<?php if(ALLOW['VIEW_HIDDEN'] == true && $hiddenEvents != null): ?>
+	<?php if($_SESSION['userID'] != 0 && $hiddenEvents != null): ?>
 		<h5>Hidden Events</h5>
 		<?php displayEventsInCategory($hiddenEvents); ?>
 	<?php endif ?>

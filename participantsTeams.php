@@ -20,8 +20,8 @@ if($tournamentID == null){
 	displayAlert("This is not a team based tournament");
 } else {
 
-	$teamsList = getTournamentTeams();
-	$teamRosters = getTeamRosters();
+	$teamsList = getTournamentTeams($_SESSION['tournamentID']);
+	$teamRosters = getTeamRosters($_SESSION['tournamentID']);
 	$addableFighters = getUngroupedRoster($tournamentID, $teamRosters);
 	$numBlankEntries = 3;
 	if(count($addableFighters) < $numBlankEntries){

@@ -18,7 +18,7 @@ include('includes/header.php');
 if($_SESSION['eventID'] == null){
 	pageError('event');
 } else {
-	$info = getLivestreamInfo();
+	$info = getLivestreamInfo($_SESSION['eventID']);
 	
 	if($info['platform'] == 'link' && $info['isLive'] == 1){
 		redirect("{$info['chanelName']}");

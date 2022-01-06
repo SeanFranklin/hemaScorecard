@@ -38,6 +38,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 } else {
 
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
+
 	if(isset($_SESSION['restartTimer'])){
 		$matchInfo['restartTimer'] = true;
 		unset($_SESSION['restartTimer']);
@@ -532,7 +533,7 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 function livestreamMatchSet($matchID){
 	
-	$livestreamInfo = getLivestreamInfo();
+	$livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
 	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
 	if($livestreamInfo['isLive'] != 1 || $livestreamInfo['useOverlay'] != 1){
 		return;
@@ -834,7 +835,7 @@ function dataEntryBox($matchInfo){
 	</tr>
 	
 	<!-- Double Hit -->
-	<?php if(isDoubleHits()): ?>
+	<?php if(isDoubleHits($matchInfo['tournamentID'])): ?>
 		<tr>
 			<td>Double Hit</td>
 			<td>
@@ -1016,7 +1017,7 @@ function fighterDataEntryBox($matchInfo,$num){
 				<?php endif ?>
 
 			<!-- Control point select -->	
-				<?php $cVal = getControlPointValue();
+				<?php $cVal = getControlPointValue($_SESSION['tournamentID']);
 					if($cVal != 0): ?>
 					<div class='input-group'>
 						<span class='input-group-label large-4 medium-6 small-12'>
@@ -1043,7 +1044,7 @@ function fighterDataEntryBox($matchInfo,$num){
 
 function scoreSelectDropDown($id, $pre, $isReverseScore){
 	
-	$attacks = getTournamentAttacks();
+	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
 	
 	if($attacks == null){
 		$minPoints = 1;
@@ -1446,7 +1447,7 @@ function createSideBar($matchInfo){
 	
 	
 <!-- Doubles management/display -->
-	<?php if(isDoubleHits()): ?>
+	<?php if(isDoubleHits($matchInfo['tournamentID'])): ?>
 		<hr>
 
 		<form method='POST'>

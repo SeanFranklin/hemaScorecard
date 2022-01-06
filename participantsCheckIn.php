@@ -19,9 +19,9 @@ if($eventID == null){
 	pageError('user');
 } else {
 
-	$roster = getCheckInStatus($eventID,'event');
+	$roster = getCheckInStatusEvent($eventID);
 
-	$additionalRoster = getCheckInStatusAdditional($eventID,'event');
+	$additionalRoster = getCheckInStatusAdditional($eventID);
 	$isAdditionals = false;
 	if(count($additionalRoster) != 0){
 		$isAdditionals = true;

@@ -21,10 +21,10 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } else {
 	
-	$defaults = getEventDefaults();
+	$defaults = getEventDefaults($_SESSION['eventID']);
 	$roles = logistics_getRoles();
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
-	$contactEmail = getEventEmail();
+	$contactEmail = getEventEmail($_SESSION['eventID']);
 	$eventDates = getEventDates($_SESSION['eventID']);
 
 	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.

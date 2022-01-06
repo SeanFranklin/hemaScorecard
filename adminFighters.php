@@ -106,7 +106,7 @@ include('includes/footer.php');
 
 function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 
-	$numGroupSets = getNumGroupSets();
+	$numGroupSets = getNumGroupSets($_SESSION['tournamentID']);
 	
 	// Text for tooltips
 	$stopTitle = "Can not advance";
@@ -208,7 +208,7 @@ function stopAtInput($rosterID, $numGroupSets, $selectValue){
 			<option value=0></option>
 			<?php for($i=$numGroupSets;$i>0; $i--): ?>
 				<option <?=optionValue($i,$selectValue)?> >
-					<?=getSetName($i)?>
+					<?=getSetName($i, $_SESSION['tournamentID'])?>
 				</option>
 			<?php endfor ?>
 		</select>
@@ -243,7 +243,7 @@ function ignoreAtInput($rosterID, $numGroupSets, $selectValue){
 			<option value=0></option>
 			<?php for($i=$numGroupSets;$i>0; $i--): ?>
 				<option <?=optionValue($i,$selectValue)?> >
-					<?=getSetName($i)?>
+					<?=getSetName($i, $_SESSION['tournamentID'])?>
 				</option>
 			<?php endfor ?>
 		</select>
@@ -278,7 +278,7 @@ function soloAtInput($rosterID, $numGroupSets, $selectValue){
 			<option value=0></option>
 			<?php for($i=$numGroupSets;$i>0; $i--): ?>
 				<option <?=optionValue($i,$selectValue)?> >
-					<?=getSetName($i)?>
+					<?=getSetName($i, $_SESSION['tournamentID'])?>
 				</option>
 			<?php endfor ?>
 		</select>

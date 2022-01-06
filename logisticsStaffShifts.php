@@ -33,7 +33,7 @@ if($_SESSION['eventID'] == null){
 	
 	
 	$roles = logistics_getRoles();
-	$schedule = logistics_getEventSchedule($_SESSION['eventID'],null,true);
+	$schedule = logistics_getEventSchedule($_SESSION['eventID'],true);
 
 	// Shows the rating that the user has assigned each staff member, but only if
 	// ratings have been used.

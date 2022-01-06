@@ -20,10 +20,10 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } else {
 	
-	$info = getLivestreamInfo();
-	$incompleteMatches = getEventIncompletes();
+	$info = getLivestreamInfo($_SESSION['eventID']);
+	$incompleteMatches = getEventIncompletes($_SESSION['eventID']);
 	$numEventIncompletes = count($incompleteMatches);
-	$matchOrder = getLivestreamMatchOrder();
+	$matchOrder = getLivestreamMatchOrder($_SESSION['eventID']);
 
 	foreach($incompleteMatches as $match){
 		$matchName = getTournamentName($match['tournamentID']);

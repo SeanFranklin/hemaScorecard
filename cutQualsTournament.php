@@ -18,13 +18,13 @@ include('includes/header.php');
 
 if($_SESSION['tournamentID'] == null){
 	pageError('tournament');
-}elseif(!isCuttingQual()){
+}elseif(!isCuttingQual($_SESSION['tournamentID'])){
 	displayAlert('No Cutting Qualification required for this tournament');
 } else {
 
 
 
-	$thisStandard = getCuttingStandard();
+	$thisStandard = getCuttingStandard($_SESSION['tournamentID']);
 	if($thisStandard != null){
 		$qualList = getCuttingQualificationsList($thisStandard['standardID'], $thisStandard['date']);
 	}
@@ -40,7 +40,7 @@ if($_SESSION['tournamentID'] == null){
 			$systemRosterID = $fighter['systemRosterID']; 
 			$entry['name'] = getFighterNameSystem($systemRosterID);
 			$entry['systemRosterID'] = $systemRosterID;
-			$eventDate = getEventEndDate();
+			$eventDate = getEventEndDate($_SESSION['eventID']);
 			
 			if(isset($qualList[$systemRosterID])){ 
 				$entry['qualled'] = true;
