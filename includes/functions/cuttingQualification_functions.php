@@ -10,7 +10,7 @@
 
 function addNewCuttingQual_event(){
 	
-	$date = getEventEndDate();
+	$date = getEventEndDate($_SESSION['eventID']);
 	$systemRosterID = $_POST['systemRosterID'];
 	
 	$tournamentID = $_SESSION['tournamentID'];
@@ -36,7 +36,7 @@ function addNewCuttingQual_event(){
 
 function removeCuttingQual_event(){
 	
-	$qualID = $_POST['qualID'];
+	$qualID = (int)$_POST['qualID'];
 
 	$sql = "DELETE FROM systemCutQualifications
 			WHERE qualID = {$qualID}";
@@ -79,30 +79,17 @@ function addNewCuttingQuals(){
 
 /******************************************************************************/
 
-function getEventEndDate($eventID = null){
-	
-	if($eventID == null){$eventID = $_SESSION['eventID'];}
-	if($eventID == null){return;}
-	
-	$sql = "SELECT GREATEST(eventStartDate, eventEndDate) AS eventDate
-			FROM systemEvents
-			WHERE eventID = {$eventID}";
-	return mysqlQuery($sql, SINGLE, 'eventDate');
-	
-	
-}
-
-/******************************************************************************/
-
 function getCuttingQualificationsStandards(){
+
 	$sql = "SELECT * FROM systemCutStandards";
 	return mysqlQuery($sql, ASSOC);
-	
 }
+
 /******************************************************************************/
 
 function getCuttingQualificationsList($standardID, $date){
 	
+	$standardID = (int)$standardID;
 	$nameOrder = NAME_MODE;
 	
 	// Returns the most recent quallification
@@ -122,8 +109,7 @@ function getCuttingQualificationsList($standardID, $date){
 							ORDER BY Q2.date DESC
 							LIMIT 1)
 			
-			ORDER BY Q.date DESC, roster.{$nameOrder} ASC
-			";
+			ORDER BY Q.date DESC, roster.{$nameOrder} ASC";
 	$list = mysqlQuery($sql, KEY, 'systemRosterID');
 	
 	
@@ -163,8 +149,8 @@ function getCuttingQualificationsList($standardID, $date){
 
 function getTournamentSystemRosterIDs(){
 	
-	$tournamentID = $_SESSION['tournamentID'];
-	if($tournamentID == null){
+	$tournamentID = (int)$_SESSION['tournamentID'];
+	if($tournamentID == 0){
 		return;
 	}
 	
@@ -182,9 +168,10 @@ function getTournamentSystemRosterIDs(){
 
 /******************************************************************************/
 
-function isCuttingQual($tournamentID = null){
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){ return null;	}
+function isCuttingQual($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){ return null;	}
 	
 	$sql = "SELECT isCuttingQual
 			FROM eventTournaments
@@ -193,5 +180,6 @@ function isCuttingQual($tournamentID = null){
 	
 }
 
+/******************************************************************************/
 
 ?>

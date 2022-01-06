@@ -17,15 +17,19 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
-	$matchID = $matchInfo['matchID'];
-	if($matchID == null){return;}
+	$matchID = (int)$matchInfo['matchID'];
+	$tournamentID = (int)$matchInfo['tournamentID'];
+
+	if($matchID == 0 || $tournamentID == 0){
+		return;
+	}
 	
 	$sql = "SELECT exchangeID
 			FROM eventExchanges
 			WHERE matchID = {$matchID}";
 	$res = mysqlQuery($sql, SINGLE);
 	
-	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePointValue = getBasePointValue($tournamentID, $_SESSION['groupSet']);
 
 	if($res == null){
 		insertLastExchange($matchInfo, null, 'scored', 'null', $basePointValue, 0);
@@ -45,11 +49,11 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 
 /******************************************************************************/
 
-function _DeductionBased_displayExchange($exchange = null,$exchangeNum = null){
+function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 // Displays an exchange for pieces using 'Deduction Based' scoring
 // A request to generate a header may be passed instead of an exchange
 
-	$basePoints = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePoints = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
 	
 <!-- Table Headers -->
@@ -173,7 +177,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 // Displays an exchange for pieces using 'Pure Score' scoring
 // A request to generate a header may be passed instead of an exchange
 
-	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
 	
 <!--  Table Headers -->
@@ -344,7 +348,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 function _JNCR_updateExchanges(){
 // Calculates the score of each cut for pieces using 'Pure Score'	
 	
-	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	$exchangesToUpdate = [];
 
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
@@ -421,7 +425,7 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 // Displays an exchange for pieces using 'Pure Score' scoring
 // A request to generate a header may be passed instead of an exchange
 
-	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
 	
 <!--  Table Headers -->
@@ -547,7 +551,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 // Displays an exchange for pieces using 'RSS Cutting' scoring
 // A request to generate a header may be passed instead of an exchange
 
-	$basePointValue = getBasePointValue(null, $_SESSION['groupSet']);
+	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
 	
 <!--  Table Headers -->
@@ -687,6 +691,9 @@ function _RSScutting_updateExchanges(){
 
 function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 	
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
 	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
@@ -736,6 +743,9 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 
 	foreach($scores as $rosterID => $score){
 
+		$score = (int)$score;
+		$rosterID = (int)$rosterID;
+
 		if($normalizedMatches != $numMatches[$rosterID]){
 			$normalizedScore = $score * ($normalizedMatches / $numMatches[$rosterID]);
 		} else {
@@ -775,7 +785,7 @@ function _FobDagger_calculateScore($tournamentID, $groupSet = 1){
 
 	foreach($standingsToScore as $standing){
 
-		$rosterID = $standing['rosterID'];
+		$rosterID = (int)$standing['rosterID'];
 		$score = 0;
 
 		$sql = "SELECT COUNT(*) AS numMatches
@@ -840,7 +850,8 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 	foreach($standingsToScore as $standing){
 
-		$rosterID = $standing['rosterID'];
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
 		$score = 0;
 
 		$sql = "SELECT matchID, winnerID
@@ -856,7 +867,7 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 		$numMatches = 0;
 		foreach($matches as $match){
-			$matchID = $match['matchID'];
+			$matchID = (int)$match['matchID'];
 
 			$numMatches++;
 
@@ -885,7 +896,7 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 		
 		$sql = "UPDATE eventStandings
 				SET score = {$score}
-				WHERE standingID = {$standing['standingID']}";
+				WHERE standingID = {$standingID}";
 		mysqlQuery($sql, SEND);
 	}
 }
@@ -1229,8 +1240,9 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 // Calls the appropriate function to score fighters given the tournament
 // scoring algorithm
 	
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){
+	$groupSet = (int)$groupSet;
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
 		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_ScoreFighters()";
 		return;
 	}
@@ -1261,6 +1273,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 // Calls the appropriate function to display the fighters pool standings 
 // given the tournament scoring algorithm
 
+	$tournamentID = (int)$tournamentID;
 	$bracketInfo = getBracketInformation($tournamentID);
 	$ignores = getIgnores($tournamentID);
 
@@ -1283,6 +1296,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			INNER JOIN systemRankings USING(tournamentRankingID)
 			WHERE tournamentID = {$tournamentID}";
 	$displayMeta = mysqlQuery($sql, SINGLE);
+
 	$numPoolWinners = $displayMeta['poolWinnersFirst'];
 	unset($displayMeta['poolWinnersFirst']);
 
@@ -1318,6 +1332,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	$sql1 = "SELECT COUNT(DISTINCT(groupID)) AS numGroups ";
 	$sql = $sql1.$sql2;
 	$numGroups = mysqlQuery($sql, SINGLE, 'numGroups');
+
 	$numPoolWinnerFirst = $numGroups * $numPoolWinners;
 
 	foreach($displayInfo as $info){
@@ -1485,8 +1500,10 @@ function pool_GeneratePools($specifications){
 // Calculate advancements to move onto the next pool set using the parameters specified.
 // Parameters are the number of 
 
-	$tournamentID = $_SESSION['tournamentID'];
-	if($tournamentID == null){return;}
+	$tournamentID = (int)$specifications['tournamentID'];
+	if($tournamentID == 0){
+		return;
+	}
 
 	// This is a special mode
 	if($specifications['seedMethod'] == 'polar'){
@@ -1494,12 +1511,12 @@ function pool_GeneratePools($specifications){
 		return;
 	}
 
-	$groupSet = $specifications['groupSet'];
+	$groupSet = (int)$specifications['groupSet'];
 	$lastGroupSet = $groupSet - 1;
 
 	// determine which algorithim to use
-	$maxPoolSize = maxPoolSize();
-	$poolsInTier = $specifications['poolsInTier'];
+	$maxPoolSize = (int)maxPoolSize($tournamentID);
+	$poolsInTier = (int)$specifications['poolsInTier'];
 	$numberOfPools = count(getPools($tournamentID, $groupSet));
 	$numSpotsLeft = $maxPoolSize * $numberOfPools;
 
@@ -1844,11 +1861,11 @@ function pool_GeneratePolarPools($specifications){
 			
 	$tournamentID = (int)$_SESSION['tournamentID'];
 	if($tournamentID == 0){return;}
-	$groupSet = $specifications['groupSet'];
+	$groupSet = (int)$specifications['groupSet'];
 	$lastGroupSet = $groupSet - 1;
 
 	// determine which algorithim to use
-	$maxPoolSize = maxPoolSize();
+	$maxPoolSize = maxPoolSize($tournamentID);
 	if($maxPoolSize == 0){
 		setAlert(SYSTEM, "No maxPoolSize in pool_GeneratePolarPools()");
 		return;
@@ -2051,11 +2068,13 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 // Assigns a rank to all fighters in the given group set
 
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	$tournamentID = (int)$tournamentID;
 	if($tournamentID == null){
 		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in pool_RankFighters()";
 		return;
 	}
+	$groupSet = (int)$groupSet;
+
 	$useTeams = (int)((bool)$useTeams);
 	$rankedPools = getRankedPools($tournamentID, $groupSet);
 
@@ -2151,7 +2170,7 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 
 // Update each fighter with their placing
 	foreach($rankedList as $standing){
-		$standingID = $standing['standingID'];
+		$standingID = (int)$standing['standingID'];
 		if(@$ignores[$standing['rosterID']] >= $groupSet){ // if ignores is unset it is a logical zero
 			$sql = "UPDATE eventStandings
 					SET rank = NULL
@@ -2190,6 +2209,9 @@ function pool_RankFightersByPool($rankedPools, $rankedList,
 								 $tournamentID, $groupSet, 
 								 $useTeams, $orderBy){
 
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+	$useTeams = (int)$useTeams;
 
 	$sql = "SELECT standingID, groupID, rosterID, groupRank, overlapSize, score
 			FROM eventStandings eS
@@ -2281,8 +2303,10 @@ function pool_RankFightersByPool($rankedPools, $rankedList,
 
 function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 
-
+	$tournamentID = (int)$tournamentID;
+	$setNumber = (int)$setNumber;
 	$rosters = getPoolRosters($tournamentID, $setNumber);
+
 	$standingsToKeep = [];
 
 	$ignores = getIgnores($tournamentID,'ignoreAtSet');
@@ -2292,6 +2316,7 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 		if(count($teamRoster) == 0){
 			continue;
 		}
+		$teamID = (int)$teamID;
 
 		$inRange = '';
 		foreach($teamRoster['members'] as $fighter){
@@ -2320,9 +2345,9 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 				WHERE tournamentID = {$tournamentID}
 				AND groupSet = {$setNumber}
 				AND rosterID = {$teamID}";
-		$standingID = mysqlQuery($sql, SINGLE, 'standingID');
+		$standingID = (int)mysqlQuery($sql, SINGLE, 'standingID');
 
-		if($standingID == null){
+		if($standingID == 0){
 			$sql = "INSERT INTO eventStandings
 					(tournamentID, groupSet, rosterID, groupType)
 					VALUES

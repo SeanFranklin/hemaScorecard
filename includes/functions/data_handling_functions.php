@@ -41,7 +41,7 @@ Return format
 $matchList[#matchNum]['fighter1ID'] = ???
 $matchList[$matchNum]['fighter2ID'] = ???
 */
-
+	$groupID = (int)$groupID;
 	$fightersUnAssigned = 0;
 	$newIndex = 1;
 	$newMatchOrder = [];
@@ -954,8 +954,8 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 // If called with a groupSet number it does that set and all the ones after
 		
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
-	if($tournamentID == null){return;}
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){return;}
 	
 	// Check to catch non-pool events
 	$formatID = getTournamentFormat($tournamentID);
@@ -1034,7 +1034,7 @@ function groupList($list, $key){
 function implode2int($array){
 // Creates a comma separated string of all array values, and typecasts all values
 // to an integer type (to protect against SQL injection).
-// Returns 0 is the array is empty.
+// Returns 0 if the array is empty.
 
 	if($array == null){
 		return 0;
@@ -1046,6 +1046,178 @@ function implode2int($array){
 
 
 	return (implode(",",$array));
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
+
+	if($matchInfo['matchComplete'] == 1 
+		|| $matchInfo['ignoreMatch'] == 1
+	){ 
+		return false;
+	}
+
+	$shouldConclude = false;
+
+	$reverseScore = isReverseScore($matchInfo['tournamentID']);
+
+	switch($reverseScore){
+		case REVERSE_SCORE_INJURY:
+
+			if(    ($matchInfo['lastExchange'] != 0)
+				&& (   $matchInfo['fighter1score'] <= 0 
+					|| $matchInfo['fighter2score'] <= 0)
+			  ){
+
+				$shouldConclude = true;
+			}
+			break;
+
+		case REVERSE_SCORE_NO:
+		case REVERSE_SCORE_GOLF:
+		default:
+
+			if(    ($maxPoints != 0)
+				&& (   $matchInfo['fighter1score'] >= $maxPoints 
+					|| $matchInfo['fighter2score'] >= $maxPoints)
+			  ){
+
+				$shouldConclude = true;
+			}
+			break;
+	}
+	
+	if($shouldConclude == true){
+		setAlert(USER_ALERT,"Point cap reached.");
+	}
+
+	return $shouldConclude;
+	
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeBySpread($matchInfo,$maxSpread){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
+
+	if($matchInfo['matchComplete'] == 1 
+		|| $matchInfo['ignoreMatch'] == 1
+		|| $maxSpread == 0
+	){ 
+		return false;
+	}
+
+	$spread = abs($matchInfo['fighter1score'] - $matchInfo['fighter2score']);
+
+	$shouldConclude = false;
+
+	if($spread >= $maxSpread){
+		$shouldConclude = true;
+		setAlert(USER_ALERT,"Point spread reached.");
+	}
+
+	return $shouldConclude;
+	
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeByTime($matchInfo){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
+	
+	if(    $matchInfo['matchComplete'] == 1 
+		|| $matchInfo['ignoreMatch'] == 1 
+		|| $matchInfo['timeLimit'] == 0)
+	{ 
+		return false;
+	}
+
+	if($matchInfo['matchTime'] >= $matchInfo['timeLimit']){
+		setAlert(USER_ALERT,"Time limit reached.");
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/******************************************************************************/
+
+function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of scoring exchanges.	
+	
+	if(		$matchInfo['matchComplete'] == 1 
+		 || $matchInfo['ignoreMatch'] == 1
+		 || $maxExchanges == 0){ 
+		return false;
+	}
+
+	$numExchanges = getNumMatchScoringExchanges($matchInfo['matchID']);
+
+	if($numExchanges >= $maxExchanges){
+		setAlert(USER_ALERT,"Exchange count reached.");
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/******************************************************************************/
+
+function autoConcludeMatch($matchInfo){
+
+
+	if(isReverseScore($matchInfo['tournamentID']) == REVERSE_SCORE_GOLF){
+		$reversedResult = true;
+	} else {
+		$reversedResult = false;
+	}
+
+	$_POST['matchID'] = $matchInfo['matchID'];
+	$_POST['lastExchangeID'] = $matchInfo['lastExchange'];
+	
+	if($matchInfo['maxDoubles'] != 0 
+		&& getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
+
+		$_POST['matchWinnerID'] = 'doubleOut';
+
+	} elseif($matchInfo['fighter1score'] == $matchInfo['fighter2score']){
+
+		if(!isTies($matchInfo['tournamentID'])){
+			setAlert(USER_ERROR,"Tie match, can't conclude.");
+			return;
+		}
+		$_POST['matchWinnerID'] = 'tie';
+
+	} elseif($matchInfo['fighter1score'] > $matchInfo['fighter2score']){
+
+		if($reversedResult == false){
+			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
+		} else {
+			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
+		}
+
+	} elseif($matchInfo['fighter2score'] > $matchInfo['fighter1score']){
+
+		if($reversedResult == false){
+			$_POST['matchWinnerID'] = $matchInfo['fighter2ID'];
+		} else {
+			$_POST['matchWinnerID'] = $matchInfo['fighter1ID'];
+		}
+
+	} else {
+
+		setAlert(USER_ERROR,"Unable to determine how to conclude match");
+		return;
+
+	}
+	
+	addMatchWinner();
 }
 
 /******************************************************************************/

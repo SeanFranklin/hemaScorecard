@@ -79,21 +79,21 @@ case 'hasFought': {
 	}
 
 	$where = [];
-	if($rosterID != null){
+	if($rosterID !== null){
 		$where[] = "(scoringID = {$rosterID} OR receivingID = {$rosterID}) ";
 	}
-	if($matchID != null){
+	if($matchID !== null){
 		$where[] = "eventExchanges.matchID = {$matchID} ";
 	}
-	if($groupID != null){
+	if($groupID !== null){
 		$where[] = "eventMatches.groupID = {$groupID} ";
 		$joinLevel = 1;
 	}
-	if($tournamentID != null){
+	if($tournamentID !== null){
 		$where[] = "eventGroups.tournamentID = {$tournamentID} ";
 		$joinLevel = 2;
 	}
-	if($eventID != null){
+	if($eventID !== null){
 		$where[] = "eventTournaments.eventID = {$eventID} ";
 		$joinLevel = 3;
 	}
@@ -150,6 +150,7 @@ case 'newExchange': {
 			FROM eventExchanges
 			WHERE matchID = {$matchID}";	
 	$newExchange = mysqlQuery($sql, SINGLE, 'MAX(exchangeID)');
+
 	$ReturnValue['refresh'] = false;
 	$ReturnValue['matchTime'] = null;
 
@@ -265,8 +266,8 @@ case 'getLivestreamMatch':{
 
 	$eventID = (int)$_REQUEST['eventID'];
 	$lastExchange = (int)$_REQUEST['lastExchange'];
-	$matchID = getLivestreamMatch($eventID);
-	if($matchID == null){
+	$matchID = (int)getLivestreamMatch($eventID);
+	if($matchID == 0){
 		return;
 	}
 	

@@ -20,12 +20,18 @@ function processPostData(){
 	/* For debugging, commented out for regular use ///
 	if(ALLOW['SOFTWARE_ADMIN'] == true){
 		$refreshPage = false;
-		define('SHOW_POST', true);	$_SESSION['post'] = $_POST;
+		define('SHOW_POST', true);
+		define('SHOW_URL_NAV', false);
+		$_SESSION['post'] = $_POST;
 	}
 	//define('SHOW_SESSION', true);
 	//////////////////////////////////////////////////////////////////////*/
 
-	if(isset($_POST['formName'])){
+	$urlComponents = parse_url(basename($_SERVER['REQUEST_URI']));
+
+// Evaluate POST form submitted
+	if(isset($_POST['formName']) != false){
+
 
 		// Refresh page after POST processing complete to prevent resubmits
 		if(!isset($refreshPage)){
@@ -36,6 +42,7 @@ function processPostData(){
 		unset($_POST['formName']);
 
 		checkSession();
+
 		switch($formName){
 		
 	// Navigation Cases
@@ -46,42 +53,37 @@ function processPostData(){
 				logUserOut();
 				break;
 			case 'selectEvent':
-				changeEvent((int)$_POST['changeEventTo']);
+				changeEvent((int)$_POST['changeEventTo'], false);
 				break;
 			case 'changeTournament':
 				changeTournament($_POST['newTournament']);
 				if(isset($_POST['newPage'])){
-					changePage($_POST['newPage']);
+					refreshPage($_POST['newPage']);
 				}
 				break;
 			case 'navigatePage':
-				changePage($_POST['newPage']);
+				refreshPage($_POST['newPage']);
 				break;
 			case 'goToMatch':
 				$_SESSION['matchID'] = $_POST['matchID'];
-				header("Location: scoreMatch.php");
-				exit;
+				refreshPage('scoreMatch.php');
 				break;
 			case 'goToPiece':
 				$_SESSION['matchID'] = $_POST['matchID'];
-				header("Location: scorePiece.php");
-				exit;
+				refreshPage('scorePiece.php');
 				break;
 			case 'changeSortType':
 				$_SESSION[$_POST['sortWhat']] = $_POST['sortHow'];
 				break;
 			case 'personalSchedule':
 				$_SESSION['rosterID'] = (int)$_POST['rosterID'];
-				header("Location: participantsSchedules.php");
-				exit;
+				refreshPage('participantsSchedules.php');
 				break;
 			case 'displayByPoolsToggle':
 				$_SESSION['displayByPool'] = !$_SESSION['displayByPool'];
 				break;
 			case 'eventNavigation':
-				$link = $_POST['eventNavigation'];
-				header("Location: {$link}");
-				exit;
+				refreshPage($_POST['eventNavigation']);
 				break;
 			case 'changeRosterID':
 				$_SESSION['rosterID'] = (int)$_POST['rosterID'];
@@ -89,8 +91,10 @@ function processPostData(){
 				
 	// Roster Management Cases
 			case 'addEventParticipants':
-				addEventParticipantsByName();
-				addEventParticipantsByID();	
+				if(empty($_POST['newParticipants']) == false){
+					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);
+				}
+				
 				break;
 			case 'addAdditionalParticipants':
 				addAdditionalParticipants($_POST['addAdditional']);
@@ -139,7 +143,7 @@ function processPostData(){
 				break;
 			case 'addToTeams':
 				foreach($_POST['updateTeams'] as $teamInfo){
-					addTeamMembers($teamInfo);
+					addTeamMembers($teamInfo, $_SESSION['tournamentID']);
 				}
 				break;
 			
@@ -217,7 +221,7 @@ function processPostData(){
 				updateSubMatchesByMatch($_POST['updateSubMatchesByMatch']);
 				break;
 			case 'YouTubeLink':
-				updateYouTubeLink();
+				updateYouTubeLink($_SESSION['matchID']);
 				break;
 			case 'ignorePastIncompletes':
 				$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
@@ -241,8 +245,7 @@ function processPostData(){
 			case 'updateBracket':
 				if(isset($_POST['goToMatch'])){
 					$_SESSION['matchID'] = $_POST['goToMatch'];
-					header("Location: scoreMatch.php");
-					exit;
+					refreshPage("scoreMatch.php");
 				} else if(isset($_POST['updateBracket'])){
 					updateFinalsBracket();
 				}
@@ -301,7 +304,7 @@ function processPostData(){
 				updateEventDefaults();
 				break;
 			case 'updateTournamentInfo':
-				updateEventTournaments();
+				updateEventTournaments(@$_POST['modifyTournamentID'], $_POST['updateType'], $_POST['updateTournament']);
 				break;
 			case 'deleteTournament':
 				deleteEventTournament();
@@ -343,7 +346,7 @@ function processPostData(){
 				break;
 			case 'goToPointsPage':
 				changeTournament($_POST['modifyTournamentID']);
-				changePage('adminPoints.php');
+				refreshPage('adminPoints.php');
 				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
@@ -352,7 +355,7 @@ function processPostData(){
 				editEventStatus();
 				break;
 			case 'displaySettings':
-				updateDisplaySettings();
+				updateDisplaySettings($_POST['displaySettings']);
 				break;
 			case 'staffRegistrationSettings':
 				updateStaffRegistrationSettings($_POST['eventSettings']['staffRegistration']);
@@ -478,7 +481,7 @@ function processPostData(){
 				$_SESSION['cutQualDisplayMode'] = $_POST['cutQualDisplayMode'];
 				break;
 			case 'setCutQualStandards':
-				updateTournamentCuttingStandard();
+				updateTournamentCuttingStandard($_SESSION['tournamentID']);
 				break;
 			case 'addQualledFighterEvent':
 				addNewCuttingQual_event();
@@ -506,7 +509,7 @@ function processPostData(){
 				setLivestreamMatchOrder();
 				break;
 			case 'setLivestreamMatch':
-				setLivestreamMatch();
+				setLivestreamMatch($_POST['matchID'],$_SESSION['eventID']);
 				break;
 				
 				
@@ -516,6 +519,26 @@ function processPostData(){
 			default:
 				break;
 		}
+
+	} else if(isset($urlComponents['query']) == true) {
+
+		// Check if they landed on a page with an event specified
+
+		parse_str($urlComponents['query'], $urlParams);
+		$_SESSION['urlNav'] = $urlParams;
+
+		$sessionUpdated = updateSessionByUrl($urlParams, $urlComponents['path']);
+
+		checkSession();
+
+		if(!isset($refreshPage) && $sessionUpdated == true){
+			$refreshPage = true;
+		}
+
+	} else {
+
+		refreshPage();
+		// No user input to change state, do nothing.
 	}
 
 	if(isset($_SESSION['checkEvent'])){
@@ -534,7 +557,7 @@ function processPostData(){
 	unset($_POST);
 
 	if(empty($refreshPage) == false){
-		refreshPage();
+		////refreshPage();
 	}
 
 // Check that terms of use have been signed
@@ -574,7 +597,7 @@ function checkEvent(){
 				updatePoolStandings($tournamentID, ALL_GROUP_SETS);
 			}
 			if($formatID == FORMAT_SOLO){
-				updateRoundMatchList();
+				updateRoundMatchList($tournamentID);
 			}
 		}
 		updatePoolMatchList(null, 'event');
@@ -586,7 +609,6 @@ function checkEvent(){
 	$mTournamentIDs = [];
 	foreach($_SESSION['checkEvent'] as $tournamentID => $tournament){
 		$formatID = getTournamentFormat($tournamentID);
-
 
 		if(ctype_digit($tournamentID) || is_int($tournamentID)){
 			$name = getTournamentName($tournamentID);
@@ -603,7 +625,7 @@ function checkEvent(){
 					
 					checkGroupOrders($tournamentID);
 					checkRoundRoster($tournamentID);
-					updateRoundMatchList();
+					updateRoundMatchList($tournamentID);
 
 				} elseif($formatID == FORMAT_META){
 
@@ -624,7 +646,7 @@ function checkEvent(){
 					}
 					if($formatID == FORMAT_SOLO){
 						checkRoundRoster($tournamentID, $groupID);
-						updateRoundMatchList();
+						updateRoundMatchList($tournamentID);
 					}
 					
 				}
@@ -641,19 +663,51 @@ function checkEvent(){
 
 /******************************************************************************/
 
-function changeTournament($tournamentID){
+function changeTournament($tournamentID, $matchID = 0){
 	$_SESSION['tournamentID'] = (int)$tournamentID;
-	$_SESSION['matchID'] = '';
+	$_SESSION['matchID'] = (int)$matchID;
 	$_SESSION['bracketHelper'] = '';
 	$_SESSION['groupSet'] = 1;
 }
 
 /******************************************************************************/
 
-function changePage($newPage){
-	$newUrl = "Location: ".$newPage."#";
-	header($newUrl);
-	exit;
+function updateSessionByUrl($urlParams, $urlPath = null){
+
+	$urlEventID = @(int)$urlParams['e'];
+	$urlTournamentID = @(int)$urlParams['t'];
+	$urlMatchID = @(int)$urlParams['m'];
+
+	if(isset($urlParams['e']) && $urlEventID != $_SESSION['eventID']){
+
+		$status = getEventStatus($urlEventID);
+
+		if(   $status != 'hidden' 
+		   || doesUserHavePermission($_SESSION['userID'],$urlEventID,'VIEW_HIDDEN')){
+
+			changeEvent($urlEventID, false, $urlPath, $urlTournamentID, $urlMatchID);
+		}
+
+		$updated = true;
+
+	} else if(isset($urlParams['t']) && $urlTournamentID != $_SESSION['tournamentID']) {
+
+		changeTournament($urlTournamentID, $urlMatchID);
+		$updated = true;
+
+	} else if(isset($urlParams['m']) &&  $urlMatchID != $_SESSION['matchID']) {
+
+		$_SESSION['matchID'] = $urlMatchID;
+		$updated = true;
+
+	} else {
+
+		// Nothing to update
+		$updated = false;
+	}
+
+	return $updated;
+	
 }
 
 /******************************************************************************/
@@ -703,8 +757,7 @@ function processToS($ToS){
 		return;
 	}
 
-	$eventID = $_SESSION['eventID'];
-
+	$eventID = (int)$_SESSION['eventID'];
 
 	$sql = "UPDATE systemEvents
 			SET termsOfUseAccepted = 1, organizerEmail = ?
@@ -718,9 +771,8 @@ function processToS($ToS){
 	
 
 	$_SESSION['tosConfirmed'] = true;
-	header("Location: adminEvent.php");
-	exit;
 
+	refreshPage("adminEvent.php");
 
 }
 
@@ -749,7 +801,7 @@ function toggleBracketHelper(){
 		return;
 	}
 	
-	$incompletes = getTournamentIncompletes($tournamentID, 'pool');
+	$incompletes = getTournamentPoolIncompletes($tournamentID);
 	
 	// Turns the bracket helper on if there are no incomplete pool matches
 	if($incompletes == null){
@@ -1078,7 +1130,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	
 	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == ATTACK_CONTROL_DB){
 		$rPrefix = (int)$_POST['attackModifier'];
-		$scoreValue += getControlPointValue();
+		$scoreValue += getControlPointValue($_SESSION['tournamentID']);
 	}
 
 // Afterblow deduction
@@ -1184,7 +1236,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 
 		if(@$_POST['attackModifier'] == ATTACK_CONTROL_DB){
 			$rPrefix = (int)$_POST['attackModifier'];
-			$scoreValue += getControlPointValue();
+			$scoreValue += getControlPointValue($_SESSION['tournamentID']);
 		}
 
 		if(    $at1['attackPrefix'] == ATTACK_CONTROL_DB 
@@ -1300,7 +1352,7 @@ function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 
 	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == ATTACK_CONTROL_DB){
 		$rPrefix = (int)$_POST['attackModifier'];
-		$scoreValue += getControlPointValue();
+		$scoreValue += getControlPointValue($_SESSION['tournamentID']);
 	}
 
 	if(isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO){
@@ -1318,12 +1370,19 @@ function checkSession(){
 // Corrects and possible error conditions in the current session
 // Checks that the event/tournament/match referenced by SESSION actualty exists
 	
-	$eventID = $_SESSION['eventID'];
-	$tournamentID = $_SESSION['tournamentID'];
-	$matchID = $_SESSION['matchID'];
+	$eventID = (int)$_SESSION['eventID'];
+	$tournamentID = (int)$_SESSION['tournamentID'];
+	$matchID = (int)$_SESSION['matchID'];
+
+	$blockID = (int)@$_SESSION['blockID'];
+	$sql = "SELECT blockID
+			FROM logisticsScheduleBlocks
+			WHERE blockID = {$blockID}";
+	$_SESSION['blockID'] = (int)mysqlQuery($sql, SINGLE, 'blockID');
+
 	
 // Checks if the event in SESSION exists
-	if($eventID == null){
+	if($eventID == 0){
 		$_SESSION['tournamentID'] = null;
 		$_SESSION['matchID'] = null;
 		return;
@@ -1332,9 +1391,9 @@ function checkSession(){
 	$sql = "SELECT eventID
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
-	$result = mysqlQuery($sql, SINGLE, null);
+	$validEventID = (bool)mysqlQuery($sql, SINGLE, null);
 
-	if($result == null){
+	if($validEventID == false){
 		$_SESSION['eventID'] = null;
 		$_SESSION['tournamentID'] = null;
 		$_SESSION['matchID'] = null;
@@ -1342,65 +1401,87 @@ function checkSession(){
 	}
 	
 // Checks if the tournament in SESSION exists
-	if($tournamentID == null){
+	if($tournamentID == 0){
 		$_SESSION['matchID'] =null;
 		return;
 	}	
+
 	
 	$sql = "SELECT tournamentID
 			FROM eventTournaments
 			WHERE eventID = {$eventID}
 			AND tournamentID = {$tournamentID}";
-	$result = mysqlQuery($sql, SINGLE, null);
+	$validTournamentID = (bool)mysqlQuery($sql, SINGLE, null);
 
-	if($result == null){
+	if($validTournamentID == false){
 		$_SESSION['tournamentID'] = null;
 		$_SESSION['matchID'] = null;
 		return;
 	}
 
+
+
 // Checks if the match in SESSION exists
-	if($matchID == null){
+	if($matchID == 0){
 		return;
 	}
-	$matchID = (int)$matchID;
 	
 	$sql = "SELECT matchID
 			FROM eventMatches
-			WHERE matchID = {$matchID}";
-	$result = mysqlQuery($sql, SINGLE, null);
+			INNER JOIN eventGroups USING(groupID)
+			WHERE matchID = {$matchID}
+			AND tournamentID = {$tournamentID}";
+	$validMatchID = (bool)mysqlQuery($sql, SINGLE, null);
 	
-	if($result == null){
+	if($validMatchID == false){
 		$_SESSION['matchID'] = null;
 		return;
 	}
+
+	return;
 	
 }
 
 /******************************************************************************/
 
-function changeEvent($eventID, $logoutInhibit = false){
+function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tournamentID = 0, $matchID = 0){
 // Changes event to the parameter provided and redirects to a
 // landing page determined by the login type
+
+// Is valid change
 
 	if($_SESSION['eventID'] == $eventID){
 		$eventChanged = false;
 	} else {
 
-		$eventChanged = true;
+		$status = getEventStatus($eventID);
+
+		if($status != 'hidden' || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')){
+			$eventChanged = true;
+		} else {
+			$eventChanged = false;
+		}
+	}
+
+	if($eventChanged == true){
+
 		$_SESSION['eventID'] = $eventID;
 		$_SESSION['eventName'] = getEventName($eventID);
 		$_SESSION['isMetaEvent'] = isMetaEvent($eventID);
 		
-		// If there is only one tournament in the event it is selected by deafult
+		
 		$IDs = getEventTournaments();
-		if(count($IDs) == 1){
-			$_SESSION['tournamentID'] = $IDs[0];
+		$tournamentID = (int)$tournamentID;
+
+		if($tournamentID != 0 && in_array($tournamentID, $IDs)){
+			changeTournament($tournamentID, $matchID);
+		} else if(count($IDs) == 1){
+			// If there is only one tournament in the event it is selected by deafult
+			changeTournament($IDs[0], $matchID);
 		} else {
-			$_SESSION['tournamentID'] = '';
+			changeTournament(0, $matchID);
 		}
-		$_SESSION['matchID'] = '';
-		$_SESSION['groupSet'] = '';
+
 		$_SESSION['scheduleID'] = '';
 		$_SESSION['rosterID'] = '';
 		$_SESSION['blockID'] = '';
@@ -1418,37 +1499,34 @@ function changeEvent($eventID, $logoutInhibit = false){
 
 // Page re-directs
 
-	// Default landing page
-	if($_SESSION['eventID'] == null){
-		$landingPage = 'infoWelcome.php';
-	} else {
-		$landingPage = 'infoSummary.php';
-	}
-
-	$originalPage = basename($_SERVER['PHP_SELF']);
-
-	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
-		if(basename($_SERVER['PHP_SELF']) == "adminLogin.php"){
-			$landingPage = 'infoSelect.php';
-		} elseif($originalPage == "infoSelect.php"){
-			$landingPage = 'infoSummary.php';
+	if($landingPage === null){
+		// Default landing page
+		if($_SESSION['eventID'] == null){
+			$landingPage = 'infoWelcome.php';
 		} else {
+			$landingPage = 'infoSummary.php';
+		}
+
+		$originalPage = basename($_SERVER['PHP_SELF']);
+
+		if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
+			if(basename($_SERVER['PHP_SELF']) == "adminLogin.php"){
+				$landingPage = 'infoSelect.php';
+			} elseif($originalPage == "infoSelect.php"){
+				$landingPage = 'infoSummary.php';
+			} else {
+				$landingPage = null;
+			}
+		} elseif (   ($originalPage == 'statsFighterSummary.php')
+				  || ($originalPage == 'statsTournaments.php')
+				  || ($originalPage == 'statsEvent.php')){
 			$landingPage = null;
 		}
-	} elseif (   ($originalPage == 'statsFighterSummary.php')
-			  || ($originalPage == 'statsTournaments.php')
-			  || ($originalPage == 'statsEvent.php')){
-		$landingPage = null;
 	}
 
+	checkSession();
 
-	if($landingPage != null){
-		header("Location: {$landingPage}");
-		exit;
-	} else {
-		refreshPage();
-	}
-
+	refreshPage($landingPage);
 }
 
 /******************************************************************************/
@@ -1502,8 +1580,7 @@ function logUserOut($refreshPage = true){
 	$_SESSION['userID'] = null;
 
 	if($refreshPage == true){
-		header("Location: infoWelcome.php");
-		exit;
+		refreshPage("infoWelcome.php");
 	}
 }
 
@@ -1539,9 +1616,14 @@ function checkGroupOrders($tournamentID, $groupID = null){
 			$poolRoster = $poolRosters[$groupID];
 			$i=0;
 			foreach($poolRoster as $poolPosition => $fighter){
+
 				$i++;
-				if($poolPosition == $i){continue;}
-				$tableID = $fighter['tableID'];
+				if($poolPosition == $i){
+					continue;
+				}
+
+				$tableID = (int)$fighter['tableID'];
+
 				$sql = "UPDATE eventGroupRoster
 						SET poolPosition = {$i}
 						WHERE tableID = {$tableID}";
@@ -1567,13 +1649,14 @@ function checkGroupOrders($tournamentID, $groupID = null){
 		}
 		$groupNumbers[$poolSet]++;
 
-		$poolNum = $groupNumbers[$poolSet];
-		$groupID = $poolData['groupID'];
+		$poolNum = (int)$groupNumbers[$poolSet];
+		$groupID = (int)$poolData['groupID'];
 
 		$sql = "SELECT groupNumber, groupName
 				FROM eventGroups
 				WHERE groupID = {$groupID}";
 		$data = mysqlQuery($sql, SINGLE);
+
 		$oldNumber = $data['groupNumber'];
 		$oldName = $data['groupName'];
 
@@ -1599,18 +1682,20 @@ function checkGroupOrders($tournamentID, $groupID = null){
 
 	foreach($rounds as $roundData){
 		
-		$groupSet = $roundData['groupSet'];
+		$groupSet = (int)$roundData['groupSet'];
 		if(!isset($groupNumbers[$groupSet])){
 			$groupNumbers[$groupSet] = 0;
 		}
+
 		$groupNumbers[$groupSet]++;
 		$groupNumber = $groupNumbers[$groupSet];
-		$groupID = $roundData['groupID'];
+		$groupID = (int)$roundData['groupID'];
 
 		$sql = "SELECT groupNumber, groupName
 				FROM eventGroups
 				WHERE groupID = {$groupID}";
 		$data = mysqlQuery($sql, SINGLE);
+
 		$oldNumber = $data['groupNumber'];
 		$oldName = $data['groupName'];
 		
