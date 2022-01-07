@@ -351,8 +351,8 @@ function processPostData(){
 			case 'addAttackTypes':
 				addAttacksToTournament();
 				break;
-			case 'eventStatusUpdate':
-				editEventStatus();
+			case 'updateEventPublication':
+				updateEventPublication($_POST['publicationSettings'],$_SESSION['eventID']);
 				break;
 			case 'displaySettings':
 				updateDisplaySettings($_POST['displaySettings']);
@@ -379,10 +379,10 @@ function processPostData(){
 				updateExistingSchool();
 				break;
 			case 'addNewEvent':
-				addNewEvent();
+				addNewEvent($_POST['eventInfo']);
 				break;
 			case 'editEvent':
-				editEvent();
+				editEvent($_POST['eventInfo']);
 				break;
 			case 'addTournamentType':
 				addTournamentType();
@@ -680,9 +680,7 @@ function updateSessionByUrl($urlParams, $urlPath = null){
 
 	if(isset($urlParams['e']) && $urlEventID != $_SESSION['eventID']){
 
-		$status = getEventStatus($urlEventID);
-
-		if(   $status != 'hidden' 
+		if(   isEventPublished($urlEventID) == true
 		   || doesUserHavePermission($_SESSION['userID'],$urlEventID,'VIEW_HIDDEN')){
 
 			changeEvent($urlEventID, false, $urlPath, $urlTournamentID, $urlMatchID);
@@ -1454,9 +1452,10 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		$eventChanged = false;
 	} else {
 
-		$status = getEventStatus($eventID);
-
-		if($status != 'hidden' || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')){
+		if(   isRosterPublished($eventID) == true
+		   || isSchedulePublished($eventID) == true
+		   || isMatchesPublished($eventID) == true
+		   || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')){
 			$eventChanged = true;
 		} else {
 			$eventChanged = false;

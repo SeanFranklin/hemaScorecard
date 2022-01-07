@@ -14,6 +14,8 @@ $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
 	pageError('event');
+} elseif(ALLOW['VIEW_ROSTER'] == false) {
+	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else {
 
 	define("NUM_REG_LEVELS",4);

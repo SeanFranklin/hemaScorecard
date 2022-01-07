@@ -24,8 +24,7 @@ if($tournamentID == null){
 	pageError('tournament');
 } elseif($_SESSION['formatID'] != FORMAT_MATCH){
 	displayAlert("There are no brackets for this tournament format");
-} elseif ((getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
-			&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
+} elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Bracket not yet released");
 } else {
 

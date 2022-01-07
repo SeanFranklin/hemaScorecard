@@ -15,14 +15,10 @@
 $pageName = 'Event Summary';
 include('includes/header.php');
 
-$eventStatus = getEventStatus($_SESSION['eventID']);
-
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(    ($eventStatus != 'archived' && $eventStatus != 'active')
-	&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)
-    && (ALLOW['STATS_EVENT'] != true)){
-	pageError('user');
+} elseif(ALLOW['VIEW_ROSTER'] == false) {
+	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else {
 	
 	$roster = getEventRoster(null);

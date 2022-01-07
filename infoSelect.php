@@ -23,14 +23,14 @@ $upcomingEvents = getEventList('upcoming');
 if(ALLOW['VIEW_HIDDEN']){
 	$hiddenEvents = getEventList('hidden');
 }
-$archivedEvents = getEventList('old', 'DESC');
+$archivedEvents = getEventList('old');
 
-$lActiveEvents = getEventList('active',null,null,1);
-$lUpcomingEvents = getEventList('upcoming',null,null,1);
+$lActiveEvents = getEventList('active', null, 1);
+$lUpcomingEvents = getEventList('upcoming', null, 1);
 if(ALLOW['VIEW_HIDDEN']){
-	$lHiddenEvents = getEventList('hidden',null,null,1);
+	$lHiddenEvents = getEventList('hidden', null, 1);
 }
-$lArchivedEvents = getEventList('old', 'DESC',null,1);
+$lArchivedEvents = getEventList('old', null, 1);
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

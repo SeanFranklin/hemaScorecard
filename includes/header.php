@@ -12,14 +12,19 @@
 
 include_once('includes/config.php');
 
-$eventStatus = null;
-if($_SESSION['eventID'] != null){
-	$eventStatus = getEventStatus($_SESSION['eventID']);
-}
-
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
 $vJ = '?=1.1.4'; // Javascript Version
 $vC = '?=1.0.9'; // CSS Version
+
+if(    ALLOW['EVENT_MANAGEMENT'] == true 
+	|| ALLOW['VIEW_SETTINGS'] == true
+	|| ALLOW['STATS_EVENT'] == true){
+
+	$adminStatsDisplay = true;
+} else {
+	$adminStatsDisplay = false;
+}
+
 ?>
 
 <!doctype html>
@@ -158,9 +163,7 @@ $vC = '?=1.0.9'; // CSS Version
 
 			<!-- Event Information -->
 			<?php if($_SESSION['eventID'] != null):?>
-				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
-						  || ALLOW['VIEW_SETTINGS'] == true
-						  || ALLOW['STATS_EVENT'] == true):?>
+				<?php if($adminStatsDisplay == true):?>
 					<li><a href='#'>Event Status</a>
 						<ul class='menu vertical'>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
@@ -208,8 +211,7 @@ $vC = '?=1.0.9'; // CSS Version
 							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
 						</ul>
 					</li>
-				<?php elseif($isSchedule == true
-							&& ($eventStatus == 'active' ||$eventStatus == 'archived')): ?>
+				<?php elseif($isSchedule == true && ALLOW['VIEW_SCHEDULE'] == true): ?>
 					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 				<?php endif ?>
 			<?php endif ?>
@@ -230,9 +232,7 @@ $vC = '?=1.0.9'; // CSS Version
 				<?php endif ?>
 
 			<!-- Stats for non-users -->
-				<?php if(	($eventStatus == 'active' || $eventStatus == 'archived')
-						 && (ALLOW['STATS_ALL'] == false)
-						 && (ALLOW['EVENT_MANAGEMENT'] == false)):?>
+				<?php if($adminStatsDisplay == false && isAnyEventInfoViewable() == true ):?>
 					<li><a href='#'>Event Stats</a>
 						<ul class='menu vertical'>
 							<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>

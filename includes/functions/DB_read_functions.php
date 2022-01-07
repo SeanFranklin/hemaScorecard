@@ -1075,17 +1075,6 @@ function getCumulativeScores($group1ID, $group2ID){
 
 /******************************************************************************/
 
-function getDefaultEvent(){
-	
-	$sql = "SELECT eventID 
-			FROM systemEvents
-			WHERE eventStatus = 'default'";
-	return mysqlQuery($sql, SINGLE, 'eventID');
-	
-}
-
-/******************************************************************************/
-
 function getEventDates($eventID){
 	
 	$eventID = (int)$eventID;
@@ -1272,99 +1261,103 @@ function getEventIncompletes($eventID){
 
 /******************************************************************************/
 
-function getEventList($eventStatus, $order = null, $limit = null, $isMetaEvent = 0){
+function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	$validValues['active'] = true;
-	$validValues['upcoming'] = true;
-	$validValues['hidden'] = true;
-	$validValues['archived'] = true;
+	if($eventStatus == 'meta'){
+		$isMetaEvent = 1;
+	}
 	$isMetaEvent = (int)$isMetaEvent;
 
-	if($eventStatus == 'recent'){
-		$limit = (int)$limit;
-		if($limit == 0){ 
-			$limit = 4;  // Arbitrary magic number to prevent calling without limit.
-		}
-
-		$eventActiveLimit = EVENT_ACTIVE_LIMIT-1;
-		$eventUpcomingLimit = EVENT_UPCOMING_LIMIT-1;
-
-		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, countryName, eventProvince, eventCity, 
-				eventStatus
-				FROM systemEvents
-				INNER JOIN systemCountries USING(countryIso2)
-				WHERE (		(eventStatus LIKE 'archived')
-						OR (eventStatus LIKE 'active'
-							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventActiveLimit} )
-						OR (eventStatus LIKE 'upcoming'
-							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventUpcomingLimit} )
-					   )
-				AND isMetaEvent = {$isMetaEvent}
-				ORDER BY eventEndDate DESC, eventStartDate DESC
-				LIMIT {$limit}"; 
-
-		return mysqlQuery($sql, KEY, 'eventID');	
-
-
-	} elseif($eventStatus == 'old'){
-
-		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, countryName, eventProvince, eventCity, 
-				eventStatus
-				FROM systemEvents
-				INNER JOIN systemCountries USING(countryIso2)
-				WHERE eventStatus IN ('archived', 'active', 'upcoming')
-				AND isMetaEvent = {$isMetaEvent}
-				ORDER BY eventStartDate DESC, eventEndDate DESC";
-		return mysqlQuery($sql, KEY, 'eventID');	
-
-	} elseif($eventStatus == 'meta') {
-
-		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, countryName, eventProvince, eventCity, 
-				eventStatus
-				FROM systemEvents
-				INNER JOIN systemCountries USING(countryIso2)
-				WHERE isMetaEvent = 1
-				ORDER BY eventStartDate DESC, eventEndDate DESC";
-		return mysqlQuery($sql, KEY, 'eventID');
-
+	$limit = (int)$limit;
+	if($limit == 0){
+		$limitClause = "";
 	} else {
-
-		if(!isset($validValues[$eventStatus])){
-			setAlert(SYSTEM,'Invalid eventStatus in getEventList()');
-			return null;
-		}
-		if($order != 'DESC' && $order != 'ASC'){
-			if($eventStatus == 'archived' || $eventStatus == '%'){
-				$order = 'DESC';
-			} else {
-				$order = 'ASC';
-			}
-
-		}
-
-		$limit = (int)$limit;
-		if((int)$limit > 0){
-			$limitString = "LIMIT {$limit}";
-		} else {
-			$limitString = '';
-		}
-		
-		$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-				eventEndDate, countryName, eventProvince, eventCity, 
-				eventStatus 
-				FROM systemEvents
-				INNER JOIN systemCountries USING(countryIso2)
-				WHERE eventStatus LIKE '{$eventStatus}'
-				AND isMetaEvent = {$isMetaEvent}
-				ORDER BY eventStartDate {$order}, eventEndDate {$order}
-				{$limitString}";
-		return mysqlQuery($sql, KEY, 'eventID');
+		$limitClause = "LIMIT {$limit}";
 	}
+
+	$publishClause = "";
+
+	switch($eventStatus){
+		case 'recent':
+
+			$eventActiveLimit = EVENT_ACTIVE_LIMIT-1;
+			$eventUpcomingLimit = EVENT_UPCOMING_LIMIT-1;
+
+			$publishClause	= "(	
+						(isArchived = 1 )
+					OR 	(	publishMatches = 1
+							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventActiveLimit} )
+					OR 	(	(publishSchedule = 1 OR publishRoster = 1)
+							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventUpcomingLimit} )
+				   )";
+			break;
+
+		case 'old':
+			$publishClause	= "(	
+						isArchived = 1 
+					OR 	publishRoster = 1 
+					OR 	publishSchedule = 1 
+					OR 	publishMatches = 1
+				   )";
+			break;
+
+		case 'active':
+			$publishClause	= "(	
+						isArchived = 0 
+					AND publishRoster = 1 
+					AND	publishSchedule = 1 
+					AND	publishMatches = 1
+				   )";
+			break;
+
+		case 'upcoming':
+			$publishClause	= "(	
+						isArchived = 0 
+					AND (		publishRoster = 1 
+							OR	publishSchedule = 1 
+							OR	publishMatches = 1)
+					AND ((		publishRoster = 1 
+							AND	publishSchedule = 1 
+							AND	publishMatches = 1) = FALSE)
+				   )";
+			break;
+
+		case 'hidden':
+			$publishClause	= "(	
+						isArchived = 0 
+					AND publishRoster = 0 
+					AND	publishSchedule = 0 
+					AND	publishMatches = 0
+				   )";
+			break;
+
+		case 'archived':
+			$publishClause	= "(isArchived = 1)";
+			break;
+
+		case 'meta':
+		default:
+			// In this case we don't care. Get everything.
+			$publishClause	= "(1 = 1
+				   )";
+			break;
+	}
+
+
+	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
+			eventEndDate, countryName, eventProvince, eventCity
+			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
+			LEFT JOIN eventPublication USING(eventID)
+			WHERE {$publishClause}
+			AND isMetaEvent = {$isMetaEvent}
+			ORDER BY eventEndDate DESC, eventStartDate DESC
+			{$limitClause}";
+
+	return mysqlQuery($sql, KEY, 'eventID');
+
 }
 
 /******************************************************************************/
@@ -1374,12 +1367,15 @@ function getHiddenEventListForUser($userID){
 	$userID = (int)$userID; 
 
 	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-			eventEndDate, countryName, eventProvince, eventCity, 
-			eventStatus 
+			eventEndDate, countryName, eventProvince, eventCity
 			FROM systemEvents
 			INNER JOIN systemCountries USING(countryIso2)
 			INNER JOIN systemUserEvents USING(eventID)
-			WHERE eventStatus LIKE 'hidden'
+			LEFT JOIN eventPublication USING(eventID)
+			WHERE isArchived = 0
+			AND publishRoster = 0
+			AND publishSchedule = 0
+			AND publishMatches = 0
 			AND isMetaEvent = 0
 			AND userID = {$userID}
 			ORDER BY eventStartDate DESC, eventEndDate DESC";
@@ -1389,7 +1385,7 @@ function getHiddenEventListForUser($userID){
 
 /******************************************************************************/
 
-function getEventListFULL(){
+function getEventListFull(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
@@ -1785,25 +1781,6 @@ function getSystemTournaments(){
 	return $retVal;
 
 
-}
-
-/******************************************************************************/
-
-function getEventStatus($eventID = 0){
-
-	$eventID = (int)$eventID;
-	
-	if($eventID == 0){$eventID = $_SESSION['eventID'];}
-	if($eventID == 0){
-		setAlert(SYSTEM,"Invalid eventID in getEventStatus()");
-		return;
-	}
-	
-	$sql = "SELECT eventStatus
-			FROM systemEvents
-			WHERE eventID = {$eventID}";
-	
-	return mysqlQuery($sql, SINGLE, 'eventStatus');
 }
 
 /******************************************************************************/
@@ -4040,11 +4017,11 @@ function logistics_getWorkshopStats($eventID){
 
 	$workshops['hours'] = round($workshops['hours']/60,1);
 
-	$sql = "SELECT DISTINCT(rosterID) AS rosterID, lastName, firstName
+	$sql = "SELECT DISTINCT(rosterID) AS rosterID, lastName, firstName, eR.schoolID
 			FROM logisticsStaffShifts
 			INNER JOIN logisticsScheduleShifts USING(shiftID)
 			INNER JOIN logisticsScheduleBlocks AS lSB USING(blockID)
-			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventRoster AS eR USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)
 			WHERE lSB.eventID = {$eventID}
 			AND blockTypeID = {$blockID}
@@ -6510,12 +6487,12 @@ function isInProgress($tournamentID, $type = null){
 		return false;
 	}
 
-	$sql = "SELECT eventStatus, isFinalized
+	$sql = "SELECT isArchived
 			FROM eventTournaments
 			INNER JOIN systemEvents USING(eventID)
 			WHERE tournamentID = {$tournamentID}";
-	$status = mysqlQuery($sql, SINGLE, 'eventStatus');
-	if($status == 'archived' || isFinalized($tournamentID)){
+	$isArchived = (bool)mysqlQuery($sql, SINGLE, 'isArchived');
+	if($isArchived == true || isFinalized($tournamentID) == true){
 		return false;
 	}
 
@@ -6652,22 +6629,100 @@ function isInLosersBracket($matchID){
 function isEventArchived($eventID){
 			
 	$eventID = (int)$eventID;
-	if($eventID == 0){
-		setAlert(SYSTEM,"No eventID in isEventArchived()");
-		return;
-	}
 
-	$sql = "SELECT eventStatus
+	$sql = "SELECT isArchived
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
-	$result = mysqlQuery($sql, SINGLE);
-	
-	if($result['eventStatus'] == 'archived'){
-		return true;
+
+	return (bool)mysqlQuery($sql, SINGLE,'isArchived');
+
+}
+
+/******************************************************************************/
+
+function isRosterPublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
 	} else {
-		return false;
+		$sql = "SELECT publishRoster
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishRoster');
 	}
-	
+
+	return $isPublished;
+
+}
+
+/******************************************************************************/
+
+function isSchedulePublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
+	} else {
+		$sql = "SELECT publishSchedule
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishSchedule');
+	}
+
+	return $isPublished;
+
+}
+
+/******************************************************************************/
+
+function isMatchesPublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
+	} else {
+		$sql = "SELECT publishMatches
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishMatches');
+	}
+
+	return $isPublished;
+
+}
+
+/******************************************************************************/
+
+function isEventPublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
+	} else {
+		$sql = "SELECT publishRoster, publishSchedule, publishMatches 
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$publicationStatus = (array)mysqlQuery($sql, SINGLE);
+
+		foreach($publicationStatus as $status){
+			if((bool)$status == true){
+				$isPublished = true;
+				break;
+			}
+		}
+	}
+
+	return $isPublished;
+
 }
 
 /******************************************************************************/
@@ -7264,6 +7319,22 @@ function doesUserHavePermission($systemUserID, $eventID, $permission){
 
 }
 
+
+/******************************************************************************/
+
+function isAnyEventInfoViewable(){
+
+	if(    ALLOW['VIEW_ROSTER'] == true 
+		|| ALLOW['VIEW_SCHEDULE'] == true 
+		|| ALLOW['VIEW_MATCHES'] == true){
+		$viewable = true;
+	} else {
+		$viewable = false;
+	}
+
+	return $viewable;
+
+}
 
 /******************************************************************************/
 

@@ -11,7 +11,9 @@ $pageName = 'Individual Fighter History';
 $createSortableDataTable[] = 'systemRosterIdTable';
 include('includes/header.php');
 
-{
+if(ALLOW['SOFTWARE_ASSIST'] == false){
+	pageError('user');
+} else {
 
 	$filt['systemRosterID'] 		= @(int)$_SESSION['statsIDs']['systemRosterID'];
 	$filt['eventID'] 				= @(int)$_SESSION['statsIDs']['eventID'];

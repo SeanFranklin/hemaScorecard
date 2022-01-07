@@ -16,6 +16,8 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($tournamentID == null){
 	pageError('tournament');
+} elseif(ALLOW['VIEW_ROSTER'] == false) {
+	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } elseif(!isTeams($tournamentID)){
 	displayAlert("This is not a team based tournament");
 } else {

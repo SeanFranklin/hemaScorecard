@@ -1732,39 +1732,38 @@ function signOffFighters($signOffData){
 }
 
 /******************************************************************************/
-function addNewEvent(){
+function addNewEvent($eventInfo){
 	
 	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
-	
-	$eventYear = substr($_POST['eventStartDate'],0,4);
+
+	$eventYear = substr($eventInfo['eventStartDate'],0,4);
 	$num = mt_rand(100,999);
 	$password = "temp{$num}";
 	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
-	$isMetaEvent = (int)((BOOLEAN)$_POST['isMetaEvent']);
+	$isMetaEvent = (int)((BOOLEAN)$eventInfo['isMetaEvent']);
 	
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
 			eventEndDate, countryIso2, eventProvince, eventCity,
-			eventStatus, staffPassword, organizerPassword, isMetaEvent)
+			staffPassword, organizerPassword, isMetaEvent)
 			VALUES
-			(?,?,?,?,?,?,?,?,?,?,?, {$isMetaEvent})";
+			(?,?,?,?,?,?,?,?,?,?,{$isMetaEvent})";
 	
-	$eventStartDate = $_POST['eventStartDate'];
+	$eventStartDate = $eventInfo['eventStartDate'];
 	if($eventStartDate == null){$eventStartDate = date('Y-m-d H:i:s');}
-	$eventEndDate = $_POST['eventEndDate'];
+	$eventEndDate = $eventInfo['eventEndDate'];
 	if($eventEndDate == null){$eventEndDate = $eventStartDate;}
 		
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "sssssssssss", 
-				$_POST['eventName'], 
-				$_POST['eventAbbreviation'],
+	$bind = mysqli_stmt_bind_param($stmt, "ssssssssss", 
+				$eventInfo['eventName'], 
+				$eventInfo['eventAbbreviation'],
 				$eventYear, 
 				$eventStartDate,
 				$eventEndDate, 
-				$_POST['countryIso2'], 
-				$_POST['eventProvince'], 
-				$_POST['eventCity'],
-				$_POST['eventStatus'],
+				$eventInfo['countryIso2'], 
+				$eventInfo['eventProvince'], 
+				$eventInfo['eventCity'],
 				$passwordHash,
 				$passwordHash
 			);
@@ -1777,6 +1776,12 @@ function addNewEvent(){
 			(eventID)
 			VALUES
 			($eventID)";
+	mysqlQuery($sql, SEND);
+
+	$sql = "INSERT INTO eventPublication
+			(eventID, publishRoster, publishSchedule, publishMatches)
+			VALUES
+			({$eventID}, 0, 0, 0)";
 	mysqlQuery($sql, SEND);
 
 	$name = getEventName($eventID);
@@ -2895,21 +2900,21 @@ function deleteRounds(){
 
 /******************************************************************************/
 
-function editEvent(){
+function editEvent($eventInfo){
 	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 
-	if(isset($_POST['eventToEdit'])){
-		$_SESSION['editEventID'] = $_POST['eventToEdit'];
+	if(isset($eventInfo['eventToEdit'])){
+		$_SESSION['editEventID'] = $eventInfo['eventToEdit'];
 		return;
 	}
 	
-	$eventID = (int)$_POST['eventID'];
+	$eventID = (int)$eventInfo['eventID'];
 	$name = getEventName($eventID);
 	
-	if(isset($_POST['deleteEvent'])){
+	if(isset($eventInfo['deleteEvent'])){
 		$deleteCode = "delete-".$name;
 		
-		if($_POST['deleteConfirmationCode'] == $deleteCode){
+		if($eventInfo['deleteConfirmationCode'] == $deleteCode){
 			$sql = "DELETE FROM systemEvents
 					WHERE eventID = {$eventID}";
 			mysqlQuery($sql, SEND);
@@ -2924,18 +2929,33 @@ function editEvent(){
 		return;
 	}
 
-	$sql = "SELECT eventStatus 
+	$sql = "SELECT isArchived 
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
-	$oldStatus = mysqlQuery($sql, SINGLE, 'eventStatus');
+	$wasArchiced = (bool)mysqlQuery($sql, SINGLE, 'isArchived');
 
-	if($_POST['eventStatus'] == 'archived' && $oldStatus != 'archived'){
+	$isArchived = (int)$eventInfo['isArchived'];
+
+	if((bool)$isArchived == true && $wasArchiced == false){
+
 		setAlert(SYSTEM,"Remember to let HEMA Ratings know!");
+
+		$sql = "DELETE FROM eventPublication
+				WHERE eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	if((bool)$isArchived == false && $wasArchiced == true){
+		$sql = "INSERT INTO eventPublication
+				(eventID, publishRoster, publishSchedule, publishMatches)
+				VALUES
+				({$eventID}, 1, 1, 1)";
+		mysqlQuery($sql, SEND);
 	}
 	
-	$eventYear = substr($_POST['eventStartDate'],0,4);
-	if($_POST['eventEndDate'] == ''){
-		$_POST['eventEndDate'] = $_POST['eventStartDate'];
+	$eventYear = substr($eventInfo['eventStartDate'],0,4);
+	if($eventInfo['eventEndDate'] == ''){
+		$eventInfo['eventEndDate'] = $eventInfo['eventStartDate'];
 	}
 
 	$sql = "UPDATE systemEvents
@@ -2948,20 +2968,19 @@ function editEvent(){
 			countryIso2=?, 
 			eventProvince=?, 
 			eventCity=?,
-			eventStatus=?
+			isArchived={$isArchived}
 			WHERE eventID = {$eventID}";
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "sssssssss", 
-			$_POST['eventName'], 
-			$_POST['eventAbbreviation'],
+	$bind = mysqli_stmt_bind_param($stmt, "ssssssss", 
+			$eventInfo['eventName'], 
+			$eventInfo['eventAbbreviation'],
 			$eventYear, 
-			$_POST['eventStartDate'],
-			$_POST['eventEndDate'],
-			$_POST['countryIso2'], 
-			$_POST['eventProvince'], 
-			$_POST['eventCity'],
-			$_POST['eventStatus']);
+			$eventInfo['eventStartDate'],
+			$eventInfo['eventEndDate'],
+			$eventInfo['countryIso2'], 
+			$eventInfo['eventProvince'], 
+			$eventInfo['eventCity']);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
@@ -2975,50 +2994,51 @@ function editEvent(){
 
 /******************************************************************************/
 
-function editEventStatus(){
+function updateEventPublication($publicationSettings, $eventID){
 	
 	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){ return; }
-	$eventID = (int)$_SESSION['eventID'];
+	$eventID = (int)$eventID;
 	if($eventID == 0){return;}
 	
-	if(!isset($_POST['eventStatus'])){
-		setAlert(USER_ERROR,"No Event Status provided.");
+	if($eventID == 0){
+		setAlert(SYSTEM,"No eventID in updateEventPublication() ");
 		return;	
 	}
 
-	$eventStatus = $_POST['eventStatus'];
-
-	switch($_POST['eventStatus']){
-		case 'archived':
-			$eventStatus = 'archived';
-			break;
-		case 'upcoming':
-			$eventStatus = 'upcoming';
-			break;
-		case 'active':
-			$eventStatus = 'active';
-			break;
-		case 'hidden':
-			$eventStatus = 'hidden';
-			break;
-		default:
-			setAlert(USER_ERROR,"Scorecard has encountered an unknown Event Status.");
-			return;
-			break;
+	if(isEventArchived($eventID) == true){
+		setAlert(USER_ERROR,"Once an event is archived everything is published.");
+		return;
 	}
 
-	
-	$sql = "UPDATE systemEvents 
-			SET eventStatus = ?
+	$publishRoster = (int)(bool)$publicationSettings['publishRoster'];
+	$publishSchedule = (int)(bool)$publicationSettings['publishSchedule'];
+	$publishMatches = (int)(bool)$publicationSettings['publishMatches'];
+
+	$sql = "SELECT publicationID
+			FROM eventPublication
 			WHERE eventID = {$eventID}";
-	
-	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	// "s" means the database expects a string
-	$bind = mysqli_stmt_bind_param($stmt, "s", $eventStatus);
-	$exec = mysqli_stmt_execute($stmt);
-	mysqli_stmt_close($stmt);
-	
-	$_SESSION['alertMessages']['userAlerts'][] = "Event Status updated";
+	$publicationID = (int)mysqlQuery($sql, SINGLE, 'publicationID');
+
+	if($publicationID == 0){
+
+		$sql = "INSERT INTO eventPublication
+				(eventID, publishRoster, publishSchedule, publishMatches)
+				VALUES
+				({$eventID}, {$publishRoster}, {$publishSchedule}, {$publishMatches})";
+		mysqlQuery($sql, SEND);
+
+	} else {
+
+		$sql = "UPDATE eventPublication
+				SET publishRoster = {$publishRoster},
+				publishSchedule = {$publishSchedule},
+				publishMatches = {$publishMatches}
+				WHERE publicationID = {$publicationID}";
+		mysqlQuery($sql, SEND);
+
+	}
+
+	$_SESSION['alertMessages']['userAlerts'][] = "Publication Settings Updated";
 	
 }
 

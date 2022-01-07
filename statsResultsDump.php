@@ -18,7 +18,7 @@ include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(ALLOW['STATS_EVENT'] == false && ALLOW['STATS_ALL'] == false){
+} elseif(ALLOW['STATS_EVENT'] == false){
 	pageError('user');
 } else {
 	$tournamentList_unsorted = getTournamentsFull($_SESSION['eventID']);

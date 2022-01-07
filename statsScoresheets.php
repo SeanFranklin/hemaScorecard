@@ -16,6 +16,8 @@ $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
 	pageError('event');
+else if(ALLOW['STATS_EVENT'] != false){
+	pageError('user');
 } else {
 
 	$scoresheets = getScoresheets($eventID, $_SESSION['tournamentID']);

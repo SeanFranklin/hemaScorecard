@@ -10,14 +10,10 @@
 $pageName = 'Event Workshop Summary';
 include('includes/header.php');
 
-$eventStatus = getEventStatus($_SESSION['eventID']);
-
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(    ($eventStatus != 'archived' && $eventStatus != 'active')
-	&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)
-    && (ALLOW['STATS_EVENT'] != true)){
-	pageError('user');
+} elseif(ALLOW['VIEW_SCHEDULE'] == false){
+	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
 	
 
@@ -49,16 +45,15 @@ if($_SESSION['eventID'] == null){
 	</div>
 
 
-	<table>
+	<table class='stack'>
 	
 	<caption>Instructor List </caption>
 
 	<?php foreach($stats['instructors'] as $instructor): ?>
 		<tr>
 			<td><?=$instructor['lastName']?>, <?=$instructor['firstName']?></td>
+			<td><i><?=getSchoolName($instructor['schoolID'],'long')?></i></td>
 		</tr>
-
-
 	<?php endforeach ?>
 
 

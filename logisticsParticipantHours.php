@@ -27,6 +27,8 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
+} elseif (ALLOW['VIEW_SCHEDULE'] == false){
+	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
 
 if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){

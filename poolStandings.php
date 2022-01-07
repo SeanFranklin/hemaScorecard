@@ -30,8 +30,7 @@ if($tournamentID == null){
 		redirect('roundStandings.php');
 	}
 	displayAlert("There are no pools for this tournament");
-} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
-		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
+} elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
 
