@@ -35,6 +35,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	} else {
 		displayAlert("No Match Selected<BR><a href='poolMatches.php'>Match List</a>");
 	}
+} elseif(ALLOW['VIEW_MATCHES'] == false) {
+	displayAlert("Event is still upcoming<BR>And you clearly got on this page by unorthodox means");
 } else {
 
 	$matchInfo = getMatchInfo($matchID, $tournamentID);

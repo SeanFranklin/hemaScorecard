@@ -19,9 +19,7 @@ $tournamentID = $_SESSION['tournamentID'];
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif (    (getEventStatus() == 'hidden') 
-		   && (ALLOW['EVENT_MANAGEMENT'] == false)
-		   && (ALLOW['VIEW_SETTINGS'] == false) ){
+} elseif (ALLOW['VIEW_SCHEDULE'] == false){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } elseif($_SESSION['isMetaEvent'] == true){
 	redirect('infoSummary.php');

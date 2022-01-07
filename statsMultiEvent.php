@@ -207,7 +207,7 @@ function getTournamentsForStats($filters){
 			FROM eventTournaments
 			INNER JOIN systemEvents USING(eventID)
 			WHERE eventID != 2
-			AND eventStatus = 'archived'
+			AND isArchived = 1
 			{$whereCases}
 			ORDER BY eventStartDate ASC";
 	$list = mysqlQuery($sql, ASSOC);

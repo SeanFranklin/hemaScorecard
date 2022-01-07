@@ -23,8 +23,7 @@ if($_SESSION['eventID'] == null){
 		redirect('poolMatches.php');
 	}
 	displayAlert('This is not a scored event<BR>Please navigate to a pool or bracket');
-} elseif (   (getEventStatus() == 'upcoming' || getEventStatus() == 'hidden') 
-		   && (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
+} elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 	

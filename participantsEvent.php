@@ -18,6 +18,8 @@ $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
 	pageError('event');
+} elseif(ALLOW['VIEW_ROSTER'] == false) {
+	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else {
 
 // Get information
@@ -173,9 +175,7 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 
 
 			<!-- Staffing assignments -->
-				<?php if((getEventStatus() != 'hidden' || getEventStatus() != 'upcoming')
-						|| (ALLOW['EVENT_MANAGEMENT'] == true)
-						|| (ALLOW['VIEW_SETTINGS'] == true)): ?>
+				<?php if(ALLOW['VIEW_SCHEDULE'] == true): ?>
 					
 					<?php if(isset($staffingBlocks[$rosterID]) == true): ?>
 						<BR><u><?=$fullName?></u> is also scheduled for:

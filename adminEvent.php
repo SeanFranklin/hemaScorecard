@@ -43,7 +43,25 @@ if($_SESSION['eventID'] == null){
 	if($_SESSION['eventID'] == TEST_EVENT_ID && ALLOW['SOFTWARE_ASSIST'] == false){
 		$testEventDisable = "disabled";
 	}
-	
+
+	if(isRosterPublished($_SESSION['eventID'])){
+		$publishRosterChecked = 'checked';
+	} else {
+		$publishRosterChecked = '';
+	}
+
+	if(isSchedulePublished($_SESSION['eventID'])){
+		$publishScheduleChecked = 'checked';
+	} else {
+		$publishScheduleChecked = '';
+	}
+
+	if(isMatchesPublished($_SESSION['eventID'])){
+		$publishMatchesChecked = 'checked';
+	} else {
+		$publishMatchesChecked = '';
+	}
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -53,34 +71,62 @@ if($_SESSION['eventID'] == null){
 	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
 	<legend><h4>Event Status</h4></legend>
 	<form method='POST'>
-	
+		<i>No one will be able to see your awesome event until you check these boxes. Once you are ready be sure to publish the event.</i>
 		<div class='grid-x grid-margin-x'>
-			<div class='medium-8 large-4 cell input-group'>
-			<span class='input-group-label pointer'>
-				Event Status&nbsp;<img src='includes/images/help.png' data-open="statusTypes">
-			</span>
-			<select class='input-group-field' type='text' name='eventStatus' <?=$testEventDisable?> >
-				
-				<option <?=optionValue('hidden', getEventStatus())?> >
-					Under Construction
-				</option>
-				
-				<option <?=optionValue('upcoming', getEventStatus())?> >
+
+			<div class='medium-4 large-3 cell input-group'>
+				<span class='input-group-label pointer'>
+					Publish Schedule
+				</span>
+
+				<div class='switch text-center no-bottom'>
+					<input type='hidden' name='publicationSettings[publishSchedule]' value='0'>
+					<input class='switch-input' type='checkbox' <?=$publishScheduleChecked?>
+						id='publicationSettings[publishSchedule]'
+						name='publicationSettings[publishSchedule]' value='1'>
+					<label class='switch-paddle' for='publicationSettings[publishSchedule]'>
+					</label>
+				</div>
+			</div>
+
+			<div class='medium-4 large-3 cell input-group'>
+				<span class='input-group-label pointer'>
 					Publish Roster
-				</option>
-				
-				<option <?=optionValue('active', getEventStatus())?> >
-					Publish All
-				</option>
-			</select>
+				</span>
+
+				<div class='switch text-center no-bottom'>
+					<input type='hidden' name='publicationSettings[publishRoster]' value='0'>
+					<input class='switch-input' type='checkbox' 
+						id='publicationSettings[publishRoster]' <?=$publishRosterChecked?>
+						name='publicationSettings[publishRoster]' value='1'>
+					<label class='switch-paddle' for='publicationSettings[publishRoster]'>
+					</label>
+				</div>
 			</div>
-			
-			<div class='large-3 medium-4 small-12 text-center'>
-			<button class='button success expanded' name='formName' value='eventStatusUpdate'>
-				Update Status
-			</button>
+
+			<div class='medium-4 large-6 cell input-group'>
+				<span class='input-group-label pointer'>
+					Publish Matches
+				</span>
+
+				<div class='switch text-center no-bottom'>
+					<input type='hidden' name='publicationSettings[publishMatches]' value='0'>
+					<input class='switch-input' type='checkbox' <?=$publishMatchesChecked?>
+						id='publicationSettings[publishMatches]' 
+						name='publicationSettings[publishMatches]' value='1'>
+					<label class='switch-paddle' for='publicationSettings[publishMatches]'>
+					</label>
+				</div>
 			</div>
+
+			<div class='large-3 medium-4 small-12 cell'>
+				<button class='button success no-bottom expanded' name='formName' value='updateEventPublication'>
+					Update Visibility
+				</button>
+			</div>
+
 		</div>
+
 	</form>
 	</fieldset>
 	<?php endif ?>

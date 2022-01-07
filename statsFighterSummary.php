@@ -16,11 +16,9 @@ $createSortableDataTable[] = "fighterInfoTable";
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
-$eventStatus = getEventStatus($_SESSION['eventID']);
 
-if(    ($eventStatus != 'archived' && $eventStatus != 'active')
-	&& (ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false)){
-	pageError('user');
+if(ALLOW['VIEW_MATCHES'] == false){
+	displayAlert("Event is still upcoming<BR>Matches not yet released");
 } else if($tournamentID == null){
 	pageError('tournament');
 } elseif($_SESSION['formatID'] != FORMAT_MATCH){

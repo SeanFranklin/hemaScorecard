@@ -59,7 +59,7 @@ function displayAdminEventList($eventList){
 	$fieldsToDisplay = ['eventName',
 						'eventStartDate',
 						'countryName',
-						'eventStatus'];
+						'isArchived'];
 	if(ALLOW['VIEW_EMAIL'] == true){
 		$fieldsToDisplay[] = 'organizerEmail';
 		$fieldsToDisplay[] = 'Setup';
@@ -68,7 +68,7 @@ function displayAdminEventList($eventList){
 
 			$isTournaments = true;
 			$isParticipants = true;
-			if($eventList[$eventID]['eventStatus'] != 'archived'){
+			if($eventList[$eventID]['isArchived'] == 0){
 				$eventID = (int)$eventID;
 				$sql = "SELECT COUNT(*) as numTournaments
 						FROM eventTournaments
@@ -136,27 +136,20 @@ function displayAdminEventList($eventList){
 	<?php foreach($eventList as $eventID => $info): 
 		$topBorder = '';
 
-		switch($info['eventStatus']){
-			case 'active':
-			case 'upcoming':
-				if($archivedReached == true){
-					$class = 'alert-text';
-				} else {
-					$class = 'warning-text';
-				}
-				break;
-			case 'archived':
-				$class = 'success-text hidden archived-event';
-				if($archivedReached == false){
-					$topBorder = ' table-top-border';
-				}
-				$archivedReached = true;
-				break;
-			case 'hidden':
-			default:
-				$class = '';
-				break;
-
+		if($info['isArchived'] == 1){
+			$class = 'success-text hidden archived-event';
+			if($archivedReached == false){
+				$topBorder = ' table-top-border';
+			}
+			$archivedReached = true;
+		} elseif(isEventPublished($eventID) == true){
+			if($archivedReached == true){
+				$class = 'alert-text';
+			} else {
+				$class = 'warning-text';
+			}
+		} else {
+			$class = '';
 		}
 
 		// Add a marking to indicate if something is a meta-event
@@ -167,9 +160,9 @@ function displayAdminEventList($eventList){
 		?>
 		<tr class='<?=$class?>'>
 			<td>
-				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['eventStatus'] != 'archived'): ?>
+				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['isArchived'] == false): ?>
 					<button class='button tiny hollow no-bottom expanded' 
-							name='eventToEdit' 
+							name='eventInfo[eventToEdit]' 
 							value='<?=$eventID?>'>
 
 						Edit #<?=$eventID?>
@@ -221,28 +214,14 @@ function addNewEventMenu(){
 					Meta Event
 				</td>
 				<td>
-					<input type='hidden' name='isMetaEvent' value='0'>
+					<input type='hidden' name='eventInfo[isMetaEvent]' value='0'>
 					<input class='switch-input' type='checkbox' id='isMetaEvent' 
-						name='isMetaEvent' value='1' >
-					<label class='switch-paddle' for='isMetaEvent'>
+						name='eventInfo[isMetaEvent]' value='1' >
+					<label class='switch-paddle' for='eventInfo[isMetaEvent]'>
 					</label>
 				</td>
 			</tr>
 
-
-
-			<tr>
-				<td>Event Status:</td>
-				<td>
-					<select name='eventStatus'>
-						<option value='active'>Active</option>
-						<option value='upcoming'>Upcoming</option>
-						<option value='hidden' selected>Hidden</option>
-						<option value='default'>Default</option>
-						<option value='archived'>Archived</option>
-					</select>
-				</td>
-			</tr>
 		</table>
 		
 		<button class='button success'>Add Event</button>
@@ -256,13 +235,16 @@ function addNewEventMenu(){
 
 function editEventMenu($eventID,$eventInfo){
 	
-	$eventStatus = getEventStatus($eventID);
-	$statusType = array('active','upcoming','hidden','default','archived');
+	if(isEventArchived($eventID) == true){
+		$isArchived = 'selected';
+	} else {
+		$isArchived = '';
+	}
 	$e_mail = getEventEmail($eventID);
 
 	// Software assistants can't edit archived events
 	if(ALLOW['SOFTWARE_ASSIST'] == false
-		|| (ALLOW['SOFTWARE_ADMIN'] == false && $eventStatus == 'archived')){
+		|| (ALLOW['SOFTWARE_ADMIN'] == false && (bool)$isArchived != false)){
 		return;
 	}
 	?>
@@ -272,9 +254,9 @@ function editEventMenu($eventID,$eventInfo){
 
 	<form method='POST'>
 
-		<input type='hidden' name='eventID' value='<?=$eventID?>'>
+		<input type='hidden' name='eventInfo[eventID]' value='<?=$eventID?>'>
 		<input type='hidden' name='formName' value='editEvent'>
-		<input type='hidden' name='changeEventTo' value='<?=$eventID?>'>
+		<input type='hidden' name='eventInfo[changeEventTo]' value='<?=$eventID?>'>
 
 	<!-- Data fields -->
 		<table>
@@ -282,16 +264,11 @@ function editEventMenu($eventID,$eventInfo){
 			
 			<!-- Event status -->
 			<tr>
-				<td>Event Status:</td>
+				<td>Archived:</td>
 				<td>
-					<select name='eventStatus'>
-						<?php foreach($statusType as $type):
-							$selected = isSelected($type == $eventStatus);
-							?>
-							<option value='<?=$type?>' <?=$selected?>>
-								<?=$type?>
-							</option>
-						<?php endforeach ?>
+					<select name='eventInfo[isArchived]'>
+						<option value=0></option>
+						<option value=1 <?=$isArchived?>>Yes</option>
 					</select>
 				</td>
 			</tr>
@@ -312,7 +289,7 @@ function editEventMenu($eventID,$eventInfo){
 		<?php endif ?>
 
 	<!-- Submit buttons -->
-		<button class='button success no-bottom' name='editEvent' value=1 >Update Event</button>
+		<button class='button success no-bottom' name='eventInfo[editEvent]' value=1 >Update Event</button>
 		<button class='button secondary no-bottom' name='formName'>Cancel</button>
 		<button class='button no-bottom' name='formName' value='selectEvent'>Go To Event</button>
 
@@ -340,49 +317,49 @@ function entryFields($eventInfo = null){
 		<td>Event Name</td>
 		<td>
 			<input class='no-bottom' type='text' required
-				name='eventName' value="<?=$eventInfo['eventName']?>">
+				name='eventInfo[eventName]' value="<?=$eventInfo['eventName']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>Abbreviation</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventAbbreviation' value="<?=$eventInfo['eventAbbreviation']?>">
+				name='eventInfo[eventAbbreviation]' value="<?=$eventInfo['eventAbbreviation']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>Start Date</td>
 		<td>
 			<input class='no-bottom' type='date' required
-				name='eventStartDate' value="<?=$eventInfo['eventStartDate']?>">
+				name='eventInfo[eventStartDate]' value="<?=$eventInfo['eventStartDate']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>End Date</td>
 		<td>
 			<input class='no-bottom' type='date'
-				name='eventEndDate' value="<?=$eventInfo['eventEndDate']?>">
+				name='eventInfo[eventEndDate]' value="<?=$eventInfo['eventEndDate']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>City</td>
 		<td>
 			<input class='no-bottom' type='text'
-				name='eventCity' value="<?=$eventInfo['eventCity']?>">
+				name='eventInfo[eventCity]' value="<?=$eventInfo['eventCity']?>">
 		</td>
 	</tr>
 	<tr>
 		<td>Province/State</td>
 		<td>
 			<input class='no-bottom' type='text' 
-				name='eventProvince' value="<?=$eventInfo['eventProvince']?>">
+				name='eventInfo[eventProvince]' value="<?=$eventInfo['eventProvince']?>">
 		</td>
 	</tr>
 	
 	<tr>
 		<td>Country</td>
 		<td>
-			<?=selectCountry("countryIso2", $eventInfo['countryIso2'], null, 'no-bottom');?>
+			<?=selectCountry("eventInfo[countryIso2]", $eventInfo['countryIso2'], null, 'no-bottom');?>
 		</td>
 	</tr>
 

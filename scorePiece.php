@@ -35,6 +35,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	} else {
 		displayAlert("No Piece Selected<BR><a href='roundMatches.php'>Piece List</a>");
 	}
+} elseif(ALLOW['VIEW_MATCHES'] == false) {
+	displayAlert("Event is still upcoming<BR>And you clearly got on this page by unorthodox means");
 } elseif($_SESSION['formatID'] != FORMAT_SOLO){
 	displayAlert("So close and yet so far. <BR>Perhaps <a href='scoreMatch.php'>this</a> is what you're looking for? :)");
 } else {

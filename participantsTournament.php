@@ -21,6 +21,8 @@ include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 if($tournamentID == null){
 	pageError('tournament');
+} elseif(ALLOW['VIEW_ROSTER'] == false) {
+	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else{
 
 	$eventRoster = getEventRoster();
