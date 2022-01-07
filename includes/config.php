@@ -166,18 +166,6 @@ $conn = connectToDB();
 // Set the Permissions
 	setPermissions();
 
-// Set the event ID to the Default Event if there is one
-	if(!isset($_SESSION['eventID']) || ((int)$_SESSION['eventID']) <= 0){
-		$defaultEvent = getDefaultEvent();
-		if($defaultEvent != null){
-			$_SESSION['eventID'] = $defaultEvent;
-			$_SESSION['eventName'] = getEventName($eventID);
-		} else {
-			$_SESSION['eventID'] = '';
-			$_SESSION['eventName'] = '';
-		}
-	}
-
 // Set tournament ID if there is only one tournament in the event
 	if($_SESSION['eventID'] != null){
 		
@@ -304,6 +292,9 @@ function setPermissions(){
 	foreach($permissionsList as $permisionType){
 		$permissionsArray[$permisionType] = false;
 	}
+	$permissionsArray['VIEW_ROSTER']		= false;
+	$permissionsArray['VIEW_SCHEDULE']		= false;
+	$permissionsArray['VIEW_MATCHES'] 		= false;
 
 	switch($_SESSION['userName']){
 		case 'eventStaff':
@@ -313,8 +304,24 @@ function setPermissions(){
 			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
 			$permissionsArray['EVENT_MANAGEMENT'] 	= true;
 			$permissionsArray['STATS_EVENT'] 		= true;
+			$permissionsArray['VIEW_ROSTER']		= true;
+			$permissionsArray['VIEW_SCHEDULE']		= true;
+			$permissionsArray['VIEW_MATCHES'] 		= true;
 			break;
 		case '':
+
+			if(isRosterPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_ROSTER'] = true;
+			}
+
+			if(isSchedulePublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_SCHEDULE'] = true;
+			}
+
+			if(isMatchesPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_MATCHES'] = true;
+			}
+
 			// No user name, no permissions.
 			break;
 		default:
@@ -354,6 +361,22 @@ function setPermissions(){
 					$permissionsArray['STATS_EVENT'] 		= true;
 				}
 			}
+
+			if($permissionsArray['STATS_ALL'] == true){
+				$permissionsArray['STATS_EVENT'] = true;
+			}
+
+			if(    $permissionsArray['VIEW_HIDDEN'] == true 
+				|| $permissionsArray['VIEW_SETTINGS'] == true
+				|| $permissionsArray['STATS_EVENT'] == true){
+
+				$permissionsArray['VIEW_ROSTER']	= true;
+				$permissionsArray['VIEW_SCHEDULE']	= true;
+				$permissionsArray['VIEW_MATCHES']	= true;
+			}
+
+
+
 	}
 
 	define("ALLOW",$permissionsArray);
