@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jan 06, 2022 at 03:08 AM
+-- Generation Time: Jan 07, 2022 at 04:11 AM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -283,6 +283,20 @@ CREATE TABLE `eventPlacings` (
   `highBound` int(11) DEFAULT NULL,
   `lowBound` int(11) DEFAULT NULL,
   `placeType` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `eventPublication`
+--
+
+CREATE TABLE `eventPublication` (
+  `publicationID` int(10) UNSIGNED NOT NULL,
+  `eventID` int(10) UNSIGNED NOT NULL,
+  `publishRoster` tinyint(1) NOT NULL DEFAULT '0',
+  `publishSchedule` tinyint(1) NOT NULL DEFAULT '0',
+  `publishMatches` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -1102,6 +1116,7 @@ CREATE TABLE `systemEvents` (
   `organizerPassword` varchar(255) DEFAULT NULL,
   `salt` varchar(255) DEFAULT NULL,
   `eventStatus` varchar(255) NOT NULL DEFAULT 'active',
+  `isArchived` tinyint(1) NOT NULL DEFAULT '0',
   `organizerEmail` varchar(255) DEFAULT NULL,
   `termsOfUseAccepted` tinyint(1) NOT NULL DEFAULT '0',
   `limitStaffConflicts` int(11) NOT NULL DEFAULT '0',
@@ -1978,6 +1993,13 @@ ALTER TABLE `eventPlacings`
   ADD KEY `rosterID` (`rosterID`);
 
 --
+-- Indexes for table `eventPublication`
+--
+ALTER TABLE `eventPublication`
+  ADD PRIMARY KEY (`publicationID`),
+  ADD KEY `eventID` (`eventID`);
+
+--
 -- Indexes for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
@@ -2365,6 +2387,11 @@ ALTER TABLE `eventMatchOptions`
 ALTER TABLE `eventPlacings`
   MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12298;
 --
+-- AUTO_INCREMENT for table `eventPublication`
+--
+ALTER TABLE `eventPublication`
+  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+--
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
@@ -2423,7 +2450,7 @@ ALTER TABLE `eventTournaments`
 -- AUTO_INCREMENT for table `logisticsBlockAttributes`
 --
 ALTER TABLE `logisticsBlockAttributes`
-  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 --
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
@@ -2543,7 +2570,7 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- AUTO_INCREMENT for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=682;
+  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=683;
 --
 -- AUTO_INCREMENT for table `systemTournaments`
 --
@@ -2663,6 +2690,12 @@ ALTER TABLE `eventMatchOptions`
 --
 ALTER TABLE `eventPlacings`
   ADD CONSTRAINT `eventPlacings_ibfk_1` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`);
+
+--
+-- Constraints for table `eventPublication`
+--
+ALTER TABLE `eventPublication`
+  ADD CONSTRAINT `eventPublication_ibfk_1` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `eventRoster`
