@@ -295,6 +295,7 @@ function setPermissions(){
 	$permissionsArray['VIEW_ROSTER']		= false;
 	$permissionsArray['VIEW_SCHEDULE']		= false;
 	$permissionsArray['VIEW_MATCHES'] 		= false;
+	$permissionsArray['VIEW_RULES'] 		= false;
 
 	switch($_SESSION['userName']){
 		case 'eventStaff':
@@ -307,6 +308,7 @@ function setPermissions(){
 			$permissionsArray['VIEW_ROSTER']		= true;
 			$permissionsArray['VIEW_SCHEDULE']		= true;
 			$permissionsArray['VIEW_MATCHES'] 		= true;
+			$permissionsArray['VIEW_RULES'] 		= true;
 			break;
 		case '':
 
@@ -321,6 +323,11 @@ function setPermissions(){
 			if(isMatchesPublished($_SESSION['eventID']) == true){
 				$permissionsArray['VIEW_MATCHES'] = true;
 			}
+
+			if(isRulesPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_RULES'] = true;
+			}
+
 
 			// No user name, no permissions.
 			break;
@@ -373,6 +380,7 @@ function setPermissions(){
 				$permissionsArray['VIEW_ROSTER']	= true;
 				$permissionsArray['VIEW_SCHEDULE']	= true;
 				$permissionsArray['VIEW_MATCHES']	= true;
+				$permissionsArray['VIEW_RULES'] 	= true;
 			}
 
 
@@ -451,6 +459,9 @@ function initializeSession(){
 	}
 	if(!isset($_SESSION['userID'])){
 		$_SESSION['userID'] = 0;
+	}
+	if(!isset($_SESSION['rulesID'])){
+		$_SESSION['rulesID'] = 0;
 	}
 
 	if(!isset($_SESSION['userName'])){

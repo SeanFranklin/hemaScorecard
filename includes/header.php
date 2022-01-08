@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.1.4'; // Javascript Version
+$vJ = '?=1.1.5'; // Javascript Version
 $vC = '?=1.0.9'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
@@ -139,7 +139,13 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 					</li>
 				<?php else: ?>
 					<li>
-						<a href='participantsEvent.php'>Event Participants</a>
+						<a href='#'>Event Information</a>
+						<ul class='menu vertical'>
+							<li><a href='participantsEvent.php'>Participants</a></li>
+							<li><a href='infoRules.php'>Rules</a></li>
+							<li><a href='infoSummary.php'>Final Results</a></li>
+						</ul>
+						
 					</li>
 				<?php endif ?>
 			<?php endif ?>
@@ -153,6 +159,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
 							<li><a href='adminNewTournaments.php'>Add New Tournaments</a></li>
 							<li><a href='adminEvent.php'>Event Settings</a></li>
+							<li><a href='infoRules.php'>Rules</a><li>
 							<li><a href='adminHemaRatings.php'>HEMA Ratings</a></li>
 						</ul>
 					</li>
@@ -172,10 +179,6 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='infoSummary.php'>Final Results</a></li>
 							<li><a href='statsScoresheets.php'>Scoresheets</a></li>
 						</ul>
-					</li>
-				<?php else: ?>
-					<li>
-						<a href='infoSummary.php'>Final Results</a>
 					</li>
 				<?php endif ?>
 			<?php endif ?>
@@ -211,7 +214,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
 						</ul>
 					</li>
-				<?php elseif($isSchedule == true && ALLOW['VIEW_SCHEDULE'] == true): ?>
+				<?php elseif(ALLOW['VIEW_SCHEDULE'] == true): ?>
 					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
 				<?php endif ?>
 			<?php endif ?>
