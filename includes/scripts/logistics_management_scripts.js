@@ -346,6 +346,27 @@ function logistics_displayBlockDescription(blockID){
                     $("#sbd-equipment").html("");
                 }
 
+                console.log(data);
+
+                $("#sbd-rules").html("");
+                if (data['rules'] !== undefined && data['rules'].length > 0) {
+
+                    $("#sbd-rules").html(`<u>Rules</u>: `);
+
+                    var rulesNum = 0;
+                    data['rules'].forEach(function(rules){
+                        console.log(rules);
+                        rulesNum++;
+                        if(rulesNum > 1){
+                             $("#sbd-rules").append(', ');
+                        }
+                        $("#sbd-rules").append(
+                            "<a href='infoRules.php?r="+rules['rulesID']+"'>"+rules['rulesName']+"</a>"
+                            );
+                    });
+
+                }
+
                 $("#sbd-instructors").html("");
                
                 if (data['instructors'] !== undefined && data['instructors'].length > 0) {
