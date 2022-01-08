@@ -1289,7 +1289,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 						(isArchived = 1 )
 					OR 	(	publishMatches = 1
 							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventActiveLimit} )
-					OR 	(	(publishSchedule = 1 OR publishRoster = 1)
+					OR 	(	(publishSchedule = 1 OR publishRoster = 1  OR publishRules = 1)
 							AND DATEDIFF(eventEndDate,CURDATE()) < -{$eventUpcomingLimit} )
 				   )";
 			break;
@@ -1300,6 +1300,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 					OR 	publishRoster = 1 
 					OR 	publishSchedule = 1 
 					OR 	publishMatches = 1
+					OR 	publishRules = 1
 				   )";
 			break;
 
@@ -1309,6 +1310,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 					AND publishRoster = 1 
 					AND	publishSchedule = 1 
 					AND	publishMatches = 1
+					AND	publishRules = 1
 				   )";
 			break;
 
@@ -1317,10 +1319,12 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 						isArchived = 0 
 					AND (		publishRoster = 1 
 							OR	publishSchedule = 1 
-							OR	publishMatches = 1)
+							OR	publishMatches = 1
+							OR	publishRules = 1)
 					AND ((		publishRoster = 1 
 							AND	publishSchedule = 1 
-							AND	publishMatches = 1) = FALSE)
+							AND	publishMatches = 1
+							AND	publishRules = 1) = FALSE)
 				   )";
 			break;
 
@@ -1330,6 +1334,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 					AND publishRoster = 0 
 					AND	publishSchedule = 0 
 					AND	publishMatches = 0
+					AND	publishRules = 0
 				   )";
 			break;
 
@@ -1340,8 +1345,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 		case 'meta':
 		default:
 			// In this case we don't care. Get everything.
-			$publishClause	= "(1 = 1
-				   )";
+			$publishClause	= "(1 = 1)";
 			break;
 	}
 
@@ -4031,7 +4035,6 @@ function logistics_getWorkshopStats($eventID){
 	$workshops['instructors'] = (array)mysqlQuery($sql, ASSOC);
 	$workshops['numInstructors'] = count($workshops['instructors']);
 
-
 	return $workshops;
 
 }
@@ -6700,6 +6703,26 @@ function isMatchesPublished($eventID){
 
 /******************************************************************************/
 
+function isRulesPublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
+	} else {
+		$sql = "SELECT publishRules
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishRules');
+	}
+
+	return $isPublished;
+
+}
+
+/******************************************************************************/
+
 function isEventPublished($eventID){
 
 	$eventID = (int)$eventID;
@@ -6708,7 +6731,7 @@ function isEventPublished($eventID){
 	if(isEventArchived($eventID) == true){
 		$isPublished = true;
 	} else {
-		$sql = "SELECT publishRoster, publishSchedule, publishMatches 
+		$sql = "SELECT publishRoster, publishSchedule, publishMatches, publishRules 
 				FROM eventPublication
 				WHERE eventID = {$eventID}";
 		$publicationStatus = (array)mysqlQuery($sql, SINGLE);
@@ -7319,7 +7342,6 @@ function doesUserHavePermission($systemUserID, $eventID, $permission){
 
 }
 
-
 /******************************************************************************/
 
 function isAnyEventInfoViewable(){
@@ -7333,6 +7355,68 @@ function isAnyEventInfoViewable(){
 	}
 
 	return $viewable;
+
+}
+
+/******************************************************************************/
+
+function getEventRules($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT rulesID
+			FROM eventRules
+			WHERE eventID = {$eventID}";
+	return (array)mysqlQuery($sql, SINGLES, 'rulesID');
+}
+
+/******************************************************************************/
+
+function getTournamentRules($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT rulesID, rulesName
+			FROM eventRulesLinks
+			INNER JOIN eventRules USING(rulesID)
+			WHERE tournamentID = {$tournamentID}";
+	return (array)mysqlQuery($sql, ASSOC);
+
+}
+
+/******************************************************************************/
+
+function getRulesName($rulesID){
+
+	$rulesID = (int)$rulesID;
+	$sql = "SELECT rulesName
+			FROM eventRules
+			WHERE rulesID = {$rulesID}";
+	return mysqlQuery($sql, SINGLE, 'rulesName');
+
+}
+
+/******************************************************************************/
+
+function getRulesInfo($rulesID){
+
+	$rulesID = (int)$rulesID;
+	$sql = "SELECT rulesName, rulesText
+			FROM eventRules
+			WHERE rulesID = {$rulesID}";
+	$rulesInfo = mysqlQuery($sql, SINGLE);
+
+	$sql = "SELECT tournamentID
+			FROM eventRulesLinks
+			WHERE rulesID = {$rulesID}";
+	$tournamentIDs = (array)mysqlQuery($sql, SINGLES, 'tournamentID');
+
+	$rulesInfo['tournamentIDs'] = [];
+	foreach($tournamentIDs as $tournamentID){
+		$rulesInfo['tournamentIDs'][$tournamentID] = $tournamentID;
+	}
+
+	return $rulesInfo;
 
 }
 

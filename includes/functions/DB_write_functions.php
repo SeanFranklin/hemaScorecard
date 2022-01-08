@@ -1779,9 +1779,9 @@ function addNewEvent($eventInfo){
 	mysqlQuery($sql, SEND);
 
 	$sql = "INSERT INTO eventPublication
-			(eventID, publishRoster, publishSchedule, publishMatches)
+			(eventID, publishRoster, publishSchedule, publishMatches, publishRules)
 			VALUES
-			({$eventID}, 0, 0, 0)";
+			({$eventID}, 0, 0, 0, 0)";
 	mysqlQuery($sql, SEND);
 
 	$name = getEventName($eventID);
@@ -2947,9 +2947,9 @@ function editEvent($eventInfo){
 
 	if((bool)$isArchived == false && $wasArchiced == true){
 		$sql = "INSERT INTO eventPublication
-				(eventID, publishRoster, publishSchedule, publishMatches)
+				(eventID, publishRoster, publishSchedule, publishMatches, publishRules)
 				VALUES
-				({$eventID}, 1, 1, 1)";
+				({$eventID}, 1, 1, 1, 1)";
 		mysqlQuery($sql, SEND);
 	}
 	
@@ -3013,6 +3013,7 @@ function updateEventPublication($publicationSettings, $eventID){
 	$publishRoster = (int)(bool)$publicationSettings['publishRoster'];
 	$publishSchedule = (int)(bool)$publicationSettings['publishSchedule'];
 	$publishMatches = (int)(bool)$publicationSettings['publishMatches'];
+	$publishRules = (int)(bool)$publicationSettings['publishRules'];
 
 	$sql = "SELECT publicationID
 			FROM eventPublication
@@ -3022,9 +3023,9 @@ function updateEventPublication($publicationSettings, $eventID){
 	if($publicationID == 0){
 
 		$sql = "INSERT INTO eventPublication
-				(eventID, publishRoster, publishSchedule, publishMatches)
+				(eventID, publishRoster, publishSchedule, publishMatches, publishRules)
 				VALUES
-				({$eventID}, {$publishRoster}, {$publishSchedule}, {$publishMatches})";
+				({$eventID}, {$publishRoster}, {$publishSchedule}, {$publishMatches}, {$publishRules})";
 		mysqlQuery($sql, SEND);
 
 	} else {
@@ -3032,7 +3033,8 @@ function updateEventPublication($publicationSettings, $eventID){
 		$sql = "UPDATE eventPublication
 				SET publishRoster = {$publishRoster},
 				publishSchedule = {$publishSchedule},
-				publishMatches = {$publishMatches}
+				publishMatches = {$publishMatches},
+				publishRules = {$publishRules}
 				WHERE publicationID = {$publicationID}";
 		mysqlQuery($sql, SEND);
 
@@ -7454,6 +7456,128 @@ function updateYouTubeLink($matchID){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);		
 			
+}
+
+/******************************************************************************/
+
+function updateRules($rulesInfo)
+{
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$rulesID = (int)$rulesInfo['rulesID'];
+	$rulesName = trim($rulesInfo['rulesName']);
+	$rulesText = trim($rulesInfo['rulesText']);
+
+	if(strlen($rulesName) == 0){
+		setAlert(USER_ERROR,"You must include a rules title<BR>Rules not updated");
+		return;
+	}
+	if(strlen($rulesText) == 0){
+		setAlert(USER_ERROR,"You must actually write some rules!<BR>Rules not updated");
+		return;
+	}
+
+
+	
+	if($rulesID != 0){
+		$sql = "UPDATE eventRules
+				SET rulesName = ?, rulesText = ?
+				WHERE rulesID = {$rulesID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "ss", $rulesName, $rulesText);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Ruleset <i>{$rulesName}</i> has been modified.");	
+
+	} else {
+
+		$eventID = (int)$rulesInfo['eventID'];
+		if($eventID == 0){
+			setAlert(SYSTEM,"No eventID in updateRules()");
+			return;
+		}
+
+		$sql = "INSERT INTO eventRules
+				(eventID, rulesName, rulesText)
+				VALUES 
+				({$eventID}, ?, ?)";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "ss", $rulesName, $rulesText);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+		$rulesID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+		setAlert(USER_ALERT,"A new ruleset <i>{$rulesName}</i> has been added.");
+		
+	}
+
+	$_SESSION['rulesID'] = $rulesID;
+
+	if(isset($rulesInfo['tournamentIDs']) == true){
+
+		foreach($rulesInfo['tournamentIDs'] as $tournamentID => $isLinked){
+			$isLinked = (bool)$isLinked;
+
+			$tournamentID = (int)$tournamentID;
+			if($tournamentID == 0){
+				continue;
+			}
+
+			if($isLinked == false){
+				$sql = "DELETE FROM eventRulesLinks
+						WHERE rulesID = {$rulesID}
+						AND tournamentID = {$tournamentID}";
+				mysqlQuery($sql, SEND);
+			} else {
+
+				$sql = "SELECT rulesLinkID
+						FROM eventRulesLinks
+						WHERE rulesID = {$rulesID}
+						AND tournamentID = {$tournamentID}";
+				$rulesLinkID = (int)mysqlQuery($sql, SINGLE, 'rulesLinkID');
+
+				if($rulesLinkID == 0){
+					$sql = "INSERT INTO eventRulesLinks
+							(rulesID, tournamentID)
+							VALUES 
+							({$rulesID}, {$tournamentID})";
+					mysqlQuery($sql, SEND);
+				}
+
+			}
+
+		}
+	}
+
+}
+
+/******************************************************************************/
+
+function deleteRules($rulesID)
+{
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$rulesName = getRulesName($rulesID);
+	
+	$rulesID = (int)$rulesID;
+
+	$sql = "DELETE FROM eventRules
+			WHERE rulesID = {$rulesID}";
+	mysqlQuery($sql, SEND);
+
+	$_SESSION['rulesID'] = 0;
+	setAlert(USER_ALERT,"The ruleset <b>{$rulesName}</b> has been deleted.");
 }
 
 /******************************************************************************/

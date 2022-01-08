@@ -198,6 +198,7 @@ function displayBlockDescription(){
 		<HR>
 		<div id='sbd-experience'></div>
 		<div id='sbd-equipment'></div>
+		<div id='sbd-rules'></div>
 		<div id='sbd-description' style='white-space: pre-wrap'></div>
 		<div>
 			<a id='sbd-link' target="_blank"><span id='sbd-linkDescription'></span></a>
@@ -664,6 +665,7 @@ function displayScheduleConflicts($conflicts){
 
 function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces){
 
+	$avaliablePlaces = [];
 	foreach($eventPlaces as $place){
 		$avaliablePlaces[$place['locationID']] = 0;
 	}

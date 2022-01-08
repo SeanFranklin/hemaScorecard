@@ -88,6 +88,9 @@ function processPostData(){
 			case 'changeRosterID':
 				$_SESSION['rosterID'] = (int)$_POST['rosterID'];
 				break;
+			case 'changeRulesID':
+				$_SESSION['rulesID'] = (int)$_POST['changeRules']['rulesID'];
+				break;
 				
 	// Roster Management Cases
 			case 'addEventParticipants':
@@ -372,6 +375,13 @@ function processPostData(){
 			case 'hemaRatings_UpdateEventInfo':
 				hemaRatings_updateEventInfo($_POST['eventHemaRatings']);
 				break;
+			case 'updateRules':
+				updateRules($_POST['updateRules']);
+				break;
+			case 'deleteRules':
+				deleteRules($_POST['deleteRules']['rulesID']);
+				break;
+
 			
 
 	// Admin Cases
@@ -677,6 +687,11 @@ function updateSessionByUrl($urlParams, $urlPath = null){
 	$urlEventID = @(int)$urlParams['e'];
 	$urlTournamentID = @(int)$urlParams['t'];
 	$urlMatchID = @(int)$urlParams['m'];
+	$rulesID = @(int)$urlParams['r'];
+	if($rulesID != 0){
+		$_SESSION['rulesID'] = $rulesID;
+	}
+	
 
 	if(isset($urlParams['e']) && $urlEventID != $_SESSION['eventID']){
 
@@ -1397,6 +1412,15 @@ function checkSession(){
 		$_SESSION['matchID'] = null;
 		return;
 	}
+
+	
+// Checks if the ruleset in SESSION is valid. Set to zero if invalid.
+	$rulesID = (int)$_SESSION['rulesID'];
+	$sql = "SELECT rulesID
+			FROM eventRules
+			WHERE eventID = {$eventID}
+			AND rulesID = {$rulesID}";
+	$_SESSION['rulesID'] = (int)mysqlQuery($sql, SINGLE, 'rulesID');
 	
 // Checks if the tournament in SESSION exists
 	if($tournamentID == 0){
@@ -1715,8 +1739,6 @@ function checkGroupOrders($tournamentID, $groupID = null){
 	}
 
 }
-
-/******************************************************************************/
 
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
