@@ -256,6 +256,8 @@ case 'getScheduleBlockInfo':{
 	
 	$info['instructors'] = logistics_getBlockInstructors($blockID);
 
+	$info['rules'] = getTournamentRules($info['tournamentID']);
+
 	echo json_encode($info);
 
 } break;
