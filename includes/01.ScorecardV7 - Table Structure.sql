@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jan 07, 2022 at 04:11 AM
+-- Generation Time: Jan 08, 2022 at 02:58 AM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -296,7 +296,8 @@ CREATE TABLE `eventPublication` (
   `eventID` int(10) UNSIGNED NOT NULL,
   `publishRoster` tinyint(1) NOT NULL DEFAULT '0',
   `publishSchedule` tinyint(1) NOT NULL DEFAULT '0',
-  `publishMatches` tinyint(1) NOT NULL DEFAULT '0'
+  `publishMatches` tinyint(1) NOT NULL DEFAULT '0',
+  `publishRules` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -333,6 +334,31 @@ CREATE TABLE `eventRosterAdditional` (
   `eventID` int(10) UNSIGNED NOT NULL,
   `eventWaiver` tinyint(1) NOT NULL DEFAULT '0',
   `eventCheckIn` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `eventRules`
+--
+
+CREATE TABLE `eventRules` (
+  `rulesID` int(10) UNSIGNED NOT NULL,
+  `eventID` int(10) UNSIGNED NOT NULL,
+  `rulesName` varchar(255) DEFAULT NULL,
+  `rulesText` text
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `eventRulesLinks`
+--
+
+CREATE TABLE `eventRulesLinks` (
+  `rulesLinkID` int(10) UNSIGNED NOT NULL,
+  `rulesID` int(10) UNSIGNED NOT NULL,
+  `tournamentID` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -1765,7 +1791,7 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (29, 'ranking', '2 Pool Winners', 1, 0, 0, 0, NULL, NULL),
 (30, 'ranking', 'Total Points Scored', 1, 0, 0, 0, NULL, NULL),
 (31, 'ranking', 'CC Invitation 2016', 1, 0, 0, 0, NULL, NULL),
-(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 29, NULL, NULL),
+(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 32, NULL, NULL),
 (33, 'ranking', 'Results Only', 0, 0, 0, 0, NULL, NULL),
 (34, 'weapon', 'Glima', 1, 1, 1, 7, NULL, NULL),
 (35, 'weapon', 'Rotella', 1, 1, 1, 2, NULL, NULL),
@@ -2014,6 +2040,21 @@ ALTER TABLE `eventRoster`
 ALTER TABLE `eventRosterAdditional`
   ADD PRIMARY KEY (`additionalRosterID`),
   ADD KEY `eventID` (`eventID`);
+
+--
+-- Indexes for table `eventRules`
+--
+ALTER TABLE `eventRules`
+  ADD PRIMARY KEY (`rulesID`),
+  ADD KEY `eventID` (`eventID`);
+
+--
+-- Indexes for table `eventRulesLinks`
+--
+ALTER TABLE `eventRulesLinks`
+  ADD PRIMARY KEY (`rulesLinkID`),
+  ADD KEY `rulesID` (`rulesID`),
+  ADD KEY `tournamentID` (`tournamentID`);
 
 --
 -- Indexes for table `eventScoresheets`
@@ -2395,12 +2436,22 @@ ALTER TABLE `eventPublication`
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8934;
+  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8935;
 --
 -- AUTO_INCREMENT for table `eventRosterAdditional`
 --
 ALTER TABLE `eventRosterAdditional`
   MODIFY `additionalRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+--
+-- AUTO_INCREMENT for table `eventRules`
+--
+ALTER TABLE `eventRules`
+  MODIFY `rulesID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+--
+-- AUTO_INCREMENT for table `eventRulesLinks`
+--
+ALTER TABLE `eventRulesLinks`
+  MODIFY `rulesLinkID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `eventScoresheets`
 --
@@ -2440,17 +2491,17 @@ ALTER TABLE `eventTournamentOptions`
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17405;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17407;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=955;
+  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=958;
 --
 -- AUTO_INCREMENT for table `logisticsBlockAttributes`
 --
 ALTER TABLE `logisticsBlockAttributes`
-  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 --
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
@@ -2460,7 +2511,7 @@ ALTER TABLE `logisticsLocations`
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
 ALTER TABLE `logisticsLocationsBlocks`
-  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1740;
+  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1741;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsMatches`
 --
@@ -2470,12 +2521,12 @@ ALTER TABLE `logisticsLocationsMatches`
 -- AUTO_INCREMENT for table `logisticsScheduleBlocks`
 --
 ALTER TABLE `logisticsScheduleBlocks`
-  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=873;
+  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=874;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleShifts`
 --
 ALTER TABLE `logisticsScheduleShifts`
-  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1112;
+  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1113;
 --
 -- AUTO_INCREMENT for table `logisticsStaffCompetency`
 --
@@ -2490,7 +2541,7 @@ ALTER TABLE `logisticsStaffMatches`
 -- AUTO_INCREMENT for table `logisticsStaffShifts`
 --
 ALTER TABLE `logisticsStaffShifts`
-  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2585;
+  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2586;
 --
 -- AUTO_INCREMENT for table `logisticsStaffTemplates`
 --
@@ -2710,6 +2761,19 @@ ALTER TABLE `eventRoster`
 --
 ALTER TABLE `eventRosterAdditional`
   ADD CONSTRAINT `eventRosterAdditional_ibfk_1` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `eventRules`
+--
+ALTER TABLE `eventRules`
+  ADD CONSTRAINT `eventRules_ibfk_1` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `eventRulesLinks`
+--
+ALTER TABLE `eventRulesLinks`
+  ADD CONSTRAINT `eventRulesLinks_ibfk_1` FOREIGN KEY (`rulesID`) REFERENCES `eventRules` (`rulesID`),
+  ADD CONSTRAINT `eventRulesLinks_ibfk_2` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`);
 
 --
 -- Constraints for table `eventStandings`
