@@ -1471,7 +1471,6 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 // landing page determined by the login type
 
 // Is valid change
-
 	if($_SESSION['eventID'] == $eventID){
 		$eventChanged = false;
 	} else {
@@ -1479,7 +1478,8 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		if(   isRosterPublished($eventID) == true
 		   || isSchedulePublished($eventID) == true
 		   || isMatchesPublished($eventID) == true
-		   || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')){
+		   || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')
+		   || $logoutInhibit == true ){
 			$eventChanged = true;
 		} else {
 			$eventChanged = false;
