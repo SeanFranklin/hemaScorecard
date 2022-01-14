@@ -7582,5 +7582,64 @@ function deleteRules($rulesID)
 
 /******************************************************************************/
 
+function updateEventSponsors($sponsorList){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$sponsorList['eventID'];
+	if($eventID == 0){
+		setAlert(SYSTEM,"No eventID in updateEventSponsors()");
+		return;
+	}
+
+	$activeSponsors = [];
+	foreach($sponsorList['sponsors'] as $sponsor){
+
+		$sponsorID = (int)@$sponsor['sponsorID'];
+		if($sponsorID == 0){continue;}
+
+		$eventSponsorPercent = (int)$sponsor['eventSponsorPercent'];
+		if($eventSponsorPercent <= 0){
+			$eventSponsorPercent = 100;
+		} else if($eventSponsorPercent > 100){
+			$eventSponsorPercent = 100;
+		} else {
+			// Don't need any correction
+		}
+
+
+		$activeSponsors[] = $sponsorID;
+		$eventSponsorID = (int)$sponsor['eventSponsorID'];
+
+		if($eventSponsorID == 0){
+			$sql = "INSERT INTO eventSponsors
+					(sponsorID, eventID, eventSponsorPercent)
+					VALUES 
+					({$sponsorID},{$eventID},{$eventSponsorPercent})";
+			mysqlQuery($sql, SINGLE);
+		} else {
+			$sql = "UPDATE eventSponsors
+					SET eventSponsorPercent = {$eventSponsorPercent}
+					WHERE eventID = {$eventID}
+					AND sponsorID = {$sponsorID}";
+			mysqlQuery($sql, SINGLE);
+		}
+		
+	}
+
+	$activeSponsors = implode2int($activeSponsors);
+	$sql = "DELETE FROM eventSponsors
+			WHERE eventID = {$eventID}
+			AND sponsorID NOT IN ($activeSponsors)";
+	mysqlQuery($sql,SEND);
+
+	setAlert(USER_ALERT,"Sponsor list updated");
+
+}
+
+/******************************************************************************/
+
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
