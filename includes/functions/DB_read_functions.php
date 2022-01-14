@@ -7422,5 +7422,72 @@ function getRulesInfo($rulesID){
 
 /******************************************************************************/
 
+function getSponsorListGear($type = null){
+
+	$sql = "SELECT sponsorID, sponsorName
+			FROM systemSponsors
+			WHERE sponsorType = 'gear'
+			ORDER BY sponsorName ASC";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
+function getSponsorListEvent($type = null){
+
+	$sql = "SELECT sponsorID, sponsorName
+			FROM systemSponsors
+			WHERE sponsorType = 'event'
+			ORDER BY sponsorName ASC";
+	return mysqlQuery($sql, ASSOC);
+}
+
+
+/******************************************************************************/
+
+function getSponsorListLocal($type = null){
+
+	$sql = "SELECT sponsorID, sponsorName
+			FROM systemSponsors
+			WHERE sponsorType = 'local'
+			ORDER BY sponsorName ASC";
+	return mysqlQuery($sql, ASSOC);
+}
+
+
+
+/******************************************************************************/
+
+function getEventSponsors($eventID, $ignoreTiers = false){
+
+	$eventID = (int)$eventID;
+
+	if($ignoreTiers == false){
+		$sortTier = "eventSponsorPercent DESC,";
+	} else {
+		$sortTier = "";
+	}
+
+	$sql = "SELECT sponsorID, eventSponsorID, eventSponsorPercent, sponsorName
+			FROM eventSponsors
+			INNER JOIN systemSponsors USING(sponsorID)
+			WHERE eventID = {$eventID}
+			ORDER BY {$sortTier} sponsorName ASC";
+	$sponsors = (array)mysqlQuery($sql, ASSOC, 'sponsorID', 'eventSponsorID');
+
+	$eventSponsors = [];
+	foreach($sponsors AS $sponsor){
+		$eventSponsors[$sponsor['sponsorID']]['sponsorID'] = (int)$sponsor['sponsorID'];
+		$eventSponsors[$sponsor['sponsorID']]['eventSponsorID'] = (int)$sponsor['eventSponsorID'];
+		$eventSponsors[$sponsor['sponsorID']]['eventSponsorPercent'] = (int)$sponsor['eventSponsorPercent'];
+		$eventSponsors[$sponsor['sponsorID']]['sponsorName'] = $sponsor['sponsorName'];
+	}
+
+	return $eventSponsors;
+
+}
+
+/******************************************************************************/
+
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

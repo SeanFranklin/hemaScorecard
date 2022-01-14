@@ -381,7 +381,9 @@ function processPostData(){
 			case 'deleteRules':
 				deleteRules($_POST['deleteRules']['rulesID']);
 				break;
-
+			case 'updateEventSponsors':
+				updateEventSponsors($_POST['sponsorList']);
+				break;
 			
 
 	// Admin Cases
