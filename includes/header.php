@@ -14,7 +14,7 @@ include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
 $vJ = '?=1.1.5'; // Javascript Version
-$vC = '?=1.0.9'; // CSS Version
+$vC = '?=1.0.11'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -210,6 +210,11 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 								<li><a href='logisticsStaffTemplates.php'>Staff Templates</a></li>
 							<?php endif ?>
 							<li><a href='logisticsLocations.php'>Event Locations</a></li>
+							
+							<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+								<HR class='no-bottom no-top'>
+								<li><a href='adminSponsors.php'>Event Sponsors</a></li>
+							<?php endif ?>
 							
 							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
 						</ul>

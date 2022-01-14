@@ -7,13 +7,18 @@
 *******************************************************************************/
 
 	displayPageAlerts();
+
 ?>
 
 	</div id='a'><!-- End Page Wrapper -->
 
 <!-- Footer content -->
 	<?php if(isset($hideFooter) == false): ?>
-	<div class="large-12 cell text-right " style='border-top: 1px solid black; margin-top: 20px;'>
+
+	<?=displaySponsors()?>
+
+	<div class='grid-x grid-margin-x text-right align-right'  style='border-top: 1px solid black; margin-top: 20px;'>
+
 		<div class='grid-x grid-margin-x align-right'>
 
 			<div class='shrink cell'>
@@ -110,3 +115,45 @@
 
 
 </html>
+
+<?php
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displaySponsors(){
+
+	$eventSponsors = getEventSponsors($_SESSION['eventID']);
+	$imageSize = 2; // 200 / 100% = 2 per percent
+
+	if(sizeof($eventSponsors) == 0){
+		return;
+	}
+
+?>
+	<div class="large-12 cell align-top" style='border-top: 1px solid black; margin-top: 20px;'>
+
+		<div class='grid-x grid-margin-x align-center align-top' id='sponsor-large'>
+
+		
+				<?php foreach($eventSponsors as $sponsorID => $sponsor): ?>
+					<div class='shrink cell'>
+					<img class='align-self-top' src="includes/images/sponsors/<?=$sponsorID?>.png" style='display: inline-block'
+						width="<?=($sponsor['eventSponsorPercent'] * $imageSize)?>" title="<?=$sponsor['sponsorName']?>">
+					</div>
+				<?php endforeach ?>
+		
+		</div>
+	</div>
+
+<?
+}
+
+/******************************************************************************/
+
+// END OF DOCUMENT /////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+?>
