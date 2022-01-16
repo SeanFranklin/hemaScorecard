@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.1.5'; // Javascript Version
+$vJ = '?=1.2.0'; // Javascript Version
 $vC = '?=1.0.11'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 

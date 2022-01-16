@@ -149,6 +149,9 @@
 		define("META_ROSTER_MODE_INCLUSIVE",0);
 		define("META_ROSTER_MODE_EXCLUSIVE",1);
 		define("META_ROSTER_MODE_EXTENDED",2);
+	$options['T']['ATTACK_DISPLAY_MODE'] = 4;
+	$options['T']['AFTERBLOW_POINT_VALUE'] = 5;
+	$options['T']['CONTROL_POINT_VALUE'] = 9;
 
 	define('OPTION',$options);
 
