@@ -45,7 +45,8 @@ function writeOption($type, $id, $optionEnum, $optionValue){
 
 		$sql = "SELECT optionValue
 				FROM {$table}
-				WHERE {$column} = {$id}";
+				WHERE {$column} = {$id}
+				AND optionID = {$optionID}";
 		$currentValue = (int)mysqlQuery($sql, SINGLE, 'optionValue');
 
 		if($currentValue == 0){
@@ -187,6 +188,38 @@ function addAttacksToTournament($tournamentID = null){
 	}
 	
 	
+}
+
+/******************************************************************************/
+
+function tournamentAttackModifiers($modifier, $tournamentID){
+
+	if(ALLOW['EVENT_MANAGEMENT'] != true){
+		return;
+	}
+
+	writeOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', $modifier['afterblow']);
+	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', $modifier['control']);
+
+}
+
+/******************************************************************************/
+
+function switchAttackDefinitionMode($attackDefinitionMode,$tournamentID){
+
+	if(ALLOW['EVENT_MANAGEMENT'] != true){
+		return;
+	}
+
+	$tournamentID = (int)$tournamentID;
+	if(strcasecmp($attackDefinitionMode,'Grid') == 0){
+		$optionValue = 1;
+	} else {
+		$optionValue = 0;
+	}
+
+	writeOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE', $optionValue);
+
 }
 
 /******************************************************************************/
@@ -4777,17 +4810,16 @@ function updateEventDefaults(){
 	$color2ID = (int)$_POST['color2ID'];
 	$maxPoolSize = (int)$_POST['maxPoolSize'];
 	$allowTies = (int)$_POST['allowTies'];
-	$controlPoint = (int)$_POST['controlPoint'];
 	
 	$sql = "DELETE FROM eventDefaults
 			WHERE eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 	
 	$sql = "INSERT INTO eventDefaults
-			(eventID, color1ID, color2ID, maxPoolSize, useControlPoint,
+			(eventID, color1ID, color2ID, maxPoolSize,
 			maxDoubleHits, normalizePoolSize, allowTies)
 			VALUES
-			($eventID, $color1ID, $color2ID, $maxPoolSize, $controlPoint,
+			($eventID, $color1ID, $color2ID, $maxPoolSize,
 			$maxDoubles, $normPoolSize, $allowTies)";
 	mysqlQuery($sql, SEND);
 
@@ -4955,6 +4987,18 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		default: {$settings['doubleTypeID'] = "NULL"; break;}
 	}
 
+	if($settings['doubleTypeID'] == FULL_AFTERBLOW){
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != 0){
+			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', 0);
+			setAlert(USER_ALERT,"Grid Score Display is not supported for Full Afterblow (yet).<BR>Display changed back to normal.");
+		}
+		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
+	} elseif($settings['doubleTypeID'] == NO_AFTERBLOW){
+		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
+	} else {
+		// Nothing to do.
+	}
+
 	switch((int)$formInfo['formatID']){
 		case FORMAT_RESULTS:
 		case FORMAT_MATCH:
@@ -4967,6 +5011,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			return;
 			break;
 	}
+
 
 	$settings['numGroupSets'] = (int)@$formInfo['numGroupSets']; // No value is considered as zero.
 	
@@ -4992,11 +5037,9 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	$settings['basePointValue'] = (int)$formInfo['basePointValue'];
 	$settings['allowTies'] = (int)$formInfo['allowTies'];
 	$settings['timerCountdown'] = (int)$formInfo['timerCountdown'];
-	$settings['tournamentStatus'] = "NULL"; // This field is no longer used;
 	$settings['isCuttingQual'] = (int)$formInfo['isCuttingQual'];
 	$settings['isFinalized'] = @(int)$formInfo['isFinalized']; //This is a boolean, unset is the same as zero.
 	$settings['timeLimit'] = (int)$formInfo['timeLimit'];
-	$settings['useControlPoint'] = (int)$formInfo['useControlPoint'];
 
 	$settings['isNotNetScore'] = @(int)$formInfo['isNotNetScore']; //This is a boolean, unset is the same as zero.
 
@@ -5121,7 +5164,7 @@ function addNewTournament($settings){
 				tournamentRankingID, doubleTypeID, formatID, normalizePoolSize, color1ID, color2ID, 
 				maxPoolSize, maxDoubleHits, maximumExchanges, maximumPoints, maxPointSpread, basePointValue,
 				allowTies, timerCountdown, isCuttingQual, timeLimit, 
-				useControlPoint, isNotNetScore, isReverseScore, overrideDoubleType, isPrivate, isTeams,
+				isNotNetScore, isReverseScore, overrideDoubleType, isPrivate, isTeams,
 				logicMode, poolWinnersFirst, limitPoolMatches, checkInStaff, hideFinalResults,
 				numSubMatches, subMatchMode, requireSignOff
 			) VALUES (
@@ -5146,7 +5189,6 @@ function addNewTournament($settings){
 				{$settings['timerCountdown']},
 				{$settings['isCuttingQual']},
 				{$settings['timeLimit']},
-				{$settings['useControlPoint']},
 				{$settings['isNotNetScore']},
 				{$settings['isReverseScore']},
 				{$settings['overrideDoubleType']},
@@ -5232,7 +5274,6 @@ function updateExistingTournament($tournamentID, $settings){
 				timerCountdown = {$settings['timerCountdown']},
 				isCuttingQual = {$settings['isCuttingQual']},
 				timeLimit = {$settings['timeLimit']},
-				useControlPoint = {$settings['useControlPoint']},
 				isNotNetScore = {$settings['isNotNetScore']},
 				isReverseScore = {$settings['isReverseScore']},
 				overrideDoubleType = {$settings['overrideDoubleType']},
@@ -5354,7 +5395,7 @@ function importTournamentSettings($config){
 // List of things not to import
 	$doNotImport = ['eventID','tournamentID','tournamentWeaponID','tournamentPrefixID',
 					'tournamentGenderID', 'tournamentMaterialID','tournamentSuffixID',
-					'numParticipants', 'tournamentStatus', 'isFinalized', 'numGroupSets'];
+					'numParticipants', 'isFinalized', 'numGroupSets'];
 
 	foreach($doNotImport as $index){
 		unset($sourceSettings[$index]);

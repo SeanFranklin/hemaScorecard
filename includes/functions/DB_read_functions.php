@@ -1011,16 +1011,15 @@ function getCuttingStandard($tournamentID){
 
 function getControlPointValue($tournamentID){
 	
-	$tournamentID = (int)$tournamentID;
-	if($tournamentID == 0){
-		setAlert(SYSTEM,"No tournamentID in getControlPointValue()");
-		return;
-	}	
+	return readOption('T', $tournamentID, 'CONTROL_POINT_VALUE');
 	
-	$sql = "SELECT useControlPoint
-			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}";
-	return mysqlQuery($sql, SINGLE, 'useControlPoint');
+}
+
+/******************************************************************************/
+
+function getAfterblowPointValue($tournamentID){
+	
+	return readOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE');
 	
 }
 
@@ -3721,7 +3720,6 @@ function getEventDefaults($eventID){
 		$defaults['nameDisplay'] = 'firstName';
 		$defaults['tournamentDisplay'] = 'weapon';
 		$defaults['tournamentSorting'] = 'numGrouped';
-		$defaults['useControlPoint'] = 0;
 		$defaults['staffCompetency'] = 0;
 		$defaults['addStaff'] = 0;
 		$defaults['staffHoursTarget'] = 0;
@@ -4788,6 +4786,41 @@ function getTournamentAttacks($tournamentID){
 	
 	return $data;
 
+}
+
+/******************************************************************************/
+
+function getTournamentAttackParameters($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT DISTINCT(attackType) as attackType
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			AND attackType IS NOT NULL
+			ORDER BY attackType ASC";
+	$attacks['attackType'] = (array)mysqlQuery($sql, SINGLES, 'attackType');
+
+	$sql = "SELECT DISTINCT(attackTarget) as attackTarget
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			AND attackTarget IS NOT NULL";
+	$attacks['attackTarget'] = (array)mysqlQuery($sql, SINGLES, 'attackTarget');
+
+	$sql = "SELECT DISTINCT(attackPrefix) as attackPrefix
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			AND attackPrefix IS NOT NULL";
+	$attacks['attackPrefix'] = (array)mysqlQuery($sql, SINGLES, 'attackPrefix');
+
+	$sql = "SELECT DISTINCT(attackPoints) as attackPoints
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			AND attackPoints IS NOT NULL
+			AND attackPoints != 0";
+	$attacks['attackPoints'] = (array)mysqlQuery($sql, SINGLES, 'attackPoints');
+
+	return $attacks;
 }
 
 /******************************************************************************/
@@ -7044,6 +7077,29 @@ function isFullAfterblow($tournamentID){
 
 /******************************************************************************/
 
+function isDeductiveAfterblow($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in isFullAfterblow()");
+		return;
+	}
+	
+	$sql = "SELECT doubleTypeID
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$id = mysqlQuery($sql, SINGLE, 'doubleTypeID');
+	
+	if($id == DEDUCTIVE_AFTERBLOW){
+		return true;
+	} else {
+		return false;
+	}
+	
+}
+
+/******************************************************************************/
+
 function isTournamentPrivate($tournamentID){
 
 	$tournamentID = (int)$tournamentID;
@@ -7453,8 +7509,6 @@ function getSponsorListLocal($type = null){
 			ORDER BY sponsorName ASC";
 	return mysqlQuery($sql, ASSOC);
 }
-
-
 
 /******************************************************************************/
 
