@@ -334,16 +334,25 @@ function logistics_displayBlockDescription(blockID){
                 $("#sbd-linkDescription").html(data['blockLinkDescription']);
                 $("#sbd-time").html(data['startTimeHr']+' - '+data['endTimeHr']);
 
+                var attributeSet = false;
                 if(data['blockAttributes']['experience'].length != 0){
                      $("#sbd-experience").html("<u>Experience Level</u>: " + data['blockAttributes']['experience']);
+                     attributeSet = true;
                 } else {
                     $("#sbd-experience").html("");
                 }
 
                 if(data['blockAttributes']['equipment'].length != 0){
                     $("#sbd-equipment").html("<u>Equipment</u>: " + data['blockAttributes']['equipment']);
+                    attributeSet = true;
                 } else {
                     $("#sbd-equipment").html("");
+                }
+
+                if(attributeSet == true){
+                    $("#sbd-attribute-hr").html("<hr>");
+                } else {
+                    $("#sbd-attribute-hr").html("");
                 }
 
                 console.log(data);
