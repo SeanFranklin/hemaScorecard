@@ -5,6 +5,10 @@ const DEDUCTIVE_AFTERBLOW = 2;
 const FULL_AFTERBLOW = 3;
 const DOUBLE_TYPE = $('#doubleType').val();
 
+const ATTACK_CONTROL_DB = 9;
+
+/************************************************************************************/
+
 function isValidExchange(){
 	var exchButton = document.getElementById('New_Exchange_Button');
 	
@@ -243,6 +247,97 @@ function modifiersRadioButtons(){
 	
 	isValidExchange();
 
+}
+
+/************************************************************************************/
+
+function gridScoreUpdate(rosterID){
+
+	var undefinedCombination = false;
+	var scoreValue = 0;
+	
+	var target = $('input[name="score['+rosterID+'][attackTarget]"]:checked').val();
+	var type = $('input[name="score['+rosterID+'][attackType]"]:checked').val();
+	var prefix = $('input[name="score['+rosterID+'][attackPrefix]"]:checked').val();
+	var afterblow = $('input[name="score['+rosterID+'][afterblow]"]:checked').val();
+
+	if(afterblow === undefined){
+		afterblow = 0;
+	}
+	//console.log(target+" | "+type+" | "+prefix+" | "+afterblow);
+	//console.log(gridAttackTypes);
+
+	var isControl = false;
+	if(prefix == ATTACK_CONTROL_DB){
+		isControl = true;
+	}
+
+	if(gridAttackTypes[target] === undefined){
+		target = 0;
+	}
+
+	if(gridAttackTypes[target] === undefined){
+		undefinedCombination = true;
+	} else {
+
+		if(gridAttackTypes[target][type] === undefined){
+			type = 0;
+		}
+
+		if(gridAttackTypes[target][type] === undefined){
+			undefinedCombination = true;
+		} else {
+
+			if(gridAttackTypes[target][type][prefix] === undefined){
+				prefix = 0;
+			}
+
+			if(gridAttackTypes[target][type][prefix] === undefined){
+				undefinedCombination = true;
+			} else {
+				scoreValue = gridAttackTypes[target][type][prefix];
+			}
+		}
+
+	}
+
+	if(afterblow > scoreValue){
+		afterblow = scoreValue;
+	}
+
+
+	var exchangeSummary = '';
+	var finalPointValue = scoreValue;
+
+	if(undefinedCombination == true ){
+		exchangeSummary = "Undefined Exchange";
+		$("input[name='score["+rosterID+"][hit]'][value='0']").prop('checked', true);
+
+	} else {
+
+		$("input[name='score["+rosterID+"][hit]'][value='"+scoreValue+"']").prop('checked', true);
+
+		exchangeSummary = scoreValue + " Point";
+		if(scoreValue > 1){
+			exchangeSummary = exchangeSummary + "s";
+		}
+
+		if(afterblow != 0){
+			exchangeSummary = exchangeSummary + ", with Afterblow (-" + afterblow + ")";
+			finalPointValue -= afterblow;
+		}
+
+		if(isControl == true){
+			exchangeSummary = exchangeSummary + ", with Control (+" + controlPointValue + ")";
+			finalPointValue += controlPointValue;
+		}
+
+		exchangeSummary = exchangeSummary + " = <b>" + finalPointValue + "</b>";
+
+	}
+
+	$("#exchange-grid-summary-"+rosterID).html(exchangeSummary);
+	
 }
 
 /**********************************************************************/

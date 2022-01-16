@@ -29,7 +29,6 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		allowTies: 'show',
 		isCuttingQual: 'show',
 		maxExchanges: 'show',
-		controlPoint: 'show',
 		isPrivate: 'show',
 		reverseScore: 'show',
 		isTeams: 'show',

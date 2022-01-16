@@ -354,6 +354,12 @@ function processPostData(){
 			case 'addAttackTypes':
 				addAttacksToTournament();
 				break;
+			case 'tournamentAttackModifiers':
+				tournamentAttackModifiers($_POST['tournamentAttackModifiers'],$_SESSION['tournamentID']);
+				break;
+			case 'switchAttackDefinitionMode':
+				switchAttackDefinitionMode($_POST['attackDefinitionMode'],$_SESSION['tournamentID']);
+				break;
 			case 'updateEventPublication':
 				updateEventPublication($_POST['publicationSettings'],$_SESSION['eventID']);
 				break;
@@ -1076,7 +1082,7 @@ function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 	if(@!$scoring[$id1]['hit'] AND @!$scoring[$id2]['hit']){
 		return;
 	}
-	
+
 	// Get the afterblow Type
 	$doubleTypes = getDoubleTypes($tournamentID);
 	
@@ -1131,14 +1137,30 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	
 // Base score value
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
+
 		$scoreValue = abs($scoring[$rosterID]['hit']);
+
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+
 		$at = getAttackAttributes($scoring[$rosterID]['hit']);
 		$scoreValue = $at['attackPoints'];
 		$rType = $at['attackType'];
 		$rTarget = $at['attackTarget'];
 		$rPrefix = $at['attackPrefix'];
+
+	} elseif($_POST['scoreLookupMode'] == 'grid'){
+
+		$scoreValue = $scoring[$rosterID]['hit'];
+		$rType = $scoring[$rosterID]['attackType'];
+		$rTarget = $scoring[$rosterID]['attackTarget'];
+		$rPrefix = $scoring[$rosterID]['attackPrefix'];
+
+		if($rPrefix == ATTACK_CONTROL_DB){
+			$_POST['attackModifier'] = ATTACK_CONTROL_DB;
+		}
+
 	} else {
+
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode set in deductiveAfterblowScoring()";
 		return;
 	}
@@ -1151,7 +1173,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 // Afterblow deduction
 	$scoreDeduction = 0;
 	// checks for clean or afterblow
-	if($scoring[$rosterID]['afterblow'] == null){
+	if($scoring[$rosterID]['afterblow'] == 0){
 		$exchangeType = 'clean';	
 	} else {
 		$exchangeType = 'afterblow';

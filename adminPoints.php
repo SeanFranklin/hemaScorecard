@@ -29,22 +29,49 @@ if($_SESSION['eventID'] == null){
 		$formLock = '';
 	}
 
-	$targets = getAllAttackTargets();
-	$types = getAllAttackTypes();
-	$prefixes = getAllAttackPrefixes();
-	$existingAttacks = getTournamentAttacks($_SESSION['tournamentID']);
-	$i = 0;
-
 	// Ability to import attacks from other tournaments
-	importAttacksForm($_SESSION['tournamentID'])
+	importAttacksForm($_SESSION['tournamentID']);
+
+
+	$useGrid = readOption('T',$_SESSION['tournamentID'],'ATTACK_DISPLAY_MODE');
+
+
+	if($formLock == '' && isFullAfterblow($_SESSION['tournamentID']) == false){
+		$showGridButton = true;
+	} else {
+		$showGridButton = false;
+	}
+
+	if($useGrid == false){
+		$nextMode = 'Grid';
+		$individualIsHollow = '';
+	} else {
+		$nextMode = 'Individual';
+		$individualIsHollow = '';
+	}
+
+	$afterblowPointValue = getAfterblowPointValue($_SESSION['tournamentID']);
+	$maxAfterblowValue = 9;
+	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
+	$maxControlValue = 9;
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<a class='button hollow' href='adminTournaments.php'>
-	Back to Tournament Settings
-</a>
+<!-- Top Bar w/ Back and Grid Buttons ---------------------------------------->
+
+<form method='POST'>
+	<a class='button hollow' href='adminTournaments.php'>
+		Back to Tournament Settings
+	</a>
+	<?php if($showGridButton == true):?>
+		<button class='button' name='attackDefinitionMode' value='<?=$nextMode?>'>
+			Switch to <?=$nextMode?> Mode
+		</button>
+		<input class='hidden' name='formName' value='switchAttackDefinitionMode'>
+	<?php endif?>
+</form>
 
 
 <?php if(isFinalized($_SESSION['tournamentID']) == true): ?>
@@ -56,7 +83,48 @@ if($_SESSION['eventID'] == null){
 
 <?php else: ?>
 
-	<h4>Attacks for <strong><?=getTournamentName($_SESSION['tournamentID']);?></strong></h4><hr>
+	<?=tournamentTitle($_SESSION['tournamentID'],$useGrid,$formLock)?>
+
+<!-- Afterblow/Control Points ---------------------------------------->
+
+	<fieldset <?=$formLock?>  >
+	<form method='POST'>
+		<div class='grid-x grid-margin-x'>
+
+			<?php if(isDeductiveAfterblow($_SESSION['tournamentID']) == true): ?>
+				<div class='input-group shrink cell no-bottom'>
+					<span class='input-group-label no-bottom'>
+						Afterblow
+
+					</span>
+					<select class='input-group-field no-bottom' name='tournamentAttackModifiers[afterblow]'>
+						<option value=0>Not Used</option>
+						<?php for($p = 1;$p<=$maxAfterblowValue;$p++):?>
+							<option <?=optionValue($p, $afterblowPointValue)?>>-<?=$p?></option>
+						<?php endfor?>
+					</select>
+				</div>
+			<?php endif ?>
+
+				<div class='input-group shrink cell no-bottom'>
+					<span class='input-group-label no-bottom'>Controlling Action</span>
+					<select class='input-group-field no-bottom' name='tournamentAttackModifiers[control]'>
+						<option value=0>Not Used</option>
+						<?php for($p = 1;$p<=$maxControlValue;$p++):?>
+							<option <?=optionValue($p, $controlPointValue)?>>+<?=$p?></option>
+						<?php endfor?>
+					</select>
+				</div>
+
+				<button class='shrink cell no-bottom button success' name='formName' value='tournamentAttackModifiers'>
+					Update Modifiers
+				</button>
+		</div>
+	</form>
+	</fieldset>
+	<HR>
+
+<!-- Point Values ---------------------------------------------------------------->
 
 	<fieldset <?=$formLock?> >
 	<form method='POST'>
@@ -69,6 +137,58 @@ if($_SESSION['eventID'] == null){
 	<i>
 		Leave the points field blank to delete an entry
 	</i>
+
+	<?php 
+		if($useGrid == false){
+			displayModeIndividual($formLock);
+		} else {
+			displayModeIndividual($formLock);
+		}
+	?>
+	
+
+	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
+		Submit
+	</button>
+
+	</form>
+	</fieldset>
+
+<?php endif ?>
+<?php }
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displayModeGrid($formLock){
+	$targets = getAllAttackTargets();
+	$types = getAllAttackTypes();
+	$prefixes = getAllAttackPrefixes();
+	$existingAttacks = getTournamentAttacks($_SESSION['tournamentID']);
+	$i = 0;
+
+	$sql = "SELECT refTarget, refType";
+
+
+?>
+<HR><HR>
+<?
+}
+
+/******************************************************************************/
+
+function displayModeIndividual($formLock){
+
+	$targets = getAllAttackTargets();
+	$types = getAllAttackTypes();
+	$prefixes = getAllAttackPrefixes();
+	$existingAttacks = getTournamentAttacks($_SESSION['tournamentID']);
+	$i = 0;
+
+?>
 
 	<table class='stack'>
 		<tr>
@@ -206,19 +326,9 @@ if($_SESSION['eventID'] == null){
 		<?php endfor ?>
 	</table>
 
-	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
-		Submit
-	</button>
+<?php
+}
 
-	</form>
-	</fieldset>
-
-<?php endif ?>
-<?php }
-include('includes/footer.php');
-
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 /******************************************************************************/
 
@@ -266,6 +376,16 @@ function importAttacksForm($tournamentID){
 
 	</form>
 	</div>
+<?php
+}
+
+/******************************************************************************/
+
+function tournamentTitle($tournamentID){
+?>
+	<h4>
+		Attacks for <strong><?=getTournamentName($tournamentID);?></strong>
+	</h4>
 <?php
 }
 

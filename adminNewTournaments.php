@@ -76,7 +76,6 @@ if($_SESSION['eventID'] == null){
 			edit_tournamentMaxPointSpread();
 			edit_tournamentReverseScore();
 			edit_tournamentLimitPoolMatches();
-			edit_tournamentControlPoints();
 			edit_tournamentOverrideDoubles();
 			edit_tournamentCuttingQual();
 			edit_tournamentNumSubMatches();

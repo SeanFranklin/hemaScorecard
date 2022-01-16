@@ -129,7 +129,6 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentMaxPointSpread($tournamentID);
 				edit_tournamentReverseScore($tournamentID);
 				edit_tournamentLimitPoolMatches($tournamentID);
-				edit_tournamentControlPoints($tournamentID);
 				edit_tournamentOverrideDoubles($tournamentID);
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentNumSubMatches($tournamentID);
