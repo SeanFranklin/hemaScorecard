@@ -41,8 +41,6 @@ if(ALLOW['STATS_ALL'] == false){
 		$_SESSION['dataFilters']['threshold'] = '';
 	}
 
-
-	
 	DEFINE('DEFAULT_THRESHOLD', 60);
 	$weaponID = $_SESSION['dataFilters']['weaponID'];
 

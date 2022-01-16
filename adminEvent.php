@@ -62,6 +62,12 @@ if($_SESSION['eventID'] == null){
 		$publishMatchesChecked = '';
 	}
 
+	if(isRulesPublished($_SESSION['eventID'])){
+		$publishRulesChecked = 'checked';
+	} else {
+		$publishRulesChecked = '';
+	}
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -73,6 +79,21 @@ if($_SESSION['eventID'] == null){
 	<form method='POST'>
 		<i>No one will be able to see your awesome event until you check these boxes. Once you are ready be sure to publish the event.</i>
 		<div class='grid-x grid-margin-x'>
+
+			<div class='medium-12 large-3 cell input-group'>
+				<span class='input-group-label pointer'>
+					Publish Rules
+				</span>
+
+				<div class='switch text-center no-bottom'>
+					<input type='hidden' name='publicationSettings[publishRules]' value='0'>
+					<input class='switch-input' type='checkbox' <?=$publishRulesChecked?>
+						id='publicationSettings[publishRules]' 
+						name='publicationSettings[publishRules]' value='1'>
+					<label class='switch-paddle' for='publicationSettings[publishRules]'>
+					</label>
+				</div>
+			</div>
 
 			<div class='medium-4 large-3 cell input-group'>
 				<span class='input-group-label pointer'>
@@ -104,7 +125,7 @@ if($_SESSION['eventID'] == null){
 				</div>
 			</div>
 
-			<div class='medium-4 large-6 cell input-group'>
+			<div class='medium-4 large-3 cell input-group'>
 				<span class='input-group-label pointer'>
 					Publish Matches
 				</span>
@@ -118,6 +139,8 @@ if($_SESSION['eventID'] == null){
 					</label>
 				</div>
 			</div>
+
+
 
 			<div class='large-3 medium-4 small-12 cell'>
 				<button class='button success no-bottom expanded' name='formName' value='updateEventPublication'>
@@ -213,23 +236,6 @@ if($_SESSION['eventID'] == null){
 			</select>
 		</div>
 
-	<!-- Default Use Control Point -->	
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Use Control Points:</span>
-			<select class='input-group-field' type='text' name='controlPoint'>
-				<?php 
-
-				$maxSize = 4;
-					$selected = isSelected(0, $defaults['useControlPoint']);
-					echo "<option value=0 {$selected}>No</option>";
-					for($i = 1; $i <= $maxSize; $i++):
-					$selected = isSelected($i, $defaults['useControlPoint']);
-					?>
-					<option value=<?=$i?> <?=$selected?>><?=$i?> Point<?=plrl($i)?></option>
-				<?php endfor ?>
-			</select>
-		</div>
-		
 	<!-- Submit Button -->
 		<div class='grid-x cell'>
 			<div class='large-3 medium-4 small-12 text-center'>

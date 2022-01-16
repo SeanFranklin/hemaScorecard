@@ -73,7 +73,14 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	} else {
 		define("LOCK_MATCH", '');
 	}
-	
+
+
+	$attackGrid = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
+
+	if($attackGrid == true){
+		gridScoreBoxes($matchInfo);
+	}
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
@@ -112,7 +119,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-						<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
+					<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
 					<?php dataEntryBox($matchInfo);	?>	
 				</fieldset>		
 				</form>
@@ -729,8 +736,8 @@ function backToListButton($matchInfo){
 /******************************************************************************/
 
 function dataEntryBox($matchInfo){
-/*	The main data entry box for the match. Contains boxes for each fighter
-	and the scorekeepers box bellow. Scorekeepers box only visiable if logged in.*/
+//	The main data entry box for the match. Contains boxes for each fighter
+//	and the scorekeepers box bellow. Scorekeepers box only visiable if logged in.
 
 	$doubleTypes = getDoubleTypes($matchInfo['tournamentID']);
 
@@ -964,10 +971,16 @@ function fighterDataEntryBox($matchInfo,$num){
 		$teamName = "";
 	}
 
+	$attackGrid = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
+
 	?>
-	
+
 <!-- Begin display -->
-	<div class='small-6 cell fighter-score-box' style='background-color: <?=$colorCode?>;'>
+
+	<div class='small-6 cell fighter-score-box' style='background-color: <?=$colorCode?>;'
+		data-open='attack-grid-box-<?=$num?>'>
+
+		
 		<div class='grid-x' style='height: 100%'>
 			
 			<!-- Fighter information -->
@@ -982,13 +995,15 @@ function fighterDataEntryBox($matchInfo,$num){
 				<span style='font-size:30px;'><?=$colorName?></span><BR>
 				<span style='font-size:60px;'><?=$score?></span><BR>
 		
-				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false): ?>
+				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false || $attackGrid == true): ?>
 					</div>
 					</div>
 					</div>
 					<?php return; ?>
 				<?php endif ?>
 	
+				
+
 			<!-- Hit score select -->
 				<div class='input-group grid-x'>
 					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
@@ -1040,7 +1055,281 @@ function fighterDataEntryBox($matchInfo,$num){
 		</div>
 	</div>
 
-<?php }
+<?php 
+}
+
+/******************************************************************************/
+
+
+function gridScoreBoxes($matchInfo){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false || LOCK_MATCH != ''){
+		return;
+	}
+
+
+	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
+	foreach($attacks as $attack){
+		$attackList[(int)$attack['attackTarget']][(int)$attack['attackType']][(int)$attack['attackPrefix']] = (int)$attack['attackPoints'];
+	}
+
+	$controlPointValue = (int)getControlPointValue($_SESSION['tournamentID']);;
+
+	echo "<script type='text/javascript'>";
+	$attackList_js = json_encode($attackList);
+	echo "var gridAttackTypes = ".$attackList_js.";\n";
+	echo "var controlPointValue = ".$controlPointValue.";\n";
+	echo "</script>";
+
+	gridScoreBox($matchInfo, 1);
+	gridScoreBox($matchInfo, 2);
+}
+
+
+/******************************************************************************/
+
+function gridScoreBox($matchInfo, $num){
+
+	if($num == 1){
+		$colorCode = COLOR_CODE_1;
+		$colorName = COLOR_NAME_1;
+		$pre = "fighter1";
+		$otherPre = "fighter2";
+
+	} else {
+		$colorCode = COLOR_CODE_2;
+		$colorName = COLOR_NAME_2;
+		$pre = "fighter2";
+		$otherPre = "fighter1";
+	}
+	
+	$rosterID = $matchInfo[$pre.'ID'];
+	$otherID = $matchInfo[$otherPre.'ID'];
+	$fighterName = getCombatantName($rosterID);
+?>
+	<div class='reveal large' id='attack-grid-box-<?=$num?>' data-reveal >
+
+		<div class='callout' style='background-color: <?=$colorCode?>;'>
+			<h5>Adding attack for <b><?=$fighterName?></b></h5>
+		</div>
+
+		
+		<?=scoreSelectGrid($matchInfo, $num, $rosterID, $otherID)?>
+		
+
+	<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
+	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
+	$parameters = getTournamentAttackParameters($_SESSION['tournamentID']);
+
+	$pValue = (int)min($parameters['attackPoints']);
+	$pMax = (int)max($parameters['attackPoints']);
+	$pointValues = [];
+	while($pValue <= $pMax){
+		$pointValues[] = (int)$pValue;
+		$pValue++;
+	}
+
+	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
+	if($controlPointValue != 0){
+		foreach($parameters['attackPrefix'] as $index => $attackID){
+			if($attackID == ATTACK_CONTROL_DB){
+				unset($parameters['attackPrefix'][$index]);
+			}
+		}
+	}
+
+	$afterblowValue = (int)getAfterblowPointValue($_SESSION['tournamentID']);
+	if($afterblowValue != 0){
+		$parameters['afterblow'][] = $afterblowValue;
+	}
+
+?>
+	<form method="post">
+	<div class='grid-x grid-margin-x'>
+
+		<input hidden name='scoreLookupMode' value='grid'>
+		<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
+		<input type='hidden' name='lastExchange' value='scoringHit'>
+		<input type='hidden' name='score[<?=$otherID?>][hit]' value=''>
+		<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID-<?=$num?>'>
+
+<!-- Input Fields --------------------------------------------------------------->
+
+
+		<div class='large-4 medium-6 cell'>
+			<?=scoreGridOptionList($parameters, 'attackType', $rosterID)?>
+		</div>
+
+		<div class='large-4 medium-6 cell'>
+			<?=scoreGridOptionList($parameters, 'attackTarget', $rosterID)?>
+		</div>
+
+		<div class='large-4 medium-6 cell'>
+			<?=scoreGridOptionList($parameters, 'attackPrefix', $rosterID, true)?>
+
+			<?php if($afterblowValue != 0): ?>
+				<hr>
+				<?=scoreGridOptionList($parameters, 'afterblow', $rosterID)?>
+			<?php else: ?>
+				<input type='hidden' name='score[<?=$rosterID?>][afterblow]' value='0'>
+			<?php endif ?>
+		</div>
+
+<!-- Exchange Summary --------------------------------------------------------------->
+
+		<div class='callout large-12 cell text-center'>
+			<h4 id='exchange-grid-summary-<?=$rosterID?>'>No Exchange</h4>
+		</div>
+
+<!-- Raw Score Values --------------------------------------------------------------->
+		
+		<div class='grid-x grid-margin-x cell' id="raw-points-grid">
+			<div class='cell shrink'>
+				Score Before Afterblow:
+			</div>
+
+			<div class='cell shrink'>
+				<div class='switch input-group-button large no-bottom'>
+					<span class='input-group-label'>0</span>
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][0]' 
+						name='score[<?=$rosterID?>][hit]' value='0' checked>
+					<label class='switch-paddle' for='score[<?=$rosterID?>][hit][0]'>
+					</label>
+				</div>
+			</div>
+				
+
+
+			<?php foreach($pointValues as $attackPoints): ?>
+				<div class='cell shrink'>
+				
+					<div class='switch input-group-button large no-bottom'>
+						<span class='input-group-label'><?=$attackPoints?></span>
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][<?=$attackPoints?>]' 
+							name='score[<?=$rosterID?>][hit]' value='<?=$attackPoints?>'>
+						<label class='switch-paddle' for='score[<?=$rosterID?>][hit][<?=$attackPoints?>]'>
+						</label>
+					</div>
+				</div>
+			<?php endforeach ?>
+		</div>
+
+<!-- Submit/Close Buttons --------------------------------------------------------------->
+
+		<HR class='large-12 cell'>
+
+		<div class='large-4 medium-4 cell'>
+			<a class='button secondary expanded' data-close aria-label='Close modal' >Cancel</a>
+			
+		</div>
+
+		<div class='large-4 medium-4 cell'>
+			<!-- Padding div -->
+		</div>
+
+		<div class='large-4 medium-4 cell'>
+			<button class='button success expanded' name='formName' value='newExchange'>Add Scoring Exchange</button>
+		</div>
+
+	</div>
+	</form>
+	
+<?php
+
+}
+
+/******************************************************************************/
+
+function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = false){
+
+	$options = $parameters[$paramType];
+	$controlAttackID = ATTACK_CONTROL_DB;
+
+	$controlPointValue = (int)getControlPointValue($_SESSION['tournamentID']);
+	$afterblowPointValue = (int)getAfterblowPointValue($_SESSION['tournamentID']);
+
+	$numOptions = (int)(sizeof($options));
+	if($controlPointValue != 0 && $isPrefix == true){
+		$numOptions++;
+	}
+
+	if($numOptions == 0){
+		echo "<input hidden name='score[{$rosterID}][{$paramType}]' value='0'>";
+		return;
+	}
+
+?>
+	<table>
+
+		<tr>
+			<tr>
+				<td><i>n/a</i></td>
+				<td>
+					<div class='switch input-group-button large no-bottom'>
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][0]' 
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='0' checked onchange="gridScoreUpdate(<?=$rosterID?>)">
+						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][0]'>
+						</label>
+					</div>
+				</td>
+			</tr>
+		</tr>
+
+		<?php foreach($options as $attackID):?>
+			<?php if((int)$attackID == 0){continue;}?>
+			<tr>
+				<td>
+					<?php
+						if($paramType != 'afterblow'){
+							echo getAttackName($attackID);
+						} else {
+							echo "Afterblow";
+						}
+					?>
+				</td>
+				<td>
+					<div class='switch input-group-button large no-bottom'>
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]' 
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>' onchange="gridScoreUpdate(<?=$rosterID?>)">
+						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]'>
+						</label>
+					</div>
+				</td>
+			</tr>
+		<?php endforeach?>
+
+		<?php if($isPrefix == true & $controlPointValue != 0):?>
+
+			<tr>
+				<td>Control</td>
+				<td>
+					<div class='switch input-group-button large no-bottom'>
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>]' 
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$controlAttackID?>' onchange="gridScoreUpdate(<?=$rosterID?>)">
+						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>]'>
+						</label>
+					</div>
+				</td>
+			</tr>
+		<?php endif ?>
+
+
+	</table>
+
+<?php
+}
+
 
 /******************************************************************************/
 
@@ -1069,7 +1358,8 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 		$scoreMode = 'ID';
 	}
 
-	?>
+?>
+
 	<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
 	<select class='input-group-field ' name='score[<?=$id?>][hit]' 
 		id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
@@ -1080,6 +1370,7 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 			<option value='<?=$a['tableID']?>'><?=$a['attackText']?></option>
 		<?php endforeach ?>
 	</select>
+	
 <?php					
 }
 

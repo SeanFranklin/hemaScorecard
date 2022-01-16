@@ -16,7 +16,7 @@ $eventID = $_SESSION['eventID'];
 
 if($eventID == null){
 	pageError('event');
-else if(ALLOW['STATS_EVENT'] != false){
+} else if(ALLOW['STATS_EVENT'] == false){
 	pageError('user');
 } else {
 
@@ -59,7 +59,7 @@ else if(ALLOW['STATS_EVENT'] != false){
 
 
 	<?php foreach($scoresheets as $sheet): ?>
-		<HR>
+		<fieldset class='fieldset'>
 		<?php if($sheet['matchID'] == $lastMatchID):?>
 			<div class='callout warning'>
 				Warning: This match has the same MatchID listed as the previous match. It may be a duplicate.
@@ -70,6 +70,7 @@ else if(ALLOW['STATS_EVENT'] != false){
 
 		<pre><?=$sheet['scoresheet']?></pre>
 		<?php ($lastMatchID = $sheet['matchID'])?>
+		</fieldset>
 	<?php endforeach ?>
 
 <?php
