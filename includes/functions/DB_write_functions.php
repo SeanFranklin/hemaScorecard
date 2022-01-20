@@ -4791,8 +4791,44 @@ function updateStaffRegistrationSettings($info){
 
 	}
 
+	foreach($info['matchMultipliers'] as $roleID => $multiplier){
 
-	
+		$logisticsRoleID = (int)$roleID;
+		$multiplier = (float)$multiplier;
+		if($multiplier < 0){
+			$multiplier = 0;
+		}
+
+		if($multiplier == 1){
+			$sql = "DELETE FROM logisticsStaffMatchMultipliers
+					WHERE eventID = {$eventID}
+					AND logisticsRoleID = {$logisticsRoleID}";
+			mysqlQuery($sql, SEND);
+		} else {
+
+			$sql = "SELECT matchMultiplierID
+					FROM logisticsStaffMatchMultipliers
+					WHERE eventID = {$eventID}
+					AND logisticsRoleID = {$logisticsRoleID}";
+			$matchMultiplierID = (int)mysqlQuery($sql, SINGLE, 'matchMultiplierID');
+
+			if($matchMultiplierID == 0){
+				$sql = "INSERT INTO logisticsStaffMatchMultipliers
+						(eventID, logisticsRoleID, matchMultiplier)
+						VALUES 
+						({$eventID},{$logisticsRoleID},{$multiplier})";
+				mysqlQuery($sql, SEND);
+			} else {
+				$sql = "UPDATE logisticsStaffMatchMultipliers
+						SET matchMultiplier = {$multiplier}
+						WHERE matchMultiplierID = {$matchMultiplierID}";
+				mysqlQuery($sql, SEND);
+			}
+
+		}
+
+	}
+
 }
 
 /******************************************************************************/
