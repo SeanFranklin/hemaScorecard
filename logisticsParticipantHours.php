@@ -31,11 +31,11 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
 
-if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
-	$matchesActive = 'is-active';
-} else {
-	$matchesActive = '';
-}
+	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
+		$matchesActive = 'is-active';
+	} else {
+		$matchesActive = '';
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
@@ -87,6 +87,7 @@ include('includes/footer.php');
 function displayStaffingMatchesSummary(){
 
 	$matchList = logistics_getEventStaffingMatches($_SESSION['eventID']);
+	$multipliers = logistics_getMatchMultipliers($_SESSION['eventID']);
 
 	if($matchList == null){
 		displayAlert("No Data Recorded.");
@@ -95,6 +96,16 @@ function displayStaffingMatchesSummary(){
 
 	reset($matchList);
 	$firstIndex = key($matchList);
+
+	$hasMultipliers = false;
+	$str = "The following roles have multipliers:
+		<ul>";
+		foreach($multipliers as $roleID => $multiplier){
+			if($multiplier == 1){continue;}
+			$hasMultipliers = true;
+			$str .= "<li>".logistics_getRoleName($roleID). " (x{$multiplier})</li>";
+		}
+	$str .= "</ul>";
 
 	?>
 
@@ -112,7 +123,13 @@ function displayStaffingMatchesSummary(){
 			<?php endforeach ?>
 
 				<th>
-					Total Matches
+					<?php if($hasMultipliers == false):?>
+						Total
+					<?php else: ?>
+						Total*
+						<?=tooltip($str)?>
+					<?php endif ?>
+					
 				</th>
 		</tr>
 		</thead>
@@ -135,7 +152,7 @@ function displayStaffingMatchesSummary(){
 				<?php endforeach ?>
 
 				<td>
-					<?=$staffData['totalMatches']?>
+					<?=$staffData['scaledMatches']?>
 				</td>
 			</tr>
 		<?php endforeach ?>

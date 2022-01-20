@@ -22,6 +22,7 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	$defaults = getEventDefaults($_SESSION['eventID']);
+	$matchMultipliers = logistics_getMatchMultipliers($_SESSION['eventID']);
 	$roles = logistics_getRoles();
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail($_SESSION['eventID']);
@@ -417,9 +418,12 @@ if($_SESSION['eventID'] == null){
 			</div>
 		</div>
 	
-		<div class='medium-6 large-4 cell esr-assignCompetencies' >
-			<a onclick="toggleClass('esr-assignCompetencies')">
+		<div class='medium-6 large-4 cell ' >
+			<a onclick="toggleClass('esr-assignCompetencies')" class='esr-assignCompetencies'>
 				Assign competencies to roles &#x2193;
+			</a>
+			<a onclick="toggleClass('esr-assignMatchMultipiers')" class='esr-assignMatchMultipiers'><BR>
+				Assign match role multipiers &#x2193;
 			</a>
 		</div>
 
@@ -467,6 +471,44 @@ if($_SESSION['eventID'] == null){
 						</select>
 					</td>
 				</tr>
+			<?php endforeach ?>
+			</table>
+			</div>
+			</div>
+
+		</fieldset>
+
+		<fieldset class='fieldset large-12 cell esr-assignMatchMultipiers hidden'>
+			<legend>
+				<a onclick="toggleClass('esr-assignMatchMultipiers')">
+					Hide &#x2191;
+				</a>
+			</legend>
+
+			When calculating the number of matches judged the count will be multipied by the number entered below
+
+			<div class='grid-x grid-margin-x'>
+			<div class='large-5 medium-7 cell'>
+			<table>
+				<tr>
+					<th>Role</th>
+					<th>Multiplier</th>
+				</tr>
+			<?php foreach($roles as $role): 
+				$roleID = $role['logisticsRoleID'];
+				if($roleID == LOGISTICS_ROLE_PARTICIPANT){
+					continue;
+				}?>
+
+				<tr>
+					<td><?=$role['roleName']?></td>
+					<td>
+						<input type='number' class='no-bottom' min=0 max=99 placeholder="x0"
+						name='eventSettings[staffRegistration][matchMultipliers][<?=$roleID?>]' 
+						value="<?=$matchMultipliers[$roleID]?>" step="0.01">
+					</td>
+				</tr>
+
 			<?php endforeach ?>
 			</table>
 			</div>
