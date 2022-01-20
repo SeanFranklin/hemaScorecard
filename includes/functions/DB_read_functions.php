@@ -3582,6 +3582,31 @@ function logistics_getRoleCompetencies($eventID){
 
 /******************************************************************************/
 
+function logistics_getMatchMultipliers($eventID){
+
+	$eventID = (int)$eventID;
+
+	$roles = logistics_getRoles();
+
+	$sql = "SELECT logisticsRoleID, matchMultiplier
+			FROM logisticsStaffMatchMultipliers
+			WHERE eventID = {$eventID}";
+	$multipliers = mysqlQuery($sql, KEY_SINGLES, 'logisticsRoleID','matchMultiplier');
+
+	foreach($roles as $role){
+		$roleID = $role['logisticsRoleID'];
+
+		if(isset($multipliers[$roleID]) == false){
+			$multipliers[$roleID] = 1;
+		}		
+	}
+
+	return $multipliers;
+
+}
+
+/******************************************************************************/
+
 function getPools($tournamentID, $groupSelection = 1){
 // returns a sorted array of all pools, by pool number
 
@@ -5407,6 +5432,8 @@ function logistics_getEventStaffingMatches($eventID){
 			ORDER BY roleSortImportance ASC";
 	$roles = mysqlQuery($sql, SINGLES);
 
+	$multipliers = logistics_getMatchMultipliers($eventID);
+
 	$finalHours = [];	
 	foreach($matchShifts as $shift){
 
@@ -5415,6 +5442,7 @@ function logistics_getEventStaffingMatches($eventID){
 
 		if(isset($finalHours[$rosterID]) == false){
 			$finalHours[$rosterID]['totalMatches'] = 0;
+			$finalHours[$rosterID]['scaledMatches'] = 0;
 			foreach($roles as $roleID){
 				$finalHours[$rosterID]['roleMatches'][$roleID] = 0;
 			}
@@ -5423,6 +5451,7 @@ function logistics_getEventStaffingMatches($eventID){
 		$roleID = $shift['roleID'];
 
 		$finalHours[$rosterID]['totalMatches']++;
+		$finalHours[$rosterID]['scaledMatches'] += $multipliers[$roleID];
 		$finalHours[$rosterID]['roleMatches'][$roleID]++;
 
 	}
