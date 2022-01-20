@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jan 16, 2022 at 10:16 PM
+-- Generation Time: Jan 20, 2022 at 04:06 AM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -677,6 +677,19 @@ CREATE TABLE `logisticsStaffMatches` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `logisticsStaffMatchMultipliers`
+--
+
+CREATE TABLE `logisticsStaffMatchMultipliers` (
+  `matchMultiplierID` int(10) UNSIGNED NOT NULL,
+  `eventID` int(10) UNSIGNED NOT NULL,
+  `logisticsRoleID` int(10) UNSIGNED NOT NULL,
+  `matchMultiplier` float NOT NULL DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `logisticsStaffShifts`
 --
 
@@ -768,7 +781,8 @@ INSERT INTO `systemAttacks` (`attackID`, `attackClass`, `attackCode`, `attackTex
 (47, 'prefix', 'renewal', 'Renewal'),
 (48, 'prefix', '1h', 'One Handed'),
 (49, 'illegalAction', 'floor', 'Hitting the Floor'),
-(50, 'target', 'deepHigh', 'Deep & High');
+(50, 'target', 'deepHigh', 'Deep & High'),
+(51, 'prefix', 'offhan', 'Off Hand');
 
 -- --------------------------------------------------------
 
@@ -1659,7 +1673,7 @@ CREATE TABLE `systemRankings` (
 --
 
 INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `numberOfInstances`, `description`, `displayFunction`, `scoringFunction`, `scoreFormula`, `orderByField1`, `orderBySort1`, `orderByField2`, `orderBySort2`, `orderByField3`, `orderBySort3`, `orderByField4`, `orderBySort4`, `displayTitle1`, `displayField1`, `displayTitle2`, `displayField2`, `displayTitle3`, `displayField3`, `displayTitle4`, `displayField4`, `displayTitle5`, `displayField5`) VALUES
-(1, 'Franklin 2014', 2, 124, 'Ranking:\n1) Indicator Score [Highest]\n2) Wins [Highest]\n3) Doubles [Lowest]\n4) Hits Against [Lowest]\n\nIndicator Score:\n +[Points For]\n +(5 * [Wins])\n -[Points Against]\n -(Doubles Penalty)\n\nDoubles Penalty\n1 Double -> 1 = 1\n2 Doubles -> 1+2 = 3\n3 Doubles -> 1+2+3 = 6 etc...', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst - ((doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
+(1, 'Franklin 2014', 2, 128, 'Ranking:\n1) Indicator Score [Highest]\n2) Wins [Highest]\n3) Doubles [Lowest]\n4) Hits Against [Lowest]\n\nIndicator Score:\n +[Points For]\n +(5 * [Wins])\n -[Points Against]\n -(Doubles Penalty)\n\nDoubles Penalty\n1 Double -> 1 = 1\n2 Doubles -> 1+2 = 3\n3 Doubles -> 1+2+3 = 6 etc...', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst - ((doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
 (2, 'RSS Cutting', 3, 11, 'Root Sum Square Cutting\n\nScoring\nTotal Deduction = sqrt([Cut Deduction]^2 + [Form Deduction]^2)\nScore = 20 - Cut Deduction\n\nRanking\n1) By Score\n2) Least deductions', 'RSScutting', 'RSScutting', NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (3, 'Results Only', 1, 17, NULL, NULL, NULL, NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (4, 'Deduction Based', 3, 7, 'Scoring\r\n100 point base score\r\nDeductions from the base score', 'DeductionBased', 'DeductionBased', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -1683,7 +1697,7 @@ INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `number
 (24, 'Wins & Aggregate Score', 2, 22, 'Wins & Aggregate Score\r\n\r\nRanking:\r\n1) Wins\r\n2) Total Points Scored', NULL, NULL, 'AbsPointsFor', 'wins', 'DESC', 'pointsFor', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points Scored', 'pointsFor', 'Points Against', 'pointsAgainst', 'Bilateral Hits', 'doubles + afterblowsFor + afterblowsAgainst', NULL, NULL),
 (25, 'Wessex League', 2, 45, 'Ranking:\r\n1) Score [DESC]\r\n2) (Hits For - Hits Against) [DESC]\r\n2) Doubles [ASC]\r\n\r\nScore:\r\n+ 3 * Wins\r\n+ 1 * Ties\r\n- Doubles Penalty\r\n\r\nDoubles Penalty:\r\nEvery second double per match -1\r\n(ie: First double every match is free)', NULL, NULL, '#Wessex', 'score', 'DESC', 'hitsFor - hitsAgainst', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Draws', 'ties', 'Doubles', 'doubles', 'Score', 'score'),
 (26, 'WEIRD 2019', 2, 12, '-- Score ----\n+ (10 * Wins)\n- (10 * Losses)\n- (10 * Double Outs)\n+ pointsFor\n\n-- Ranking ----\n1) Score\n2) Points Against', NULL, NULL, '(10 * wins) - (10 * losses) - (10 * doubleOuts) + pointsFor', 'score', 'DESC', 'pointsAgainst', 'ASC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Doubles', 'doubleOuts', 'Points For', 'pointsFor', 'Score', 'score'),
-(27, 'Cut & Deduction', 3, 13, 'Each cut is input with a score and deduction', 'PureScore', 'PureScore', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(27, 'Cut & Deduction', 3, 14, 'Each cut is input with a score and deduction', 'PureScore', 'PureScore', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (28, 'Flat Score', 3, 1, 'Only a score value is input for each cut', 'PureScore', 'PureScore', NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (29, 'Longpoint Deviation', 4, 8, 'Component Tournament Scores --------------\n[Tournament Score] = [Base Point Value] * ([Number of Entries] - (place -1))/[Number of Entries]\n\nOverall Score ------------------\nScore = Sum([Tournament Scores]) - Standard Deviation([Tournament Scores])', NULL, NULL, '#LpDeviation', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Component Scores', 'pointsFor', 'Inconsistency Penalty', '-pointsAgainst', 'Score', 'score', NULL, NULL, NULL, NULL),
 (30, 'LP Hit Ratio', 2, 3, 'Score --------\r\n[Absolute Points For + Win Bonus]/[Total Times Hit]\r\n\r\nAbsolute Points For\r\nPoints scored *before* the afterblow is deducted.\r\n\r\nWin Bonus\r\n2 Points for every win\r\n\r\nTotal Times Hit\r\n[# Clean Hits Against] + [# Doubles] + [# Afterblows Hit With]\r\n\r\n\r\nTie Breakers ----------\r\n1) Low Doubles\r\n2) High Wins\r\n3) Least hits for', NULL, NULL, 'case \n	when (hitsAgainst + afterblowsAgainst + doubles) > 0 then\n		(AbsPointsAwarded + 2 * wins) /  (hitsAgainst + afterblowsAgainst + doubles)\n	else\n		9001\nend', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Wins', 'wins', 'Target Points', 'absPointsAwarded', 'Total Times Hit', 'hitsAgainst + afterblowsAgainst + doubles', 'Score', 'score', NULL, NULL),
@@ -1788,7 +1802,7 @@ CREATE TABLE `systemTournaments` (
 --
 
 INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tournamentType`, `Pool_Bracket`, `Pool_Sets`, `Scored_Event`, `numberOfInstances`, `description`, `functionName`) VALUES
-(1, 'weapon', 'Longsword', 1, 1, 1, 253, NULL, NULL),
+(1, 'weapon', 'Longsword', 1, 1, 1, 256, NULL, NULL),
 (2, 'weapon', 'Messer', 1, 1, 1, 7, NULL, NULL),
 (3, 'weapon', 'Sword and Buckler', 1, 1, 1, 62, NULL, NULL),
 (5, 'weapon', 'Singlestick', 1, 1, 1, 35, NULL, NULL),
@@ -1818,7 +1832,7 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (29, 'ranking', '2 Pool Winners', 1, 0, 0, 0, NULL, NULL),
 (30, 'ranking', 'Total Points Scored', 1, 0, 0, 0, NULL, NULL),
 (31, 'ranking', 'CC Invitation 2016', 1, 0, 0, 0, NULL, NULL),
-(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 32, NULL, NULL),
+(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 33, NULL, NULL),
 (33, 'ranking', 'Results Only', 0, 0, 0, 0, NULL, NULL),
 (34, 'weapon', 'Glima', 1, 1, 1, 7, NULL, NULL),
 (35, 'weapon', 'Rotella', 1, 1, 1, 2, NULL, NULL),
@@ -1876,7 +1890,11 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (91, 'weapon', 'Rapier (Single)', 1, 1, 1, 28, NULL, NULL),
 (92, 'weapon', 'Rapier (Optional Dagger)', 1, 1, 1, 15, NULL, NULL),
 (93, 'weapon', 'Rapier (Hybrid Offhand)', 1, 1, 1, 10, NULL, NULL),
-(94, 'weapon', 'Rapier (Offhand Unknown)', 1, 1, 1, 10, NULL, NULL);
+(94, 'weapon', 'Rapier (Offhand Unknown)', 1, 1, 1, 10, NULL, NULL),
+(95, 'prefix', 'Tier A', 1, 1, 1, NULL, NULL, NULL),
+(96, 'prefix', 'Tier B', 1, 1, 1, NULL, NULL, NULL),
+(97, 'weapon', '1-H Medieval Sword', 1, 1, 1, 1, NULL, NULL),
+(98, 'prefix', 'Team', 1, 1, 1, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -2240,6 +2258,14 @@ ALTER TABLE `logisticsStaffMatches`
   ADD KEY `logisticsRoleID` (`logisticsRoleID`);
 
 --
+-- Indexes for table `logisticsStaffMatchMultipliers`
+--
+ALTER TABLE `logisticsStaffMatchMultipliers`
+  ADD PRIMARY KEY (`matchMultiplierID`),
+  ADD KEY `eventID` (`eventID`),
+  ADD KEY `logisticsRoleID` (`logisticsRoleID`);
+
+--
 -- Indexes for table `logisticsStaffShifts`
 --
 ALTER TABLE `logisticsStaffShifts`
@@ -2397,12 +2423,12 @@ ALTER TABLE `systemUsers`
 -- AUTO_INCREMENT for table `eventAttacks`
 --
 ALTER TABLE `eventAttacks`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5694;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5744;
 --
 -- AUTO_INCREMENT for table `eventAttributes`
 --
 ALTER TABLE `eventAttributes`
-  MODIFY `attributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2119;
+  MODIFY `attributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2121;
 --
 -- AUTO_INCREMENT for table `eventCutStandards`
 --
@@ -2412,12 +2438,12 @@ ALTER TABLE `eventCutStandards`
 -- AUTO_INCREMENT for table `eventDefaults`
 --
 ALTER TABLE `eventDefaults`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=446;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=449;
 --
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247016;
+  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247047;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
@@ -2427,17 +2453,17 @@ ALTER TABLE `eventGroupRankings`
 -- AUTO_INCREMENT for table `eventGroupRoster`
 --
 ALTER TABLE `eventGroupRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27850;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27939;
 --
 -- AUTO_INCREMENT for table `eventGroups`
 --
 ALTER TABLE `eventGroups`
-  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7600;
+  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7612;
 --
 -- AUTO_INCREMENT for table `eventHemaRatingsInfo`
 --
 ALTER TABLE `eventHemaRatingsInfo`
-  MODIFY `hemaRatingInfoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `hemaRatingInfoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 --
 -- AUTO_INCREMENT for table `eventIgnores`
 --
@@ -2457,7 +2483,7 @@ ALTER TABLE `eventLivestreams`
 -- AUTO_INCREMENT for table `eventMatches`
 --
 ALTER TABLE `eventMatches`
-  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72187;
+  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72523;
 --
 -- AUTO_INCREMENT for table `eventMatchOptions`
 --
@@ -2472,12 +2498,12 @@ ALTER TABLE `eventPlacings`
 -- AUTO_INCREMENT for table `eventPublication`
 --
 ALTER TABLE `eventPublication`
-  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 --
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9015;
+  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9025;
 --
 -- AUTO_INCREMENT for table `eventRosterAdditional`
 --
@@ -2487,17 +2513,17 @@ ALTER TABLE `eventRosterAdditional`
 -- AUTO_INCREMENT for table `eventRules`
 --
 ALTER TABLE `eventRules`
-  MODIFY `rulesID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `rulesID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 --
 -- AUTO_INCREMENT for table `eventRulesLinks`
 --
 ALTER TABLE `eventRulesLinks`
-  MODIFY `rulesLinkID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `rulesLinkID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 --
 -- AUTO_INCREMENT for table `eventScoresheets`
 --
 ALTER TABLE `eventScoresheets`
-  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2032;
+  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2037;
 --
 -- AUTO_INCREMENT for table `eventSponsors`
 --
@@ -2507,7 +2533,7 @@ ALTER TABLE `eventSponsors`
 -- AUTO_INCREMENT for table `eventStandings`
 --
 ALTER TABLE `eventStandings`
-  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135607;
+  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135611;
 --
 -- AUTO_INCREMENT for table `eventTeamRoster`
 --
@@ -2532,17 +2558,17 @@ ALTER TABLE `eventTournamentComponents`
 -- AUTO_INCREMENT for table `eventTournamentOptions`
 --
 ALTER TABLE `eventTournamentOptions`
-  MODIFY `tournamentOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `tournamentOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 --
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17518;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17534;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=965;
+  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=970;
 --
 -- AUTO_INCREMENT for table `logisticsBlockAttributes`
 --
@@ -2552,52 +2578,57 @@ ALTER TABLE `logisticsBlockAttributes`
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
 ALTER TABLE `logisticsLocations`
-  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=235;
+  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
 ALTER TABLE `logisticsLocationsBlocks`
-  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1754;
+  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1817;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsMatches`
 --
 ALTER TABLE `logisticsLocationsMatches`
-  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5374;
+  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5384;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleBlocks`
 --
 ALTER TABLE `logisticsScheduleBlocks`
-  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=884;
+  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=910;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleShifts`
 --
 ALTER TABLE `logisticsScheduleShifts`
-  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1133;
+  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1154;
 --
 -- AUTO_INCREMENT for table `logisticsStaffCompetency`
 --
 ALTER TABLE `logisticsStaffCompetency`
-  MODIFY `staffCompetencyID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `staffCompetencyID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 --
 -- AUTO_INCREMENT for table `logisticsStaffMatches`
 --
 ALTER TABLE `logisticsStaffMatches`
   MODIFY `matchStaffID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5770;
 --
+-- AUTO_INCREMENT for table `logisticsStaffMatchMultipliers`
+--
+ALTER TABLE `logisticsStaffMatchMultipliers`
+  MODIFY `matchMultiplierID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `logisticsStaffShifts`
 --
 ALTER TABLE `logisticsStaffShifts`
-  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2606;
+  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2610;
 --
 -- AUTO_INCREMENT for table `logisticsStaffTemplates`
 --
 ALTER TABLE `logisticsStaffTemplates`
-  MODIFY `staffTemplateID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `staffTemplateID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 --
 -- AUTO_INCREMENT for table `systemAttacks`
 --
 ALTER TABLE `systemAttacks`
-  MODIFY `attackID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `attackID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 --
 -- AUTO_INCREMENT for table `systemBlockTypes`
 --
@@ -2627,7 +2658,7 @@ ALTER TABLE `systemDoubleTypes`
 -- AUTO_INCREMENT for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=214;
+  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=216;
 --
 -- AUTO_INCREMENT for table `systemFormats`
 --
@@ -2657,7 +2688,7 @@ ALTER TABLE `systemRankings`
 -- AUTO_INCREMENT for table `systemRoster`
 --
 ALTER TABLE `systemRoster`
-  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4006;
+  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4009;
 --
 -- AUTO_INCREMENT for table `systemRosterNotDuplicate`
 --
@@ -2667,7 +2698,7 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- AUTO_INCREMENT for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=686;
+  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=687;
 --
 -- AUTO_INCREMENT for table `systemSponsors`
 --
@@ -2677,7 +2708,7 @@ ALTER TABLE `systemSponsors`
 -- AUTO_INCREMENT for table `systemTournaments`
 --
 ALTER TABLE `systemTournaments`
-  MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 --
 -- AUTO_INCREMENT for table `systemUserEvents`
 --
@@ -2954,6 +2985,13 @@ ALTER TABLE `logisticsStaffMatches`
   ADD CONSTRAINT `logisticsStaffMatches_ibfk_1` FOREIGN KEY (`matchID`) REFERENCES `eventMatches` (`matchID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `logisticsStaffMatches_ibfk_2` FOREIGN KEY (`rosterID`) REFERENCES `eventRoster` (`rosterID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `logisticsStaffMatches_ibfk_3` FOREIGN KEY (`logisticsRoleID`) REFERENCES `systemLogisticsRoles` (`logisticsRoleID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `logisticsStaffMatchMultipliers`
+--
+ALTER TABLE `logisticsStaffMatchMultipliers`
+  ADD CONSTRAINT `logisticsStaffMatchMultipliers_ibfk_1` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `logisticsStaffMatchMultipliers_ibfk_2` FOREIGN KEY (`logisticsRoleID`) REFERENCES `systemLogisticsRoles` (`logisticsRoleID`);
 
 --
 -- Constraints for table `logisticsStaffShifts`
