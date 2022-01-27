@@ -27,6 +27,7 @@ if($_SESSION['eventID'] == null){
 	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
 	$contactEmail = getEventEmail($_SESSION['eventID']);
 	$eventDates = getEventDates($_SESSION['eventID']);
+	$eventDescription = getEventDescription($_SESSION['eventID']);
 
 	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.
 	$formLock = 'disabled';
@@ -589,6 +590,43 @@ if($_SESSION['eventID'] == null){
 	</fieldset>
 	<?php endif ?>
 	
+	<!--  Event Description -------------------------------->
+	<?php if($testEventDisable == null): ?>
+	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
+	<legend><h4>Event Description</h4></legend>
+
+	<!-- Event Information -->
+	<form method='POST'>
+	<div class='grid-x grid-margin-x'>
+	
+	
+		<div class='large-12 cell'>
+			<textarea name='eventDescription' required rows='20'><?=$eventDescription ?></textarea>
+		</div>
+
+		<div class='large-3 cell'>
+			<button class='button success expanded no-bottom' name='formName' value='setEventDescription'>
+				Update Event Description
+			</button>
+		</div>
+	</div>
+	</form>
+
+	<?php if($eventDescription != ''):?>
+		<hr>
+		<i><a onclick="$('.event-description').toggle()">Show Event Description</a></i>
+		<div class='large-12 cell hidden event-description'>
+			<?=$eventDescription?>
+		</div>
+	<?php endif ?>
+
+	
+	
+
+	
+
+	</fieldset>
+	<?php endif ?>
 		
 <!-- Change Staff Password ----------------------------------->
 	<?php if($testEventDisable == null): ?>
