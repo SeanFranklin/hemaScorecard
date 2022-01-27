@@ -21,6 +21,7 @@ if($_SESSION['eventID'] == null){
 	define("NUM_FINALISTS_DISPLAYED",4);
 	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 	$tournamentList = sortTournamentsForPlacings($tournamentList);
+	$anyFinalized = areAnyTournamentsFinalized($_SESSION['eventID']);
 
 	if(!isset($_SESSION['manualTournamentPlacing'])){
 		$_SESSION['manualTournamentPlacing'] = '';
@@ -35,6 +36,10 @@ if($_SESSION['eventID'] == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
+	<?php if($anyFinalized == false){
+		showEventDescription();
+	}?>
+
 
 	<div class='grid-x'>
 			
@@ -80,6 +85,10 @@ if($_SESSION['eventID'] == null){
 	<?php endforeach ?>
 	</div>
 
+	<?php if($anyFinalized == true){
+		showEventDescription();
+	}?>
+
 <?php }
 
 unset($_SESSION['manualPlacingMessage']);
@@ -88,6 +97,24 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+function showEventDescription(){
+
+	$eventDescription = getEventDescription($_SESSION['eventID']);
+
+	if(strlen($eventDescription) <= 1){
+		$eventDescription = "<i>[No Event Description Created]</i>";
+	}
+
+?>
+	<div class='documentation-div callout success'>
+		<a name='top-of-description'></a>
+		<?=$eventDescription?>
+	</div>
+<?php
+}
+
+/******************************************************************************/
 
 function sortTournamentsForPlacings($tournamentList){
 

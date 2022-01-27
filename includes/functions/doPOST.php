@@ -375,6 +375,9 @@ function processPostData(){
 			case 'setEventInfo':
 				updateEventInformation($_POST['newEventInfo'],$_SESSION['eventID']);
 				break;
+			case 'setEventDescription':
+				updateEventDescription($_POST['eventDescription'],$_SESSION['eventID']);
+				break;
 			case 'SubmitToS':
 				processToS($_POST['ToS']);
 				break;
