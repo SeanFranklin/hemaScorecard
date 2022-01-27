@@ -6,48 +6,48 @@
   margin-bottom:  20px;
 }
 
-#rules-div #rules-title{
+.documentation-div #rules-title{
   font-size: 2.5em;
   padding:  0em;
   margin:  0em;
 }
 
-#rules-div h1{
+.documentation-div h1{
   font-size: 2.3em;
   border-bottom:  1px solid black;
   margin-top: 1.0em;
   margin-bottom: 0.5em;
 }
 
-#rules-div h2{
+.documentation-div h2{
   font-size: 1.9em;
   color: #1779ba;
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
 
-#rules-div h3{
+.documentation-div h3{
   font-size: 1.4em;
   color: #F08A24;
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
 
-#rules-div h4{
+.documentation-div h4{
   font-size: 1.2em;
   margin-top: 0.7em;
   margin-bottom: 0.2em;
 }
 
-#rules-div p + ul {
+.documentation-div p + ul {
     margin-top: -10px;
 }
 
-#rules-div p + ol {
+.documentation-div p + ol {
     margin-top: -10px;
 }
 
-#rules-div .example{
+.documentation-div .example{
   font-style: italic;
 }
 
