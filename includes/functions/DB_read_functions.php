@@ -1530,6 +1530,19 @@ function getEventName($eventID, $rawName = false){
 
 /******************************************************************************/
 
+function getEventDescription($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT description
+			FROM eventDescriptions
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE, 'description');
+
+}
+
+/******************************************************************************/
+
 function isMetaEvent($eventID){
 	$eventID = (int)$eventID;
 
@@ -7034,6 +7047,20 @@ function areAllTournamentsFinalized($eventID){
 	}
 	
 	return $allAllFinalized;
+
+}
+
+/******************************************************************************/
+
+function areAnyTournamentsFinalized($eventID){
+	
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(*) AS numFinalized
+			FROM eventTournaments
+			WHERE eventID = {$eventID}
+			AND isFinalized = 1";
+	return (boolean)mysqlQuery($sql, SINGLE, 'numFinalized');
 
 }
 

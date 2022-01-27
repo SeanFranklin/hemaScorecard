@@ -4897,6 +4897,55 @@ function updateEventInformation($newEventInfo,$eventID){
 
 }
 
+/******************************************************************************/
+
+function updateEventDescription($eventDescription,$eventID){
+
+	$eventDescription = trim($eventDescription);
+	$eventID = (int)$eventID;
+
+	if(strlen($eventDescription) == 0){
+		
+		$sql = "DELETE FROM eventDescriptions
+				WHERE eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+
+	} else {
+
+		$sql = "SELECT eventDescriptionID
+				FROM eventDescriptions
+				WHERE eventID = {$eventID}";
+		$eventDescriptionID = (int)mysqlQuery($sql, SINGLE, 'eventDescriptionID');
+
+		if($eventDescriptionID == 0){
+
+			$sql = "INSERT INTO eventDescriptions 
+					(eventID, description)
+					VALUES 
+					({$eventID},?)";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			$bind = mysqli_stmt_bind_param($stmt, "s", $eventDescription);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);	
+
+		} else {
+
+			$sql = "UPDATE eventDescriptions 
+					SET description = ?
+					WHERE eventDescriptionID = {$eventDescriptionID}";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			$bind = mysqli_stmt_bind_param($stmt, "s", $eventDescription);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+		}
+
+	}
+
+
+}
 
 /******************************************************************************/
 
