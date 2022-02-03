@@ -251,7 +251,7 @@ function modifiersRadioButtons(){
 
 /************************************************************************************/
 
-function gridScoreUpdate(rosterID){
+function gridScoreUpdate(rosterID, id){
 
 	var undefinedCombination = false;
 	var scoreValue = 0;
@@ -260,6 +260,33 @@ function gridScoreUpdate(rosterID){
 	var type = $('input[name="score['+rosterID+'][attackType]"]:checked').val();
 	var prefix = $('input[name="score['+rosterID+'][attackPrefix]"]:checked').val();
 	var afterblow = $('input[name="score['+rosterID+'][afterblow]"]:checked').val();
+
+/*
+	property = id.name.split("[");
+	property = property[2].split("]");
+	property = property[0];
+
+	
+	var naRowIdName = "score["+rosterID+"]["+property+"]-none-row";
+	var naRowId  = document.getElementById(naRowIdName);
+	var checkedValue = 0;
+
+	if(property == "attackTarget"){
+		checkedValue = target;
+	} else if(property == "attackType") {
+		checkedValue = type;
+	} else if(property == "afterblow") {
+		checkedValue = afterblow;
+	} else {
+
+	}
+
+	if(checkedValue != 0){
+		$(naRowId).removeClass('hidden');
+	} else {
+		$(naRowId).addClass('hidden');
+	}
+	*/
 
 	if(afterblow === undefined){
 		afterblow = 0;
@@ -337,7 +364,32 @@ function gridScoreUpdate(rosterID){
 	}
 
 	$("#exchange-grid-summary-"+rosterID).html(exchangeSummary);
-	
+
+	gridScoreEnableSubmission(rosterID);
+
+}
+
+/************************************************************************************/
+
+function gridScoreManualPoints(rosterID){
+
+	$("#exchange-grid-summary-"+rosterID).html("MANUAL OVERIDE");
+	gridScoreEnableSubmission(rosterID);
+
+}
+
+/************************************************************************************/
+
+function gridScoreEnableSubmission(rosterID){
+
+	var scoreValue = $('input[name="score['+rosterID+'][hit]"]:checked').val();
+
+	if(scoreValue != 0){
+		$('#grid-add-new-exch-'+rosterID).attr("disabled",false);
+	} else {
+		$('#grid-add-new-exch-'+rosterID).attr("disabled",true);
+	}
+
 }
 
 /**********************************************************************/
