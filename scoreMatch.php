@@ -1247,7 +1247,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		</div>
 
 		<div class='large-4 medium-4 cell'>
-			<button class='button success expanded' name='formName' value='newExchange' id='grid-add-new-exch-<?=$rosterID?>'disabled>
+			<button class='button success expanded' name='formName' value='newExchange' id='grid-add-new-exch-<?=$rosterID?>' disabled>
 				Add Scoring Exchange
 			</button>
 		</div>
