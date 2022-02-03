@@ -1325,7 +1325,8 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 				<td>
 					<div class='switch input-group-button large no-bottom'>
 						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>]' 
-							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$controlAttackID?>' onchange="gridScoreUpdate(<?=$rosterID?>)">
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$controlAttackID?>' 
+							onchange="gridScoreUpdate(<?=$rosterID?>,this)">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>]'>
 						</label>
 					</div>
