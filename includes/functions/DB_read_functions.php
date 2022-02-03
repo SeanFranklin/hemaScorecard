@@ -7599,5 +7599,122 @@ function getEventSponsors($eventID, $ignoreTiers = false){
 
 /******************************************************************************/
 
+function getTournamentExchangeTimeData($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	$MAX_MATCH_LENGTH = 1000;
+
+	$sql = "SELECT exchangeTime, UNIX_TIMESTAMP(timestamp) AS realTime, exchangeType, matchID, groupID, groupType
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND matchComplete = 1
+			ORDER BY groupID ASC, matchID ASC, matchNumber ASC, exchangeNumber ASC";
+	$exchanges = mysqlQuery($sql, ASSOC);
+
+	$matchID = 0;
+	$groupID = 0;
+	$matchExchangeCount = 0;
+	
+	$tLength['exch']['total']['data'] = [];
+	$tLength['exch']['fight']['data'] = [];
+	$tLength['exch']['judge']['data'] = [];
+	$tLength['exch']['count']['data'] = [];
+
+	$tLength['match']['length']['data'] = [];
+	$tLength['match']['count']['data'] = [];
+	$tLength['match']['change']['data'] = [];
+
+	foreach($exchanges as $index => $exchange){
+
+		if($groupID != $exchange['groupID']){
+
+			if($matchID != 0){
+
+				$matchLengthTime = $lastRealTime - $matchStartRealTime;
+
+				if($matchLengthTime < $MAX_MATCH_LENGTH){
+					$tLength['match']['length']['data'][] = $matchLengthTime;
+				}
+				// There are no match change times when switching between groups
+
+				if($matchExchangeCount != 0){
+					$tLength['exch']['count']['data'][] = $matchExchangeCount;
+					$matchExchangeCount = 0;
+				}
+
+			}
+
+			$groupID = $exchange['groupID'];
+			$lastRealTime = 0;
+			$matchStartRealTime = $exchange['realTime'] - $exchange['exchangeTime'];
+		}
+
+		if($matchID != $exchange['matchID']){
+
+			if($lastRealTime != 0){
+
+				$matchLengthTime = $lastRealTime - $matchStartRealTime;
+
+				$matchStartRealTime = $exchange['realTime'] - $exchange['exchangeTime'];
+				$matchChangeTime = $matchStartRealTime - $lastRealTime;
+
+				if($matchLengthTime < $MAX_MATCH_LENGTH){
+					$tLength['match']['length']['data'][] = $matchLengthTime;
+				}
+				if($matchChangeTime < $MAX_MATCH_LENGTH && $exchange['groupType'] == 'pool' && $matchChangeTime > 0){
+					$tLength['match']['change']['data'][] = $matchChangeTime;
+				}
+				
+			}
+
+			if($matchExchangeCount != 0){
+				$tLength['exch']['count']['data'][] = $matchExchangeCount;
+				$matchExchangeCount = 0;
+			}
+
+			$lastRealTime = $exchange['realTime'] - $exchange['exchangeTime'];
+			$lastExchangeTime = 0;
+			
+			$matchID = $exchange['matchID'];
+		}
+
+		if(isScoringExchange($exchange['exchangeType']) == true){
+			
+			$matchExchangeCount++;
+
+			$exchangeTime = $exchange['realTime'] - $lastRealTime;
+			$fightTime = $exchange['exchangeTime'] - $lastExchangeTime;
+			$judgeTime = $exchangeTime - $fightTime;
+			$tLength['exch']['total']['data'][] = $exchangeTime;
+
+			if($fightTime > 0){
+				$tLength['exch']['fight']['data'][] = $fightTime;
+			}
+			if($judgeTime > 0){
+				$tLength['exch']['judge']['data'][] = $judgeTime;
+			}
+
+			$lastExchangeTime = $exchange['exchangeTime'];
+			$lastRealTime = $exchange['realTime'];
+		}
+
+	}
+
+	arrayAvg($tLength['match']['length']);
+	arrayAvg($tLength['match']['change']);
+	arrayAvg($tLength['exch']['count'],1);
+
+	arrayAvg($tLength['exch']['total'],1);
+	arrayAvg($tLength['exch']['fight'],1);
+	arrayAvg($tLength['exch']['judge'],1);
+
+	return($tLength);
+}
+
+/******************************************************************************/
+
+
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

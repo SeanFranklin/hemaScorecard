@@ -2767,5 +2767,62 @@ function selectCountry($name, $selected = null, $countryList = null, $classes = 
 
 /******************************************************************************/
 
+function plotHistogram($chartData,$chartNum,$xLabel = null, $binWidth = null, $plotWidth = null){
+
+	$divName = "chart-div-area-".$chartNum;
+	if($binWidth != null){
+		$binClause = "histogram: { bucketSize: {$binWidth} },";
+	} else {
+		$binClause = "";
+	}
+
+	if($plotWidth != null){
+		$plotWidthClause = ", max: {$plotWidth}";
+	} else {
+		$plotWidthClause = "";
+	}
+
+?>
+	<script type="text/javascript">
+		
+		google.charts.setOnLoadCallback(drawChart);
+
+		function drawChart() {
+			console.log("!");
+			data = [['x', 'y']
+					<?php
+						foreach($chartData as $x => $y){
+							echo ",['{$x}',{$y}]";
+						}
+					?>];
+
+			var chartData = google.visualization.arrayToDataTable(data);
+				
+
+			var options = {
+				legend: { position: 'none' },
+				<?=$binClause?>
+				minValue: 0,
+				maxValue: 600,
+				vAxis: { title: "# of occurrences" },
+				hAxis: { title: "<?=$xLabel?>",
+						viewWindow: {min: 0 <?=$plotWidthClause?>} 
+						}
+
+			};
+
+			var chart = new google.visualization.Histogram(document.getElementById('<?=$divName?>'));
+
+			chart.draw(chartData, options);
+		}
+	</script>
+
+	<div id="<?=$divName?>" style="width: 100%;" ></div>
+<?php
+}
+
+/******************************************************************************/
+//viewWindow: {min: 0, max: 600} 
+//
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

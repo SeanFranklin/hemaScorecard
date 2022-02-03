@@ -533,5 +533,45 @@ function numberSelectMenu($start,$end,$selected = 0){
 }
 
 /******************************************************************************/
+
+function isScoringExchange($exchangeType){
+
+	switch($exchangeType){
+		case 'clean':
+		case 'noExchange':
+		case 'double':
+		case 'afterblow':
+		case 'penalty':
+		case 'noQuality':
+			$isScoring = true;
+			break;
+		case 'winner':
+		case 'scored':
+		case 'tie':
+		case 'doubleOut':
+		case 'pending':
+			$isScoring = false;
+			break;
+	}
+
+	return $isScoring;
+
+}
+
+/******************************************************************************/
+
+function arrayAvg(&$array, $round = 0){
+
+	if(count($array['data']) != 0){
+		$array['avg'] = round(array_sum($array['data'])/count($array['data']),$round);
+	} else {
+		$array['avg'] = null;
+	}
+
+	
+
+}
+
+/******************************************************************************/
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
