@@ -478,8 +478,8 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 				<td>
 					<select name='newParticipants[<?=$k?>][staffCompetency]'>
 						<option value='0'>No</option>
-						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
-							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
+						<?php for($staffComp=1;$staffComp<=STAFF_COMPETENCY_MAX;$staffComp++): ?>
+							<option <?=optionValue($staffComp,$dStaffCompetency)?> > <?=$staffComp?> </option>
 						<?php endfor ?>
 					</select>
 				</td>
@@ -538,8 +538,8 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 				<td>
 					<select name='newParticipants[<?=$k?>][staffCompetency]'>
 						<option value='0'>No</option>
-						<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++): ?>
-							<option <?=optionValue($i,$dStaffCompetency)?> > <?=$i?> </option>
+						<?php for($staffComp=1;$staffComp<=STAFF_COMPETENCY_MAX;$staffComp++): ?>
+							<option <?=optionValue($staffComp,$dStaffCompetency)?> > <?=$staffComp?> </option>
 						<?php endfor ?>
 					</select>
 				</td>

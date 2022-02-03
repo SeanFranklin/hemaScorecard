@@ -1108,15 +1108,20 @@ function gridScoreBox($matchInfo, $num){
 	$fighterName = getCombatantName($rosterID);
 ?>
 	<div class='reveal large' id='attack-grid-box-<?=$num?>' data-reveal >
+	<form method="post">
 
-		<div class='callout' style='background-color: <?=$colorCode?>;'>
-			<h5>Adding attack for <b><?=$fighterName?></b></h5>
+		<div class='grid-x grid-margin-x'>
+
+			<div class='callout large-12 cell' style='background-color: <?=$colorCode?>;'>
+				<h5>Adding attack for <b><?=$fighterName?></b></h5>
+			</div>
+
 		</div>
 
 		
 		<?=scoreSelectGrid($matchInfo, $num, $rosterID, $otherID)?>
 		
-
+	</form>
 	<!-- Reveal close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
@@ -1155,7 +1160,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 	}
 
 ?>
-	<form method="post">
+	
 	<div class='grid-x grid-margin-x'>
 
 		<input hidden name='scoreLookupMode' value='grid'>
@@ -1163,6 +1168,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		<input type='hidden' name='lastExchange' value='scoringHit'>
 		<input type='hidden' name='score[<?=$otherID?>][hit]' value=''>
 		<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID-<?=$num?>'>
+		<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 
 <!-- Input Fields --------------------------------------------------------------->
 
@@ -1203,7 +1209,8 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 				<div class='switch input-group-button large no-bottom'>
 					<span class='input-group-label'>0</span>
 					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][0]' 
-						name='score[<?=$rosterID?>][hit]' value='0' checked>
+						name='score[<?=$rosterID?>][hit]' value='0' checked 
+						onchange="gridScoreManualPoints(<?=$rosterID?>)">
 					<label class='switch-paddle' for='score[<?=$rosterID?>][hit][0]'>
 					</label>
 				</div>
@@ -1217,7 +1224,8 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 					<div class='switch input-group-button large no-bottom'>
 						<span class='input-group-label'><?=$attackPoints?></span>
 						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][<?=$attackPoints?>]' 
-							name='score[<?=$rosterID?>][hit]' value='<?=$attackPoints?>'>
+							name='score[<?=$rosterID?>][hit]' value='<?=$attackPoints?>'
+							onchange="gridScoreManualPoints(<?=$rosterID?>)">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][hit][<?=$attackPoints?>]'>
 						</label>
 					</div>
@@ -1239,11 +1247,12 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		</div>
 
 		<div class='large-4 medium-4 cell'>
-			<button class='button success expanded' name='formName' value='newExchange'>Add Scoring Exchange</button>
+			<button class='button success expanded' name='formName' value='newExchange' id='grid-add-new-exch-<?=$rosterID?>'disabled>
+				Add Scoring Exchange
+			</button>
 		</div>
 
 	</div>
-	</form>
 	
 <?php
 
@@ -1272,19 +1281,18 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 ?>
 	<table>
 
-		<tr>
-			<tr>
-				<td><i>n/a</i></td>
-				<td>
-					<div class='switch input-group-button large no-bottom'>
-						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][0]' 
-							name='score[<?=$rosterID?>][<?=$paramType?>]' value='0' checked onchange="gridScoreUpdate(<?=$rosterID?>)">
-						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][0]'>
-						</label>
-					</div>
-				</td>
-			</tr>
+		<tr id="score[<?=$rosterID?>][<?=$paramType?>]-none-row">
+			<td><i>n/a</i></td>
+			<td>
+				<div class='switch input-group-button large no-bottom'>
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][0]' 
+						name='score[<?=$rosterID?>][<?=$paramType?>]' value='0' checked onclick="gridScoreUpdate(<?=$rosterID?>,this)">
+					<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][0]'>
+					</label>
+				</div>
+			</td>
 		</tr>
+	
 
 		<?php foreach($options as $attackID):?>
 			<?php if((int)$attackID == 0){continue;}?>
@@ -1301,7 +1309,8 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 				<td>
 					<div class='switch input-group-button large no-bottom'>
 						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]' 
-							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>' onchange="gridScoreUpdate(<?=$rosterID?>)">
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>' 
+							onclick="gridScoreUpdate(<?=$rosterID?>,this)">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]'>
 						</label>
 					</div>
