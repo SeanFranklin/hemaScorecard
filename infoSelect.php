@@ -144,7 +144,7 @@ include('includes/footer.php');
 /******************************************************************************/
 
 function displayArchivedEvents($eventList){
-	
+
 	$oldYear = null;
 
 	foreach($eventList as $eventID => $eventInfo){

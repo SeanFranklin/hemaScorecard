@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.2.0'; // Javascript Version
+$vJ = '?=1.2.1'; // Javascript Version
 $vC = '?=1.0.12'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
@@ -56,7 +56,8 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
     <link rel="stylesheet" href="includes/foundation/css/app.css">
     <link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
 
-
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>google.charts.load('current', {'packages':['corechart']});</script>
 
     <link rel='icon' href='includes\images\favicon.png'>
     
@@ -230,6 +231,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 						<ul class='menu vertical'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
 							<li><a href='statsMultiEvent.php'>Tournament Summaries</a></li>
+							<li><a href='statsMatchLength.php'>Match Timings</a></li>
 							<li><a href='statsResultsDump.php'>Export Results</a></li>
 						</ul>
 					</li>
@@ -247,6 +249,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
 							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
+							<li><a href='statsMatchLength.php'>Match Timings</a></li>
 						</ul>
 					</li>
 				<?php endif ?>

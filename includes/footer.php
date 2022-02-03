@@ -98,6 +98,9 @@
 			} );
 			
 		<?php endforeach ?>
+
+		google.charts.load('current', {'packages':['corechart']});
+		
 		</script>
 		
 	<?php endif ?>
