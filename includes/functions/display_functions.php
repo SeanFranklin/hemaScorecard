@@ -2767,19 +2767,22 @@ function selectCountry($name, $selected = null, $countryList = null, $classes = 
 
 /******************************************************************************/
 
-function plotHistogram($chartData,$chartNum,$xLabel = null, $binWidth = null, $plotWidth = null){
+function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $plotWidth = null){
 
 	$divName = "chart-div-area-".$chartNum;
-	if($binWidth != null){
-		$binClause = "histogram: { bucketSize: {$binWidth} },";
-	} else {
-		$binClause = "";
-	}
+
 
 	if($plotWidth != null){
 		$plotWidthClause = ", max: {$plotWidth}";
 	} else {
 		$plotWidthClause = "";
+	}
+
+	$numDataSeries = count($chartData[0]);
+	if($_SESSION['StatsInfo']['displayType'] == 'value'){
+		$yLabel = "# of matches";
+	} else {
+		$yLabel = "% of matches";
 	}
 
 ?>
@@ -2788,36 +2791,31 @@ function plotHistogram($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 		google.charts.setOnLoadCallback(drawChart);
 
 		function drawChart() {
-			console.log("!");
-			data = [['x', 'y']
-					<?php
-						foreach($chartData as $x => $y){
-							echo ",['{$x}',{$y}]";
-						}
-					?>];
+			
+			data = [<?=$chartData?>];
 
 			var chartData = google.visualization.arrayToDataTable(data);
 				
 
 			var options = {
-				legend: { position: 'none' },
-				<?=$binClause?>
-				minValue: 0,
-				maxValue: 600,
-				vAxis: { title: "# of occurrences" },
+				legend: { position: 'top' },
+				curveType: 'function',
+				vAxis: { title: "<?=$yLabel?>",
+						viewWindow: {min: 0}
+						 },
 				hAxis: { title: "<?=$xLabel?>",
 						viewWindow: {min: 0 <?=$plotWidthClause?>} 
 						}
 
 			};
 
-			var chart = new google.visualization.Histogram(document.getElementById('<?=$divName?>'));
+			var chart = new google.visualization.LineChart(document.getElementById('<?=$divName?>'));
 
 			chart.draw(chartData, options);
 		}
 	</script>
 
-	<div id="<?=$divName?>" style="width: 100%;" ></div>
+	<div id="<?=$divName?>" style="width: 100%; height:400px;" ></div>
 <?php
 }
 

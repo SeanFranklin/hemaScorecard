@@ -1260,7 +1260,7 @@ function getEventIncompletes($eventID){
 
 /******************************************************************************/
 
-function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
+function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderClause = null){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
@@ -1275,6 +1275,11 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 	} else {
 		$limitClause = "LIMIT {$limit}";
 	}
+
+	if($orderClause == null){
+		$orderClause = "eventEndDate DESC, eventStartDate DESC";
+	}
+	
 
 	$publishClause = "";
 
@@ -1341,6 +1346,13 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 			$publishClause	= "(isArchived = 1)";
 			break;
 
+		case 'matchesVisible':
+			$publishClause	= "(	
+						isArchived = 1 
+					OR	publishMatches = 1
+				   )";
+			break;
+
 		case 'meta':
 		default:
 			// In this case we don't care. Get everything.
@@ -1356,7 +1368,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0){
 			LEFT JOIN eventPublication USING(eventID)
 			WHERE {$publishClause}
 			AND isMetaEvent = {$isMetaEvent}
-			ORDER BY eventEndDate DESC, eventStartDate DESC
+			ORDER BY {$orderClause}
 			{$limitClause}";
 
 	return mysqlQuery($sql, KEY, 'eventID');
@@ -1764,13 +1776,16 @@ function getEventTournaments($eventID = 0){
 
 /******************************************************************************/
 
-function getSystemTournaments(){
+function getSystemTournaments($eventID = 0){
+
+	$eventID = (int)$eventID;
 
 	$sql = "SELECT eventName, eventYear, tournamentID, eventID, tournamentWeaponID AS weaponID,
 					tournamentPrefixID AS prefixID, tournamentMaterialID AS materialID,
 					tournamentGenderID AS genderID
 			FROM eventTournaments
 			INNER JOIN systemEvents USING(eventID)
+			WHERE eventID != {$eventID}
 			ORDER BY eventStartDate DESC";
 
 	$allTournaments =mysqlQuery($sql, ASSOC);
