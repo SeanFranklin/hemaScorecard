@@ -490,6 +490,9 @@ function processPostData(){
 				$_SESSION['statsIDs']['tournamentMaterialID'] 	= @(int)$_POST['statsIDs']['tournamentMaterialID'];
 				$_SESSION['statsIDs']['tournamentRankingID'] 	= @(int)$_POST['statsIDs']['tournamentRankingID'];
 				break;
+			case 'updateActiveStatsItems':
+				updateActiveStatsItems($_POST['activeStatsItems']);
+				break;
 				
 	// Cutting Qualification Cases
 			case 'newCutQuals':
@@ -860,6 +863,39 @@ function setDataFilters(){
 			unset($_SESSION['dataFilters']['filters'][$num]);
 		} else {
 			$_SESSION['dataFilters']['filters'][$num] = $_POST['filterField'][$num];
+		}
+	}
+
+}
+
+/******************************************************************************/
+
+function updateActiveStatsItems($activeStatsItems){
+
+	$firstEntry = true;
+	$oldIndex = 0;
+
+	$lastIndex = count($activeStatsItems['tournamentIDs']) - 1;
+
+	for($index = 0; $index <= $lastIndex; $index++){
+		$_SESSION['activeStatsItems']['tournamentIDs'][$index] = 0;
+	}
+
+	$index = $lastIndex;
+
+	for($index = $lastIndex; $index >= 0; $index--){
+
+		$_SESSION['activeStatsItems']['tournamentIDs'][$index] = (int)$activeStatsItems['tournamentIDs'][$index];
+
+		if($index != $lastIndex){
+
+			if($_SESSION['activeStatsItems']['tournamentIDs'][$index] == 0 
+				&& $_SESSION['activeStatsItems']['tournamentIDs'][$index+1] != 0){
+
+				$_SESSION['activeStatsItems']['tournamentIDs'][$index] = $_SESSION['activeStatsItems']['tournamentIDs'][$index+1];
+				$_SESSION['activeStatsItems']['tournamentIDs'][$index+1] = 0;
+			}
+
 		}
 	}
 

@@ -388,6 +388,25 @@ case 'isFightingStarted':{
 } break;
 
 /******************************************************************************/
+
+case 'getEventTournaments':{
+
+	$eventID = (int)$_REQUEST['eventID'];
+	$tournamentIDs = getEventTournaments($eventID);
+
+	$tournaments = [];
+	foreach($tournamentIDs as $tournamentID){
+		$a['tournamentID'] = (int)$tournamentID;
+		$a['name'] = getTournamentName($a['tournamentID']);
+		$tournaments[] = $a;
+	}
+
+	echo json_encode($tournaments);
+	return;
+
+} break;
+
+/******************************************************************************/
 }
 
 
