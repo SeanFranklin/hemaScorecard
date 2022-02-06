@@ -84,8 +84,13 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
+	<script>
+		var GRID_ENTRY_MODE = <?=$attackGrid?>
+	</script>
+
 	<!-- Set the timer mode -->
 	<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($tournamentID)?>'>
+
 
 <!-- Warning if match is ignored -->
 	<?php if($matchInfo['ignoreMatch'] == 1): ?>
@@ -1165,7 +1170,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 		<input hidden name='scoreLookupMode' value='grid'>
 		<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
-		<input type='hidden' name='lastExchange' value='scoringHit'>
+		<input type='hidden' name='formName' value='newExchange'>
 		<input type='hidden' name='score[<?=$otherID?>][hit]' value=''>
 		<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID-<?=$num?>'>
 		<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
@@ -1207,6 +1212,17 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 			<div class='cell shrink'>
 				<div class='switch input-group-button large no-bottom'>
+					<span class='input-group-label'>No Quality</span>
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][noQuality]' 
+						name='score[<?=$rosterID?>][hit]' value='noQuality'
+						onchange="gridScoreManualPoints(<?=$rosterID?>)">
+					<label class='switch-paddle' for='score[<?=$rosterID?>][hit][noQuality]'>
+					</label>
+				</div>
+			</div>
+
+			<div class='cell shrink'>
+				<div class='switch input-group-button large no-bottom'>
 					<span class='input-group-label'>0</span>
 					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][0]' 
 						name='score[<?=$rosterID?>][hit]' value='0' checked 
@@ -1243,11 +1259,15 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		</div>
 
 		<div class='large-4 medium-4 cell'>
-			<!-- Padding div -->
+			<button class='button expanded' name='lastExchange' value='noQuality'
+				id='grid-add-no-quality-<?=$rosterID?>' disabled>
+				Add No Quallity
+			</button>
 		</div>
 
 		<div class='large-4 medium-4 cell'>
-			<button class='button success expanded' name='formName' value='newExchange' id='grid-add-new-exch-<?=$rosterID?>' disabled>
+			<button class='button success expanded' name='lastExchange' value='scoringHit'
+				id='grid-add-new-exch-<?=$rosterID?>' disabled>
 				Add Scoring Exchange
 			</button>
 		</div>
