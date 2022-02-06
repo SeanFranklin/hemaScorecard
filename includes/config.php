@@ -107,6 +107,7 @@
 
 	define("EVENT_ACTIVE_LIMIT",6);
 	define("EVENT_UPCOMING_LIMIT",1);
+	define("DATA_SERIES_MAX",4);
 
 // Logistics Constants
 
