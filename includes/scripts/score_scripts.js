@@ -10,6 +10,15 @@ const ATTACK_CONTROL_DB = 9;
 /************************************************************************************/
 
 function isValidExchange(){
+
+	if(GRID_ENTRY_MODE == true){
+		// This function is designed to check for conflicts between the dropdowns 
+		// of each fighter and the exchange types that apply to both. 
+		// In grid entry mode you can not have conflicting information, therefore this is not needed.
+		return;
+	}
+
+
 	var exchButton = document.getElementById('New_Exchange_Button');
 	
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
@@ -80,9 +89,8 @@ function isValidExchange(){
 /************************************************************************************/
 
 function scoreDropdownChange(selectID){
-	var exchButton = document.getElementById('New_Exchange_Button');
-	
 
+	var exchButton = document.getElementById('New_Exchange_Button');
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
@@ -261,6 +269,8 @@ function gridScoreUpdate(rosterID, id){
 	var prefix = $('input[name="score['+rosterID+'][attackPrefix]"]:checked').val();
 	var afterblow = $('input[name="score['+rosterID+'][afterblow]"]:checked').val();
 
+console.log(GRID_ENTRY_MODE);
+
 /*
 	property = id.name.split("[");
 	property = property[2].split("]");
@@ -373,7 +383,14 @@ function gridScoreUpdate(rosterID, id){
 
 function gridScoreManualPoints(rosterID){
 
-	$("#exchange-grid-summary-"+rosterID).html("MANUAL OVERIDE");
+	var scoreValue = $('input[name="score['+rosterID+'][hit]"]:checked').val();
+
+	if(scoreValue == "noQuality"){
+		$("#exchange-grid-summary-"+rosterID).html("No Quality");
+	} else {
+		$("#exchange-grid-summary-"+rosterID).html("MANUAL OVERIDE");
+	}
+
 	gridScoreEnableSubmission(rosterID);
 
 }
@@ -384,10 +401,15 @@ function gridScoreEnableSubmission(rosterID){
 
 	var scoreValue = $('input[name="score['+rosterID+'][hit]"]:checked').val();
 
-	if(scoreValue != 0){
+	if(scoreValue == "noQuality"){
+		$('#grid-add-new-exch-'+rosterID).attr("disabled",true);
+		$('#grid-add-no-quality-'+rosterID).attr("disabled",false);
+	} else if(scoreValue != 0){
 		$('#grid-add-new-exch-'+rosterID).attr("disabled",false);
+		$('#grid-add-no-quality-'+rosterID).attr("disabled",true);
 	} else {
 		$('#grid-add-new-exch-'+rosterID).attr("disabled",true);
+		$('#grid-add-no-quality-'+rosterID).attr("disabled",true);
 	}
 
 }
