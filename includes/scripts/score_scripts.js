@@ -269,8 +269,6 @@ function gridScoreUpdate(rosterID, id){
 	var prefix = $('input[name="score['+rosterID+'][attackPrefix]"]:checked').val();
 	var afterblow = $('input[name="score['+rosterID+'][afterblow]"]:checked').val();
 
-console.log(GRID_ENTRY_MODE);
-
 /*
 	property = id.name.split("[");
 	property = property[2].split("]");
