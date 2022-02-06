@@ -4963,14 +4963,17 @@ function getTournamentName($tournamentID = null){
 function getEventAndTournamentName($tournamentID, $bold = true){
 
 	$str = '';
-	if($bold == true){
-		$str .= '<strong>';
+	if($tournamentID != 0){
+		if($bold == true){
+			$str .= '<strong>';
+		}
+		$str .= "[".getEventName(getTournamentEventID($tournamentID))."]";
+		if($bold == true){
+			$str .= '</strong>';
+		}
+		$str .= " ".getTournamentName($tournamentID);
 	}
-	$str .= "[".getEventName(getTournamentEventID($tournamentID))."]";
-	if($bold == true){
-		$str .= '</strong>';
-	}
-	$str .= " ".getTournamentName($tournamentID);
+	
 
 	return $str;
 

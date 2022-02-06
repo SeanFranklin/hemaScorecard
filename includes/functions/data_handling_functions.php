@@ -1279,5 +1279,98 @@ function createMatchScoresheet($matchInfo)
 
 /******************************************************************************/
 
+function countNumDataSeries(){
+
+	if(!isset($_SESSION['StatsInfo']['displayType'])){
+		$_SESSION['StatsInfo']['displayType'] = 'percent';
+	}
+
+	$numDataSeries = 0;	if(isset($_SESSION['activeStatsItems']['tournamentIDs'][0]) == false || (int)$_SESSION['activeStatsItems']['tournamentIDs'][0] == 0){
+		$_SESSION['activeStatsItems']['tournamentIDs'][0] = (int)$_SESSION['tournamentID'];
+		if($_SESSION['activeStatsItems']['tournamentIDs'][0] != 0){
+			$numDataSeries++;
+		}
+
+	} else {
+		$numDataSeries++;
+	}
+
+	for($i = 1; $i < DATA_SERIES_MAX; $i++){
+		if(isset($_SESSION['activeStatsItems']['tournamentIDs'][$i]) == false){
+
+			$_SESSION['activeStatsItems']['tournamentIDs'][$i] = 0;
+
+		} else if($_SESSION['activeStatsItems']['tournamentIDs'][$i] != 0){
+
+			$numDataSeries++;
+		}
+	}
+
+	return $numDataSeries;
+}
+
+/******************************************************************************/
+
+
+function selectDataSeriesTournaments(){
+
+	echo "<form method='POST'>";
+
+	$eventList = getEventList('matchesVisible',0,0,"eventName ASC, eventStartDate DESC");
+
+	for($i = 0; $i < DATA_SERIES_MAX; $i++):
+
+		if(isset($_SESSION['activeStatsItems']['tournamentIDs'][$i]) == true){
+			$activeTournamentID = (int)$_SESSION['activeStatsItems']['tournamentIDs'][$i];
+		} else {
+			$activeTournamentID = 0;
+		}
+
+		$activeEventID = (int)getTournamentEventID($activeTournamentID);
+		$tournamentIDs = (array)getEventTournaments($activeEventID);
+
+?>
+
+		<div>
+			<div class='cell input-group'>
+				<span class='input-group-label'>Event</span>
+
+				<select class='input-group-field' onchange="matchLengthEventSelect(<?=$i?>)"
+					id="match-length-event-<?=$i?>">
+					<option value='0' selected></option>
+					<?php foreach($eventList as $eventID => $event):?>
+						<option <?=optionValue($eventID, $activeEventID)?>>
+							<?=$event['eventName']?> <?=$event['eventYear']?>
+						</option>
+					<?php endforeach ?>
+				</select>
+
+				<span class='input-group-label'>Tournament <?=($i+1)?></span>
+
+				<select class='input-group-field' name="activeStatsItems[tournamentIDs][<?=$i?>]"
+					id="match-length-tournament-<?=$i?>">
+					<option value='0'></option>
+					<?php foreach($tournamentIDs as $tournamentID):?>
+						<option <?=optionValue($tournamentID, $activeTournamentID)?>>
+							<?=getTournamentName($tournamentID)?>
+						</option>
+					<?php endforeach ?>
+
+				</select>
+			</div>
+		</div>
+	<?php endfor ?>
+
+	<button class='button' name='formName' value='updateActiveStatsItems'>
+		Update
+	</button>
+	
+	</form>
+
+<?php
+}
+
+/******************************************************************************/
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
