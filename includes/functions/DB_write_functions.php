@@ -976,6 +976,76 @@ function logisticsCheckInMatchStaffFromShift($info){
 
 /******************************************************************************/
 
+function logisticsUpdateAnnouncement($announcement){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$announcement['eventID'];
+	$announcementID = (int)$announcement['announcementID'];
+	$displayTime = (int)$announcement['displayTime'];
+	$currentTime = time();
+	$displayUntil = $currentTime + $displayTime*60;
+	$message = trim($announcement['message']);
+
+	switch($announcement['visibility']){
+		case 'staff': $visibility = 'staff'; break;
+		default: $visibility = 'all'; break;
+	}
+
+	if($announcementID != 0){
+		$sql = "SELECT COUNT(*) AS numExists
+				FROM logisticsAnnouncements
+				WHERE announcementID = {$announcementID}";
+		$exists = (bool)mysqlQuery($sql, SINGLE, 'numExists');
+	} else {
+		$exists = false;
+	}
+
+	if($exists == false && $eventID == 0){
+		setAlert(SYSTEM,"No eventID in logisticsUpdateAnnouncement()");
+		return;
+	}
+	
+
+	if($exists == false){
+
+		$sql = "INSERT INTO logisticsAnnouncements
+				(eventID, message, visibility, displayUntil)
+				VALUES
+				({$eventID},?, '{$visibility}', $displayUntil)";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $message);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+		$announcementID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+		setAlert(USER_ALERT,"New anouncement added");
+
+	} else {
+
+		$sql = "UPDATE logisticsAnnouncements
+				SET message = ?,
+				visibility = '{$visibility}',
+				displayUntil = {$displayUntil}
+				WHERE announcementID = {$announcementID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $message);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Anouncement edited");
+
+	}
+}
+
+/******************************************************************************/
+
 function logisticsCheckInMatchStaff($info){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
