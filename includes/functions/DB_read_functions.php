@@ -5700,6 +5700,18 @@ function logistics_findStaffOverCompetency($eventID){
 
 /******************************************************************************/
 
+function logistics_getEventAnnouncments($eventID){
+
+	$eventID = (int)$eventID;
+	$sql = "SELECT announcementID, message, displayUntil, visibility
+			FROM logisticsAnnouncements
+			WHERE eventID = {$eventID}
+			ORDER BY displayUntil DESC";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
 function getTournamentCompetitors($tournamentID, $sortType = null, $excluded = null){
 
 	$tournamentID = (int)$tournamentID;

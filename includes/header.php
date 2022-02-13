@@ -159,9 +159,10 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 						<ul class='menu vertical'>
 							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
 							<li><a href='adminNewTournaments.php'>Add New Tournaments</a></li>
+							<HR class='no-bottom no-top'>
 							<li><a href='adminEvent.php'>Event Settings</a></li>
 							<li><a href='infoRules.php'>Rules</a><li>
-							<li><a href='adminHemaRatings.php'>HEMA Ratings</a></li>
+							<li><a href='adminHemaRatings.php'>HEMA Ratings Submission Form</a></li>
 						</ul>
 					</li>
 				<?php else: ?>
@@ -195,6 +196,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 					<li><a href='#'>Event Logistics</a>
 						<ul class='menu vertical'>
 							<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
+							<li><a href='logisticsAnnouncements.php'>Announcements</a><li>
 							<HR class='no-bottom no-top'>
 							<li><a href='participantsSchedules.php'>Individual Schedules</a></li>
 							<li><a href='logisticsParticipantHours.php'>Staffing Hours</a></li>
@@ -435,10 +437,69 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		tournamentLockedAlert($lockedTournamentWarning);
 	}
 	displayPageAlerts();
+	displayEventAnnouncements();
 
 
 // FUNCTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displayEventAnnouncements(){
+	$eventID = (int)$_SESSION['eventID'];
+	if($eventID == 0){
+		return;
+	}
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['SOFTWARE_ASSIST'] == true || ALLOW['VIEW_SETTINGS'] == true){
+		$showStaffAnnouncements = true;
+	} else {
+		$showStaffAnnouncements = false;
+	}
+
+
+	$announcements = (array)logistics_getEventAnnouncments($_SESSION['eventID']);
+	$currentTime = time();
+	if(isset($_SESSION['hideAnnouncement']) == false){
+		$_SESSION['hideAnnouncement']= [];
+	}
+
+	foreach($announcements as $a){
+		$timeLeft = $a['displayUntil'] - $currentTime;
+		
+		if($timeLeft <= 0){
+			continue;
+		}
+		if($a['visibility'] != 'all' && $showStaffAnnouncements == false){
+			continue;
+		}
+		if(isset($_SESSION['hideAnnouncement'][$a['announcementID']]) == true){
+			continue;
+		}
+?>
+		<div class='cell callout warning' data-closable>
+			<b>Announcement</b><BR>
+			<?=$a['message']?>
+
+			<form method="POST">
+				<input type='hidden' name='announcementID' value='<?=$a['announcementID']?>'>
+				<button class='button hollow no-bottom' name='formName' value='hideAnnouncement'>
+					Got it. Stop showing me this.
+				</button>
+			</form>
+
+			<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
+				<span aria-hidden='true'>&times;</span>
+			</button>
+
+		
+		</div>
+<?
+
+	}
+
+
+}
 
 /******************************************************************************/
 

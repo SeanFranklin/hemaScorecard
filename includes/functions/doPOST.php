@@ -467,6 +467,12 @@ function processPostData(){
 			case 'setFighterListColumns':
 				$_SESSION['fighterListColumns'] = $_POST['fighterListColumns'];
 				break;
+			case 'updateAnnouncement':
+				logisticsUpdateAnnouncement($_POST['announcement']);
+				break;
+			case 'hideAnnouncement':
+				$_SESSION['hideAnnouncement'][(int)$_POST['announcementID']] = true;
+				break;
 				
 	// Stats Cases
 			case 'dataFilters':
