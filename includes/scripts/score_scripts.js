@@ -161,7 +161,7 @@ function scoreDropdownChange(selectID){
 			exchButton.value = "scoringHit";
 			if(fighter1Score.value !== "" && fighter2Score.value !== ""){
 				setExchButtonClasses("alert");	
-				exchButton.innerHTML = "Add: Double Hit";
+				exchButton.innerHTML = "Add: Bilateral Hit";
 			} else {
 				setExchButtonClasses("success");	
 				exchButton.innerHTML = "Add: Clean Hit";

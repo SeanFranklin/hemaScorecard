@@ -830,6 +830,79 @@ function _FobDagger_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _PhoMatchPoints_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID, matches, wins, losses, ties
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+
+		$score = 0;
+		$score += 9 * $standing['wins'];
+		$score += 6 * $standing['ties'];
+		$score += 3 * $standing['losses'];
+
+		$sql = "SELECT matchID,
+					(
+						SELECT COUNT(*) AS numDoubles
+						FROM eventExchanges AS eE2
+						WHERE eE2.matchID = eM.matchID
+						AND exchangeType = 'double'
+					) AS numDoubles
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+		$doublesPenalty = 0;
+
+		foreach($matches as $match){
+			$numMatches++;
+			
+			if($match['numDoubles'] > 1){
+				$doublesPenalty -= ($match['numDoubles'] - 1);
+			}
+		}
+
+		if($numMatches != 0){
+			$doublesPenalty *= $normalizedMatches/$numMatches;
+		} else {
+			$doublesPenalty = 0;
+		}
+
+		$score += $doublesPenalty;
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 	$tournamentID = (int)$tournamentID;
