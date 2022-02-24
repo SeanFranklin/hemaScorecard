@@ -1547,6 +1547,7 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		if(   isRosterPublished($eventID) == true
 		   || isSchedulePublished($eventID) == true
 		   || isMatchesPublished($eventID) == true
+		   || isRulesPublished($eventID) == true
 		   || doesUserHavePermission($_SESSION['userID'],$eventID,'VIEW_HIDDEN')
 		   || $logoutInhibit == true ){
 			$eventChanged = true;
