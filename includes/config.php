@@ -302,18 +302,21 @@ function setPermissions(){
 	$permissionsArray['VIEW_RULES'] 		= false;
 
 	switch($_SESSION['userName']){
-		case 'eventStaff':
-			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
-			break;
+		
+		// Deliberate fall-thought
 		case 'eventOrganizer':
-			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
+
 			$permissionsArray['EVENT_MANAGEMENT'] 	= true;
 			$permissionsArray['STATS_EVENT'] 		= true;
+
+		case 'eventStaff':
+
+			$permissionsArray['EVENT_SCOREKEEP'] 	= true;
 			$permissionsArray['VIEW_ROSTER']		= true;
 			$permissionsArray['VIEW_SCHEDULE']		= true;
 			$permissionsArray['VIEW_MATCHES'] 		= true;
 			$permissionsArray['VIEW_RULES'] 		= true;
-			break;
+			
 		case '':
 
 			if(isRosterPublished($_SESSION['eventID']) == true){
@@ -331,7 +334,6 @@ function setPermissions(){
 			if(isRulesPublished($_SESSION['eventID']) == true){
 				$permissionsArray['VIEW_RULES'] = true;
 			}
-
 
 			// No user name, no permissions.
 			break;
@@ -357,6 +359,22 @@ function setPermissions(){
 				if($bool == true){
 					$permissionsArray[$field] = true;
 				}
+			}
+
+			if(isRosterPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_ROSTER'] = true;
+			}
+
+			if(isSchedulePublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_SCHEDULE'] = true;
+			}
+
+			if(isMatchesPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_MATCHES'] = true;
+			}
+
+			if(isRulesPublished($_SESSION['eventID']) == true){
+				$permissionsArray['VIEW_RULES'] = true;
 			}
 
 			if($permissionsArray['EVENT_MANAGEMENT'] == false){
