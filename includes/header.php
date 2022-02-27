@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.2.5'; // Javascript Version
+$vJ = '?=1.2.6'; // Javascript Version
 $vC = '?=1.0.12'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
@@ -598,14 +598,35 @@ function eventNameListSelectOptions($eventID){
 		echo "<option selected disabled>* No Event Selected *</option>";
 	} 
 
-	foreach($eventList as $type => $listPart){
-		echo "<option disabled>{$type}------------------------</option>";
-		foreach((array)$listPart as $listEventID => $data){ ?>
-			<option <?=optionValue($listEventID, $eventID)?> >
-				&nbsp;&nbsp;<?=$data['eventName']?> <?=$data['eventYear']?>
+	$newList = getEventListByPublication(ALLOW['VIEW_HIDDEN'], 'date');
+	$allList = getEventListByPublication(ALLOW['VIEW_HIDDEN']);
+
+	// This makes it so when tournaments are twice in the list the top option
+	// is the one that is selected.
+	$notAlreadySelected = 1; 
+
+	echo "<option disabled>-- Recent & Upcoming -------------------------------</option>";
+
+	foreach($newList as $event){
+		if(compareDates($event['eventStartDate']) > 14){ continue; }
+		if($event['eventID'] == $eventID){
+			$notAlreadySelected = 0;
+		}
+	?>
+			<option <?=optionValue($event['eventID'], $eventID)?> >
+				&nbsp;&nbsp;<?=$event['eventName']?> <?=$event['eventYear']?>
 			</option>
-		<?php }
-		
+	<?php
+	}
+
+	echo "<option disabled>-- Full List ---------------------------------------</option>";
+
+	foreach($allList as $event){
+	?>
+			<option <?=optionValue($event['eventID'], $eventID * $notAlreadySelected)?> >
+				&nbsp;&nbsp;<?=$event['eventName']?> <?=$event['eventYear']?>
+			</option>
+	<?php
 	}
 	
 }

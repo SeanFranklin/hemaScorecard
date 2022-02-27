@@ -404,9 +404,7 @@ function setPermissions(){
 				$permissionsArray['VIEW_MATCHES']	= true;
 				$permissionsArray['VIEW_RULES'] 	= true;
 			}
-
-
-
+			
 	}
 
 	define("ALLOW",$permissionsArray);
