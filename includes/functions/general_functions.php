@@ -567,9 +567,24 @@ function arrayAvg(&$array, $round = 0){
 	} else {
 		$array['avg'] = null;
 	}
+}
 
+/******************************************************************************/
+
+function compareDates($compareDate, $currentDate = null){
+
+	$date1 = date_create($compareDate);
+
+	if($currentDate == null){
+		$date2 = date_create(date("Y-m-d"));
+	} else {
+		$date2 = date_create($currentDate);
+	}
 	
+	$diff = date_diff($date1,$date2);
+	$num = (int)$diff->format('%R%a');
 
+	return $num;
 }
 
 /******************************************************************************/

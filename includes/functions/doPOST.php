@@ -324,7 +324,7 @@ function processPostData(){
 				break;
 			case 'finalizeTournament':
 			case 'autoFinalizeTournament':
-				$tID = $_POST['tournamentID'];
+				$tID = (int)$_POST['tournamentID'];
 				if($tID == 0){
 					// Do nothing. It is a request to exit editing mode.
 					break;
@@ -404,6 +404,9 @@ function processPostData(){
 				break;
 			case 'editEvent':
 				editEvent($_POST['eventInfo']);
+				break;
+			case 'deleteEvent':
+				deleteEvent($_POST['deleteEvent']);
 				break;
 			case 'addTournamentType':
 				addTournamentType();
@@ -1631,7 +1634,7 @@ function logUserIn($logInData){
 	$passwordInput = $logInData['password'];
 	
 	if($type == 'logInUser'){
-		$eventID = null;
+		$eventID = $_SESSION['eventID'];
 		$userName = $logInData['userName'];
 	} elseif($type == 'logInStaff'){
 		$userName = "eventStaff";
@@ -1647,7 +1650,6 @@ function logUserIn($logInData){
 
 		unset($_SESSION['clearOnLogOut']);
 		$_SESSION['userName'] = $userName;
-
 		changeEvent($eventID, true);
 	} else {
 		if($type == 'logInUser'){
