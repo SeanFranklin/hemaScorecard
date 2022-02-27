@@ -15,44 +15,24 @@ $pageName = "Welcome to HEMA Scorecard";
 
 include('includes/header.php');
 
-// Get the event List
-$activeEvents = getEventList('active');
-$upcomingEvents = getEventList('upcoming');
-
-if(ALLOW['VIEW_HIDDEN']){
-	$hiddenEvents = getEventList('hidden');
-} else if($_SESSION['userID'] != 0) {
-	$hiddenEvents = getHiddenEventListForUser($_SESSION['userID']);
-} else {
-	// Check if someone made their event public without even creating a tournament.
-	// If so then don't show it to regular users.
-	foreach($activeEvents as $eventID => $data){
-		if(count(getEventTournaments($eventID)) == 0){
-			unset($activeEvents[$eventID]);
-		}
-	}
-	foreach($upcomingEvents as $eventID => $data){
-		if(count(getEventTournaments($eventID)) == 0){
-			unset($activeEvents[$eventID]);
-		}
-	}
-
-}
-$recentEvents = getEventList('recent', 4);
+$eventList = getEventListByPublication(ALLOW['VIEW_HIDDEN'],'date');
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<div class='grid-x grid-margin-x' style='border-bottom:1px solid black'>
+<div class='grid-x grid-margin-x' style='border-bottom:2px solid black'>
 	<div class='cell medium-auto small-12'>
 		<h1>Welcome to HEMA Scorecard</h1>
 
-		<p>HEMA Scorecard is a free online tournament management software to run all publish results from all kinds of Historical European Martial Arts tournaments.</p>
+		<p>HEMA Scorecard is a <b>FREE</b> online tournament management software for Historical European Martial Arts tournaments. Scorecard allows you to:<ul>
+			<li>Automate all your scoring and bracket paperwork.</li>
+			<li>Communicate information to your fencers and spectators. All matches & scores are live online.</li>
+			<li>Host your full event logistics chain, including class schedules and volunteer scheduling.</li>
+			<li>Do so much more than I can fit in this little box.</li>
+		</ul></p>
 
 		<p>If you are interested in using HEMA Scorecard to hold a tournament of your own, <a href='infoWhy.php'> why not have a look at some of it's best features</a>? </p>
-
-		<p>Or if you are here to see some results, check out some of the recent and upcoming events. <a href='infoSelect.php'>Full Event List</a></p>
 	</div>
 
 	<div class='cell medium-shrink small-12 text-center'>
@@ -61,33 +41,47 @@ $recentEvents = getEventList('recent', 4);
 	</div>
 </div>
 
+<h3>Recent and Upcoming Events (<a href='infoSelect.php'>Full Event List</a>)</h3>
 
-<form method='POST'>
-<input type='hidden' name='formName' value='selectEvent'>
+<table id="eventListActive" class="display">
 
-<!-- Hidden Events -->
-	<?php if($_SESSION['userID'] != 0 && $hiddenEvents != null): ?>
-		<h5>Hidden Events</h5>
-		<?php displayEventsInCategory($hiddenEvents); ?>
-	<?php endif ?>
+	<thead>
+		<tr>
+			<th>Date
+				<?=tooltip("Y-M-D")?></th>
+			<th>Name</th>
+			<th>Location</th>
+			<th>Status</th>
+		</tr>
+	</thead>
 
-<!-- Active Events -->
-	<?php if($activeEvents != null):?>
-		<h5>Active Events</h5>
-		<?php displayEventsInCategory($activeEvents, EVENT_ACTIVE_LIMIT); ?>
-	<?php endif ?>
+	<tbody>
+		<?php foreach($eventList as $event):
+			$dateDiffStart = compareDates($event['eventStartDate']);
+			$dateDiffEnd = compareDates($event['eventEndDate']);
 
-<!-- Upcoming Events -->
-	<?php if($upcomingEvents != null): ?>
-		<h5>Upcoming Events</h5>
-		<?php displayEventsInCategory($upcomingEvents, EVENT_UPCOMING_LIMIT); ?>
-	<?php endif ?>
+			if($dateDiffEnd > 14){ continue; }
 
-<!-- Recent Events -->
-	<h5>Recent Events</h5>
-		<?php displayEventsInCategory($recentEvents);?>
+			if(($dateDiffEnd < 2) && ($dateDiffStart > -2) && $event['eventStatus'] == 'active'){
+				$activeClass = "link-table-active";
+				$eventStatus = "<b>ACTIVE</b>";
+			} else {
+				$activeClass = "";
+				$eventStatus = $event['eventStatus'];
+			}
 
-</form>
+			?>
+
+			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$activeClass?>'>
+				<td><?=$event['eventStartDate']?></td>
+				<td><?=getEventName($event['eventID'])?></td>
+				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
+				<td><?=$eventStatus?></td>
+			</tr>
+
+		<?php endforeach ?>
+	</tbody>
+</table>
 
 <?
 include('includes/footer.php');
@@ -95,37 +89,6 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-/**********************************************************************/
-
-function displayEventsInCategory($eventList, $dateLimit = 0){
-
-	if(ALLOW['VIEW_HIDDEN']){
-		$dateLimit = 0;
-	}
-
-	echo "<div class='grid-x grid-padding-x'>";
-
-	foreach((array)$eventList as $eventID => $eventInfo){
-
-		// A check to make sure that old events don't show up in the 
-		// active/upcoming category.
-		$then = date_create($eventInfo['eventEndDate']);
-		$today= date_create(date("Y-m-d"));
-		$diff = date_diff($then,$today);
-		$num = (int)$diff->format('%R%a');
-
-		if($dateLimit > 0 && $num > $dateLimit){
-			continue;
-		}
-
-		echo "<div class='large-6 medium-12 cell'>";
-
-		displayEventButton($eventID, $eventInfo);
-		echo "</div>";
-
-	}
-	echo "</div>";
-}
 
 /******************************************************************************/
 

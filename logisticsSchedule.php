@@ -195,6 +195,7 @@ function displayBlockDescription(){
 		</div>
 		<div id='sbd-instructors'></div>
 		<div id='sbd-time'></div>
+		<div id='sbd-location'></div>
 		<HR>
 		<div id='sbd-experience'></div>
 		<div id='sbd-equipment'></div>

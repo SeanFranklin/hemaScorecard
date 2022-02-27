@@ -23,7 +23,8 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 } else {
 
 
-$penalties = getEventPenalties($eventID);
+$fightersWithPenalties = getEventPenalties($eventID);
+
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -36,19 +37,15 @@ $penalties = getEventPenalties($eventID);
 
 <?php 
 
-$rosterID = 0;
-foreach($penalties as $penalty):
+foreach($fightersWithPenalties as $fighter):
 
-
-	if($rosterID != $penalty['scoringID'])
-	{
-		$rosterID = $penalty['scoringID'];
-		echo "<HR><h5>".getFighterName($rosterID);
-		echo " [".$penalty['numPenalties']." Penalties]</h5>";
+		echo "<HR><h5>".getFighterName($fighter['fighterID']);
+		echo " [".$fighter['numPenalties']." Penalties]</h5>";
+	
+	foreach($fighter['list'] as $penalty){
+		displayPenalty($penalty);
 	}
-
-	displayPenalty($penalty);
-
+	
 endforeach
 ?>
 

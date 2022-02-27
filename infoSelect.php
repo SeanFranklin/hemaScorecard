@@ -14,126 +14,102 @@
 $pageName = "Tournament Selection";
 $hideEventNav = true;
 $hidePageTitle = true;
+$createSortableDataTable[] = 'eventListActive';
+$createSortableDataTable[] = 'eventListAll';
 
 include('includes/header.php');
 
-// Get the event List
-$activeEvents = getEventList('active');
-$upcomingEvents = getEventList('upcoming');
-if(ALLOW['VIEW_HIDDEN']){
-	$hiddenEvents = getEventList('hidden');
-}
-$archivedEvents = getEventList('old');
-
-$lActiveEvents = getEventList('active', null, 1);
-$lUpcomingEvents = getEventList('upcoming', null, 1);
-if(ALLOW['VIEW_HIDDEN']){
-	$lHiddenEvents = getEventList('hidden', null, 1);
-}
-$lArchivedEvents = getEventList('old', null, 1);
+$eventList = getEventListByPublication();
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<div class='grid-x grid-padding-x'>
-	<div class='large-7 medium-10 small-12 cell' id='eventListContainer'>
-		
-	<h4 class='text-center'>Change Event</h4>
-		
-	<form method='POST'>
-	<input type='hidden' name='formName' value='selectEvent'>
-
-	<!-- Tabs -->
-	<ul class="tabs" data-tabs id="change-event-tabs">
+<ul class="tabs" data-tabs id="change-event-disp-tabs">
 
 		
-		<li class="tabs-title is-active">
-			<a data-tabs-target="panel-event" href="#change-event">
-				Events
-			</a>
-		</li>
-	
-
-		<li class="tabs-title">
-			<a data-tabs-target="panel-metaEvent" href="#change-metaEvent">
-				Meta-Events (Leagues)
-			</a>
-		</li>
-
-	</ul>
-
-	<!-- Tab Content -->
-	<div class="tabs-content" data-tabs-content="change-event-tabs">
-		<div class="tabs-panel is-active" id="panel-event">
-			<ul class='accordion' data-accordion  data-allow-all-closed='true'>
-				<li class='accordion-item is-active' data-accordion-item>
-					<a class='accordion-title'>
-						<h4>Active Events</h4>
-					</a>
-					<div class='accordion-content' data-tab-content>
-		 
-						<!-- Hidden Events -->
-						<?php if(ALLOW['VIEW_HIDDEN'] && $hiddenEvents != null): ?>
-							<h5>Hidden Events</h5>
-							<?php displayEventsInCategory($hiddenEvents); ?>
-						<?php endif ?>
-			
-						<!-- Active Events -->
-						<?php if($activeEvents != null):?>
-							<h5>Active Events</h5>
-							<?php displayEventsInCategory($activeEvents, EVENT_ACTIVE_LIMIT); ?>
-						<?php endif ?>
-
-						<!-- Upcoming Events -->
-						<?php if($upcomingEvents != null): ?>
-							<h5>Upcoming Events</h5>
-							<?php displayEventsInCategory($upcomingEvents, EVENT_UPCOMING_LIMIT); ?>
-						<?php endif ?>
-			
-					</div>
-				</li>
-
-				<!-- Old Events -->
-				<?php displayArchivedEvents($archivedEvents);?>
-
-			</ul>
-		</div>
-		<div class="tabs-panel" id="panel-metaEvent">
-
-			<div class="tabs-panel is-active" id="panel-metaEvent">
-			<ul class='accordion' data-accordion  data-allow-all-closed='true'>
-				<li class='accordion-item is-active' data-accordion-item>
-					<a class='accordion-title'>
-						<h4>Active Events</h4>
-					</a>
-					<div class='accordion-content' data-tab-content>
-						<?php if($lActiveEvents != null):?>
-							<?php displayEventsInCategory($lActiveEvents); ?>
-						<?php endif ?>
-
-						<?php if($lUpcomingEvents != null):?>
-							<?php displayEventsInCategory($lUpcomingEvents); ?>
-						<?php endif ?>
-
-						<?php if(ALLOW['VIEW_HIDDEN'] && $lHiddenEvents != null): ?>
-							<?php displayEventsInCategory($lHiddenEvents); ?>
-						<?php endif ?>
-					</div>
-				</li>
-
-				<!-- Old Events -->
-				<?php displayArchivedEvents($lArchivedEvents);?>
-
-			</ul>
-		</div>
-	</div>
+	<li class="tabs-title is-active">
+		<a data-tabs-target="panel-recent" href="#change-recent">
+			Recent and Upcoming
+		</a>
+	</li>
 
 
-	</form>
-	</div>
+	<li class="tabs-title">
+		<a data-tabs-target="panel-all" href="#change-all">
+			All Events
+		</a>
+	</li>
+
+</ul>
+
+
+
+<div class="tabs-content" data-tabs-content="change-event-disp-tabs">
+<div class="tabs-panel is-active" id="panel-recent">
+<table id="eventListActive" class="display">
+
+	<thead>
+		<tr>
+			<th>Date
+				<?=tooltip("Y-M-D")?></th>
+			<th>Name</th>
+			<th>Location</th>
+			<th>Status</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		<?php foreach($eventList as $event):
+			if(compareDates($event['eventStartDate']) > 14){ continue; }
+			?>
+
+			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
+				<td><?=$event['eventStartDate']?></td>
+				<td><?=getEventName($event['eventID'])?></td>
+				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
+				<td><?=$event['eventStatus']?></td>
+			</tr>
+
+		<?php endforeach ?>
+	</tbody>
+</table>
 </div>
+
+
+
+<div class="tabs-panel" id="panel-all">
+<table id="eventListAll" class="display">
+
+<thead>
+	<tr>
+		<th>Name</th>
+		<th>Year</th>
+		<th>Country</th>
+		<th>Location</th>
+		<th>Date</th>
+		<th>Status</th>
+	</tr>
+</thead>
+
+<tbody>
+	<?php foreach($eventList as $event):?>
+		<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
+			<td><?=$event['eventName']?></td>
+			<td><?=$event['eventYear']?></td>
+			<td><?=$event['countryName']?></td>
+			<td><?=$event['eventProvince']?>, <?=$event['eventCity']?></td>
+			<td><?=sqlDateToString($event['eventStartDate'])?>, <?=$event['eventYear']?></td>
+			<td><?=$event['eventStatus']?></td>
+		</tr>
+	<?php endforeach ?>
+</tbody>
+
+</table>
+</div>
+</div>
+
 
 <?
 include('includes/footer.php');

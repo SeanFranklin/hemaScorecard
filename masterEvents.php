@@ -12,6 +12,7 @@
 
 $pageName = "Manage System Events";
 $forcePageTitle = true;
+$jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
 if(ALLOW['SOFTWARE_ASSIST'] == false){
@@ -21,8 +22,6 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 	$eventList = getEventListFull();
 
 	echo "<div class='grid-x'>";
-
-
 
 	if(isset($_SESSION['editEventID'])){
 		$eventID = $_SESSION['editEventID'];
@@ -58,10 +57,10 @@ function displayAdminEventList($eventList){
 	// These are the fields displayed
 	$fieldsToDisplay = ['eventName',
 						'eventStartDate',
-						'countryName',
-						'isArchived'];
+						'countryName'];
 	if(ALLOW['VIEW_EMAIL'] == true){
 		$fieldsToDisplay[] = 'organizerEmail';
+		$fieldsToDisplay[] = 'Publish';
 		$fieldsToDisplay[] = 'Setup';
 
 		foreach($eventList as $eventID => $data){
@@ -70,6 +69,20 @@ function displayAdminEventList($eventList){
 			$isParticipants = true;
 			if($eventList[$eventID]['isArchived'] == 0){
 				$eventID = (int)$eventID;
+
+			// Flags for publication settings
+				$str = '';
+				$str = isSetMark(isDescriptionPublished($eventID));
+				$str .= isSetMark(isRulesPublished($eventID));
+				$str .= isSetMark(isSchedulePublished($eventID));
+				$str .= isSetMark(isRosterPublished($eventID));
+				$str .= "<span class='black-text'>|</span>";
+				$str .= isSetMark(isMatchesPublished($eventID));
+				$str .= isSetMark(isEventArchived($eventID));
+
+				$eventList[$eventID]['Publish'] = $str;
+
+			// Flags for event setup/progression
 				$sql = "SELECT COUNT(*) as numTournaments
 						FROM eventTournaments
 						WHERE eventID = {$eventID}";
@@ -79,6 +92,7 @@ function displayAdminEventList($eventList){
 						FROM eventRoster
 						WHERE eventID = {$eventID}";
 				$isParticipants = (bool)mysqlQuery($sql, SINGLE, 'numParticipants');
+
 
 				$str = '';
 				$str = notSetMark($eventList[$eventID]['termsOfUseAccepted'])." ";
@@ -94,7 +108,8 @@ function displayAdminEventList($eventList){
 
 			} else {
 
-				$eventList[$eventID]['Setup'] = '';
+				$eventList[$eventID]['Publish'] = ':)';
+				$eventList[$eventID]['Setup'] = ':)';
 
 			}
 
@@ -113,43 +128,56 @@ function displayAdminEventList($eventList){
 	<table class='stack'>
 
 	
-<!-- Headers -->
+<!-- Headers ------------------------------------------------------->
 	<tr class='hide-for-small-only'>
+		<th></th>
 		<th></th>
 		<?php foreach($fieldsToDisplay as $fieldName): ?>
 			<th>
 				<?=$fieldName?>	
 				<?php 
-					if($fieldName == 'Setup'):
+					if($fieldName == 'Setup'){
 						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
 							----------
 							<BR>4) Matches Fought<BR>5) Tournaments Finalized<BR>6) HEMA Ratings Info");
-					endif 
+					}
+					
+
+					if($fieldName == 'Publish'){
+						tooltip("1) Descrpition<BR>
+							2) Rules<BR>
+							3) Schedule<BR>
+							4) Roster<BR>
+							----------<BR>
+							5) Matches<BR>
+							6) Archived");
+					}
+					
 				?>
 			</th>
 		<?php endforeach ?>
 	</tr>
 	
-	
 
-<!-- Events -->
+<!-- Events -------------------------------------------------------------->
 	<?php foreach($eventList as $eventID => $info): 
+
 		$topBorder = '';
 
 		if($info['isArchived'] == 1){
-			$class = 'success-text hidden archived-event';
+			$trClass = 'success-text hidden archived-event';
 			if($archivedReached == false){
 				$topBorder = ' table-top-border';
 			}
 			$archivedReached = true;
 		} elseif(isEventPublished($eventID) == true){
 			if($archivedReached == true){
-				$class = 'alert-text';
+				$trClass = 'alert-text';
 			} else {
-				$class = 'warning-text';
+				$trClass = 'warning-text';
 			}
 		} else {
-			$class = '';
+			$trClass = '';
 		}
 
 		// Add a marking to indicate if something is a meta-event
@@ -158,10 +186,12 @@ function displayAdminEventList($eventList){
 		}
 
 		?>
-		<tr class='<?=$class?>'>
+
+	<!-- Row Display -------------------------------------------------->
+		<tr class='<?=$trClass?>'>
 			<td>
 				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['isArchived'] == false): ?>
-					<button class='button tiny hollow no-bottom expanded' 
+					<button class='button tiny hollow no-bottom expanded warning' 
 							name='eventInfo[eventToEdit]' 
 							value='<?=$eventID?>'>
 
@@ -170,10 +200,18 @@ function displayAdminEventList($eventList){
 					</button>
 				<?php endif ?>
 			</td>
+			<td>
+				
+				<a class='button tiny hollow no-bottom expanded' 
+						onclick="changeEventJs(<?=$eventID?>)">
+					Go
+				</a>
+				
+			</td>
 			
 			<?php foreach($fieldsToDisplay as $fieldName): 
 
-				if($fieldName == 'Setup'){
+				if($fieldName == 'Setup' || $fieldName == 'Publish'){
 					$noWrap = "style='white-space: nowrap;'";
 				} else {
 					$noWrap = '';
@@ -293,16 +331,25 @@ function editEventMenu($eventID,$eventInfo){
 		<button class='button secondary no-bottom' name='formName'>Cancel</button>
 		<button class='button no-bottom' name='formName' value='selectEvent'>Go To Event</button>
 
+	</form>
+
 	<!-- Delete event & confirmation -->
 		<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
-			<HR><em>Type <strong>delete-[event name] [year]</strong> to delete.</em>
-			<div class='input-group'>
-				<input class='input-group-field no-bottom' type='text' name='deleteConfirmationCode' size='1'>
-				<button class='button alert hollow small input-group-button no-bottom' 
-					name='deleteEvent' value='Delete Event'>Delete Event</button>
-			</div>
+			<HR>
+			<form method='POST'>
+				<em>Type <strong>"delete-'event name' 'year'"</strong> to delete.</em>
+
+				<div class='input-group'>
+					<input type='hidden' name='deleteEvent[eventID]' value='<?=$eventID?>'>
+					<input class='input-group-field no-bottom' 
+						type='text' name='deleteEvent[confirmationCode]' size='1'
+						placeholder="delete-SoCal Swordfight 2016">
+					<button class='button alert hollow small input-group-button no-bottom' 
+						name='formName' value='deleteEvent'>Delete Event</button>
+				</div>
+			</form>
 		<?php endif ?>
-	</form>
+	
 	
 	</fieldset>
 
@@ -330,14 +377,15 @@ function entryFields($eventInfo = null){
 	<tr>
 		<td>Start Date</td>
 		<td>
-			<input class='no-bottom' type='date' required
-				name='eventInfo[eventStartDate]' value="<?=$eventInfo['eventStartDate']?>">
+			<input class='no-bottom' type='date' required id="event-start-date"
+				name='eventInfo[eventStartDate]' value="<?=$eventInfo['eventStartDate']?>"
+				onchange="eventStartDateUpdated(this.value)">
 		</td>
 	</tr>
 	<tr>
 		<td>End Date</td>
 		<td>
-			<input class='no-bottom' type='date'
+			<input class='no-bottom' type='date'  id="event-end-date"
 				name='eventInfo[eventEndDate]' value="<?=$eventInfo['eventEndDate']?>">
 		</td>
 	</tr>

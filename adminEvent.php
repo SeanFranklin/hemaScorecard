@@ -46,10 +46,16 @@ if($_SESSION['eventID'] == null){
 		$testEventDisable = "disabled";
 	}
 
-	if(isRosterPublished($_SESSION['eventID'])){
-		$publishRosterChecked = 'checked';
+	if(isDescriptionPublished($_SESSION['eventID'])){
+		$publishDescriptionChecked = 'checked';
 	} else {
-		$publishRosterChecked = '';
+		$publishDescriptionChecked = '';
+	}
+
+	if(isRulesPublished($_SESSION['eventID'])){
+		$publishRulesChecked = 'checked';
+	} else {
+		$publishRulesChecked = '';
 	}
 
 	if(isSchedulePublished($_SESSION['eventID'])){
@@ -58,17 +64,23 @@ if($_SESSION['eventID'] == null){
 		$publishScheduleChecked = '';
 	}
 
+	if(isRosterPublished($_SESSION['eventID'])){
+		$publishRosterChecked = 'checked';
+	} else {
+		$publishRosterChecked = '';
+	}
+
+
+
 	if(isMatchesPublished($_SESSION['eventID'])){
 		$publishMatchesChecked = 'checked';
 	} else {
 		$publishMatchesChecked = '';
 	}
 
-	if(isRulesPublished($_SESSION['eventID'])){
-		$publishRulesChecked = 'checked';
-	} else {
-		$publishRulesChecked = '';
-	}
+
+
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,76 +91,101 @@ if($_SESSION['eventID'] == null){
 	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
 	<legend><h4>Event Status</h4></legend>
 	<form method='POST'>
-		<i>No one will be able to see your awesome event until you check these boxes. Once you are ready be sure to publish the event.</i>
+		No one will be able to see your awesome event until you check these boxes. <b>Once you are ready be sure to publish the event.</b><BR>
+		<i>Your event will not appear on the event list until you publish at least some information.</i>
 		<div class='grid-x grid-margin-x'>
+		<div class='large-4 medium-6 cell'>
 
-			<div class='medium-12 large-3 cell input-group'>
-				<span class='input-group-label pointer'>
-					Publish Rules
-				</span>
+			<table>
+				<tr>
+					<td>
+						Description
+						<?=tooltip("Shows basic information about the event that you entered lower on this page.")?>
+					</td>
+					<td>
+						<input type='hidden'  name='publicationSettings[publishDescription]' value='0'>
+						<input class='switch-input' type='checkbox' <?=$publishDescriptionChecked?>
+							id='publicationSettings[publishDescription]' 
+							name='publicationSettings[publishDescription]' value='1'>
+						<label class='switch-paddle' for='publicationSettings[publishDescription]'>
+						</label>
+					</td>
+				</tr>
 
-				<div class='switch text-center no-bottom'>
-					<input type='hidden' name='publicationSettings[publishRules]' value='0'>
-					<input class='switch-input' type='checkbox' <?=$publishRulesChecked?>
-						id='publicationSettings[publishRules]' 
-						name='publicationSettings[publishRules]' value='1'>
-					<label class='switch-paddle' for='publicationSettings[publishRules]'>
-					</label>
-				</div>
-			</div>
+				<tr>
+					<td>
+						Rules
+						<?=tooltip("Publish any rules that you created in <b>Manage Event -> Rules</b>.")?>
+					</td>
+					
+					<td>
+						<input type='hidden' name='publicationSettings[publishRules]' value='0'>
+						<input class='switch-input' type='checkbox' <?=$publishRulesChecked?>
+							id='publicationSettings[publishRules]' 
+							name='publicationSettings[publishRules]' value='1'>
+						<label class='switch-paddle' for='publicationSettings[publishRules]'>
+						</label>
+					</td>
+				</tr>
 
-			<div class='medium-4 large-3 cell input-group'>
-				<span class='input-group-label pointer'>
-					Publish Schedule
-				</span>
 
-				<div class='switch text-center no-bottom'>
-					<input type='hidden' name='publicationSettings[publishSchedule]' value='0'>
-					<input class='switch-input' type='checkbox' <?=$publishScheduleChecked?>
-						id='publicationSettings[publishSchedule]'
-						name='publicationSettings[publishSchedule]' value='1'>
-					<label class='switch-paddle' for='publicationSettings[publishSchedule]'>
-					</label>
-				</div>
-			</div>
+				<tr>
+					<td>
+						Schedule
+						<?=tooltip("Publish the schedule you have created in <b>Event Logistics</b>.")?>
+					</td>
+					<td>
+						<input type='hidden' name='publicationSettings[publishSchedule]' value='0'>
+						<input class='switch-input' type='checkbox' <?=$publishScheduleChecked?>
+							id='publicationSettings[publishSchedule]'
+							name='publicationSettings[publishSchedule]' value='1'>
+						<label class='switch-paddle' for='publicationSettings[publishSchedule]'>
+						</label>
+					</td>
+				</tr>
 
-			<div class='medium-4 large-3 cell input-group'>
-				<span class='input-group-label pointer'>
-					Publish Roster
-				</span>
 
-				<div class='switch text-center no-bottom'>
-					<input type='hidden' name='publicationSettings[publishRoster]' value='0'>
-					<input class='switch-input' type='checkbox' 
-						id='publicationSettings[publishRoster]' <?=$publishRosterChecked?>
-						name='publicationSettings[publishRoster]' value='1'>
-					<label class='switch-paddle' for='publicationSettings[publishRoster]'>
-					</label>
-				</div>
-			</div>
+				<tr>
+					<td>
+						Attendees
+						<?=tooltip("Publish the list of competitors and tournament entries.")?>
+					</td>
+					<td>
+						<input type='hidden' name='publicationSettings[publishRoster]' value='0'>
+						<input class='switch-input' type='checkbox' 
+							id='publicationSettings[publishRoster]' <?=$publishRosterChecked?>
+							name='publicationSettings[publishRoster]' value='1'>
+						<label class='switch-paddle' for='publicationSettings[publishRoster]'>
+						</label>
+					</td>
+				</tr>
 
-			<div class='medium-4 large-3 cell input-group'>
-				<span class='input-group-label pointer'>
-					Publish Matches
-				</span>
 
-				<div class='switch text-center no-bottom'>
-					<input type='hidden' name='publicationSettings[publishMatches]' value='0'>
+				<tr>
+					<td>
+						Matches
+						<?=tooltip("Make everything visible, so everyone can see you pools and matches.")?>
+					</td>
+					<td>
+						<input type='hidden' name='publicationSettings[publishMatches]' value='0'>
 					<input class='switch-input' type='checkbox' <?=$publishMatchesChecked?>
 						id='publicationSettings[publishMatches]' 
 						name='publicationSettings[publishMatches]' value='1'>
 					<label class='switch-paddle' for='publicationSettings[publishMatches]'>
 					</label>
-				</div>
-			</div>
+					</td>
+				</tr>
 
+			</table>
 
+			<button class='button success no-bottom expanded' name='formName' value='updateEventPublication'>
+				Update Visibility
+			</button>
+		</div>
 
-			<div class='large-3 medium-4 small-12 cell'>
-				<button class='button success no-bottom expanded' name='formName' value='updateEventPublication'>
-					Update Visibility
-				</button>
-			</div>
+		<div class='large-3 medium-4 small-12 cell'>
+			
+		</div>
 
 		</div>
 
