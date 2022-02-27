@@ -278,3 +278,17 @@ function hemaRatings_getById(hemaRatingsID){
 }
 
 /******************************************************************************/
+ 
+function eventStartDateUpdated(startDateStr){
+
+    end = document.getElementById("event-end-date").value;
+
+    startDateObj = new Date(startDateStr);
+    endDateObj = new Date(document.getElementById("event-end-date").value);
+
+    if(isNaN(endDateObj) || endDateObj < startDateObj){
+        document.getElementById("event-end-date").value = startDateStr;
+    }
+}
+
+/******************************************************************************/
