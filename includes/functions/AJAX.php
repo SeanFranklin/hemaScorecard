@@ -239,6 +239,14 @@ case 'getScheduleBlockInfo':{
 	$blockID = (int)$_REQUEST['blockID'];
 	$info = logistics_getScheduleBlockInfo($blockID);
 
+	$info['locationNames'] = [];
+	if(isset($info['locationIDs']) == true && is_array($info['locationIDs']) == true){
+		foreach($info['locationIDs'] as $locationID){
+			$info['locationNames'][] = logistics_getLocationName($locationID);
+		}
+	}
+
+
 	if($info['blockTypeID'] == SCHEDULE_BLOCK_TOURNAMENT){
 		$info['tournamentTitle'] = getTournamentName($info['tournamentID']);
 	} else {

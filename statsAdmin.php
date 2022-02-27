@@ -17,7 +17,10 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 	pageError('user');
 } else {
 
-doublesByExchCount();
+	echo "<div class='cell'>";
+
+	timeByDirector();	
+	echo "</div>";
 
 }
 
@@ -28,96 +31,272 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function doublesByExchCount(){
+function timeByDirector(){
 
-	$eventID = 139;
-	$eventIDs = [31,99,86,6,3,14,35,41,173,158,171,17,47,170,68,104,46,102,176,110,19,123,65,28,7,21,131,11,13,25,51,139,89,27];
-	$eventIDs = implode2int($eventIDs);
+	$eventID = 209;
+	$weaponID = 1;
 
-	$sql = "SELECT matchID, exchangeType
+	$sql = "SELECT tournamentID
+			FROM eventTournaments
+			WHERE eventID = {$eventID}
+			AND tournamentWeaponID = {$weaponID}";
+	$tournamentIDs = implode2int(mysqlQuery($sql, SINGLES, 'tournamentID'));
+
+	$MAX_MATCH_LENGTH = 1000;
+
+	$sql = "SELECT exchangeTime, UNIX_TIMESTAMP(timestamp) AS realTime, exchangeType, matchID, groupID, groupType, lSM.rosterID AS directorID
 			FROM eventExchanges
+			INNER JOIN logisticsStaffMatches AS lSM USING(matchID)
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
-			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE eventID IN ($eventIDs)
-			AND tournamentWeaponID = 1
-			AND exchangeType IN('clean','double','afterblow','noExchange','noQuality')";
+			WHERE tournamentID IN ({$tournamentIDs})
+			AND matchComplete = 1
+			AND logisticsRoleID = 1 
+			ORDER BY groupID ASC, matchID ASC, matchNumber ASC, exchangeNumber ASC";
 	$exchanges = mysqlQuery($sql, ASSOC);
 
 	$matchID = 0;
-	$a['double'] = 0;
-	$a['other'] = 0;
-	$doubleCount = [$a,$a,$a,$a,$a,$a,$a];
-	$matchesAt = [-1,0,0,0,0,0,0];
-	$numDoubles = 0;
-	$numMatches = -1;
-	$numExchanges = 0;
-	$noExchCount = [0,0,0,0,0,0,0];
-	$numNoExchange = 0;
-	$scoringCount = [0,0,0,0,0,0,0];
+	$groupID = 0;
+	$matchExchangeCount = 0;
+	
 
-	foreach($exchanges as $exchange){
+	foreach($exchanges as $index => $exchange){
 
-		if($exchange['matchID'] != $matchID){
+		if($matchID != $exchange['matchID']){
+
+			$lastRealTime = $exchange['realTime'] - $exchange['exchangeTime'];
+			$lastExchangeTime = 0;
+			
 			$matchID = $exchange['matchID'];
-			$matchesAt[$numDoubles]++;
-			$numDoubles = 0;
-			$numMatches++;
 		}
-		
 
-		if($exchange['exchangeType'] == 'double'){
-			$doubleCount[$numDoubles]['double']++;
-			$numDoubles++;
-			$numExchanges++;
-			$scoringCount[$numDoubles]++;
-		} elseif($exchange['exchangeType'] == 'noExchange' || $exchange['exchangeType'] == 'noQuality'){
-			$noExchCount[$numDoubles]++;
-			$numNoExchange++;
-		} elseif($exchange['exchangeType'] == 'clean' || $exchange['exchangeType'] == 'afterblow'){
-			$doubleCount[$numDoubles]['other']++;
-			$numExchanges++;
-			$scoringCount[$numDoubles]++;
-		} else {
+		if(isScoringExchange($exchange['exchangeType']) == true){
+			
+			$matchExchangeCount++;
 
+			$exchangeTime = $exchange['realTime'] - $lastRealTime;
+			$fightTime = $exchange['exchangeTime'] - $lastExchangeTime;
+			$judgeTime = $exchangeTime - $fightTime;
+
+
+			if($judgeTime > 0){
+
+				@$judge[$exchange['directorID']]['total'] += $judgeTime;
+				@$judge[$exchange['directorID']]['count']++;
+			}
+
+			$lastExchangeTime = $exchange['exchangeTime'];
+			$lastRealTime = $exchange['realTime'];
 		}
 
 	}
 
-	$d0 = round(100 * $doubleCount[0]['double'] / ($scoringCount[0]),1);
-	$d1 = round(100 * $doubleCount[1]['double'] / ($scoringCount[1]),1);
-	$d2 = round(100 * $doubleCount[2]['double'] / ($scoringCount[2]),1);
-	$m0 = round(100 * $matchesAt[0] / ($numMatches),1);
-	$m1 = round(100 * $matchesAt[1] / ($numMatches),1);
-	$m2 = round(100 * $matchesAt[2] / ($numMatches),1);
-	$m3 = round(100 * $matchesAt[3] / ($numMatches),1);
-	$e0 = round(100 * $noExchCount[0] / ($scoringCount[0]),1);
-	$e1 = round(100 * $noExchCount[1] / ($scoringCount[1]),1);
-	$e2 = round(100 * $noExchCount[2] / ($scoringCount[2]),1);
+	echo "<table>";
+	echo "<tr>
+			<th>Name</th>
+			<th>Judge Time [sec]</th>
+			<th>Num Exchanges</th>
+			<th>Average Judge Time</th>
+			</tr>";
 
+	foreach($judge as $judgeID => $data){
 
-	echo "{$numExchanges} Scoring Exchanges<BR>";
-	echo "0 doubles: {$d0}% (".$doubleCount[0]['double']."/".$scoringCount[0].")<BR>";
-	echo "1 doubles: {$d1}% (".$doubleCount[1]['double']."/".$scoringCount[1].")<BR>";
-	echo "2 doubles: {$d2}% (".$doubleCount[2]['double']."/".$scoringCount[2].")<BR>";
+		$avg = round($data['total']/$data['count'],1);
 
-	echo "<HR>";
+		echo "<tr>";
+			echo "<td>".getFighterName($judgeID)."</td>";
+			echo "<td>".$data['total']."</td>";
+			echo "<td>".$data['count']."</td>";
+			echo "<td>".$avg."</td>";
+		echo "</tr>";
+	}
 
-	echo "{$numMatches} Matches<BR>";
-	echo "0 Doubles: {$m0}% (".$matchesAt[0].")<BR>";
-	echo "1 Doubles: {$m1}% (".$matchesAt[1].")<BR>";
-	echo "2 Doubles: {$m2}% (".$matchesAt[2].")<BR>";
-	echo "3 Doubles: {$m3}% (".$matchesAt[3].")<BR>";
+	echo "</table>";
 
-	echo "<HR>";
-
-	echo "{$numNoExchange} No Exchanges<BR>";
-	echo "0 Doubles: {$e0}% (".$noExchCount[0]."/".$scoringCount[0].")<BR>";
-	echo "1 Doubles: {$e1}% (".$noExchCount[1]."/".$scoringCount[1].")<BR>";
-	echo "2 Doubles: {$e2}% (".$noExchCount[2]."/".$scoringCount[2].")<BR>";
 
 }
 
+/******************************************************************************/
+
+function doublesAndFinalScore(){
+
+
+	$sql = "SELECT tournamentID 
+			FROM eventTournaments
+			INNER JOIN systemEvents USING(eventID)
+			WHERE countryIso2 = 'PL'
+			AND doubleTypeID = 1
+			AND maxDoubleHits = 0";
+	$tournamentIDs = mysqlQuery($sql, SINGLES, 'tournamentID');
+	echo "numTournaments: ".count($tournamentIDs);
+	$tournamentIDs = implode2int($tournamentIDs);
+
+	$sql = "SELECT ABS(fighter1Score - fighter2Score) AS pointSpread,
+					(SELECT COUNT(*)
+					FROM eventExchanges AS eE2
+					WHERE exchangeType = 'double'
+					AND eE2.matchID = eM.matchID) AS numDoubles
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID IN ($tournamentIDs)";
+	$matches = mysqlQuery($sql, ASSOC);
+	
+	echo"<table><tr><th>Point Spread</th><th>Num Doubles</th></tr>";
+	foreach($matches as $match){
+		echo "<tr><td>".$match['pointSpread']."</td><td>".$match['numDoubles']."</td></tr>";
+	}
+	echo "</table>";
+
+}
+
+/******************************************************************************/
+
+function compareDoublesAndAfterblows(){
+
+	/*
+	// This part only needs to be run once, to generate the list of tournamentIDs copied in below
+	$sql = "SELECT tournamentID
+			FROM eventTournaments AS eT
+			WHERE (SELECT COUNT(*) AS numAfterblow
+					FROM eventExchanges
+					INNER JOIN eventMatches USING(matchID)
+					INNER JOIN eventGroups AS eG2 USING(groupID)
+					WHERE exchangeType = 'afterblow'
+					AND eT.tournamentID = eG2.tournamentID
+					AND doubleTypeID = 2) > 10
+			AND (SELECT COUNT(*) AS numDouble
+					FROM eventExchanges
+					INNER JOIN eventMatches USING(matchID)
+					INNER JOIN eventGroups AS eG3 USING(groupID)
+					WHERE exchangeType = 'double'
+					AND eT.tournamentID = eG3.tournamentID
+					AND doubleTypeID = 2) > 10";
+
+	$tournamentIDs = mysqlQuery($sql, SINGLES, 'tournamentID');
+	echo implode2int($tournamentIDs);
+	*/
+
+
+	$tournamentIDs = "3,4,5,7,9,20,21,22,24,28,31,32,37,39,42,43,47,48,49,51,52,62,63,64,67,68,69,70,89,93,97,100,105,106,107,108,109,114,123,124,126,132,133,139,141,142,144,174,175,176,178,187,189,190,192,194,195,204,205,206,207,208,209,210,216,251,252,304,312,338,358,359,360,361,362,364,373,375,399,400,403,404,423,460,461,462,464,465,467,468,471,475,476,481,484,485,502,503,506,507,508,533,534,535,627,684,685,686,687,688,690,691,775,778,779,825,826,827,833,835,836,837,839,840,841,849,850,852,857,858,859,860,861,863,927";
+	
+	$sql = "SELECT systemRosterID
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID IN ({$tournamentIDs})
+			GROUP BY systemRosterID";
+	$systemRosterIDs = mysqlQuery($sql, SINGLES, 'systemRosterID');
+	$systemRosterIDs = implode2int($systemRosterIDs);
+
+	
+	$sql = "SELECT (	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE2
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR2 ON eE2.scoringID = eR2.rosterID
+						WHERE exchangeType = 'clean'
+						AND eR2.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numCleanFor,
+					(	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE3
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR3 ON eE3.receivingID = eR3.rosterID
+						WHERE exchangeType = 'clean'
+						AND eR3.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numCleanAgainst,
+					(	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE4
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR4 ON eE4.scoringID = eR4.rosterID
+						WHERE exchangeType = 'double'
+						AND eR4.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numDouble1,
+					(	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE5
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR5 ON eE5.receivingID = eR5.rosterID
+						WHERE exchangeType = 'double'
+						AND eR5.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numDouble2,
+					(	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE6
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR6 ON eE6.scoringID = eR6.rosterID
+						WHERE exchangeType = 'afterblow'
+						AND eR6.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numAfterblowHitBy,
+					(	
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE7
+						INNER JOIN eventMatches USING(matchID)
+						INNER JOIN eventGroups USING(groupID)
+						INNER JOIN eventRoster AS eR7 ON eE7.receivingID = eR7.rosterID
+						WHERE exchangeType = 'afterblow'
+						AND eR7.systemRosterID = sR.systemRosterID
+						AND tournamentID IN ({$tournamentIDs})
+					) AS numAfterblowLanded
+			FROM systemRoster AS sR
+			WHERE systemRosterID IN ({$systemRosterIDs})";
+	$dataPoints = mysqlQuery($sql, ASSOC);
+
+	echo "<table>";
+
+	echo "<tr>
+			<td>Clean Hit %</td>
+			<td>Hit %</td>
+			<td>AB Def %</td>
+			<td>AB Return %</td>
+			<td>Double %</td>
+			<td>BpE</td>
+		</tr>";
+
+	foreach($dataPoints as $data){
+
+		$numDoubles = $data['numDouble1'] + $data['numDouble2'];
+
+		$numExch = $data['numCleanFor'] + $data['numCleanAgainst'] 
+					+ $data['numAfterblowHitBy'] + $data['numAfterblowLanded']
+					+ $numDoubles;
+		if($numExch < 15){
+			continue;
+		}
+
+		$hitPct = ($data['numCleanFor'] + $data['numAfterblowHitBy']) 
+						/ ($data['numCleanFor'] + $data['numCleanAgainst']
+							+ $data['numAfterblowHitBy'] + $data['numAfterblowLanded']);
+		$cleanHitPct = $data['numCleanFor'] / ($data['numCleanFor'] + $data['numCleanAgainst']);
+		$abDefencePct = $data['numCleanFor']/($data['numCleanFor'] + $data['numAfterblowHitBy']);
+		$abReturnPct = $data['numAfterblowLanded']/($data['numAfterblowLanded'] + $data['numCleanAgainst']);
+
+		$BpE = ($numExch - $data['numCleanFor'] - $data['numCleanAgainst'])/$numExch;
+
+		echo "<tr>";
+			echo "<td>".$cleanHitPct."</td>";
+			echo "<td>".$hitPct."</td>";
+			echo "<td>".$abDefencePct."</td>";
+			echo "<td>".$abReturnPct."</td>";
+			echo "<td>".$numDoubles/$numExch."</td>";
+			echo "<td>".$BpE."</td>";
+
+		echo "</tr>";
+
+	}
+	echo "</table>";
+
+}
 
 /******************************************************************************/
 

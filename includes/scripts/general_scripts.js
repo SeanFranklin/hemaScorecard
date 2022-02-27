@@ -113,9 +113,14 @@ function updateSession(index, value){
 
 /**********************************************************************/
 
-function submitForm(formID, formName){
+function submitForm(formID, formName, directMode = false){
    
-    form = document.getElementById(formID);
+    if(directMode == false){
+        form = document.getElementById(formID);
+    } else {
+        form = formID;
+    }
+    
 
     var formNameInput = document.createElement('input');
     formNameInput.type = 'hidden';
@@ -301,10 +306,27 @@ function placingsDeclareTie(place1, maxPlace){
 
 /**********************************************************************/
 
-
 $( "#createNewEventToggleButton" ).click(function() {
   $( "#createNewEventField" ).slideToggle( "slow", function() {
     // Animation complete.
   });
 });
+
+/**********************************************************************/
+
+function changeEventJs(eventID){
+
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    document.body.appendChild(form);
+
+    var changeEventToField = document.createElement("input");
+    changeEventToField.setAttribute("type", "hidden");
+    changeEventToField.setAttribute("name", "changeEventTo");
+    changeEventToField.setAttribute("value", eventID);
+    form.appendChild(changeEventToField);
+
+    submitForm(form, 'selectEvent', true);
+
+}
 

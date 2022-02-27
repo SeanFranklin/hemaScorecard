@@ -1,5 +1,17 @@
 /* Added By Sean **************************************************************/
 
+.link-table:hover{
+  background:#64C6FF;
+}
+
+.link-table{
+   cursor: pointer;
+}
+
+.link-table-active{
+   color:red;
+}
+
 #sponsor-large img{
   margin-right:  10px;
   margin-left:  10px;

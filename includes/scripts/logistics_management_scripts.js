@@ -327,12 +327,32 @@ function logistics_displayBlockDescription(blockID){
                 } else {
                     $("#sbd-title").html(data['blockTitle']);
                 }
-                
+
                 $("#sbd-subtitle").html(data['blockSubtitle']);
                 $("#sbd-description").html(data['blockDescription']);
                 $("#sbd-link").attr("href", data['blockLink']);
                 $("#sbd-linkDescription").html(data['blockLinkDescription']);
                 $("#sbd-time").html(data['startTimeHr']+' - '+data['endTimeHr']);
+
+                $("#sbd-location").html("");
+                if (data['locationNames'] !== undefined && data['locationNames'].length > 0) {
+
+                    $("#sbd-location").html(`<u>Location</u>: `);
+                    if(data['locationNames'].length > 1){
+                        $("#sbd-location").append('<BR>');
+                    }
+
+                    var locationNum = 0;
+                    data['locationNames'].forEach(function(locationName){
+                        locationNum++;
+                        if(locationNum > 1){
+                             $("#sbd-location").append('<BR>');
+                        }
+                        $("#sbd-location").append(locationName);
+                    });
+
+                }
+
 
                 var attributeSet = false;
                 if(data['blockAttributes']['experience'].length != 0){
@@ -355,8 +375,6 @@ function logistics_displayBlockDescription(blockID){
                     $("#sbd-attribute-hr").html("");
                 }
 
-                console.log(data);
-
                 $("#sbd-rules").html("");
                 if (data['rules'] !== undefined && data['rules'].length > 0) {
 
@@ -364,7 +382,6 @@ function logistics_displayBlockDescription(blockID){
 
                     var rulesNum = 0;
                     data['rules'].forEach(function(rules){
-                        console.log(rules);
                         rulesNum++;
                         if(rulesNum > 1){
                              $("#sbd-rules").append(', ');

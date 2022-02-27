@@ -2159,8 +2159,8 @@ function showFighterPenalties($num){
 function priorPenaltiesWarning($matchInfo){
 
 	$eventID = $_SESSION['eventID'];
-	$priorPenalties = getEventPenalties($eventID, [$matchInfo['fighter1ID'],$matchInfo['fighter2ID']]);
-	if($priorPenalties == null || ALLOW['EVENT_SCOREKEEP'] == false)
+	$fightersWithPenalties = getEventPenalties($eventID, [$matchInfo['fighter1ID'],$matchInfo['fighter2ID']]);
+	if($fightersWithPenalties == null || ALLOW['EVENT_SCOREKEEP'] == false)
 	{
 		return;
 	}
@@ -2181,15 +2181,16 @@ function priorPenaltiesWarning($matchInfo){
 
 		<?php
 			$rosterID = 0;
-			foreach($priorPenalties as $penalty){
-				if($rosterID != $penalty['scoringID'])
-				{
-					$rosterID = $penalty['scoringID'];
-					echo "<HR><h5>".getFighterName($rosterID)."</h5>";
-				}
+			foreach($fightersWithPenalties as $fighter):
 
-				displayPenalty($penalty);
-			}
+					echo "<HR><h5>".getFighterName($fighter['fighterID']);
+					echo " [".$fighter['numPenalties']." Penalties]</h5>";
+				
+				foreach($fighter['list'] as $penalty){
+					displayPenalty($penalty);
+				}
+				
+			endforeach
 		?>
 
 	<!-- Reveal close button -->

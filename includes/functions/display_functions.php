@@ -312,7 +312,8 @@ function displayEventButton($eventID, $eventInfo){
 
 /******************************************************************************/
 
-function displayPenalty($penalty){
+
+function displayPenalty($penalty, $showPoints = false){
 	
 	switch($penalty['card']){
 		case 'yellowCard':
@@ -333,9 +334,9 @@ function displayPenalty($penalty){
 	<div class='<?=$class?> penalty-card-display'>
 		
 		<strong><?=$penalty['cardName']?>: </strong>
-		<i><?=$penalty['action']?></i>
+		<i><?=$penalty['action']?></i> (<?=$penalty['scoreValue']?>)
 		<BR>
-		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong>
+		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong> 
 		 <?=getGroupName($penalty['groupID'])?> (vs <?=getFighterName($penalty['receivingID'])?>)
 	</div>
 

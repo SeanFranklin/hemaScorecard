@@ -1901,7 +1901,9 @@ function addNewEvent($eventInfo){
 	<p>Let me know if you have any questions! That aren't in the help. ;)<ul>
 	 Sean Franklin<BR>
 	 <i>HEMA Scorecard</i></ul></p></div>";
-		
+
+	 changeEvent($eventID);
+
 }
 
 /******************************************************************************/
@@ -3008,29 +3010,12 @@ function editEvent($eventInfo){
 
 	if(isset($eventInfo['eventToEdit'])){
 		$_SESSION['editEventID'] = $eventInfo['eventToEdit'];
+		changeEvent($_SESSION['editEventID']);
 		return;
 	}
 	
 	$eventID = (int)$eventInfo['eventID'];
 	$name = getEventName($eventID);
-	
-	if(isset($eventInfo['deleteEvent'])){
-		$deleteCode = "delete-".$name;
-		
-		if($eventInfo['deleteConfirmationCode'] == $deleteCode){
-			$sql = "DELETE FROM systemEvents
-					WHERE eventID = {$eventID}";
-			mysqlQuery($sql, SEND);
-
-			$_SESSION['alertMessages']['userAlerts'][] = "\"{$name}\" deleted";
-			
-		} else {
-			$_SESSION['alertMessages']['userErrors'][] = "\"{$name}\" not deleted
-				<BR>Confirmation code incorrect. 
-				<BR>'{$deleteCode}' is the correct code.";
-		}
-		return;
-	}
 
 	$sql = "SELECT isArchived 
 			FROM systemEvents
@@ -3097,6 +3082,32 @@ function editEvent($eventInfo){
 
 /******************************************************************************/
 
+function deleteEvent($deleteInfo){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){return;}
+
+	$eventID = (int)$deleteInfo['eventID'];
+
+	$eventName = getEventName($eventID);
+	$deleteCode = "delete-".$eventName;
+		
+	if($deleteInfo['confirmationCode'] === $deleteCode){
+		$sql = "DELETE FROM systemEvents
+				WHERE eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+
+		$_SESSION['alertMessages']['userAlerts'][] = "\"{$eventName}\" deleted";
+		
+	} else {
+		$_SESSION['alertMessages']['userErrors'][] = "\"{$eventName}\" not deleted
+			<BR>Confirmation code incorrect. 
+			<BR>'{$deleteCode}' is the correct code.";
+	}
+	
+}
+
+/******************************************************************************/
+
 function updateEventPublication($publicationSettings, $eventID){
 	
 	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){ return; }
@@ -3113,10 +3124,26 @@ function updateEventPublication($publicationSettings, $eventID){
 		return;
 	}
 
-	$publishRoster = (int)(bool)$publicationSettings['publishRoster'];
-	$publishSchedule = (int)(bool)$publicationSettings['publishSchedule'];
-	$publishMatches = (int)(bool)$publicationSettings['publishMatches'];
+	$publishDescription = (int)(bool)$publicationSettings['publishDescription'];
 	$publishRules = (int)(bool)$publicationSettings['publishRules'];
+	$publishSchedule = (int)(bool)$publicationSettings['publishSchedule'];
+	$publishRoster = (int)(bool)$publicationSettings['publishRoster'];
+	$publishMatches = (int)(bool)$publicationSettings['publishMatches'];
+
+	$confirmationMsg = "";
+	if(($publishMatches == 1) && ($publishRoster == 0 || $publishSchedule == 0 || $publishRules == 0)){
+		$publishDescription = 1;
+		$publishRules = 1;
+		$publishSchedule = 1;
+		$publishRoster = 1;
+	
+		$confirmationMsg .= "<BR><b>ALL event attributes have been published.</b> Once the matches are published it is all visible.";
+	}
+
+	if(($publishDescription == 0) && ($publishRoster == 1 || $publishSchedule == 1 || $publishRules == 1)){
+		$publishDescription = 1;
+		$confirmationMsg .= "<BR><b>Event Discription has also been published</b> - Event description is released as soon as any event information is publui";
+	}
 
 	$sql = "SELECT publicationID
 			FROM eventPublication
@@ -3126,24 +3153,26 @@ function updateEventPublication($publicationSettings, $eventID){
 	if($publicationID == 0){
 
 		$sql = "INSERT INTO eventPublication
-				(eventID, publishRoster, publishSchedule, publishMatches, publishRules)
+				(eventID, publishDescription, publishRoster, publishSchedule, publishMatches, publishRules)
 				VALUES
-				({$eventID}, {$publishRoster}, {$publishSchedule}, {$publishMatches}, {$publishRules})";
+				({$eventID}, {$publishDescription}, {$publishRoster}, {$publishSchedule}, {$publishMatches}, {$publishRules})";
 		mysqlQuery($sql, SEND);
 
 	} else {
 
 		$sql = "UPDATE eventPublication
-				SET publishRoster = {$publishRoster},
-				publishSchedule = {$publishSchedule},
-				publishMatches = {$publishMatches},
-				publishRules = {$publishRules}
+				SET
+					publishDescription = {$publishDescription}, 
+					publishRoster = {$publishRoster},
+					publishSchedule = {$publishSchedule},
+					publishMatches = {$publishMatches},
+					publishRules = {$publishRules}
 				WHERE publicationID = {$publicationID}";
 		mysqlQuery($sql, SEND);
 
 	}
 
-	$_SESSION['alertMessages']['userAlerts'][] = "Publication Settings Updated";
+	$_SESSION['alertMessages']['userAlerts'][] = "Publication Settings Updated".$confirmationMsg;
 	
 }
 

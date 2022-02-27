@@ -1377,29 +1377,6 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 
 /******************************************************************************/
 
-function getHiddenEventListForUser($userID){
-
-	$userID = (int)$userID; 
-
-	$sql = "SELECT eventID, eventName, eventYear, eventStartDate, 
-			eventEndDate, countryName, eventProvince, eventCity
-			FROM systemEvents
-			INNER JOIN systemCountries USING(countryIso2)
-			INNER JOIN systemUserEvents USING(eventID)
-			LEFT JOIN eventPublication USING(eventID)
-			WHERE isArchived = 0
-			AND publishRoster = 0
-			AND publishSchedule = 0
-			AND publishMatches = 0
-			AND isMetaEvent = 0
-			AND userID = {$userID}
-			ORDER BY eventStartDate DESC, eventEndDate DESC";
-
-	return mysqlQuery($sql, KEY, 'eventID');
-}
-
-/******************************************************************************/
-
 function getEventListFull(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
@@ -1423,6 +1400,45 @@ function getEventListSmall(){
 			ORDER BY eventStartDate DESC";
 	return mysqlQuery($sql, KEY_SINGLES, 'eventID', 'name');
 
+}
+
+/******************************************************************************/
+
+function getEventListByPublication($showHidden = false, $orderBy = 'name'){
+
+	if($showHidden == false){
+		$whereClause = "WHERE isArchived = 1
+						OR publishDescription = 1
+						OR publishRoster = 1
+						OR publishSchedule = 1
+						OR publishMatches = 1
+						OR publishRules = 1";
+	} else {
+		$whereClause = "";
+	}
+
+	if($orderBy == 'date'){
+		$orderClause = "eventStartDate ASC";
+	} else {
+		$orderClause = "eventName ASC, eventStartDate ASC";
+	}
+
+	$sql = "SELECT eventID, eventYear, eventName, eventCity, eventProvince, countryName, eventStartDate, eventEndDate,
+			IF(isArchived = 1, 'complete', 
+				IF(publishMatches = 1, 'active',
+					IF(publishDescription = 1 
+						OR publishRoster = 1 
+						OR publishSchedule = 1 
+						OR publishRules = 1, 'upcoming','hidden'))) AS eventStatus
+		
+			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
+			LEFT JOIN eventPublication USING(eventID)
+			{$whereClause}
+			ORDER BY {$orderClause}";
+	$eventList = mysqlQuery($sql, ASSOC);
+
+	return $eventList;
 }
 
 /******************************************************************************/
@@ -1850,21 +1866,16 @@ function getEventPenalties($eventID, $fighterIDs = null){
 		$idClause = "AND scoringID IN (".implode2int($fighterIDs).")";
 	}
 
-	$sql = "SELECT scoringID, tournamentID, groupID, receivingID,
+	$sql = "SELECT scoringID, tournamentID, groupID, receivingID, scoreValue,
 			(SELECT attackCode
 				FROM systemAttacks sA2
 				WHERE sA2.attackID = eE.refType) AS card,					
 			(SELECT attackText
-				FROM systemAttacks sA2
-				WHERE sA2.attackID = eE.refType) AS cardName,
-			(SELECT attackText
 				FROM systemAttacks sA3
-				WHERE sA3.attackID = eE.refTarget) AS action,
-			(SELECT count(*) as p
-				FROM eventExchanges as eE2
-				WHERE eE2.scoringID = eE.scoringID
-				AND eventID = {$eventID}
-				AND exchangeType = 'penalty') as numPenalties
+				WHERE sA3.attackID = eE.refType) AS cardName,
+			(SELECT attackText
+				FROM systemAttacks sA4
+				WHERE sA4.attackID = eE.refTarget) AS action
 		FROM eventExchanges AS eE
 		INNER JOIN eventMatches USING(matchID)
 		INNER JOIN eventGroups USING(groupID)
@@ -1872,11 +1883,37 @@ function getEventPenalties($eventID, $fighterIDs = null){
 		WHERE eventID = {$eventID}
 		AND exchangeType = 'penalty'
 		{$idClause}
-		ORDER BY numPenalties DESC, tournamentID DESC";
+		ORDER BY timestamp ASC";
 
 	$penalties = mysqlQuery($sql, ASSOC);
 
-	return($penalties);
+
+	$penaltyList = [];
+	foreach($penalties as $penalty){
+
+		$fighterID = $penalty['scoringID'];
+
+		if(isset($penaltiesByFighter[$fighterID]) == false){
+			$penaltiesByFighter[$fighterID]['numPenalties'] = 1;
+			$penaltiesByFighter[$fighterID]['fighterID'] = $fighterID;
+		} else {
+			$penaltiesByFighter[$fighterID]['numPenalties']++;
+		}
+
+		$penaltiesByFighter[$fighterID]['list'][] = $penalty;
+	}
+
+	if($penaltiesByFighter != []){
+
+		foreach($penaltiesByFighter as $key => $fighterPenalties){
+			$sort1[$key] = $fighterPenalties['numPenalties'];
+		}	
+		array_multisort($sort1, SORT_DESC, $penaltiesByFighter);
+	
+	}
+
+
+	return($penaltiesByFighter);
 }
 
 
@@ -6800,6 +6837,26 @@ function isMatchesPublished($eventID){
 				FROM eventPublication
 				WHERE eventID = {$eventID}";
 		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishMatches');
+	}
+
+	return $isPublished;
+
+}
+
+/******************************************************************************/
+
+function isDescriptionPublished($eventID){
+
+	$eventID = (int)$eventID;
+	$isPublished = false;
+
+	if(isEventArchived($eventID) == true){
+		$isPublished = true;
+	} else {
+		$sql = "SELECT publishDescription
+				FROM eventPublication
+				WHERE eventID = {$eventID}";
+		$isPublished = (bool)mysqlQuery($sql, SINGLE, 'publishDescription');
 	}
 
 	return $isPublished;
