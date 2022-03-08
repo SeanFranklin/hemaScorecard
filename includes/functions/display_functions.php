@@ -2442,14 +2442,14 @@ function goToMatchButton($matchInfo){
 
 /******************************************************************************/
 
-function addYoutube($matchID, $divider = true){
+function addVideoLink($matchID, $divider = true){
 // Displays youtube link for match if it exists, and allows staff to add links
 
-	$url = getYouTube($matchID);
+	$url = getVideoLink($matchID);
 ?>
 
 <!-- Display entry field for staff -->
-	<?php if(ALLOW['EVENT_YOUTUBE'] == true): ?>
+	<?php if(ALLOW['EVENT_VIDEO'] == true): ?>
 		<?php if($divider):?>
 			<HR width='80%'>
 		<?php endif ?>
@@ -2458,13 +2458,13 @@ function addYoutube($matchID, $divider = true){
 		<div class='input-group grid-x'>
 			<span class='input-group-label large-2 medium-3 small-12 text-center'>YouTube URL:</span>
 			<input class='input-group-field' type='url' name='url' value='<?=$url?>' 
-				id='youtubeField' onkeyup="validateYoutube()"  placeholder='Include https://'>
-			<button name='formName'  value='YouTubeLink' disabled
-				class='button success input-group-button hide-for-small-only youtubeSubmitButton'>
+				id='videoField' onkeyup="validateVideoLink()"  placeholder='Include https://'>
+			<button name='formName'  value='videoLink' disabled
+				class='button success input-group-button hide-for-small-only videoSubmitButton'>
 				 Update Link
 			</button>
-			<button class='button success expanded show-for-small-only youtubeSubmitButton' 
-			name='formName' value='YouTubeLink' disabled >Update Link</button>
+			<button class='button success expanded show-for-small-only videoSubmitButton' 
+			name='formName' value='videoLink' disabled >Update Link</button>
 		</form>
 		</div>
 		
@@ -2474,7 +2474,7 @@ function addYoutube($matchID, $divider = true){
 		<?php if($divider):?>
 			<HR width='80%'>
 		<?php endif ?>
-		<strong>YouTube Link:</strong>
+		<strong>Video Link:</strong>
 		<a href='<?=$url?>'><?=$url?></a>
 		
 	<?php endif ?>

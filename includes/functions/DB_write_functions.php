@@ -585,12 +585,38 @@ function logisticsEditStaffList($staffInfo){
 			continue;
 		}
 
-		$sql = "UPDATE eventRoster
-				SET staffCompetency = {$staffCompetency},
-				staffHoursTarget = {$hours}
-				WHERE eventID = {$eventID}
-				AND rosterID = {$rosterID}";
-		mySqlQuery($sql, SEND);
+		if($staffCompetency == 0){
+
+			$sql = "DELETE FROM logisticsStaffCompetency
+					WHERE rosterID = {$rosterID}";
+			mysqlQuery($sql, SEND);
+
+		} else {
+
+			$sql = "SELECT staffCompetencyID
+				FROM logisticsStaffCompetency
+				WHERE rosterID = {$rosterID}";
+			$staffCompetencyID = (int)mysqlQuery($sql, SINGLE, 'staffCompetencyID');
+
+			if($staffCompetencyID == 0){
+
+				$sql = "INSERT INTO logisticsStaffCompetency
+						(rosterID, staffCompetency, staffHoursTarget)
+						VALUES 
+						({$rosterID},{$staffCompetency},{$hours})";
+				mysqlQuery($sql, SEND);
+
+			} else {
+
+				$sql = "UPDATE logisticsStaffCompetency
+						SET staffCompetency = {$staffCompetency},
+						staffHoursTarget = {$hours}
+						WHERE rosterID = {$rosterID}";
+				mySqlQuery($sql, SEND);
+
+			}
+		
+		}
 
 	}
 }
@@ -614,10 +640,8 @@ function logisticsDeleteStaffList($staffInfo){
 			continue;
 		}
 
-		$sql = "UPDATE eventRoster
-				SET staffCompetency = 0, staffHoursTarget = NULL
-				WHERE eventID = {$eventID}
-				AND rosterID = {$rosterID}";
+		$sql = "DELETE FROM logisticsStaffCompetency
+				WHERE rosterID = {$rosterID}";
 		mySqlQuery($sql, SEND);
 
 		$sql = "DELETE staff FROM logisticsStaffShifts AS staff
@@ -1238,19 +1262,45 @@ function updateFighterRatings($ratingData){
 	foreach($ratingData['fighters'] as $id => $r){
 		$rating = (int)$r['rating'];
 		$subGroup = (int)$r['subGroupNum'];
-		$rosterID = (int)$id;
+		$tournamentRosterID = (int)$id;
+		$ratingID = (int)$r['ratingID'];
 
+		$rating2isNull = true;
 		if($r['rating2'] == null){
 			$rating2 = 'NULL';
 		} else {
 			$rating2 = (int)$r['rating2'];
+			$rating2isNull = false;
 		}
 
-		$sql = "UPDATE eventTournamentRoster
-				SET rating = {$rating}, subGroupNum = {$subGroup}, rating2 = {$rating2}
-				WHERE tournamentID = {$tournamentID}
-				AND rosterID = {$rosterID}";
-		mysqlQuery($sql, SEND);
+		if($rating == 0 && $subGroup == 0 && $rating2isNull == true){
+
+			if($ratingID != 0){
+				$sql = "DELETE FROM eventRatings
+						WHERE ratingID = {$ratingID}";
+				mysqlQuery($sql, SEND);
+			}
+		} else {
+
+			if($ratingID != 0){
+
+				$sql = "UPDATE eventRatings
+						SET rating = {$rating}, subGroupNum = {$subGroup}, rating2 = {$rating2}
+						WHERE ratingID = {$ratingID}";
+				mysqlQuery($sql, SEND); 
+
+			} else {
+
+				$sql = "INSERT INTO eventRatings
+						(tournamentRosterID, rating, subGroupNum, rating2)
+						VALUES
+						({$tournamentRosterID}, {$rating}, {$subGroup}, {$rating2})";
+				mysqlQuery($sql, SEND);
+
+			}
+		}
+
+		
 	}
 
 	setAlert(USER_ALERT,"Ratings Updated");
@@ -1367,12 +1417,19 @@ function addEventParticipantByID($eventID, $fighterData, $staffHoursTarget = 0){
 
 		// Adds fighter to the event
 		$sql = "INSERT INTO eventRoster
-				(systemRosterID, eventID, schoolID,staffCompetency, staffHoursTarget)
+				(systemRosterID, eventID, schoolID)
 				VALUES
-				({$systemRosterID}, {$eventID}, {$schoolID}, 
-				{$staffCompetency}, {$staffHoursTarget})";
+				({$systemRosterID}, {$eventID}, {$schoolID})";
 		mysqlQuery($sql, SEND);
 		$rosterID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+		if($staffCompetency != 0 || $staffHoursTarget != 0){
+			$sql = "INSERT INTO logisticsStaffCompetency
+					(rosterID, staffCompetency, staffHoursTarget)
+					VALUES
+					({$rosterID}, {$staffCompetency}, {$staffHoursTarget})";
+			mysqlQuery($sql, SEND);
+		}
 
 		$sql = "UPDATE systemRoster
 				SET schoolID = {$schoolID}
@@ -1382,9 +1439,6 @@ function addEventParticipantByID($eventID, $fighterData, $staffHoursTarget = 0){
 		if(isset($fighterData['tournamentIDs'])){
 			addFighterToTournaments($rosterID, $fighterData['tournamentIDs']);
 		}
-
-		$sql = "UPDATE";
-
 
 	}
 
@@ -1446,12 +1500,20 @@ function addEventParticipantByName($eventID, $fighterData, $staffHoursTarget = 0
 		$systemRosterID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 		
 		$sql = "INSERT INTO eventRoster 
-				(systemRosterID, schoolID, eventID, staffCompetency, staffHoursTarget)
+				(systemRosterID, schoolID, eventID)
 				VALUES
-				({$systemRosterID}, {$schoolID}, {$eventID}, {$staffCompetency}, {$staffHoursTarget})";
+				({$systemRosterID}, {$schoolID}, {$eventID})";
 		mysqlQuery($sql,SEND);
 
 		$rosterID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+		if($staffCompetency != 0 || $staffHoursTarget != 0){
+			$sql = "INSERT INTO logisticsStaffCompetency
+					(rosterID, staffCompetency, staffHoursTarget)
+					VALUES
+					({$rosterID}, {$staffCompetency}, {$staffHoursTarget})";
+			mysqlQuery($sql, SEND);
+		}
 
 	// Adds fighter to their tournaments
 		if(isset($fighterData['tournamentIDs'])){
@@ -1591,18 +1653,18 @@ function addFightersToGroup(){
 			
 			$_SESSION['checkEvent'][$tournamentID][$groupID]['all'] = true;
 			
-			$sql = "SELECT tableID 
+			$sql = "SELECT tournamentRosterID 
 					FROM eventTournamentRoster
 					WHERE tournamentID = {$tournamentID}
 					AND rosterID = {$rosterID}";
 				
-			$tournamentTableID = (int)mysqlQuery($sql, SINGLE, 'tableID');
+			$tournamentRosterID = (int)mysqlQuery($sql, SINGLE, 'tournamentRosterID');
 			
 			$insertPoolPosition = $poolPosition - $skippedFighters;
 			$sql = "INSERT INTO eventGroupRoster
 					(groupID, rosterID, poolPosition, tournamentTableID)
 					VALUES
-					({$groupID}, {$rosterID}, {$insertPoolPosition}, {$tournamentTableID})";
+					({$groupID}, {$rosterID}, {$insertPoolPosition}, {$tournamentRosterID})";
 			mysqlQuery($sql, SEND);
 			
 			$fightersInList[$rosterID] = true;
@@ -1847,10 +1909,9 @@ function addNewEvent($eventInfo){
 	
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
-			eventEndDate, countryIso2, eventProvince, eventCity,
-			staffPassword, organizerPassword, isMetaEvent)
+			eventEndDate, countryIso2, eventProvince, eventCity, isMetaEvent)
 			VALUES
-			(?,?,?,?,?,?,?,?,?,?,{$isMetaEvent})";
+			(?,?,?,?,?,?,?,?,{$isMetaEvent})";
 	
 	$eventStartDate = $eventInfo['eventStartDate'];
 	if($eventStartDate == null){$eventStartDate = date('Y-m-d H:i:s');}
@@ -1858,7 +1919,7 @@ function addNewEvent($eventInfo){
 	if($eventEndDate == null){$eventEndDate = $eventStartDate;}
 		
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "ssssssssss", 
+	$bind = mysqli_stmt_bind_param($stmt, "ssssssss", 
 				$eventInfo['eventName'], 
 				$eventInfo['eventAbbreviation'],
 				$eventYear, 
@@ -1866,14 +1927,18 @@ function addNewEvent($eventInfo){
 				$eventEndDate, 
 				$eventInfo['countryIso2'], 
 				$eventInfo['eventProvince'], 
-				$eventInfo['eventCity'],
-				$passwordHash,
-				$passwordHash
+				$eventInfo['eventCity']
 			);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	
 	$eventID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+	$sql = "INSERT INTO eventSettings
+			(eventID, staffPassword, organizerPassword)
+			VALUES
+			({$eventID}, '{$passwordHash}', '{$passwordHash}')"; show($sql);
+	mysqlQuery($sql, SEND);
 	
 	$sql = "INSERT INTO eventDefaults
 			(eventID)
@@ -3288,12 +3353,12 @@ function editEventParticipant(){
 			}		
 				
 		} else {
-			$sql = "SELECT tableID
+			$sql = "SELECT tournamentRosterID
 					FROM eventTournamentRoster
 					WHERE rosterID = {$rosterID}
 					AND tournamentID = {$tournamentID}";
 					
-			if(mysqlQuery($sql, SINGLE, 'tableID') != null){
+			if(mysqlQuery($sql, SINGLE, 'tournamentRosterID') != null){
 				if(isFinalized($tournamentID)){
 					$name = getFighterName($rosterID);
 					$tName = getTournamentName($tournamentID);
@@ -4781,7 +4846,7 @@ function updateContactEmail($email, $eventID){
 		return;
 	}
 
-	$sql = "UPDATE systemEvents
+	$sql = "UPDATE eventSettings
 			SET organizerEmail = ?
 			WHERE eventID = {$eventID}";
 
@@ -4862,26 +4927,26 @@ function updateStaffRegistrationSettings($info){
 		$competency = (int)$competency;
 
 		if($competency == 0){
-			$sql = "DELETE FROM logisticsStaffCompetency
+			$sql = "DELETE FROM logisticsRoleCompetency
 					WHERE eventID = {$eventID}
 					AND logisticsRoleID = {$roleID}";
 			mysqlQuery($sql, SEND);
 		} else {
-			$sql = "SELECT staffCompetencyID
-					FROM logisticsStaffCompetency
+			$sql = "SELECT roleCompetencyID
+					FROM logisticsRoleCompetency
 					WHERE eventID = {$eventID}
 					AND logisticsRoleID = {$roleID}";
 			$ID = (int)mysqlQuery($sql, SINGLE, 'staffCompetencyID');
 
 			if($ID == 0){
-				$sql = "INSERT INTO logisticsStaffCompetency
-						(eventID, logisticsRoleID, staffCompetency)
+				$sql = "INSERT INTO logisticsRoleCompetency
+						(eventID, logisticsRoleID, roleCompetency)
 						VALUES 
 						({$eventID},{$roleID},{$competency})";
 				mysqlQuery($sql, SEND);
 			} else {
-				$sql = "UPDATE logisticsStaffCompetency
-						SET staffCompetency = {$competency}
+				$sql = "UPDATE logisticsRoleCompetency
+						SET roleCompetency = {$competency}
 						WHERE eventID = {$eventID}
 						AND logisticsRoleID = {$roleID}";
 				mysqlQuery($sql, SEND);
@@ -5095,7 +5160,7 @@ function updatePasswords($passwordData){
 		}
 
 
-		$sql = "UPDATE systemEvents
+		$sql = "UPDATE eventSettings
 				SET {$passField} = '{$passHash}'
 				WHERE eventID = {$eventID}";
 	} else {
@@ -6092,10 +6157,12 @@ function checkInFighters($checkInData){
 				$sql = "UPDATE eventTournamentRoster
 						SET tournamentGearCheck = {$gearcheck}, 
 							tournamentCheckIn = {$checkin}
-						WHERE tournamentID = {$tournamentID}
+						WHERE $tournamentID = {$tournamentID}
 						AND rosterID = {$rosterID}";
 				mysqlQuery($sql, SEND);
+
 			}
+
 		}
 	}
 
@@ -7661,7 +7728,7 @@ function updateNumberOfGroupSets(){
 
 /******************************************************************************/
 
-function updateYouTubeLink($matchID){
+function updateVideoLink($matchID, $url){
 	
 	$matchID = (int)$matchID;
 
@@ -7669,11 +7736,9 @@ function updateYouTubeLink($matchID){
 		$_SESSION['alertMessages']['systemErrors'][] = "No matchID in updateYourTubeLink()";
 		return;
 	}
-	
-	$url = $_POST['url'];
-	
+
 	$sql = "UPDATE eventMatches
-			SET YouTubeLink = ?
+			SET videoLink = ?
 			WHERE matchID = {$matchID}";
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	// "s" means the database expects a string

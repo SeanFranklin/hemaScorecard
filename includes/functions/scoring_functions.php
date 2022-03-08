@@ -1620,6 +1620,7 @@ function pool_GeneratePools($specifications){
 			$sql = "SELECT rosterID, rating, schoolID, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
+					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
 					AND (	SELECT COUNT(*) 
 							FROM eventIgnores eI 
@@ -1632,25 +1633,27 @@ function pool_GeneratePools($specifications){
 			$sql = "SELECT MIN(rating) AS minRating, MAX(rating) AS maxRating, COUNT(*) AS numRated
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
+					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
 					AND (	SELECT COUNT(*) 
 							FROM eventIgnores eI 
 							WHERE eI.rosterID = eTR.rosterID 
 							AND eI.tournamentID = {$tournamentID} ) = 0
-					AND rating != 0";
+					AND rating != 0
+					AND rating IS NOT NULL";
 			$ratingData = mysqlQuery($sql, SINGLE);
 
 			$ratingFix = false;
-			if($ratingData != null && $ratingData['numRated'] != 0){
+			if($ratingData != null && (int)$ratingData['numRated'] != 0){
 
-				$minRating = ($ratingData['maxRating'] - $ratingData['minRating']);
-				$minRating /= $ratingData['numRated'];
-				$minRating = $ratingData['minRating'] - $minRating;
+				$minRating = ((int)$ratingData['maxRating'] - (int)$ratingData['minRating']);
+				$minRating /= (int)$ratingData['numRated'];
+				$minRating = (int)$ratingData['minRating'] - $minRating;
 				$minRating = round($minRating,0);
 
 				if($minRating > 0) {
 					foreach($rankedList as $index => $fighter){
-						if($fighter['rating'] == 0){
+						if((int)$fighter['rating'] == 0){
 							$rankedList[$index]['rating'] = $minRating;
 							$ratingFix = true;
 						}
@@ -1712,6 +1715,7 @@ function pool_GeneratePools($specifications){
 			$sql = "SELECT rosterID, 0 AS rating, schoolID, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
+					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
 					AND (	SELECT COUNT(*) 
 							FROM eventIgnores eI 
@@ -1731,10 +1735,10 @@ function pool_GeneratePools($specifications){
 		$numInSubGroup = [];
 
 		foreach($rankedList as $fighter){
-			if($fighter['subGroupNum'] > 0){
-				@$numInSubGroup[$fighter['subGroupNum']]++;  // Might not exist, treat as zero.
-				if($fighter['subGroupNum'] > $highestSubGroup){
-					$highestSubGroup = $fighter['subGroupNum'] ;
+			if((int)$fighter['subGroupNum'] > 0){
+				@$numInSubGroup[(int)$fighter['subGroupNum']]++;  // Might not exist, treat as zero.
+				if((int)$fighter['subGroupNum'] > $highestSubGroup){
+					$highestSubGroup = (int)$fighter['subGroupNum'] ;
 				}
 			} else {
 				break;
@@ -1764,11 +1768,11 @@ function pool_GeneratePools($specifications){
 	if($useRatings == true){
 		foreach($rankedList as $data){
 			if($lowestRatingSet == true){
-				if($data['rating'] < $lowestRating){
+				if((int)$data['rating'] < $lowestRating){
 					$data['rating'] = $lowestRating;
 				}
 			} else {
-				$lowestRating = $data['rating'];
+				$lowestRating = (int)$data['rating'];
 				$lowestRatingSet = true;
 			}
 		}
@@ -1829,10 +1833,10 @@ $a = false;
 		foreach($rankedList as $index => $fighter){
 
 			if($workingSubGroup != 0
-				&& $workingSubGroup != $fighter['subGroupNum']){
+				&& $workingSubGroup != (int)$fighter['subGroupNum']){
 
 				// Switch to a new sub-group. Break the loop and re-calculate the tiers.
-				$workingSubGroup = $fighter['subGroupNum'];
+				$workingSubGroup = (int)$fighter['subGroupNum'];
 				if($workingSubGroup == 0){
 					$poolsInTier = $specifiedPoolsInTier;
 				} else {
@@ -1844,7 +1848,7 @@ $a = false;
 
 			$sizePoints = generate_PoolSizePoints($numInPools,$maxPoolSize);
 			if($useRatings == true){
-				$ratingPoints = generate_PoolRatingPoints($poolRatings,$fighter['rating']);
+				$ratingPoints = generate_PoolRatingPoints($poolRatings,(int)$fighter['rating']);
 			}
 			if($useSchools == true){
 				$schoolPoints = generate_SameSchoolPoints($poolSchools,$fighter['schoolID']);
@@ -1910,7 +1914,7 @@ $a = false;
 			}
 
 			$numInPools[$poolToAddTo]++;
-			$poolRatings[$poolToAddTo] += $fighter['rating'];
+			$poolRatings[$poolToAddTo] += (int)$fighter['rating'];
 
 			if(isset($poolSchools[$poolToAddTo][$fighter['schoolID']])){
 				$poolSchools[$poolToAddTo][$fighter['schoolID']]++;
@@ -1948,10 +1952,11 @@ function pool_GeneratePolarPools($specifications){
 	$sql = "SELECT MAX(rating) AS maxRating1, MAX(rating2) AS maxRating2,
 					MIN(rating) AS minRating1, MIN(rating2) AS minRating2
 			FROM eventTournamentRoster
+			INNER JOIN eventRatings USING(tournamentRosterID)
 			WHERE tournamentID = {$tournamentID}";
 	$limits = mysqlQuery($sql, SINGLE);
-	$range1 = $limits['maxRating1'] - $limits['minRating1'];
-	$range2 = $limits['maxRating2'] - $limits['minRating2'];
+	$range1 = (int)$limits['maxRating1'] - (int)$limits['minRating1'];
+	$range2 = (int)$limits['maxRating2'] - (int)$limits['minRating2'];
 
 	if($range1 == 0 || $range2 == 0){
 		setAlert(USER_ERROR,"Rating generation failure.
@@ -1961,6 +1966,7 @@ function pool_GeneratePolarPools($specifications){
 
 	$sql = "SELECT rosterID, rating, rating2, subGroupNum
 			FROM eventTournamentRoster
+			INNER JOIN eventRatings USING(tournamentRosterID)
 			WHERE tournamentID = {$tournamentID}";
 	$ratings = mysqlQuery($sql, ASSOC);
 
@@ -1978,8 +1984,8 @@ function pool_GeneratePolarPools($specifications){
 			return;
 		}
 
-		$x = (($rating['rating'] - $limits['minRating1']) / ($range1/2)) - 1;
-		$y = (($rating['rating2'] - $limits['minRating2']) / ($range2/2)) - 1;
+		$x = (((int)$rating['rating'] - (int)$limits['minRating1']) / ($range1/2)) - 1;
+		$y = (((int)$rating['rating2'] - (int)$limits['minRating2']) / ($range2/2)) - 1;
 		$mag = sqrt(($x * $x) + ($y * $y));
 		if($mag == 0){
 			$angle = 0;
@@ -1994,7 +2000,7 @@ function pool_GeneratePolarPools($specifications){
 		$p['rosterID'] = $rating['rosterID'];
 
 		if($specifications['useSubGroups'] == true){
-			$subGroupNum = $rating['subGroupNum'];
+			$subGroupNum = (int)$rating['subGroupNum'];
 		} else {
 			$subGroupNum = 0;
 		}
