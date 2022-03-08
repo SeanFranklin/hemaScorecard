@@ -3,9 +3,6 @@
 	Match Scoring
 	
 	Scores a match
-	LOGIN
-		- STAFF and higher can score & conclude matches
-		- YOUTUBE and higher can add links to youtube
 		
 *******************************************************************************/
 
@@ -156,8 +153,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 
 	</div>
 	
-<!-- Youtube -->
-	<?php addYoutube($matchID); // display_functions.php ?>
+<!-- Match Video -->
+	<?php addVideoLink($matchID); // display_functions.php ?>
 	
 
 <?php }

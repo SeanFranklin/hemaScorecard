@@ -13,8 +13,8 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.2.6'; // Javascript Version
-$vC = '?=1.0.12'; // CSS Version
+$vJ = '?=1.2.7'; // Javascript Version
+$vC = '?=1.0.13'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -145,6 +145,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='participantsEvent.php'>Participants</a></li>
 							<li><a href='infoRules.php'>Rules</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
+							<li><a href='infoVideo.php'>Event Video</a></li>
 						</ul>
 						
 					</li>
@@ -180,6 +181,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
 							<li><a href='statsScoresheets.php'>Scoresheets</a></li>
+							<li><a href='infoVideo.php'>Event Video</a></li>
 						</ul>
 					</li>
 				<?php endif ?>
@@ -235,7 +237,6 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
 							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
 							<li><a href='statsEvent.php'>Participants/Schools</a></li>
-							<li><a href='statsMatchLength.php'>Match Timings</a></li>
 						</ul>
 					</li>
 				<?php endif ?>
@@ -583,16 +584,6 @@ function eventNameForHeader(){
 /******************************************************************************/
 
 function eventNameListSelectOptions($eventID){
-
-	if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
-		$eventList['Hidden '] = getEventList('hidden');
-		$eventList['Public '] = getEventList('upcoming') + getEventList('active');
-		$eventList['Meta '] = getEventList('meta');
-	} else {
-		$eventList['Active '] = getEventList('active');
-	}
-	
-	$eventList['Archived '] = getEventList('archived');
 
 	if($eventID == null){
 		echo "<option selected disabled>* No Event Selected *</option>";

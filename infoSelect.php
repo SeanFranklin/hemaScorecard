@@ -62,7 +62,7 @@ $eventList = getEventListByPublication();
 
 	<tbody>
 		<?php foreach($eventList as $event):
-			if(compareDates($event['eventStartDate']) > 14){ continue; }
+			if(compareDates($event['eventStartDate']) > 21){ continue; }
 			?>
 
 			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
@@ -94,13 +94,20 @@ $eventList = getEventListByPublication();
 </thead>
 
 <tbody>
-	<?php foreach($eventList as $event):?>
+	<?php foreach($eventList as $event):
+		if(ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){
+			$date = $event['eventStartDate'];
+		} else {
+			$date = sqlDateToString($event['eventStartDate']).", ".$event['eventYear'];
+		}
+
+		?>
 		<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
 			<td><?=$event['eventName']?></td>
 			<td><?=$event['eventYear']?></td>
 			<td><?=$event['countryName']?></td>
 			<td><?=$event['eventProvince']?>, <?=$event['eventCity']?></td>
-			<td><?=sqlDateToString($event['eventStartDate'])?>, <?=$event['eventYear']?></td>
+			<td><?=$date?></td>
 			<td><?=$event['eventStatus']?></td>
 		</tr>
 	<?php endforeach ?>

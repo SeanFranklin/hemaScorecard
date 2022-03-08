@@ -223,8 +223,8 @@ function processPostData(){
 			case 'updateSubMatchesByMatch':
 				updateSubMatchesByMatch($_POST['updateSubMatchesByMatch']);
 				break;
-			case 'YouTubeLink':
-				updateYouTubeLink($_SESSION['matchID']);
+			case 'videoLink':
+				updateVideoLink($_POST['matchID'], $_POST['url']);
 				break;
 			case 'ignorePastIncompletes':
 				$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
@@ -590,7 +590,7 @@ function processPostData(){
 	unset($_POST);
 
 	if(empty($refreshPage) == false){
-		////refreshPage();
+		refreshPage();
 	}
 
 // Check that terms of use have been signed
@@ -795,7 +795,7 @@ function processToS($ToS){
 
 	$eventID = (int)$_SESSION['eventID'];
 
-	$sql = "UPDATE systemEvents
+	$sql = "UPDATE eventSettings
 			SET termsOfUseAccepted = 1, organizerEmail = ?
 			WHERE eventID = {$eventID}";
 
@@ -1547,7 +1547,8 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		$eventChanged = false;
 	} else {
 
-		if(   isRosterPublished($eventID) == true
+		if(   isDescriptionPublished($eventID) == true
+		   || isRosterPublished($eventID) == true
 		   || isSchedulePublished($eventID) == true
 		   || isMatchesPublished($eventID) == true
 		   || isRulesPublished($eventID) == true

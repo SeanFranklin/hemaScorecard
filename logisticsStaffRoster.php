@@ -29,7 +29,6 @@ if($_SESSION['eventID'] == null){
 		$formLock = 'disabled';
 	}
 	
-
 	$staffRoster = logistics_getEventStaff($_SESSION['eventID']);
 	$nonStaffRoster = logistics_getEventStaff($_SESSION['eventID'],false);
 	$defaults = getEventDefaults($_SESSION['eventID']);

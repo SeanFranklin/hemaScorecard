@@ -43,7 +43,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 		$sortString = 'name';
 	}
 
-	$tournamentRoster = getTournamentFighters($tournamentID,$sortString)
+	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,24 +93,27 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	
 	<tbody>
 
-	<?php foreach($tournamentRoster as $fighter): ?>
+	<?php foreach($tournamentRoster as $fighter):
+		$tRosterID = $fighter['tournamentRosterID'] ?>
 		<tr>
 			<td  style='white-space:nowrap;'>
 				<span class='hidden hema-ratings-id'>
 					| <?=hemaRatings_getFighterIDfromRosterID($fighter['rosterID'])?> | 
 				</span>
 				<?=getFighterName($fighter['rosterID'])?>
+				<input type='hidden' name='updateRatings[fighters][<?=$tRosterID?>][ratingID]]'
+					value = '<?=$fighter['ratingID']?>'>
 			</td>
 			<td>
-				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][rating]]'
+				<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][rating]]'
 					value = '<?=$fighter['rating']?>'>
 			</td>
 			<td>
-				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][subGroupNum]]'
+				<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][subGroupNum]]'
 					value = '<?=$fighter['subGroupNum']?>'>
 			</td>
 			<td class='rating2 hidden'>
-				<input type='number' name='updateRatings[fighters][<?=$fighter['rosterID']?>][rating2]]'
+				<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][rating2]]'
 					value = '<?=$fighter['rating2']?>'>
 			</td>
 		</tr>

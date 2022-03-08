@@ -288,7 +288,7 @@ function setPermissions(){
 // Intialize the permissions constant with what the current user can and can't do.
 
 	$permissionsList = 
-		['EVENT_YOUTUBE','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
+		['EVENT_VIDEO','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
 		'SOFTWARE_EVENT_SWITCHING','SOFTWARE_ASSIST','SOFTWARE_ADMIN',
 		'STATS_EVENT','STATS_ALL',
 		'VIEW_HIDDEN','VIEW_SETTINGS','VIEW_EMAIL'];
@@ -410,8 +410,8 @@ function setPermissions(){
 	define("ALLOW",$permissionsArray);
 
 /*
-EVENT_YOUTUBE
-	- Can add youtube links to fights
+EVENT_VIDEO
+	- Can add video links to fights
 EVENT_SCOREKEEP
 	- Can score matches/pieces.
 	- Can advance fighters in brackets

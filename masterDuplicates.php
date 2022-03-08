@@ -352,7 +352,7 @@ function distinctFightersButton($setNum, $setInfo){
 /******************************************************************************/
 
 function getNumTournamentAppearances($systemRosterID){
-	$sql = "SELECT count(tableID) as numTournaments
+	$sql = "SELECT count(*) as numTournaments
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)

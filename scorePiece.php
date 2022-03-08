@@ -118,8 +118,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	
 	</div>
 	
-<!-- Youtube -->
-	<?php addYoutube($matchID); // display_functions.php ?>
+<!-- Video Link -->
+	<?php addVideoLink($matchID); // display_functions.php ?>
 	
 <?php }
 	

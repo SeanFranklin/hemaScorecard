@@ -99,6 +99,7 @@ function hemaRatings_GetEventInfo($eventID){
 				organizingSchool
 			FROM systemEvents
 			LEFT JOIN eventHemaRatingsInfo USING(eventID)
+			LEFT JOIN eventSettings USING(eventID)
 			WHERE eventID = {$eventID}";
 	return mysqlQuery($sql, SINGLE);
 }
@@ -1156,7 +1157,7 @@ function getEventEmail($eventID){
 	}
 
 	$sql = "SELECT organizerEmail
-			FROM systemEvents
+			FROM eventSettings
 			WHERE eventID = {$eventID}";
 	return mysqlQuery($sql, SINGLE, 'organizerEmail');
 
@@ -1381,9 +1382,10 @@ function getEventListFull(){
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	$sql = "SELECT systemEvents.*, countryName
+	$sql = "SELECT systemEvents.*, countryName, organizerEmail, isArchived, termsOfUseAccepted
 			FROM systemEvents
 			INNER JOIN systemCountries USING(countryIso2)
+			LEFT JOIN eventSettings USING(eventID)
 			ORDER BY eventStartDate DESC";
 	return mysqlQuery($sql, KEY, 'eventID');
 
@@ -1601,8 +1603,10 @@ function getEventRoster($sortString = null, $staffInfo = false){
 
 	if($staffInfo != false){
 		$sInfo = ", staffCompetency, staffHoursTarget";
+		$sInfo2 = "LEFT JOIN logisticsStaffCompetency USING(rosterID)";
 	} else {
 		$sInfo = '';
+		$sInfo2 = '';
 	}
 
 	// The schoolID in eventRoster and systemRoster may not be the same
@@ -1613,7 +1617,8 @@ function getEventRoster($sortString = null, $staffInfo = false){
 			FROM eventRoster
 			INNER JOIN systemSchools USING(schoolID)
 			INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
-			AND eventID = {$eventID}
+				AND eventID = {$eventID}
+			{$sInfo2}
 			{$sortString}";
 	$roster = mysqlQuery($sql, ASSOC);
 	
@@ -1888,7 +1893,7 @@ function getEventPenalties($eventID, $fighterIDs = null){
 	$penalties = mysqlQuery($sql, ASSOC);
 
 
-	$penaltyList = [];
+	$penaltiesByFighter = [];
 	foreach($penalties as $penalty){
 
 		$fighterID = $penalty['scoringID'];
@@ -3009,7 +3014,7 @@ function getEventStaffPassword($eventID){
 	
 	$eventID = (int)$eventID;
 	$sql = "SELECT staffPassword
-			FROM systemEvents
+			FROM eventSettings
 			WHERE eventID = {$eventID}";
 	return mysqlQuery($sql, SINGLE, 'staffPassword');
 }
@@ -3020,7 +3025,7 @@ function getEventOrganizerPassword($eventID){
 	
 	$eventID = (int)$eventID;
 	$sql = "SELECT organizerPassword
-			FROM systemEvents
+			FROM eventSettings
 			WHERE eventID = {$eventID}";
 	return mysqlQuery($sql, SINGLE, 'organizerPassword');
 }
@@ -3611,6 +3616,7 @@ function logistics_getEventStaff($eventID,$areStaff = true){
 	$sql = "SELECT rosterID, staffCompetency, staffHoursTarget
 			FROM eventRoster
 			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
 			AND staffCompetency {$staffState}
 			ORDER BY {$sortString}";
@@ -3625,10 +3631,10 @@ function logistics_getRoleCompetencies($eventID){
 	$eventID = (int)$eventID;
 
 	$roles = logistics_getRoles();
-	$sql = "SELECT logisticsRoleID, staffCompetency
-			FROM logisticsStaffCompetency
+	$sql = "SELECT logisticsRoleID, roleCompetency
+			FROM logisticsRoleCompetency
 			WHERE eventID = {$eventID}";
-	$setCompetencies = mysqlQuery($sql, KEY_SINGLES, 'logisticsRoleID','staffCompetency');
+	$setCompetencies = mysqlQuery($sql, KEY_SINGLES, 'logisticsRoleID','roleCompetency');
 
 	foreach($roles as $role){
 		$roleID = $role['logisticsRoleID'];
@@ -5045,11 +5051,13 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 		$tSelect = '';
 	}
 
-	$sql = "SELECT eR.rosterID, eR.staffCompetency, eR.staffHoursTarget
+	$sql = "SELECT eR.rosterID, staffCompetency, staffHoursTarget
 			FROM eventRoster as eR
 			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
-			AND eR.staffCompetency != 0
+			AND staffCompetency != 0
+			AND staffCompetency IS NOT NULL
 			{$tSelect}
 			ORDER BY staffCompetency DESC, systemRoster.{$orderName}";
 
@@ -5058,14 +5066,17 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 	if($avaliableStaff == null){
 		$sql = "SELECT COUNT(*) AS numEventStaff
 				FROM eventRoster
+				INNER JOIN logisticsStaffCompetency USING(rosterID)
 				WHERE eventID = {$eventID}
-				AND staffCompetency != 0";
+				AND staffCompetency != 0
+				AND staffCompetency IS NOT NULL";
 		$numEventStaff = (int)mysqlQuery($sql, SINGLE, 'numEventStaff');
 
 		if($numEventStaff == 0){
-			$sql = "SELECT eR.rosterID, eR.staffCompetency, eR.staffHoursTarget
+			$sql = "SELECT eR.rosterID, staffCompetency, staffHoursTarget
 					FROM eventRoster as eR
 					INNER JOIN systemRoster USING(systemRosterID)
+					LEFT JOIN logisticsStaffCompetency USING(rosterID)
 					WHERE eventID = {$eventID}
 					{$tSelect}
 					ORDER BY staffCompetency DESC, systemRoster.{$orderName}";
@@ -5118,8 +5129,10 @@ function logistics_getUnconflictedShiftStaff($shiftID){
 	$sql = "SELECT eR.rosterID, 1 AS dummy
 			FROM eventRoster as eR
 			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
-			AND eR.staffCompetency != 0
+			AND staffCompetency != 0
+			AND staffCompetency IS NOT NULL
 			AND NOT EXISTS(	SELECT NULL
 							FROM logisticsStaffShifts AS lss
 							INNER JOIN logisticsScheduleShifts AS shift USING(shiftID)
@@ -5389,6 +5402,7 @@ function logistics_getEventStaffingMinutes($eventID){
 			INNER JOIN logisticsScheduleBlocks AS blocks USING(blockID)
 			INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
 			INNER JOIN eventRoster USING(rosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE blocks.eventID = {$eventID}
 			AND logisticsRoleID != {$participantID}
 			ORDER BY roleSortImportance ASC";
@@ -5408,8 +5422,9 @@ function logistics_getEventStaffingMinutes($eventID){
 	$sql = "SELECT rosterID, staffHoursTarget
 			FROM eventRoster
 			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
-			AND (staffCompetency > 0 
+			AND ((staffCompetency > 0 AND staffCompetency IS NOT NULL)
 				|| staffHoursTarget IS NOT NULL)
 			ORDER BY {$sortString}";
 	$allStaff = mysqlQuery($sql, ASSOC);
@@ -5547,8 +5562,10 @@ function logistics_areStaffCompetenciesSet($eventID){
 	$eventID = (int)$eventID;
 	$sql = "SELECT COUNT(*) numRated
 			FROM eventRoster
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
-			AND staffCompetency > 1";
+			AND staffCompetency IS NOT NULL
+			AND staffCompetency > 0";
 	return (bool)mysqlQuery($sql, SINGLE, 'numRated');
 
 }
@@ -5559,9 +5576,9 @@ function logistics_getStaffCompetency($rosterID){
 
 	$rosterID = (int)$rosterID;
 	$sql = "SELECT staffCompetency
-			FROM eventRoster
+			FROM logisticsStaffCompetency
 			WHERE rosterID = {$rosterID}";
-	return mysqlQuery($sql, SINGLE, 'staffCompetency');
+	return (int)mysqlQuery($sql, SINGLE, 'staffCompetency');
 }
 
 /******************************************************************************/
@@ -5714,23 +5731,24 @@ function logistics_findStaffOverCompetency($eventID){
 
 	$eventID = (int)$eventID;
 
-	$roleCompetency = logistics_getRoleCompetencies($eventID);
-
 	$sql = "SELECT shiftID, logisticsRoleID, staffCompetency, rosterID,
-				(	SELECT staffCompetency
-					FROM logisticsStaffCompetency lSC
+				(	SELECT roleCompetency
+					FROM logisticsRoleCompetency lRC
 					WHERE eventID = {$eventID}
-					AND lSC.logisticsRoleID = lSS.logisticsRoleID
-				) AS targetCompetency
+					AND lRC.logisticsRoleID = lSS.logisticsRoleID
+				) AS roleCompetency
 
 			FROM logisticsStaffShifts AS lSS
 			INNER JOIN eventRoster USING(rosterID)
+			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
-			AND (	SELECT staffCompetency
-					FROM logisticsStaffCompetency lSC
+			AND ((	SELECT roleCompetency
+					FROM logisticsRoleCompetency lRC2
 					WHERE eventID = {$eventID}
-					AND lSC.logisticsRoleID = lSS.logisticsRoleID
-				) > staffCompetency";
+					AND lRC2.logisticsRoleID = lSS.logisticsRoleID
+				) > staffCompetency
+				OR staffCompetency IS NULL
+				)";
 	return mysqlQuery($sql, ASSOC);
 
 }
@@ -5814,11 +5832,12 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 	}
 
 	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID, 
-				rating, subGroupNum, rating2, tournamentCheckIn, tournamentGearCheck
+				tournamentRosterID, ratingID, rating, subGroupNum, rating2, tournamentCheckIn, tournamentGearCheck
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)
 			INNER JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
+			LEFT JOIN eventRatings USING(tournamentRosterID)
 			WHERE tournamentID = {$tournamentID}
 			AND isTeam = 0
 			{$excludeTheDiscounted}
@@ -5849,7 +5868,7 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 	$tournamentID = (int)$tournamentID;
 	$controlID = (int)ATTACK_CONTROL_DB;
 
-	$sql = "SELECT rosterID, tableID
+	$sql = "SELECT rosterID, tournamentRosterID
 			FROM eventTournamentRoster
 			WHERE tournamentID = {$tournamentID}";
 	$tRoster = mysqlQuery($sql, KEY, 'rosterID');
@@ -6310,7 +6329,7 @@ function getTournamentsFull($eventID){
 
 /******************************************************************************/
 
-function getYouTube($matchID){
+function getVideoLink($matchID){
 
 	$matchID = (int)$matchID;
 	if($matchID == 0){
@@ -6318,10 +6337,10 @@ function getYouTube($matchID){
 		return;
 	}
 	
-	$sql = "SELECT YouTubeLink
+	$sql = "SELECT videoLink
 			FROM eventMatches
 			WHERE matchID = {$matchID}";
-	return mysqlQuery($sql, SINGLE, 'YouTubeLink');		
+	return mysqlQuery($sql, SINGLE, 'videoLink');		
 			
 	
 }
@@ -6504,7 +6523,7 @@ function getFighterTeam($rosterID, $tournamentID){
 
 	$sql = "SELECT teamID
 			FROM eventTeamRoster team
-			INNER JOIN eventTournamentRoster tourn ON team.tournamentRosterID = tourn.tableID
+			INNER JOIN eventTournamentRoster tourn ON team.tournamentRosterID = tourn.tournamentRosterID
 			WHERE team.rosterID = {$rosterID}
 			AND tournamentID = {$tournamentID}";
 	return (int)mysqlQuery($sql, SINGLE, 'teamID');
@@ -6593,11 +6612,11 @@ function getUngroupedRoster($tournamentID){
 		return null;
 	}
 	
-	$sql = "SELECT t1.rosterID
-			FROM eventTeamRoster t1
-			INNER JOIN eventTournamentRoster t2 ON t1.tournamentRosterID = t2.tableID
+	$sql = "SELECT eTR1.rosterID
+			FROM eventTeamRoster AS eTR1
+			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
 			WHERE tournamentID = {$tournamentID}
-			AND memberRole = 'member'";
+			AND memberRole = 'member'"; 
 	$inTeams = mysqlQuery($sql, SINGLES, 'rosterID');
 
 	if(count($inTeams) > 0){
@@ -6921,7 +6940,7 @@ function isEventTermsAccepted($eventID){
 	}
 
 	$sql = "SELECT termsOfUseAccepted
-			FROM systemEvents
+			FROM eventSettings
 			WHERE eventID = {$eventID}";
 	return (bool)mysqlQuery($sql, SINGLE, 'termsOfUseAccepted');
 
@@ -7508,7 +7527,7 @@ function doesUserHavePermission($systemUserID, $eventID, $permission){
 
 // Function input validation to ensure a valid permission was passed
 	$permissionsList = 
-		['EVENT_YOUTUBE','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
+		['EVENT_VIDEO','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
 		'SOFTWARE_EVENT_SWITCHING','SOFTWARE_ASSIST','SOFTWARE_ADMIN',
 		'STATS_EVENT','STATS_ALL',
 		'VIEW_HIDDEN','VIEW_SETTINGS','VIEW_EMAIL'];
