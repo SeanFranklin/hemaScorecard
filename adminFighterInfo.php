@@ -25,7 +25,7 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	displayAlert('This data can only be displayed for <em>Sparring Matches</em> type tournaments.');
 } else {
 
-	$rawData = getTournamentFightersWithExchangeNumbers($tournamentID);
+	$rawData = getTournamentFightersWithExchangeNumbers($_SESSION['tournamentID']);
 
 	reset($rawData);
 	$first_key = key($rawData);

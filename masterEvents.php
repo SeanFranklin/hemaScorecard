@@ -78,7 +78,6 @@ function displayAdminEventList($eventList){
 				$str .= isSetMark(isRosterPublished($eventID));
 				$str .= "<span class='black-text'>|</span>";
 				$str .= isSetMark(isMatchesPublished($eventID));
-				$str .= isSetMark(isEventArchived($eventID));
 
 				$eventList[$eventID]['Publish'] = $str;
 

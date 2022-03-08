@@ -116,10 +116,15 @@ function scheduleStaffOverCompetency($staffOverCompetency, $eventDays){
 	<?php foreach($staffOverCompetency as $shift):
 		$sInfo = logistics_getShiftInfo($shift['shiftID']);
 		$roleName = logistics_getRoleName($shift['logisticsRoleID']);
+		if($sInfo['tournamentID'] != null){
+			$tournamentName = getTournamentName($sInfo['tournamentID']);
+		} else {
+			$tournamentName = "";
+		}
 		?>
 
 			<tr>
-				<td><?=getTournamentName($sInfo['tournamentID'])?></td>
+				<td><?=$tournamentName?></td>
 				<td>
 					Day <?=$sInfo['dayNum']?> (<?=$eventDays[$sInfo['dayNum']]?>)
 				</td>
@@ -127,7 +132,7 @@ function scheduleStaffOverCompetency($staffOverCompetency, $eventDays){
 				<td><?=logistics_getLocationName($sInfo['locationID'])?></td>
 				<td><strong><?=getFighterName($shift['rosterID'])?></strong></td>
 				<td><?=$roleName?></td>
-				<td><?=$shift['staffCompetency']?> / <?=$shift['targetCompetency']?></td>
+				<td><?=$shift['staffCompetency']?> / <?=$shift['roleCompetency']?></td>
 			</tr>
 			
 	<?php endforeach ?>

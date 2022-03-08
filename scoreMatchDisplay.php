@@ -1,11 +1,6 @@
 <?php
 /*******************************************************************************
-	Match Scoring
-	
-	Scores a match
-	LOGIN
-		- STAFF and higher can score & conclude matches
-		- YOUTUBE and higher can add links to youtube
+
 		
 *******************************************************************************/
 
