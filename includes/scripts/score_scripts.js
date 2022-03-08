@@ -453,13 +453,16 @@ function editExchange(exchangeID, exchangeTime){
 
 /**********************************************************************/
 
-function validateYoutube(){
+function validateVideoLink(){
 
-	var buttons = document.getElementsByClassName('youtubeSubmitButton');
+	var buttons = document.getElementsByClassName('videoSubmitButton');
 	
-	var url = document.getElementById('youtubeField').value;
+	var url = document.getElementById('videoField').value;
 	
-	if(url.startsWith("https://www.youtube.com") || url == ''){
+	if(    url.startsWith("https://www.youtube.com") 
+		|| url.startsWith("https://youtu.be")
+		|| url.startsWith("https://drive/google.com/file")
+		|| url == ''){
 		buttons[1].disabled = false;
 		buttons[0].disabled = false;
 	} else {
