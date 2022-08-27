@@ -235,6 +235,14 @@ function displayAdminEventList($eventList){
 /******************************************************************************/
 
 function addNewEventMenu(){
+	$eventInfo['eventName'] = null;
+	$eventInfo['eventAbbreviation'] = null;
+	$eventInfo['eventStartDate'] = null;
+	$eventInfo['eventEndDate'] = null;
+	$eventInfo['eventCity'] = null;
+	$eventInfo['eventProvince'] = null;
+	$eventInfo['countryIso2'] = null;
+
 	?>
 	
 	<a class='button hollow' id="createNewEventToggleButton">
@@ -245,14 +253,14 @@ function addNewEventMenu(){
 	<form method='POST'>
 		<input type='hidden' name='formName' value='addNewEvent'>
 		<table class='stack'>
-			<?php entryFields(); ?>
+			<?php entryFields($eventInfo); ?>
 			<tr>
 				<td>
 					Meta Event
 				</td>
 				<td>
 					<input type='hidden' name='eventInfo[isMetaEvent]' value='0'>
-					<input class='switch-input' type='checkbox' id='isMetaEvent' 
+					<input class='switch-input' type='checkbox' id='eventInfo[isMetaEvent]' 
 						name='eventInfo[isMetaEvent]' value='1' >
 					<label class='switch-paddle' for='eventInfo[isMetaEvent]'>
 					</label>
@@ -356,7 +364,7 @@ function editEventMenu($eventID,$eventInfo){
 
 /******************************************************************************/
 
-function entryFields($eventInfo = null){
+function entryFields($eventInfo){
 	?>
 	
 	<tr>

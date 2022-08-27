@@ -152,6 +152,12 @@
 		define("META_ROSTER_MODE_EXTENDED",2);
 	$options['T']['ATTACK_DISPLAY_MODE'] = 4;
 	$options['T']['AFTERBLOW_POINT_VALUE'] = 5;
+	$options['T']['MATCH_TIE_MODE'] = 6;
+		define("MATCH_TIE_MODE_NONE",0);
+		define("MATCH_TIE_MODE_EQUAL",1);
+		define("MATCH_TIE_MODE_UNEQUAL",2);
+	$options['T']['TEAM_SWITCH_POINTS'] = 7;
+	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] = 8;
 	$options['T']['CONTROL_POINT_VALUE'] = 9;
 
 	define('OPTION',$options);
@@ -303,11 +309,11 @@ function setPermissions(){
 
 	switch($_SESSION['userName']){
 		
-		// Deliberate fall-thought
 		case 'eventOrganizer':
 
 			$permissionsArray['EVENT_MANAGEMENT'] 	= true;
 			$permissionsArray['STATS_EVENT'] 		= true;
+			// Deliberate fall-thought
 
 		case 'eventStaff':
 
@@ -460,7 +466,7 @@ function initializeSession(){
 		$_SESSION['alertMessages']['userWarnings'] = [];
 	}
 	if(!isset($_SESSION['eventID'])){
-		$_SESSION['eventID'] = '';
+		$_SESSION['eventID'] = 0;
 	}
 	if(!isset($_SESSION['isMetaEvent'])){
 		$_SESSION['isMetaEvent'] = false;

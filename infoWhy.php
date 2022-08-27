@@ -18,29 +18,37 @@ include('includes/header.php');
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
 
-<h3>Why choose HEMA Scorecard?</h3>
+<div class='grid-x grid-margin-x'>
+	<div class='medium-9 cell'>
+		<h3>Why choose HEMA Scorecard?</h3>
 
-You might be skeptical of switching from good ol' reliable pen and paper to tournament software. What can HEMA Scorecard do for you?
+		You might be skeptical of switching from good ol' reliable pen and paper to tournament software. What can HEMA Scorecard do for you?
 
-<BR><BR><h5 style='display:inline;'><a href='#math'>Skip the math</a>:</h5>
-Scorecard calculates all of your pool scores and bracket advancements. 
-It can even do solo events like cutting! </li>
+		<BR><BR><h5 style='display:inline;'><a href='#math'>Skip the math</a>:</h5>
+		Scorecard calculates all of your pool scores and bracket advancements. 
+		It can even do solo events like cutting! </li>
 
-<BR><BR><h5 style='display:inline;'><a href='#show'>Show the world</a>:</h5>  
-Results from HEMA Scorecard are live online as soon as the scorkeeper inputs them.
-Participants know how they are doing as soon as they can check their phone,
-and folks back home can follow a match blow for blow.
-
-
-<BR><BR><h5 style='display:inline;'><a href='#stats'>See the big picture</a>:</h5>
-HEMA Scorecard can give you detailed stats on how your tournaments ran, 
-how the fighters fought, and compare across multiple events.
+		<BR><BR><h5 style='display:inline;'><a href='#show'>Show the world</a>:</h5>  
+		Results from HEMA Scorecard are live online as soon as the scorkeeper inputs them.
+		Participants know how they are doing as soon as they can check their phone,
+		and folks back home can follow a match blow for blow.
 
 
-<BR><BR>Best of all, the price: <strong>Free</strong>. Sold yet? If you are interested in learning more contact
-<span style="unicode-bidi:bidi-override; direction: rtl; text-decoration:underline">
-ac.nilknarfnaes@ameh
-</span>
+		<BR><BR><h5 style='display:inline;'><a href='#stats'>See the big picture</a>:</h5>
+		HEMA Scorecard can give you detailed stats on how your tournaments ran, 
+		how the fighters fought, and compare across multiple events.
+
+
+		<BR><BR>Best of all, the price: <strong>Free</strong>. Sold yet? If you are interested in learning more contact
+		<span style="unicode-bidi:bidi-override; direction: rtl; text-decoration:underline">
+		ac.nilknarfnaes@ameh
+		</span>
+	</div>
+	<div class='medium-3 small-6 cell'>
+		<img src="includes/images/logo_square.jpg">
+	</div>
+
+</div>
 
 <HR>
 <a name='math'></a>

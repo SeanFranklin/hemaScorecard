@@ -27,69 +27,99 @@ if($_SESSION['eventID'] == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 	
+	<fieldset>
+	<form method='POST'>
+		
+	<input type='hidden' name='formName' value='updateTournamentInfo'>
+	<input type='hidden' name='modifyTournamentID' value='0'>
+
+	<h3>Add New Tournament</u></h3>
+
+	<div class='grid-x grid-margin-x grid-padding-x'>
+	<div class='large-7 cell'>
+
+	<table class='options-table stack'>
 	
-	<fieldset class='fieldset grid-x grid-margin-x cell'>
-		<legend><h4>Add New Tournament</h4></legend>
-		<form method='POST'>
-		<input type='hidden' name='formName' value='updateTournamentInfo'>
+		<!-- Tournament Info --------------------------------------------->
+			<?php 
 
-	<!-- Mandatory fields -->
-		<?php edit_tournamentName(); ?>
-		<div id='requiredFields_new' class='grid-x grid-padding-x text-center'>
-			<?php
-			edit_tournamentFormatType();
-			edit_tournamentDoubleType();
-			edit_tournamentRankingType();
-			edit_tournamentNetScore();
-			edit_tournamentBasePoints();			
+			// Tournament Info --------------------------
+				edit_tournamentOptionsRow("General Configuration");
+				edit_tournamentName(0);
+				edit_tournamentFormatType(0);
+				edit_tournamentRankingType(0);
+				edit_tournamentBasePoints(0); 
+
+			// Sparring Tournaments Info --------------------------
+				edit_tournamentOptionsRow("Sparring Info","option-sparring");
+				edit_tournamentDoubleType(0);
+				edit_tournamentNetScore(0);
+				edit_tournamentOverrideDoubles(0);
+				edit_tournamentTies(0);
+				edit_tournamentReverseScore(0);
+
+			// Match Display --------------------------
+				edit_tournamentOptionsRow("Match Display","option-match-display");
+				edit_tournamentColors(0, 1);
+				edit_tournamentColors(0, 2);
+				edit_tournamentTimerCountdown(0);
+
+			// Pools & Standings --------------------------
+				edit_tournamentOptionsRow("Pool Configuration","option-pools");
+				edit_tournamentMaxPoolSize(0);
+				edit_tournamentPoolWinners(0);
+
+			// Match Conclusion --------------------------
+				edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
+					"Optional settings for the software to automatically end a match when these conditions are met. 
+					Scorekeepers can always conclude (or re-open) matches regardless of what is set here.");
+				edit_tournamentMaxDoubles(0);
+				edit_tournamentTimeLimit(0);
+				edit_tournamentMaxPoints(0);
+				edit_tournamentMaxPointSpread(0);
+				edit_tournamentMaxExchanges(0);
+
+			// Sub Matches --------------------------
+				edit_tournamentOptionsRow("Sub-Match Info","option-sub-match",
+					"Sub-matches will create multiple 'sub-matches' for each match.
+							<BR><u>Example</u>: A multi-weapon tournament where competitors
+							face off with each weapon set one after another.");
+				edit_tournamentSubMatches(0);
+
+			// Teams --------------------------
+				edit_tournamentOptionsRow("Team Tournaments","option-teams");
+				edit_tournamentTeams(0);
+
+			// Logistics
+				edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
+				edit_tournamentCuttingQual(0);
+				edit_tournamentHideFinalResults(0);
+				edit_tournamentKeepPrivate(0);
+				edit_tournamentRequireSignOff(0);
+				edit_tournamentStaffCheckin(0);
+				edit_tournamentNormalization(0);
+				edit_tournamentLimitPoolMatches(0);
+
 			?>
-		</div>
-		
-	<!-- Submit button -->
-		<div class='grid-x grid-padding-x text-center'>
-			<div class=' cell'>	
-			<div id='tournamentWarnings_new'>
-				<BR>
-			</div>
-			<button class='button success expanded'
-				name='updateType' value='add' disabled id='editTournamentButtonnew'>
+	</table>
+	</div>
+	</div>
+
+	<div id='tournamentWarnings_0'>
+		<BR>
+	</div>
+
+<!-- Submit Form Options -------------------------------------------------->
+	<div>
+		<button class='button success expanded'
+				name='updateType' value='add' disabled id='editTournamentButton0'>
 				Add New Tournament
-			</button>
-			</div>
-		</div>
-		
-	<!-- Optional fields -->
-		<div id='optionalFields_new' class='grid-x grid-padding-x text-center'>
-			<?php
-			edit_tournamentTies();
-			edit_tournamentColors('new', 1);
-			edit_tournamentColors('new', 2);
-			edit_tournamentMaxDoubles();
-			edit_tournamentMaxPoolSize();
-			edit_tournamentNormalization();
-			edit_tournamentPoolWinners();
+		</button>
+	</div>
+	</form>
 
-			edit_tournamentTimeLimit();
-			edit_tournamentTimerCountdown();
-			edit_tournamentMaxExchanges();
-			edit_tournamentMaxPoints();
-			edit_tournamentMaxPointSpread();
-			edit_tournamentReverseScore();
-			edit_tournamentLimitPoolMatches();
-			edit_tournamentOverrideDoubles();
-			edit_tournamentCuttingQual();
-			edit_tournamentNumSubMatches();
-			edit_tournamentSubMatchMode();
-			edit_tournamentTeams();
-			edit_tournamentKeepPrivate();
-			edit_tournamentHideFinalResults();
-			edit_tournamentRequireSignOff();
-			edit_tournamentStaffCheckin();
-			?>
-		</div>			
-		
-		</form>
 	</fieldset>
+
 	
 <!-- List of existing tournaments -->
 	<fieldset class='fieldset'>

@@ -62,14 +62,37 @@ $eventList = getEventListByPublication();
 
 	<tbody>
 		<?php foreach($eventList as $event):
-			if(compareDates($event['eventStartDate']) > 21){ continue; }
+			$dateDiffStart = compareDates($event['eventStartDate']);
+			$dateDiffEnd = compareDates($event['eventEndDate']);
+
+			if($dateDiffStart > 31){ continue; }
+
+			if($event['eventStatus'] == 'active'){
+
+				if($dateDiffStart > -2 && $dateDiffEnd < 2){
+					$activeClass = "link-table-active";
+					$eventStatus = "<b>ACTIVE</b>";
+				} elseif($dateDiffEnd >= 2){
+					$activeClass = "";
+					$eventStatus = 'concluded';
+				} else {
+					$activeClass = "";
+					$eventStatus = 'published';
+				}
+
+			} else {
+				$activeClass = "";
+				$eventStatus = $event['eventStatus'];
+			}
+
+
 			?>
 
-			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
+			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$activeClass?>'>
 				<td><?=$event['eventStartDate']?></td>
 				<td><?=getEventName($event['eventID'])?></td>
 				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
-				<td><?=$event['eventStatus']?></td>
+				<td><?=$eventStatus?></td>
 			</tr>
 
 		<?php endforeach ?>
@@ -101,14 +124,35 @@ $eventList = getEventListByPublication();
 			$date = sqlDateToString($event['eventStartDate']).", ".$event['eventYear'];
 		}
 
+		$dateDiffStart = compareDates($event['eventStartDate']);
+		$dateDiffEnd = compareDates($event['eventEndDate']);
+
+		if($event['eventStatus'] == 'active'){
+
+			if($dateDiffStart > -2 && $dateDiffEnd < 2){
+				$activeClass = "link-table-active";
+				$eventStatus = "<b>ACTIVE</b>";
+			} elseif($dateDiffEnd >= 2){
+				$activeClass = "";
+				$eventStatus = 'concluded';
+			} else {
+				$activeClass = "";
+				$eventStatus = 'published';
+			}
+
+		} else {
+			$activeClass = "";
+			$eventStatus = $event['eventStatus'];
+		}
+
 		?>
-		<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table'>
+		<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$activeClass?>'>
 			<td><?=$event['eventName']?></td>
 			<td><?=$event['eventYear']?></td>
 			<td><?=$event['countryName']?></td>
 			<td><?=$event['eventProvince']?>, <?=$event['eventCity']?></td>
 			<td><?=$date?></td>
-			<td><?=$event['eventStatus']?></td>
+			<td><?=$eventStatus?></td>
 		</tr>
 	<?php endforeach ?>
 </tbody>
