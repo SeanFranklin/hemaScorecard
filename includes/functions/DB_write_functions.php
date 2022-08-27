@@ -1266,7 +1266,7 @@ function updateFighterRatings($ratingData){
 		$ratingID = (int)$r['ratingID'];
 
 		$rating2isNull = true;
-		if($r['rating2'] == null){
+		if(isset($r['rating2']) == false || $r['rating2'] == null){
 			$rating2 = 'NULL';
 		} else {
 			$rating2 = (int)$r['rating2'];
@@ -1937,7 +1937,7 @@ function addNewEvent($eventInfo){
 	$sql = "INSERT INTO eventSettings
 			(eventID, staffPassword, organizerPassword)
 			VALUES
-			({$eventID}, '{$passwordHash}', '{$passwordHash}')"; show($sql);
+			({$eventID}, '{$passwordHash}', '{$passwordHash}')";
 	mysqlQuery($sql, SEND);
 	
 	$sql = "INSERT INTO eventDefaults
@@ -2595,7 +2595,7 @@ function addTeamMembers($teamInfo, $tournamentID){
 		// Check for a duplicate entry
 			$sql = "SELECT COUNT(*) AS isDuplicate
 					FROM eventTeamRoster t1
-					INNER JOIN eventTournamentRoster t2 ON t1.tournamentRosterID = t2.tableID
+					INNER JOIN eventTournamentRoster t2 ON t1.tournamentRosterID = t2.tournamentRosterID
 					WHERE tournamentID = {$tournamentID}
 					AND t1.rosterID = {$rosterID}";
 
@@ -2605,7 +2605,7 @@ function addTeamMembers($teamInfo, $tournamentID){
 				continue;
 			}
 
-			$sql = "SELECT tableID AS tournamentRosterID
+			$sql = "SELECT tournamentRosterID
 					FROM eventTournamentRoster
 					WHERE rosterID = {$rosterID}
 					AND tournamentID = {$tournamentID}";
@@ -4831,6 +4831,89 @@ function swapMatchFighters($matchID){
 
 /******************************************************************************/
 
+function switchActiveFighters($activeFighters){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+
+	$matchID = (int)$activeFighters['matchID'];
+	if($matchID == 0){
+		return;
+	}
+
+	$fighter1ID = (int)$activeFighters[1]['rosterID'];
+	$team1ID = (int)$activeFighters[1]['teamID'];
+	$fighter2ID = (int)$activeFighters[2]['rosterID'];
+	$team2ID = (int)$activeFighters[2]['teamID'];
+
+	$lastExchangeID = $activeFighters['lastExchangeID'];
+
+	if($fighter1ID != getActiveFighterOnTeam($matchID,$team1ID) && $fighter1ID != 0){
+
+		$lastExchangeID = insertSwapFightersExchange($matchID, $lastExchangeID, $fighter1ID, $team1ID);
+	}
+
+	if($fighter2ID != getActiveFighterOnTeam($matchID,$team2ID) && $fighter2ID != 0){
+
+		$lastExchangeID = insertSwapFightersExchange($matchID, $lastExchangeID, $fighter2ID, $team2ID);
+	}
+
+
+}
+
+/******************************************************************************/
+
+function insertSwapFightersExchange($matchID, $lastExchangeID, $rosterID, $teamID){
+// records a new exchange into the match	
+	
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+	
+	$matchID = (int)$matchID;
+	$rosterID = (int)$rosterID;
+	$teamID = (int)$teamID;
+
+
+	if(isset($_POST['matchTime']) && $_POST['matchTime'] !== null){
+		$exchangeTime = (int)$_POST['matchTime'];
+	} else{
+		$exchangeTime = 'NULL';
+	}
+
+	if($lastExchangeID !== null){
+		$lastExchangeID = (int)$lastExchangeID;
+		
+		$sql = "SELECT MAX(exchangeID) AS maxExchangeID
+				FROM eventExchanges
+				WHERE matchID = {$matchID}";
+		$maxExchangeID = (int)mysqlQuery($sql, SINGLE, 'maxExchangeID');
+
+		if($maxExchangeID != $lastExchangeID){
+			setAlert(USER_ERROR, "Attempting to add exchanges out of order.
+				<BR><i>This can be because you clicked the submit button multiple times,
+					or another user is also adding exchanges to this match.<BR>
+				<strong>Please refresh this page and check that the match scores are accurate.</strong></i>");
+			return;
+		}
+	}
+
+	
+	$sql = "SELECT COUNT(exchangeID) AS numExchanges
+			FROM eventExchanges
+			WHERE matchID = {$matchID}";
+	$exchangeNumber = (int)mysqlQuery($sql, SINGLE, 'numExchanges');
+	$exchangeNumber++;
+
+	$sql = "INSERT INTO eventExchanges
+			(matchID, exchangeType, scoringID, receivingID, exchangeTime, exchangeNumber)
+			VALUES
+			({$matchID}, 'switchFighter', {$teamID}, {$rosterID}, {$exchangeTime}, {$exchangeNumber})";
+
+	mysqlQuery($sql, SEND);
+
+	return(mysqli_insert_id($GLOBALS["___mysqli_ston"]));
+}
+
+/******************************************************************************/
+
 function updateContactEmail($email, $eventID){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
@@ -5284,7 +5367,6 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	$settings['maxPointSpread'] = (int)$formInfo['maxPointSpread'];
 	$settings['basePointValue'] = (int)$formInfo['basePointValue'];
-	$settings['allowTies'] = (int)$formInfo['allowTies'];
 	$settings['timerCountdown'] = (int)$formInfo['timerCountdown'];
 	$settings['isCuttingQual'] = (int)$formInfo['isCuttingQual'];
 	$settings['isFinalized'] = @(int)$formInfo['isFinalized']; //This is a boolean, unset is the same as zero.
@@ -5307,6 +5389,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	switch($formInfo['logicMode']){
 		// Extra quotes are added because this will be passed into the sql query as a raw value
+		case NULL:
 		case 'NULL': {$settings['logicMode'] = 'NULL'; break;}
 		case 'team_Solo': {$settings['logicMode'] = "'team_Solo'"; break;}
 		case 'team_AllVsAll': {$settings['logicMode'] = "'team_AllVsAll'"; break;}
@@ -5332,7 +5415,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	switch($updateType){
 		case 'add':
-			addNewTournament($settings);
+			$tournamentID = addNewTournament($settings);
 			break;
 		case 'update':
 			updateExistingTournament($tournamentID, $settings);
@@ -5341,6 +5424,28 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			// Not a valid mode. Do nothing.
 			break;
 	}
+
+	if(isTeams($tournamentID) == true){
+		$teamSwitchPoints = (int)$formInfo['teamSwitchPoints'];
+		if($teamSwitchPoints < 0 || $teamSwitchPoints > 100){
+			$teamSwitchPoints = 0;
+		}
+		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', $teamSwitchPoints);
+	}
+
+	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['doublesAreNotScoringExch'] == 1){
+		writeOption('T', $tournamentID, 'DOUBLES_ARE_NOT_SCORING_EXCH', 1);
+	} else {
+		writeOption('T', $tournamentID, 'DOUBLES_ARE_NOT_SCORING_EXCH', 0);
+	}
+
+
+	$allowTies = (int)$formInfo['allowTies'];
+	if($allowTies < MATCH_TIE_MODE_NONE || $allowTies > MATCH_TIE_MODE_UNEQUAL){
+		$allowTies = MATCH_TIE_MODE_NONE;
+	}
+
+	writeOption('T', $tournamentID, 'MATCH_TIE_MODE', $allowTies);
 	
 // Update total tournament counts across all events
 	$sql = "SELECT tournamentWeaponID
@@ -5412,7 +5517,7 @@ function addNewTournament($settings){
 				tournamentWeaponID, tournamentPrefixID, tournamentGenderID,	tournamentMaterialID, 
 				tournamentRankingID, doubleTypeID, formatID, normalizePoolSize, color1ID, color2ID, 
 				maxPoolSize, maxDoubleHits, maximumExchanges, maximumPoints, maxPointSpread, basePointValue,
-				allowTies, timerCountdown, isCuttingQual, timeLimit, 
+				timerCountdown, isCuttingQual, timeLimit, 
 				isNotNetScore, isReverseScore, overrideDoubleType, isPrivate, isTeams,
 				logicMode, poolWinnersFirst, limitPoolMatches, checkInStaff, hideFinalResults,
 				numSubMatches, subMatchMode, requireSignOff
@@ -5434,7 +5539,6 @@ function addNewTournament($settings){
 				{$settings['maximumPoints']},
 				{$settings['maxPointSpread']},
 				{$settings['basePointValue']},
-				{$settings['allowTies']},
 				{$settings['timerCountdown']},
 				{$settings['isCuttingQual']},
 				{$settings['timeLimit']},
@@ -5460,6 +5564,7 @@ function addNewTournament($settings){
 	setAlert(USER_ALERT, "Created tournament: <strong>{$newName}</strong>");
 	
 	$_SESSION['tournamentID'] = $tournamentID;
+	return $tournamentID;
 }
 
 /******************************************************************************/
@@ -5519,7 +5624,6 @@ function updateExistingTournament($tournamentID, $settings){
 				maximumPoints = {$settings['maximumPoints']},
 				maxPointSpread = {$settings['maxPointSpread']},
 				basePointValue = {$settings['basePointValue']},
-				allowTies = {$settings['allowTies']},
 				timerCountdown = {$settings['timerCountdown']},
 				isCuttingQual = {$settings['isCuttingQual']},
 				timeLimit = {$settings['timeLimit']},
@@ -5650,16 +5754,25 @@ function importTournamentSettings($config){
 		unset($sourceSettings[$index]);
 	}
 
-	$sql = "SELECT eventName, eventYear
+// Import options from target (these can't be read from the eventTournaments table)
+	$sourceSettings['teamSwitchPoints'] = readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
+	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
+	$sourceSettings['allowTies'] = readOption('T', $sourceID, 'MATCH_TIE_MODE');
+
+// Name is saved from the current tournament
+	$sql = "SELECT tournamentWeaponID, tournamentPrefixID, tournamentGenderID, tournamentMaterialID
 			FROM eventTournaments
-			INNER JOIN systemEvents USING(eventID)
-			WHERE tournamentID = {$sourceID}";
-	$name = mysqlQuery($sql, SINGLE);
+			WHERE tournamentID = {$targetID}";
+	$targetName = mysqlQuery($sql, SINGLE);
 
-	$sourceEventName = $name['eventName']." ".$name['eventYear'];
-	$sourceTournamentName = getTournamentName($sourceID);
+	$sourceSettings['tournamentWeaponID'] = (int)$targetName['tournamentWeaponID'];
+	$sourceSettings['tournamentPrefixID'] = (int)$targetName['tournamentPrefixID'];
+	$sourceSettings['tournamentGenderID'] = (int)$targetName['tournamentGenderID'];
+	$sourceSettings['tournamentMaterialID'] = (int)$targetName['tournamentMaterialID'];
 
-	setAlert(USER_ALERT,"Settings updated to match <strong>[{$sourceEventName}] {$sourceTournamentName}</strong>");
+// Get event name of 
+	$name = getEventAndTournamentName($sourceID);
+	setAlert(USER_ALERT,"Settings updated to match {$name}");
 
 	updateEventTournaments($targetID, 'update', $sourceSettings);
 	

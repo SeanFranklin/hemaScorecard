@@ -220,6 +220,9 @@ function processPostData(){
 			case 'swapMatchFighters':
 				swapMatchFighters($_POST['swapMatchFighters']['matchID']);
 				break;
+			case 'switchActiveFighters':
+				switchActiveFighters($_POST['activeFighters']);
+				break;
 			case 'updateSubMatchesByMatch':
 				updateSubMatchesByMatch($_POST['updateSubMatchesByMatch']);
 				break;
@@ -470,6 +473,9 @@ function processPostData(){
 			case 'setFighterListColumns':
 				$_SESSION['fighterListColumns'] = $_POST['fighterListColumns'];
 				break;
+			case 'setFighterQueueColumns':
+				$_SESSION['fighterQueueColumns'] = $_POST['setFighterQueueColumns'];
+				break;
 			case 'updateAnnouncement':
 				logisticsUpdateAnnouncement($_POST['announcement']);
 				break;
@@ -501,6 +507,9 @@ function processPostData(){
 				break;
 			case 'updateActiveStatsItems':
 				updateActiveStatsItems($_POST['activeStatsItems']);
+				break;
+			case 'statsAttendanceFilters':
+				updateStatsAttendanceFilters($_POST['statsAttendanceFilters']);
 				break;
 				
 	// Cutting Qualification Cases
@@ -558,9 +567,16 @@ function processPostData(){
 		// Check if they landed on a page with an event specified
 
 		parse_str($urlComponents['query'], $urlParams);
+
+		if(isset($urlComponents['path'])){
+			$path = $urlComponents['path'];
+		} else {
+			$path = '';
+		}
+
 		$_SESSION['urlNav'] = $urlParams;
 
-		$sessionUpdated = updateSessionByUrl($urlParams, $urlComponents['path']);
+		$sessionUpdated = updateSessionByUrl($urlParams, $path);
 
 		checkSession();
 
@@ -590,7 +606,7 @@ function processPostData(){
 	unset($_POST);
 
 	if(empty($refreshPage) == false){
-		refreshPage();
+		//refreshPage();
 	}
 
 // Check that terms of use have been signed
@@ -912,6 +928,32 @@ function updateActiveStatsItems($activeStatsItems){
 
 /******************************************************************************/
 
+function updateStatsAttendanceFilters($filters){
+
+	$countryList = getCountryList();
+
+	if(isset($filters['countryIso2']) && isset($countryList[$filters['countryIso2']]) == true){
+		$_SESSION['statsAttendanceFilters']['countryIso2'] = $filters['countryIso2'];
+	} else {
+		$_SESSION['statsAttendanceFilters']['countryIso2'] = null;
+	}
+
+	$y = (int)substr($filters['startDate'],0,4);
+	$m = (int)substr($filters['startDate'],6,7);
+	$d = (int)substr($filters['startDate'],9,10);
+	$_SESSION['statsAttendanceFilters']['startDate'] = $y.'-'.sprintf('%02d',$m).'-'.sprintf('%02d',$d);
+	
+
+	$y = (int)substr($filters['endDate'],0,4);
+	$m = (int)substr($filters['endDate'],6,7);
+	$d = (int)substr($filters['endDate'],9,10);
+	$_SESSION['statsAttendanceFilters']['endDate'] = $y.'-'.sprintf('%02d',$m).'-'.sprintf('%02d',$d);
+
+	
+}
+
+/******************************************************************************/
+
 function createTournamentBrackets($bracketSpecs){
 // Creates a tournament bracket depending on the elimination type used
 // Overwrites any existing brackets
@@ -1033,6 +1075,8 @@ function addNewExchange(){
 
 	$f1ID = $matchInfo['fighter1ID'];
 	$f2ID = $matchInfo['fighter2ID'];
+	$previousScores[1] = $matchInfo['fighter1score'];
+	$previousScores[2] = $matchInfo['fighter2score'];
 
 	$exchangeID = $scoring['exchangeID'];
 	$lastExchangeID = $_POST['lastExchangeID'];
@@ -1071,7 +1115,7 @@ function addNewExchange(){
 	updateMatch($matchInfo);
 	
 	// Check if it is the type of tournament which has a set number of exchanges
-	
+
 	if($_POST['lastExchange'] != 'clearLastExchange'){
 		
 		$matchCap = getMatchCaps($tournamentID);
@@ -1098,15 +1142,62 @@ function addNewExchange(){
 		if($matchConcluded == false){
 			$matchConcluded = shouldMatchConcludeByTime($matchInfo);
 		}
-		
+
 		if($matchConcluded == true){
 			autoConcludeMatch($matchInfo);
 			updateMatch($matchInfo);
 			setAlert(USER_ALERT,"<strong>Match automatically concluded.</strong>");
+		} else {
+			shouldTeamsSwitch($matchInfo, $previousScores);
 		}
+
 	}
 
 	
+}
+
+/******************************************************************************/
+
+function shouldTeamsSwitch($matchInfo, $previousScores){
+
+	if(isTeams($matchInfo['tournamentID']) == false){
+		return;
+	}
+
+	$teamSwitchPoints = (int)readOption('T',$matchInfo['tournamentID'],'TEAM_SWITCH_POINTS');
+
+	if($teamSwitchPoints == 0){
+		return;
+	}
+
+	$updateSession = false;
+	$shouldSwitch = [1 => false, 2 => false];
+
+	if((int)$matchInfo['lastExchange'] == 0){
+		$shouldSwitch = [1 => true, 2 => true];
+		$updateSession = true;
+	}
+
+	$prev = (int)floor((int)$previousScores[1] / $teamSwitchPoints);
+	$now = (int)floor((int)$matchInfo['fighter1score'] / $teamSwitchPoints);
+
+	if($prev != $now){
+		$shouldSwitch[2] = true;
+		$updateSession = true;
+	}
+
+	$prev = (int)floor((int)$previousScores[2] / $teamSwitchPoints);
+	$now = (int)floor((int)$matchInfo['fighter2score'] / $teamSwitchPoints);
+
+	if($prev != $now){
+		$shouldSwitch[1] = true;
+		$updateSession = true;
+	}
+
+	if($updateSession == true){
+		$_SESSION['shouldSwitchFighters'] = $shouldSwitch;
+	}
+
 }
 
 /******************************************************************************/
@@ -1324,13 +1415,13 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 			$scoreValue += getControlPointValue($_SESSION['tournamentID']);
 		}
 
-		if(    $at1['attackPrefix'] == ATTACK_CONTROL_DB 
-			|| $at2['attackPrefix'] == ATTACK_CONTROL_DB){
+		// These could both not exist, which is functionally the same as being null
+		if(    @$at1['attackPrefix'] == ATTACK_CONTROL_DB 
+			|| @$at2['attackPrefix'] == ATTACK_CONTROL_DB){
 
 			$rPrefix = (int)ATTACK_CONTROL_DB;
 		}
 
-		
 	} else {//both hit
 
 		//attributes the strike to the fighter with the higher value hit
@@ -1572,7 +1663,7 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 
 		if($tournamentID != 0 && in_array($tournamentID, $IDs)){
 			changeTournament($tournamentID, $matchID);
-		} else if(count($IDs) == 1){
+		} else if($IDs != null && count($IDs) == 1){
 			// If there is only one tournament in the event it is selected by deafult
 			changeTournament($IDs[0], $matchID);
 		} else {
