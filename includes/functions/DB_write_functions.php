@@ -3861,7 +3861,12 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 	$secondaryBracketID = @$groups['loser']['groupID']; // may not exist if there is no loser bracket
 	$bracketInfo = getBracketInformation($tournamentID);
 	$primaryMatches = getBracketMatchesByPosition($primaryBracketID);
-	$secondaryMatches = getBracketMatchesByPosition($secondaryBracketID);
+	if($secondaryBracketID != 0){
+		$secondaryMatches = getBracketMatchesByPosition($secondaryBracketID);
+	} else {
+		$secondaryMatches = [];
+	}
+	
 
 	$winnerIndex =count($primaryMatches[1]);
 
@@ -3887,7 +3892,7 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 	}
 
 // Winner of secondary bracket
-	if($secondaryMatches[1][1]['winnerID'] != null && $secondaryMatches[1][1]['loserID'] != null){
+	if(@$secondaryMatches[1][1]['winnerID'] != null && @$secondaryMatches[1][1]['loserID'] != null){
 
 		$tmp['rosterID'] = $secondaryMatches[1][1]['winnerID'];
 		$tmp['place'] = 3;
@@ -3939,7 +3944,9 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		// Single Elim
 		
 		foreach($primaryMatches as $bracketLevel => $levelData){
+
 			if($bracketLevel == 1 || $bracketLevel == 2){continue;}
+			
 			foreach($levelData as $bracketPosition => $matchInfo){
 				$high = pow(2,$bracketLevel);
 				$low = pow(2,$bracketLevel-1)+1;
@@ -3989,7 +3996,10 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		$_SESSION['manualPlacing']['tournamentID'] = $tournamentID;
 		$_SESSION['manualPlacing']['data'] = $placings['placings'];
 		$_SESSION['manualPlacing']['message'] = "<p class='red-text'><strong>You seem to have matches with no winners in your bracket.</p></strong><p>Please fill in the results manually. (I did the best I could.)</p>";
-		redirect("infoSummary.php#anchor{$tournamentID}");
+
+		if(basename($_SERVER['PHP_SELF']) != 'infoSummary.php'){
+			redirect("infoSummary.php#anchor{$tournamentID}");
+		}
 
 	} else {
 
