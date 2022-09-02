@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Individual Fighter History';
-$createSortableDataTable[] = 'systemRosterIdTable';
+$createSortableDataTable[] = ['systemRosterIdTable',10];
 include('includes/header.php');
 
 if(ALLOW['SOFTWARE_ASSIST'] == false){
@@ -190,7 +190,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 	<div class='hidden' id='fighter-list'>
 	<em>School indicates the last school they were entered in a HEMA Scorecard event from</em>
 
-	<table  id="systemRosterIdTable" class="display">
+	<table id="systemRosterIdTable" class="display">
 
 		<thead>
 			<tr>

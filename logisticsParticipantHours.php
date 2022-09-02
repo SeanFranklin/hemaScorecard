@@ -14,8 +14,8 @@ $hideEventNav = true;
 $jsIncludes[] = 'roster_management_scripts.js';
 
 // This is necessary for the custom table-sortability
-$createSortableDataTable[] = 'particiantsScheduleSummaryTable';
-$createSortableDataTable[] = 'particiantsScheduleMatchesTable';
+$createSortableDataTable[] = ['particiantsScheduleSummaryTable',100];
+$createSortableDataTable[] = ['particiantsScheduleMatchesTable',100];
 
 include('includes/header.php');
 

@@ -37,7 +37,7 @@ if($_SESSION['eventID'] == null){
 
 	foreach($eventDays as $dayNum => $day){
 		// This is necessary for the custom table-sortability
-		$createSortableDataTable[] = "staffShiftGridTable-{$dayNum}";
+		$createSortableDataTable[] = ["staffShiftGridTable-{$dayNum}",300];
 	}
 
 

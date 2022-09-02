@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Event Video";
-
+$createSortableDataTable[] = ['videoList',25];
 include('includes/header.php');
 
 // Get the event List
@@ -19,28 +19,27 @@ if((int)$_SESSION['eventID'] == 0){
 } if((int)$_SESSION['tournamentID'] == 0){
 	pageError('tournament');
 } else {
-	
-	$tournamentID = $_SESSION['tournamentID'];
 
-	if(ALLOW['EVENT_VIDEO'] == false){
-		$isVideoClause = "AND videoLink IS NOT NULL";
+	$videoList = getTournamentVideo($_SESSION['tournamentID'], ALLOW['EVENT_VIDEO']);
+	$colorNames = getTournamentColors($_SESSION['tournamentID']);
+
+	// Suppress the sort-able table for editing the video list
+	if(ALLOW['EVENT_VIDEO'] == true){
+		$videoListID = '';
 	} else {
-		$isVideoClause = '';
+		$videoListID = 'videoList';
 	}
-
-	$sql = "SELECT matchID, videoLink
-			FROM eventMatches
-			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}
-			{$isVideoClause}";
-	$videoList = (array)mysqlQuery($sql, ASSOC);
-	$colorNames = getTournamentColors($tournamentID);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 	
 	<p>Did you know that HEMA Scorecard allows you to attach a video link to matches? Here is a summary of the videos which have been attached to this event. If you are thinking <b>"Wow, this list sucks!"</b> you are probably right! HEMA Scorecard depends on a crew of passionate individuals to scour the land for video footage. If you are interested in helping, please get a hold of us.</p>
+
+	<div class='callout alert'>
+		<h3>This is not official tournament video</h3>
+		These links are public videos on youtube/etc that HEMA Scorecard volunteers have attached to matches for your benefit.  If there is an issue with one of the links please contact the HEMA Scorecard team. <i>Do not complain to an event organizer about anything on this page.</i>
+	</div>
 
 	<?php if($videoList == []):?>
 		<div class='callout secondary'>
@@ -50,7 +49,8 @@ if((int)$_SESSION['eventID'] == 0){
 
 		<h4>Video For: <b><u><?=getTournamentName($_SESSION['tournamentID'])?></u></b></h4>
 
-		<table>
+		<table  id="<?=$videoListID?>" class="display">
+		<thead>
 			<tr>
 				<th>Group</th>
 				<th>Match</th>
@@ -61,7 +61,9 @@ if((int)$_SESSION['eventID'] == 0){
 					<th>Update</th>
 				<?php endif?>
 			</tr>
+		</thead>
 
+		<tbody>
 		<?php foreach($videoList as $match):
 				$matchInfo = getMatchInfo($match['matchID']);
 				if($matchInfo['matchType'] == 'pool'){
@@ -70,9 +72,9 @@ if((int)$_SESSION['eventID'] == 0){
 					$name = getMatchStageName($match['matchID']);
 				}
 
-				if(ALLOW['EVENT_VIDEO'] == true){
-					$name = "<a href='scoreMatch.php?m=".$match['matchID']."'>".$name."</a>";
-				}
+				
+				$name = "<a href='scoreMatch.php?m=".$match['matchID']."'>".$name."</a>";
+				
 
 			?>
 
@@ -105,10 +107,9 @@ if((int)$_SESSION['eventID'] == 0){
 				</form>
 			</tr>
 
-
-
 		<?php endforeach ?>
 
+		</tbody>
 		</table>
 	<?php endif ?>
 	
