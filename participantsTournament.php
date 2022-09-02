@@ -15,7 +15,7 @@ $pageName = 'Tournament Roster';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
 $jsIncludes[] = 'roster_management_scripts.js';
-$createSortableDataTable[] = 'tournamentCheckInTable';
+$createSortableDataTable[] = ['tournamentCheckInTable',100];
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];

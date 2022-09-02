@@ -1,10 +1,5 @@
 <?php
 /*******************************************************************************
-	Fighter Management
-	
-	Withdraw fighters if they are injured and can no longer compete
-	LOGIN:
-		- ADMIN or higher required to access
 	
 *******************************************************************************/
 
@@ -12,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Fighter Information';
-$createSortableDataTable[] = "fighterInfoTable";
+$createSortableDataTable[] =["fighterInfoTable",25];
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];

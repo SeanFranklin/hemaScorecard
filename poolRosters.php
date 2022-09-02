@@ -19,11 +19,16 @@ $lockedTournamentWarning = true;
 $jsIncludes[] = 'group_management_scripts.js';
 include('includes/header.php');
 
-$tournamentID = $_SESSION['tournamentID'];
-$pools = getPools($tournamentID, $_SESSION['groupSet']);
+$tournamentID = (int)$_SESSION['tournamentID'];
+if($tournamentID != 0){
+	$pools = getPools($tournamentID, $_SESSION['groupSet']);
+} else {
+	$pools = 0;
+}
 
 
-if($tournamentID == null){
+
+if($tournamentID == 0){
 	pageError('tournament');	
 } elseif($pools == null){
 	poolSetNavigation();
@@ -41,6 +46,8 @@ if($tournamentID == null){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
+
+
 
 	$numPools = count($pools);
 	$ringsInfo = (array)logistics_getEventLocations($_SESSION['eventID'],'ring');
@@ -79,6 +86,8 @@ if($tournamentID == null){
 		}
 	}
 
+
+
 //gets a list of fighters not already in a pool
 	$freeFighters = [];
 	foreach($tournamentRoster as $fighter){
@@ -87,7 +96,7 @@ if($tournamentID == null){
 			$freeFighters[] = $fighter;
 		}
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
@@ -524,8 +533,8 @@ function poolSetBox($tournamentID){
 		
 	
 <!-- Set name and cumulative status -->
-	<?php foreach($attributes as $setNumber => $setData): ?>
-		<?php if($setData['cumulative'] !== '0'){
+	<?php foreach($attributes as $setNumber => $setData):
+		if((int)@$setData['cumulative'] != 0){
 			$checked = 'checked';
 		} else {
 			$checked = '';
@@ -708,8 +717,9 @@ function autoPopluateButton($numPools, $enabled){
 				<strong>Seeding Source
 					<?=tooltip("'Seed List' data is manualy entered in <strong>
 						Manage Fighters -> Set Fighter Ratings</strong><BR><BR>
-						<em>Polar Seeding</em> uses rating & rating2 to group people of similar
-						ratings together. Don't use it unless you know what you are doing.")?>
+						")?>
+					<!-- Suppressed Option: "Polar Seeding uses rating & rating2 to group people of similar
+						ratings together. Don't use it unless you know what you are doing. -->
 				:</strong>
 			</span>
 			<select class='input-group-field' type='text' size='1' required
@@ -721,7 +731,7 @@ function autoPopluateButton($numPools, $enabled){
 				<?php endif ?>
 				<option value='random'>Random</option>
 				<option value='seedList'>Seed List</option>
-				<option value='polar'>Polar Seeding</option>
+				<!--<option value='polar'>Polar Seeding</option>-->
 			</select>
 		</div>
 

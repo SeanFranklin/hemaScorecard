@@ -88,7 +88,6 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	<!-- Set the timer mode -->
 	<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($tournamentID)?>'>
 
-
 <!-- Warning if match is ignored -->
 	<?php if($matchInfo['ignoreMatch'] == 1): ?>
 		<div class='callout secondary text-center'>
@@ -112,6 +111,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			<?php backToListButton($matchInfo); ?>
 			<?php confirmStaffBox($matchInfo) ?>
 			<?php addPenaltyBox($matchInfo) ?>
+			<?php switchFighersBox($matchInfo) ?>
 			
 			<!-- Fighter scores -->
 			<div class='large-12 cell'>
@@ -546,7 +546,7 @@ function livestreamMatchSet($matchID){
 	
 	$livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
 	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
-	if($livestreamInfo['isLive'] != 1 || $livestreamInfo['useOverlay'] != 1){
+	if(@$livestreamInfo['isLive'] != 1 || @$livestreamInfo['useOverlay'] != 1){
 		return;
 	}
 	?>
@@ -687,34 +687,40 @@ function backToListButton($matchInfo){
 	}
 	
 	$name = getTournamentName();
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		$hideForSmall = 'hide-for-small-only';
+	} else {
+		$hideForSmall = '';
+	}
 	?>
 	
 	<div class='grid-x align-middle grid-padding-x cell'>
 	
 	<div class='medium-shrink small-12 cell' style='margin-bottom: 10px;'>
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
-		<a class='button no-bottom' href='finalsBracket.php'>
+		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php'>
 			Back To Bracket
 		</a>
-		<a class='button no-bottom' href='poolMatches.php#anchor{<?=$matchID?>'>
+		<a class='button no-bottom <?=$hideForSmall?>' href='poolMatches.php#anchor{<?=$matchID?>'>
 			Back To Match List
 		</a>
 		
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
-		<a class='button small-expanded no-bottom' href='poolMatches.php#anchor<?=$matchID?>'>
+		<a class='button small-expanded no-bottom  <?=$hideForSmall?>' href='poolMatches.php#anchor<?=$matchID?>'>
 			Back To Match List
 		</a>
 		
 	<?php else: ?>
 		
-		<a class='button no-bottom' href='finalsBracket.php#anchor<?=$matchID?>'>
+		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php#anchor<?=$matchID?>'>
 			Back To Bracket
 		</a>
 
 	<?php endif ?>
 
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<a class='button no-bottom hollow' 
+		<a class='button no-bottom hollow hide-for-small-only' 
 			onclick="window.open('scoreMatchDisplay.php','scoreDisplayWindow','toolbar=0,location=0,menubar=0')">
 			Display Window
 			<?=tooltip("Opens a display window to put onto a projector. This window will <u>not</u> update itself when you switch to a different match. You will need to click the <strong>Display Window</strong> button to have the display window update to your currently active match.")?>
@@ -767,9 +773,13 @@ function dataEntryBox($matchInfo){
 
 	}
 ?>	
-	
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true):?>
+		<a onclick="$('#more-options-div').removeClass('hide-for-small-only')" class='show-for-small-only'>Show Exchange Types↓</a>
+	<?php endif ?>
 <!-- Score boxes for individual fighters -->
+
 	<div class='grid-x grid-margin-x'>	
+
 		<?php
 			if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
 			{
@@ -829,7 +839,7 @@ function dataEntryBox($matchInfo){
 	
 	<div class='medium-6 cell'>
 	
-	<table>
+	<table class='hide-for-small-only' id='more-options-div'>
 		
 	<!-- No Exchange -->	
 	<tr>
@@ -862,7 +872,7 @@ function dataEntryBox($matchInfo){
 	<?php endif ?>
 		
 		
-	<!-- Clear last exchange -->
+<!-- Clear last exchange -->
 	<tr>
 		<td>
 			<span class='Clear_Last_Radio'>Clear Last Exchange</span>
@@ -877,7 +887,20 @@ function dataEntryBox($matchInfo){
 			</div>
 		</td>
 	</tr>
-	<!-- Penalty -->
+
+	<?php if($matchInfo['teamEntry'] == true && isTeamLogic($matchInfo['tournamentID']) == false): ?>
+	<tr>
+		<td>Switch Fighters</td>
+		<td>
+			<a class='button hollow warning no-bottom small' data-open='switchFightersBox'>
+				Switch
+			</a>
+		</td>
+	</tr>
+	<?php endif ?>
+
+
+<!-- Penalty -->
 	<tr>
 		<td>Penalty / Warning</td>
 		<td>
@@ -1148,12 +1171,16 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 	}
 
 	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
+	$prefixUsed = (bool)sizeof($parameters['attackPrefix']);
 	if($controlPointValue != 0){
+		$prefixUsed = true;
 		foreach($parameters['attackPrefix'] as $index => $attackID){
 			if($attackID == ATTACK_CONTROL_DB){
 				unset($parameters['attackPrefix'][$index]);
+				
 			}
 		}
+
 	}
 
 	$afterblowValue = (int)getAfterblowPointValue($_SESSION['tournamentID']);
@@ -1176,18 +1203,22 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 
 		<div class='large-4 medium-6 cell'>
-			<?=scoreGridOptionList($parameters, 'attackType', $rosterID)?>
+			<?=scoreGridOptionList($parameters, 'attackType', $rosterID, 'Action')?>
 		</div>
 
 		<div class='large-4 medium-6 cell'>
-			<?=scoreGridOptionList($parameters, 'attackTarget', $rosterID)?>
+			<?=scoreGridOptionList($parameters, 'attackTarget', $rosterID, 'Target')?>
 		</div>
 
 		<div class='large-4 medium-6 cell'>
-			<?=scoreGridOptionList($parameters, 'attackPrefix', $rosterID, true)?>
+			<?=scoreGridOptionList($parameters, 'attackPrefix', $rosterID, null, true)?>
+
+			<?php if($prefixUsed == true): ?>
+				<hr>
+			<?php endif ?>
 
 			<?php if($afterblowValue != 0): ?>
-				<hr>
+				
 				<?=scoreGridOptionList($parameters, 'afterblow', $rosterID)?>
 			<?php else: ?>
 				<input type='hidden' name='score[<?=$rosterID?>][afterblow]' value='0'>
@@ -1199,6 +1230,29 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		<div class='callout large-12 cell text-center'>
 			<h4 id='exchange-grid-summary-<?=$rosterID?>'>No Exchange</h4>
 		</div>
+
+<!-- Submit/Close Buttons --------------------------------------------------------------->
+
+		<div class='large-4 medium-4 cell'>
+			<a class='button secondary expanded' data-close aria-label='Close modal' >Cancel</a>
+			
+		</div>
+
+		<div class='large-4 medium-4 cell'>
+			<button class='button expanded' name='lastExchange' value='noQuality'
+				id='grid-add-no-quality-<?=$rosterID?>' disabled>
+				Add No Quallity
+			</button>
+		</div>
+
+		<div class='large-4 medium-4 cell'>
+			<button class='button success expanded' name='lastExchange' value='scoringHit'
+				id='grid-add-new-exch-<?=$rosterID?>' disabled>
+				Add Scoring Exchange
+			</button>
+		</div>
+
+		<HR class='large-12 cell'>
 
 <!-- Raw Score Values --------------------------------------------------------------->
 		
@@ -1246,28 +1300,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 			<?php endforeach ?>
 		</div>
 
-<!-- Submit/Close Buttons --------------------------------------------------------------->
 
-		<HR class='large-12 cell'>
-
-		<div class='large-4 medium-4 cell'>
-			<a class='button secondary expanded' data-close aria-label='Close modal' >Cancel</a>
-			
-		</div>
-
-		<div class='large-4 medium-4 cell'>
-			<button class='button expanded' name='lastExchange' value='noQuality'
-				id='grid-add-no-quality-<?=$rosterID?>' disabled>
-				Add No Quallity
-			</button>
-		</div>
-
-		<div class='large-4 medium-4 cell'>
-			<button class='button success expanded' name='lastExchange' value='scoringHit'
-				id='grid-add-new-exch-<?=$rosterID?>' disabled>
-				Add Scoring Exchange
-			</button>
-		</div>
 
 	</div>
 	
@@ -1277,7 +1310,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 /******************************************************************************/
 
-function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = false){
+function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isPrefix = false){
 
 	$options = $parameters[$paramType];
 	$controlAttackID = ATTACK_CONTROL_DB;
@@ -1294,11 +1327,25 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 		echo "<input hidden name='score[{$rosterID}][{$paramType}]' value='0'>";
 		return;
 	}
+	$id = 'grid-'.$paramType.'-div-'.$rosterID;
+	$class = $id;
+
+	if($paramType == 'attackType' || $paramType == 'attackTarget'){
+		$hideNotApplicable = 'hidden';
+	} else {
+		$hideNotApplicable = '';
+	}
+	
 
 ?>
-	<table>
+	<?php if($name != ''):?>
+		<a class='<?=$id?>-show-button hidden' onclick="gridScoreToggleCategory('<?=$id?>',1)"><?=$name?> (Show) ↓</a>
+		<a class='<?=$id?>-hide-button' onclick="gridScoreToggleCategory('<?=$id?>',0)"><?=$name?> (Hide) ↓</a>
+	<?php endif ?>
 
-		<tr id="score[<?=$rosterID?>][<?=$paramType?>]-none-row">
+	<table id="<?=$id?>" class="<?=$id?>">
+
+		<tr id="score[<?=$rosterID?>][<?=$paramType?>]-none-row" class='<?=$hideNotApplicable?> <?=$id?>'>
 			<td><i>n/a</i></td>
 			<td>
 				<div class='switch input-group-button large no-bottom'>
@@ -1311,13 +1358,15 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 		</tr>
 	
 
-		<?php foreach($options as $attackID):?>
+		<?php foreach($options as $attackID):
+			$attackName = getAttackName($attackID);
+			?>
 			<?php if((int)$attackID == 0){continue;}?>
 			<tr>
 				<td>
 					<?php
 						if($paramType != 'afterblow'){
-							echo getAttackName($attackID);
+							echo $attackName;
 						} else {
 							echo "Afterblow";
 						}
@@ -1327,7 +1376,7 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $isPrefix = fal
 					<div class='switch input-group-button large no-bottom'>
 						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]' 
 							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>' 
-							onclick="gridScoreUpdate(<?=$rosterID?>,this)">
+							onclick="gridScoreUpdate(<?=$rosterID?>,this)" data-attackName="<?=$attackName?>">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]'>
 						</label>
 					</div>
@@ -1399,6 +1448,159 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 	</select>
 	
 <?php					
+}
+
+/******************************************************************************/
+
+function switchFighersBox($matchInfo){
+
+	if(isset($_SESSION['shouldSwitchFighters']) == true){
+		$shouldSwitch = $_SESSION['shouldSwitchFighters'];
+		unset($_SESSION['shouldSwitchFighters']);
+	} elseif((int)$matchInfo['lastExchange'] == 0) {
+		$shouldSwitch = [1 => true, 2 => true];
+	} else {
+		$shouldSwitch = [1 => false, 2 => false];
+	}
+
+	if($matchInfo['teamEntry'] != true || isTeamLogic($matchInfo['tournamentID']) != false){
+		return;
+	}
+	$colorCode1 = COLOR_CODE_1;
+	$colorName1 = COLOR_NAME_1;
+	$colorCode2 = COLOR_CODE_2;
+	$colorName2 = COLOR_NAME_2;
+
+	$activeFighter1ID = (int)getActiveFighterOnTeam($matchInfo['matchID'], $matchInfo['fighter1ID']);
+	$activeFighter2ID = (int)getActiveFighterOnTeam($matchInfo['matchID'], $matchInfo['fighter2ID']);
+
+	if($activeFighter2ID == 0 || $activeFighter2ID == 0){
+		$formDisabled = 'disable';
+	} else {
+		$formDisabled = '';
+	}
+
+	if($shouldSwitch[1] == true || $shouldSwitch[2] == true){
+		$GLOBALS['showSwitchFightersBox'] = true;
+	}
+
+?>
+
+	<div class='reveal medium open' id='switchFightersBox' data-reveal style="visibility: visible;">
+
+	<h3>Select Active Fighters</h3>
+
+	<form method='POST'>
+
+	<input type='hidden' name='activeFighters[matchID]' value='<?=$matchInfo['matchID']?>'>
+	<input type='hidden' name='activeFighters[lastExchangeID]' value='<?=$matchInfo['lastExchange']?>'>
+
+	<?php if($shouldSwitch[1] == true):?>
+		<div class='callout' style='background-color: <?=$colorCode1?>; border: 1px solid black'>
+			<h4><?=$colorName1?> Should Switch Fighter</h4>
+		</div>
+	<?php endif ?>
+
+	<?php if($shouldSwitch[2] == true):?>
+		<div class='callout' style='background-color: <?=$colorCode2?>; border: 1px solid black'>
+			<h4><?=$colorName2?> Should Switch Fighter</h4>
+		</div>
+	<?php endif ?>
+
+	<div class='grid-x grid-padding-x grid-margin-x'>
+		<?=switchFighersBoxTeam($matchInfo, 1, $activeFighter1ID)?>
+		<?=switchFighersBoxTeam($matchInfo, 2, $activeFighter2ID)?>
+	</div>
+
+	<HR>
+
+	<!-- Submit buttons -->
+		<div class='grid-x grid-margin-x'>
+			<button class='button large-6 cell' name='formName' <?=$formDisabled?>
+				value='switchActiveFighters' id='switch-active-fighters-submit'>
+				Update
+			</button>
+			<button class='button secondary large-6 cell' data-close aria-label='Close modal' type='button'>
+				Cancel
+			</button>
+		</div>
+		
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</form>
+
+<BR><BR><BR><BR>
+
+	</div>
+
+
+
+<?php
+}
+
+/******************************************************************************/
+
+function switchFighersBoxTeam($matchInfo, $num, $activeFighterID){
+
+	if($num == 1){
+		$colorCode = COLOR_CODE_1;
+		$colorName = COLOR_NAME_1;
+		$pre = "fighter1";
+		$border = "border-right";
+
+	} else {
+		$colorCode = COLOR_CODE_2;
+		$colorName = COLOR_NAME_2;
+		$pre = "fighter2";
+		$border = "border-left";
+	}
+
+	$teamID = $matchInfo[$pre.'ID'];
+	$teamRoster = getTeamRoster($teamID);
+
+?>
+
+	<div class='large-6 text-center cell' 
+		style='border-right: 1px solid black; border-left: 1px solid black; margin-top: 2.5em' >
+
+		<div class='grid-x grid-padding-x grid-margin-x'>	
+			<div class='large-12 text-center cell' style='background-color: <?=$colorCode?>; border: 1px solid black'>
+				<span style='font-size:1.5em '><?=$colorName?></span>
+			</div>
+		</div>
+
+		<input type='hidden' name='activeFighters[<?=$num?>][rosterID]' 
+			value='<?=$activeFighterID?>' id='active-fighter-rosterID-<?=$num?>'>
+		<input type='hidden' name='activeFighters[<?=$num?>][teamID]' 
+			value='<?=$teamID?>' id='active-fighter-rosterID-<?=$num?>'>
+		
+		<?php foreach($teamRoster as $index => $rosterID):
+			if($rosterID == $activeFighterID){
+				$class = 'alert';
+			} else {
+				$class = 'hollow';
+			}
+
+			?>
+
+			
+			<a class='button expanded cell <?=$class?> team-fighters-<?=$num?>' style='margin-top: 2em' 
+				onclick="selectActiveFighter(<?=$rosterID?>,<?=$num?>,this)">
+				(<?=($index+1)?>) <?=getFighterName($rosterID)?>
+			</a>
+			
+
+			
+		<?php endforeach ?>
+		
+		
+	</div>
+
+
+<?php
 }
 
 /******************************************************************************/
@@ -1600,7 +1802,17 @@ function createSideBar($matchInfo){
 			$endText2 = '';
 			break;
 	}
-	
+
+	$tieMode = readOption('T',$tournamentID,'MATCH_TIE_MODE');
+
+	if(   $tieMode == MATCH_TIE_MODE_EQUAL
+	   && $matchInfo['fighter1score'] == $matchInfo['fighter2score']){
+		$allowMatchTie = true;
+	} elseif ($tieMode == MATCH_TIE_MODE_UNEQUAL) {
+		$allowMatchTie = true;
+	} else {
+		$allowMatchTie = false;
+	}
 
 ///////////////////////////////////////////////// ?> 
 	
@@ -1637,6 +1849,13 @@ function createSideBar($matchInfo){
 			<script>
 				window.onload = function(){
 
+					<?php 
+						if(isset($GLOBALS['showSwitchFightersBox'])){
+							unset($GLOBALS['showSwitchFightersBox']);
+							echo "$('#switchFightersBox').foundation('open');";
+						}
+					?>
+					
 					updateTimerDisplay();
 
 					<?php if($matchInfo['restartTimer'] == true): ?>
@@ -1649,7 +1868,7 @@ function createSideBar($matchInfo){
 			Timer:
 			<a class='button hollow expanded success no-bottom timer-input' 
 				onclick="startTimer()" id='timerButton'>
-			<h4 class='no-bottom' id='currentTime'>0:00</h4>
+			<h4 class='no-bottom button-extra-pad-small' id='currentTime'>0:00</h4>
 			</a>
 			
 			<!--Manual Time Set -->
@@ -1715,7 +1934,7 @@ function createSideBar($matchInfo){
 				$winButton1 = "
 				<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
 					<button class='button large success no-bottom expanded conclude-match-button' 
-						style='background-color:{$colorCode1}; '
+						style='background-color:{$colorCode1};'
 						name='matchWinnerID' value='{$fighter1ID}' {$lockInputs} >
 						{$name1}
 					</button>
@@ -1741,8 +1960,7 @@ function createSideBar($matchInfo){
 			?>
 		
 		<!-- Tie -->	
-			<?php if((int)$matchInfo['fighter1score'] == (int)$matchInfo['fighter2score'] 
-						&& isTies($tournamentID)): ?>
+			<?php if($allowMatchTie == true): ?>
 				<div class='small-12 cell'>
 				
 				<button class='button large hollow  expanded no-bottom' style='margin-top: 10px;'
@@ -1862,6 +2080,11 @@ function createSideBar($matchInfo){
 		<HR><BR>
 		<a class='button warning large <?=$signOffMouse?>' href='poolMatches.php' <?=$lockInputs?> <?=$signOffPending?> >
 			End of Pool
+		</a>
+	<?php elseif($matchInfo['matchType'] == 'elim'): ?>
+		<HR><BR>
+		<a class='button expanded' href='finalsBracket.php#anchor<?=$matchID?>'>
+			Back To Bracket
 		</a>
 	<?php endif ?>
 	<?php endif ?>

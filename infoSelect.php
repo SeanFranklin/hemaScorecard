@@ -14,13 +14,12 @@
 $pageName = "Tournament Selection";
 $hideEventNav = true;
 $hidePageTitle = true;
-$createSortableDataTable[] = 'eventListActive';
-$createSortableDataTable[] = 'eventListAll';
+$createSortableDataTable[] = ['eventListActive',100];
+$createSortableDataTable[] = ['eventListAll',25];
 
 include('includes/header.php');
 
 $eventList = getEventListByPublication();
-
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

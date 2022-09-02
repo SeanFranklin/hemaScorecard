@@ -35,6 +35,7 @@ if(isset($_SESSION['statsAttendanceFilters']) == true){
 	$list = (array)mysqlQuery($sql, ASSOC);
 
 	$tIDs = [];
+
 	foreach($list as $l){
 		$tIDs[] = $l['tournamentID'];
 		$placings[$l['tournamentID']][1] = null;
@@ -42,9 +43,6 @@ if(isset($_SESSION['statsAttendanceFilters']) == true){
 		$placings[$l['tournamentID']][3] = null;
 	}
 	$tIDs = implode2int($tIDs);
-//1077
-
-
 
 	$sql = "SELECT tournamentID, firstName, lastName, placing
 			FROM eventPlacings
@@ -149,79 +147,6 @@ include('includes/footer.php');
 ////////////////////////////////////////////////////////////////////////////////
 
 /******************************************************************************/
-
-/******************************************************************************/
-
-function showEventRosterGrid($eventID){
-
-	$eventID = (int)$eventID;
-	if($eventID == 0){ return; }
-
-
-	$sql = "SELECT rosterID, firstName, lastName
-			FROM eventRoster
-			INNER JOIN systemRoster USING(systemRosterID)
-			WHERE eventID = {$eventID}
-			ORDER BY lastName ASC";
-	$roster = mysqlQuery($sql, KEY, 'rosterID');
-
-
-	$sql = "SELECT tournamentID,
-				(SELECT count(*)
-				FROM eventTournamentRoster as eTR2
-				WHERE eTR2.tournamentID = eT.tournamentID) as numParticipants
-			FROM eventTournaments AS eT
-			WHERE eventID = {$eventID}
-			ORDER BY numParticipants DESC";
-	$tournaments = mysqlQuery($sql, KEY_SINGLES, 'tournamentID', 'numParticipants');
-
-	$sql = "SELECT rosterID, tournamentID
-			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE eventID = {$eventID}";
-	$allEntries = mysqlQuery($sql, ASSOC);
-
-	$entries = [];
-	foreach($allEntries as $entry){
-		$entries[$entry['rosterID']][$entry['tournamentID']] = true;
-	}
-
-?>
-
-	<table>
-		<tr>
-			<th>Name</th>
-			<?php foreach($tournaments as $tournamentID => $numParticipants): ?>
-				<th><?=getTournamentName($tournamentID)?></th>
-			<?php endforeach ?>
-		</tr>
-		<tr>
-			<th><?=count($roster)?></th>
-			<?php foreach($tournaments as $tournamentID => $numParticipants): ?>
-				<th ><?=$numParticipants?></th>
-			<?php endforeach ?>
-		</tr>
-		<?php foreach($roster as $rosterID => $r):?>
-			<tr>
-				<td style="white-space: nowrap;"><?=$r['lastName']?>, <?=$r['firstName']?></td>
-			
-				<?php foreach($tournaments as $tournamentID => $numParticipants): ?>
-					
-					<?php if(isset($entries[$rosterID][$tournamentID])):?>
-						<td style='background: black;'>
-							1
-						</td>
-					<?php else: ?>
-						<td></td>
-					<?php endif ?>
-					
-				<?php endforeach ?>
-			</tr>
-		<?php endforeach ?>
-	</table>
-
-<?php
-}
 
 /******************************************************************************/
 

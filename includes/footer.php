@@ -91,10 +91,16 @@
 		<script src='https://cdn.datatables.net/1.10.19/js/dataTables.foundation.min.js'></script>
 
 		<script>
-		<?php foreach($createSortableDataTable as $tableName): ?>
+		<?php foreach($createSortableDataTable as $table): 
+			$tableName = $table[0];
+			$tableSize = $table[1];
+			?>
 
 			$(document).ready(function() { 
-				$('#<?=$tableName?>').DataTable(); 
+				$('#<?=$tableName?>').DataTable({
+					"pageLength": <?=$tableSize?>,
+					stateSave: true,
+				}); 
 			} );
 			
 		<?php endforeach ?>
@@ -135,8 +141,16 @@ function displaySponsors(){
 		return;
 	}
 
+
+	$pageName = basename($_SERVER['PHP_SELF']);
+	if(ALLOW['EVENT_SCOREKEEP'] == true && ($pageName == 'scoreMatch.php' || $pageName == 'scorePiece.php' )){
+		$hideForSmall = 'hide-for-small-only';
+	} else {
+		$hideForSmall = '';
+	}
+
 ?>
-	<div class="large-12 cell align-top" style='border-top: 1px solid black; margin-top: 20px;'>
+	<div class="large-12 cell align-top <?=$hideForSmall?>" style='border-top: 1px solid black; margin-top: 20px;'>
 
 		<div class='grid-x grid-margin-x align-center align-top' id='sponsor-large'>
 

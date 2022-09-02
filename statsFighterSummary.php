@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Fighter Information';
-$createSortableDataTable[] = "fighterInfoTable";
+$createSortableDataTable[] = ["fighterInfoTable",300];
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];

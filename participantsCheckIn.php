@@ -10,7 +10,7 @@
 $pageName = 'Event Check In';
 
 include('includes/header.php');
-$createSortableDataTable[] = 'eventCheckInTable';
+$createSortableDataTable[] = ['eventCheckInTable',100];
 $eventID = $_SESSION['eventID'];
 
 if($eventID == null){

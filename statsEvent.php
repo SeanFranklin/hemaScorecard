@@ -25,6 +25,7 @@ if($_SESSION['eventID'] == null){
 	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 
 	$numParticipants = count($roster);
+	$numFighters = getNumEventFighters($_SESSION['eventID']);
 	
 	$clubTotals[1] = 0;
 	if($roster != null){
@@ -62,10 +63,16 @@ if($_SESSION['eventID'] == null){
 	
 	<div class='callout success text-center'>
 		<h5>
-			Total Event Participants:
+			Total Event Participants
+			<?=tooltip("Organizers will typically <b>NOT</b> enter non-fighting participants into Scorecard, and thus the total attendance may be higher than this number.")?>:
 			<strong><?=$numParticipants?></strong><BR>
 
-			Total Tournament Registrations:
+			Total Event Fighters
+			<?=tooltip('Number of participants that fought in a tournament.')?>:
+			<strong><?=$numFighters?></strong><BR>
+
+			Total Tournament Registrations
+			<?=tooltip('<u>Example</u>: If the same person fights in 3 tournaments they count as 3 registrations.')?>:
 			<strong><?=$totalTournamentEntries?></strong>
 		</h5>
 	</div>
