@@ -265,42 +265,34 @@ function gridScoreUpdate(rosterID, id){
 	var scoreValue = 0;
 	
 	var target = $('input[name="score['+rosterID+'][attackTarget]"]:checked').val();
+	var targetName = $('input[name="score['+rosterID+'][attackTarget]"]:checked').attr("data-attackName");
+
 	var type = $('input[name="score['+rosterID+'][attackType]"]:checked').val();
+	var typeName = $('input[name="score['+rosterID+'][attackType]"]:checked').attr("data-attackName");
+
 	var prefix = $('input[name="score['+rosterID+'][attackPrefix]"]:checked').val();
 	var afterblow = $('input[name="score['+rosterID+'][afterblow]"]:checked').val();
 
-/*
+
 	property = id.name.split("[");
 	property = property[2].split("]");
 	property = property[0];
 
-	
-	var naRowIdName = "score["+rosterID+"]["+property+"]-none-row";
-	var naRowId  = document.getElementById(naRowIdName);
-	var checkedValue = 0;
+	var classID = "grid-"+property+"-div-"+rosterID;
 
 	if(property == "attackTarget"){
 		checkedValue = target;
+		gridScoreToggleCategory(classID, 0);
 	} else if(property == "attackType") {
 		checkedValue = type;
-	} else if(property == "afterblow") {
-		checkedValue = afterblow;
+		gridScoreToggleCategory(classID, 0);
 	} else {
 
 	}
-
-	if(checkedValue != 0){
-		$(naRowId).removeClass('hidden');
-	} else {
-		$(naRowId).addClass('hidden');
-	}
-	*/
 
 	if(afterblow === undefined){
 		afterblow = 0;
 	}
-	//console.log(target+" | "+type+" | "+prefix+" | "+afterblow);
-	//console.log(gridAttackTypes);
 
 	var isControl = false;
 	if(prefix == ATTACK_CONTROL_DB){
@@ -351,14 +343,25 @@ function gridScoreUpdate(rosterID, id){
 	} else {
 
 		$("input[name='score["+rosterID+"][hit]'][value='"+scoreValue+"']").prop('checked', true);
+		
 
-		exchangeSummary = scoreValue + " Point";
+		if(typeof typeName !== "undefined" || typeof typeName !== "undefined"){
+			exchangeSummary = "[" + exchangeSummary;
+			exchangeSummary = exchangeSummary + typeName + ", ";
+			exchangeSummary = exchangeSummary + targetName;
+			exchangeSummary = exchangeSummary + "] ";
+		}
+
+		exchangeSummary = exchangeSummary + scoreValue
+
+
+		exchangeSummary = exchangeSummary + " Pt";
 		if(scoreValue > 1){
 			exchangeSummary = exchangeSummary + "s";
 		}
 
 		if(afterblow != 0){
-			exchangeSummary = exchangeSummary + ", with Afterblow (-" + afterblow + ")";
+			exchangeSummary = exchangeSummary + ", w/ Afterblow (-" + afterblow + ")";
 			finalPointValue -= afterblow;
 		}
 
@@ -374,6 +377,26 @@ function gridScoreUpdate(rosterID, id){
 	$("#exchange-grid-summary-"+rosterID).html(exchangeSummary);
 
 	gridScoreEnableSubmission(rosterID);
+
+}
+
+/************************************************************************************/
+
+function gridScoreToggleCategory(className, visibility){
+
+	if(visibility == 0){
+		// Hide
+		$("."+className+"-show-button").show();
+		$("."+className+"-hide-button").hide();
+
+		$("."+className).hide();
+	} else {
+		// Show
+		$("."+className+"-hide-button").show();
+		$("."+className+"-show-button").hide();
+
+		$("."+className).show();
+	}
 
 }
 
@@ -718,6 +741,34 @@ function manualTimeSet(){
 	document.getElementById('matchTime').value = time;
 	updateMatchTimer();
 	document.getElementById('manualSetDiv').classList.add('hidden')
+}
+
+/******************************************************************************/
+
+function selectActiveFighter(rosterID, num, buttonClicked){
+
+	var className = ".team-fighters-"+num;
+	var elems = document.querySelectorAll(className);
+
+	[].forEach.call(elems, function(el) {
+	    el.classList.remove("alert");
+	    el.classList.add("hollow");
+	});
+
+	buttonClicked.classList.add("alert");
+	buttonClicked.classList.remove("hollow");
+
+	var fieldId = "active-fighter-rosterID-"+num;
+	document.getElementById(fieldId).value = rosterID;
+
+	if(   document.getElementById('active-fighter-rosterID-1').value != 0
+	   && document.getElementById('active-fighter-rosterID-2').value != 0){
+		document.getElementById('switch-active-fighters-submit').disabled = false;
+	} else {
+		document.getElementById('switch-active-fighters-submit').disabled = true;
+	}
+
+
 }
 
 /******************************************************************************/
