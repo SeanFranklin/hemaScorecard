@@ -3004,7 +3004,7 @@ function deleteFromGroups(){
 				WHERE groupID = {$checkID}";
 		$data = mysqlQuery($sql, SINGLE);
 		
-		if($data['groupType'] == 'round'){
+		if(isset($data['groupType']) && $data['groupType'] == 'round'){
 			$_SESSION['groupSet'] = $data['groupSet'];
 		}
 	}
@@ -3628,7 +3628,13 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 		}
 	}
 
-	$index = @max(array_keys($placings['placings'])) + 1 ; // May not exist, treat as zero.
+	if(isset($placings['placings'])){
+		$maxPlacing = @max(array_keys($placings['placings'])); // May not exist, treat as zero.
+	} else {
+		$maxPlacing = 0;
+	}
+
+	$index = $maxPlacing + 1 ; 
 
 	$startOfTie = 0;
 	$endOfTie = 0;
@@ -3705,7 +3711,10 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 		$_SESSION['manualPlacing']['data'] = $placings['placings'];
 		$_SESSION['manualPlacing']['message'] = "Ties have been detected. Please confirm this list.
 				<BR><em>Ties are shown in the right hand box with blue arrows.</em>(<strong class='blue-text'>&#8624;</strong>)";
-		redirect("infoSummary.php#anchor{$tournamentID}");
+		
+		if(basename($_SERVER['PHP_SELF']) != 'infoSummary.php'){
+			redirect("infoSummary.php#anchor{$tournamentID}");
+		}
 
 	} else {
 		recordTournamentPlacings($tournamentID, $placings);
@@ -6756,9 +6765,9 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 						WHERE groupID = {$groupID}
 						AND fighter1ID = {$fighter2ID}
 						AND fighter2ID = {$fighter1ID}";
-				$backwardsMatch = mysqlQuery($sql, SINGLE);
+				$backwardsMatch = (array)mysqlQuery($sql, SINGLE);
 				
-				$matchID = $backwardsMatch['matchID'];
+				$matchID = (int)@$backwardsMatch['matchID'];
 				
 				if($backwardsMatch != null){
 					if($backwardsMatch['fightersSwapped'] == 1){

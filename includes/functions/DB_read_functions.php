@@ -6471,6 +6471,24 @@ function getTournamentsFull($eventID){
 
 /******************************************************************************/
 
+function getNumEventFighters($eventID){
+// Get the number of individuals in an event who are entered in at least one tournament.
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(DISTINCT(rosterID)) AS numFighters
+			FROM eventTournamentRoster AS eTR
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE eT.eventID = {$eventID}
+			AND isTeam = 0";
+	$numFighters = (int)mysqlQuery($sql,SINGLE,'numFighters');
+	return ($numFighters);
+
+}
+
+/******************************************************************************/
+
 function getVideoLink($matchID){
 
 	$matchID = (int)$matchID;

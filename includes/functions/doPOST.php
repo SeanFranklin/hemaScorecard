@@ -32,7 +32,6 @@ function processPostData(){
 // Evaluate POST form submitted
 	if(isset($_POST['formName']) != false){
 
-
 		// Refresh page after POST processing complete to prevent resubmits
 		if(!isset($refreshPage)){
 			$refreshPage = true;
@@ -939,17 +938,15 @@ function updateStatsAttendanceFilters($filters){
 	}
 
 	$y = (int)substr($filters['startDate'],0,4);
-	$m = (int)substr($filters['startDate'],6,7);
-	$d = (int)substr($filters['startDate'],9,10);
+	$m = (int)substr($filters['startDate'],5,7);;
+	$d = (int)substr($filters['startDate'],8,10);
 	$_SESSION['statsAttendanceFilters']['startDate'] = $y.'-'.sprintf('%02d',$m).'-'.sprintf('%02d',$d);
 	
-
 	$y = (int)substr($filters['endDate'],0,4);
-	$m = (int)substr($filters['endDate'],6,7);
-	$d = (int)substr($filters['endDate'],9,10);
+	$m = (int)substr($filters['endDate'],5,7);
+	$d = (int)substr($filters['endDate'],8,10);
 	$_SESSION['statsAttendanceFilters']['endDate'] = $y.'-'.sprintf('%02d',$m).'-'.sprintf('%02d',$d);
 
-	
 }
 
 /******************************************************************************/
