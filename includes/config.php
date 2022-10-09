@@ -532,6 +532,12 @@ function initializeSession(){
 	if(!isset($_SESSION['dataModes']['tournamentSort'])){
 		$_SESSION['dataModes']['tournamentSort'] = '';
 	}
+	if(!isset($_SESSION['filterForSchoolID'])){
+		$_SESSION['filterForSchoolID'] = 0;
+	}
+	if(!isset($_SESSION['filterForSystemRosterID'])){
+		$_SESSION['filterForSystemRosterID'] = 0;
+	}
 
 }
 

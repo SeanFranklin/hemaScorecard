@@ -13,8 +13,8 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.2.7'; // Javascript Version
-$vC = '?=1.0.13'; // CSS Version
+$vJ = '?=1.2.8'; // Javascript Version
+$vC = '?=1.0.16'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -67,7 +67,9 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		<?php unset($_SESSION['jumpTo']); ?>
 	<?php endif ?>
     
-    
+    <?php if(isset($refreshPageTimer) == true && (int)$refreshPageTimer != 0):?>
+    	<meta http-equiv="refresh" content="<?=(int)$refreshPageTimer?>">
+    <?php endif ?>
 </head>
 
 	<style>
@@ -146,6 +148,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='infoRules.php'>Rules</a></li>
 							<li><a href='infoSummary.php'>Final Results</a></li>
 							<li><a href='infoVideo.php'>Event Video</a></li>
+							<li><a href='participantsFiltered.php'>Matches by School</a></li>
 						</ul>
 						
 					</li>
@@ -246,6 +249,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 					<ul class='menu vertical'>
 						<li><a href='statsMatchLength.php'>Match Timings</a></li>
 						<li><a href='statsScheduleAssistant.php'>Tournament Time Calculator</a></li>
+						<li><a href='participantsAttendance.php'>Attendance By Fighter</a></li>
 						<?php if(ALLOW['STATS_ALL'] == true):?>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
 							<li><a href='statsMultiEvent.php'>Tournament Summaries</a></li>
@@ -269,6 +273,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
 							<?php if(  ALLOW['SOFTWARE_ADMIN'] == true): ?>
 								<HR class='no-bottom no-top'>
+								<li><a href='participantsSystem.php'>System Roster</a></li>
 								<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
 								<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
 							<?php endif ?>
