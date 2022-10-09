@@ -31,6 +31,12 @@ if($tournamentID == null){
 	$matchList = getPoolMatches($tournamentID, 'all', $poolSet);
 	$tournamentName = getTournamentName($tournamentID);
 	$matchScores = getAllPoolScores($tournamentID, $poolSet);
+	$schoolIDs = getTournamentFighterSchoolIDs($tournamentID);
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		$_SESSION['filterForSchoolID'] = 0;
+	}
+
 	
 	foreach((array)$matchList as $groupID => $pool){
 		$incompletes = false;
@@ -57,7 +63,16 @@ if($tournamentID == null){
 ?>	
 	
 	<?php poolSetNavigation(); ?>
-	
+
+	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
+		<form method='POST'>
+		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
+			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
+			<input type='hidden' name='schoolID' value='0'>
+		</h3>
+		</form>
+	<?php endif ?>
+
 <!-- Navigation to pools -->
 	<a name='topOfPage'></a>
 	<?php if($matchList != null): ?>
@@ -85,6 +100,8 @@ if($tournamentID == null){
 <!-- Display pools -->	
 	<?php foreach((array)$matchList as $groupID => $pool): 
 		$locationName = logistics_getGroupLocationName($groupID);
+		$matchNum = 0;
+		$numDisplayed = 0;
 		?>
 		
 		<a name='group<?=$groupID?>'></a>
@@ -102,20 +119,25 @@ if($tournamentID == null){
 		
 		<div class='grid-x grid-margin-x' name='group<?=$groupID?>'>
 
-			<?=checkFightersIn($groupID)?>
+			<?php  
+			checkFightersIn($groupID);
 
-			<?php $matchNum = 0;
 			foreach ($pool as $matchID => $match){
 				
 				if(gettype($match) == 'array'){
 					$matchNum++;
-					displayMatch($matchID, $match, $matchScores, $matchNum);	
+					$numDisplayed += displayMatch($matchID, $match, $matchScores, $matchNum, $schoolIDs);
 				}	
 			} ?>
 		</div>
+
+		<?php if($numDisplayed != 0): ?>
 		<a href='#topOfPage'>Back to Top</a>
 		<HR>
+		<?php endif ?>
 	<?php endforeach ?>    
+
+	<?=changeClubFilterDropdown($_SESSION['eventID'])?>
 
 	<?php // Auto refresh function if matches are inprogress
 	$time = autoRefreshTime(isInProgress($tournamentID, 'pool')); ?>
@@ -220,7 +242,7 @@ function checkFightersIn($groupID){
 
 /******************************************************************************/
 
-function displayMatch($matchID,$match, $matchScores, $matchNum = null){
+function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolIDs){
 // displays the fighters and score of a match. Also button to go to the match	
 
 	if(NAME_MODE == 'lastName'){
@@ -236,6 +258,8 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 
 	$id1 = $match['fighter1ID'];
 	$id2 = $match['fighter2ID'];
+	$schoolID1 = (int)@$schoolIDs[$id1]; // If they don't have a school then ID will be zero
+	$schoolID2 = (int)@$schoolIDs[$id2]; // If they don't have a school then ID will be zero
 
 	$nameData1 = getCombatantName($id1, 'split');
 	$nameData2 = getCombatantName($id2, 'split');
@@ -245,7 +269,7 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 	
 	$topName2 = $nameData2[$topName].$extra;
 	$bottomName2 = $nameData2[$bottomName];
-	
+
 	$winnerID = $match['winnerID'];
 	
 	// Weights of the fonts for fighter 1 and 2
@@ -280,7 +304,14 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 			$divClass = 'match-incomplete';
 			break;
 	}
-	
+
+	if($_SESSION['filterForSchoolID'] != 0 && $schoolID1 != $_SESSION['filterForSchoolID'] && $schoolID2 != $_SESSION['filterForSchoolID']){
+		$divClass .= ' hidden-important';
+		$displayed = 0;
+	} else {
+		$displayed = 1;
+	}
+
 	$code1 = COLOR_CODE_1;
 	$code2 = COLOR_CODE_2;
 	
@@ -324,7 +355,9 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null){
 		</ul>
 	</div>
 
-<?php }
+<?php 
+	return $displayed;
+}
 
 /******************************************************************************/
 

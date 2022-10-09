@@ -75,8 +75,6 @@
 	<script type='text/javascript' src='includes/scripts/delete_checking_scripts.js<?=$vJ?>'></script>
 	
 	
-
-
 	<?php 
 		if(isset($jsIncludes)){
 			foreach((array)$jsIncludes as $includePath){
@@ -84,6 +82,8 @@
 			}
 		}
 	?>
+
+
 	<?php if(isset($createSortableDataTable)): ?>
 			
 	    <script src='https://code.jquery.com/jquery-3.3.1.js'></script>

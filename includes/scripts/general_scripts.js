@@ -329,4 +329,3 @@ function changeEventJs(eventID){
     submitForm(form, 'selectEvent', true);
 
 }
-

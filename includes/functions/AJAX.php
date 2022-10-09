@@ -415,6 +415,21 @@ case 'getEventTournaments':{
 } break;
 
 /******************************************************************************/
+
+case 'fighterSystemInfo': {
+
+	$systemRosterID = (int)$_REQUEST['systemRosterID'];
+
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolID, HemaRatingsID
+			FROM systemRoster
+			WHERE systemRosterID = {$systemRosterID}";
+
+	$res = mysqlQuery($sql, SINGLE);
+	echo json_encode($res);
+} break;
+
+
+/******************************************************************************/
 }
 
 

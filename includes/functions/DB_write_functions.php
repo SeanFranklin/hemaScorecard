@@ -3388,6 +3388,37 @@ function editEventParticipant(){
 
 /******************************************************************************/
 
+function editSystemParticipant($newInfo){
+
+	if(ALLOW['SOFTWARE_ASSIST'] == FALSE){
+		return;
+	}
+
+	$systemRosterID = (int)$newInfo['systemRosterID'];
+	$schoolID = (int)$newInfo['schoolID'];
+	$firstName = rtrim($newInfo['firstName']);
+	$lastName = rtrim($newInfo['lastName']);
+	$HemaRatingsID = (int)$newInfo['HemaRatingsID'];
+
+	if($HemaRatingsID == 0){
+		$HemaRatingsID = "NULL";
+	}
+
+	$sql = "UPDATE systemRoster
+			SET firstName = ?, lastName = ?, schoolID = {$schoolID}, HemaRatingsID = {$HemaRatingsID}
+			WHERE systemRosterID = {$systemRosterID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	$bind = mysqli_stmt_bind_param($stmt, "ss", $firstName, $lastName);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+	setAlert(USER_ALERT,"{$firstName} {$lastName} updated.");
+	
+}
+
+/******************************************************************************/
+
 function addAdditionalParticipants($data){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
