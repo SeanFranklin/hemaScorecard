@@ -90,6 +90,12 @@ function processPostData(){
 			case 'changeRulesID':
 				$_SESSION['rulesID'] = (int)$_POST['changeRules']['rulesID'];
 				break;
+			case 'filterForSchoolID':
+				$_SESSION['filterForSchoolID'] = (int)$_POST['schoolID'];
+				break;
+			case 'filterForSystemRosterID':
+				$_SESSION['filterForSystemRosterID'] = (int)$_POST['systemRosterID'];
+				break;
 				
 	// Roster Management Cases
 			case 'addEventParticipants':
@@ -133,6 +139,9 @@ function processPostData(){
 				break;
 			case 'editEventParticipant':
 				editEventParticipant();
+				break;
+			case 'editSystemParticipant':
+				editSystemParticipant($_POST['editSystemParticipant']);
 				break;
 			case 'importRosterCSV':
 				importRosterCSV();

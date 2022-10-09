@@ -3049,6 +3049,67 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 }
 
 /******************************************************************************/
+
+function changeClubFilterDropdown($eventID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		return;
+	}
+	$schoolIDs = getEventSchoolIDs($eventID);
+
+?>
+
+	<form method='POST' class=''>
+		<input type='hidden' name='formName' value='filterForSchoolID'>
+		<div class='input-group'>
+			<span class='input-group-label'>Filter By School</span>
+			<select  class='input-group-field' name=schoolID>
+				<option <?=optionValue(0,$_SESSION['filterForSchoolID'])?>>- not set -</option>
+				<?php foreach($schoolIDs as $schoolID): ?>
+					<option <?=optionValue($schoolID,$_SESSION['filterForSchoolID'])?>>
+						<?=getSchoolName($schoolID)?>
+					</option>
+				<?php endforeach ?>
+			</select>
+			<button class='input-group-button button'>Go</button>
+		</div>
+	</form>
+
+<?php
+}
+
+/******************************************************************************/
+
+function changeRosterFilterDropdown(){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		return;
+	}
+
+	$roster = getSystemRosterInfo();
+
+?>
+
+	<form method='POST' class=''>
+		<input type='hidden' name='formName' value='filterForSystemRosterID'>
+		<div class='input-group'>
+			<span class='input-group-label'>Filter By Fighter</span>
+			<select  class='input-group-field' name='systemRosterID'>
+				<option <?=optionValue(0,$_SESSION['filterForSystemRosterID'])?>>- not set -</option>
+				<?php foreach($roster as $r): ?>
+					<option <?=optionValue($r['systemRosterID'],$_SESSION['filterForSystemRosterID'])?>>
+						<?=$r['lastName']?>, <?=$r['firstName']?>
+					</option>
+				<?php endforeach ?>
+			</select>
+			<button class='input-group-button button'>Go</button>
+		</div>
+	</form>
+
+<?php
+}
+
+/******************************************************************************/
 //viewWindow: {min: 0, max: 600} 
 //
 // END OF DOCUMENT /////////////////////////////////////////////////////////////

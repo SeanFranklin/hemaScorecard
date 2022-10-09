@@ -693,6 +693,7 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 	
 	$tournamentID = (int)$tournamentID;
 	$groupSet = (int)$groupSet;
+	$scores = [];
 
 	$sql = "SELECT fighter1ID, fighter2ID, fighter1Score, fighter2Score
 			FROM eventMatches
@@ -903,6 +904,75 @@ function _PhoMatchPoints_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Schnegel_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID, matches, wins, losses, ties
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+
+		$score = 0;
+
+		$sql = "SELECT matchID, winnerID, fighter1ID, fighter2ID, fighter1Score, fighter2Score
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+
+		foreach($matches as $match){
+			if((int)$match['winnerID'] == $rosterID){
+				$score += 10;
+			} else if((int)$match['winnerID'] == 0) {
+
+				if($match['fighter1ID'] == $rosterID){
+					$score += $match['fighter1Score'];
+				} else {
+					$score += $match['fighter2Score'];
+				}
+
+			} else {
+				// No points.
+			}
+
+			$numMatches++;
+		}
+
+		if($numMatches != 0 && $numMatches != $normalizedMatches){
+			$score *= $normalizedMatches/$numMatches;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 	$tournamentID = (int)$tournamentID;
@@ -959,6 +1029,120 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 			$numDoubles = (int)mysqlQuery($sql, SINGLE, 'numDoubles');
 
 			$score -= floor($numDoubles/2); // -1 for every second double.
+		}
+
+		if($numMatches != 0){
+			$score *= $normalizedMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+		
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
+function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	$sql = "SELECT matchID, COUNT(*) AS numDoubles
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE exchangeType = 'double'
+			AND tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}
+			AND ignoreMatch = 0
+			AND matchComplete = 1
+			GROUP BY matchID";
+	//$numDoublesInMatch = (array)mysqlQuery($sql, KEY_SINGLES, 'matchID', 'numDoubles');
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+		$score = 0;
+
+		$sql = "SELECT matchID, winnerID, 
+					( 
+						SELECT COUNT(*) AS num
+						FROM eventExchanges AS eE2
+						WHERE eE2.matchID = eM.matchID
+						AND (      (	 (scoringID != {$rosterID})
+								     AND (    exchangeType = 'clean' 
+										   OR exchangeType = 'afterblow'))
+								OR (exchangeType = 'double')
+							)
+
+
+					) AS numExchangesLost,
+					( 
+						SELECT COUNT(*) AS num
+						FROM eventExchanges AS eE3
+						WHERE eE3.matchID = eM.matchID
+						AND exchangeType = 'double'
+					) AS numDoubles
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+		foreach($matches as $match){
+			$matchID = (int)$match['matchID'];
+
+			$numMatches++;
+
+			$sql = "SELECT scoringID, exchangeType
+					FROM eventExchanges
+					WHERE matchID = {$matchID}
+					AND exchangeType IN ('double','clean','afterblow')
+					ORDER BY exchangeNumber ASC
+					LIMIT 1";
+			$firstHit = (array)mysqlQuery($sql, SINGLE);
+
+			if($match['winnerID'] == $rosterID){
+				$score += 2;
+			}
+
+
+			if($firstHit != [] && $firstHit['scoringID'] == $rosterID && $firstHit['exchangeType'] != 'double' ){
+				$score += 1;
+			}
+
+			if($match['numExchangesLost'] == 0){
+				$score += 1;
+			}
+
+			if($match['numDoubles'] != 0){
+				$score -= 1;
+			}
+			
 		}
 
 		if($numMatches != 0){
@@ -1075,6 +1259,42 @@ function _PlacingCountdown_calculateScore($tournamentPlacings, $basePointValue, 
 
 	return($scoreData);
 
+}
+
+/******************************************************************************/
+
+function _WessexLeagueStandings_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
+
+// This is a meta tournament scoring algorithm.
+// Lookup table base on the placing in each tournament.
+	$scoreData['pointsFor'] = 0;
+	$scoreData['pointsAgainst'] = 0;
+	$scoreData['score'] = 0;
+	$eventScore = 0;
+
+	foreach((array)$tournamentPlacings as $placingData){
+
+		if($placingData['placing'] == 1){
+			$eventScore = 22;
+		} elseif($placingData['placing'] == 2){
+			$eventScore = 18;
+		} elseif($placingData['placing'] == 3){
+			$eventScore = 14;
+		} elseif($placingData['placing'] == 4){
+			$eventScore = 10;
+		} elseif($placingData['placing'] <= 8){
+			$eventScore = 6;
+		} elseif($placingData['placing'] <= 16){
+			$eventScore = 3;
+		} else {
+			$eventScore = 1;
+		}
+
+		$scoreData['pointsFor']++;
+		$scoreData['score'] += $eventScore;
+	}
+
+	return($scoreData);
 }
 
 /******************************************************************************/
@@ -1349,6 +1569,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	$tournamentID = (int)$tournamentID;
 	$bracketInfo = getBracketInformation($tournamentID);
 	$ignores = getIgnores($tournamentID);
+	$schoolIDs = getTournamentFighterSchoolIDs($tournamentID);
 
 	if(isset($bracketInfo[BRACKET_PRIMARY]['numFighters'])){
 		$numToElims = (int)$bracketInfo[BRACKET_PRIMARY]['numFighters'];
@@ -1490,6 +1711,10 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			$name = getCombatantName($fighter['rosterID']);
 		}
 
+		if($_SESSION['filterForSchoolID'] != 0 && (int)@$schoolIDs[$fighter['rosterID']] != $_SESSION['filterForSchoolID']){
+			$class .= ' hidden-important';
+		}
+
 		echo "<tr class='text-center {$class}'>";
 		echo "<td>".$fighter['rank']."</td>";
 		echo "<td  class='text-left'>{$name}</td>";
@@ -1544,6 +1769,8 @@ function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracke
 			</a>
 		</legend>
 
+
+
 		<?=$winnerText?>
 
 		<?php if($bracketSize == true): ?>
@@ -1559,6 +1786,7 @@ function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracke
 			</p>
 		<?php endif ?>
 
+		<b>Algorithm Name: <u><b><?=$description['name']?></b></u></b>
 		<pre><?=$description['description']?></pre>
 
 	</fieldset>

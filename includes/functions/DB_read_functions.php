@@ -520,6 +520,7 @@ function getMatchStageName($matchID){
 	if($groupInfo['groupType'] == 'pool'){
 		return getSetName($groupInfo['groupSet'], $groupInfo['tournamentID']);
 	}
+
 	if($groupInfo['groupType'] == 'elim'){
 		if($groupInfo['groupName'] == 'winner'){
 			switch($groupInfo['bracketLevel']){
@@ -2297,6 +2298,43 @@ function getFighterSchoolName($rosterID, $nameType = null, $includeBranch = null
 
 /******************************************************************************/
 
+function getFighterSchoolNameSystem($systemRosterID, $nameType = null, $includeBranch = null){
+
+	$systemRosterID = (int)$systemRosterID;
+	if($systemRosterID == 0){
+		setAlert(SYSTEM,"No systemRosterID in getFighterName()");
+		return;
+	}
+
+	$sql = "SELECT schoolFullName, schoolShortName, schoolBranch, schoolAbbreviation 
+			FROM systemRoster
+			INNER JOIN systemSchools USING(schoolID)
+			WHERE systemRosterID = {$systemRosterID}";
+
+	$result = mysqlQuery($sql, SINGLE);
+	
+	if($nameType == 'abbreviation'){
+		$schoolName = $result['schoolAbbreviation'];
+	} else if($nameType == 'long' || $nameType == 'full'){
+		$schoolName = $result['schoolFullName'];
+	} else {
+		$schoolName = $result['schoolShortName'];
+	}
+	
+	if($includeBranch != null){
+		if($result['schoolBranch'] != null){
+			$schoolName .= ", ".$result['schoolBranch'];
+		}
+	}
+	
+	if($schoolName == null){$schoolName = '&nbsp';}
+	
+	return $schoolName;
+
+}
+
+/******************************************************************************/
+
 function getAdditionalName($additionalRosterID){
 
 	$additionalRosterID = (int)$additionalRosterID;
@@ -3380,6 +3418,109 @@ function getMatchesByLocationBracket($locationID, $tournamentID, $onlyIncomplete
 	}
 
 	return $locationMatches;
+}
+
+/******************************************************************************/
+
+function getMatchesBySchool($eventID, $schoolID){
+
+	$eventID = (int)$eventID;
+	$schoolID = (int)$schoolID;
+
+	if($eventID == 0 || $schoolID == 0){
+		return [];
+	}
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, tournamentID, groupID, groupType, matchNumber,
+					winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+			AND ((SELECT schoolID
+					FROM eventMatches AS eM2
+					INNER JOIN eventRoster AS eR2 ON eM.fighter1ID = eR2.rosterID
+					WHERE eM.matchID = eM2.matchID) = {$schoolID}
+				OR
+				 (SELECT schoolID
+					FROM eventMatches AS eM3
+					INNER JOIN eventRoster AS eR3 ON eM.fighter2ID = eR3.rosterID
+					WHERE eM.matchID = eM3.matchID) = {$schoolID})
+			ORDER BY tournamentID, groupType DESC, groupID, matchNumber";
+	return mysqlQuery($sql, ASSOC);
+
+}
+
+/******************************************************************************/
+
+function getAttendanceBySystemRosterID($systemRosterID){
+
+	$systemRosterID = (int)$systemRosterID;
+	if($systemRosterID == 0){
+		return;
+	}
+
+	$sql = "SELECT eventID, eventName, eventYear, eventStartDate
+			FROM eventRoster
+			INNER JOIN systemEvents USING(eventID)
+			WHERE systemRosterID = {$systemRosterID}
+			ORDER BY eventStartDate ASC";
+	$events = (array)mysqlQuery($sql, ASSOC);
+
+	$attendanceList = [];
+	$eventIDs = [];
+	foreach($events as $e){
+		$attendanceList[$e['eventID']]['name'] = $e['eventName'];
+		$attendanceList[$e['eventID']]['year'] = $e['eventYear'];
+		$attendanceList[$e['eventID']]['eventStartDate'] = $e['eventStartDate'];
+		$attendanceList[$e['eventID']]['matches'] = [];
+		$eventIDs[].= (int)$e['eventID'];
+	}
+	
+	if($eventIDs != []){
+		$eventIDs = implode(",",$eventIDs);
+
+		$sql = "SELECT matchID, fighter1ID, fighter2ID, tournamentID, groupID, groupType, matchNumber,
+						winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete, eventID,
+						IF((SELECT systemRosterID
+							FROM eventMatches AS eM4
+							INNER JOIN eventRoster AS eR4 ON eM.fighter1ID = eR4.rosterID
+							WHERE eM.matchID = eM4.matchID) = {$systemRosterID}, 1, 0) AS isFighter1
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
+				WHERE eventID IN($eventIDs)
+				AND ((SELECT systemRosterID
+						FROM eventMatches AS eM2
+						INNER JOIN eventRoster AS eR2 ON eM.fighter1ID = eR2.rosterID
+						WHERE eM.matchID = eM2.matchID) = {$systemRosterID}
+					OR
+					 (SELECT systemRosterID
+						FROM eventMatches AS eM3
+						INNER JOIN eventRoster AS eR3 ON eM.fighter2ID = eR3.rosterID
+						WHERE eM.matchID = eM3.matchID) = {$systemRosterID})
+				ORDER BY eventStartDate ASC, tournamentID, groupType DESC, groupID, matchNumber";
+		$matches = (array)mysqlQuery($sql, ASSOC);
+
+		foreach($matches as $m){
+
+			if($m['isFighter1'] == 0 && $m['groupType'] != 'round'){
+				$tmp 				= $m['fighter2ID'];
+				$m['fighter2ID'] 	= $m['fighter1ID'];
+				$m['fighter1ID'] 	= $tmp;
+
+				$tmp 					= $m['fighter2Score'];
+				$m['fighter2Score'] 	= $m['fighter1Score'];
+				$m['fighter1Score'] 	= $tmp;
+			}
+
+			$attendanceList[$m['eventID']]['matches'][] = $m;
+		}
+	}
+	
+	return $attendanceList;
+
 }
 
 /******************************************************************************/
@@ -4929,6 +5070,19 @@ function getSystemRoster($tournamentID = 0){
 
 /******************************************************************************/
 
+function getSystemRosterInfo(){
+	
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolFullName, HemaRatingsID
+			FROM systemRoster
+			INNER JOIN systemSchools USING(schoolID)
+			ORDER BY lastName ASC, firstName ASC";
+
+	return (array)mysqlQuery($sql, ASSOC);
+
+}
+
+/******************************************************************************/
+
 function getTournamentWeaponsList(){
 	$sql = "SELECT tournamentTypeID, tournamentType, numberOfInstances
 			FROM systemTournaments
@@ -5987,6 +6141,33 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 
 	return mysqlQuery($sql, ASSOC);
 
+}
+
+/******************************************************************************/
+
+function getTournamentFighterSchoolIDs($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT rosterID, schoolID
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID = {$tournamentID}";
+	return (array)mysqlQuery($sql, KEY_SINGLES, 'rosterID', 'schoolID');
+}
+
+/******************************************************************************/
+
+function getEventSchoolIDs($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT DISTINCT schoolID
+			FROM eventRoster
+			INNER JOIN systemSchools USING(schoolID)
+			WHERE eventID = {$eventID}
+			ORDER BY schoolShortName ASC";
+	return (array)mysqlQuery($sql, SINGLES, 'schoolID');
 }
 
 /******************************************************************************/
