@@ -13,8 +13,8 @@
 include_once('includes/config.php');
 
 $livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.2.8'; // Javascript Version
-$vC = '?=1.0.16'; // CSS Version
+$vJ = '?=1.3.0'; // Javascript Version
+$vC = '?=1.1.0'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -251,6 +251,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 						<li><a href='statsScheduleAssistant.php'>Tournament Time Calculator</a></li>
 						<li><a href='participantsAttendance.php'>Attendance By Fighter</a></li>
 						<?php if(ALLOW['STATS_ALL'] == true):?>
+							<HR class='no-bottom no-top'>
 							<li><a href='statsFighters.php'>Fighter Histories</a></li>
 							<li><a href='statsMultiEvent.php'>Tournament Summaries</a></li>
 							<li><a href='statsResultsDump.php'>Export Results</a></li>
