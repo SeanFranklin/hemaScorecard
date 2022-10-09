@@ -186,3 +186,48 @@ function editParticipant(rosterID){
     
 }
 
+/**********************************************************************/
+
+function editSystemParticipant(systemRosterID){
+
+    var div = document.getElementById('editSystemParticipantModal');
+
+    if(systemRosterID == 0){
+        document.getElementById('editSystemRosterID').value = systemRosterID;
+        document.getElementById('displaySystemRosterID').value = systemRosterID;
+        document.getElementById('editSystemFirstName').value = data.firstName;
+        document.getElementById('editSystemLastName').value = data.lastName;
+        document.getElementById('editSystemHemaRatingsID').value = data.HemaRatingsID;
+        document.getElementById('editSystemSchoolID').value = data.schoolID;
+        return;
+    }
+
+    var query = "mode=fighterSystemInfo&systemRosterID="+systemRosterID.toString();
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            if(this.responseText.length > 1){ // If the fighter has already fought
+            
+
+                var data = JSON.parse(this.responseText);
+                console.log(data);
+
+                document.getElementById('editSystemRosterID').value = systemRosterID;
+                document.getElementById('displaySystemRosterID').value = systemRosterID;
+                document.getElementById('editSystemFirstName').value = data.firstName;
+                document.getElementById('editSystemLastName').value = data.lastName;
+                document.getElementById('editSystemHemaRatingsID').value = data.HemaRatingsID;
+                document.getElementById('editSystemSchoolID').value = data.schoolID;
+            }
+        }
+    };
+    
+
+    
+
+}
+
