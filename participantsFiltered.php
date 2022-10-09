@@ -19,6 +19,7 @@ if($eventID == null){
 } else {
 
 	$allMatches = getMatchesBySchool($eventID, $_SESSION['filterForSchoolID']);
+	$isArchived = isEventArchived($eventID);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,9 @@ if($eventID == null){
 				<th class='text-right'></th>
 				<th class='text-left'></th>
 				<th class='text-left'>Fighter 2</th>
-				<th></th>
+				<?php if($isArchived == false):?>
+					<th></th>
+				<?php endif ?>
 		</thead>
 		<tbody>
 		<?php foreach($allMatches as $m):
@@ -92,7 +95,9 @@ if($eventID == null){
 				<td class='<?=$f1class?>'><?=$m['fighter1Score']?></td>
 				<td class='<?=$f2class?>'><?=$m['fighter2Score']?></td>
 				<td class='<?=$f2class?>'><?=getFighterName($m['fighter2ID'])?></td>
-				<td><?=$isComplete?></td>
+				<?php if($isArchived == false):?>
+					<td><?=$isComplete?></td>
+				<?php endif ?>
 			</tr>
 		<?php endforeach ?>
 		</tbody>
