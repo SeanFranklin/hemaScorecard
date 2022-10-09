@@ -1,5 +1,54 @@
 /* Added By Sean **************************************************************/
 
+table td.match-queue{
+  padding-top: 2em;
+  padding-bottom: 2em;
+}
+
+table tr.match-queue{
+  font-size: 200%;
+  border-top: solid black 1px;
+}
+
+@media screen and (max-width: 39.9375em) {
+  .button-extra-pad-small {
+    font-size: 600%;} }
+
+.options-table table{
+  border:  0px;
+}
+
+.options-table td{
+  padding-top: 4px; 
+  padding-bottom: 4px;
+  background-color: #fff;
+}
+
+.options-table select{
+  max-height: 1.5em; 
+  padding-top: 0px; 
+  padding-bottom: 0px;
+  margin-left:  10px;
+}
+
+.options-table input{
+  width:  110px;
+  max-height: 1.5em; 
+  padding-top: 0px; 
+  padding-bottom: 0px;
+  margin-left:  10px;
+  margin-bottom: 0px;
+}
+
+.shrink-column{
+  width:0.1%;
+  white-space: nowrap;
+}
+
+.conclude-match-button{
+  border: 1px solid black;
+}
+
 .link-table:hover{
   background:#64C6FF;
 }
@@ -269,6 +318,10 @@
 
 .hidden{
 	display: none;
+}
+
+.hidden-important{
+  display: none !important;
 }
 
 select {
