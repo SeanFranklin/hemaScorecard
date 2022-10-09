@@ -2267,7 +2267,7 @@ function addNewDuplicateException(){
 				({$rosterID1}, {$rosterID2})";
 
 
-		setAlert(USER_ALERT,"Registered {$rosterID1} (".getFighterName($rosterID1).") and {$rosterID2} (".getFighterName($rosterID2).") as not duplicates.");
+		setAlert(USER_ALERT,"Registered {$rosterID1} (".getFighterNameSystem($rosterID1).") and {$rosterID2} (".getFighterNameSystem($rosterID2).") as not duplicates.");
 
 	} else {
 		setAlert(USER_ERROR,"Invalid rosterIDs: {$rosterID1}, {$rosterID2}.");
