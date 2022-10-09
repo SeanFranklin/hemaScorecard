@@ -3432,22 +3432,44 @@ function getMatchesBySchool($eventID, $schoolID){
 	}
 
 	$sql = "SELECT matchID, fighter1ID, fighter2ID, tournamentID, groupID, groupType, matchNumber,
-					winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete
+					winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete,
+					IF((SELECT schoolID
+						FROM eventMatches AS eM4
+						INNER JOIN eventRoster AS eR4 ON eM4.fighter1ID = eR4.rosterID
+						WHERE eM.matchID = eM4.matchID) = {$schoolID}, 1, 0) AS isFighter1
 			FROM eventMatches AS eM
 			INNER JOIN eventGroups USING(groupID)
 			INNER JOIN eventTournaments USING(tournamentID)
 			WHERE eventID = {$eventID}
 			AND ((SELECT schoolID
 					FROM eventMatches AS eM2
-					INNER JOIN eventRoster AS eR2 ON eM.fighter1ID = eR2.rosterID
+					INNER JOIN eventRoster AS eR2 ON eM2.fighter1ID = eR2.rosterID
 					WHERE eM.matchID = eM2.matchID) = {$schoolID}
 				OR
 				 (SELECT schoolID
 					FROM eventMatches AS eM3
-					INNER JOIN eventRoster AS eR3 ON eM.fighter2ID = eR3.rosterID
+					INNER JOIN eventRoster AS eR3 ON eM3.fighter2ID = eR3.rosterID
 					WHERE eM.matchID = eM3.matchID) = {$schoolID})
 			ORDER BY tournamentID, groupType DESC, groupID, matchNumber";
-	return mysqlQuery($sql, ASSOC);
+
+
+	$matchList = mysqlQuery($sql, ASSOC);
+
+	foreach($matchList as $index => $m){
+
+		if($m['isFighter1'] == 0 && $m['groupType'] != 'round'){
+
+			$tmp = $m['fighter2ID'];
+			$matchList[$index]['fighter2ID'] 	= $m['fighter1ID'];
+			$matchList[$index]['fighter1ID'] 	= $tmp;
+
+			$tmp = $m['fighter2Score'];
+			$matchList[$index]['fighter2Score'] 	= $m['fighter1Score'];
+			$matchList[$index]['fighter1Score'] 	= $tmp;
+		}
+	}
+
+	return $matchList;
 
 }
 
@@ -3464,7 +3486,7 @@ function getAttendanceBySystemRosterID($systemRosterID){
 			FROM eventRoster
 			INNER JOIN systemEvents USING(eventID)
 			WHERE systemRosterID = {$systemRosterID}
-			ORDER BY eventStartDate ASC";
+			ORDER BY eventStartDate DESC";
 	$events = (array)mysqlQuery($sql, ASSOC);
 
 	$attendanceList = [];
@@ -3484,7 +3506,7 @@ function getAttendanceBySystemRosterID($systemRosterID){
 						winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete, eventID,
 						IF((SELECT systemRosterID
 							FROM eventMatches AS eM4
-							INNER JOIN eventRoster AS eR4 ON eM.fighter1ID = eR4.rosterID
+							INNER JOIN eventRoster AS eR4 ON eM4.fighter1ID = eR4.rosterID
 							WHERE eM.matchID = eM4.matchID) = {$systemRosterID}, 1, 0) AS isFighter1
 				FROM eventMatches AS eM
 				INNER JOIN eventGroups USING(groupID)
@@ -3493,12 +3515,12 @@ function getAttendanceBySystemRosterID($systemRosterID){
 				WHERE eventID IN($eventIDs)
 				AND ((SELECT systemRosterID
 						FROM eventMatches AS eM2
-						INNER JOIN eventRoster AS eR2 ON eM.fighter1ID = eR2.rosterID
+						INNER JOIN eventRoster AS eR2 ON eM2.fighter1ID = eR2.rosterID
 						WHERE eM.matchID = eM2.matchID) = {$systemRosterID}
 					OR
 					 (SELECT systemRosterID
 						FROM eventMatches AS eM3
-						INNER JOIN eventRoster AS eR3 ON eM.fighter2ID = eR3.rosterID
+						INNER JOIN eventRoster AS eR3 ON eM3.fighter2ID = eR3.rosterID
 						WHERE eM.matchID = eM3.matchID) = {$systemRosterID})
 				ORDER BY eventStartDate ASC, tournamentID, groupType DESC, groupID, matchNumber";
 		$matches = (array)mysqlQuery($sql, ASSOC);
@@ -6162,7 +6184,7 @@ function getEventSchoolIDs($eventID){
 
 	$eventID = (int)$eventID;
 
-	$sql = "SELECT DISTINCT schoolID
+	$sql = "SELECT DISTINCT schoolID, schoolShortName
 			FROM eventRoster
 			INNER JOIN systemSchools USING(schoolID)
 			WHERE eventID = {$eventID}

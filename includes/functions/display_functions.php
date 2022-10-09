@@ -3052,9 +3052,10 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 
 function changeClubFilterDropdown($eventID){
 
-	if(ALLOW['EVENT_SCOREKEEP'] == true){
+	if(ALLOW['EVENT_SCOREKEEP'] == true && ALLOW['SOFTWARE_ADMIN'] == false){
 		return;
 	}
+
 	$schoolIDs = getEventSchoolIDs($eventID);
 
 ?>
@@ -3082,7 +3083,7 @@ function changeClubFilterDropdown($eventID){
 
 function changeRosterFilterDropdown(){
 
-	if(ALLOW['EVENT_SCOREKEEP'] == true){
+	if(ALLOW['EVENT_SCOREKEEP'] == true && ALLOW['SOFTWARE_ADMIN'] == false){
 		return;
 	}
 
