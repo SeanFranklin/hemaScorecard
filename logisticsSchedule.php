@@ -12,7 +12,6 @@ define("SCHEDULE_TIME_INTERVAL",30); // 30 minutes.
 $pageName = 'Event Schedule';
 $jsIncludes[] = 'logistics_management_scripts.js';
 $includeTournamentName = false;
-$hideEventNav = true;
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];

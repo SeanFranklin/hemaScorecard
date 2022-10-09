@@ -29,16 +29,16 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 		$systemRoster = mysqlQuery($sql, ASSOC);
 
 		foreach($systemRoster as $fighter){
+			$newDuplicates = [];
 			switch($_SESSION['duplicateNameSearchType']){
 				case 'lastName_school':
-					$newDuplicates = match_LastName_School($fighter);
+					$newDuplicates = (array)match_LastName_School($fighter);
 					break;
 				default:
-					$newDuplicates = null;
+					$newDuplicates = [];
 					break;
 			}
 
-			
 			if(count($newDuplicates) == 0){ 
 				continue;
 			}
@@ -73,12 +73,24 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 
 <!-- Display search results -->
 	<table>
+
+		<tr>
+			<th>Last</th>
+			<th>First</th>
+			<th>School</th>
+			<th>systemRosterID</th>
+			<th>HemaRatingsID</th>
+			<th></th>
+		</tr>
+
 	<?php 
 
 // No search results
 	if(count($allDuplicates) == 0){
 		displayAlert("No Duplicates Found");
 	}
+
+
 
 // Step through duplicates
 	foreach((array)$allDuplicates as $setNum => $set):
@@ -101,6 +113,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 				<td><?=$name['lastName']?></td>
 				<td><?=$name['firstName']?></td>
 				<td><?=$setInfo[$index]['schoolName']?></td>
+				<td><?=$setInfo[$index]['systemRosterID']?></td>
 				<td><?=$setInfo[$index]['HemaRatingsID']?></td>
 				<td class='text-right'>
 					<?=$setInfo[$index]['numTournaments']?>&nbsp;&nbsp;&nbsp;
@@ -136,9 +149,15 @@ function match_LastName_School($fighter){
 	// Ignores fighters that have ' character in their name, because
 	//  the query is not properly escaped. 
 	// THIS NEEDS TO BE FIXED!!!!!
-	if(strpos($fighter['lastName'],"'") !== false){return null;}
+	if(strpos($fighter['lastName'],"'") !== false){return [];}
+
+
 
 	$firstLet = substr($fighter['firstName'],0,1);
+	$col = mb_detect_encoding($firstLet);
+	if($col != "ASCII"){
+		return [];
+	}
 
 	$sql = "SELECT systemRosterID, firstName, lastName, schoolID
 			FROM systemRoster
@@ -154,7 +173,6 @@ function match_LastName_School($fighter){
 					SELECT rosterID2
 					FROM systemRosterNotDuplicate
 					WHERE rosterID1 = {$fighter['systemRosterID']})";
-
 	return mysqlQuery($sql, ASSOC);
 
 }
@@ -195,6 +213,8 @@ function match_LastName_School($fighter){
 </style>
 
 <?php
+
+/******************************************************************************/
 
 function tournamentEntryTooltip($systemRosterID){
 

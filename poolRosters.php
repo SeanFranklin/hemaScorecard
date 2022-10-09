@@ -48,6 +48,9 @@ if($tournamentID == 0){
 } else { // Main Program ///////////
 
 
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		$_SESSION['filterForSchoolID'] = 0;
+	}
 
 	$numPools = count($pools);
 	$ringsInfo = (array)logistics_getEventLocations($_SESSION['eventID'],'ring');
@@ -111,6 +114,15 @@ if($tournamentID == 0){
 			<?php autoPopluateButton($numPools, $arePoolsEmpty); ?>
 		</div>
 	</div>
+
+	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
+		<form method='POST'>
+		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
+			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
+			<input type='hidden' name='schoolID' value='0'>
+		</h3>
+		</form>
+	<?php endif ?>
 	
 <!-- Pool Displays -->
 	<form method='POST' name='poolRosterForm' id='poolRosterForm'>
@@ -151,6 +163,7 @@ if($tournamentID == 0){
 	</div>
 
 <!-- Pool Management -->
+	<?= changeClubFilterDropdown($_SESSION['eventID'])?>
 	<?php poolManagement(count($pools)); ?>
 	
 <?php }
@@ -972,8 +985,15 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 					$name = getTeamName($rosterID);
 				}
 
+				if($_SESSION['filterForSchoolID'] != 0 && $poolRoster[$i]['schoolID'] != $_SESSION['filterForSchoolID']){
+					$class = ' hidden';
+				} else {
+					$class = '';
+				}
+
 			?>
-			<div class='medium-shrink small-6 cell opacity-toggle' id='divFor<?=$rosterID?>'>
+
+			<div class='medium-shrink small-6 cell opacity-toggle <?=$class?>' id='divFor<?=$rosterID?>'>
 			
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<input type='checkbox' id=<?=$rosterID?>
