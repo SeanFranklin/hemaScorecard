@@ -41,7 +41,12 @@ if($_SESSION['eventID'] == null){
 	}?>
 
 
+
+
 	<div class='grid-x'>
+
+	<?=showEventBurgees()?>
+
 			
 	<?php foreach((array)$tournamentList as $tournamentID => $data):
 		
@@ -54,8 +59,12 @@ if($_SESSION['eventID'] == null){
 		if(!ALLOW_EDITING && !isFinalized($tournamentID)){
 			$fieldsetLink = $link;
 		}
+
+		
+
 		?>
 		
+
 
 		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
 		
@@ -97,6 +106,19 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function showEventBurgees(){
+
+	$burgeeIDs = getEventBurgees($_SESSION['eventID']);
+
+	foreach($burgeeIDs as $burgeeID){
+		burgeeDisplay($burgeeID);
+	}
+}
+
+/******************************************************************************/
 
 function showEventDescription(){
 
@@ -288,13 +310,13 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 		<a class='extra-results-<?=$tournamentID?>' 
 			onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
 
-			Show More &#8595;
+			Show More ↓
 		</a>
 
 		<!-- Display data -->
 		<div class='extra-results-<?=$tournamentID?> hidden'>
 
-			<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">Hide &#8593;</a>
+			<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">Hide ↑</a>
 
 			<?php foreach($placingDisplay2 as $data):?>
 				<li>

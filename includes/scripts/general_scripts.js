@@ -60,6 +60,19 @@ function rankingDescriptionToggle(rankingID){
 
 /************************************************************************************/
 
+function showForOption(selectElement, value, classToToggle){
+
+    var formValue = selectElement.value;
+
+    if(formValue == value){
+        $("."+classToToggle).show();
+    } else {
+        $("."+classToToggle).hide();
+    }
+}
+
+/************************************************************************************/
+
 function autoRefresh(timeInterval){
 // Automatically refreshes a page for a given time interval.
 // timeInterval is in msec
@@ -329,3 +342,5 @@ function changeEventJs(eventID){
     submitForm(form, 'selectEvent', true);
 
 }
+
+/**********************************************************************/

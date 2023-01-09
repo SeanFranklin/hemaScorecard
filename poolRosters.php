@@ -26,8 +26,6 @@ if($tournamentID != 0){
 	$pools = 0;
 }
 
-
-
 if($tournamentID == 0){
 	pageError('tournament');	
 } elseif($pools == null){
@@ -46,11 +44,6 @@ if($tournamentID == 0){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else { // Main Program ///////////
-
-
-	if(ALLOW['EVENT_SCOREKEEP'] == true){
-		$_SESSION['filterForSchoolID'] = 0;
-	}
 
 	$numPools = count($pools);
 	$ringsInfo = (array)logistics_getEventLocations($_SESSION['eventID'],'ring');
@@ -100,6 +93,9 @@ if($tournamentID == 0){
 		}
 	}
 
+	$hide = getItemsHiddenByFilters($tournamentID, $_SESSION['filters']);
+
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
@@ -115,55 +111,54 @@ if($tournamentID == 0){
 		</div>
 	</div>
 
-	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
-		<form method='POST'>
-		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
-			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
-			<input type='hidden' name='schoolID' value='0'>
-		</h3>
-		</form>
-	<?php endif ?>
+	<?=activeFilterWarning()?>
 	
 <!-- Pool Displays -->
 	<form method='POST' name='poolRosterForm' id='poolRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	<div class='grid-x grid-padding-x' id='list-of-pools'>
-	<?php foreach($pools as $pool): ?>
-		<?php 			
+		<div class='grid-x grid-padding-x' id='list-of-pools'>
+		<?php foreach($pools as $pool){
+			if(isset($hide['group'][$pool['groupID']]) == true){
+				continue;
+			}
+			$pool['hide'] = $hide;
 			poolEntryField($pool, $poolRosters[$pool['groupID']], $freeFighters, $isTeams, $ringsInfo); 
-		?>
-	<?php endforeach ?>
-	</div>
+			
+		} ?>
+		</div>
 
-<!-- Submit Buttons -->
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-		<?php confirmDeleteReveal('poolRosterForm', 'deleteFromPools'); ?>
-		<button class='button success' name='formName' value='addFightersToPool' <?=LOCK_TOURNAMENT?>>
-			Add Fighters
-		</button> 
-		<span id='deleteButtonContainer'>
-			<button class='button alert hollow' name='formName' value='deleteFromPools' 
-				id='deleteButton' <?=LOCK_TOURNAMENT?>>
-				Delete Selected
-			</button>
-		</span>
-
-	<?php endif ?>
-
-	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<?php if($ringsInfo != null): ?>
-			<button class='button hollow' name='formName' value='assignGroupsToRings' <?=LOCK_TOURNAMENT?>>
-				Assign Rings
-			</button>
+	<!-- Submit Buttons -->
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+			<?php confirmDeleteReveal('poolRosterForm', 'deleteFromPools'); ?>
+			<button class='button success' name='formName' value='addFightersToPool' <?=LOCK_TOURNAMENT?>>
+				Add Fighters
+			</button> 
+			<span id='deleteButtonContainer'>
+				<button class='button alert hollow' name='formName' value='deleteFromPools' 
+					id='deleteButton' <?=LOCK_TOURNAMENT?>>
+					Delete Selected
+				</button>
+			</span>
+			<a class='button warning hollow' <?=LOCK_TOURNAMENT?> data-open="clear-pools-box">
+				Clear Pools
+			</a>
 		<?php endif ?>
-	<?php endif ?>
+
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+			<?php if($ringsInfo != null): ?>
+				<button class='button hollow' name='formName' value='assignGroupsToRings' <?=LOCK_TOURNAMENT?>>
+					Assign Rings
+				</button>
+			<?php endif ?>
+		<?php endif ?>
 	
 	</fieldset>
 	</form>
 	</div>
 
 <!-- Pool Management -->
-	<?= changeClubFilterDropdown($_SESSION['eventID'])?>
+	<?=clearPoolsForm()?>
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 	<?php poolManagement(count($pools)); ?>
 	
 <?php }
@@ -179,6 +174,51 @@ sortableScript();
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function clearPoolsForm(){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false || LOCK_TOURNAMENT != ""){
+		return;
+	}
+
+?>
+
+	<div class='reveal tiny' id='clear-pools-box' data-reveal>
+
+	
+		<i>After selecting all use the "Delete Selected" button to delete.</i>
+		<BR>
+
+		<HR>
+
+		<a onclick="selectAllPoolFighters()" class='button hollow expanded warning'>
+			Select All Fighters
+		</a>
+
+		<HR>
+
+		<a onclick="selectAllPools()" class='button hollow expanded warning'>
+			Select All Pools
+		</a>
+
+		<HR>
+
+		<a onclick="unselectAllPools()" class='button hollow expanded secondary'>
+			Unselect All
+		</a>
+
+		<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+
+	</div>
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -883,6 +923,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	$groupID = $poolInfo['groupID'];
 	$poolName = $poolInfo['groupName'];
 	$poolNum = $poolInfo['groupNumber'];
+	$hide = $poolInfo['hide'];
 
 	$schoolList = getSchoolList();
 	$maxPoolSize = max(count($poolRoster),maxPoolSize($_SESSION['tournamentID']));
@@ -898,7 +939,9 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 		
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true):
 		// checkbox to delete pool ?>
-		<input type='checkbox' name='deleteGroup[<?=$groupID?>]' id='<?=$groupID?>' onchange="checkIfFought(this)">
+		<input type='checkbox' name='deleteGroup[<?=$groupID?>]' 
+		id='<?=$groupID?>' onchange="checkIfFought(this)"
+		 class='pool-group-checkbox'>
 	<?php endif ?>	
 	
 
@@ -985,10 +1028,8 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 					$name = getTeamName($rosterID);
 				}
 
-				if($_SESSION['filterForSchoolID'] != 0 && $poolRoster[$i]['schoolID'] != $_SESSION['filterForSchoolID']){
-					$class = ' hidden';
-				} else {
-					$class = '';
+				if(isset($hide['school'][$poolRoster[$i]['schoolID']]) == true){
+					continue;
 				}
 
 			?>
@@ -997,7 +1038,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 			
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<input type='checkbox' id=<?=$rosterID?>
-					onchange="checkIfFought(this)" 
+					onchange="checkIfFought(this)" class='pool-fighter-checkbox'
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'>
 			<?php endif ?>
 			<?=$name?>

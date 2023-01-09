@@ -67,8 +67,9 @@ function displayAdminEventList($eventList){
 
 			$isTournaments = true;
 			$isParticipants = true;
+			$eventID = (int)$eventID;
 			if($eventList[$eventID]['isArchived'] == 0){
-				$eventID = (int)$eventID;
+				
 
 			// Flags for publication settings
 				$str = '';
@@ -105,13 +106,25 @@ function displayAdminEventList($eventList){
 
 				$eventList[$eventID]['Setup'] = $str;
 
+			} elseif(compareDates($data['eventEndDate']) < 365) {
+
+				$eventList[$eventID]['Publish'] = "";
+				$eventList[$eventID]['Setup'] = "";
+
+				if(areMatchesStarted($eventID) == false){
+					$eventList[$eventID]['Publish'] = "NO MATCHES";
+				} elseif(hemaRatings_isEventInfoComplete($eventID) == true){
+					$eventList[$eventID]['Setup'] = "HR Form";
+				} elseif(areAllTournamentsFinalized($eventID)){
+					$eventList[$eventID]['Publish'] = "not finalized";
+				} else {
+
+				}
+				
 			} else {
-
-				$eventList[$eventID]['Publish'] = ':)';
-				$eventList[$eventID]['Setup'] = ':)';
-
+				$eventList[$eventID]['Publish'] = "";
+				$eventList[$eventID]['Setup'] = "";
 			}
-
 
 		}
 

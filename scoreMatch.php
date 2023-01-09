@@ -14,6 +14,7 @@ $hideEventNav = true;
 $hidePageTitle = true;
 $lockedTournamentWarning = true;
 $jsIncludes[] = 'score_scripts.js';
+$jsIncludes[] = 'video_scripts.js';
 include('includes/header.php');
 
 $matchID = $_SESSION['matchID'];
@@ -49,7 +50,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	askForFinalization($matchInfo); 
 	
 // If the livestream is active it asks to make this the displayed match
-	livestreamMatchSet($matchID);
+	livestreamMatchSet($matchInfo);
 
 // Checks if the user has left unconcluded matches, and warns them
 	$matchInfo['unconcludedMatchWarning'] = unconcludedMatchWarning($matchInfo);
@@ -154,8 +155,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	</div>
 	
 <!-- Match Video -->
-	<?php addVideoLink($matchID); // display_functions.php ?>
-	
+	<?php addVideoLink($matchID);?>
 
 <?php }
 	
@@ -542,26 +542,35 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 /******************************************************************************/
 
-function livestreamMatchSet($matchID){
-	
-	$livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-	if(ALLOW['EVENT_SCOREKEEP'] == false){ return; }
-	if(@$livestreamInfo['isLive'] != 1 || @$livestreamInfo['useOverlay'] != 1){
+function livestreamMatchSet($matchInfo){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){ 
+		return; 
+	}
+
+	$streamInfo = getStreamForLocation($matchInfo['locationID']);
+
+	if(   ($streamInfo == [])
+	   || ($streamInfo['isLive'] != 1 || $streamInfo['overlayEnabled'] != 1)
+	   || ($streamInfo['matchID'] == $matchInfo['matchID']))
+	{
 		return;
 	}
-	?>
+
+?>
 	
-	<?php if($matchID != $livestreamInfo['matchID']): ?>
-		<form method='POST' onclick="this.submit()" class='pointer'>
-		<input type='hidden' name='formName' value='setLivestreamMatch'>
-		<input type='hidden' name='matchID' value='<?=$matchID?>'>
-		
-		<div class='callout alert text-center'>
-			This match is currently not displayed on the livestream overlay<BR>
-			<a>Change to Active Match</a>
-		</div>
-		</form>
-	<?php endif ?>
+	<form method='POST' onclick="this.submit()" class='pointer'>
+	<input type='hidden' name='formName' value='videoStreamSetMatch'>
+	<input type='hidden' name='videoStreamSetMatch[matchID]' value='<?=$matchInfo['matchID']?>'>
+	<input type='hidden' name='videoStreamSetMatch[videoID]' value='<?=$streamInfo['videoID']?>'>
+	<input type='hidden' name='videoStreamSetMatch[locationID]' value='<?=$matchInfo['locationID']?>'>
+	
+	<div class='callout alert text-center'>
+		This match is currently not displayed on the livestream overlay<BR>
+		<a>Change to Active Match</a>
+	</div>
+	</form>
+	
 	
 <?php }
 

@@ -31,11 +31,14 @@ if($_SESSION['eventID'] == null){
 	
 	// Omits the accordion menu if there is only one round per set
 	$showMultiple = isCumulativeRounds($tournamentID); 
+	$hide = getItemsHiddenByFilters($tournamentID, $_SESSION['filters'],'roster');
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>		
 	
+	<?=activeFilterWarning()?>
+
 	<form method='POST'>
 	
 	<!--Accordion start -->
@@ -77,7 +80,7 @@ if($_SESSION['eventID'] == null){
 			<?php endif ?>
 			
 			<?php foreach($rounds as $round):
-				displayRound($round);
+				displayRound($round, $hide);
 			endforeach ?>
 			
 		<?php endif ?>
@@ -97,6 +100,8 @@ if($_SESSION['eventID'] == null){
 	<?php endif ?>
 	
 	</form>
+
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 	
 	<!-- Auto refresh -->
 	<?php $time = autoRefreshTime(isInProgress($tournamentID, 'round')); ?>
@@ -112,12 +117,13 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function displayRound($roundInfo){
+function displayRound($roundInfo, $hide){
 	
 	$groupID = $roundInfo['groupID'];
 	$groupSet = $roundInfo['groupSet'];
 	$roundName = $roundInfo['groupName'];
 	$matches= getRoundMatches($groupID);
+	$schoolIDs = getTournamentFighterSchoolIDs($_SESSION['tournamentID']);
 	?>
 	
 	<fieldset class='fieldset large-4 medium-6 small-12 cell'>
@@ -128,8 +134,14 @@ function displayRound($roundInfo){
 		<?php foreach($matches as $match):
 			$matchID = $match['matchID'];
 			$rosterID = $match['fighter1ID'];
+
+			if(isset($hide['roster'][$match['fighter1ID']]) == true){
+				continue;
+			} 
+
 			$name = getEntryName($rosterID);
 			$score = max([$match['fighter1Score'],$match['fighter2Score']]);
+
 			 ?>
 			
 			<div class='large-4 cell'>
@@ -137,7 +149,7 @@ function displayRound($roundInfo){
 			<button class='button tiny hollow' name='matchID' value=<?=$matchID?>>
 				Go
 			</button>
-			<?=$name?> <strong><?=$score?></strong>
+			<?=$name?><strong><?=$score?></strong>
 			</div>
 		<?php endforeach ?>
 	

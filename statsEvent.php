@@ -20,37 +20,14 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['VIEW_ROSTER'] == false) {
 	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else {
-	
-	$roster = getEventRoster(null);
-	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 
-	$numParticipants = count($roster);
+	$numParticipants = getNumEventRegistrations($_SESSION['eventID']);
 	$numFighters = getNumEventFighters($_SESSION['eventID']);
-	
-	$clubTotals[1] = 0;
-	if($roster != null){
-		foreach($roster as $fighter){
-			$schoolID = $fighter['schoolID'];
-			if(!isset($clubTotals[$schoolID])){
-				$clubTotals[$schoolID] = 0;
-			}
-			$clubTotals[$schoolID]++; 
-		}
-		arsort($clubTotals);
-	}
+	$totalTournamentEntries = getNumEventTournamentEntries($_SESSION['eventID']);
 
-	$numUnknown = $clubTotals[1];
+	$tournamentList = getTournamentsFull($_SESSION['eventID']);
+	$clubTotals = getAttendanceFromSchools($_SESSION['eventID']);
 
-	$totalTournamentEntries = 0; // Placeholder, it is set in a loop bellow.
-	foreach((array)$tournamentList as $ID => $tournament){
-
-		$tmp['name'] = getTournamentName($ID);
-		$tmp['number'] = $tournament['numParticipants'];
-		$totalTournamentEntries += $tmp['number'];
-
-		$tournamentDisplayList[] = $tmp;
-	}
-	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
@@ -81,10 +58,10 @@ if($_SESSION['eventID'] == null){
 	<caption>Participant Numbers</caption>
 	
 
-	<?php foreach((array)$tournamentDisplayList as $data): ?>
+	<?php foreach((array)$tournamentList as $tID => $data): ?>
 		<tr>
-			<td><?=$data['name']?></td>
-			<td class='text-right'><?=$data['number']?></td>
+			<td><?=getTournamentName($tID )?></td>
+			<td class='text-right'><?=$data['numParticipants']?></td>
 		</tr>
 	<?php endforeach ?>
 	
@@ -103,7 +80,7 @@ if($_SESSION['eventID'] == null){
 	<table class='data_table'>
 		<caption>School Attendance</caption>
 		<?php foreach((array)$clubTotals as $schoolID => $num):
-			if($schoolID == 1){continue;}
+			if($schoolID == 1){ continue;}
 			$name = getSchoolName($schoolID, 'full', 'Branch');
 			?>
 			
@@ -114,22 +91,13 @@ if($_SESSION['eventID'] == null){
 			
 		<?php endforeach ?>
 		
-		<?php if($numUnknown > 0): ?>
+		<?php if(@$clubTotals[1] > 0): ?>
 			<tr>
-				<td>Unknown</td>
-				<td class='text-center'><?=$numUnknown?></td>
+				<td><i>Unknown</i></td>
+				<td class='text-center'><i><?=$clubTotals[1]?></i></td>
 			</tr>
 		<?php endif ?>
 		
-		<tr style='border-top:solid 1px'>
-			<th>
-				<em>Total Participants:</em>
-			</th>
-			<th class='text-center'>
-				<em><?=$numParticipants?></em>
-			</th>
-		</tr>
-	
 	</table>
 	
 	</div>

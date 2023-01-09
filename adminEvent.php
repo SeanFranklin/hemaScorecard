@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Event Details';
-
+$jsIncludes[] = "sortable_scripts.js";
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -22,29 +22,46 @@ if($_SESSION['eventID'] == null){
 } else {
 	
 	$defaults = getEventDefaults($_SESSION['eventID']);
-	$matchMultipliers = logistics_getMatchMultipliers($_SESSION['eventID']);
-	$roles = logistics_getRoles();
-	define("MAX_VAL",10);  	// Maximum value for most tournament parameters, arbitrary
-	$contactEmail = getEventEmail($_SESSION['eventID']);
-	$eventDates = getEventDates($_SESSION['eventID']);
-	$eventDescription = getEventDescription($_SESSION['eventID']);
 
-	// Locks are HTML tags. 'disabled' means the lock is ON and the form is disabled.
-	$formLock = 'disabled';
-	$passwordLock = 'disabled';
-
-	if(ALLOW['EVENT_MANAGEMENT'] == true){
-		$formLock = '';
-		$passwordLock = '';
-	} elseif(ALLOW['SOFTWARE_ASSIST'] == true) {
-		$passwordLock = '';
-		$testEventDisable = '';
+	if(ALLOW['SOFTWARE_ASSIST'] == true){
+		$canChangeSettings = true;
+	} elseif($_SESSION['eventID'] == TEST_EVENT_ID){
+		// user loged in to test event for test purposes
+		$canChangeSettings = false;
+	} elseif(ALLOW['EVENT_MANAGEMENT'] == true) {
+		$canChangeSettings = true;
+	} else {
+		// VIEW_SETTINGS case
+		$canChangeSettings = false;
 	}
 
-	$testEventDisable = '';
-	if($_SESSION['eventID'] == TEST_EVENT_ID && ALLOW['SOFTWARE_ASSIST'] == false){
-		$testEventDisable = "disabled";
-	}
+	
+
+// PAGE DISPLAY ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+?>
+
+	<div class='grid-x grid-margin-x'>
+
+		<?=publicationsSettingsBox($canChangeSettings)?>
+		<?=eventInfoBox($canChangeSettings)?>		
+
+		<?=eventDescriptionBox($canChangeSettings)?>
+		<?=displaySettingsBox($defaults, $canChangeSettings)?>
+		<?=staffSettingsBox($defaults, $canChangeSettings)?>
+		<?=changePasswordBox($canChangeSettings)?>
+
+	</div>
+		
+	
+<?php }
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
+
+function publicationsSettingsBox($canChangeSettings){
 
 	if(isDescriptionPublished($_SESSION['eventID'])){
 		$publishDescriptionChecked = 'checked';
@@ -70,31 +87,26 @@ if($_SESSION['eventID'] == null){
 		$publishRosterChecked = '';
 	}
 
-
-
 	if(isMatchesPublished($_SESSION['eventID'])){
 		$publishMatchesChecked = 'checked';
 	} else {
 		$publishMatchesChecked = '';
 	}
 
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+	}
 
-
-
-
-// PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 ?>
-
-<!--  Event Settings  -------------------------------->
-	<?php if($testEventDisable == null): ?>
-	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
-	<legend><h4>Event Status</h4></legend>
+	
+	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
+	<legend><h4 class='no-bottom'>Event Publication</h4></legend>
 	<form method='POST'>
 		No one will be able to see your awesome event until you check these boxes. <b>Once you are ready be sure to publish the event.</b><BR>
 		<i>Your event will not appear on the event list until you publish at least some information.</i>
 		<div class='grid-x grid-margin-x'>
-		<div class='large-4 medium-6 cell'>
+		<div class='large-8 medium-6 cell'>
 
 			<table>
 				<tr>
@@ -178,186 +190,322 @@ if($_SESSION['eventID'] == null){
 
 			</table>
 
-			<button class='button success no-bottom expanded' name='formName' value='updateEventPublication'>
+			
+			<button class='button success no-bottom expanded <?=$formDiabled?>' 
+				name='formName' value='updateEventPublication'>
 				Update Visibility
 			</button>
-		</div>
-
-		<div class='large-3 medium-4 small-12 cell'>
 			
-		</div>
 
+		</div>
 		</div>
 
 	</form>
 	</fieldset>
-	<?php endif ?>
 	
-	<div class='reveal' id='statusTypes' data-reveal>
-		<ul>
-			<li>
-				<strong>Under Construction</strong> <i>(Hidden)</i><BR> 
-				No one can see event details without logging in as event staff/organizer.
-			</li>
-			<li>
-				<strong>Publish Roster</strong> <i>(Upcomming)</i><BR>
-				Everyone can see the event tournaments and roster. Only event staff/organizers can see pools/matches.<BR>
-				Use this if you want to share the rosters but don't want participants to see you working on the pools/brackets.
-			</li>
-			<li>
-				<strong>Publish All</strong> <i>(Active)</i><BR>
-				Everyone can see all results.
-				<BR>Use this when your even is ready to go, and you want to share everything with the world!
-			</li>
-		</ul>
-		<button class='close-button' data-close aria-label='Close modal' type='button'>
-		<span aria-hidden='true'>&times;</span>
-		</button>
+<?php
+}
+
+/******************************************************************************/
+
+function eventInfoBox($canChangeSettings){
+
+	$contactEmail = getEventEmail($_SESSION['eventID']);
+	$eventDates = getEventDates($_SESSION['eventID']);
+	$location = getEventLocation($_SESSION['eventID']);
+
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+		$numTextLines = 3;
+	}
+
+?>
+
+	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
+	<legend><h4>Event Information</h4></legend>
+
+	<!-- Event Information -->
+	<form method='POST'>
+	<div class='grid-x grid-margin-x'>
+		<div class='cell'>
+			<div class=' input-group cell no-bottom'>
+				<span class='input-group-label no-bottom'>Event Name:</span>
+				<input class='input-group-field no-bottom' type='text' 
+					name='newEventInfo[eventName]' 
+					value="<?=getEventName($_SESSION['eventID'],'raw')?>">
+			</div>
+			<p class='red-text'>Don't include a year, it will be added automatically!</p>
+		</div>
+
+		<div class='large-6 cell input-group cell'>
+			<span class='input-group-label no-bottom'>Start:</span>
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[startDate]' 
+				value='<?=$eventDates['eventStartDate']?>'>
+		</div>
+
+		<div class='large-6 cell input-group cell'>
+			<span class='input-group-label'>End:</span>
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[endDate]' 
+				value='<?=$eventDates['eventEndDate']?>'>
+		</div>
+
+		<div class='cell'>
+			<div class=' input-group cell no-bottom'>
+				<span class='input-group-label no-bottom'>City:</span>
+				<input class='input-group-field no-bottom' type='text' 
+					name='newEventInfo[eventCity]' 
+					value="<?=$location['eventCity']?>">
+			</div>
+		</div>
+
+		<div class='cell'>
+			<div class=' input-group cell no-bottom'>
+				<span class='input-group-label no-bottom'>State/Province:</span>
+				<input class='input-group-field no-bottom' type='text' 
+					name='newEventInfo[eventProvince]' 
+					value="<?=$location['eventProvince']?>">
+			</div>
+		</div>
+
+		<div class='cell'>
+			<div class=' input-group cell'>
+				<span class='input-group-label no-bottom'>Country:</span>
+				<input class='input-group-field no-bottom' type='text' 
+					disabled
+					value="<?=$location['countryName']?>">
+			</div>
+		</div>
+
+		<div class='large-6 cell'>
+			<button class='button success expanded <?=$formDiabled?>' name='formName' value='setEventInfo'>
+				Update Event Information
+			</button>
+		</div>
+	
 	</div>
+	</form>
+
+	<!-- Contact E-mail -->
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_EMAIL'] == true): ?>
+		<HR>
+
+		<form method='POST'>
+		<input class='hidden' name='formName' value='setContactEmail'>
+		<div class='grid-x grid-margin-x'>
+			<div class='large-12 input-group cell'>
+				<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
+				<input class='input-group-field' type='text' name='contactEmail' 
+					value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
+				<input type='submit' class='button success input-group-button' value='Update' <?=$formDiabled?>>
+			</div>
+		
+		</div>
+		</form>
+	<?php endif ?>
+	</fieldset>
+
+<?php
+}
+
+/******************************************************************************/
+
+function eventDescriptionBox($canChangeSettings){
+
+	$eventDescription = getEventDescription($_SESSION['eventID']);
+
+	if($eventDescription != ''){
+		$numTextLines = 15;
+	} else {
+		$numTextLines = 10;
+	}
 	
 
-<!--  Tournament Defaults  -------------------------------->
-	<fieldset class='fieldset' <?=$formLock?>>
-	<legend><h4>Tournament Defaults</h4></legend>
-	<form method='POST'>
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+		$numTextLines = 3;
+	}
+
+
 	
+?>
+
+	<!--  Event Description -------------------------------->
+	<fieldset class='fieldset large-12 cell' <?=$formDiabled?> >
+	<legend><h4>Event Description</h4></legend>
+
+		<i class='blue-text'>
+			Sorry, this kind of sucks at the moment and won't display formatted unless you manually enter HTML tags. If you are having trouble bother me and I can format it for you (and also gives me another kick to try to figure out the proper solution.)
+		</i>
+
+		<form method='POST'>
 		<div class='grid-x grid-margin-x'>
 		
-	<!-- Default Colors -->
-		<?php colorSelectDropDown(1,$defaults['color1ID']); ?>
-		<?php colorSelectDropDown(2,$defaults['color2ID']); ?>
-		
-	<!-- Double Hits -->
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Maximum Double Hits:</span>
+			<div class='large-12 cell'>
+				<textarea name='eventDescription' required rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
+			</div>
 
-			<select class='input-group-field' type='text' name='maxDoubleHits'>
-				<?php for($i=1; $i<=MAX_VAL; $i++): 
-					$selected = isSelected($i == $defaults['maxDoubleHits']);
-					?>
-					<option value='<?=$i?>' <?=$selected?>><?=$i?></option>
-				<?php endfor ?>
-			</select>
-		</div>
-
-	<!-- Default Max Pool Size -->
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Maximum Pool Size:</span>
-			<select class='input-group-field' type='text' name='maxPoolSize'>
-				<?php for($i=2; $i<=MAX_VAL; $i++):
-					$selected = isSelected($i == $defaults['maxPoolSize']);
-					?>
-					<option value='<?=$i?>' <?=$selected?>><?=$i?></option>
-				<?php endfor ?>
-			</select>
-		</div>
-
-	<!-- Default Pool Size Normalization -->	
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Normalize Pool Size To:</span>
-			<select class='input-group-field' type='text' name='normalizePoolSize'>
-				<option value='0'>Auto</option>
-				<?php for($i=2; $i<=MAX_VAL; $i++):
-					$selected = isSelected($i == $defaults['normalizePoolSize']);
-					?>
-					<option value='<?=$i?>' <?=$selected?>><?=$i?></option>
-				<?php endfor ?>
-			</select>
-		</div>
-		
-	<!-- Default Allow Ties -->	
-		<div class='medium-6 large-4 cell input-group'>
-			<span class='input-group-label'>Allow Ties:</span>
-			<select class='input-group-field' type='text' name='allowTies'>
-				<?php $selected = isSelected(1, $defaults['allowTies']);?>
-				<option value=0>No</option>
-				<option value=1 <?=$selected?>>Yes</option>
-			</select>
-		</div>
-
-	<!-- Submit Button -->
-		<div class='grid-x cell'>
-			<div class='large-3 medium-4 small-12 text-center'>
-				<button class='button success expanded' name='formName' value='eventDefaultUpdate'>
-					Update Defaults
+			
+			<div class='large-3 cell'>
+				<button class='button success expanded no-bottom' 
+					name='formName' value='setEventDescription' <?=$formDiabled?>>
+					Update Event Description
 				</button>
 			</div>
-			<div class='large-1 show-for-large cell'>&nbsp;</div>
-			<div class='medium-8 small-12 cell text-center'>
-				<em>Defaults only affect the creation of new events. 
-				To change the properties of current events use 
-				<a href='adminTournaments.php'>Manage Event -> Tournament Settings</a></em>
-			</div>
+			
 		</div>
-		
-	</div>
-	</form>
+		</form>
+
+	<?php if($eventDescription != ''):?>
+		<hr>
+		<i><a onclick="$('.event-description').toggle()">Show Event Description ↓</a></i>
+		<div class='large-12 cell hidden event-description documentation-div callout success'>
+			<?=$eventDescription?>
+		</div>
+	<?php endif ?>
+
 	</fieldset>
-	
-	
-<!--  Display settings  -------------------------------->
-	<fieldset class='fieldset' <?=$formLock?>>
+
+
+<?php	
+}
+
+/******************************************************************************/
+
+function displaySettingsBox($defaults, $canChangeSettings){
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+
+	if($defaults['tournamentSorting'] != 'custom'){
+		$showCustomSort = 'hidden';
+	} else {
+		$showCustomSort = '';
+	}
+
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+	}
+
+?>
+	<!--  Display settings  -------------------------------->
+
+
+	<fieldset class='fieldset cell large-6' <?=$formDiabled?>>
 	<legend><h4>Display Settings</h4></legend>
 	<form method='POST'>
 	
 	<div class='grid-x grid-margin-x'>
 	
-	<!-- Tournament name order -->
-		<div class='medium-12 large-6 cell'>
-			<div class='input-group'>
-				<span class='input-group-label'>Tournament Names:</span>
-				<select class='input-group-field' name='displaySettings[tournamentDisplay]'>
-					<option value='weapon'>Weapon - Division Gender Material</option>
-					<?php $selected = isSelected('prefix', $defaults['tournamentDisplay']); ?>
-					<option value='prefix' <?=$selected?>>Division Gender Material Weapon</option>
-				</select>
-			</div>
-		</div>
-		
-	<!-- Tournament sort order -->
-		<div class='medium-12 large-6 cell'>
-			<div class='input-group'>
-				<span class='input-group-label'>Tournament Sorting:</span>
-				<select class='input-group-field' name='displaySettings[tournamentSorting]'>
-					<option value='numGrouped'>Number of Fighters, Group By Weapon</option>
-					
-					<?php $selected = isSelected('numSort', $defaults['tournamentSorting']); ?>
-					<option value='numSort' <?=$selected?>>Number of Fighters</option>
-					
-					<?php $selected = isSelected('nameSort', $defaults['tournamentSorting']); ?>
-					<option value='nameSort' <?=$selected?>>Alphabetically</option>
-				</select>
-			</div>
-		</div>
-	
 	<!-- Fighter names -->
-		<div class='medium-6 large-4 cell'>
+		<div class='large-12 cell'>
 			<div class='input-group'>
 				<span class='input-group-label'>Fighter Names:</span>
 				<select class='input-group-field' name='displaySettings[nameDisplay]'>
+
 					<option value='firstName'>First Last</option>
-					<?php $selected = isSelected('lastName', $defaults['nameDisplay']); ?>
-					<option value='lastName' <?=$selected?>>Last, First</option>
+					
+					<option <?=optionValue('lastName', $defaults['nameDisplay'])?>>Last, First</option>
+
 				</select>
 			</div>
 		</div>
+
+	<!-- Tournament name order -->
+		<div class='large-12 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>Tournament:</span>
+				<select class='input-group-field' name='displaySettings[tournamentDisplay]'>
+
+					<option value='weapon'>
+						[Weapon] - [Division] [Gender] [Material]
+					</option>
+
+					<option <?=optionValue('prefix',$defaults['tournamentDisplay'])?>>
+						[Division] [Gender] [Material] [Weapon]
+					</option>
+
+				</select>
+			</div>
+		</div>
+
+	<!-- Tournament sort order -->
+		<div class='large-12 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>Tournament Order:</span>
+				<select class='input-group-field' name='displaySettings[tournamentSorting]'
+					onchange="showForOption(this, 'custom', 'tournament-order-box')">
+
+					<option value='numGrouped'>Number of Fighters, Group By Weapon</option>
+					
+					<option <?=optionValue('numSort', $defaults['tournamentSorting'])?>>
+						Number of Fighters
+					</option>
+					
+					<option <?=optionValue('nameSort', $defaults['tournamentSorting'])?>>
+						Alphabetically
+					</option>
+
+					<option <?=optionValue('custom', $defaults['tournamentSorting'])?>>
+						Custom (Input Below)
+					</option>
+				</select>
+			</div>
+		</div>
+
+		<div class='large-12 cell tournament-order-box <?=$showCustomSort?>'>
+			<h5>Tournament Order:</h5>
+	  		<div id='sort-tournament-order'>
 		
+				<?php foreach($tournamentIDs as $index => $tournamentID): ?>
+					<div class='callout primary' value=<?=$tournamentID?>>
+						<?=getTournamentName($tournamentID)?>
+					</div>
+				<?php endforeach ?>
+			
+			</div>
+
+			<?php foreach($tournamentIDs as $index => $tournamentID): ?>
+				<input class='hidden' name='displaySettings[customSort][<?=$tournamentID?>]' 
+					id='tournament-order-for-<?=$tournamentID?>' value=<?=$index?>>
+			<?php endforeach ?>
+
+		</div>
+
+		<div class='large-12 cell'>
+		</div>
+
+		<!-- Submit button -->
 		
-		
-	<!-- Submit button -->
-		<div class='medium-6 large-4 cell'>
-			<button class='button success expanded' name='formName' value='displaySettings'>
+		<div class='large-6 cell'>
+			<button class='button success expanded no-bottom' <?=$formDiabled?>
+				name='formName' value='displaySettings'>
 				Update Display Settings
 			</button>
 		</div>
 		
+
 	</div>
 	</form>
 	</fieldset>
 
+<?php
+}
 
-<!--  Staff Settings  -------------------------------->
-	<fieldset class='fieldset' <?=$formLock?>>
+/******************************************************************************/
+
+function staffSettingsBox($defaults, $canChangeSettings){
+
+	$matchMultipliers = logistics_getMatchMultipliers($_SESSION['eventID']);
+	$roles = logistics_getRoles();
+
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+	}
+?>
+
+	<fieldset class='fieldset cell large-6' <?=$formDiabled?>>
 	<legend><h4>Staff Settings</h4></legend>
 	<form method='POST'>
 	<input type='hidden' name="eventSettings[staffRegistration][eventID]" 
@@ -366,7 +514,7 @@ if($_SESSION['eventID'] == null){
 	<div class='grid-x grid-margin-x'>
 	
 	<!-- Tournament name order -->
-		<div class='medium-6 large-4 cell'>
+		<div class='large-12 cell'>
 			<div class='input-group'>
 				<span class='input-group-label'>
 					Assign Staff on Entry
@@ -385,7 +533,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 		
 	<!-- Staff Competency -->
-		<div class='medium-6 large-4 cell'>
+		<div class='large-12 cell'>
 			<div class='input-group'>
 				<span class='input-group-label'>
 					Default Staff Competency
@@ -411,7 +559,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 
 	<!-- Target Hours -->
-		<div class='medium-6 large-4 cell'>
+		<div class='large-12 cell'>
 			<div class='input-group'>
 				<span class='input-group-label'>
 					Default Target Hours
@@ -429,7 +577,7 @@ if($_SESSION['eventID'] == null){
 		</div>
 
 	<!-- Staff Competency -->
-		<div class='medium-6 large-4 cell'>
+		<div class='large-12 cell'>
 			<div class='input-group'>
 				<span class='input-group-label'>
 					Staff Conflicts
@@ -455,15 +603,14 @@ if($_SESSION['eventID'] == null){
 				</select>
 			</div>
 		</div>
-	
-		<div class='medium-6 large-4 cell ' >
+
+	<!-- Role Competencies -->
+		<div class='large-6 cell' >
 			<a onclick="toggleClass('esr-assignCompetencies')" class='esr-assignCompetencies'>
-				Assign competencies to roles &#x2193;
-			</a>
-			<a onclick="toggleClass('esr-assignMatchMultipiers')" class='esr-assignMatchMultipiers'><BR>
-				Assign match role multipiers &#x2193;
+				Assign competencies to roles ↓
 			</a>
 		</div>
+
 
 		<fieldset class='fieldset large-12 cell esr-assignCompetencies hidden'>
 			<legend>
@@ -474,8 +621,7 @@ if($_SESSION['eventID'] == null){
 
 			Assigning staff bellow these competencies to a position will generate a warning.
 
-			<div class='grid-x grid-margin-x'>
-			<div class='large-5 medium-7 cell'>
+
 			<table>
 				<tr>
 					<th>Role</th>
@@ -511,10 +657,16 @@ if($_SESSION['eventID'] == null){
 				</tr>
 			<?php endforeach ?>
 			</table>
-			</div>
-			</div>
+
 
 		</fieldset>
+
+	<!-- Role Multipliers -->
+		<div class='large-6 cell' >
+			<a onclick="toggleClass('esr-assignMatchMultipiers')" class='esr-assignMatchMultipiers'>
+				Assign match role multipliers ↓
+			</a>
+		</div>
 
 		<fieldset class='fieldset large-12 cell esr-assignMatchMultipiers hidden'>
 			<legend>
@@ -523,10 +675,9 @@ if($_SESSION['eventID'] == null){
 				</a>
 			</legend>
 
-			When calculating the number of matches judged the count will be multipied by the number entered below
+			When calculating the number of matches judged the count will be multiplied by the number entered below
 
-			<div class='grid-x grid-margin-x'>
-			<div class='large-5 medium-7 cell'>
+			
 			<table>
 				<tr>
 					<th>Role</th>
@@ -549,127 +700,46 @@ if($_SESSION['eventID'] == null){
 
 			<?php endforeach ?>
 			</table>
-			</div>
-			</div>
+			
 
 		</fieldset>
+
+		<div class='large-12 cell'>
+			<BR>
+		</div>
 		
 	<!-- Submit button -->
-		<div class='medium-6 large-4 cell'>
-			<button class='button success expanded' name='formName' value='staffRegistrationSettings'>
+		
+		<div class='large-6 cell'>
+			<button class='button success expanded' <?=$formDiabled?>
+				name='formName' value='staffRegistrationSettings'>
 				Update Staff Settings
 			</button>
 		</div>
 		
-	</div>
-	</form>
-	</fieldset>
-
-
-<!--  Event Information -------------------------------->
-	<?php if($testEventDisable == null): ?>
-	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
-	<legend><h4>Event Information</h4></legend>
-
-	<!-- Event Information -->
-	<form method='POST'>
-	<div class='grid-x grid-margin-x'>
-		<div class='large-6 cell'>
-			<div class=' input-group cell no-bottom'>
-				<span class='input-group-label no-bottom'>Event Name:</span>
-				<input class='input-group-field no-bottom' type='text' 
-					name='newEventInfo[eventName]' 
-					value="<?=getEventName($_SESSION['eventID'],'raw')?>">
-			</div>
-			<em class='red-text'>Don't include a year, it will be added automatically!</em><BR><BR>
-		</div>
-
-		<div class='large-6 cell input-group cell'>
-			<span class='input-group-label no-bottom'>StartDate:</span>
-			<input class='input-group-field no-bottom' type='date' name='newEventInfo[startDate]' 
-				value='<?=$eventDates['eventStartDate']?>'>
-		</div>
-
-		<div class='large-6 cell input-group cell'>
-			<span class='input-group-label'>End Date:</span>
-			<input class='input-group-field no-bottom' type='date' name='newEventInfo[endDate]' 
-				value='<?=$eventDates['eventEndDate']?>'>
-		</div>
-
-		<div class='large-3 cell'>
-			<button class='button success expanded' name='formName' value='setEventInfo'>
-				Update Event Information
-			</button>
-		</div>
-	
-	</div>
-	</form>
-
-	<!-- Contact E-mail -->
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_EMAIL'] == true): ?>
-		<HR>
-
-		<form method='POST'>
-		<div class='grid-x grid-margin-x'>
-			<div class='large-6 input-group cell'>
-				<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
-				<input class='input-group-field' type='text' name='contactEmail' 
-					value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
-				<button class='button success input-group-button' name='formName'
-					value='setContactEmail'>
-					Update
-				</button>
-			</div>
 		
-		</div>
-		</form>
-	<?php endif ?>
-	</fieldset>
-	<?php endif ?>
-	
-	<!--  Event Description -------------------------------->
-	<?php if($testEventDisable == null): ?>
-	<fieldset class='fieldset' <?=$formLock?> <?=$testEventDisable?> >
-	<legend><h4>Event Description</h4></legend>
-
-	<!-- Event Information -->
-	<form method='POST'>
-	<div class='grid-x grid-margin-x'>
-	
-	
-		<div class='large-12 cell'>
-			<textarea name='eventDescription' required rows='20'><?=$eventDescription ?></textarea>
-		</div>
-
-		<div class='large-3 cell'>
-			<button class='button success expanded no-bottom' name='formName' value='setEventDescription'>
-				Update Event Description
-			</button>
-		</div>
 	</div>
 	</form>
-
-	<?php if($eventDescription != ''):?>
-		<hr>
-		<i><a onclick="$('.event-description').toggle()">Show Event Description</a></i>
-		<div class='large-12 cell hidden event-description'>
-			<?=$eventDescription?>
-		</div>
-	<?php endif ?>
-
-	
-	
-
-	
-
 	</fieldset>
-	<?php endif ?>
-		
-<!-- Change Staff Password ----------------------------------->
-	<?php if($testEventDisable == null): ?>
+
+<?php	
+}
+
+/******************************************************************************/
+
+function changePasswordBox($canChangeSettings){
+
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+	}
+?>
+
+	<fieldset class='fieldset cell large-12' <?=$formDiabled?> >
+	<legend><h4>Change Password - Event Staff</h4></legend>
 	<form method='POST'>
-	<fieldset class='fieldset' <?=$passwordLock?> <?=$testEventDisable?> >
-		<legend><h4>Change Password - Event Staff</h4></legend>
+	
+		
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
 
@@ -687,20 +757,22 @@ if($_SESSION['eventID'] == null){
 
 	<!-- Submit button -->
 		<div class='large-2 cell'>
-			<button class='button success expanded' 
+			<button class='button success expanded' <?=$formDiabled?>
 				name='changePasswords[userName]' value='eventStaff'>
 				Update Staff Password
 			</button>
 		</div>
 		
 		</div>
-	</fieldset>
 	</form>
+	</fieldset>
 
 <!-- Change Admin Password ----------------------------------->
+	<fieldset class='fieldset cell large-12' <?=$formDiabled?> >
+	<legend><h4>Change Password - Event Organizer</h4></legend>
+
 	<form method='POST'>
-	<fieldset class='fieldset' <?=$passwordLock?> <?=$testEventDisable?> >
-		<legend><h4>Change Password - Event Organizer</h4></legend>
+		
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
 
@@ -718,67 +790,19 @@ if($_SESSION['eventID'] == null){
 		
 	<!-- Submit button -->
 		<div class='large-2 cell'>
-			<button class='button success expanded' 
+			<button class='button success expanded' <?=$formDiabled?>
 				name='changePasswords[userName]' value='eventOrganizer'>
 				Update Organizer Password
 			</button>
 		</div>
 		
 		</div>
-	</fieldset>
+	
 	</form>
-	<?php endif ?>
-		
-	
-<?php }
-include('includes/footer.php');
+	</fieldset>
 
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-/******************************************************************************/
-
-function colorSelectDropdown($number, $colorID){
-// A drop down menu to select which color, with the current color highlighted	
-	
-	$eventID = $_SESSION['eventID'];
-	if($eventID == null){
-		displayAlert('colorSelectDropdown()','center');
-		return;
-	}
-
-// Multi-use function, for color values for fighter 1 and fighter 2.
-	if($number == 1){
-		$name = 'color1ID';
-	} else if ($number == 2){
-		$name = 'color2ID';
-	} else {
-		displayAlert('colorSelectDropdown()','center');
-		return;
-	}
-
-	$allColors = getColors();	// Colors avaliable in the database 
-	?>
-	
-
-	<div class='medium-6 large-4 cell input-group'>
-	<span class='input-group-label'>Color <?=$number?>: </span>
-
-	
-	<select class='input-group-field' name='<?=$name?>'>
-		<?php foreach($allColors as $color):
-			$selected = isSelected($color['colorID'] == $colorID);
-			?>
-			
-			<option value='<?=$color['colorID']?>' <?=$selected?>>
-				<?=$color['colorName']?>
-			</option>
-			
-		<?php endforeach ?>
-	</select>
-	</div>
-
-<?php }
+<?php	
+}
 
 /******************************************************************************/
 

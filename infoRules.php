@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Tournament Rules";
+$jsIncludes[] = "sortable_scripts.js";
 
 include('includes/header.php');
 
@@ -19,13 +20,27 @@ if((int)$_SESSION['eventID'] == 0){
 } else {
 	
 	
-	$rulesIDs = getEventRules($_SESSION['eventID']);
+	$rulesIDs = (array)getEventRules($_SESSION['eventID']);
 
 	if((int)$_SESSION['rulesID'] != 0){
 		$rulesInfo = getRulesInfo($_SESSION['rulesID']);
 	} else {
 		$rulesInfo['rulesName'] = "";
 		$rulesInfo['rulesText'] = "";
+
+		// If we went to this page with no rules loaded, refresh page with the first one.
+		if($rulesIDs != [] && ALLOW['EVENT_MANAGEMENT'] == false){
+		?>
+			<script type="text/javascript">
+				window.onload = function(){
+					var input = document.getElementById('change-rules-select');
+					input.value = <?=$rulesIDs[0]?>;
+					submitForm('change-active-rules','changeRulesID');
+				}
+			</script>
+		<?php
+		}
+
 	}
 
 	$baseUrl = "http://$_SERVER[HTTP_HOST]";
@@ -35,25 +50,29 @@ if((int)$_SESSION['eventID'] == 0){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<form method="POST">
+<!-- Navigate Rules -------------------------------------->
+
+	<form method="POST" id='change-active-rules'>
 		<div class='grid-x grid-margin-x'>
 		<div class='medium-8 large-6 cell input-group no-bottom'>
-			<span class='input-group-label no-bottom'>Select Rules:</span>
-			<select class='input-group-field no-bottom' name='changeRules[rulesID]'>
-				<option value='0'>
-					<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
-						-- Add New --
-					<?php endif ?>
-				</option>
+			<span class='input-group-label no-bottom hide-for-small-only'>Select Rules:</span>
+			<span class='input-group-label no-bottom show-for-small-only'>Rules:</span>
+			<select class='input-group-field no-bottom' name='changeRules[rulesID]' 
+				id='change-rules-select' onchange="submitForm('change-active-rules','changeRulesID')">
+
+				<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
+					<option value='0'>-- Add New --</option>
+				<?php endif ?>
+
 				<?php foreach($rulesIDs as $rulesID):?>
 					<option <?=optionValue($rulesID,$_SESSION['rulesID'])?>>
 						<?=getRulesName($rulesID)?>
 					</option>
 				<?php endforeach ?>
+
 			</select>
-			<button class='input-group-button button no-bottom' name='formName' value='changeRulesID'>Change</button>
 		</div>
-		<div class='medium-4 large-6 cell input-group no-bottom'>
+		<div class='medium-4 large-6 cell input-group no-bottom align-self-middle'>
 			<?php if((int)$_SESSION['rulesID'] != 0):?>
 				<a href="<?=$linkPath?>">Permalink to <i><?=$rulesInfo['rulesName']?></i></a>
 			<?php endif ?>
@@ -61,16 +80,16 @@ if((int)$_SESSION['eventID'] == 0){
 		</div>
 	</form>
 
-	<hr>
+	
 
-	<?php 
-		if(ALLOW['EVENT_MANAGEMENT'] == true){
-			editRules($rulesInfo);
-			echo "<HR>";
-		}
+<!-- Show Rules -------------------------------------->
 
-		displayRules($rulesInfo);
-	?>
+	<?=reOrderRules($rulesIDs)?>
+		
+	<?=editRules($rulesInfo)?>
+		
+	<?=displayRules($rulesInfo)?>
+
 
 <?
 }
@@ -81,9 +100,52 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
+function reOrderRules($rulesIDs){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+?>
+	<div class='grid-x grid-margin-x'>
+	<div class='large-12 cell'>
+		<a class='re-order-rules' onclick="$('.re-order-rules').toggle()">Re-Order of Rules ↓</a>
+		<h5 class='re-order-rules hidden'><BR><a  onclick="$('.re-order-rules').toggle()">Re-Order of Rules ↑</a></h5>
+	</div>
+
+	<div class='large-6 cell re-order-rules hidden callout text-right'>
+	<form method="POST">
+
+		<div  id='sort-rules-order'>
+			<?php foreach($rulesIDs as $rulesID):?>
+				<div class='callout primary text-left' value=<?=$rulesID?>>
+					<?=getRulesName($rulesID)?>
+				</div>
+			<?php endforeach ?>
+		</div>
+
+		<?php foreach($rulesIDs as $index => $rulesID): ?>
+			<input class='hidden' name='orderRules[rulesIDs][<?=$rulesID?>]' 
+				id='rules-order-for-<?=$rulesID?>' value=<?=$index?>>
+		<?php endforeach ?>
+
+		<button class='button success no-bottom' name='formName' value='orderRules'>
+			Update Rules Order
+		</button>
+
+	</form>
+	</div>
+</div>
+
+<?php
+}
+
+/******************************************************************************/
+
 function displayRules($rulesInfo){
 ?>
 
+	<HR>
 
 	<div class='documentation-div'>
 		<a name='top-of-rules'></a>
@@ -101,27 +163,42 @@ function displayRules($rulesInfo){
 
 function editRules($rulesInfo){
 
-	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
-
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
 	}
 
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+
+	if(isset($rulesInfo['tournamentIDs']) == false || $rulesInfo['tournamentIDs'] == []){
+		$hideToggle = "hidden";
+		$hideInput = "";
+	} else {
+		$hideToggle = "";
+		$hideInput = "hidden";
+	}
+
 ?>
+
+	<HR>
+
 	<form method="POST">
 	
 		<div class='grid-x grid-margin-x'>
 		<div class='medium-8 large-6 cell input-group'>
-			<span class='input-group-label'>Name of Rules:</span>
+			<h4 class='input-group-label hide-for-small-only'>Name of Rules:</h4>
+			<h4 class='input-group-label show-for-small-only'>Name:</h4>
 			<input class='input-group-field' type='text' 
 				name='updateRules[rulesName]' value="<?=$rulesInfo['rulesName']?>"
 				placeholder='Add new ruleset' required>
 		</div>
+
+		<div class='large-12 cell'>
+			<a class=" <?=$hideToggle?>" onclick="$('.attach-rules').toggle()"><p>Attach Rules To Tournaments ↓</p></a>
 		</div>
 
-		<div class='grid-x grid-margin-x'>
-		<div class='medium-8 large-6 cell'>
-			<b>Applies To:</b>
+
+		<div class='medium-8 large-6 cell <?=$hideInput?> attach-rules'>
+			<i>The rules <b><?=$rulesInfo['rulesName']?></b> apply to the following tournaments:</i>
 			<?php if(count($tournamentIDs) == 0):?>
 				<BR>&emsp;<i>Event has no tournaments created</i><BR><BR>
 			<?php else: ?>

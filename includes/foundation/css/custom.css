@@ -1,5 +1,44 @@
 /* Added By Sean **************************************************************/
 
+
+.special-table {
+  border: solid 5px black !important;
+}
+  .special-table tr:nth-child(even) {
+    background-color:#D6E5FA;
+  }
+  .special-table th{
+    border-bottom: 1px solid black;
+  }
+
+.drop-down-separator {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.drop-down-separator::before{
+  content: '';
+    width: 0.4em;
+  border-bottom: 1px solid #FFF;
+}
+
+.drop-down-separator::after {
+  content: '';
+  flex: 10;
+  border-bottom: 1px solid #FFF;
+}
+
+.drop-down-separator:not(:empty)::before {
+  margin-right: .25em;
+}
+
+.drop-down-separator:not(:empty)::after {
+  margin-left: .25em;
+}
+
+
 table td.match-queue{
   padding-top: 2em;
   padding-bottom: 2em;
@@ -344,6 +383,10 @@ select {
   padding: 0px;
 }
 
+legend h4 {
+  margin-bottom: 0px;
+}
+
 .no-bottom {
 	margin-bottom: 0px;
 }
@@ -509,15 +552,21 @@ li h5 {
 .hero-title {
   background-color:#F2F2F2;
   margin-bottom:1rem;
-  padding:1rem;
+  margin-top:0rem;
+  padding:0.5rem;
   text-align:center;
-  height:5rem;
 }
 
 .hero-title h1, .hero-title h2 {
-    width:100%;
+  width:100%;
   font-weight:bold;
+  padding-bottom:0rem;
+  margin-bottom:0rem;
 }
+
+.hero-title select{
+    margin-bottom:0.5rem;
+ }
 
 h1 {
   font-size:1.25rem;

@@ -33,11 +33,6 @@ if($tournamentID == null){
 	$matchScores = getAllPoolScores($tournamentID, $poolSet);
 	$schoolIDs = getTournamentFighterSchoolIDs($tournamentID);
 
-	if(ALLOW['EVENT_SCOREKEEP'] == true){
-		$_SESSION['filterForSchoolID'] = 0;
-	}
-
-	
 	foreach((array)$matchList as $groupID => $pool){
 		$incompletes = false;
 		$completes = false;
@@ -48,30 +43,24 @@ if($tournamentID == null){
 				if($match['ignoreMatch'] == 1){continue;}
 				if($match['isComplete'] == true){ $completes = true; }
 				if($match['isComplete'] == false) { $incompletes = true; }
-			}	
-		}
+			}
 
+		}
 
 		if($incompletes && $completes){
 			$poolsInProgress[$groupID] = true;
 		}
 	}
 
-	
+	$hide = getItemsHiddenByFilters($tournamentID, $_SESSION['filters']);
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
 	
 	<?php poolSetNavigation(); ?>
 
-	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
-		<form method='POST'>
-		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
-			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
-			<input type='hidden' name='schoolID' value='0'>
-		</h3>
-		</form>
-	<?php endif ?>
+	<?=activeFilterWarning()?>
 
 <!-- Navigation to pools -->
 	<a name='topOfPage'></a>
@@ -101,7 +90,9 @@ if($tournamentID == null){
 	<?php foreach((array)$matchList as $groupID => $pool): 
 		$locationName = logistics_getGroupLocationName($groupID);
 		$matchNum = 0;
-		$numDisplayed = 0;
+		if(isset($hide['group'][$groupID]) == true){
+			continue;
+		}
 		?>
 		
 		<a name='group<?=$groupID?>'></a>
@@ -124,20 +115,19 @@ if($tournamentID == null){
 
 			foreach ($pool as $matchID => $match){
 				
-				if(gettype($match) == 'array'){
+				if(gettype($match) == 'array' && isset($hide['match'][$matchID]) == false){
 					$matchNum++;
-					$numDisplayed += displayMatch($matchID, $match, $matchScores, $matchNum, $schoolIDs);
+					displayMatch($matchID, $match, $matchScores, $matchNum, $schoolIDs);
 				}	
 			} ?>
 		</div>
 
-		<?php if($numDisplayed != 0): ?>
 		<a href='#topOfPage'>Back to Top</a>
 		<HR>
-		<?php endif ?>
+
 	<?php endforeach ?>    
 
-	<?=changeClubFilterDropdown($_SESSION['eventID'])?>
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 
 	<?php // Auto refresh function if matches are inprogress
 	$time = autoRefreshTime(isInProgress($tournamentID, 'pool')); ?>
@@ -305,13 +295,6 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 			break;
 	}
 
-	if($_SESSION['filterForSchoolID'] != 0 && $schoolID1 != $_SESSION['filterForSchoolID'] && $schoolID2 != $_SESSION['filterForSchoolID']){
-		$divClass .= ' hidden-important';
-		$displayed = 0;
-	} else {
-		$displayed = 1;
-	}
-
 	$code1 = COLOR_CODE_1;
 	$code2 = COLOR_CODE_2;
 	
@@ -356,7 +339,6 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 	</div>
 
 <?php 
-	return $displayed;
 }
 
 /******************************************************************************/

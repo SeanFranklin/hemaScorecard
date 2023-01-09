@@ -33,11 +33,14 @@ if($_SESSION['eventID'] == null){
 	
 	// Omits the accordion menu if there is only one round per set
 	$showMultiple = isCumulativeRounds($tournamentID); 
+	$hide = getItemsHiddenByFilters($tournamentID, $_SESSION['filters'], 'roster');
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>	
 	
+	<?=activeFilterWarning()?>
+
 <!--Accordion start -->
 	<?php if($showMultiple): ?>
 		<ul class='accordion' data-accordion  data-allow-all-closed='true'>
@@ -65,7 +68,7 @@ if($_SESSION['eventID'] == null){
 			<div class='accordion-content' data-tab-content>
 		<?php endif ?>
 		
-		<?php showRoundStandings($groupSet, $showMultiple); ?>
+		<?php showRoundStandings($groupSet, $showMultiple, $hide); ?>
 
 
 		<!--Accordion item end-->
@@ -82,6 +85,8 @@ if($_SESSION['eventID'] == null){
 		</div>
 	<?php endif ?>
 
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
+
 <?php }
 include('includes/footer.php');
 
@@ -89,12 +94,14 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 /******************************************************************************/
 
-function showRoundStandings($groupSet, $ownDiv = true){
+function showRoundStandings($groupSet, $ownDiv, $hide){
 
 
 	$rounds = getRounds($_SESSION['tournamentID'], $groupSet);
 	$ignores = getIgnores($_SESSION['tournamentID'],'ignoreAtSet');
 	$numRounds = count($rounds);
+	$schoolIDs = getTournamentFighterSchoolIDs($_SESSION['tournamentID']);
+
 	?>
 
 	<?php if($ownDiv): ?>
@@ -116,7 +123,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		<!-- Headers -->
 			<tr>
 				<th colspan='100%'>
-					<?=$roundName?>
+					<u><?=$roundName?></u>
 				</th>
 			</tr>
 			<tr>
@@ -141,6 +148,11 @@ function showRoundStandings($groupSet, $ownDiv = true){
 					$cumulativeScores[$roundNumber][$rosterID] += $cumulativeScores[$roundNumber-1][$rosterID];
 				}
 				$highestRound = $roundNumber;
+
+				if(isset($hide['roster'][$rosterID]) == true){
+					continue;
+				}
+
 				?>
 				
 				<tr>
@@ -182,25 +194,32 @@ function showRoundStandings($groupSet, $ownDiv = true){
 		?>
 		
 		<div class='large-4 medium-6 cell'>
-		<table class='data_table'>
+
+		<h4 class=' text-center'>Stage Total</h4>
+
+		<table class='data_table special-table'>
 			
 		<!-- Headers -->
-			<tr>
-				<th colspan='100%'>
-					Stage Total
-				</th>
-			</tr>
+
+
 			<tr>
 				<th>Place</th>
 				<th>Name</th>
 				<th>Score</th>
 			</tr>
+
 		
 		<!-- Data -->
 			<?php foreach((array)$scores as $num => $fighter):
 				$place = $num + 1;
+
+				if(isset($hide['roster'][$fighter['rosterID']]) == true){
+					continue;
+				}
+
 				$name = getEntryName($fighter['rosterID']);
 				$score = $fighter['score'];
+
 				?>
 				<tr>
 					<td><?=$place?></td>
@@ -208,7 +227,7 @@ function showRoundStandings($groupSet, $ownDiv = true){
 					<td><?=$score?></td>
 				</tr>
 			<?php endforeach ?>
-		
+
 		</table>
 		</div>
 		

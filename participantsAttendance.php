@@ -8,13 +8,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Filter Matches By School';
+$hidePageTitle = true;
 include('includes/header.php');
 $createSortableDataTable[] = ['matchesBySystemRosterID',25];
 
 $eventID = (int)$_SESSION['eventID'];
 {
 
-	$attendanceList = getAttendanceBySystemRosterID($_SESSION['filterForSystemRosterID']);
+	$attendanceList = (array)getAttendanceBySystemRosterID($_SESSION['filterForSystemRosterID']);
 
 	$HemaRatingsID = (int)hemaRatings_getFighterID($_SESSION['filterForSystemRosterID']);
 	if($HemaRatingsID == 0){

@@ -16,7 +16,6 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
 	
-
 	$stats = logistics_getWorkshopStats($_SESSION['eventID']);
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

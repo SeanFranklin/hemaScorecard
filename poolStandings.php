@@ -40,11 +40,6 @@ if($tournamentID == null){
 		$displayPoolsOption = false;
 	}
 
-	if(ALLOW['EVENT_SCOREKEEP'] == true){
-		$_SESSION['filterForSchoolID'] = 0;
-	}
-
-
 	poolSetNavigation($displayPoolsOption);
 
 	$incompleteMatches = getTournamentPoolIncompletes($tournamentID, $_SESSION['groupSet']);
@@ -64,7 +59,6 @@ if($tournamentID == null){
 		$showTeams = true;
 	}
 
-	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -106,14 +100,7 @@ if($tournamentID == null){
 
 	<?php endif ?>
 
-	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
-		<form method='POST'>
-		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
-			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
-			<input type='hidden' name='schoolID' value='0'>
-		</h3>
-		</form>
-	<?php endif ?>
+	<?=activeFilterWarning()?>
 
 	<?php if($showFighters & $showTeams): ?>
 		<ul class="tabs" data-tabs id="example-tabs">
@@ -136,7 +123,7 @@ if($tournamentID == null){
 	<?php endif ?>
 
 
-	<?=changeClubFilterDropdown($_SESSION['eventID'])?>
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
  
 <?php 		
 }
