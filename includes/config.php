@@ -137,12 +137,22 @@
 	define("STAFF_CONFLICTS_NO",0);     // Don't check staff conflicts
 	define("STAFF_CONFLICTS_HARD",100); // Limit everything
 
+// Video Constants
+	define("VIDEO_SOURCE_UNKNOWN",0);
+	define("VIDEO_SOURCE_YOUTUBE",1);
+	define("VIDEO_SOURCE_NONE",2);
+	define("VIDEO_SOURCE_GOOGLE_DRIVE",3);
+
+	define("VIDEO_STREAM_UNKNOWN",0);
+	define("VIDEO_STREAM_MATCH",1);
+	define("VIDEO_STREAM_LOCATION",2);
+	define("VIDEO_STREAM_VIRTUAL",3);
+
 
 // Options Defines
 
-
 	// Match Options
-	$options['M']['NUM_SUB_MATCHES'] = 2;
+	$options['M']['NUM_SUB_MATCHES'] = 2; 
 	$options['M']['SWAP_FIGHTERS'] = 3;
 	
 	// Tournament Options
@@ -161,7 +171,6 @@
 	$options['T']['CONTROL_POINT_VALUE'] = 9;
 
 	define('OPTION',$options);
-
 
 // Includes ////////////////////////////////////////////////////////////////////
 
@@ -519,6 +528,9 @@ function initializeSession(){
 	if(!isset($_SESSION['ratingViewMode'])){
 		$_SESSION['ratingViewMode'] = [];
 	}
+	if(!isset($_SESSION['viewMode']['time24hr'])){
+		$_SESSION['viewMode']['time24hr'] = false;
+	}
 	if(!isset($_SESSION['displayByPool'])){
 		$_SESSION['displayByPool'] = false;
 	}
@@ -532,11 +544,15 @@ function initializeSession(){
 	if(!isset($_SESSION['dataModes']['tournamentSort'])){
 		$_SESSION['dataModes']['tournamentSort'] = '';
 	}
-	if(!isset($_SESSION['filterForSchoolID'])){
-		$_SESSION['filterForSchoolID'] = 0;
-	}
+
 	if(!isset($_SESSION['filterForSystemRosterID'])){
 		$_SESSION['filterForSystemRosterID'] = 0;
+	}
+	if(!isset($_SESSION['filters']['school'])){
+		$_SESSION['filters']['school'] = false;
+	}
+	if(!isset($_SESSION['filters']['roster'])){
+		$_SESSION['filters']['roster'] = false;
 	}
 
 }
