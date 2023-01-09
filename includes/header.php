@@ -12,9 +12,8 @@
 
 include_once('includes/config.php');
 
-$livestreamInfo = getLivestreamInfo($_SESSION['eventID']);
-$vJ = '?=1.3.0'; // Javascript Version
-$vC = '?=1.1.0'; // CSS Version
+$vJ = '?=1.5.0'; // Javascript Version
+$vC = '?=1.2.0'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -30,16 +29,14 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 <!doctype html>
 <html class="no-js" lang="en" dir="ltr">
 
-<script>
-	<?php
-		// Output base URL of site for Javascript use
-		$b = BASE_URL;
-		echo "var BASE_URL = '$b';";
-	?>
-</script>
-
 <head>
-    <meta charset="utf-8">
+
+	<!-- Output base URL of site for Javascript use-->
+	<script>
+		<?php echo "var BASE_URL = '".BASE_URL."';";?>
+	</script>
+
+	<meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="
@@ -70,9 +67,8 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
     <?php if(isset($refreshPageTimer) == true && (int)$refreshPageTimer != 0):?>
     	<meta http-equiv="refresh" content="<?=(int)$refreshPageTimer?>">
     <?php endif ?>
-</head>
 
-	<style>
+    <style>
 		li.fighter_1_color {
 			border-bottom-color: <?= COLOR_CODE_1 ?>;
 		}
@@ -86,7 +82,8 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 			background-color: <?= COLOR_CODE_2 ?>;
 		}
 	</style>
-	
+</head>
+
 <body>
  <!-- START Upper Navigation ------------------------------------------>
  
@@ -97,13 +94,14 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		<form method='POST' name='logOutForm1'>
         <button class="menu-icon" type="button" data-toggle></button>
         <div class="title-bar-title">Menu</div>
-        <?php //tournamentListForHeader(); ?>
+    
         <?php if($_SESSION['userName'] == null): ?>
 			<a href='adminLogIn.php' class='login-link'>Login</a>
 		<?php else: ?>
 			<input type='hidden' name='formName' value='logUserOut'>
 			<a href='javascript:document.logOutForm1.submit();' class='login-link'>Log Out</a>	
 		<?php endif ?>
+
 		</form>
     </div>
     
@@ -111,212 +109,35 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
     <div class="top-bar" id="tourney-animated-menu" data-animate="hinge-in-from-top hinge-out-from-top" style='display:none'>
         <div class="top-bar-left">
             <ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu>
-				<li><?php tournamentListForHeader(); ?></li>
-                
 
-			<!-- Fighter Management -->
-			<?php if($_SESSION['eventID'] != null):?>
-				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true
-						  || ALLOW['EVENT_SCOREKEEP'] == true
-						  || ALLOW['VIEW_SETTINGS'] == true):?>
-					<li><a href='#'>Manage Fighters</a>
-
-						<ul class='menu vertical'>
-							<li><a href='participantsEvent.php'>Event Roster</a></li>
-							<li><a href='participantsCheckIn.php'>Check-In Participants</a></li>
-							
-							<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-
-								<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
-
-								<?php if( $_SESSION['formatID'] == FORMAT_MATCH): ?>
-									<li><a href='participantsRatings.php'>Set Fighter Ratings</a></li>
-									<li><a href='statsResultsDump.php'>Export Results</a></li>
-									<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
-									<li><a href='statsFighterPenalties.php'>Fighter Penalties</a></li>
-								<?php endif ?>
-
-							<?php endif ?>
-
-						</ul>
-					</li>
-				<?php else: ?>
-					<li>
-						<a href='#'>Event Information</a>
-						<ul class='menu vertical'>
-							<li><a href='participantsEvent.php'>Participants</a></li>
-							<li><a href='infoRules.php'>Rules</a></li>
-							<li><a href='infoSummary.php'>Final Results</a></li>
-							<li><a href='infoVideo.php'>Event Video</a></li>
-							<li><a href='participantsFiltered.php'>Matches by School</a></li>
-						</ul>
-						
-					</li>
-				<?php endif ?>
-			<?php endif ?>
-				
-			<!-- Event Management -->
-			<?php if($_SESSION['eventID'] != null):?>
-				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
-						  || ALLOW['VIEW_SETTINGS'] == true):?>
-					<li><a href='#'>Manage Event</a>
-						<ul class='menu vertical'>
-							<li><a href='adminTournaments.php'>Tournament Settings</a></li>
-							<li><a href='adminNewTournaments.php'>Add New Tournaments</a></li>
-							<HR class='no-bottom no-top'>
-							<li><a href='adminEvent.php'>Event Settings</a></li>
-							<li><a href='infoRules.php'>Rules</a><li>
-							<li><a href='adminHemaRatings.php'>HEMA Ratings Submission Form</a></li>
-						</ul>
-					</li>
-				<?php else: ?>
-					<!-- Empty -->
-				<?php endif ?>
-			<?php endif ?>
-
-			<!-- Event Information -->
-			<?php if($_SESSION['eventID'] != null):?>
-				<?php if($adminStatsDisplay == true):?>
-					<li><a href='#'>Event Status</a>
-						<ul class='menu vertical'>
-							<li><a href='statsEvent.php'>Participants/Schools</a></li>
-							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
-							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
-							<li><a href='infoSummary.php'>Final Results</a></li>
-							<li><a href='statsScoresheets.php'>Scoresheets</a></li>
-							<li><a href='infoVideo.php'>Event Video</a></li>
-						</ul>
-					</li>
-				<?php endif ?>
-			<?php endif ?>
-
-			<!-- Event Logistics -->
-			<?php if(   ($_SESSION['eventID'] != null)
-			         && (isMetaEvent($_SESSION['eventID']) == false)
-			        ):
-				$isSchedule = logistics_isTournamentScheduleUsed($_SESSION['eventID']);
-				?>
-				<?php if(    ALLOW['EVENT_MANAGEMENT'] == true 
-						  || ALLOW['VIEW_SETTINGS'] == true):?>
-					<li><a href='#'>Event Logistics</a>
-						<ul class='menu vertical'>
-							<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
-							<li><a href='logisticsAnnouncements.php'>Announcements</a><li>
-							<HR class='no-bottom no-top'>
-							<li><a href='participantsSchedules.php'>Individual Schedules</a></li>
-							<li><a href='logisticsParticipantHours.php'>Staffing Hours</a></li>
-							<?php if($isSchedule == true): ?>
-								<li><a href='logisticsStaffConflicts.php'>Staff Conflicts</a></li>
-								<li><a href='logisticsStaffGrid.php'>Full Staffing Grid</a></li>
-							<?php endif ?>
-							<HR class='no-bottom no-top'>
-							<?php if($isSchedule == true): ?>
-								<li><a href='logisticsStaffShifts.php'>Staffing Shifts</a></li>
-							<?php endif ?>
-							<li><a href='logisticsStaffRoster.php'>Staff Roster</a></li>
-							<?php if($isSchedule == true): ?>
-								<li><a href='logisticsStaffTemplates.php'>Staff Templates</a></li>
-							<?php endif ?>
-							<li><a href='logisticsLocations.php'>Event Locations</a></li>
-							
-							<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
-								<HR class='no-bottom no-top'>
-								<li><a href='adminSponsors.php'>Event Sponsors</a></li>
-							<?php endif ?>
-							
-							<!--<li><a href='livestreamManagement.php'>Livestream</a></li>-->
-						</ul>
-					</li>
-				<?php elseif(ALLOW['VIEW_SCHEDULE'] == true): ?>
-					<li><a href='logisticsSchedule.php'>Event Schedule</a></li>
-				<?php endif ?>
-			<?php endif ?>
-
-			<!-- Stats for non-users -->
-				<?php if($adminStatsDisplay == false && isAnyEventInfoViewable() == true ):?>
-					<li><a href='#'>Event Stats</a>
-						<ul class='menu vertical'>
-							<li><a href='statsFighterSummary.php'>Fighter Exchanges</a></li>
-							<li><a href='statsTournaments.php'>Tournament Stats</a></li>
-							<li><a href='statsWorkshops.php'>Workshop Stats</a></li>
-							<li><a href='statsEvent.php'>Participants/Schools</a></li>
-						</ul>
-					</li>
-				<?php endif ?>
-
-			<!-- Analytics -->
-				<li><a href='#'>Analytics</a>
-					<ul class='menu vertical'>
-						<li><a href='statsMatchLength.php'>Match Timings</a></li>
-						<li><a href='statsScheduleAssistant.php'>Tournament Time Calculator</a></li>
-						<li><a href='participantsAttendance.php'>Attendance By Fighter</a></li>
-						<?php if(ALLOW['STATS_ALL'] == true):?>
-							<HR class='no-bottom no-top'>
-							<li><a href='statsFighters.php'>Fighter Histories</a></li>
-							<li><a href='statsMultiEvent.php'>Tournament Summaries</a></li>
-							<li><a href='statsResultsDump.php'>Export Results</a></li>
-						<?php endif ?>
-					</ul>
-				</li>
-
-			<!-- Change Event -->
-				<a href='infoSelect.php'>Change Event</a></li>
-
-			<!-- Software Admin -->
-				<?php if(  ALLOW['SOFTWARE_ADMIN'] == true
-						|| ALLOW['SOFTWARE_ASSIST'] == true):?>
-					<li><a href='#'>ADMIN</a>
-						<ul class='menu vertical'>
-							<li><a href='masterEvents.php'>Manage Events</a></li>
-							<li><a href='participantsSchools.php'>Edit School List</a></li>
-							<li><a href='adminTournamentTypes.php'>Tournament Types</a></li>
-							<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
-							<li><a href='masterPasswords.php'>Manage Passwords</a></li>
-							<?php if(  ALLOW['SOFTWARE_ADMIN'] == true): ?>
-								<HR class='no-bottom no-top'>
-								<li><a href='participantsSystem.php'>System Roster</a></li>
-								<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
-								<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
-							<?php endif ?>
-						</ul>
-					</li>
-				<?php else: ?>
-					<?php if($_SESSION['userName'] != null
-						&& $_SESSION['userName'] != 'eventStaff'
-						&& $_SESSION['userName'] != 'eventOrganizer'): ?>
-
-						<li><a href='masterPasswords.php'>Change Password</a></li>
-
-					<?php endif ?>
-				<?php endif ?>
-
-
-			<!-- Help Page -->
+				<?php tournamentListForHeader(); ?>
+				<?=menuEvent()?>
+				<?=menuTournament()?>
+				<?=menuEventOrg()?>
+				<?=menuAnalytics()?>
+				<?=activeLivestream()?>
+				<li><a href='infoSelect.php'>Change Event</a></li>
 				<li><a href='adminHelp.php'>Help/About</a></li>
-				
-			<!-- Livestream -->
-				<?php if(($livestreamInfo['isLive'] ?? null) == 1): ?>
-					<li><a class='button warning hollow' href='livestream.php'>Livestream</a></li>
-				<?php endif ?>
-				
+				<?=menuAdmin()?>
             </ul>
            
         </div>
+
         <div class="top-bar-right show-for-large">
 			<?php if($_SESSION['userName'] == null): ?>
 				<a href='adminLogIn.php' style='color:white'>Login</a>
 			<?php else: ?>
 				<form method='POST' name='logOutForm2'>
-				<input type='hidden' name='formName' value='logUserOut'>
-				<a href='javascript:document.logOutForm2.submit();' style='color:white'>Log Out</a>
+					<input type='hidden' name='formName' value='logUserOut'>
+					<a href='javascript:document.logOutForm2.submit();' style='color:white'>Log Out</a>
 				</form>	
 			<?php endif ?>
 		</div>
         
     </div>
-    <!-- END Upper Navigation ----------------------------------------->	
+<!-- END Upper Navigation ----------------------------------------->	
 	
-	<!-- START Page Title --------------------------------------------->
+<!-- START Page Title --------------------------------------------->
 	
 	<?php if(   ($_SESSION['eventID'] != null && !isset($hidePageTitle))
 			 || (isset($forcePageTitle)) ): ?>
@@ -324,7 +145,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 			
 		<!-- Event Name -->
 		<h1>
-		<?php eventNameForHeader(); ?>
+			<?php eventNameForHeader(); ?>
 		</h1>
 		
 		
@@ -345,11 +166,11 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		<BR>
 	<?php endif ?>
 
-	<!-- END Page Title ----------------------------------------------->
+<!-- END Page Title ----------------------------------------------->
 		
 	<div id='page-wrapper' class='grid-container'>
 		
-	<!-- START Lower Navigation --------------------------------------->	
+<!-- START Lower Navigation --------------------------------------->	
 	
 	<?php 
 	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)
@@ -435,11 +256,11 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<?php endif ?>	
 
 
-	<!-- END Lower Navigation ----------------------------------------->
+<!-- END Lower Navigation ----------------------------------------->
 	
+<!-- START Page Alerts -------------------------------------------->
 	<?php
 	
-	livestreamAlert($livestreamInfo, $pageName);
 	if(isset($lockedTournamentWarning)){
 		tournamentLockedAlert($lockedTournamentWarning);
 	}
@@ -449,6 +270,303 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 
 // FUNCTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function menuEvent(){
+
+	if($_SESSION['eventID'] == null){
+		return;
+	}
+
+	if(    ALLOW['EVENT_MANAGEMENT'] == false 
+		&& ALLOW['VIEW_SETTINGS'] == false
+		&& ALLOW['STATS_EVENT'] == false
+		&& isAnyEventInfoViewable() == false){
+
+		return;
+	}
+
+?>
+	<li>
+		<a href='#'>Event Information</a>
+		<ul class='menu vertical'>
+			<li><a href='infoSummary.php'>Information/Results</a></li>
+			<li><a href='participantsEvent.php'>Event Roster</a></li>
+			<li><a href='logisticsSchedule.php'>Schedule</a></li>
+			<li><a href='infoRules.php'>Tournament Rules</a></li>
+			
+			<li>
+				<a href='#'>Event Stats</a>
+				<ul class='menu vertical'>
+					<li><a href='statsEvent.php'>Attendance/Schools</a></li>
+					<li><a href='statsTournaments.php'>Tournament Exchanges</a></li>
+					<li><a href='statsWorkshops.php'>Workshops</a></li>
+				</ul>
+			</li>
+
+			<li>
+				<a href='#'>Custom Schedules</a>
+				<ul class='menu vertical'>
+					<li><a href='logisticsSchedule.php?t=0'>Main Schedule</a></li>
+					<li><a href='participantsFiltered.php?t=0'>Matches by School</a></li>
+					<li><a href='infoScheduleWorkshops.php?t=0'>Class Schedule</a></li>
+					<li><a href='participantsSchedules.php?t=0'>Individual Schedules</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+	</li>
+<?php }
+
+/******************************************************************************/
+
+function menuTournament(){
+
+	if($_SESSION['tournamentID'] == null){
+		return;
+	}
+
+?>
+	<li>
+		<a href='#'>Tournament Information</a>
+		<ul class='menu vertical'>
+			<li><a href='participantsTournament.php'>Roster</a></li>
+			<li><a href='videoMatchList.php'>Video Links</a></li>
+
+			<?php if( $_SESSION['formatID'] == FORMAT_MATCH): ?>
+				<li><a href='statsFighterSummary.php'>Exchanges By Fighter</a></li>
+			<?php endif ?>
+
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+				<li><div class="drop-down-separator">During</div></li>
+				<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
+
+				<li><div class="drop-down-separator">Before</div></li>
+				<li>
+					<a href='#'><b>Settings</b></a>
+					<ul class='menu vertical'>
+						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>
+						<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
+					</ul>
+				</li>
+				<li><a href='participantsRatings.php'>Fighter Ratings</a></li>
+				
+				<li><a href='statsScoresheets.php'>Scoresheets</a></li>
+			<?php endif ?>
+
+		</ul>
+	</li>
+<?php }
+
+/******************************************************************************/
+function menuEventOrg(){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
+		return;
+	}
+	if($_SESSION['eventID'] == 0){
+		return;
+	}
+
+	$eventDates = getEventDates($_SESSION['eventID']);
+
+	if(compareDates($eventDates['eventStartDate']) < 0){
+		$menuOrder = ['menuEventOrgBefore','menuEventOrgDuring','menuEventOrgAfter'];
+	} elseif (compareDates($eventDates['eventEndDate']) <= 0) {
+		$menuOrder = ['menuEventOrgDuring','menuEventOrgBefore','menuEventOrgAfter'];
+	} else {
+		$menuOrder = ['menuEventOrgAfter','menuEventOrgDuring','menuEventOrgBefore'];
+	}
+?>
+	<li>
+		<a href='#'>Event Organization</a>
+		<ul class='menu vertical'>
+
+			<?php
+				foreach($menuOrder as $functionName){
+					call_user_func($functionName);
+				}
+			?>
+
+		</ul>
+	</li>
+<?php }
+
+/******************************************************************************/
+
+function menuEventOrgBefore(){
+?>
+
+	<div class="drop-down-separator">Before</div>
+
+	<li>
+		<a href='#'><b>Event Settings</b></a>
+		<ul class='menu vertical'>
+			<li><a href='adminEvent.php'><b>Event Settings</b></a></li>
+			<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
+		</ul>
+		
+
+	<li>
+		<a href='#'>Schedule</a>
+		<ul class='menu vertical'>
+			<li><a href='logisticsSchedule.php'>Edit Schedule</a></li>
+			<li><a href='logisticsLocations.php'>Edit Locations</a></li>
+		</ul>
+	</li>
+	
+	<li><a href='adminBurgees.php'>School Standings</a></li>
+
+	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+		<li><a href='adminSponsors.php'>Sponsors</a></li>
+	<?php endif ?>
+
+	<li>
+		<a href='#'>Staffing</a>
+		<ul class='menu vertical'>
+
+			<div class="drop-down-separator">Setup</div>
+			<li><a href='logisticsStaffRoster.php'>Roster</a></li>
+			<li><a href='logisticsStaffShifts.php'>Shifts</a></li>
+			<li><a href='logisticsStaffTemplates.php'>Shift Templates</a></li>
+
+			<div class="drop-down-separator">Summary</div>
+			<li><a href='logisticsParticipantHours.php'>Hours</a></li>
+			<li><a href='logisticsStaffConflicts.php'>Conflicts</a></li>
+			<li><a href='logisticsStaffGrid.php'>Full Grid</a></li>
+
+		</ul>
+	</li>
+
+					
+<?php }
+
+/******************************************************************************/
+
+function menuEventOrgDuring(){
+?>
+	<li><div class="drop-down-separator">During</div></li>
+
+	<li><a href='logisticsAnnouncements.php'>Announcements</a><li>
+
+	<li><a href='participantsCheckIn.php'>Check-In Participants</a></li>
+
+	<li><a href='adminFighterPenalties.php'>Penalties By Fighter</a></li>
+
+	<li><a href='videoLivestream.php'>Livestream</a></li>
+
+	<li>
+		<a href='#'>Views</a>
+		<ul class='menu vertical'>
+			<li><a href='infoRingAssignments.php'>Fighter Pool Assignment</a></li>
+			<li><a href='infoLocationMatchQueue.php'>Match Queue by Location</a></li>
+		</ul>
+	</li>
+<?php }
+
+/******************************************************************************/
+
+function menuEventOrgAfter(){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+?>
+	<div class="drop-down-separator">After</div>
+
+	<li><a href='adminHemaRatings.php'>HEMA Ratings Submission Form</a></li>
+<?php }	
+
+
+/******************************************************************************/
+
+function menuAnalytics(){
+?>
+	<li>
+		<a href='#'>Stats/Analytics</a>
+		<ul class='menu vertical'>
+			<li><a href='statsMatchLength.php'>Match Timings</a></li>
+			<li><a href='statsScheduleAssistant.php'>Tournament Time Calculator</a></li>
+			<li><a href='participantsAttendance.php'>Attendance By Fighter</a></li>
+			<li><a href='statsResultsDump.php'>Export Results</a></li>
+			<li><a href='participantsSystem.php'>Full System Roster</a></li>
+			<li><a href='statsPlacings.php'>Placings By Country</a></li>
+			<?php if(ALLOW['STATS_ALL'] == true):?>
+				<!-- These are ones that don't really work anymore -------->
+				<li>
+					<a href='#'>DEVEL Views</a>
+					<ul class='menu vertical'>
+						<li><a href='statsFighters.php'>Fighter Histories</a></li>
+						<li><a href='statsMultiEvent.php'>Exchange Types By Weapon</a></li>
+						<li><a href='statsIndividual.php'>Fighter Exchanges By Filter</a></li>
+					</ul>
+				</li>
+			<?php endif ?>
+
+		</ul>
+	</li>
+
+<?php }
+
+/******************************************************************************/
+
+function menuAdmin(){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false && ALLOW['SOFTWARE_ASSIST'] == false){
+
+		if(    $_SESSION['userName'] != null
+			&& $_SESSION['userName'] != 'eventStaff'
+			&& $_SESSION['userName'] != 'eventOrganizer'){
+			echo "<li><a href='masterPasswords.php'>Change Password</a></li>";
+		}		
+
+		return;
+	}
+
+?>
+	<li>
+		<a href='#'>ADMIN</a>
+		<ul class='menu vertical'>
+			<li><a href='masterEvents.php'>Manage Events</a></li>
+			<li>
+				<a href='#'>Database</a>
+				<ul class='menu vertical'>
+					<li><a href='adminSchools.php'>Edit School List</a></li>
+					<li><a href='masterTournamentTypes.php'>Tournament Types</a></li>
+					<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
+				</ul>
+			</li>
+			
+			<?php if(  ALLOW['SOFTWARE_ADMIN'] == true): ?>
+			<li>
+				<a href='#'>Data Integrity</a>
+				<ul class='menu vertical'>
+					<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
+					<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
+				</ul>
+			</li>
+			<?php endif ?>
+			<li><a href='masterPasswords.php'>Change Password</a></li>
+		
+		</ul>
+	</li>
+
+<?php }
+
+/******************************************************************************/
+
+function activeLivestream(){
+
+	if(isVideoStreamingForEvent($_SESSION['eventID']) == false){
+		return;
+	}
+
+?>
+
+	<li><a class='button warning hollow no-bottom' href='videoLivestream.php'>Livestream</a></li>
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -523,42 +641,8 @@ function tournamentLockedAlert($isWarning){
 	
 <?php }
 
-
 /******************************************************************************/
 
-function livestreamAlert($info, $pageName){
-// Display an alert notifying people about the livestream
-	
-	if(strpos($pageName, 'Livestream') !== false) { return; }
-	if(isset($_SESSION['hideLivestreamAlert']) && $_SESSION['hideLivestreamAlert'] == true){ return; }
-	if(($info['isLive'] ?? null) != 1){ return; }
-	
-	?>
-	
-
-	<div class='callout success text-center pointer' data-closable 
-		onclick="javascript:location.href='livestream.php'"
-		style='hover: pointer'>
-		
-		<div class='grid-x align-center'>
-			<div class='small-11'>
-				There is an active livestream for this event.
-				<a href='livestream.php'>Check it out</a>
-			</div>
-		</div>
-		
-		<form method='POST'>
-		<button class='close-button' aria-label='Dismiss alert' data-close
-			name='formName' value='hideLivestreamAlert'>
-			<span aria-hidden='true'>&times;</span>
-		</button>
-		</form>
-	</div>
-
-
-<?php }
-
-/******************************************************************************/
 function eventNameForHeader(){
 // Add the event name or prompty to select an event
 	$eventID = $_SESSION['eventID'];
