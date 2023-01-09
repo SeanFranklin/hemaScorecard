@@ -8,18 +8,16 @@
 
 $pageName = 'Match Length';
 $hideEventNav = true;
+$hidePageTitle = true;
 $jsIncludes[] = 'stats_scripts.js';
 
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif (ALLOW['VIEW_MATCHES'] == false){
-	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
 
 	$numDataSeries = countNumDataSeries();
-
 
 	$eventID = $_SESSION['matchID'];
 
@@ -56,21 +54,11 @@ if($_SESSION['eventID'] == null){
 	}
 	$totalMatchLength = $matchLength + $changeLength;
 
-	$tournamentIDs = (array)getEventTournaments($eventID);
-
-	$firstLoop = true;
-	$tIDsForJS = "[";
-	foreach($tournamentIDs as $id){
-		if($firstLoop == false){
-			$tIDsForJS .= ",";
-		} else {
-			$firstLoop = false;
-		}
-		$tIDsForJS .= "{$id}";
+	if(ALLOW['EVENT_SCOREKEEP'] == true){
+		$tournamentIDs = (array)getEventTournaments($eventID);
+	} else {
+		$tournamentIDs = [];
 	}
-	$tIDsForJS .= "]";
-
-	
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +84,7 @@ if($_SESSION['eventID'] == null){
 			<span class='input-group-label no-bottom'>Average Match Length & Changeover [sec]: </span>
 			<input class='input-group-field no-bottom' type=number id='time-per-match' 
 				value='<?=$totalMatchLength?>' placeholder='<?=$totalMatchLength?>'
-				onchange="statsUpdateTournamentTimeCalcAll(<?=$tIDsForJS?>)">
+				onchange="statsUpdateTournamentTimeCalc()">
 		</div>
 		
 	</div>
@@ -117,7 +105,7 @@ if($_SESSION['eventID'] == null){
 			</span>
 			<input class='input-group-field no-bottom' type=number id='time-between-pools' 
 				value='0' placeholder='???'
-				onchange="statsUpdateTournamentTimeCalcAll(<?=$tIDsForJS?>)">
+				onchange="statsUpdateTournamentTimeCalc()">
 		</div>
 		
 	</div>
@@ -125,11 +113,22 @@ if($_SESSION['eventID'] == null){
 	<p id='time-calculation-error' class='red-text'>
 	</p>
 
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+		<div class='grid-x grid-margin-x'>
+			<div class='large-12'><u>Entries for <?=getEventName($_SESSION['eventID'])?></u></div>
+		<?php foreach($tournamentIDs as $tournamentID): ?>
+
+			<div class='large-4 medium-6 cell'>
+				<b><?=getNumTournamentEntries($tournamentID)?></b> <?=getTournamentName($tournamentID)?>
+			</div>
+		<?php endforeach ?>
+		</div>
+	<?php endif ?>
+
 	<table>
 
 		<tr>
-			<th></th>
-			<th>Fighters</th>
+			<th># Fighters</th>
 			<th>Pool Size</th>
 			<th>Pools</th>
 			<th>Fights</th>
@@ -137,36 +136,33 @@ if($_SESSION['eventID'] == null){
 			<th>Total Time [hrs]</th>
 		</tr>
 
-		<?php foreach($tournamentIDs as $tournamentID): ?>
-			<tr>
-				<td>
-					<?=getTournamentName($tournamentID)?>
-				</td>
+		
+		<tr>
 
-				<td>
-					<input class='no-bottom' type=number id='num-fighters-<?=$tournamentID?>'
-					value="<?=getNumTournamentEntries($tournamentID)?>"
-					placeholder="<?=getNumTournamentEntries($tournamentID)?>"
-					onchange="statsUpdateTournamentTimeCalc(<?=$tournamentID?>)">
-				</td>
+			<td>
+				<input class='no-bottom' type=number id='t-time-calc-num-fighters'
+				value=""
+				placeholder=""
+				onchange="statsUpdateTournamentTimeCalc()">
+			</td>
 
-				<td>
-					<input class='no-bottom' type=number id='pool-size-<?=$tournamentID?>'
-					onchange="statsUpdateTournamentTimeCalc(<?=$tournamentID?>)">
-				</td>
+			<td>
+				<input class='no-bottom' type=number id='t-time-calc-pool-size'
+				onchange="statsUpdateTournamentTimeCalc()">
+			</td>
 
-				<td id='num-pools-<?=$tournamentID?>'>-</td>
-				<td id='num-fights-<?=$tournamentID?>'>-</td>
+			<td id='t-time-calc-num-pools'>-</td>
+			<td id='t-time-calc-num-fights'>-</td>
 
-				<td>
-					<input class='no-bottom' type=number id='num-rings-<?=$tournamentID?>'
-					onchange="statsUpdateTournamentTimeCalc(<?=$tournamentID?>)">
-				</td>
+			<td>
+				<input class='no-bottom' type=number id='t-time-calc-num-rings'
+				onchange="statsUpdateTournamentTimeCalc()">
+			</td>
 
-				<td id='total-time-<?=$tournamentID?>'>-</td>
+			<td id='t-time-calc-total-time'>-</td>
 
-			</tr>
-		<?php endforeach ?>
+		</tr>
+		
 
 
 	</table>

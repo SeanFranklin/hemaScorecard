@@ -30,7 +30,7 @@ if($eventID == null){
 	$isTournamentScheduleUsed = logistics_isTournamentScheduleUsed($_SESSION['eventID']); 
 	$scheduleByRosterID = logistics_getScheduleByFighter($_SESSION['eventID']);
 	$scheduleBlockNames = logistics_getScheduleBlockNames($_SESSION['eventID']);
-	
+
 	$nameOrder = NAME_MODE;
 	if($nameOrder == null){
 		$nameOrder = 'firstName';
@@ -78,6 +78,8 @@ if($eventID == null){
 		
 	}
 
+	eventRegistrationCountsDisplay();
+
 // Display roster
 	displayEventRoster($roster, $isTournamentScheduleUsed,
 						$tournamentEntries, $tournamentNames,
@@ -89,6 +91,39 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function eventRegistrationCountsDisplay(){
+
+	$numParticipants = getNumEventRegistrations($_SESSION['eventID']);
+	$numFighters = getNumEventFighters($_SESSION['eventID']);
+	$totalTournamentEntries = getNumEventTournamentEntries($_SESSION['eventID']);
+?>
+
+	<table class='stack'>
+		<tr>
+			<td>
+				Total Event Participants
+				<?=tooltip("Organizers will typically <b>NOT</b> enter non-fighting participants into Scorecard, and thus the total attendance may be higher than this number.")?>:
+				<strong><?=$numParticipants?></strong>
+			</td>
+			<td>
+				Total Event Fighters
+				<?=tooltip('Number of participants that fought in a tournament.')?>:
+				<strong><?=$numFighters?></strong>
+			</td>
+			<td>
+				Total Tournament Registrations
+				<?=tooltip('<u>Example</u>: If the same person fights in 3 tournaments they count as 3 registrations.')?>:
+				<strong><?=$totalTournamentEntries?></strong>
+			</td>
+
+		</tr>
+	</table>
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -249,7 +284,7 @@ function addNewParticipantsButtons(){
 			</button>
 		<?php endif?>
 		
-		<a class='button hollow secondary' href='participantsSchools.php'>
+		<a class='button hollow secondary' href='adminSchools.php'>
 			Add New Schools
 		</a>
 		<a class='button hollow secondary' href='participantsAdditional.php'>

@@ -67,7 +67,7 @@ if($tournamentID == null){
 						<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 							<input type='checkbox' name='deleteTeamsInfo[membersToDelete][<?=$member['tableID']?>]'>
 						<?php endif ?>
-						<?=getFighterName($member['rosterID'])?>
+						<?=getFighterName($member['rosterID']) ?>  [<?=getFighterSchoolName($member['rosterID'],'short')?>]
 					<?php endforeach ?>
 
 					<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
@@ -76,10 +76,12 @@ if($tournamentID == null){
 							<span class='input-group-label'>
 								New Member #:<?=$k?>
 							</span>
-							<select class='input-group-field' name='updateTeams[<?=$teamID?>][newMembers][<?=$k?>]''>
+							<select class='input-group-field' name='updateTeams[<?=$teamID?>][newMembers][<?=$k?>]'>
 								<option></option>
 								<?php foreach($addableFighters as $rosterID): ?>
-									<option value='<?=$rosterID?>'><?=getFighterName($rosterID)?></option>
+									<option value='<?=$rosterID?>'>
+										<?=getFighterName($rosterID)?> [<?=getFighterSchoolName($rosterID)?>]
+									</option>
 								<?php endforeach ?>
 							</select>
 							</div>
@@ -122,7 +124,6 @@ function teamName($teamID){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		echo getTeamName($teamID);
-		return;
 	} else {
 
 		$DbName = htmlspecialchars(getTeamName($teamID, null, 'raw'),ENT_QUOTES);
@@ -134,6 +135,11 @@ function teamName($teamID){
 			type='text' value='{$DbName}' {$placeholder}>";
 			
 	}
+
+	echo "<BR>".getFighterSchoolName($teamID);
+
+	return;
+
 }
 
 /******************************************************************************/
@@ -161,7 +167,7 @@ function createNewTeamInterface($addableFighters){
 				<span class='input-group-label'>
 					Team Name
 				</span>
-				<input class='input-group-field' name='newTeamInfo[teamName]'' type='text'>
+				<input class='input-group-field' name='newTeamInfo[teamName]' type='text'>
 			</div>
 		<!-- Team Members -->
 
@@ -172,10 +178,12 @@ function createNewTeamInterface($addableFighters){
 					<span class='input-group-label'>
 						Member #:<?=$k?>
 					</span>
-					<select class='input-group-field' name='newTeamInfo[newMembers][<?=$k?>]''>
+					<select class='input-group-field' name='newTeamInfo[newMembers][<?=$k?>]'>
 						<option></option>
 						<?php foreach($addableFighters as $rosterID): ?>
-							<option value='<?=$rosterID?>'><?=getFighterName($rosterID)?></option>
+							<option value='<?=$rosterID?>'>
+								<?=getFighterName($rosterID)?> [<?=getFighterSchoolName($rosterID)?>]
+							</option>
 						<?php endforeach ?>
 					</select>
 					</div>

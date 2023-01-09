@@ -11,7 +11,8 @@
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-$pageName = 'Tournament Roster';
+$pageName = 'System Roster';
+$hidePageTitle = true;
 $jsIncludes[] = 'roster_management_scripts.js';
 $createSortableDataTable[] = ['systemRosterTable',100];
 include('includes/header.php');
@@ -27,19 +28,19 @@ include('includes/header.php');
 	<?=editSystemFighterBox()?>
 
 <!-- Table headers -->
-	<table id="systemRosterTable" class="display">
+	<table id="systemRosterTable" class="display stack">
 	<thead>
 	<tr>
 
-		<th>First</th>
 		<th>Last</th>
+		<th>First</th>
 		<th>
 			School
 			<?=tooltip("This is the last school they were entered into a tournament under.")?>
 		</th>
 		<th>
 			HEMA Ratings ID
-			<?=tooltip("The databases aren't automatically synched, so these doing get updated/added very often.")?>
+			<?=tooltip("The databases aren't automatically synched, so these don't get updated/added very often.")?>
 		</th>
 		<?php if(ALLOW['SOFTWARE_ASSIST'] == TRUE): ?>
 			<th>systemRosterID</th>
@@ -51,14 +52,20 @@ include('includes/header.php');
 
 <!-- Display existing participants -->
 	<?php foreach ($allSystemFighters as $fighter):?>
-		<tr>
+		<tr class='link-table'>
 
-			<td><?=$fighter['lastName']?></td>
-			<td><?=$fighter['firstName']?></td>
-			<td><?=$fighter['schoolFullName']?></td>
-			<td><?=$fighter['HemaRatingsID']?></td>
+			<td onclick="window.location='participantsAttendance.php?s=<?=$fighter['systemRosterID']?>';" ><?=$fighter['lastName']?></td>
+			<td onclick="window.location='participantsAttendance.php?s=<?=$fighter['systemRosterID']?>';" ><?=$fighter['firstName']?></td>
+			<td onclick="window.location='participantsAttendance.php?s=<?=$fighter['systemRosterID']?>';" >
+				<?=$fighter['schoolFullName']?>
+				<?php if(ALLOW['SOFTWARE_ASSIST'] == TRUE): ?>
+					(<?=$fighter['schoolID']?>)
+				<?php endif ?>
+
+			</td >
+			<td onclick="window.location='participantsAttendance.php?s=<?=$fighter['systemRosterID']?>';" ><?=$fighter['HemaRatingsID']?></td>
 			<?php if(ALLOW['SOFTWARE_ASSIST'] == TRUE): ?>
-				<td><?=$fighter['systemRosterID']?></td>
+				<td onclick="window.location='participantsAttendance.php?s=<?=$fighter['systemRosterID']?>';" ><?=$fighter['systemRosterID']?></td>
 				<td>
 					<a class='button hollow tiny no-bottom' data-open='editSystemParticipantModal'
 					onclick="editSystemParticipant(<?=$fighter['systemRosterID']?>)">Edit</a>
@@ -118,6 +125,9 @@ function editSystemFighterBox(){
 				
 				<option value='<?=$school['schoolID']?>'>
 					<?=$school['schoolShortName']?>, <?=$school['schoolBranch']?>
+					<?php if(ALLOW['SOFTWARE_ASSIST'] == TRUE): ?>
+						(<?=$school['schoolID']?>)
+					<?php endif ?>	
 				</option>
 			<?php endforeach?>
 		</select>

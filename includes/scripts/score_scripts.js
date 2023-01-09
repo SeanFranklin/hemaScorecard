@@ -474,27 +474,6 @@ function editExchange(exchangeID, exchangeTime){
 
 }
 
-/**********************************************************************/
-
-function validateVideoLink(){
-
-	var buttons = document.getElementsByClassName('videoSubmitButton');
-	
-	var url = document.getElementById('videoField').value;
-	
-	if(    url.startsWith("https://www.youtube.com") 
-		|| url.startsWith("https://youtu.be")
-		|| url.startsWith("https://drive/google.com/file")
-		|| url == ''){
-		buttons[1].disabled = false;
-		buttons[0].disabled = false;
-	} else {
-		buttons[1].disabled = true;
-		buttons[0].disabled = true;
-	}
-
-}
-
 /************************************************************************************/
 
 function refreshOnNewExchange(matchID, exchangeID = 0){

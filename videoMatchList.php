@@ -22,6 +22,7 @@ if((int)$_SESSION['eventID'] == 0){
 
 	$videoList = getTournamentVideo($_SESSION['tournamentID'], ALLOW['EVENT_VIDEO']);
 	$colorNames = getTournamentColors($_SESSION['tournamentID']);
+	$hide = getItemsHiddenByFilters($_SESSION['tournamentID'], $_SESSION['filters'],'match');
 
 	// Suppress the sort-able table for editing the video list
 	if(ALLOW['EVENT_VIDEO'] == true){
@@ -47,6 +48,8 @@ if((int)$_SESSION['eventID'] == 0){
 		</div>
 	<?php else: ?>
 
+		<?=activeFilterWarning()?>
+
 		<h4>Video For: <b><u><?=getTournamentName($_SESSION['tournamentID'])?></u></b></h4>
 
 		<table  id="<?=$videoListID?>" class="display">
@@ -65,6 +68,11 @@ if((int)$_SESSION['eventID'] == 0){
 
 		<tbody>
 		<?php foreach($videoList as $match):
+
+				if(isset($hide['match'][$match['matchID']]) == true){
+					continue;
+				}
+
 				$matchInfo = getMatchInfo($match['matchID']);
 				if($matchInfo['matchType'] == 'pool'){
 					$name = "Match ".$matchInfo['matchNumber'];
@@ -72,13 +80,9 @@ if((int)$_SESSION['eventID'] == 0){
 					$name = getMatchStageName($match['matchID']);
 				}
 
-				
 				$name = "<a href='scoreMatch.php?m=".$match['matchID']."'>".$name."</a>";
 				
-
 			?>
-
-			
 
 			<tr>
 
@@ -91,14 +95,14 @@ if((int)$_SESSION['eventID'] == 0){
 				
 
 				<?php if(ALLOW['EVENT_VIDEO'] == false):?>
-					<td><a href="<?=$match['videoLink']?>"><?=$match['videoLink']?></a></td>
+					<td><a href="<?=$match['sourceLink']?>"><?=$match['sourceLink']?></a></td>
 				<?php else: ?>
 					<td>
-						<input type='hidden' name='matchID' value='<?=$match['matchID']?>'>
-						<input class='input-group-field' type='url' name='url' value='<?=$match['videoLink']?>' >
+						<input type='hidden' name='updateVideoSource[matchID]' value='<?=$match['matchID']?>'>
+						<input class='input-group-field' type='url' name='updateVideoSource[sourceLink]' value='<?=$match['sourceLink']?>' >
 					</td>
 					<td>
-						<button class="button tiny success no-bottom"  name='formName'  value='videoLink' >
+						<button class="button tiny success no-bottom"  name='formName'  value='updateVideoSource' >
 							Update
 						</button>
 					</td>
@@ -112,6 +116,8 @@ if((int)$_SESSION['eventID'] == 0){
 		</tbody>
 		</table>
 	<?php endif ?>
+
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 	
 
 <?

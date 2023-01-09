@@ -14,16 +14,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Export Tournament Results';
+$hidePageTitle = true;
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
-} elseif(ALLOW['STATS_EVENT'] == false){
-	pageError('user');
 } else {
+
+
 	$tournamentList_unsorted = getTournamentsFull($_SESSION['eventID']);
 
-	
 	// Splits list into finalized tournaments first
 	$finalizedTournaments = [];
 	$unfinalizedTournaments = [];
@@ -55,63 +55,76 @@ if($_SESSION['eventID'] == null){
 	<?php if(ALLOW['VIEW_EMAIL']):?>
 		<strong>Event Contact Information: </strong>
 		<a href='mailto:<?=$email?>'><?=$email?></a>
+		<HR>
 	<?php endif ?>
-	<fieldset class='fieldset'>
-	<legend><h4>HEMA Ratings Format</h4></legend>
+
+
+	<h4><a class="hema-ratings-export" onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4>
+		
+	<fieldset class='fieldset hema-ratings-export hidden'>
+
+	<legend><h4><a onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4></legend>
+
 	<form method='POST'>
-	<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
-	
-<!-- Export All -->
-	<!--<button class='button success' name='HemaRatingsExport' value='all'>
-		Export All
-	</button>
-	<?=tooltip("This will export the roster and all tournaments which are:
-	<li>Finalized</li><li>Versus Match format</li>")?>
-	<BR>-->
 
-<!-- Export roster -->
-	<button class='button <?=$eventExportClass?>' name='HemaRatingsExport' value='eventInfo'>
-		Export Event Information
-	</button>
-	<?=$eventExportErrText?>
-
-
-	<BR>
-
-	<button class='button' name='HemaRatingsExport' value='roster'>
-		Export Roster
-	</button>
-	<?php if(ALLOW['STATS_ALL'] == true): ?>
-		<i> - Remember to return any HEMA Ratings IDs not on this list!
-	<?php endif ?>
-
-	<BR><BR>
-
-<!-- Export tournaments -->
-	<?php foreach((array)$tournamentList as $tournamentID => $tournament):
-		$name = getTournamentName($tournamentID);
-		$class = '';
-			$warning = null;
-
-
-		if(!isFinalized($tournamentID)){
-			$class = 'secondary';
-			$warning .= '<em> - Tournament not finalized</em>';
-		}
-
-		if(isTournamentPrivate($tournamentID)){
-			$class = 'alert';
-			$warning = '<em> - Request for private results</em>'.$warning;
-		} 
+		<div class='grid-x grid-margin-x'>
+		<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
 		
-		
-		?>
-		<button class='button hollow <?=$class?>' name='HemaRatingsExport' value='<?=$tournamentID?>'>
-			Export <?=$name?>
+	<!-- Export roster -->
+		<?php if(ALLOW['VIEW_EMAIL']):?>
+			<div class='large-3 medium-5 cell'>
+			<button class='button <?=$eventExportClass?> expanded' name='HemaRatingsExport' value='eventInfo'>
+				Export Event Information
+			</button>
+			</div>
+		<?php endif ?>
+
+		<?=$eventExportErrText?>
+
+
+		<div class='large-3 medium-5 cell'>
+		<button class='button expanded' name='HemaRatingsExport' value='roster'>
+			Export Roster
 		</button>
-		<?=$warning?>
-		<BR>
-	<?php endforeach ?>
+		</div>
+		<?php if(ALLOW['STATS_ALL'] == true): ?>
+			<div class='large-6 medium-12 cell'>
+			<i> - Remember to return any HEMA Ratings IDs not on this list!</i>
+			</div>
+		<?php endif ?>
+		
+
+		<div class='large-12 cell'><HR></div>
+
+	<!-- Export tournaments -->
+		<?php foreach((array)$tournamentList as $tournamentID => $tournament):
+			$name = getTournamentName($tournamentID);
+			$class = '';
+				$warning = null;
+
+
+			if(!isFinalized($tournamentID)){
+				$class = 'secondary';
+				$warning .= '<em> - Tournament not finalized</em>';
+			}
+
+			if(isTournamentPrivate($tournamentID)){
+				$class = 'alert';
+				$warning = '<em> - Request for private results</em>'.$warning;
+			} 
+			
+			
+			?>
+
+			<div class='large-4 medium-6 cell'>
+			<button class='button hollow <?=$class?> expanded' name='HemaRatingsExport' value='<?=$tournamentID?>'>
+				Export <?=$name?>
+			</button>
+			<?=$warning?>
+			</div>
+			
+		<?php endforeach ?>
+		</div>
 
 	</form>
 

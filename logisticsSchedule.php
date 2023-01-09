@@ -7,7 +7,7 @@
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-define("SCHEDULE_TIME_INTERVAL",30); // 30 minutes.
+define("SCHEDULE_TIME_INTERVAL",15); // 30 minutes.
 
 $pageName = 'Event Schedule';
 $jsIncludes[] = 'logistics_management_scripts.js';
@@ -786,12 +786,14 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 			$lIndex = 0;
 			if(($time % 60) == 0){
 				$showTime = min2hr($time);
+				$timeClass = "table-top-border";
 			} else {
-				$showTime = '&nbsp;';
+				$showTime = '';
+				$timeClass = "";
 			}
 			?>
 			<tr>
-				<th style='border-right: 1px solid black'>
+				<th style='border-right: 1px solid black' class="<?=$timeClass?>">
 					<?=$showTime?>
 				</th>
 

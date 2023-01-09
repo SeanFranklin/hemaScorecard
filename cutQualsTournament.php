@@ -33,6 +33,7 @@ if($_SESSION['tournamentID'] == null){
 	$numToQual = 0;
 	$nonQualledFighters = [];
 	$qualledFighters = [];
+	$hide = getItemsHiddenByFilters($tournamentID,$_SESSION['filters'],'roster');
 	
 	if(isset($qualList)){
 		foreach($tournamentList as $fighter){
@@ -40,6 +41,7 @@ if($_SESSION['tournamentID'] == null){
 			$systemRosterID = $fighter['systemRosterID']; 
 			$entry['name'] = getFighterNameSystem($systemRosterID);
 			$entry['systemRosterID'] = $systemRosterID;
+			$entry['rosterID'] = $fighter['rosterID']; 
 			$eventDate = getEventEndDate($_SESSION['eventID']);
 			
 			if(isset($qualList[$systemRosterID])){ 
@@ -87,6 +89,8 @@ if($_SESSION['tournamentID'] == null){
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
 
+	<?=activeFilterWarning()?>
+
 <!-- Select tournament standard -->
 	<?php if($thisStandard != null): ?>
 		Fighters who have completed 
@@ -99,7 +103,6 @@ if($_SESSION['tournamentID'] == null){
 		}
 		displayAlert($alertText);
 	endif ?>
-	
 
 	<?php if(ALLOW['SOFTWARE_ASSIST'] == true): ?>
 		<a class='button small-expanded hollow' href='cutQuals.php'>
@@ -229,6 +232,11 @@ if($_SESSION['tournamentID'] == null){
 			} else {
 				$qualID = '';
 			}
+
+			if(isset($hide['roster'][$fighter['rosterID']]) == true){
+				continue;
+			}
+
 			?>
 			<tr>
 				<form method='POST'>
@@ -273,6 +281,8 @@ if($_SESSION['tournamentID'] == null){
 	<?php endif ?>
 	</div>
 	</div>
+
+	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 	
 <?php }
 

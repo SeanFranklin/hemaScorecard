@@ -72,15 +72,23 @@ function editAnnouncementForm($announcement){
 
 	$announcementID = (int)$announcement['announcementID'];
 	$displayTime = round(($announcement['displayUntil'] - time())/60);
+
 	if($displayTime < 0){
 		$displayTime = 0;
 	}
+
 	if($announcementID == 0){
 		$minTime = 10; // 10 minutes;
 		$timeText = "Display For";
 	} else {
 		$minTime = 0;
 		$timeText = "Time Remaining";
+	}
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		$maxTime = "max=3000";
+	} else {
+		$maxTime = "";
 	}
 
 ?>
@@ -97,7 +105,7 @@ function editAnnouncementForm($announcement){
 
 		<div class='input-group'>
 			<span class='input-group-label'><?=$timeText ?> (min): </span>
-			<input type=number class='input-group-field' min=<?=$minTime?> max=3000 
+			<input type=number class='input-group-field' min=<?=$minTime?>  <?=$maxTime?>
 				name='announcement[displayTime]' value='<?=$displayTime?>'>
 
 

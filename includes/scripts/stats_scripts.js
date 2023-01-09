@@ -1,24 +1,16 @@
 
-/**********************************************************************/
-
-function statsUpdateTournamentTimeCalcAll(tournamentIDs){
-
-	for(var i in tournamentIDs){
-		statsUpdateTournamentTimeCalc(tournamentIDs[i]);
-	}
-}
 
 /**********************************************************************/
 
-function statsUpdateTournamentTimeCalc(tournamentID){
+function statsUpdateTournamentTimeCalc(){
 
 	var errorString = "";
 
-	var numFighters = parseInt(document.getElementById('num-fighters-'+tournamentID).value);
-	var poolSize = parseInt(document.getElementById('pool-size-'+tournamentID).value);
+	var numFighters = parseInt(document.getElementById('t-time-calc-num-fighters').value);
+	var poolSize = parseInt(document.getElementById('t-time-calc-pool-size').value);
 	var timePerMatch = parseInt(document.getElementById('time-per-match').value);
 	var timeBetweenPools = parseInt(document.getElementById('time-between-pools').value);
-	var numRings = parseInt(document.getElementById('num-rings-'+tournamentID).value);
+	var numRings = parseInt(document.getElementById('t-time-calc-num-rings').value);
 	if(numRings < 1 || isNaN(numRings)){
 		numRings = 1;
 	}
@@ -40,9 +32,9 @@ function statsUpdateTournamentTimeCalc(tournamentID){
 	}
 
 	if(isNaN(numPools) == false){
-		document.getElementById('num-pools-'+tournamentID).innerHTML = numPools;
+		document.getElementById('t-time-calc-num-pools').innerHTML = numPools;
 	} else {
-		document.getElementById('num-pools-'+tournamentID).innerHTML = "-";
+		document.getElementById('t-time-calc-num-pools').innerHTML = "-";
 	}
 
 // Total number of fights
@@ -52,9 +44,9 @@ function statsUpdateTournamentTimeCalc(tournamentID){
 	totalFights = normalFights + oversizeFights;
 
 	if(isNaN(totalFights) == false){
-		document.getElementById('num-fights-'+tournamentID).innerHTML = totalFights;
+		document.getElementById('t-time-calc-num-fights').innerHTML = totalFights;
 	} else {
-		document.getElementById('num-fights-'+tournamentID).innerHTML = "-";
+		document.getElementById('t-time-calc-num-fights').innerHTML = "-";
 	}
 	
 // Longest concurent fights in a pool
@@ -94,9 +86,9 @@ function statsUpdateTournamentTimeCalc(tournamentID){
 	totalTime = Math.round(totalTime * 10)/10;
 
 	if(isNaN(totalTime) == false){
-		document.getElementById('total-time-'+tournamentID).innerHTML = totalTime;
+		document.getElementById('t-time-calc-total-time').innerHTML = totalTime;
 	} else {
-		document.getElementById('total-time-'+tournamentID).innerHTML = "-";
+		document.getElementById('t-time-calc-total-time').innerHTML = "-";
 	}
 
 // Update errors

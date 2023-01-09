@@ -137,3 +137,77 @@ function reOrderPools(button){
 	}
 	
 }
+
+/************************************************************************************/
+
+function clearPoolsFormCheck(){
+
+
+	if(document.getElementById('clearPool[unlock][fighters]').checked == false){
+		document.getElementById("clear-pools-submit").innerHTML = 'Select Mode';
+		document.getElementById("clear-pools-submit").disabled = true;
+	} else {
+	
+		document.getElementById("clear-pools-submit").disabled = false;
+
+		
+
+		
+		if(document.getElementById('clearPool[unlock][groups]').checked == false) {
+			document.getElementById("clear-pools-submit").innerHTML = 'Clear Fighters';
+		} else {
+			document.getElementById("clear-pools-submit").innerHTML = 'CLEAR ALL';
+		}
+		
+	}
+
+	
+}
+
+/************************************************************************************/
+
+
+function selectAllPoolFighters(){
+    
+    var checkboxes = document.getElementsByClassName("pool-fighter-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = true;
+        checkIfFought(checkboxes[i]);
+    }
+
+    $('#clear-pools-box').foundation('close');
+}
+
+/**********************************************************************/
+
+function selectAllPools(){
+
+	var checkboxes = document.getElementsByClassName("pool-group-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {	
+        checkboxes[i].checked = true;
+        checkIfFought(checkboxes[i]);
+    }
+
+	selectAllPoolFighters();
+}
+
+/**********************************************************************/
+
+function unselectAllPools(){
+	$('#clear-pools-box').foundation('close');
+
+	var checkboxes = document.getElementsByClassName("pool-fighter-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+        checkIfFought(checkboxes[i]);
+    }
+
+    var checkboxes = document.getElementsByClassName("pool-group-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+        checkIfFought(checkboxes[i]);
+    }
+
+}
+
+/**********************************************************************/

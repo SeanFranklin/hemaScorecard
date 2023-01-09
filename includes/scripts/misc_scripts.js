@@ -87,7 +87,6 @@ $('#logInUserName').bind('input', function() {
 function schoolInputPlaceholders(){
 // Creates placeholder text for a form field, based on what is entered in
 // another form field.
-// Used in participantsSchools.php
 
 	document.getElementById('schoolShort').placeholder = schoolFull.value;
 

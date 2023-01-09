@@ -97,13 +97,6 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		edit_doubleType(tournamentID);
 	}
 
-// Team Modes
-	if($('#isTeams_select'+tournamentID).val() > 0){
-		$('#teamLogic_div'+tournamentID).show();
-	} else {
-		$('#teamLogic_div'+tournamentID).hide();
-	}
-	
 }
 
 /**********************************************************************/
@@ -113,39 +106,35 @@ function enableTournamentButton(tournamentID){
 	var formatID = document.getElementById('formatID_select'+tournamentID).value;
 	var button = document.getElementById('editTournamentButton'+tournamentID);
 	var warrningMessages = [];
+	var fadeTime = 400;
 
 	if(formatID.length == 0){
 		warrningMessages.push('No format selected');
 	}
 
+
 // Check modes related to fighting matches
 
 	if(formatID == FORMAT_MATCH){
 		doubleID = document.getElementById('doubleID_select'+tournamentID).value;
-		if(doubleID.length == 0){
-			warrningMessages.push('Please select Double/Afterblow Type');
-		}
 
 		if(doubleID == 3){
 
-			netScoreMode = document.getElementById('notNetScore_select'+tournamentID).value;
-
-			if(netScoreMode.length == 0){
-				warrningMessages.push('Please select Net Score preference');
-			}
-
-			$("#overrideDoubles_div"+tournamentID).show();
+			$("#overrideDoubles_div"+tournamentID).show(fadeTime);
 
 			if($("#overrideDoubles_select"+tournamentID).val() != 0){
-				$("#maxDoubles_div"+tournamentID).show();
+				$("#maxDoubles_div"+tournamentID).show(fadeTime);
+			} else {
+				$("#maxDoubles_div"+tournamentID).hide(fadeTime);
 			}
 
 		} else {
-
-			$("#overrideDoubles_div"+tournamentID).hide();
+			$("#maxDoubles_div"+tournamentID).show(fadeTime);
+			$("#overrideDoubles_div"+tournamentID).hide(fadeTime);
 			
 		}
 	}
+
 
 // Check modes relating to score/rankings
 
@@ -161,13 +150,8 @@ function enableTournamentButton(tournamentID){
 		if(baseValue == '' || baseValue < 0 || baseValue > 100){
 			warrningMessages.push('Please input a Base Score Value');
 		}
-	} else { // If it isn't a scored event, still have to manage the base score value for reverse score tournaments
-		if($('#reverseScore_select'+tournamentID).val() > 0){
-			$("#baseValue_div"+tournamentID).show();
-		} else {
-			$("#baseValue_div"+tournamentID).hide();
-		}
 	}
+
 
 // Check if the reverse score option is selected
 
@@ -180,23 +164,17 @@ function enableTournamentButton(tournamentID){
 		}
 	}
 
-// Team Modes
-	if($('#isTeams_select'+tournamentID).val() > 0){
-		$('#teamLogic_div'+tournamentID).show();
-	} else {
-		$('#teamLogic_div'+tournamentID).hide();
-	}
-
 
 // Num Sub Matches
+
 	numSubMatches = Number($('#numSubMatches_select'+tournamentID).val());
 	numSubMatches_original = Number($('#numSubMatches_select'+tournamentID).data('original'));
 	doesBracketExist = Boolean($('#doesBracketExist'+tournamentID).val());
 	
-
 	if(numSubMatches != numSubMatches_original && doesBracketExist == true){
 		warrningMessages.push('Can not change number of sub matches once a bracket is created. You must delete bracket to change the number.');
 	}
+
 
 // Set warning messages
 
@@ -271,6 +249,29 @@ function edit_formatType(tournamentID){
 				option.selected = true;
 				select.appendChild(option);
 
+
+				if(rankingTypes['popular'].length != 0){
+
+					var option = document.createElement('option');
+					option.disabled = true;
+					option.selected = true;
+					option.innerHTML = "- Most Popular: ----------------";
+					select.appendChild(option);
+
+					for(var i in rankingTypes['popular']){
+						var option = document.createElement('option');
+						option.value = rankingTypes['popular'][i]['tournamentRankingID'];
+						option.innerHTML = rankingTypes['popular'][i]['name'];
+						select.appendChild(option);
+					}
+
+					var option = document.createElement('option');
+					option.disabled = true;
+					option.selected = true;
+					option.innerHTML = "- By Name: ---------------------";
+					select.appendChild(option);
+				}
+
 				for(var i in rankingTypes){
 					var option = document.createElement('option');
 					option.value = rankingTypes[i]['tournamentRankingID'];
@@ -291,3 +292,5 @@ function edit_numSubMatches(tournamentID){
 	enableTournamentButton(tournamentID);
 
 }
+
+/**********************************************************************/

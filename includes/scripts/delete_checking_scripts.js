@@ -118,4 +118,6 @@ function hasAlreadyFoughtWarning(show, textElement){
 	
 }
 
+/**********************************************************************/
+
 	

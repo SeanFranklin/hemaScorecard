@@ -111,6 +111,10 @@ include('includes/footer.php');
 
 function bracketControl($allBracketInfo, $ringsInfo){
 
+	if(ALLOW['EVENT_SCOREKEEP'] == false && $allBracketInfo['elimType'] == ELIM_TYPE_SINGLE){
+		return;
+	}
+
 	// Warns the user that the bracket helper is not defined for consolation
 	// brackets that are not for a number of fighters equal to a power of 2
 	if(	   $_SESSION['bracketView'] == BRACKET_SECONDARY

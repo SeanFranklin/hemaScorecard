@@ -11,30 +11,60 @@ $pageName = 'Filter Matches By School';
 include('includes/header.php');
 $createSortableDataTable[] = ['matchesBySchoolTable',25];
 
-$eventID = (int)$_SESSION['eventID'];
-if($eventID == null){
+
+if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif(ALLOW['VIEW_MATCHES'] == false) {
 	displayAlert("Event is still upcoming");
 } else {
 
-	$allMatches = getMatchesBySchool($eventID, $_SESSION['filterForSchoolID']);
-	$isArchived = isEventArchived($eventID);
+	$allMatches = getMatchesBySchool($_SESSION['eventID'], @$_SESSION['filters']['schoolID']);
+	
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<?php if($_SESSION['filterForSchoolID'] != 0): ?>
-		<form method='POST'>
-		<h3>Only Showing <b><?=getSchoolName($_SESSION['filterForSchoolID'])?></b>
-			<button class='button' name='formName' value='filterForSchoolID'>Clear</button>
-			<input type='hidden' name='schoolID' value='0'>
+	<?php if($_SESSION['filters']['school'] != false): ?>
+		<h3>Only Showing:
+			<?php foreach((array)$_SESSION['filters']['schoolID'] as $schoolID):?>
+			 <b><?=getSchoolName($schoolID)?>, </b>
+			<?php endforeach ?>
+			<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 		</h3>
-		</form>
+		
+		<?=displayMatchTable($allMatches)?>
+	<?php else: ?>
+		<div class='grid-x grid-padding-x'>
+		<div class='large-5 medium-8 cell' style='border-right:1px solid black'>
+			This page allows you to see all the matches for fighters of the specified schools.
+			Please create a filter for the school(s) of intrest to see what everyone is doing.
+		</div>
+		<div class='large-2 medium-2 cell align-self-middle'>
+			<?=changeParticipantFilterForm($_SESSION['eventID'])?>
+		</div>
+		</div>
+		
 	<?php endif ?>
-	<?=changeClubFilterDropdown($_SESSION['eventID'])?>
 
+	
+
+	
+		
+<?php 		
+	
+}
+
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displayMatchTable($allMatches){
+	$isArchived = isEventArchived($_SESSION['eventID']);
+?>
 	<table  id="matchesBySchoolTable" class="display">
 		<thead>
 				<th>Tournament</th>
@@ -102,18 +132,8 @@ if($eventID == null){
 		<?php endforeach ?>
 		</tbody>
 	</table>
-		
-<?php 		
-	
+<?php
 }
-
-include('includes/footer.php');
-
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-/******************************************************************************/
-
 
 
 /******************************************************************************/
