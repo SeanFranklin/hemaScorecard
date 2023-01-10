@@ -1086,6 +1086,20 @@ function getEventDates($eventID){
 	
 }
 
+/******************************************************************************/
+
+function getEventLocation($eventID){
+	
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT eventCity, eventProvince, countryName
+			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
+			WHERE eventID = {$eventID}";
+	return mysqlQuery($sql, SINGLE);
+	
+}
+
 
 /******************************************************************************/
 
@@ -1497,6 +1511,243 @@ function getMetaTournamentComponents($mTournamentID, $result = null, $roster = n
 
 /******************************************************************************/
 
+function getBurgeeName($burgeeID){
+
+	$burgeeID = (int)$burgeeID;
+
+	$sql = "SELECT burgeeName
+			FROM eventBurgees
+			WHERE burgeeID = {$burgeeID}";
+	return (mysqlQuery($sql, SINGLE, 'burgeeName'));
+}
+
+/******************************************************************************/
+
+function getBurgeeRankings(){
+
+	$sql = "SELECT burgeeRankingID, rankingName, functionName
+			FROM systemBurgees";
+	return (mysqlQuery($sql, ASSOC));
+}
+
+/******************************************************************************/
+
+function getBurgeeRankingParameters($burgeeRankingID){
+
+	$paramList = [];
+
+	switch($burgeeRankingID){
+		case 1: { // Num In Top 4
+
+			$tmp['name'] = 'Finalist';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 4;
+			$tmp['weight'] = 1;
+			$tmp['priority'] = 0;
+			$paramList[$tmp['priority']] = $tmp;
+			break;
+		}
+
+		case 2: { // 
+			$tmp['name'] = 'Finalist';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 4;
+			$tmp['weight'] = 9;
+			$tmp['priority'] = 0;
+			$paramList[$tmp['priority']] = $tmp;
+
+			$tmp['name'] = 'Top Third';
+			$tmp['type'] = 'percent';
+			$tmp['value'] = (1/3);
+			$tmp['weight'] = 3;
+			$tmp['priority'] = 1;
+			$paramList[$tmp['priority']] = $tmp;
+
+			$tmp['name'] = 'Top 1/2';
+			$tmp['type'] = 'percent';
+			$tmp['value'] = (1/2);
+			$tmp['weight'] = 1;
+			$tmp['priority'] = 2;
+			$paramList[$tmp['priority']] = $tmp;
+
+			break;
+		}
+
+		case 3: { // Finalist Points
+			$tmp['name'] = '1st';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 1;
+			$tmp['weight'] = 4;
+			$tmp['priority'] = 0;
+			$paramList[$tmp['priority']] = $tmp;
+
+			$tmp['name'] = '2nd';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 2;
+			$tmp['weight'] = 3;
+			$tmp['priority'] = 1;
+			$paramList[$tmp['priority']] = $tmp;
+
+			$tmp['name'] = '3rd';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 3;
+			$tmp['weight'] = 2;
+			$tmp['priority'] = 2;
+			$paramList[$tmp['priority']] = $tmp;
+
+			$tmp['name'] = '4th';
+			$tmp['type'] = 'place';
+			$tmp['value'] = 4;
+			$tmp['weight'] = 1;
+			$tmp['priority'] = 3;
+			$paramList[$tmp['priority']] = $tmp;
+
+			break;
+		}
+
+		default: {
+			$paramList = [];
+			break;
+		}
+	}
+
+	return ($paramList);
+}
+
+/******************************************************************************/
+
+function getEventBurgees($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT burgeeID
+			FROM eventBurgees
+			WHERE eventID = {$eventID}";
+	return ((array)mysqlQuery($sql, SINGLES));
+}
+
+/******************************************************************************/
+
+function getBurgeeInfo($burgeeID){
+
+	$burgeeID = (int)$burgeeID;
+
+	$sql = "SELECT burgeeID, eventID, burgeeRankingID, burgeeName
+			FROM eventBurgees
+			WHERE burgeeID = {$burgeeID}";
+	$info = (array)mysqlQuery($sql, SINGLE);
+
+	if($info != []){
+
+		$sql = "SELECT tournamentID, tournamentID AS tID
+				FROM eventBurgeeComponents
+				WHERE burgeeID = {$burgeeID}";
+
+		$info['components'] = (array)mysqlQuery($sql, KEY_SINGLES, 'tournamentID','tID');
+	}
+
+	return ($info);
+}
+
+/******************************************************************************/
+
+function getBurgeePoints($burgeeID){
+	
+
+	$burgeeID = (int)$burgeeID;
+
+	$sql = "SELECT SUM(burgeePoints) AS score, schoolID
+			FROM eventBurgeePlacings
+			WHERE burgeeID = {$burgeeID}
+			GROUP BY schoolID
+			ORDER BY score DESC";
+	$burgeePoints = (array)mysqlQuery($sql, KEY, 'schoolID');
+
+	$placingNum = 0;
+	$place = 0;
+	$previousScore = 0;
+	$previousSchoolID = 0;
+
+	foreach($burgeePoints as $schoolID => $placing){
+		$placingNum++;
+
+		if($placing['score'] != $previousScore){
+			$burgeePoints[$schoolID]['text'] = "";
+			$place = $placingNum;
+		} else {
+			$burgeePoints[$schoolID]['text'] = "tie";
+			$burgeePoints[$previousSchoolID]['text'] = "tie";
+		}
+
+		$burgeePoints[$schoolID]['place'] = $place;
+		$previousSchoolID = $schoolID;
+		$previousScore = $placing['score'];
+	}
+
+	$sql = "SELECT schoolID, rosterID, tournamentID, burgeePoints, placingName
+			FROM eventBurgeePlacings
+			WHERE burgeeID = {$burgeeID}
+			ORDER BY burgeePoints DESC";
+	$placings = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($placings as $placing){
+		$schoolID = $placing['schoolID'];
+		$rosterID = $placing['rosterID'];
+
+		$burgeePoints[$schoolID]['fighters'][$rosterID]['placingName'] = $placing['placingName'];
+		$burgeePoints[$schoolID]['fighters'][$rosterID]['tournamentIDs'][] = $placing['tournamentID'];
+
+	}
+
+	return($burgeePoints);
+}
+
+/******************************************************************************/
+
+function processBurgeeFighters($bP, $placings, $priority, $weight){
+
+	foreach($placings as $p){
+
+		$schoolID = $p['schoolID'];
+		
+		// This fighter has already been counted before, so we shouldn't add them to the team score.
+		if(isset($bP['fighters'][$p['rosterID']]) == true){
+
+			// Update the list of tournaments that they achieved the results at
+			if($bP['fightersBySchool'][$schoolID][$p['rosterID']]['priority'] == $priority){
+				$bP['fightersBySchool'][$schoolID][$p['rosterID']]['tournamentIDs'][] = (int)$p['tournamentID'];
+			}
+
+			continue;
+
+		} else {
+			$bP['fighters'][$p['rosterID']] = (int)$p['rosterID'];
+		}
+
+
+		$bP['fightersBySchool'][$schoolID][$p['rosterID']]['priority'] = $priority;
+		$bP['fightersBySchool'][$schoolID][$p['rosterID']]['tournamentIDs'][] = (int)$p['tournamentID'];
+
+		if(isset($bP['schools'][$schoolID]['count'][$priority]) == true){
+			$bP['schools'][$schoolID]['count'][$priority] += 1;
+		} else {
+			$bP['schools'][$schoolID]['count'][$priority] = 1;
+		}
+
+		if(isset($bP['schools'][$schoolID]['score']) == true){
+			$bP['schools'][$schoolID]['score'] += $weight;
+		} else {
+			$bP['schools'][$schoolID]['score'] = $weight;
+		}
+
+	}
+
+	return ($bP);
+
+}
+
+/******************************************************************************/
+
 function getIncompletComponents($mTournamentID){
 	$mTournamentID = (int)$mTournamentID;
 
@@ -1738,6 +1989,16 @@ function getEventTournaments($eventID = 0){
 				ORDER BY numParticipants DESC";
 		return mysqlQuery($sql, SINGLES);		
 	} 
+
+// Sort by custom defined list
+	if($_SESSION['dataModes']['tournamentSort'] == 'custom'){
+		$sql = "SELECT tournamentID
+				FROM eventTournaments
+				LEFT JOIN eventTournamentOrder USING(tournamentID)
+				WHERE eventID = {$eventID}
+				ORDER BY sortOrder ASC";
+		return mysqlQuery($sql, SINGLES);	
+	}
 	
 // Sort alphabetically
 	if($_SESSION['dataModes']['tournamentSort'] == 'nameSort'){
@@ -2275,6 +2536,14 @@ function getFighterSchoolName($rosterID, $nameType = null, $includeBranch = null
 			WHERE rosterID = {$rosterID}";
 
 	$result = mysqlQuery($sql, SINGLE);
+
+	if($result == null){
+		// If there is no result get the name of the unknown school.
+		$result['schoolFullName'] = '';
+		$result['schoolShortName'] = '';
+		$result['schoolBranch'] = '';
+		$result['schoolAbbreviation'] = '';
+	}
 	
 	if($nameType == 'abbreviation'){
 		$schoolName = $result['schoolAbbreviation'];
@@ -2713,13 +2982,15 @@ function getMatchInfo($matchID = 0){
 			WHERE matchID = {$matchID}";
 	$matchInfo['locationID'] = mysqlQuery($sql, SINGLE, 'locationID');
 
-	if($matchInfo['matchComplete'] == 1){
+	if((int)$matchInfo['matchComplete'] == 1){
 		$sql = "SELECT exchangeType
 				FROM eventExchanges
 				WHERE exchangeID = {$matchInfo['lastExchange']}";
 		$matchInfo['endType'] = mysqlQuery($sql, SINGLE, 'exchangeType');	
 	} elseif ($matchInfo['ignoreMatch'] == 1){
 		$matchInfo['endType'] = 'ignore';
+	} else {
+		$matchInfo['endType'] = null;
 	}
 
 	return $matchInfo;
@@ -2814,6 +3085,96 @@ function getPoolMatches($tournamentID, $exclude = null, $groupSet = 1){
 	}
 	
 	return $matchList;
+}
+
+/******************************************************************************/
+
+function getItemsHiddenByFilters($tournamentID, $filters, $type = null){
+
+	$tournamentID = (int)$tournamentID;
+
+	$hide['group'] = [];
+	$hide['match'] = [];
+	$hide['roster'] = [];
+	$hide['systemRoster'] = [];
+
+// Add new filter types to this statement as they are incorporated. 
+
+	if($filters['school'] == true && isset($filters['schoolID']) == true && sizeof($filters['schoolID']) != 0){
+		$schoolList = implode2int($filters['schoolID']);
+		$schoolClause = "AND schoolID NOT IN ({$schoolList})";
+	} else {
+		$filters['school'] = false;
+		$schoolClause = "";
+	}
+
+
+	if($schoolClause == ""){
+		// add new clauses here as they come up. If there is no filter clause, don't filter anything.
+		return $hide;
+	}
+
+// Check schools which should be filtered out
+
+	if($type == 'school' || $type == null){
+
+		$sql = "SELECT schoolID, 1 AS placeholder
+				FROM eventTournamentRoster
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID = {$tournamentID}
+				{$schoolClause}";
+		$hide['school'] = (array)mysqlQuery($sql, KEY_SINGLES, 'schoolID', 'placeholder') ;
+	}
+
+// Check groups/matches which should be filtered
+	if($type == 'group' || $type == 'match' || $type == null){
+
+		$schoolClause2 = "AND (eR1.schoolID NOT IN ({$schoolList}) AND eR2.schoolID NOT IN ({$schoolList}))";
+		$schoolClause3 = "AND (eR1.schoolID IN ({$schoolList}) OR eR2.schoolID IN ({$schoolList}))";
+
+		$sql = "SELECT groupID, matchID, fighter1ID, fighter2ID, eR1.schoolID AS school1ID, eR2.schoolID AS school12D
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
+				INNER JOIN eventRoster AS eR2 ON eM.fighter2ID = eR2.rosterID
+				WHERE tournamentID = {$tournamentID}
+				{$schoolClause2}
+				ORDER BY groupNumber ASC, matchNumber ASC";
+		$matchList = (array)mysqlQuery($sql, ASSOC);
+
+		foreach($matchList as $match){
+			$hide['group'][$match['groupID']] = true;
+			$hide['match'][$match['matchID']] = true;
+		}
+
+		$sql = "SELECT groupID
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
+				INNER JOIN eventRoster AS eR2 ON eM.fighter2ID = eR2.rosterID
+				WHERE tournamentID = {$tournamentID}
+				{$schoolClause3}
+				GROUP BY groupID";
+		$groupsToShow = (array)mysqlQuery($sql, SINGLES,'groupID');
+
+		foreach($groupsToShow as $groupID){
+			unset($hide['group'][$groupID]);
+		}
+	}
+
+// Check individual fighters which should be filtered
+	if($type == 'roster' || $type == null){
+
+		$sql = "SELECT rosterID, 1 AS placeholder
+				FROM eventTournamentRoster
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID = {$tournamentID}
+				{$schoolClause}";
+		$hide['roster'] = (array)mysqlQuery($sql, KEY_SINGLES, 'rosterID', 'placeholder') ;
+
+	}
+
+	return ($hide);
 }
 
 /******************************************************************************/
@@ -3422,34 +3783,25 @@ function getMatchesByLocationBracket($locationID, $tournamentID, $onlyIncomplete
 
 /******************************************************************************/
 
-function getMatchesBySchool($eventID, $schoolID){
+function getMatchesBySchool($eventID, $schoolIDs){
 
 	$eventID = (int)$eventID;
-	$schoolID = (int)$schoolID;
+	$schoolIDs = implode2int($schoolIDs);
 
-	if($eventID == 0 || $schoolID == 0){
+	if($eventID == 0 || $schoolIDs == ""){
 		return [];
 	}
 
 	$sql = "SELECT matchID, fighter1ID, fighter2ID, tournamentID, groupID, groupType, matchNumber,
 					winnerID, fighter1Score, fighter2Score, ignoreMatch, matchComplete,
-					IF((SELECT schoolID
-						FROM eventMatches AS eM4
-						INNER JOIN eventRoster AS eR4 ON eM4.fighter1ID = eR4.rosterID
-						WHERE eM.matchID = eM4.matchID) = {$schoolID}, 1, 0) AS isFighter1
+					IF(eR1.schoolID IN ({$schoolIDs}), 1, 0) AS isFighter1
 			FROM eventMatches AS eM
 			INNER JOIN eventGroups USING(groupID)
-			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE eventID = {$eventID}
-			AND ((SELECT schoolID
-					FROM eventMatches AS eM2
-					INNER JOIN eventRoster AS eR2 ON eM2.fighter1ID = eR2.rosterID
-					WHERE eM.matchID = eM2.matchID) = {$schoolID}
-				OR
-				 (SELECT schoolID
-					FROM eventMatches AS eM3
-					INNER JOIN eventRoster AS eR3 ON eM3.fighter2ID = eR3.rosterID
-					WHERE eM.matchID = eM3.matchID) = {$schoolID})
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
+			INNER JOIN eventRoster AS eR2 ON eM.fighter2ID = eR2.rosterID
+			WHERE eT.eventID = {$eventID}
+			AND (eR1.schoolID IN ({$schoolIDs}) OR eR2.schoolID IN ({$schoolIDs}))
 			ORDER BY tournamentID, groupType DESC, groupID, matchNumber";
 
 
@@ -4345,56 +4697,74 @@ function getListForNextRound($tournamentID, $groupSet, $groupNumber){
 
 /******************************************************************************/
 
-function getLivestreamInfo($eventID){
-	
+function isVideoStreamingForEvent($eventID){
 	$eventID = (int)$eventID;
-	if($eventID == 0){
-		// Not an error, return no information
-		return null;
-	}
-	
-	$sql = "SELECT isLive, chanelName, platform, useOverlay, matchID
-			FROM eventLivestreams
-			WHERE eventID = {$eventID}";
-	
-	return mysqlQuery($sql, SINGLE);
-	
-}
+	$emptyFrame = (int)VIDEO_SOURCE_NONE;
 
-/******************************************************************************/
-
-function getLivestreamMatch($eventID){
-	
-	$eventID = (int)$eventID;
-	if($eventID == 0){
-		setAlert(SYSTEM,"getLivestreamMatch()");
-		return;
-	}
-	
-	$sql = "SELECT matchID
-			FROM eventLivestreams
-			WHERE eventID = {$eventID}";
-	return mysqlQuery($sql, SINGLE, 'matchID');
-	
-}
-
-/******************************************************************************/
-
-function getLivestreamMatchOrder($eventID){
-	
-	$eventID = (int)$eventID;
-	if($eventID == 0){
-		setAlert(SYSTEM,"getLivestreamMatchOrder()");
-		return;
-	}
-	
-	$sql = "SELECT matchNumber, matchID
-			FROM eventLivestreamMatches
+	$sql = "SELECT isLive
+			FROM eventVideoStreams
+			INNER JOIN eventVideo USING(videoID)
+			INNER JOIN logisticsLocations USING(locationID)
 			WHERE eventID = {$eventID}
-			ORDER BY matchNumber ASC";
-	return mysqlQuery($sql, KEY_SINGLES, 'matchNumber', 'matchID');
+			AND isLive = 1
+			AND sourceLink IS NOT NULL";
+	$ringStreaming = (array)mysqlQuery($sql, SINGLES, 'isLive');
+
+	if($ringStreaming != []){
+		$isEventStreaming = true;
+	} else {
+		$isEventStreaming = false;
+	}
+
+	return ($isEventStreaming);
+
 }
 
+/******************************************************************************/
+
+function getEventVideoStreams($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT locationID, locationName, isLive, 
+				videoID, sourceLink, matchID, overlayEnabled, overlayOpacity
+			FROM logisticsLocations
+			LEFT JOIN eventVideoStreams USING(locationID)
+			LEFT JOIN eventVideo USING(videoID)
+			WHERE eventID = {$eventID}
+			AND hasMatches = 1
+			ORDER BY locationName ASC";
+	$ringInfo = (array)mysqlQuery($sql, ASSOC);
+
+	return ($ringInfo);
+}
+
+/******************************************************************************/
+
+function getStreamForLocation($locationID){
+
+	$locationID = (int)$locationID;
+	if($locationID == 0){
+		// Not an error, return no information
+		return [];
+	}
+
+	
+	$sql = "SELECT streamID, videoID, matchID, locationID, isLive, 
+				sourceType, sourceLink, overlayEnabled, overlayOpacity
+			FROM eventVideoStreams
+			INNER JOIN eventVideo USING(videoID)
+			WHERE locationID = {$locationID}";
+	$streamInfo = (array)mysqlQuery($sql, SINGLE);
+
+	if($streamInfo != []){
+		$streamInfo['streamMode'] = VIDEO_STREAM_LOCATION;
+		$streamInfo['synchTime'] = 0;
+		$streamInfo['synchTime2'] = 0;
+	}
+
+	return $streamInfo;
+	
+}
 
 /******************************************************************************/
 
@@ -4961,6 +5331,29 @@ function getSchoolName($schoolID, $nameType = null, $includeBranch = null){
 
 /******************************************************************************/
 
+function getAttendanceFromSchools($eventID){
+
+	$eventID = (int)$eventID;
+
+	if($eventID != 0){
+		$whereClause = "WHERE eventID = {$eventID}";
+	} else {
+		$whereClause = "";
+	}
+
+	$sql = "SELECT schoolID, count(*) AS num
+			FROM eventRoster
+			{$whereClause}
+			GROUP BY schoolID
+			ORDER BY num DESC";
+	$clubTotals = (array)mysqlQuery($sql, KEY_SINGLES, "schoolID", "num");
+
+	return ($clubTotals);
+
+}
+
+/******************************************************************************/
+
 function getSchoolPoints($eventID){
 
 	$eventID = (int)$eventID;
@@ -5094,7 +5487,7 @@ function getSystemRoster($tournamentID = 0){
 
 function getSystemRosterInfo(){
 	
-	$sql = "SELECT systemRosterID, firstName, lastName, schoolFullName, HemaRatingsID
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolFullName, HemaRatingsID, schoolID
 			FROM systemRoster
 			INNER JOIN systemSchools USING(schoolID)
 			ORDER BY lastName ASC, firstName ASC";
@@ -6079,6 +6472,7 @@ function logistics_getEventAnnouncments($eventID){
 	$sql = "SELECT announcementID, message, displayUntil, visibility
 			FROM logisticsAnnouncements
 			WHERE eventID = {$eventID}
+			OR eventID IS NULL
 			ORDER BY displayUntil DESC";
 	return mysqlQuery($sql, ASSOC);
 }
@@ -6306,6 +6700,19 @@ function getNumTournamentEntries($tournamentID){
 	$sql = "SELECT COUNT(*) AS numParticipants
 			FROM eventTournamentRoster
 			WHERE tournamentID = {$tournamentID}";
+	return (int)mysqlQuery($sql, SINGLE, 'numParticipants');
+}
+
+/******************************************************************************/
+
+function getNumEventTournamentEntries($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(*) AS numParticipants
+			FROM eventTournamentRoster
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}";
 	return (int)mysqlQuery($sql, SINGLE, 'numParticipants');
 }
 
@@ -6692,18 +7099,44 @@ function getNumEventFighters($eventID){
 
 /******************************************************************************/
 
-function getVideoLink($matchID){
+function getNumEventRegistrations($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(*) AS numFighters
+			FROM eventRoster AS eTR
+			WHERE eventID = {$eventID}
+			AND isTeam = 0";
+	$numRegistrations = (int)mysqlQuery($sql,SINGLE,'numFighters');
+
+	return ($numRegistrations);
+
+}
+
+/******************************************************************************/
+
+function getMatchVideoLink($matchID){
 
 	$matchID = (int)$matchID;
 	if($matchID == 0){
-		setAlert(SYSTEM,"No matchID in getYouTube()");
+		setAlert(SYSTEM,"No matchID in getVideoLink()");
 		return;
 	}
 	
-	$sql = "SELECT videoLink
-			FROM eventMatches
+	$sql = "SELECT sourceLink, synchTime, synchTime2
+			FROM eventVideo
 			WHERE matchID = {$matchID}";
-	return mysqlQuery($sql, SINGLE, 'videoLink');		
+	$videoInfo = (array)mysqlQuery($sql, SINGLE);
+
+	if($videoInfo == []){
+		$videoInfo['sourceLink'] = '';
+		$videoInfo['synchTime'] = 0;
+		$videoInfo['synchTime2'] = 0;
+	}
+
+	$videoInfo['overlayEnabled'] = true;
+
+	return ($videoInfo);	
 			
 	
 }
@@ -6720,8 +7153,9 @@ function getTournamentVideo($tournamentID, $includeNull){
 		$isVideoClause = '';
 	}
 
-	$sql = "SELECT matchID, videoLink
-			FROM eventMatches
+	$sql = "SELECT matchID, sourceLink
+			FROM eventVideo
+			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
 			{$isVideoClause}";
@@ -7967,7 +8401,9 @@ function isAnyEventInfoViewable(){
 
 	if(    ALLOW['VIEW_ROSTER'] == true 
 		|| ALLOW['VIEW_SCHEDULE'] == true 
-		|| ALLOW['VIEW_MATCHES'] == true){
+		|| ALLOW['VIEW_MATCHES'] == true
+	    || ALLOW['VIEW_RULES'] == true)
+	{
 		$viewable = true;
 	} else {
 		$viewable = false;
@@ -7985,7 +8421,8 @@ function getEventRules($eventID){
 
 	$sql = "SELECT rulesID
 			FROM eventRules
-			WHERE eventID = {$eventID}";
+			WHERE eventID = {$eventID}
+			ORDER BY rulesOrder ASC, rulesName ASC";
 	return (array)mysqlQuery($sql, SINGLES, 'rulesID');
 }
 

@@ -15,7 +15,7 @@ const TIE_MIDDLE  = '|';
 const TIE_BOTTOM  = '↲';
 const TIE_NO      = '&nbsp;';
 
-/************************************************************************************/
+/******************************************************************************/
 
 function toggle(divName, divName2 = null) {
 	
@@ -37,20 +37,20 @@ function toggle(divName, divName2 = null) {
     
 }
 
-/************************************************************************************/
+/******************************************************************************/
 
 function toggleClass(className){
     $('.'+className).toggle();
 }
 
-/************************************************************************************/
+/******************************************************************************/
 
 function show(text){
 // Alias of console.log() used to maintain symetry with data dump function from php
     console.log(text);
 }
 
-/************************************************************************************/
+/******************************************************************************/
 
 function rankingDescriptionToggle(rankingID){
     $(".rankingDescription").hide();
@@ -58,7 +58,7 @@ function rankingDescriptionToggle(rankingID){
     $("#"+divName).show();
 }
 
-/************************************************************************************/
+/******************************************************************************/
 
 function showForOption(selectElement, value, classToToggle){
 
@@ -71,7 +71,7 @@ function showForOption(selectElement, value, classToToggle){
     }
 }
 
-/************************************************************************************/
+/******************************************************************************/
 
 function autoRefresh(timeInterval){
 // Automatically refreshes a page for a given time interval.
@@ -88,19 +88,19 @@ function autoRefresh(timeInterval){
 }
 
 
-/**********************************************************************/
+/******************************************************************************/
 
 function openModal(modalName){
 	$("#"+modalName).foundation("open");
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function safeReload(){
 	location.reload();
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function updateSession(index, value){
 // Only certain values will be accepted by the server
@@ -124,7 +124,7 @@ function updateSession(index, value){
 
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function submitForm(formID, formName, directMode = false){
    
@@ -144,7 +144,7 @@ function submitForm(formID, formName, directMode = false){
     form.submit();
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function toggleWithButton(className, onStatus){
 
@@ -158,7 +158,7 @@ function toggleWithButton(className, onStatus){
 
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function togglePolarGeneration(selectDiv){
 
@@ -172,7 +172,7 @@ function togglePolarGeneration(selectDiv){
     }
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function submit_updateBracketRings(){
 
@@ -187,7 +187,7 @@ function submit_updateBracketRings(){
     submitForm('bracketForm','assignMatchesToLocations');
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 function placingsDeclareTie(place1, maxPlace){
 
@@ -317,7 +317,7 @@ function placingsDeclareTie(place1, maxPlace){
 
 }
 
-/**********************************************************************/
+/******************************************************************************/
 
 $( "#createNewEventToggleButton" ).click(function() {
   $( "#createNewEventField" ).slideToggle( "slow", function() {
@@ -325,7 +325,7 @@ $( "#createNewEventToggleButton" ).click(function() {
   });
 });
 
-/**********************************************************************/
+/******************************************************************************/
 
 function changeEventJs(eventID){
 
@@ -343,4 +343,49 @@ function changeEventJs(eventID){
 
 }
 
-/**********************************************************************/
+/******************************************************************************/
+
+jQuery(".edit-staff-list").change(function(event){
+
+    var formData = [];
+    formData['functionName'] = 'logisticsStaffFromRoster';
+
+    formData['rosterID'] = $(event.target).attr("data-rosterID");
+    var str = "#editStaffList-"+formData['rosterID'];
+
+    formData['isStaff'] = ($(str+"-isStaff").prop('checked') === true ? 1 : 0);
+    formData['staffCompetency'] = $(str+"-staffCompetency").val();
+    formData['staffHoursTarget'] = $(str+"-staffHoursTarget").val();
+    formData['eventID'] = $("#eventID").val();
+
+    postForm(formData);
+
+});
+
+/******************************************************************************/
+
+function postForm(formData){
+    var query = "mode=postForm";
+
+    for (var key in formData) {
+        query =  query + "&" + key + "=" + formData[key];
+    }
+
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/includes/functions/AJAX.php?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+
+            if(this.responseText.length > 1){
+                console.log(this.responseText);
+                
+            }
+        }
+    }
+}
+
+/******************************************************************************/

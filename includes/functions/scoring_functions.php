@@ -1570,6 +1570,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	$bracketInfo = getBracketInformation($tournamentID);
 	$ignores = getIgnores($tournamentID);
 	$schoolIDs = getTournamentFighterSchoolIDs($tournamentID);
+	$hide = getItemsHiddenByFilters($tournamentID,$_SESSION['filters'],'roster');
 
 	if(isset($bracketInfo[BRACKET_PRIMARY]['numFighters'])){
 		$numToElims = (int)$bracketInfo[BRACKET_PRIMARY]['numFighters'];
@@ -1704,17 +1705,17 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			$lastToElimSet = true;
 		}
 
+		if(isset($hide['roster'][$fighter['rosterID']]) == true){
+			continue;
+		}
+
 
 		if($showTeams){
 			$name = getTeamName($fighter['rosterID']);
 		} else {
 			$name = getCombatantName($fighter['rosterID']);
 		}
-
-		if($_SESSION['filterForSchoolID'] != 0 && (int)@$schoolIDs[$fighter['rosterID']] != $_SESSION['filterForSchoolID']){
-			$class .= ' hidden-important';
-		}
-
+	
 		echo "<tr class='text-center {$class}'>";
 		echo "<td>".$fighter['rank']."</td>";
 		echo "<td  class='text-left'>{$name}</td>";

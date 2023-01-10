@@ -31,7 +31,9 @@ function setAlert($type,$message){
 }
 
 /******************************************************************************/
+
 define("DEBUG",false);
+
 function whittlePoolMatchOrder($groupID, $poolRoster, $matchOrder, $maxFights){
 /*
 $poolRoster format
@@ -457,40 +459,28 @@ function uploadZipFile($filesToZip){
  
    }
 
-
 }
 
 /******************************************************************************/
 
-function isLivestreamValid($eventID=null){
-	
-	$info = getLivestreamInfo($eventID);
-	
-	if($info['isLive'] == 1){
-		return 'live';
-	}
-	if($info['platform'] != '' && $info['chanelName'] != ''){
-		return 'ready';
-	}
-	
-	return false;
-	
-	
-}
-
-/******************************************************************************/
-
-function base60($num){
+function base60($num, $leadingZero = false){
 // Returns the number in base 60 format, divided by a colon.
 // Would make sec -> min:sec or min -> hour:min
 
 	$a = floor($num/60);
 	$b = $num % 60;
 
+	if($leadingZero == true && $a < 10){
+		$a = "0".$a;
+	}
+
 	if($b < 10){
 		$b = "0".$b;
 	}
-	return ($a.':'.$b);
+
+	$time = $a.':'.$b;
+
+	return ($time);
 }
 
 /******************************************************************************/
@@ -506,16 +496,20 @@ function min2hr($num, $AmPm = true){
 		$b = "0".$b;
 	}
 
-	if($a == 0 || $a == 24){
-		$a = 12;
-		$type = 'am';
-	} elseif($a < 12){
-		$type = 'am';
-	} elseif($a == 12){
-		$type = 'pm';
+	if($_SESSION['viewMode']['time24hr'] == true){
+		$type = "";
 	} else {
-		$a = $a - 12;
-		$type = 'pm';
+		if($a == 0 || $a == 24){
+			$a = 12;
+			$type = 'am';
+		} elseif($a < 12){
+			$type = 'am';
+		} elseif($a == 12){
+			$type = 'pm';
+		} else {
+			$a = $a - 12;
+			$type = 'pm';
+		}
 	}
 
 	$retVal = ($a.':'.$b);
@@ -1188,7 +1182,7 @@ function autoConcludeMatch($matchInfo){
 
 	} elseif($matchInfo['fighter1score'] == $matchInfo['fighter2score']){
 
-		if(!isTies($matchInfo['tournamentID'])){
+		if(readOption('T',$matchInfo['tournamentID'],'MATCH_TIE_MODE') == MATCH_TIE_MODE_NONE){
 			setAlert(USER_ERROR,"Tie match, can't conclude.");
 			return;
 		}
@@ -1311,7 +1305,6 @@ function countNumDataSeries(){
 
 /******************************************************************************/
 
-
 function selectDataSeriesTournaments(){
 
 	echo "<form method='POST'>";
@@ -1368,6 +1361,158 @@ function selectDataSeriesTournaments(){
 	</form>
 
 <?php
+}
+
+/******************************************************************************/
+
+function getVideoSourceType($sourceLink){
+
+	if($sourceLink == ''){
+		$sourceType = VIDEO_SOURCE_NONE;
+	} elseif(   (substr($sourceLink, 0, strlen("https://www.youtube.com")) === "https://www.youtube.com")
+			 || ( substr($sourceLink, 0, strlen("https://youtu.be")) === "https://youtu.be"))
+	{
+		$sourceType = VIDEO_SOURCE_YOUTUBE;
+	} elseif(substr($sourceLink, 0, strlen("https://drive/google.com/file")) === "https://drive/google.com/file") {
+		$sourceType = VIDEO_SOURCE_GOOGLE_DRIVE;
+	} else {
+		$sourceType = VIDEO_SOURCE_UNKNOWN;
+	}
+
+	return($sourceType);
+}
+
+/******************************************************************************/
+
+function calculateBurgeePoints($burgeeID){
+
+	$burgeeID = (int)$burgeeID;
+
+	$info = getBurgeeInfo($burgeeID);
+	$tournamentIDs = implode2int($info['components']);
+	$burgeePoints = [];
+	$burgeePoints['schools'] = [];
+	$rankings = [];
+	
+	$paramList = getBurgeeRankingParameters($info['burgeeRankingID']);
+
+// Find who earned points for each team
+
+	foreach($paramList as $i => $params){
+
+		if($params['type'] == 'place'){
+			$burgeePoints = burgeeFightersByPlace($params, $burgeePoints, $tournamentIDs);
+		} elseif($params['type'] == 'percent') {
+			$burgeePoints = burgeeFightersByPercent($params, $burgeePoints, $tournamentIDs);
+		} else {
+			// Why are we here?
+		}
+
+	}
+
+// Rank the teams based on points
+
+	foreach($burgeePoints['schools'] as $schoolID => $data){
+		$rankings[$schoolID] = (int)$data['score'];
+	}
+
+	arsort($rankings);
+	
+	$burgeePoints['ranking'] = $rankings;
+
+	return ($burgeePoints);
+}
+
+
+
+/******************************************************************************/
+
+function burgeeFightersByPlace($params, $burgeeFighters, $tournamentIDs){
+
+	$priority = (int)$params['priority'];
+	$place = (int)$params['value'];
+
+
+// Solo
+	$sql = "SELECT rosterID, schoolID, tournamentID, placing, sortOrder
+			FROM eventPlacings
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			LEFT JOIN eventTournamentOrder USING(tournamentID)
+			WHERE tournamentID IN ({$tournamentIDs})
+			AND placing <= {$place}
+			AND isTeam = 0
+			AND schoolID > 2
+			ORDER BY sortOrder ASC";
+	$soloPlacings = mysqlQuery($sql, ASSOC);
+
+	$burgeeFighters = processBurgeeFighters($burgeeFighters, $soloPlacings, $priority, $params['weight']);
+
+// Teams
+	$sql = "SELECT eventTeamRoster.rosterID, schoolID, tournamentID
+			FROM eventTeamRoster
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
+			WHERE teamID IN 
+				(SELECT rosterID
+				FROM eventPlacings
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID IN ({$tournamentIDs})
+				AND placing <= {$place}
+				AND isTeam = 1
+				AND schoolID > 2)";
+	$teamPlacings = mysqlQuery($sql, ASSOC);
+
+	$burgeeFighters = processBurgeeFighters($burgeeFighters, $teamPlacings, $priority, $params['weight']);
+
+	return ($burgeeFighters);
+}
+
+/******************************************************************************/
+
+function burgeeFightersByPercent($params, $burgeeFighters, $tournamentIDs){
+
+	$percent = (float)$params['value'];
+	$priority = (int)$params['priority'];
+
+// Solo
+	$sql = "SELECT rosterID, schoolID, tournamentID, placing
+			FROM eventPlacings AS eP
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID IN ({$tournamentIDs})
+			AND placing <= (SELECT (numParticipants * {$percent}) AS cuttofCount
+							FROM eventTournaments AS eT2
+							WHERE eP.tournamentID = eT2.tournamentID)
+			AND isTeam = 0
+			AND schoolID > 2";
+	$soloPercent = mysqlQuery($sql, ASSOC);
+
+	$burgeeFighters = processBurgeeFighters($burgeeFighters, $soloPercent, $priority, $params['weight']);
+
+// Teams
+	$sql = "SELECT eventTeamRoster.rosterID, schoolID, tournamentID
+			FROM eventTeamRoster
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
+			WHERE teamID IN 
+				(SELECT rosterID
+				FROM eventPlacings AS eP2
+				INNER JOIN eventRoster USING(rosterID)
+				WHERE tournamentID IN ({$tournamentIDs})
+				AND placing <= (SELECT ((SELECT count(*) AS numTeams
+										FROM eventTournamentRoster AS eTR4
+										INNER JOIN eventRoster USING(rosterID)
+										WHERE isTeam = 1
+										AND eTR4.tournamentID = eP2.tournamentID) * {$percent}) AS cuttofCount
+								FROM eventTournaments AS eT3
+								WHERE eP2.tournamentID = eT3.tournamentID)
+				AND isTeam = 1
+				AND schoolID > 2)";
+	$teamPercent = mysqlQuery($sql, ASSOC);
+
+	$burgeeFighters = processBurgeeFighters($burgeeFighters, $teamPercent, $priority, $params['weight']);
+
+	return($burgeeFighters);
 }
 
 /******************************************************************************/

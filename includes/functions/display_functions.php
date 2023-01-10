@@ -435,12 +435,20 @@ function edit_tournamentName($tournamentID){
 			ORDER BY numberOfInstances DESC";
 	$materialList = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
 	
+	// Weapon List
 	$sql = "SELECT tournamentTypeID, tournamentType
 			FROM systemTournaments
 			WHERE tournamentTypeMeta = 'weapon'
-			ORDER BY numberOfInstances DESC";
-	$weaponList = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
-	
+			ORDER BY numberOfInstances DESC
+			LIMIT 8";
+	$weaponListPopular = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
+
+	$sql = "SELECT tournamentTypeID, tournamentType
+			FROM systemTournaments
+			WHERE tournamentTypeMeta = 'weapon'
+			ORDER BY tournamentType ASC";
+	$weaponListName = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
+
 // Read the current attributes of the tournament
 	if($tournamentID != 0){
 		$sql = "SELECT tournamentID, tournamentWeaponID, tournamentPrefixID, 
@@ -535,7 +543,21 @@ function edit_tournamentName($tournamentID){
 						<option disabled selected> </option>
 					<?php endif?>
 
-					<?php foreach($weaponList as $ID => $name): ?>
+					<option disabled>
+						- Most Popular: ----------------
+					</option>
+
+					<?php foreach($weaponListPopular as $ID => $name): ?>
+						<option <?=optionValue($ID, @$currentSettings[$tournamentID]['tournamentWeaponID'])?> >
+							<?=$name?>
+						</option>
+					<?php endforeach ?>
+
+					<option disabled>
+						- By Name: ---------------------
+					</option>
+
+					<?php foreach($weaponListName as $ID => $name): ?>
 						<option <?=optionValue($ID, @$currentSettings[$tournamentID]['tournamentWeaponID'])?> >
 							<?=$name?>
 						</option>
@@ -705,13 +727,24 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 	if($tournamentID != 0){
 
+		$formatID = (int)getTournamentFormat($tournamentID);
+
 		$sql = "SELECT tournamentRankingID, name
 				FROM systemRankings
-				WHERE formatID = (	SELECT formatID
-									FROM eventTournaments
-									WHERE tournamentID = {$tournamentID})
-				ORDER BY numberOfInstances DESC";
+				WHERE formatID = {$formatID}
+				ORDER BY name ASC";
 		$rankingTypes = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
+
+		if($formatID == FORMAT_MATCH){
+			$sql = "SELECT tournamentRankingID, name
+					FROM systemRankings
+					WHERE formatID = {$formatID}
+					ORDER BY numberOfInstances DESC
+					LIMIT 10";
+			$rankingTypesPopular = mysqlQuery($sql, KEY_SINGLES, 'tournamentRankingID', 'name');
+		} else {
+			$rankingTypesPopular = [];
+		}
 
 		if($rankingTypes != null){
 			$display = null;
@@ -745,6 +778,21 @@ function edit_tournamentRankingType($tournamentID = 0){
 				id='rankingID_select<?=$tournamentID?>'>
 			
 				<option disabled <?=$nullOptionSelected?>></option>
+
+				<?php if($rankingTypesPopular != []): ?>
+					<option disabled>- Most Popular: ----------------</option>
+				<?php endif ?>
+
+				<?php foreach($rankingTypesPopular as $ID => $name):?>
+					<option <?=optionValue($ID, $currentID)?> >
+						<?=$name?>	
+					</option>
+				<?php endforeach ?>
+
+				<?php if($rankingTypesPopular != []): ?>
+					<option disabled>- By Name: ---------------------</option>
+				<?php endif ?>
+
 				<?php foreach($rankingTypes as $ID => $name):?>
 					<option <?=optionValue($ID, $currentID)?> >
 						<?=$name?>	
@@ -2664,43 +2712,98 @@ function goToMatchButton($matchInfo){
 /******************************************************************************/
 
 function addVideoLink($matchID, $divider = true){
-// Displays youtube link for match if it exists, and allows staff to add links
+// Displays video link for match if it exists, and allows staff to add links
 
-	$url = getVideoLink($matchID);
+	$videoInfo = getMatchVideoLink($matchID);
+
+	$url = $videoInfo['sourceLink'];
+	$synchTime = $videoInfo['synchTime'];
+	$synchTime2 = $videoInfo['synchTime2'];
+
+	$sourceType = getVideoSourceType($videoInfo['sourceLink']);
+
+	if($sourceType == VIDEO_SOURCE_YOUTUBE){
+		$virtualLivestream = true;
+	} else {
+		$virtualLivestream = false;
+	}
+
+	define("VIRTUAL_LIVESTREAM_ENABLED",false);
+
 ?>
+	
+	<div class='grid-x grid-margin-x'>
 
-<!-- Display entry field for staff -->
-	<?php if(ALLOW['EVENT_VIDEO'] == true): ?>
-		<?php if($divider):?>
-			<HR width='80%'>
-		<?php endif ?>
-		<form method='POST'>
-		<input type='hidden' name='matchID' value='<?=$matchID?>'>
-		<div class='input-group grid-x'>
-			<span class='input-group-label large-2 medium-3 small-12 text-center'>YouTube URL:</span>
-			<input class='input-group-field' type='url' name='url' value='<?=$url?>' 
-				id='videoField' onkeyup="validateVideoLink()"  placeholder='Include https://'>
-			<button name='formName'  value='videoLink' disabled
-				class='button success input-group-button hide-for-small-only videoSubmitButton'>
-				 Update Link
-			</button>
-			<button class='button success expanded show-for-small-only videoSubmitButton' 
-			name='formName' value='videoLink' disabled >Update Link</button>
-		</form>
+		<div class='cell large-12'>
+			&nbsp;
 		</div>
-		
-		
-<!-- Displays bare link for guests, if one exists -->
-	<?php elseif($url != null) : ?>
-		<?php if($divider):?>
-			<HR width='80%'>
+
+		<?php if($virtualLivestream == true && VIRTUAL_LIVESTREAM_ENABLED): ?>
+			<div class='cell large-3 medium-4'>
+			<a class='button warning large expanded' onclick="openVideoWindow(<?=$matchID?>,<?=VIDEO_STREAM_VIRTUAL?>)">
+				Virtual Livestream
+			</a>
+			</div>
 		<?php endif ?>
-		<i>(Unofficial)</i> <strong>Video Link:</strong>
-		<?=tooltip('These links are public videos on youtube/etc that HEMA Scorecard volunteers have attached to matches for your benefit. Do not complain to an event organizer about video links.<hr>
-			<i>If there is an issue with a link please contact the HEMA Scorecard team.</i>')?>
-		<a href='<?=$url?>'><?=$url?></a>
+
+		<?php if(ALLOW['EVENT_VIDEO'] == true): ?>
+			
+			<!-- Display entry field for staff -->
+			<div class='cell large-9 medium-10 align-self-middle'>
+			<form method='POST'>
+			<div class='input-group grid-x'>
+
+				<input type='hidden' name='updateVideoSource[matchID]' value='<?=$matchID?>'>
+
+				<span class='input-group-label large-2 medium-3 small-12 text-center'>YouTube URL:</span>
+
+				<input class='input-group-field' type='url' name='updateVideoSource[sourceLink]' value='<?=$url?>' 
+					id='updateVideoSource[sourceLink]' onkeyup="validateVideoLink()"  placeholder='Include https://'>
+
+				<button name='formName'  value='updateVideoSource' disabled
+					class='button success input-group-button hide-for-small-only videoSubmitButton'>
+					 Update Link
+				</button>
+
+				<button class='button success expanded show-for-small-only videoSubmitButton' 
+					name='formName' value='updateVideoSource' disabled >
+					Update Link
+				</button>
+
+			</div>
+			</form>
+			</div>
+
+		<?php elseif($url != null) : ?>
+
+			<!-- Displays bare link for guests, if one exists -->
+			<div class='cell medium-9 align-self-middle'>
+
+			<i>(Unofficial)</i> <strong>Video Link:</strong>
+
+			<?=tooltip('These links are public videos on youtube/etc that HEMA Scorecard volunteers have attached to matches for your benefit. Do not complain to an event organizer about video links.<hr>
+				<i>If there is an issue with a link please contact the HEMA Scorecard team.</i>')?>
+
+			<a href='<?=$url?>'>
+				<?=$url?>
+			</a>
+
+			</div>
+			
+		<?php endif ?>
 		
-	<?php endif ?>
+		<?php if($virtualLivestream == false && VIRTUAL_LIVESTREAM_ENABLED): ?>
+			<div class='cell large-2 medium-3'>
+			<a class='button warning hollow expanded' onclick="openVideoWindow(<?=$matchID?>,<?=VIDEO_STREAM_VIRTUAL?>)">
+				Virtual Livestream
+			</a>
+			</div>
+		<?php endif ?>
+
+	</div>
+
+<!-- Virtual Livestream Reveal Window -------------->
+
 	
 <?php }
 
@@ -3007,7 +3110,8 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 		$plotWidthClause = "";
 	}
 
-	$numDataSeries = count($chartData[0]);
+	$numDataSeries = count((array)$chartData[0]);
+
 	if($_SESSION['StatsInfo']['displayType'] == 'value'){
 		$yLabel = "# of matches";
 	} else {
@@ -3050,7 +3154,7 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 
 /******************************************************************************/
 
-function changeClubFilterDropdown($eventID){
+function changeParticipantFilterForm($eventID){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == true && ALLOW['SOFTWARE_ADMIN'] == false){
 		return;
@@ -3058,23 +3162,81 @@ function changeClubFilterDropdown($eventID){
 
 	$schoolIDs = getEventSchoolIDs($eventID);
 
+	if($_SESSION['filters']['school'] == true){
+		$buttonText = "Modify Filter";
+		$class = "hollow tiny";
+	} else {
+		$buttonText = "Create Filter";
+		$class = "";
+	}
+
 ?>
 
+	<a class='button <?=$class?> no-bottom' data-open="filter-box"><?=$buttonText?></a>
+
+
+	<div class='reveal medium text-center' id='filter-box' data-reveal>
 	<form method='POST' class=''>
-		<input type='hidden' name='formName' value='filterForSchoolID'>
-		<div class='input-group'>
-			<span class='input-group-label'>Filter By School</span>
-			<select  class='input-group-field' name=schoolID>
-				<option <?=optionValue(0,$_SESSION['filterForSchoolID'])?>>- not set -</option>
-				<?php foreach($schoolIDs as $schoolID): ?>
-					<option <?=optionValue($schoolID,$_SESSION['filterForSchoolID'])?>>
-						<?=getSchoolName($schoolID)?>
-					</option>
-				<?php endforeach ?>
-			</select>
-			<button class='input-group-button button'>Go</button>
-		</div>
+	<div class='grid-x grid-margin-x'>
+			<h4 class='large-12 cell'>Create Filter</h4>
+
+			<h5 class='large-12 cell text-left'>School</h5>
+
+			<?php for($i = 0; $i < 5; $i++): ?>
+				<select name='filters[schoolID][<?=$i?>]' class='cell'>
+					<option <?=optionValue(0,0)?>>- not set -</option>
+					<?php foreach($schoolIDs as $schoolID): ?>
+						<option <?optionValue($schoolID, @$_SESSION['filters']['schoolID'][$i])?>>
+							<?=getSchoolName($schoolID)?>
+						</option>
+					<?php endforeach ?>
+				</select>
+			<?php endfor ?>
+
+			
+
+			<HR class='cell large-12'>
+			<a class='button secondary cell large-6' data-close aria-label='Close modal'>Cancel</a>
+			<button class='button success cell large-6' name='formName' value="setDataFilters" >Apply Filter</button>
+
+		<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
 	</form>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function activeFilterWarning(){
+
+	if($_SESSION['filters']['school'] == false && $_SESSION['filters']['roster'] == false){
+		return;
+	}
+
+?>
+	<div class='callout secondary' data-closable>
+
+		One or more filters are active and hiding data. 
+
+		<?=changeParticipantFilterForm($_SESSION['eventID'])?>
+
+		<form method='POST' style='display:inline-block'>
+			
+			<button class='button secondary tiny no-bottom' name='formName' value='setDataFilters'>Clear Filters</button>
+			<input type='hidden' name='filters[schoolID][0]' value='0'>
+			<input type='hidden' name='filters[rosterID][0]' value='0'>
+		</form>
+
+		<button class='close-button' aria-label='Dismiss alert' type='button' data-close>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	</div>
 
 <?php
 }
@@ -3111,7 +3273,169 @@ function changeRosterFilterDropdown(){
 }
 
 /******************************************************************************/
-//viewWindow: {min: 0, max: 600} 
-//
+
+function burgeeDisplay($burgeeID){
+
+	if($burgeeID == 0){
+		return;
+	}
+
+	$burgeePoints = getBurgeePoints($burgeeID);
+	$burgeeInfo = getBurgeeInfo($burgeeID);
+	$paramList = getBurgeeRankingParameters($burgeeInfo['burgeeRankingID']);
+	$name = getBurgeeName($burgeeID);
+
+
+	$schoolIDs = array_keys($burgeePoints);
+
+	$top4Burgees = [];
+	foreach($burgeePoints as $schoolID => $placing){
+
+		$burgeePoints[$schoolID]['placeText'] = $placing['place'];
+		if($placing['text'] != ""){
+			$burgeePoints[$schoolID]['placeText'] .= "<i>-".$placing['text']."</i>";
+		}
+
+		if($placing['place'] <= 4){
+			$tmp = [];
+			$tmp['school'] = getSchoolName($schoolID, 'long', true);
+			$tmp['placeText'] = $burgeePoints[$schoolID]['placeText'];
+			$top4Burgees[] = $tmp;
+		}
+	}
+
+?>
+
+	<fieldset class='large-10 small-12 fieldset'>
+		
+		<legend><h4><?=$name?></h4></legend>
+
+
+		<table class='extra-burgee-<?=$burgeeID?>'>
+
+		<?php foreach($top4Burgees as $burgee):?>
+			
+			<tr>
+				<td class='text-center'>
+					<?=$burgee['placeText']?>
+				</td>
+				<td>
+					<strong><?=$burgee['school']?></strong>
+				</td>
+			</tr>
+			
+		<?php endforeach ?>
+		</table>
+
+		<?php if($top4Burgees != []):?>
+			<a class='extra-burgee-<?=$burgeeID?>' 
+				onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()">
+				Full Standings ↓
+			</a>
+		<?php else: ?>
+			<a class='extra-burgee-<?=$burgeeID?>-explain'
+				onclick= "$('.extra-burgee-<?=$burgeeID?>-explain').toggle()">
+				How Is This Calculated? ↓
+			</a>
+		<?php endif ?>
+
+		<a onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()" class='extra-burgee-<?=$burgeeID?> hidden'>Hide ↑</a>
+
+		<table class='extra-burgee-<?=$burgeeID?> hidden'>
+
+			<tr>
+				<th>#</th>
+				<th>School</th>
+				<?php foreach($paramList as $params):?>
+					<th><?=$params['name']?></th>
+				<?php endforeach ?>	
+				<th>Points</th>
+			</tr>
+
+			
+			<?php  
+				foreach($burgeePoints as $schoolID => $placing):?>
+
+				<tr>
+					<td><?=$placing['placeText']?></td>
+					<td>
+						<a onclick="$('.school-fighters-<?=$schoolID?>').toggle()">
+							<?=getSchoolName($schoolID, 'long', true)?>
+						</a>
+					</td>
+					<?php foreach($paramList as $i => $params):?>
+						<td><?=@$burgeePoints['schools'][$schoolID]['count'][$i]?></td>
+					<?php endforeach ?>	
+					
+					<td><?=$placing['score']?></td>
+				</tr>
+
+				<tr>
+					<td class='hidden' colspan='100%'></td>
+				</tr>
+
+				<tr class='hidden school-fighters-<?=$schoolID?> bottom-border'>
+					<td></td>
+					<td colspan='100%'>
+						<?php foreach($burgeePoints[$schoolID]['fighters'] as $rosterID => $fighter):?>
+
+							<li style='margin-bottom:0.3em;'>
+								<i><?=$fighter['placingName']?>:</i> 
+								<b><?=getFighterName($rosterID)?></b>
+								
+									<?php foreach($fighter['tournamentIDs'] as $tournamentID):?>
+										&nbsp; &nbsp; &nbsp;[<?=getTournamentName($tournamentID)?>]
+									<?php endforeach ?> 
+									
+								
+							</li>
+							
+						<?php endforeach ?>
+					</td>
+				</tr>
+
+			<?php endforeach ?>
+
+
+		</table>
+
+		<div class='extra-burgee-<?=$burgeeID?> extra-burgee-<?=$burgeeID?>-explain hidden'>
+			<u>How was this calculated?</u>
+			<?=displayBurgeeRankingExplanation($paramList)?>
+			Each club member is counted only once with their best result. (No matter how many tournaments they win.)
+		</div>
+		
+	</fieldset>
+
+	
+
+	
+
+<?php
+}
+
+/******************************************************************************/
+
+function displayBurgeeRankingExplanation($paramList){
+
+	
+	foreach($paramList as $param){
+		if($param['type'] == 'percent'){
+			$val = round($param['value']*100)." %";
+		} elseif ($param['type'] == 'place') {
+			$val = round($param['value'])." placings";
+		} else {
+			$val = 'ERROR';
+		}
+
+		echo "<li>";
+		echo "{$param['weight']} pt - Individuals who made it into the top {$val} of at least one tournament they entered.";
+		echo "</li>";
+			
+	}
+	
+}
+
+/******************************************************************************/
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

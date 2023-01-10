@@ -156,12 +156,12 @@ function getTournamentSystemRosterIDs(){
 	
 	$orderName = NAME_MODE;
 	
-	$sql = "SELECT sR.systemRosterID
-			FROM systemRoster as sR
-			INNER JOIN eventRoster as eR ON eR.systemRosterID = sR.systemRosterID
-			INNER JOIN eventTournamentRoster as eTR ON eTR.rosterID = eR.rosterID
-			WHERE eTR.tournamentID = {$tournamentID}
-			ORDER BY sR.{$orderName} ASC";
+	$sql = "SELECT sR.systemRosterID, eR.rosterID 
+		FROM systemRoster as sR
+		INNER JOIN eventRoster as eR ON eR.systemRosterID = sR.systemRosterID
+		INNER JOIN eventTournamentRoster as eTR ON eTR.rosterID = eR.rosterID
+		WHERE eTR.tournamentID = {$tournamentID}
+		ORDER BY sR.{$orderName} ASC";
 	return mysqlQuery($sql, ASSOC);
 
 }

@@ -14,6 +14,30 @@ include_once(BASE_URL.'includes/config.php');
 ////////////////////////////////////////////////////////////////////////////////
 
 switch ($_REQUEST['mode']){
+
+/******************************************************************************/
+
+case 'postForm': {
+
+	if(isset($_REQUEST['functionName']) == ''){
+		break;
+	}
+
+	$success = false;
+
+	switch($_REQUEST['functionName']){
+		case 'logisticsStaffFromRoster':
+			call_user_func($_REQUEST['functionName'], $_REQUEST);
+			$success = true;
+			break;
+		default:
+			// Not a valid function
+			break;
+	}
+
+	echo json_encode($success);
+
+} break;
 	
 /******************************************************************************/
 
@@ -34,11 +58,23 @@ case 'updateSession': {
 
 /******************************************************************************/	
 
+case 'updateStream': {
+
+	$_SESSION['stream']['mode'] = (int)@$_REQUEST['streamMode'];
+	$_SESSION['stream']['matchID'] = (int)@$_REQUEST['streamMatchID'];
+	$_SESSION['stream']['locationID'] = (int)@$_REQUEST['streamLocationID'];
+
+	echo json_encode($_SESSION['stream']);
+
+} break;
+
+/******************************************************************************/	
+
 case 'getSessionDayNum':{
 
 	echo json_encode($_SESSION['dayNum']);
 
-}
+} break;
 
 /******************************************************************************/	
 
@@ -210,9 +246,20 @@ case 'getRankingTypes': {
 	$sql = "SELECT tournamentRankingID, name
 			FROM systemRankings
 			WHERE formatID = {$formatID}
-			ORDER BY numberOfInstances DESC";
+			ORDER BY name ASC";
 	$rankingTypes = mysqlQuery($sql, ASSOC);
-	
+
+	if($formatID == FORMAT_MATCH){
+		$sql = "SELECT tournamentRankingID, name
+				FROM systemRankings
+				WHERE formatID = {$formatID}
+				ORDER BY numberOfInstances DESC
+				LIMIT 10";
+		$rankingTypes['popular'] = mysqlQuery($sql, ASSOC);
+	} else {
+		$rankingTypes['popular'] = [];
+	}
+
 	echo json_encode($rankingTypes);
 
 } break;
@@ -272,26 +319,147 @@ case 'getScheduleBlockInfo':{
 
 /******************************************************************************/
 
-case 'getLivestreamMatch':{
+case 'getStreamOverlayInfo':{
 
-	$eventID = (int)$_REQUEST['eventID'];
-	$lastExchange = (int)$_REQUEST['lastExchange'];
-	$matchID = (int)getLivestreamMatch($eventID);
+	
+	$streamMode = (int)$_REQUEST['streamMode'];
+	//$_REQUEST['identifier'] processed below
+	$lastExchangeInPlayer = (int)$_REQUEST['lastExchange'];
+	$videoTime = (int)$_REQUEST['videoTime'];
+	$timeOfFirstCall = (int)$_REQUEST['synchTime'];
+	$timeOfMatchStart = (int)$_REQUEST['synchTime2'];
+
+	switch($streamMode){
+		case VIDEO_STREAM_MATCH:
+		case VIDEO_STREAM_VIRTUAL:
+		{
+			$matchID = (int)$_REQUEST['identifier'];
+			break;
+		}
+		case VIDEO_STREAM_LOCATION:
+		{
+			$streamInfo = getStreamForLocation($_REQUEST['identifier']);
+			$matchID = (int)$streamInfo['matchID'];
+			break;
+		}
+		default: { return; }
+	}
+
 	if($matchID == 0){
 		return;
 	}
-	
+
 	$matchInfo = getMatchInfo($matchID);
 
+	if($streamMode != VIDEO_STREAM_VIRTUAL){
+		$lastExchangeID = $matchInfo['lastExchange'];
+		$currentTimeClock = $matchInfo['matchTime'];
+	} else {
+
+		if($timeOfMatchStart >= $timeOfFirstCall){
+			$sql = "SELECT exchangeTime
+					FROM eventExchanges
+					WHERE matchID = {$matchID}
+					ORDER BY exchangeNumber ASC
+					LIMIT 1";
+			$firstExchangeTimeClock = (int)mysqlQuery($sql, SINGLE, 'exchangeTime');
+			$timeOfFirstCall = $timeOfMatchStart + $firstExchangeTimeClock;
+			$returnInfo['timeOfFirstCall'] = $timeOfFirstCall;
+		}
+
+		$currentTimeReal = $videoTime - $timeOfFirstCall;
+
+		$sql = "SELECT (UNIX_TIMESTAMP(timestamp)) AS firstCallTimeAbs
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				ORDER BY exchangeNumber ASC
+				LIMIT 1";
+		$firstCallTimeAbs = (int)mysqlQuery($sql, SINGLE, 'firstCallTimeAbs');
+		$currentTimeAbs = $firstCallTimeAbs + $currentTimeReal;
+		
+		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal, 
+					exchangeTime AS exchangeTimeClock
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				AND UNIX_TIMESTAMP(timestamp) > {$currentTimeAbs}
+				ORDER BY UNIX_TIMESTAMP(timestamp) ASC
+				LIMIT 1";
+		$nextExchange = mysqlQuery($sql, SINGLE);
+
+		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal, 
+					exchangeTime AS exchangeTimeClock
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				AND UNIX_TIMESTAMP(timestamp) <= {$currentTimeAbs}
+				ORDER BY UNIX_TIMESTAMP(timestamp) DESC
+				LIMIT 1";
+		$lastExchange = (array)mysqlQuery($sql, SINGLE);
+
+		if($lastExchange == []){
+			$lastExchangeID = 0;
+			$currentTimeClock = $videoTime - $timeOfMatchStart;
+			if($currentTimeClock < 0){
+				$currentTimeClock = 0;
+			}
+		} else {
+			$lastExchangeID = $lastExchange['exchangeID'];
+
+			$timeSinceLastExchange = $currentTimeReal - $lastExchange['exchangeTimeReal'];
+
+			$currentTimeClock = $lastExchange['exchangeTimeClock'] + $timeSinceLastExchange;
+		}
+
+		if($nextExchange == []){
+			$lastExchangeID = $matchInfo['lastExchange'];
+			$currentTimeClock = $matchInfo['matchTime'];
+			$streamMode == VIDEO_STREAM_MATCH;
+		} elseif($currentTimeClock > $nextExchange['exchangeTimeClock']){
+			$currentTimeClock = $nextExchange['exchangeTimeClock'];
+		}
+		
+	}
+
+	$returnInfo['lastExchange'] = $lastExchangeID;
+	$returnInfo['matchTime'] = $currentTimeClock;
+
 // If there has been no new exchanges it returns no data
-	if($lastExchange == $matchInfo['lastExchange']){ 
-		$returnInfo['matchTime'] = $matchInfo['matchTime'];
+	if($lastExchangeInPlayer == $lastExchangeID){ 
 		echo(json_encode($returnInfo));
 		return;
 	}
 		
+// Fighter Scores
+
+	if($streamMode == VIDEO_STREAM_VIRTUAL){
+		// Can't use the match info for scores and winners, because it reflects 
+		// the final score and not the 'current' score based on the video time.
+		$fighter1ID = (int)$matchInfo['fighter1ID'];
+		$sql = "SELECT (SUM(scoreValue) - SUM(scoreDeduction)) AS fighter1score
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				AND UNIX_TIMESTAMP(timestamp) <= {$currentTimeAbs}
+				AND scoringID = {$fighter1ID} ";
+		$matchInfo['fighter1score'] = (int)mysqlQuery($sql, SINGLE,'fighter1score');
+
+		$fighter2ID = (int)$matchInfo['fighter2ID'];
+		$sql = "SELECT (SUM(scoreValue) - SUM(scoreDeduction)) AS fighter2score
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				AND UNIX_TIMESTAMP(timestamp) <= {$currentTimeAbs}
+				AND scoringID = {$fighter2ID} ";
+		$matchInfo['fighter2score'] = (int)mysqlQuery($sql, SINGLE,'fighter2score');
+
+	}
+
+	$returnInfo['fighter1Score'] = $matchInfo['fighter1score'];
+	$returnInfo['fighter2Score'] = $matchInfo['fighter2score'];
+	if($returnInfo['fighter1Score'] == ''){$returnInfo['fighter1Score'] = 'X';}
+	if($returnInfo['fighter2Score'] == ''){$returnInfo['fighter2Score'] = 'X';}
+	
+// Meta information about the match and tournament
 	$returnInfo['tournamentName'] = getTournamentName($matchInfo['tournamentID']);
 	
+	$matchName = '';
 	if($matchInfo['matchType'] == 'pool'){
 		$matchName .= "Pool Match";
 	} elseif ($matchInfo['matchType'] == 'elim'){
@@ -306,18 +474,21 @@ case 'getLivestreamMatch':{
 		}
 	} else { $matchName = "&nbsp;";}
 	$returnInfo['matchName'] = $matchName;
-	
+
 // Fighter names
 	if($matchInfo['fighter1ID'] != null){
 		$returnInfo['fighter1Name'] = getFighterName($matchInfo['fighter1ID']);
+
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$returnInfo['winner'] = 1;
 		}
-	}else {
+	} else {
 		$returnInfo['fighter1Name'] = '----';
 	}
+
 	if($matchInfo['fighter2ID'] != null){
 		$returnInfo['fighter2Name'] = getFighterName($matchInfo['fighter2ID']);
+
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
 			$returnInfo['winner'] = 2;
 		}
@@ -325,19 +496,11 @@ case 'getLivestreamMatch':{
 		$returnInfo['fighter2Name'] = '----';
 	}
 
-	
+	$returnInfo['doubles'] = getMatchDoubles($matchID);
+
 // Fighter Schools	
 	$returnInfo['fighter1School'] = $matchInfo['fighter1School'];
 	$returnInfo['fighter2School'] = $matchInfo['fighter2School'];
-	
-// Fighter Scores
-	$returnInfo['fighter1Score'] = $matchInfo['fighter1score'];
-	$returnInfo['fighter2Score'] = $matchInfo['fighter2score'];
-	if($returnInfo['fighter1Score'] == ''){$returnInfo['fighter1Score'] = 'X';}
-	if($returnInfo['fighter2Score'] == ''){$returnInfo['fighter2Score'] = 'X';}
-	
-	$returnInfo['doubles'] = getMatchDoubles($matchID);
-	$returnInfo['matchTime'] = $matchInfo['matchTime'];
 
 // Fighter Colors
 	$sql = "SELECT colorCode
@@ -352,35 +515,63 @@ case 'getLivestreamMatch':{
 			AND color2ID = colorID";
 	$returnInfo['color2Code'] = mysqlQuery($sql, SINGLE, 'colorCode');
 	
-	
 // Return last exchange information
-	$returnInfo['lastExchange'] = $matchInfo['lastExchange'];
+
 	$returnInfo['endType'] = $matchInfo['endType'];
 	if($returnInfo['lastExchange'] == null){
+
 		$returnInfo['lastExchange'] = 0;
 		$returnInfo['exchangeType'] = ' ';
 		$returnInfo['points'] = ' ';
+
+		if($streamMode == VIDEO_STREAM_VIRTUAL){
+			$returnInfo['endType'] = null;
+			$returnInfo['winner'] = null;
+		}
+
 	} else {
+		$lastExchangeID = (int)$returnInfo['lastExchange'];
 		$sql = "SELECT scoringID, exchangeType, scoreValue, scoreDeduction
 				FROM eventExchanges
-				WHERE exchangeID = (SELECT MAX(exchangeID)
-									FROM eventExchanges
-									WHERE matchID = {$matchID}
-									AND exchangeType != 'winner'
-									AND exchangeType != 'doubleOut')";
+				WHERE exchangeID <= {$lastExchangeID}
+				AND matchID = {$matchID}
+				AND exchangeType NOT IN ('winner','doubleOut')
+				ORDER BY exchangeID DESC
+				LIMIT 1";
 		$tmp = mysqlQuery($sql, SINGLE);
 		
 		$returnInfo['exchangeType'] = $tmp['exchangeType'];
 		$returnInfo['points'] = $tmp['scoreValue'] - $tmp['scoreDeduction'];
+
 		if($tmp['exchangeType'] == 'clean' || $tmp['exchangeType'] == 'afterblow' 
 			|| $tmp['exchangeType'] == 'penalty' || $tmp['exchangeType'] == 'noQuality'){
+
 			if($tmp['scoringID'] == $matchInfo['fighter1ID']){
 				$returnInfo['lastColor'] = 1;
 			} elseif($tmp['scoringID'] == $matchInfo['fighter2ID']){
 				$returnInfo['lastColor'] = 2;
 			}
 		}
+
+		if($streamMode == VIDEO_STREAM_VIRTUAL){
+			$sql = "SELECT COUNT(*) AS isFinished
+					FROM eventExchanges
+					WHERE exchangeID <= {$lastExchangeID}
+					AND matchID = {$matchID}
+					AND exchangeType IN ('winner','doubleOut','tie')
+					ORDER BY exchangeID DESC
+					LIMIT 1";
+			$isFinished = (bool)(int)mysqlQuery($sql, SINGLE,'isFinished');
+
+			if($isFinished == false){
+				$returnInfo['endType'] = null;
+				$returnInfo['winner'] = null;
+			}
+		}
+
+	
 	}
+
 	
 	echo json_encode($returnInfo);
 	return;

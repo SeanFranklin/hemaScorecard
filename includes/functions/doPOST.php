@@ -90,11 +90,11 @@ function processPostData(){
 			case 'changeRulesID':
 				$_SESSION['rulesID'] = (int)$_POST['changeRules']['rulesID'];
 				break;
-			case 'filterForSchoolID':
-				$_SESSION['filterForSchoolID'] = (int)$_POST['schoolID'];
-				break;
 			case 'filterForSystemRosterID':
 				$_SESSION['filterForSystemRosterID'] = (int)$_POST['systemRosterID'];
+				break;
+			case 'setDataFilters':
+				setDataFilters($_POST['filters']);
 				break;
 				
 	// Roster Management Cases
@@ -234,8 +234,8 @@ function processPostData(){
 			case 'updateSubMatchesByMatch':
 				updateSubMatchesByMatch($_POST['updateSubMatchesByMatch']);
 				break;
-			case 'videoLink':
-				updateVideoLink($_POST['matchID'], $_POST['url']);
+			case 'updateVideoSource':
+				updateVideoSource($_POST['updateVideoSource']);
 				break;
 			case 'ignorePastIncompletes':
 				$_SESSION['clearOnLogOut']['ignorePastIncompletes'] = true;
@@ -299,7 +299,13 @@ function processPostData(){
 				break;
 			case 'deleteTournamentComponentGroups':
 				deleteTournamentComponentGroups($_POST['deleteTournamentComponentGroups']);
-				break;	
+				break;
+			case 'burgeeInfo':
+				updateBurgeeInfo($_POST['burgeeInfo']);
+				break;
+			case 'deleteBurgee':
+				deleteBurgee($_POST['deleteBurgee']);
+				break;
 				
 	// Event Organzer Cases
 			case 'ignoreFightersInTournament':
@@ -360,7 +366,7 @@ function processPostData(){
 				break;
 			case 'goToPointsPage':
 				changeTournament($_POST['modifyTournamentID']);
-				refreshPage('adminPoints.php');
+				refreshPage('adminExchangeTypes.php');
 				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
@@ -400,6 +406,9 @@ function processPostData(){
 				break;
 			case 'deleteRules':
 				deleteRules($_POST['deleteRules']['rulesID']);
+				break;
+			case 'orderRules':
+				orderRules($_POST['orderRules']);
 				break;
 			case 'updateEventSponsors':
 				updateEventSponsors($_POST['sponsorList']);
@@ -492,9 +501,6 @@ function processPostData(){
 				break;
 				
 	// Stats Cases
-			case 'dataFilters':
-				setDataFilters();
-				break;
 			case 'hemaRatings_ExportCsv':
 				hemaRatings_ExportCsv($_POST['HemaRatingsExport']);
 				break;
@@ -545,21 +551,12 @@ function processPostData(){
 				break;
 		
 		
-	// Livestream Cases
-			case 'livestreamInfo':
-				updateLivestreamInfo();
+	// Video Cases
+			case 'videoStreamSetLocations':
+				videoStreamSetLocations($_POST['videoStreamSetLocations']);
 				break;
-			case 'activateLivestream':
-				activateLivestream();
-				break;
-			case 'hideLivestreamAlert':
-				$_SESSION['hideLivestreamAlert'] = true;
-				break;
-			case 'livestreamOrder':
-				setLivestreamMatchOrder();
-				break;
-			case 'setLivestreamMatch':
-				setLivestreamMatch($_POST['matchID'],$_SESSION['eventID']);
+			case 'videoStreamSetMatch':
+				videoStreamSetMatch($_POST['videoStreamSetMatch']);
 				break;
 				
 				
@@ -661,6 +658,10 @@ function checkEvent(){
 		unset($_SESSION['checkEvent']);
 		return;
 	}
+
+	if(isset($_SESSION['checkEvent']['placings']) && $_SESSION['checkEvent']['placings'] === true){
+		unset($_SESSION['checkEvent']['placings']);
+	}
 	
 	// If it has been specified to check only certain tournament in the event
 	$mTournamentIDs = [];
@@ -735,10 +736,13 @@ function updateSessionByUrl($urlParams, $urlPath = null){
 	$urlTournamentID = @(int)$urlParams['t'];
 	$urlMatchID = @(int)$urlParams['m'];
 	$rulesID = @(int)$urlParams['r'];
+	$systemRosterID = @(int)$urlParams['s'];
 	if($rulesID != 0){
 		$_SESSION['rulesID'] = $rulesID;
 	}
-	
+	if($systemRosterID != 0){
+		$_SESSION['filterForSystemRosterID'] = $systemRosterID;
+	}
 
 	if(isset($urlParams['e']) && $urlEventID != $_SESSION['eventID']){
 
@@ -877,26 +881,25 @@ function toggleBracketHelper(){
 
 /******************************************************************************/
 
-function setDataFilters(){
+function setDataFilters($filters){
 // Sets the data filters for fighter analytics display
 	
-	$_SESSION['dataFilters']['weaponID'] = $_POST['weaponID'];
-	$_SESSION['dataFilters']['threshold'] = $_POST['threshold'];
-	$_SESSION['dataFilters']['sortKey'] = $_POST['sortKey'];
-	$_SESSION['dataFilters']['newQuery'] = true;
-	
-	if($_POST['sortOrder'] == 'asc'){
-		$_SESSION['dataFilters']['sortOrder'] = SORT_ASC;
-	} else if($_POST['sortOrder'] == 'desc'){
-		$_SESSION['dataFilters']['sortOrder'] = SORT_DESC;
-	}
-	
-	foreach($_POST['filterField'] as $num => $id){
-		if($id == null || $id == '0'){
-			unset($_SESSION['dataFilters']['filters'][$num]);
-		} else {
-			$_SESSION['dataFilters']['filters'][$num] = $_POST['filterField'][$num];
+	if(isset($filters['schoolID']) == true){
+
+		$_SESSION['filters']['school'] = false;
+		unset($_SESSION['filters']['schoolID']);
+
+		$alreadySet = [];
+		foreach($filters['schoolID'] as $schoolID){
+			$schoolID = (int)$schoolID;
+
+			if($schoolID != 0 && isset($alreadySet[$schoolID]) == false){
+				$_SESSION['filters']['schoolID'][] = $schoolID;
+				$_SESSION['filters']['school'] = true;
+				$alreadySet[$schoolID] = true;
+			}
 		}
+
 	}
 
 }
@@ -1552,6 +1555,20 @@ function checkSession(){
 // Corrects and possible error conditions in the current session
 // Checks that the event/tournament/match referenced by SESSION actualty exists
 	
+
+	if(ALLOW['EVENT_SCOREKEEP'] == true && ALLOW['SOFTWARE_ADMIN'] == false){
+		$_SESSION['filters']['school'] = false;
+		$_SESSION['filters']['roster'] = false;
+	}
+
+	if($_SESSION['filters']['school'] == false){
+		unset($_SESSION['filters']['schoolID']);
+	}
+
+	if($_SESSION['filters']['roster'] == false){
+		unset($_SESSION['filters']['rosterID']);
+	}
+
 	$eventID = (int)$_SESSION['eventID'];
 	$tournamentID = (int)$_SESSION['tournamentID'];
 	$matchID = (int)$_SESSION['matchID'];
