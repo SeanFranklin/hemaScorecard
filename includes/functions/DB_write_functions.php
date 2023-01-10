@@ -120,25 +120,6 @@ function deleteFromEvent(){
 
 /******************************************************************************/
 
-function activateLivestream($eventID = null){
-
-	if(ALLOW['EVENT_MANAGEMENT'] == false){
-		return;
-	}
-	
-	if($eventID == null){ $eventID = $_SESSION['eventID']; }
-	if($eventID == null){return;}
-	
-	$status = (int)$_POST['livestreamStatus'];
-	
-	$sql = "UPDATE eventLivestreams
-			SET isLive = {$status}";
-	mysqlQuery($sql, SEND);
-	
-}
-
-/******************************************************************************/
-
 function addAttacksToTournament($tournamentID = null){
 	
 	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
@@ -553,72 +534,82 @@ function logisticsEditScheduleBlock($block){
 
 /******************************************************************************/
 
-function logisticsEditStaffList($staffInfo){
+function logisticsEditStaffList($staffInfoPost){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($staffInfoPost['staffList'] as $staffInfo){
+		$staffInfo['eventID'] = $staffInfoPost['eventID'];
+		logisticsStaffFromRoster($staffInfo);
+	}
+}
+
+/******************************************************************************/
+
+function logisticsStaffFromRoster($staffInfo){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
 	}
 
 	$eventID = (int)$staffInfo['eventID'];
+	$rosterID = (int)$staffInfo['rosterID'];
+	$staffCompetency = (int)$staffInfo['staffCompetency'];
+	$hours = (int)$staffInfo['staffHoursTarget'];
 
-	foreach($staffInfo['staffList'] as $staffInfo){
+	if(isset($staffInfo['isStaff'])
+		&& $staffInfo['isStaff'] == 0){
+		$staffCompetency = 0;
+		$hours = "NULL";
+	}
 
-		$rosterID = (int)$staffInfo['rosterID'];
-		$staffCompetency = (int)$staffInfo['staffCompetency'];
-		$hours = (int)$staffInfo['staffHoursTarget'];
-
-		if(isset($staffInfo['isStaff'])
-			&& $staffInfo['isStaff'] == 0){
-			$staffCompetency = 0;
+	// If hours is empty it should be a null value in the table.
+	// Zero is a valid int value, so they need to be distinguished.
+	if($hours == 0){
+		if(strlen($staffInfo['staffHoursTarget']) == 0){
 			$hours = "NULL";
 		}
+	}
 
-		// If hours is empty it should be a null value in the table.
-		// Zero is a valid int value, so they need to be distinguished.
-		if($hours == 0){
-			if(strlen($staffInfo['staffHoursTarget']) == 0){
-				$hours = "NULL";
-			}
-		}
+	if($rosterID == 0){
+		return;
+	}
 
-		if($rosterID == 0){
-			continue;
-		}
+	if($staffCompetency == 0){
 
-		if($staffCompetency == 0){
+		$sql = "DELETE FROM logisticsStaffCompetency
+				WHERE rosterID = {$rosterID}";
+		mysqlQuery($sql, SEND);
 
-			$sql = "DELETE FROM logisticsStaffCompetency
-					WHERE rosterID = {$rosterID}";
+	} else {
+
+		$sql = "SELECT staffCompetencyID
+				FROM logisticsStaffCompetency
+				WHERE rosterID = {$rosterID}";
+		$staffCompetencyID = (int)mysqlQuery($sql, SINGLE, 'staffCompetencyID');
+
+		if($staffCompetencyID == 0){
+
+			$sql = "INSERT INTO logisticsStaffCompetency
+					(rosterID, staffCompetency, staffHoursTarget)
+					VALUES 
+					({$rosterID},{$staffCompetency},{$hours})";
 			mysqlQuery($sql, SEND);
 
 		} else {
 
-			$sql = "SELECT staffCompetencyID
-				FROM logisticsStaffCompetency
-				WHERE rosterID = {$rosterID}";
-			$staffCompetencyID = (int)mysqlQuery($sql, SINGLE, 'staffCompetencyID');
+			$sql = "UPDATE logisticsStaffCompetency
+					SET staffCompetency = {$staffCompetency},
+					staffHoursTarget = {$hours}
+					WHERE rosterID = {$rosterID}";
+			mySqlQuery($sql, SEND);
 
-			if($staffCompetencyID == 0){
-
-				$sql = "INSERT INTO logisticsStaffCompetency
-						(rosterID, staffCompetency, staffHoursTarget)
-						VALUES 
-						({$rosterID},{$staffCompetency},{$hours})";
-				mysqlQuery($sql, SEND);
-
-			} else {
-
-				$sql = "UPDATE logisticsStaffCompetency
-						SET staffCompetency = {$staffCompetency},
-						staffHoursTarget = {$hours}
-						WHERE rosterID = {$rosterID}";
-				mySqlQuery($sql, SEND);
-
-			}
-		
 		}
-
+	
 	}
+
 }
 
 
@@ -2632,6 +2623,8 @@ function addTeamMembers($teamInfo, $tournamentID){
 		mysqli_stmt_close($stmt);
 	}
 
+	updateTeamSchools($tournamentID);
+
 }
 
 /******************************************************************************/
@@ -2661,6 +2654,78 @@ function deleteTeams($deleteInfo){
 			mysqlQuery($sql, SEND);
 		}
 	}
+}
+
+/******************************************************************************/
+
+function updateTeamSchools($tournamentID){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
+
+	$tournamentID = (int)$tournamentID;
+
+	$roster = getTeamRosters($tournamentID);
+	$sql = "SELECT rosterID, schoolID
+			FROM eventTournamentRoster
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID = {$tournamentID}
+			AND isTeam = 0";
+	$schoolLookup = mysqlQuery($sql, KEY_SINGLES, 'rosterID','schoolID');
+
+
+	foreach($roster as $teamID => $team){
+
+		$teamSchools[$teamID] = 0;
+
+		foreach($team['members'] as $member){
+
+			if($teamSchools[$teamID] == 2){
+				// Once a school is set to unafiliated don't need to check it anymore.
+				continue;
+			}
+
+			if(isset($schoolLookup[$member['rosterID']]) == true){
+				$schoolID = (int)$schoolLookup[$member['rosterID']];
+			} else {
+				$schoolID = 2;
+			}
+			
+			if($schoolID == 1 || $schoolID == 2){
+
+				// If any member is unknown or unafiliated the whole team is
+				$teamSchools[$teamID] = 2;
+
+			} elseif($teamSchools[$teamID] == 0){
+
+				// First member, set the team school to match
+				$teamSchools[$teamID] = $schoolID;
+
+			} else if($schoolID != $teamSchools[$teamID]) {
+
+				// new member doesn't match the old members. Make unafiliated
+				$teamSchools[$teamID] = 2;
+
+			} else {
+
+				// Match to previous team member, keep the school.
+
+			}
+
+		}
+
+	}
+
+	foreach($teamSchools as $teamID => $schoolID){
+
+		$schoolID = (int)$schoolID;
+
+		$sql = "UPDATE eventRoster
+				SET schoolID = {$schoolID}
+				WHERE rosterID = {$teamID}";
+
+		mysqlQuery($sql, SEND);
+	}
+
+
 }
 
 
@@ -3571,7 +3636,7 @@ function recordTournamentPlacings($tournamentID,$input){
 		}
 		$placing = (int)$placing['place'];
 
-		if($placing['tie'] == 0){
+		if(isset($placing['tie']) == false || $placing['tie'] == 0){
 			$type = 'final';
 			$low = 'null';
 			$high = 'null';
@@ -3598,6 +3663,7 @@ function recordTournamentPlacings($tournamentID,$input){
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
 
+	$_SESSION['checkEvent']['placings'] = true;
 
 }
 
@@ -4640,6 +4706,7 @@ function removeTournamentPlacings($tournamentID){
 			WHERE tournamentID = {$tournamentID}";
 	mysqlQuery($sql, SEND);
 	
+	$_SESSION['checkEvent']['placings'] = true;
 	$_SESSION['jumpTo'] = "anchor{$tournamentID}";
 }
 
@@ -4808,22 +4875,6 @@ function reOrderGroups($groupList = null){
 	
 	return $namesList;
 	
-}
-
-/******************************************************************************/
-
-function setLivestreamMatch($matchID, $eventID){
-	
-	$eventID = (int)$eventID;
-	$matchID = (int)$matchID;
-	
-	$sql = "UPDATE eventLivestreams
-			SET matchID = {$matchID}
-			WHERE eventID = {$eventID}";
-	mysqlQuery($sql, SEND);
-	
-	$_SESSION['alertMessages']['userAlerts'][] = "This event is now showing on the livestream.";
-		
 }
 
 /******************************************************************************/
@@ -5015,6 +5066,7 @@ function updateDisplaySettings($displaySettings){
 	switch($displaySettings['tournamentSorting']){
 		case 'numSort': {$tournamentSorting = 'numSort'; break;}
 		case 'nameSort': {$tournamentSorting = 'nameSort'; break;}
+		case 'custom': {$tournamentSorting = 'custom'; break;}
 		case 'numGrouped':
 		default: {$tournamentSorting = 'numGrouped'; break;}
 	}
@@ -5031,6 +5083,44 @@ function updateDisplaySettings($displaySettings){
 				nameDisplay = '$nameDisplay'
 			WHERE eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
+
+	if($tournamentSorting == 'custom'){
+
+		foreach($displaySettings['customSort'] as $tID => $sortOrder){
+			$tournamentID = (int)$tID;
+			$sortOrder = (int)$sortOrder;
+
+			$sql = "SELECT tournamentOrderID
+					FROM eventTournamentOrder
+					WHERE tournamentID = {$tournamentID}";
+			$index = (int)mysqlQuery($sql, SINGLE, 'tournamentOrderID');
+
+			if($index == 0){
+				$sql = "INSERT INTO eventTournamentOrder
+						(tournamentID, sortOrder)
+						VALUES 
+						({$tournamentID},{$sortOrder})";
+				mysqlQuery($sql, SEND);
+			} else {
+				$sql = "UPDATE eventTournamentOrder
+						SET sortOrder = {$sortOrder}
+						WHERE tournamentOrderID = {$index}";
+				mysqlQuery($sql, SEND);
+			}
+
+		}
+
+	} else {
+		$sql = "DELETE eventTournamentOrder FROM eventTournamentOrder
+				INNER JOIN eventTournaments USING(tournamentID)
+				WHERE eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+	}
+
+
+	setAlert(USER_ALERT,"Display settings updated.");
+
+
 
 }
 
@@ -5161,7 +5251,7 @@ function updateEventDefaults(){
 
 /******************************************************************************/
 
-function updateEventInformation($newEventInfo,$eventID){
+function updateEventInformation($newEventInfo, $eventID){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){
 		return;
@@ -5180,14 +5270,17 @@ function updateEventInformation($newEventInfo,$eventID){
 	}
 
 	$sql = "UPDATE systemEvents SET
-			eventName = ?, eventStartDate = ?, eventEndDate = ?
+			eventName = ?, eventStartDate = ?, eventEndDate = ?, 
+			eventCity = ?, eventProvince = ?
 			WHERE eventID = ?";
 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	$bind = mysqli_stmt_bind_param($stmt, "sssi", 
+	$bind = mysqli_stmt_bind_param($stmt, "sssssi", 
 									$newEventInfo['eventName'],
 									$startDate,
 									$endDate,
+									$newEventInfo['eventCity'],
+									$newEventInfo['eventProvince'],
 									$eventID);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);	
@@ -6354,76 +6447,151 @@ function checkInFighters($checkInData){
 
 /******************************************************************************/
 
-function updateLivestreamInfo(){
-	
-	$eventID = (int)$_SESSION['eventID'];
-	if($eventID == 0){ return; }
-	
-	$chanelName = $_POST['chanelName'];
-	$platform = $_POST['inputPlatform'];
-	switch($platform){
-		case 'twitch':
-			break;
-		case 'youtube':
-		case 'link':
-			/*$url = $chanelName;
-			$headers = @get_headers($url);
-			$curl = curl_init($url);
-			curl_setopt($curl, CURLOPT_NOBODY, true);
-			$result = curl_exec($curl);
-			
-			if ($result !== false) {
-				
-				$statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);  
-				if ($statusCode != 404 && filter_var($chanelName, FILTER_VALIDATE_URL) !== false){
-					
-					$exists = true;
-				} 
-			} 
+function videoStreamSetLocations($locationInfo){
 
-			if($exists != true){
-				$_SESSION['alertMessages']['userErrors'][] = "<span class='red-text'>Invalid url</span>. 
-									Make sure you include the https://";
-				return;
-			}*/
-			break;
-		default:
-			$_SESSION['alertMessages']['userErrors'][] = "<p><span class='red-text'>Invalid platform.</span> 
-					Not updated</p>";
-			return;
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
 	}
+
+	if(is_array($locationInfo) == false || empty($locationInfo)){
+		return;
+	}
+
+	foreach($locationInfo as $location){
+
+		// Process stream input
+		$locationID 		= (int)$location['locationID'];
+		$isLive 			= (int)$location['isLive'];
+		$overlayOpacity 	= (int)$location['overlayOpacity'];
+
+		if($overlayOpacity == 0){
+			$overlayEnabled = 0;
+		} else {
+			$overlayEnabled = 1;
+		}
+
+		// Process video input
+		$videoType 			= VIDEO_STREAM_LOCATION;
+		$sourceLink			= $location['sourceLink'];
+		$sourceType 		= (int)getVideoSourceType($sourceLink);
+
+		if($sourceLink != "" || $isLive == 1){
+			$streamExists = true;
+		} else {
+			$streamExists = false;
+		}
+
+		if($streamExists == false){
+
+			$sql = "DELETE eventVideo, eventVideoStreams 
+					FROM eventVideoStreams
+					INNER JOIN eventVideo USING(videoID)
+					WHERE locationID = {$locationID}";
+			mysqlQuery($sql, SEND);
 	
-	$useOverlay = $_POST['useOverlay'];
-	
-	$sql = "SELECT COUNT(*) AS numEntries
-			FROM eventLivestreams
-			WHERE eventID = {$eventID}";
-	
-	if(mysqlQuery($sql, SINGLE, 'numEntries') == 0){
-	// No entry exists
-	
-		$sql = "INSERT INTO eventLivestreams
-				(eventID, chanelName, platform, useOverlay)
-				VALUES
-				(?, ?, ?, ?)";
+			continue;
+		}
+
+		if($sourceLink == ""){
+			$sourceLink = null;
+		}
+
+		$sql = "SELECT streamID, videoID
+				FROM eventVideoStreams
+				WHERE locationID = {$locationID}";
+		$streamExisting = mysqlQuery($sql, SINGLE);
+
+		$videoID = (int)@$streamExisting['videoID'];
+		$streamID = (int)@$streamExisting['streamID'];
+
+	// Update video
+		if($videoID == 0) {
+
+			// No video exists for the stream, and there is a link provided
+			// Create a new video
+
+			$sql = "INSERT INTO eventVideo
+					(videoType, sourceType, sourceLink, matchID)
+					VALUES
+					({$videoType}, {$sourceType}, ?, NULL)";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			// "s" means the database expects a string
+			$bind = mysqli_stmt_bind_param($stmt, "s", $sourceLink);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+			$videoID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+		} else {
+
+			$sql = "UPDATE eventVideo
+					SET videoType = {$videoType}, 
+						sourceType = {$sourceType}, 
+						sourceLink = ?
+					WHERE videoID = {$videoID}";
+
+			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+			// "s" means the database expects a string
+			$bind = mysqli_stmt_bind_param($stmt, "s", $sourceLink);
+			$exec = mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+		}
+
+	// Update stream
+		if($streamID == 0){
 			
-		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-		// "s" means the database expects a string
-		$bind = mysqli_stmt_bind_param($stmt, "issi", $eventID, $chanelName, $platform, $useOverlay);
-		$exec = mysqli_stmt_execute($stmt);
-		mysqli_stmt_close($stmt);
-	} else {
-		$sql = "UPDATE eventLivestreams
-				SET chanelName = ?, platform = ?, useOverlay = ?
-				WHERE eventID = ?";
-		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-		// "s" means the database expects a string
-		$bind = mysqli_stmt_bind_param($stmt, "ssii", $chanelName, $platform, $useOverlay, $eventID);
-		$exec = mysqli_stmt_execute($stmt);
-		mysqli_stmt_close($stmt);
+			$sql = "INSERT INTO eventVideoStreams
+						(locationID, videoID, isLive, 
+						overlayEnabled, overlayOpacity)
+					VALUES
+						({$locationID}, {$videoID}, {$isLive}, 
+						{$overlayEnabled}, {$overlayOpacity})"; 
+				
+			mysqlQuery($sql, SEND);
+
+		} else {
+
+			$sql = "UPDATE eventVideoStreams
+					SET videoID =  {$videoID},
+						isLive = {$isLive},
+						overlayEnabled = {$overlayEnabled},
+						overlayOpacity = {$overlayOpacity}
+					WHERE streamID = {$streamID}";
+			mysqlQuery($sql, SEND);
+
+		}
+
+		
+
 	}
-	
-	$_SESSION['alertMessages']['userAlerts'][] = "Updated";		
+
+
+	$_SESSION['alertMessages']['userAlerts'][] = "Livestream info updated";		
+
+}
+
+/******************************************************************************/
+
+function videoStreamSetMatch($videoStreamSetMatch){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$matchID = (int)$videoStreamSetMatch['matchID'];
+	$locationID = (int)$videoStreamSetMatch['matchID'];
+	$videoID = (int)$videoStreamSetMatch['videoID'];
+
+	if($matchID == 0){
+		$matchID = "NULL";
+	}
+
+	$sql = "UPDATE eventVideo
+			SET matchID = {$matchID}
+			WHERE videoID = {$videoID}";
+	mysqlQuery($sql, SEND);
 
 }
 
@@ -6777,7 +6945,7 @@ function updatePoolMatchList($ID, $type, $tIdIn = null){
 							AND exchangeType = 'winner'";
 					$result = mysqlQuery($sql, SINGLE);
 
-					if($result['scoringID'] == ''){
+					if(@$result['scoringID'] == ''){
 						$result['scoringID'] = 'null';
 					}
 					
@@ -7570,6 +7738,220 @@ function deleteTournamentComponentGroups($specs){
 
 /******************************************************************************/
 
+function updateBurgeeInfo($postInfo){
+// This is a really janky way to deal with it because the tournament select
+// paddles each need a unique name so the info needed to be indented another
+// level on the array structure.
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($postInfo as $burgeeID => $info){
+		setBurgeeInfo($info);
+	}
+}
+
+/******************************************************************************/
+
+function setBurgeeInfo($info){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$info['eventID'];
+	$burgeeRankingID = (int)$info['burgeeRankingID'];
+	$burgeeID = (int)$info['burgeeID'];
+	$burgeeName = (string)$info['burgeeName'];
+
+	if($eventID != (int)$_SESSION['eventID'] || $burgeeRankingID == 0){
+		setAlert(USER_ERROR,"Invalid parameters passed in setBurgeeInfo()");
+		return;
+	}
+
+// Update or create the school tournament
+
+	if($burgeeID == 0){
+
+		// Create if doen't exist
+
+		$sql = "INSERT INTO eventBurgees
+				(eventID, burgeeRankingID, burgeeName)
+				VALUES
+				({$eventID},{$burgeeRankingID},?)";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $burgeeName);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		$burgeeID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+		$existingComponents = [];
+
+	} else {
+
+		// Update values if it exists
+
+		$sql = "SELECT burgeeID
+				FROM eventBurgees
+				WHERE burgeeID = {$burgeeID}
+				AND eventID = {$eventID}";
+		$doesExist = (bool)((int)mysqlQuery($sql,SINGLE,'burgeeID'));
+
+		if($doesExist == false){
+			setAlert(USER_ERROR,"Invalid burgeeID and eventID in setBurgeeInfo()");
+			return;
+		}
+
+		$sql = "UPDATE eventBurgees
+				SET burgeeRankingID = {$burgeeRankingID}, burgeeName = ?
+				WHERE eventID = {$eventID}
+				AND burgeeID = {$burgeeID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $burgeeName);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		$sql = "SELECT burgeeComponentID, burgeeID, tournamentID
+				FROM eventBurgeeComponents
+				WHERE burgeeID = {$burgeeID}";
+		$existingComponents = (array)mysqlQuery($sql, KEY, 'tournamentID');
+	}
+
+
+// Associate the tournament components
+
+	foreach($info['components'] as $tournamentID => $isComponent){
+
+		$tournamentID = (int)$tournamentID;
+
+		if((int)$isComponent == 0){
+			$sql = "DELETE FROM eventBurgeeComponents
+					WHERE burgeeID = {$burgeeID}
+					AND tournamentID = {$tournamentID}";
+			mysqlQuery($sql, SEND);
+		} else {
+
+			if(isset($existingComponents[$tournamentID]) == false){
+				$sql = "INSERT INTO eventBurgeeComponents
+						(burgeeID, tournamentID)
+						VALUES
+						({$burgeeID}, {$tournamentID})";
+				mysqlQuery($sql, SEND);
+			}
+
+		}
+
+	}
+
+	updateBurgeePlacings($burgeeID);
+
+	setAlert(USER_ALERT, "Information for <b>{$burgeeName}</b> updated.");
+}
+
+/******************************************************************************/
+
+function deleteBurgee($info){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$info['eventID'];
+	$burgeeID = (int)$info['burgeeID'];
+
+	if($eventID != (int)$_SESSION['eventID']){
+		setAlert(USER_ERROR,"Invalid parameters passed in deleteBurgee()");
+		return;
+	}
+
+	$burgeeName = getBurgeeName($burgeeID);
+
+	$sql = "DELETE FROM eventBurgees
+			WHERE eventID = {$eventID}
+			AND burgeeID = {$burgeeID}";
+	mysqlQuery($sql, SEND);
+
+	setAlert(USER_ALERT, "School standing <b>{$burgeeName}</b> deleted");
+}
+
+/******************************************************************************/
+
+function updateEventBurgees($eventID){
+
+	$burgeeIDs = getEventBurgees($eventID);
+
+	foreach($burgeeIDs as $burgeeID){
+		updateBurgeePlacings($burgeeID);
+	}
+}
+
+/******************************************************************************/
+
+function updateBurgeePlacings($burgeeID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$burgeeID = (int)$burgeeID;
+	
+	$burgeePoints = calculateBurgeePoints($burgeeID);
+	$burgeeInfo = getBurgeeInfo($burgeeID);
+	$paramList = getBurgeeRankingParameters($burgeeInfo['burgeeRankingID']);
+
+	$sql = "DELETE eventBurgeePlacings 
+			FROM eventBurgeePlacings
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE burgeeID = {$burgeeID}";
+	mysqlQuery($sql, SEND);
+
+	$rosterIDsWithPoints = [];
+
+	if(isset($burgeePoints['fightersBySchool']) == false){
+		return;
+	}
+
+	foreach($burgeePoints['fightersBySchool'] as $schoolID => $school){
+
+		foreach($school as $rosterID => $fighter){
+
+			$placingName = $paramList[$fighter['priority']]['name'];
+			$pointValue = $paramList[$fighter['priority']]['weight'];
+			
+			foreach($fighter['tournamentIDs'] as $tournamentID){
+
+				$rosterID = (int)$rosterID;
+				$schoolID = (int)$schoolID;
+				$tournamentID = (int)$tournamentID;
+
+				$sql = "INSERT INTO eventBurgeePlacings
+						(burgeeID, rosterID, schoolID, tournamentID, burgeePoints, placingName)
+						VALUES
+						({$burgeeID}, {$rosterID}, {$schoolID}, {$tournamentID}, {$pointValue}, ?)";
+
+				$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+				// "s" means the database expects a string
+				$bind = mysqli_stmt_bind_param($stmt, "s", $placingName);
+				$exec = mysqli_stmt_execute($stmt);
+				mysqli_stmt_close($stmt);
+
+				// Only allow points for the first entry
+				$pointValue = 0;
+
+			}
+
+		}
+	}
+
+}
+
+/******************************************************************************/
+
 function updateTournamentFighterCounts($tournamentID, $eventID){
 	
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
@@ -7589,6 +7971,7 @@ function updateTournamentFighterCounts($tournamentID, $eventID){
 	}
 
 	updateMetaTournamentRosters($tournamentList, $eventID);
+	updateEventBurgees($eventID);
 	
 	foreach((array)$tournamentList as $tournamentID){
 
@@ -7891,23 +8274,70 @@ function updateNumberOfGroupSets(){
 
 /******************************************************************************/
 
-function updateVideoLink($matchID, $url){
+function updateVideoSource($videoInfo){
 	
-	$matchID = (int)$matchID;
-
-	if($matchID == 0){
-		$_SESSION['alertMessages']['systemErrors'][] = "No matchID in updateYourTubeLink()";
+	if(ALLOW['EVENT_VIDEO'] == false){
 		return;
 	}
 
-	$sql = "UPDATE eventMatches
-			SET videoLink = ?
-			WHERE matchID = {$matchID}";
-	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-	// "s" means the database expects a string
-	$bind = mysqli_stmt_bind_param($stmt, "s", $url);
-	$exec = mysqli_stmt_execute($stmt);
-	mysqli_stmt_close($stmt);		
+	$matchID = @(int)$videoInfo['matchID']; // could not exist, treat as zero
+	$videoID = @(int)$videoInfo['videoID']; // could not exist, treat as zero
+	$sourceLink = $videoInfo['sourceLink'];
+	$sourceType = (int)VIDEO_SOURCE_UNKNOWN;
+	$videoType = (int)VIDEO_STREAM_UNKNOWN;
+
+	if($matchID != 0){
+		$sql = "SELECT videoID
+				FROM eventVideo
+				WHERE matchID = {$matchID}";
+		$videoID = (int)mysqlQuery($sql, SINGLE, 'videoID');
+	} else {
+		$matchID = "NULL";
+	}
+
+	if($sourceLink == ''){
+
+		if($videoID  != 0){
+			$sql = "DELETE FROM eventVideo
+					WHERE videoID = {$videoID}";
+			mysqlQuery($sql, SEND);
+			setAlert(USER_ALERT,"Video link deleted");
+		}
+
+		return;
+	}
+
+	$sourceType = getVideoSourceType($sourceLink);
+
+	if($videoID == 0){
+
+		$sql = "INSERT INTO eventVideo
+				(videoType, sourceType, sourceLink, matchID)
+				VALUES
+				({$videoType}, {$sourceType}, ?, {$matchID})";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $sourceLink);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Video link added");
+
+	} else {
+
+		$sql = "UPDATE eventVideo
+				SET sourceLink = ?, sourceType = {$sourceType}, matchID = {$matchID}
+				WHERE videoID = {$videoID}";
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $sourceLink);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Video link updated");	
+
+	}
 			
 }
 
@@ -8031,6 +8461,26 @@ function deleteRules($rulesID)
 
 	$_SESSION['rulesID'] = 0;
 	setAlert(USER_ALERT,"The ruleset <b>{$rulesName}</b> has been deleted.");
+}
+
+/******************************************************************************/
+
+function orderRules($orderRules){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach((array)$orderRules['rulesIDs'] as $rulesID => $order){
+		$rulesID = (int)$rulesID;
+		$order = (int)$order;
+
+		$sql = "UPDATE eventRules
+				SET rulesOrder = {$order}
+				WHERE rulesID = {$rulesID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT,"Rules order updated");
 }
 
 /******************************************************************************/

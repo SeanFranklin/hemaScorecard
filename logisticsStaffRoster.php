@@ -68,6 +68,7 @@ if($_SESSION['eventID'] == null){
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
 
+	<input type='hidden' id='eventID' value="<?=$_SESSION['eventID']?>">
 
 <!-- Tabs -->
 	<ul class="tabs" data-tabs id="staffRoster-tab">
@@ -174,18 +175,36 @@ function fullRosterDisplay($defaults){
 
 	$roster = getEventRoster(null, true);
 
+
+	foreach($roster as $person){
+
+		$tmp['nameStart'] = "editStaffList-{$person['rosterID']}";
+		$tmp['name'] = getFighterName($person['rosterID']);
+		$tmp['rosterID'] = $person['rosterID'];
+
+		if($person['staffCompetency'] != 0){
+			$tmp['comp'] = $person['staffCompetency'];
+			$tmp['target'] = $person['staffHoursTarget'];
+			$tmp['nameClass'] = 'bold';
+			$tmp['checked'] = 'checked';
+		} else {
+			$tmp['comp'] = $defaults['staffCompetency'];
+			$tmp['target'] = $defaults['staffHoursTarget'];
+			$tmp['nameClass'] = '';
+			$tmp['checked'] = '';
+		}
+
+		$rosterList[] = $tmp;
+	}
+
 ?>
+	<div class='callout primary'>
+		I'm trying something new for form inputs here. <u>On this section alone</u> the data is updated as soon as it changes, without needing to submit. (It won't appear in the "Staff Roster" tab until you reload the page though.)<BR>
+		<a class='button tiny no-bottom secondary' href='logisticsStaffRoster.php'>Reload Page</a>
+	</div>
+
 	<div class='grid-x grid-margin-x'>
-	<div class='large-6 medium-9 cell'>
-
-	<form method="POST">
-
-	<button class='button success' name='formName' value='editStaffList'>
-		Update
-	</button>
-	<input type='hidden' name='editStaffList[eventID]' value="<?=$_SESSION['eventID']?>">
-
-	
+	<div class='large-6 medium-11 cell'>
 
 	<table>
 		<tr >
@@ -196,63 +215,43 @@ function fullRosterDisplay($defaults){
 		</tr>
 
 
-	<?php foreach($roster as $person): 
-
-		$nameStart = "editStaffList[staffList][{$person['rosterID']}]";
-		if($person['staffCompetency'] != 0){
-			$comp = $person['staffCompetency'];
-			$target = $person['staffHoursTarget'];
-			$nameClass = 'bold';
-			$checked = 'checked';
-		} else {
-			$comp = $defaults['staffCompetency'];
-			$target = $defaults['staffHoursTarget'];
-			$nameClass = '';
-			$checked = '';
-		}
-
-		?>
+	<?php foreach($rosterList as $r):?>
 		<tr>
+
 			<td>
 
 				<div class='switch text-center no-bottom'>
-					<input type='hidden' name='<?=$nameStart?>[isStaff]' value='0'>
-					<input class='switch-input' type='checkbox' 
-						id='<?=$nameStart?>[isStaff]' <?=$checked?>
-						name='<?=$nameStart?>[isStaff]' value='1'>
-					<label class='switch-paddle' for='<?=$nameStart?>[isStaff]'>
+					<input class='switch-input edit-staff-list' type='checkbox' 
+						id='<?=$r['nameStart']?>-isStaff' <?=$r['checked']?> data-rosterID=<?=$r['rosterID']?>>
+					<label class='switch-paddle' for='<?=$r['nameStart']?>-isStaff'>
 					</label>
 				</div>
 				
 			</td>
-			<td class='<?=$nameClass?> no-wrap'>
-				<?=getFighterName($person['rosterID'])?>
-				<input type='hidden' name='<?=$nameStart?>[rosterID]?>'
-					value="<?=$person['rosterID']?>">
+
+			<td class='<?=$r['nameClass']?> no-wrap'>
+				<?=$r['name']?>
 			</td>
+
 			<td>
-				<select name='<?=$nameStart?>[staffCompetency]'>
+				<select class='edit-staff-list' id='<?=$r['nameStart']?>-staffCompetency' data-rosterID=<?=$r['rosterID']?>>
 					<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++):?>
-						<option <?=optionValue($i,$comp)?> > 
+						<option <?=optionValue($i,$r['comp'])?> > 
 							<?=$i?>
 						</option>
 					<?php endfor ?>
 				</select>
 			</td>
+
 			<td>
-				<input class='no-bottom' type='number' min="0" value="<?=$target?>"
-					name="<?=$nameStart?>[staffHoursTarget]" >
+				<input class='no-bottom edit-staff-list' type='number' min="0" value="<?=$r['target']?>"
+					id="<?=$r['nameStart']?>-staffHoursTarget" data-rosterID=<?=$r['rosterID']?>>
 			</td>
+
 		</tr>
 	<?php endforeach ?>
 
 	</table>
-
-	<button class='button success' name='formName' value='editStaffList'>
-		Update
-	</button>
-
-	</form>
 
 	</div>
 	</div>
