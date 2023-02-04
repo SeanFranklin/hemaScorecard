@@ -54,8 +54,8 @@ function addNewCuttingQuals(){
 
 	foreach($_POST['newQuals'] as $newQual){
 		
-		$systemRosterID = $newQual['systemRosterID'];
-		if($systemRosterID == null){continue;}
+		$systemRosterID = (int)$newQual['systemRosterID'];
+		if($systemRosterID == 0){continue;}
 		
 		$date = $newQual['qualDate'];
 		if($date == null){$date = date('Y-m-d H:i:s');}

@@ -169,6 +169,7 @@
 	$options['T']['TEAM_SWITCH_POINTS'] = 7;
 	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] = 8;
 	$options['T']['CONTROL_POINT_VALUE'] = 9;
+	$options['T']["TEAM_SIZE"] = 10;
 
 	define('OPTION',$options);
 

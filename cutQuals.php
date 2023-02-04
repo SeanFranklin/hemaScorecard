@@ -166,7 +166,7 @@ function addToQualList($standards){
 	<!-- Fighter Input -->
 		<tr>
 			<td>
-				<select name='newQuals[<?=$i?>][systemRosterID]' required>
+				<select name='newQuals[<?=$i?>][systemRosterID]'>
 				<option disabled selected></option>
 				<?php foreach($roster as $systemRosterID): 
 					$name = getFighterNameSystem($systemRosterID);
@@ -183,7 +183,7 @@ function addToQualList($standards){
 		
 	<!-- Standards Input -->
 			<td>
-				<select name='newQuals[<?=$i?>][standardID]' required>
+				<select name='newQuals[<?=$i?>][standardID]'>
 				
 				<?php if($_SESSION['cuttingQualStandard'] == null): ?>
 					<option selected disabled></option>
