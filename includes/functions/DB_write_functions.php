@@ -5574,6 +5574,15 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			$teamSwitchPoints = 0;
 		}
 		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', $teamSwitchPoints);
+
+		$teamSize = (int)$formInfo['teamSize'];
+		if($teamSize < 0 || $teamSize > 10){
+			$teamSize = 0;
+		}
+		writeOption('T', $tournamentID, 'TEAM_SIZE', $teamSize);
+	} else {
+		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', 0);
+		writeOption('T', $tournamentID, 'TEAM_SIZE', 0);
 	}
 
 	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['doublesAreNotScoringExch'] == 1){

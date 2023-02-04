@@ -1,6 +1,12 @@
 /* Added By Sean **************************************************************/
 
 
+.image-box{
+  border: 1px solid black ;
+  box-shadow: 4px 4px 5px 1px #666;
+  margin-right: 8px;
+}
+
 .special-table {
   border: solid 5px black !important;
 }

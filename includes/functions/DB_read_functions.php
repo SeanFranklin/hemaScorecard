@@ -2921,7 +2921,7 @@ function getMatchInfo($matchID = 0){
 				WHERE eventRoster.rosterID = {$id1}";
 		$info = mysqlQuery($sql, SINGLE);	
 		
-		if($info['schoolID'] != null){
+		if(@$info['schoolID'] != null){
 			$matchInfo['fighter1School'] = getSchoolName($info['schoolID'],'full');
 		} else {
 			$matchInfo['fighter1School'] = null;
@@ -2935,7 +2935,7 @@ function getMatchInfo($matchID = 0){
 				WHERE eventRoster.rosterID = {$id2}";
 		$info = mysqlQuery($sql, SINGLE);	
 		
-		if($info['schoolID'] != null){	
+		if(@$info['schoolID'] != null){	
 			$matchInfo['fighter2School'] = getSchoolName($info['schoolID'],'full');
 		} else {
 			$matchInfo['fighter2School'] = null;
@@ -7342,9 +7342,9 @@ function getTournamentTeams($tournamentID = 0){
 	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == 0){return false;}
 
-	$sql = "SELECT eventRoster.rosterID as rosterID, NULL AS schoolID, eventRoster.rosterID as teamID 
+	$sql = "SELECT eR.rosterID as rosterID, NULL AS schoolID, eR.rosterID as teamID 
 			FROM eventTournamentRoster
-			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventRoster AS eR USING(rosterID)
 			WHERE isTeam = TRUE
 			AND eventTournamentRoster.tournamentID = {$tournamentID}";
 
@@ -7462,17 +7462,19 @@ function getUngroupedRoster($tournamentID){
 
 	$orderName = NAME_MODE;
 	$sortString = "ORDER BY systemRoster.{$orderName}";
+
 	
-	$sql = "SELECT eventTournamentRoster.rosterID
+	$sql = "SELECT eventTournamentRoster.rosterID, systemSchools.schoolShortName AS school, CONCAT(firstName,' ',lastName) AS name
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster ON eventTournamentRoster.rosterID = eventRoster.rosterID
 			INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
+			INNER JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
 			WHERE eventTournamentRoster.tournamentID = {$tournamentID}
 			AND isTeam = 0
 			{$notEligibleIDs}
 			{$sortString}";
 	
-	$roster = mysqlQuery($sql, SINGLES, 'rosterID');
+	$roster = mysqlQuery($sql, ASSOC);
 
 	return $roster;
 }

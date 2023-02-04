@@ -149,10 +149,9 @@ function displayRound($roundInfo, $hide){
 			<button class='button tiny hollow' name='matchID' value=<?=$matchID?>>
 				Go
 			</button>
-			<?=$name?><strong><?=$score?></strong>
+			<?=$name?> [<strong><?=$score?></strong>]
 			</div>
 		<?php endforeach ?>
-	
 	
 		</form>
 	</fieldset>

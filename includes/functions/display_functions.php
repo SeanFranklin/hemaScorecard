@@ -1877,6 +1877,7 @@ function edit_tournamentTeams($tournamentID = 0){
 			$mode = getTournamentLogic($tournamentID);
 		}
 		$teamSwitchPoints = readOption('T',$tournamentID,'TEAM_SWITCH_POINTS');
+		$teamSize = readOption('T',$tournamentID,'TEAM_SIZE');
 
 	}
 
@@ -1889,6 +1890,11 @@ function edit_tournamentTeams($tournamentID = 0){
 	if($teamSwitchPoints == 0){
 		$teamSwitchPoints = null;
 	}
+
+	if($teamSize == 0){
+		$teamSize = null;
+	}
+
 
 ?>
 	
@@ -1933,6 +1939,24 @@ function edit_tournamentTeams($tournamentID = 0){
 						<option <?=optionValue('team_Solo',$mode)?> >Solo</option>
 						<option <?=optionValue('team_AllVsAll',$mode)?> >All vs All</option>
 				</select>
+			</div>
+		</td>
+	</tr>
+
+<!-- Switch Fighters Alert -->
+	
+	<tr class='option-teams <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Max Team Size
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<input type='number' placeholder='n/a'
+				name='updateTournament[teamSize]' value='<?=$teamSize?>' 
+				id='teamSize_select<?=$tournamentID?>' min=0 max=10>
 			</div>
 		</td>
 	</tr>
