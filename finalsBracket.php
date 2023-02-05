@@ -1,26 +1,24 @@
 <?php
 /*******************************************************************************
-	Finals Bracket 1
-	
-	Displays the main/winners bracket, and bracket management
-	LOGIN:
-		- ADMIN and above can create/delete brackets
-		- STAFF and above can add/remove fighters from matches
-		- STAFF and above can enable/disable the bracket helper
-	
+
+Finals Bracket
+	Displays the finals bracket
+
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Finals Bracket';
-$includeTournamentName = true;
-$lockedTournamentWarning = true;
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes = null;
+
 include('includes/header.php');
 
-$tournamentID = $_SESSION['tournamentID'];
-
-if($tournamentID == null){
+if($_SESSION['tournamentID'] == null){
 	pageError('tournament');
 } elseif($_SESSION['formatID'] != FORMAT_MATCH){
 	displayAlert("There are no brackets for this tournament format");
@@ -28,6 +26,10 @@ if($tournamentID == null){
 	displayAlert("Event is still upcoming<BR>Bracket not yet released");
 } else {
 
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+	$tournamentID = $_SESSION['tournamentID'];
 
 // Load bracket information
 	$allBracketInfo = getBracketInformation($tournamentID);

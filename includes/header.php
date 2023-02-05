@@ -173,8 +173,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 <!-- START Lower Navigation --------------------------------------->	
 	
 	<?php 
-	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)
-		&& (!isset($hideEventNav) || ALLOW['SOFTWARE_ADMIN'] == true)):
+	if(($_SESSION['eventID'] != null && $_SESSION['tournamentID'] != null)):
 		/* This is the lower navigational bar
 		 * It will not show up if there is no event or tournament selected,  
 		 * or if the pagerequests it to be hidden. It will always be shown
@@ -291,17 +290,17 @@ function menuEvent(){
 	<li>
 		<a href='#'>Event Information</a>
 		<ul class='menu vertical'>
-			<li><a href='infoSummary.php'>Information/Results</a></li>
-			<li><a href='participantsEvent.php'>Event Roster</a></li>
-			<li><a href='logisticsSchedule.php'>Schedule</a></li>
-			<li><a href='infoRules.php'>Tournament Rules</a></li>
+			<li><a href='infoSummary.php?t=0'>Information/Results</a></li>
+			<li><a href='participantsEvent.php?t=0'>Event Roster</a></li>
+			<li><a href='logisticsSchedule.php?t=0'>Schedule</a></li>
+			<li><a href='infoRules.php?t=0'>Tournament Rules</a></li>
 			
 			<li>
 				<a href='#'>Event Stats</a>
 				<ul class='menu vertical'>
-					<li><a href='statsEvent.php'>Attendance/Schools</a></li>
-					<li><a href='statsTournaments.php'>Tournament Exchanges</a></li>
-					<li><a href='statsWorkshops.php'>Workshops</a></li>
+					<li><a href='statsEvent.php?t=0'>Attendance/Schools</a></li>
+					<li><a href='statsTournaments.php?t=0'>Tournament Exchanges</a></li>
+					<li><a href='statsWorkshops.php?t=0'>Workshops</a></li>
 				</ul>
 			</li>
 
@@ -403,23 +402,23 @@ function menuEventOrgBefore(){
 	<li>
 		<a href='#'><b>Event Settings</b></a>
 		<ul class='menu vertical'>
-			<li><a href='adminEvent.php'><b>Event Settings</b></a></li>
-			<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
+			<li><a href='adminEvent.php?t=0'><b>Event Settings</b></a></li>
+			<li><a href='adminNewTournaments.php?t=0'>Create New Tournament</a></li>
 		</ul>
 		
 
 	<li>
 		<a href='#'>Schedule</a>
 		<ul class='menu vertical'>
-			<li><a href='logisticsSchedule.php'>Edit Schedule</a></li>
-			<li><a href='logisticsLocations.php'>Edit Locations</a></li>
+			<li><a href='logisticsSchedule.php?t=0'>Edit Schedule</a></li>
+			<li><a href='logisticsLocations.php?t=0'>Edit Locations</a></li>
 		</ul>
 	</li>
 	
-	<li><a href='adminBurgees.php'>School Standings</a></li>
+	<li><a href='adminBurgees.php?t=0'>School Standings</a></li>
 
 	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
-		<li><a href='adminSponsors.php'>Sponsors</a></li>
+		<li><a href='adminSponsors.php?t=0'>Sponsors</a></li>
 	<?php endif ?>
 
 	<li>
@@ -427,14 +426,14 @@ function menuEventOrgBefore(){
 		<ul class='menu vertical'>
 
 			<div class="drop-down-separator">Setup</div>
-			<li><a href='logisticsStaffRoster.php'>Roster</a></li>
-			<li><a href='logisticsStaffShifts.php'>Shifts</a></li>
-			<li><a href='logisticsStaffTemplates.php'>Shift Templates</a></li>
+			<li><a href='logisticsStaffRoster.php?t=0'>Roster</a></li>
+			<li><a href='logisticsStaffShifts.php?t=0'>Shifts</a></li>
+			<li><a href='logisticsStaffTemplates.php?t=0'>Shift Templates</a></li>
 
 			<div class="drop-down-separator">Summary</div>
-			<li><a href='logisticsParticipantHours.php'>Hours</a></li>
-			<li><a href='logisticsStaffConflicts.php'>Conflicts</a></li>
-			<li><a href='logisticsStaffGrid.php'>Full Grid</a></li>
+			<li><a href='logisticsParticipantHours.php?t=0'>Hours</a></li>
+			<li><a href='logisticsStaffConflicts.php?t=0'>Conflicts</a></li>
+			<li><a href='logisticsStaffGrid.php?t=0'>Full Grid</a></li>
 
 		</ul>
 	</li>
@@ -448,13 +447,13 @@ function menuEventOrgDuring(){
 ?>
 	<li><div class="drop-down-separator">During</div></li>
 
-	<li><a href='logisticsAnnouncements.php'>Announcements</a><li>
+	<li><a href='logisticsAnnouncements.php?t=0'>Announcements</a><li>
 
-	<li><a href='participantsCheckIn.php'>Check-In Participants</a></li>
+	<li><a href='participantsCheckIn.php?t=0'>Check-In Participants</a></li>
 
-	<li><a href='adminFighterPenalties.php'>Penalties By Fighter</a></li>
+	<li><a href='adminFighterPenalties.php?t=0'>Penalties By Fighter</a></li>
 
-	<li><a href='videoLivestream.php'>Livestream</a></li>
+	<li><a href='videoLivestream.php?t=0'>Livestream</a></li>
 
 	<li>
 		<a href='#'>Views</a>
@@ -474,7 +473,7 @@ function menuEventOrgAfter(){
 ?>
 	<div class="drop-down-separator">After</div>
 
-	<li><a href='adminHemaRatings.php'>HEMA Ratings Submission Form</a></li>
+	<li><a href='adminHemaRatings.php?t=0'>HEMA Ratings Submission Form</a></li>
 <?php }	
 
 
@@ -485,20 +484,20 @@ function menuAnalytics(){
 	<li>
 		<a href='#'>Stats/Analytics</a>
 		<ul class='menu vertical'>
-			<li><a href='statsMatchLength.php'>Match Timings</a></li>
-			<li><a href='statsScheduleAssistant.php'>Tournament Time Calculator</a></li>
-			<li><a href='participantsAttendance.php'>Attendance By Fighter</a></li>
-			<li><a href='statsResultsDump.php'>Export Results</a></li>
-			<li><a href='participantsSystem.php'>Full System Roster</a></li>
-			<li><a href='statsPlacings.php'>Placings By Country</a></li>
+			<li><a href='statsMatchLength.php?t=0'>Match Timings</a></li>
+			<li><a href='statsScheduleAssistant.php?t=0'>Tournament Time Calculator</a></li>
+			<li><a href='participantsAttendance.php?t=0'>Attendance By Fighter</a></li>
+			<li><a href='statsResultsDump.php?t=0'>Export Results</a></li>
+			<li><a href='participantsSystem.php?t=0'>Full System Roster</a></li>
+			<li><a href='statsPlacings.php?t=0'>Placings By Country</a></li>
 			<?php if(ALLOW['STATS_ALL'] == true):?>
 				<!-- These are ones that don't really work anymore -------->
 				<li>
 					<a href='#'>DEVEL Views</a>
 					<ul class='menu vertical'>
-						<li><a href='statsFighters.php'>Fighter Histories</a></li>
-						<li><a href='statsMultiEvent.php'>Exchange Types By Weapon</a></li>
-						<li><a href='statsIndividual.php'>Fighter Exchanges By Filter</a></li>
+						<li><a href='statsFighters.php?t=0'>Fighter Histories</a></li>
+						<li><a href='statsMultiEvent.php?t=0'>Exchange Types By Weapon</a></li>
+						<li><a href='statsIndividual.php?t=0'>Fighter Exchanges By Filter</a></li>
 					</ul>
 				</li>
 			<?php endif ?>
@@ -527,12 +526,12 @@ function menuAdmin(){
 	<li>
 		<a href='#'>ADMIN</a>
 		<ul class='menu vertical'>
-			<li><a href='masterEvents.php'>Manage Events</a></li>
+			<li><a href='masterEvents.php?t=0'>Manage Events</a></li>
 			<li>
 				<a href='#'>Database</a>
 				<ul class='menu vertical'>
-					<li><a href='adminSchools.php'>Edit School List</a></li>
-					<li><a href='masterTournamentTypes.php'>Tournament Types</a></li>
+					<li><a href='adminSchools.php?t=0'>Edit School List</a></li>
+					<li><a href='masterTournamentTypes.php?t=0'>Tournament Types</a></li>
 					<li><a href='cutQuals.php'>Cutting Qualifications</a></li>
 				</ul>
 			</li>
@@ -541,12 +540,12 @@ function menuAdmin(){
 			<li>
 				<a href='#'>Data Integrity</a>
 				<ul class='menu vertical'>
-					<li><a href='masterHemaRatings.php'>HEMA Ratings</a></li>
-					<li><a href='masterDuplicates.php'>Duplicate Names</a></li>
+					<li><a href='masterHemaRatings.php?t=0'>HEMA Ratings</a></li>
+					<li><a href='masterDuplicates.php?t=0'>Duplicate Names</a></li>
 				</ul>
 			</li>
 			<?php endif ?>
-			<li><a href='masterPasswords.php'>Change Password</a></li>
+			<li><a href='masterPasswords.php?t=0'>Change Password</a></li>
 		
 		</ul>
 	</li>
@@ -755,6 +754,7 @@ function tournamentListForHeader(){
 			<form method='POST' name='goToTournament<?= $tournamentID; ?>'>
 			<input type='hidden' name='formName' value='changeTournament'>
 			<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
+			<input type='hidden' name='newPage' value='participantsTournament.php'>
 			
 			<?php if(isInProgress($tournamentID)): ?>
 				<strong><?= $link ?></strong>

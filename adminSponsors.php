@@ -1,13 +1,19 @@
 <?php 
 /*******************************************************************************
-	Tournament Rules
+
+Event Sponsors
 	
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Event Sponsors";
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes = null;
 
 include('includes/header.php');
 
@@ -17,6 +23,9 @@ if((int)$_SESSION['eventID'] == 0){
 } else if(ALLOW['SOFTWARE_ADMIN'] == false){
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 	$sponsorListGear = getSponsorListGear();
 	$sponsorListEvent = getSponsorListEvent();

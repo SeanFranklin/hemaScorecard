@@ -1,18 +1,21 @@
 <?php
 /*******************************************************************************
-	Add New Tournaments
+
+New Tournaments
+	Adds new tournament to the event
 	
-	Adds new tournaments to the event
-	LOGIN:
-		- ADMIN and above can view the page and add tournaments
-		
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Manage Tournaments';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
 $jsIncludes[] = 'tournament_management_scripts.js';
+
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -20,6 +23,9 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false) {
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 	
 	$tournamentIDs = getEventTournaments();
 	

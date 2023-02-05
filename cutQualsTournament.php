@@ -1,19 +1,22 @@
 <?php
 /*******************************************************************************
-	Cutting Qualifications for Tournaments
-	
+
+Cutting Qualifications for Tournaments	
 	Displays which fighters registered in a tournament have completed the 
 	approprtiate cutting qualification
-	LOGIN: N/A
 
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Cutting Qualification';
-$includeTournament = true;
+
+$tournamentPage 			= true;
+$lockedTournamentWarning 	= false;
+
 $jsIncludes[] = 'misc_scripts.js';
+
 include('includes/header.php');
 
 if($_SESSION['tournamentID'] == null){
@@ -22,7 +25,8 @@ if($_SESSION['tournamentID'] == null){
 	displayAlert('No Cutting Qualification required for this tournament');
 } else {
 
-
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 	$thisStandard = getCuttingStandard($_SESSION['tournamentID']);
 	if($thisStandard != null){

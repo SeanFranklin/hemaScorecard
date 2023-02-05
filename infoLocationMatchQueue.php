@@ -4,15 +4,20 @@
 	
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Fighter Locations';
+
+$tournamentPage 			= true;
+$lockedTournamentWarning 	= false;
+
 $includeTournamentName = false;
 $hideEventNav = true;
 $hidePageTitle = true;
-$refreshPageTimer = 30;
+
 $jsIncludes[] = 'logistics_management_scripts.js';
+
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -25,7 +30,11 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Ring assignments not yet released");
 } else {
 	
-	
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////	
+
+	$refreshPageTimer = 30;
+
 	$locations = logistics_getEventLocations($_SESSION['eventID'], 'ring');
 	$numRings = sizeof($locations);
 	$numOptions = min($numRings,2);

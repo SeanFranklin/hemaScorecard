@@ -1,27 +1,33 @@
 <?php
 /*******************************************************************************
-	Fighter Management
-	
+
+Fighter Management
 	Withdraw fighters if they are injured and can no longer compete
-	LOGIN:
-		- ADMIN or higher required to access
-	
+
 *******************************************************************************/
+
+// PAGE SETUP //////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+$pageName = 'Manage Fighters';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes = null;
+
+include('includes/header.php');
+
+if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
+	pageError('user');
+} else if($_SESSION['tournamentID'] == null){
+	pageError('tournament');
+} else {
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-$pageName = 'Manage Fighters';
-$lockedTournamentWarning = true;
-include('includes/header.php');
-
-$tournamentID = $_SESSION['tournamentID'];
-
-if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
-	pageError('user');
-} else if($tournamentID == null){
-	pageError('tournament');
-} else {
+	$tournamentID = $_SESSION['tournamentID'];
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
 		$formLock = 'disabled';

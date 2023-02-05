@@ -1,18 +1,22 @@
 <?php
 /*******************************************************************************
-	Event Details
+
+Event Details
+	For the event organizer to change various settings associated with the event 
+	as a whole. Only the event organizer can access outside of software staff.
 	
-	Change event passwords and set defaults for newly created tournaments
-	LOGIN:
-		- ADMIN or higher required to view
-		
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Event Details';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
 $jsIncludes[] = "sortable_scripts.js";
+
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -20,6 +24,9 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 	
 	$defaults = getEventDefaults($_SESSION['eventID']);
 

@@ -1,18 +1,21 @@
 <?php
 /*******************************************************************************
-	Manage Tournaments
-	
+
+Manage Tournaments
 	View and change settings of tournaments. Delete existing tournaments.
-	LOGIN
-		- ADMIN or higher required to view
 
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Manage Tournaments';
+
+$tournamentPage 			= true;
+$lockedTournamentWarning 	= true;
+
 $jsIncludes[] = 'tournament_management_scripts.js';
+
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -22,6 +25,9 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false) {
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 	$tournamentID = $_SESSION['tournamentID'];
 	$tournamentName = getTournamentName($tournamentID);

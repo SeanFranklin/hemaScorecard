@@ -1,18 +1,25 @@
 <?php
 /*******************************************************************************
-	Log In Page
-	
+
+Log In Page
 	Log in to events or as a specialty user
-	LOGIN: N/A
-	
+
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Log In';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
 $jsIncludes[] = 'misc_scripts.js';
+
 include('includes/header.php');
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 $activeEvents = getEventList('active');
 $upcomingEvents = getEventList('upcoming');

@@ -1,23 +1,30 @@
 <?php
 /*******************************************************************************
-	Cutting Qualifications
-	
+
+Cutting Qualifications
 	Add and remove cutting qualifications
-	Not fully implemented
-	LOGIN 
-		SUPER ADMIN can add qualifications
 
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Cutting Quallifications';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes = null;
+
 include('includes/header.php');
 
 if(ALLOW['SOFTWARE_ASSIST'] == false){
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 	if(isSet($_SESSION['cuttingQualDate'])){
 		$date = $_SESSION['cuttingQualDate'];
 	} else{

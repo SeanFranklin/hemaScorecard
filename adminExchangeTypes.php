@@ -1,18 +1,22 @@
 <?php
 /*******************************************************************************
-	Manage Tournaments
-	
-	View and change settings of tournaments. Delete existing tournaments.
-	LOGIN
-		- ADMIN or higher required to view
+
+Exchange Types
+	Allows an event organizer the ability to pre-define exchange types and the
+	points associated with them.
 
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Point Values';
-$hideEventNav = true;
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes = null;
+
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -22,6 +26,9 @@ if($_SESSION['eventID'] == null){
 } elseif($_SESSION['tournamentID'] == null){
 	pageError('tournament');
 } else{
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false || isFinalized($_SESSION['tournamentID']) == true){
 		$formLock = 'disabled';

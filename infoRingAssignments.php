@@ -4,15 +4,18 @@
 	
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-$pageName = 'Fighter Locations';
-$includeTournamentName = false;
-$jsIncludes[] = 'logistics_management_scripts.js';
-include('includes/header.php');
 
-$tournamentID = $_SESSION['tournamentID'];
+$pageName = 'Fighter Locations';
+
+$tournamentPage 			= true;
+$lockedTournamentWarning 	= false;
+
+$jsIncludes[] = 'logistics_management_scripts.js';
+
+include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
@@ -22,7 +25,12 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
 	
-	
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+	$tournamentID = $_SESSION['tournamentID'];
+
 	$entryList = getTournamentRosterByLocation($tournamentID);
 	if(isset($_SESSION['fighterListColumns']) == true){
 		$numColumns = (int)$_SESSION['fighterListColumns'];

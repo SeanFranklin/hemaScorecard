@@ -1,19 +1,22 @@
 <?php
 /*******************************************************************************
-	Add/Edit Schools
-	
+
+Add/Edit Schools
 	Page where administrators can add/edit schools in the database
-	LOGIN
-		- ADMIN or higher can add new schools
-		- SUPER ADMIN can edit existing schools
+	Event Organizers can add new schools, software admin can edit existing schools
 
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'School Management';
+
+$tournamentPage 			= false;
+$lockedTournamentWarning 	= false;
+
 $jsIncludes[] = 'misc_scripts.js';
+
 include('includes/header.php');
 
 if(ALLOW['EVENT_MANAGEMENT'] == false 
@@ -21,6 +24,10 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 	&& ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
+
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 	$schools = getSchoolListLong();
 	
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////

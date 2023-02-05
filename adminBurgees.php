@@ -1,13 +1,20 @@
 <?php
 /*******************************************************************************
 
+Event Burgees
+	Where the event organizer can configure overall team awards.
 		
 *******************************************************************************/
 
-// INITIALIZATION //////////////////////////////////////////////////////////////
+// PAGE SETUP //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'School Standings';
+
+$tournamentPage 		 = false;
+$lockedTournamentWarning = false;
+
+$jsIncludes = null;
 
 include('includes/header.php');
 
@@ -17,6 +24,9 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } else {
 	
+// INITIALIZATION //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 	$tournamentIDs = getEventTournaments();
 	$rankingIDs = getBurgeeRankings();
 	$burgeeIDs = getEventBurgees($_SESSION['eventID']);
