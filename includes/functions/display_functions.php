@@ -1865,6 +1865,7 @@ function edit_tournamentTeams($tournamentID = 0){
 	$isTeams = 0;
 	$mode = '';
 	$teamSwitchPoints = 0;
+	$teamSize = 0;
 
 	if($tournamentID != 0){
 		

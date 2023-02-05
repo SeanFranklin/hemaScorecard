@@ -3343,15 +3343,23 @@ function getNumSubMatches($tournamentID){
 
 /******************************************************************************/
 
-function isFightingStarted($tournamentID){
+function isFightingStarted($tournamentID, $isMeta = false){
 
 	$tournamentID = (int)$tournamentID;
 
-	$sql = "SELECT exchangeID
-			FROM eventExchanges
-			INNER JOIN eventMatches USING(matchID)
-			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}";
+	if($isMeta == false){
+		$sql = "SELECT exchangeID
+				FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE tournamentID = {$tournamentID}";
+	} else {
+		$sql = "SELECT standingID
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				LIMIT 1";
+	}
+
 	return (bool)mysqlQuery($sql, SINGLE);
 }
 
@@ -7324,6 +7332,25 @@ function isBrackets($tournamentID){
 	$numBrackets = mysqlQuery($sql, SINGLE,'numBrackets');
 
 	return (bool)$numBrackets;
+}
+
+/******************************************************************************/
+
+function isBracketPopulated($tournamentID){
+// Returns true if a bracket has been created for the tournament
+	
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT COUNT(*) AS numBracketMatchesPopulated
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'elim'
+			AND fighter1ID IS NOT NULL
+			AND fighter2ID IS NOT NULL";
+	$numBracketMatches = (int)mysqlQuery($sql, SINGLE,'numBracketMatchesPopulated');
+
+	return (bool)$numBracketMatches;
 }
 
 /******************************************************************************/
