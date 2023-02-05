@@ -44,7 +44,7 @@ if($_SESSION['eventID'] == null){
 
 			$tmp['location'] = '';
 			foreach($block['locationIDs'] as $locationID){
-				$tmp['location'] .= logistics_getLocationName($locationID).", ";
+				$tmp['location'] .= logistics_getLocationName($locationID, true).", ";
 			}
 			$tmp['location'] = rtrim($tmp['location'], ', ');
 			

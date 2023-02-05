@@ -4865,7 +4865,7 @@ function logistics_getEventLocations($eventID, $locationType = null){
 		$whereClause .= "AND hasClasses = 1";
 	}
 
-	$sql = "SELECT locationID, locationName, hasMatches, hasClasses
+	$sql = "SELECT locationID, locationName, locationNameShort, hasMatches, hasClasses
 			FROM logisticsLocations
 			WHERE eventID = {$eventID}
 			{$whereClause}
@@ -4919,14 +4919,32 @@ function logistics_getStaffTemplate($tournamentID){
 
 /******************************************************************************/
 
-function logistics_getLocationName($locationID){
+function logistics_getLocationName($locationID, $short = false){
 
 	$locationID = (int)$locationID;
+	$name = "";
 
-	$sql = "SELECT locationName
-			FROM logisticsLocations
-			WHERE locationID = {$locationID}";
-	return mysqlQuery($sql, SINGLE, 'locationName');
+	if($short == true){
+		$sql = "SELECT locationName, locationNameShort
+				FROM logisticsLocations
+				WHERE locationID = {$locationID}";
+		$names = mysqlQuery($sql, SINGLE);
+
+		if($names['locationNameShort'] != null){
+			$name = $names['locationNameShort'];
+		} else {
+			$name = $names['locationName'];
+		}
+
+	} else {
+		$sql = "SELECT locationName
+				FROM logisticsLocations
+				WHERE locationID = {$locationID}";
+		$name = mysqlQuery($sql, SINGLE, 'locationName');
+	}
+
+	return ($name);
+	
 }
 
 /******************************************************************************/

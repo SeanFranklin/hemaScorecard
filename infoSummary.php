@@ -60,12 +60,9 @@ if($_SESSION['eventID'] == null){
 			$fieldsetLink = $link;
 		}
 
-		
-
 		?>
 		
-
-
+		
 		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
 		
 			<a name='anchor<?=$tournamentID?>'></a>
@@ -181,7 +178,6 @@ function sortTournamentsForPlacings($tournamentList){
 
 function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
-
 	$placings = getTournamentPlacings($tournamentID);
 
 	if($placings == null){
@@ -214,10 +210,10 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 		$rosterID = $placings[$i]['rosterID'];
 		if($rosterID == null){continue;}
 
-		if($isTeams){
+		if($isTeams == true){
 			$tmp['name'] = getTeamName($rosterID);
 		} else {
-			$tmp['name'] = getEntryName($rosterID);
+			$tmp['name'] = getFighterName($rosterID);
 		}
 
 		
@@ -262,10 +258,10 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 		$rosterID = $placings[$i]['rosterID'];
 		if($rosterID == null){continue;}
 
-		if($isTeams){
+		if($isTeams == true){
 			$tmp['name'] = getTeamName($rosterID);
 		} else {
-			$tmp['name'] = getEntryName($rosterID);
+			$tmp['name'] = getFighterName($rosterID);
 		}
 
 		if(isset($placings[$i]['schoolFullName'])){
@@ -450,7 +446,7 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 		if($isTeams){
 			$names[$person['rosterID']] = getTeamName($person['rosterID']);
 		} else {
-			$names[$person['rosterID']] = getEntryName($person['rosterID']);
+			$names[$person['rosterID']] = getFighterName($person['rosterID']);
 		}
 	}
 

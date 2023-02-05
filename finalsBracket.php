@@ -603,7 +603,7 @@ function displayBracket($bracketInfo,
 				<div class='large-2 small-2 medium-2 align-self-middle text-center'>
 					<?php if($isNotBlank){
 						if($matchInfo['locationID'] != null){
-							echo "<em>".logistics_getLocationName($matchInfo['locationID'])."</em>";
+							echo "<em>".logistics_getLocationName($matchInfo['locationID'], true)."</em>";
 						}
 
 						goToMatchButton($matchInfo);
