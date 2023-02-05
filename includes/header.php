@@ -745,31 +745,75 @@ function tournamentListForHeader(){
 			$linkClass .= 'bold';
 		}
 
+		$format = getTournamentFormat($tournamentID);
+
+		$isMeta = ($format == FORMAT_META);
+		$isStarted = isFightingStarted($tournamentID, $isMeta);
 		
+
 		$t['landingPage'] = '';
+
+		// If we are already in a tournament and switching to a new one stay on 
+		// the same page. But if we aren't in a tournament the landing page will 
+		// be set to whatever makes the most sense based on the current state 
+		// of the tournament and it's type.
 		if($_SESSION['tournamentID'] == null){
 
+			$t['landingPage'] = 'participantsTournament.php';
+
 			if(ALLOW['VIEW_MATCHES'] == false){
-
-				$t['landingPage'] = 'participantsTournament.php';
-
-			} elseif (isBracketPopulated($tournamentID) == true) {
-
-				$t['landingPage'] = 'finalsBracket.php';
-
-			} elseif ($t['isInProgress'] == true) {
-
-				$t['landingPage'] = 'poolMatches.php';
-
-			} elseif (isPools($tournamentID) == true) {
-
-				$t['landingPage'] = 'poolRosters.php';
-				
-			} else {
-
-				$t['landingPage'] = 'participantsTournament.php';
-
+				$format = FORMAT_NONE;
 			}
+
+			switch($format){
+				case FORMAT_SOLO:{
+
+					if($isStarted == true){
+						$t['landingPage'] = 'roundStandings.php'; 
+					} else {
+						$t['landingPage'] = 'roundRosters.php'; 
+					}
+					
+					break;
+				}
+				case FORMAT_META:{
+
+					if($isStarted == true){
+						$t['landingPage'] = 'poolStandings.php'; 
+					} else {
+						$t['landingPage'] = 'participantsComponents.php'; 
+					}
+
+					break;
+				}
+				case FORMAT_MATCH:{
+
+					if (isBracketPopulated($tournamentID) == true){
+						$t['landingPage'] = 'finalsBracket.php';
+					} elseif ($isStarted == true){
+						$t['landingPage'] = 'poolMatches.php';
+					} elseif (isPools($tournamentID) == true){
+						$t['landingPage'] = 'poolRosters.php';
+					} else {
+						$t['landingPage'] = 'participantsTournament.php';
+					}
+
+					break;
+				}
+				case FORMAT_RESULTS:{
+
+					$t['landingPage'] = 'infoSummary.php';
+					break;
+
+				}
+				default: {
+
+					$t['landingPage'] = 'participantsTournament.php';
+					break;
+
+				}
+			}
+
 		}
 
 		$t['link'] = "<a class='{$linkClass}' 

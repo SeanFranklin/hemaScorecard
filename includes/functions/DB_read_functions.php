@@ -3343,15 +3343,23 @@ function getNumSubMatches($tournamentID){
 
 /******************************************************************************/
 
-function isFightingStarted($tournamentID){
+function isFightingStarted($tournamentID, $isMeta = false){
 
 	$tournamentID = (int)$tournamentID;
 
-	$sql = "SELECT exchangeID
-			FROM eventExchanges
-			INNER JOIN eventMatches USING(matchID)
-			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}";
+	if($isMeta == false){
+		$sql = "SELECT exchangeID
+				FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE tournamentID = {$tournamentID}";
+	} else {
+		$sql = "SELECT standingID
+				FROM eventStandings
+				WHERE tournamentID = {$tournamentID}
+				LIMIT 1";
+	}
+
 	return (bool)mysqlQuery($sql, SINGLE);
 }
 
