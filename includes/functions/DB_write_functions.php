@@ -7986,10 +7986,18 @@ function updateTournamentFighterCounts($tournamentID, $eventID){
 
 		$tournamentID = (int)$tournamentID;
 
+		if(isTeams($tournamentID) == true){
+			$isTeam = 1;
+		} else {
+			$isTeam = 0;
+		}
+
 		$sql = "UPDATE eventTournaments
 				SET numParticipants = (SELECT COUNT(*)
 										FROM eventTournamentRoster
-										WHERE tournamentID = {$tournamentID})
+										INNER JOIN eventRoster USING(rosterID)
+										WHERE tournamentID = {$tournamentID}
+										AND isTeam = {$isTeam})
 				WHERE tournamentID = {$tournamentID}";
 		mysqlQuery($sql, SEND);
 

@@ -614,30 +614,45 @@ function updateTimerDisplay(time = null){
 		displayTime = document.getElementById('timeLimit').value - time;
 	}
 
-	var neg = '';
-	if(displayTime < 0){
-		if($("#hideNegativeTime").length != 0){
-			displayTime = 0;
-		} else {
-			displayTime = Math.abs(displayTime);
-			neg = '-';
-		}
+	var displayNegative = false;
+	if($("#hideNegativeTime").length == 0){
+		displayNegative = true;
 	}
-
-	minutes = Math.floor(displayTime/60);
-	seconds = displayTime - (minutes * 60);
-
-	if(seconds < 10){
-		seconds = "0"+seconds.toString();
-	}
-
-	str = neg+minutes.toString()+":"+seconds.toString();
+	
+	var str = secondsToMinAndSec(displayTime, displayNegative);
 	document.getElementById('currentTime').innerHTML = str;
 
 	setTimerButtonColor(time);
 
 }
 
+
+/******************************************************************************/
+
+function secondsToMinAndSec(time, displayNegative = false){
+
+	var neg = '';
+
+	if(time < 0){
+		if(displayNegative == false){
+			time = 0;
+		} else {
+			time = Math.abs(time);
+			neg = '-';
+		}
+	}
+
+	minutes = Math.floor(time/60);
+	seconds = time - (minutes * 60);
+
+	if(seconds < 10){
+		seconds = "0"+seconds.toString();
+	}
+
+	str = neg+minutes.toString()+":"+seconds.toString();
+
+	return (str);
+}
 
 /******************************************************************************/
 
@@ -720,6 +735,64 @@ function manualTimeSet(){
 	document.getElementById('matchTime').value = time;
 	updateMatchTimer();
 	document.getElementById('manualSetDiv').classList.add('hidden')
+}
+
+/******************************************************************************/
+
+var miscTimerActive = false;
+
+function miscTimerToggle(){
+
+	if(miscTimerActive == false){
+		timerClock = setInterval(miscTimerClockTick,1000);
+		miscTimerActive = true;
+		$('#misc-timer-container').removeClass('secondary');
+		$('#misc-timer-button').removeClass('hollow');
+		$('#misc-timer-button').html('Stop');
+	} else {
+		miscTimerStop();
+	}
+
+}
+
+/******************************************************************************/
+
+function miscTimerStop(){
+
+	if(miscTimerActive == true){
+		clearInterval(timerClock);
+		miscTimerActive = false;
+	}
+
+	$('#misc-timer-container').addClass('secondary');
+	$('#misc-timer-button').addClass('hollow');
+	$('#misc-timer-button').html('Start');
+
+}
+
+/******************************************************************************/
+
+function miscTimerClockTick(){
+
+	var time = parseInt($('#misc-timer-value').val());
+	time = time + 1;
+
+	var str = secondsToMinAndSec(time);
+
+	$('#misc-timer-value').val(time);
+	$('#misc-timer-display').html(str);
+}
+
+/******************************************************************************/
+
+function miscTimerReset(){
+
+	miscTimerStop();
+
+	$('#misc-timer-value').val(0);
+	$('#misc-timer-display').html("0:00");
+	$('#misc-timer-container').fadeTo(100, 0.1, function() { $(this).fadeTo(500, 1.0); }); 
+
 }
 
 /******************************************************************************/

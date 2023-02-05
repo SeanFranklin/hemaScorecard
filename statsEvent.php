@@ -61,7 +61,12 @@ if($_SESSION['eventID'] == null){
 	<?php foreach((array)$tournamentList as $tID => $data): ?>
 		<tr>
 			<td><?=getTournamentName($tID )?></td>
-			<td class='text-right'><?=$data['numParticipants']?></td>
+			<td class='text-right'>
+				<?=$data['numFighters']?>
+				<?php if($data['isTeams'] != 0):?>
+				(<i><?=$data['numParticipants']?> teams</i>)
+			<?php endif ?>
+			</td>			
 		</tr>
 	<?php endforeach ?>
 	
