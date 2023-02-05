@@ -47,6 +47,10 @@ if($_SESSION['eventID'] == null){
 			<th></th>
 			<th>Location Name</th>
 			<th>
+				Short Name
+				<?=tooltip("If you have long descriptive names it can make some formatting look weird in sections. If a shorter name is specified it is used in these places.")?>
+			</th>
+			<th>
 				Holds Matches
 				<?=tooltip("Unchecking this will remove this location from the list of places you can assign tournament matches to.")?>
 			</th>
@@ -155,9 +159,11 @@ function confirmFormBox(){
 /******************************************************************************/
 
 function editLocationRow($locationInfo){
+
 	if(is_array($locationInfo)){
 		$locationID = (int)$locationInfo['locationID'];
 		$locationName = $locationInfo['locationName'];
+		$locationNameShort = $locationInfo['locationNameShort'];
 
 		if($locationInfo['hasMatches'] != 0){
 			$hasMatches = 'checked';
@@ -176,6 +182,7 @@ function editLocationRow($locationInfo){
 	} else {
 		$locationID = $locationInfo;
 		$locationName = null;
+		$locationNameShort = null;
 		$hasMatches = 'checked';
 		$hasClasses= '';
 		$onClick = '';
@@ -193,7 +200,12 @@ function editLocationRow($locationInfo){
 		<td>
 			<input type='text' class='no-bottom' 
 					name='editLocationInformation[locations][<?=$locationID?>][locationName]' 
-					value='<?=$locationName?>' placeholder='eg: Ring 1, South Classrom, etc...'>
+					value='<?=$locationName?>' placeholder='eg: Ring 1 (Red), South Classrom, etc...'>
+		</td>
+		<td>
+			<input type='text' class='no-bottom' 
+					name='editLocationInformation[locations][<?=$locationID?>][locationNameShort]' 
+					value='<?=$locationNameShort?>' placeholder='eg: Ring 1, South, etc...'>
 		</td>
 		<td>
 

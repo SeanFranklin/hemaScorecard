@@ -882,18 +882,22 @@ function logisticsEditLocations($locationInformation){
 		if($locationInfo['locationName'] == ''){
 			continue;
 		}
+		if($locationInfo['locationNameShort'] == ''){
+			$locationInfo['locationNameShort'] = null;
+		}
 
 		// If adding a new location
 		if($locationID < 0){
 
 			$sql = "INSERT INTO logisticsLocations
-					(eventID, locationName, hasMatches, hasClasses)
+					(eventID, locationName, locationNameShort, hasMatches, hasClasses)
 					VALUES
-					({$eventID},?,?,?)";
+					({$eventID},?,?,?,?)";
 
 			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 			// "s" means the database expects a string
-			$bind = mysqli_stmt_bind_param($stmt, "sii", $locationInfo['locationName'],
+			$bind = mysqli_stmt_bind_param($stmt, "ssii", $locationInfo['locationName'],
+										$locationInfo['locationNameShort'],
 										$locationInfo['hasMatches'],$locationInfo['hasClasses']);
 			$exec = mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);	
@@ -901,12 +905,14 @@ function logisticsEditLocations($locationInformation){
 		} else {
 
 			$sql = "UPDATE logisticsLocations
-					SET locationName = ?, hasMatches = ?, hasClasses = ?
+					SET locationName = ?, locationNameShort = ?,
+						hasMatches = ?, hasClasses = ?
 					WHERE locationID = ?";
 
 			$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 			// "s" means the database expects a string
-			$bind = mysqli_stmt_bind_param($stmt, "siii", $locationInfo['locationName'],
+			$bind = mysqli_stmt_bind_param($stmt, "ssiii", $locationInfo['locationName'],
+										$locationInfo['locationNameShort'],
 										$locationInfo['hasMatches'],$locationInfo['hasClasses'],
 										$locationID);
 			$exec = mysqli_stmt_execute($stmt);
