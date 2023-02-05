@@ -2155,6 +2155,28 @@ function matchOptionsBox($matchInfo){
 	<div class='reveal' id='matchOptionsBox' data-reveal>
 		<h4>Match Options</h4>
 
+		<hr>
+		<div class="grid-x grid-margin-x">
+
+			<input type='hidden' id='misc-timer-value' value=0>
+
+			<div class='cell small-6'>
+				Stopwatch:
+				<div class='callout text-center bold secondary' id='misc-timer-container'>
+					<h3 id='misc-timer-display'>0:00</h3>
+				</div>
+			</div>
+
+			<div class='cell medium-4 small-6'>
+				<a id='misc-timer-button' class='button align-self-middle hollow expanded' onclick="miscTimerToggle()">
+					Start
+				</a>
+				<a class='button align-self-middle warning hollow expanded'  onclick="miscTimerReset()">
+					Reset
+				</a>
+			</div>
+		</div>
+
 		<?php if($matchInfo['lastExchange'] != null): ?>
 			<HR>
 			<button class='button no-bottom' id='editExchangeButton' data-open='editExchangeBox'>

@@ -2506,7 +2506,7 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 		} elseif(NAME_MODE == 'lastName' || $nameMode == 'last'){
 			$name = $result['lastName'].", ".$result['firstName'];
 		} else {
-			$name = $result['firstName']." ".$result['lastName'];
+			$name = @$result['firstName']." ".@$result['lastName'];
 		}
 		
 	} else {
@@ -6711,8 +6711,10 @@ function getNumEventTournamentEntries($eventID){
 
 	$sql = "SELECT COUNT(*) AS numParticipants
 			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE eventID = {$eventID}";
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE eT.eventID = {$eventID}
+			AND isTeam = 0";
 	return (int)mysqlQuery($sql, SINGLE, 'numParticipants');
 }
 
@@ -7065,7 +7067,12 @@ function getTournamentsFull($eventID){
 	$metaTypes = ['weapon', 'prefix', 'ranking', 'gender', 'material'];
 
 	
-	$sql = "SELECT * FROM eventTournaments
+	$sql = "SELECT *, (SELECT COUNT(*) AS numFighters
+						FROM eventTournamentRoster AS eTR2
+						INNER JOIN eventRoster USING(rosterID)
+						WHERE eTR2.tournamentID = eT.tournamentID
+						AND isTeam = 0) AS numFighters
+			FROM eventTournaments AS eT
 			WHERE eventID = {$eventID}
 			ORDER BY numParticipants DESC";
 	$allTournamentData = mysqlQuery($sql, KEY, 'tournamentID');
