@@ -7328,6 +7328,25 @@ function isBrackets($tournamentID){
 
 /******************************************************************************/
 
+function isBracketPopulated($tournamentID){
+// Returns true if a bracket has been created for the tournament
+	
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT COUNT(*) AS numBracketMatchesPopulated
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupType = 'elim'
+			AND fighter1ID IS NOT NULL
+			AND fighter2ID IS NOT NULL";
+	$numBracketMatches = (int)mysqlQuery($sql, SINGLE,'numBracketMatchesPopulated');
+
+	return (bool)$numBracketMatches;
+}
+
+/******************************************************************************/
+
 function isTeams($tournamentID = 0){
 	
 	$tournamentID = (int)$tournamentID;
