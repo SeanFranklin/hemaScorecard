@@ -56,6 +56,9 @@ function logistics_esbPopulateForm(){
         };
 
     } else {
+
+        logistics_populateBlockDescription(blockID);
+
         $('#esb-deleteButton').prop("disabled", false);
         $('#esb-deleteButton').attr("disabled", false);
 
@@ -308,10 +311,20 @@ function logistics_esbDeleteSubmit(){
 
 function logistics_displayBlockDescription(blockID){
 
+    logistics_populateBlockDescription(blockID);
+
+    $("#sbd-modal").foundation("open");
+
+}
+
+/******************************************************************************/
+
+function logistics_populateBlockDescription(blockID){
+
 
     var query = "mode=getScheduleBlockInfo&blockID="+blockID.toString();
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send();
 
@@ -319,7 +332,7 @@ function logistics_displayBlockDescription(blockID){
         if(this.readyState == 4 && this.status == 200){
             
             if(this.responseText.length > 1){ // If the fighter has already fought
-             
+            
                 var data = JSON.parse(this.responseText);
 
                 if(data['blockTypeID'] == 1){
@@ -414,9 +427,31 @@ function logistics_displayBlockDescription(blockID){
                     });
                 }
 
-                
-               
-                $("#sbd-modal").foundation("open");
+
+                if(data['staffing'] !== undefined && data['staffing'].length > 0){
+
+                    var str = "<HR><a onclick=\"$('#sbd-staffing-box').toggle();$('#sbd-modal').removeClass('medium');$('#sbd-modal').addClass('large')\">Staffing ↓</a>";
+                    str = str + "<table id='sbd-staffing-box' class='hidden'>";
+                    
+                    
+                    data['staffing'].forEach(function(staffDetails){
+                        str = str + "<tr><td>";
+                        str = str + secondsToMinAndSec(staffDetails['startTime']);
+                        str = str + "-" + secondsToMinAndSec(staffDetails['endTime']);
+                        str = str + "</td><td>" + staffDetails['locationName'] + "</td><td><b>";
+                        str = str + staffDetails['name'];
+                        str = str + "</b></td><td><i>" + staffDetails['roleName'] + "</i>";
+                        str = str + "</td></tr>";
+
+                        $("#sbd-staffing").append(str);
+                    });
+
+                    str = str + "</table>";
+                    $("#sbd-staffing").html(str);
+                } else {
+                    $("#sbd-staffing").html("");
+                }
+
             }
         }
     };

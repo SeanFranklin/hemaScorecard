@@ -381,11 +381,38 @@ function postForm(formData){
         if(this.readyState == 4 && this.status == 200){
 
             if(this.responseText.length > 1){
-                console.log(this.responseText);
+                //console.log(this.responseText);
                 
             }
         }
     }
+}
+
+/******************************************************************************/
+
+function secondsToMinAndSec(time, displayNegative = false){
+
+    var neg = '';
+
+    if(time < 0){
+        if(displayNegative == false){
+            time = 0;
+        } else {
+            time = Math.abs(time);
+            neg = '-';
+        }
+    }
+
+    minutes = Math.floor(time/60);
+    seconds = time - (minutes * 60);
+
+    if(seconds < 10){
+        seconds = "0"+seconds.toString();
+    }
+
+    str = neg+minutes.toString()+":"+seconds.toString();
+
+    return (str);
 }
 
 /******************************************************************************/

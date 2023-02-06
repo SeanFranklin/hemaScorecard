@@ -313,6 +313,20 @@ case 'getScheduleBlockInfo':{
 
 	$info['rules'] = getTournamentRules($info['tournamentID']);
 
+	$sql = "SELECT rosterID, locationName, lSS.startTime, lSS.endTime, roleName 
+			FROM logisticsStaffShifts
+			INNER JOIN logisticsScheduleShifts AS lSS USING(shiftID)
+			INNER JOIN logisticsScheduleBlocks USING(blockID)
+			INNER JOIN logisticsLocations USING(locationID)
+			INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
+			WHERE blockID = {$blockID}
+			ORDER BY lSS.startTime ASC, locationName ASC";
+	$info['staffing'] = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($info['staffing'] as $index => $staff){
+		$info['staffing'][$index]['name'] = getFighterName($staff['rosterID']);
+	}
+
 	echo json_encode($info);
 
 } break;

@@ -7,7 +7,7 @@
 // INITIALIZATION //////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-define("SCHEDULE_TIME_INTERVAL",15); // 30 minutes.
+define("SCHEDULE_TIME_INTERVAL",15); // 15 minutes
 
 $pageName = 'Event Schedule';
 $jsIncludes[] = 'logistics_management_scripts.js';
@@ -48,7 +48,7 @@ if($_SESSION['eventID'] == null){
 
 
 	editScheduleBlockBox($schedule,$tournamentIDs,$eventDays,$eventLocations);
-	displayBlockDescription();
+	displayBlockDescriptionModal();
 	displayScheduleConflicts($conflicts);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -194,32 +194,52 @@ function displayFloorMapButton(){
 
 /******************************************************************************/
 
-function displayBlockDescription(){
+function displayBlockDescriptionModal(){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == true){
+		return;
+	}
+
 ?>
 	<div class='reveal medium' id='sbd-modal' data-reveal>
-		<h4 id='sbd-title' class='no-bottom'></h4>
-		<div>
-			<em><span id='sbd-subtitle'></span></em>
-		</div>
-		<div id='sbd-instructors'></div>
-		<div id='sbd-time'></div>
-		<div id='sbd-location'></div>
-		<HR>
-		<div id='sbd-experience'></div>
-		<div id='sbd-equipment'></div>
-		<div id='sbd-rules'></div>
-		<div id='sbd-attribute-hr'></div>
-		<div id='sbd-description' style='white-space: pre-wrap'></div>
-		<div>
-			<a id='sbd-link' target="_blank"><span id='sbd-linkDescription'></span></a>
-		</div>
-
+		
+		<?=displayBlockDescription()?>
 
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
+
+<?
+}
+
+/******************************************************************************/
+
+/******************************************************************************/
+
+function displayBlockDescription(){
+
+?>
+	<h4 id='sbd-title' class='no-bottom'></h4>
+
+	<div>
+		<em><span id='sbd-subtitle'></span></em>
+	</div>
+	<div id='sbd-instructors'></div>
+	<div id='sbd-time'></div>
+	<div id='sbd-location'></div>
+	<HR>
+	<div id='sbd-experience'></div>
+	<div id='sbd-equipment'></div>
+	<div id='sbd-rules'></div>
+	<div id='sbd-attribute-hr'></div>
+	<div id='sbd-description' style='white-space: pre-wrap'></div>
+	<div>
+		<a id='sbd-link' target="_blank"><span id='sbd-linkDescription'></span></a>
+	</div>
+
+	<div id='sbd-staffing'></div>
 
 <?
 }
@@ -266,9 +286,35 @@ function editScheduleBlockBox($schedule,$tournamentIDs,$eventDays, $eventLocatio
 		</div>
 	</div>
 	</div>
-	
-	<?=editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations)?>
-		
+
+	<ul class="tabs" data-tabs id="schedule-block-tabs">
+
+		<li class="tabs-title is-active">
+			<a data-tabs-target="sbd-tab">
+				View
+			</a>
+		</li>
+
+
+		<li class="tabs-title">
+			<a data-tabs-target="sbd-edit">
+				Edit
+			</a>
+		</li>
+
+	</ul>
+
+	<div class="tabs-content" data-tabs-content="schedule-block-tabs">
+		<div class="tabs-panel is-active" id="sbd-tab">
+			<?=displayBlockDescription()?>
+		</div>
+
+		<div class="tabs-panel" id="sbd-edit">
+			<?=editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations)?>
+			
+		</div>
+	</div>
+
 
 	<!-- Close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
@@ -292,8 +338,6 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 	$blockTypes = logistics_getBlockTypes();
 
 ?>
-
-
 
 	<?php if($eventLocations == null): ?>
 		
