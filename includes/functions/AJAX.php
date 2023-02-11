@@ -26,6 +26,10 @@ case 'postForm': {
 	$success = false;
 
 	switch($_REQUEST['functionName']){
+		case 'checkInFighter':
+			call_user_func($_REQUEST['functionName'], $_REQUEST);
+			$success = true;
+			break;
 		case 'logisticsStaffFromRoster':
 			call_user_func($_REQUEST['functionName'], $_REQUEST);
 			$success = true;
@@ -631,6 +635,31 @@ case 'fighterSystemInfo': {
 
 	$res = mysqlQuery($sql, SINGLE);
 	echo json_encode($res);
+} break;
+
+/******************************************************************************/
+
+case 'getCheckInList': {
+
+	$listType = $_REQUEST['listType'];
+
+	switch($listType){
+		case 'event': {
+			$eventID = (int)$_REQUEST['ID'];
+			$res['event'] = (array)getCheckInStatusEvent($eventID);
+			$res['additional'] = (array)getCheckInStatusAdditional($eventID);
+			break;
+		}
+		case 'tournament':{
+			$tournamentID = (int)$_REQUEST['ID'];
+			$res = (array)getTournamentFighters($tournamentID);
+			break;
+		}
+		default: {$res = []; break;}
+	}
+
+	echo json_encode($res);
+
 } break;
 
 

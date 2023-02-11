@@ -6462,6 +6462,86 @@ function checkInFighters($checkInData){
 
 /******************************************************************************/
 
+function checkInFighter($checkIn){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	switch($checkIn['checkInType'])
+	{
+		case 'event':
+		{
+			$waiver 	= (int)$checkIn['waiver'];
+			$checkin 	= (int)$checkIn['checkIn'];
+			$rosterID 	= (int)$checkIn['rosterID'];
+
+			$sql = "UPDATE eventRoster
+					SET eventWaiver = {$waiver}, eventCheckIn = {$checkin}
+					WHERE rosterID = {$rosterID}";
+			mysqlQuery($sql, SEND);
+
+			break;
+		}
+
+		case 'additional':
+		{
+			$waiver 		= (int)$checkIn['waiver'];
+			$checkin 		= (int)$checkIn['checkIn'];
+			$additionalID 	= (int)$checkIn['additionalRosterID'];
+
+			$sql = "UPDATE eventRosterAdditional
+					SET eventWaiver = {$waiver}, eventCheckIn = {$checkin}
+					WHERE additionalRosterID = {$additionalID}";
+			mysqlQuery($sql, SEND);
+
+			break;
+		}
+
+		case 'tournament':
+		{
+			$tournamentID 	= (int)$checkIn['tournamentID'];
+			$gearcheck 		= (int)$checkIn['gearcheck'];
+			$checkin 		= (int)$checkIn['checkIn'];
+			$rosterID 		= (int)$checkIn['rosterID'];
+
+			$sql = "UPDATE eventTournamentRoster
+					SET tournamentGearCheck = {$gearcheck}, 
+						tournamentCheckIn = {$checkin}
+					WHERE $tournamentID = {$tournamentID}
+					AND rosterID = {$rosterID}";
+			mysqlQuery($sql, SEND);
+
+			break;
+		}
+
+		case 'group':
+		{
+			$groupID 	= (int)$checkIn['groupID'];
+			$gearcheck 	= (int)$checkIn['gearcheck'];
+			$checkin 	= (int)$checkIn['checkin'];
+			$rosterID 	= (int)$checkIn['rosterID'];
+
+			$sql = "UPDATE eventGroupRoster
+					SET groupGearCheck = {$gearcheck}, 
+						groupCheckIn = {$checkin}
+					WHERE groupID = {$groupID}
+					AND rosterID = {$rosterID}";
+			mysqlQuery($sql, SEND);
+
+			$_SESSION['jumpTo'] = "group{$groupID}";
+
+			break;
+		}
+
+		default: {break;}
+	}
+
+	
+}
+
+/******************************************************************************/
+
 function videoStreamSetLocations($locationInfo){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
