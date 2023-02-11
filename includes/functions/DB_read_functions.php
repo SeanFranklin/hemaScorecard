@@ -5672,7 +5672,8 @@ function getPenaltyActions(){
 
 	$sql = "SELECT attackID, attackText
 			FROM systemAttacks
-			WHERE attackClass = 'illegalAction'";
+			WHERE attackClass = 'illegalAction'
+			ORDER BY attackText ASC";
 	return mysqlQuery($sql, KEY_SINGLES, 'attackID', 'attackText');
 }
 

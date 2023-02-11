@@ -9,6 +9,8 @@
 
 $pageName = 'Event Check In';
 
+$jsIncludes[] = 'logistics_management_scripts.js';
+
 include('includes/header.php');
 $createSortableDataTable[] = ['eventCheckInTable',100];
 $eventID = $_SESSION['eventID'];
@@ -25,155 +27,171 @@ if($eventID == null){
 	$isAdditionals = false;
 	if(count($additionalRoster) != 0){
 		$isAdditionals = true;
+		$additionalsHeader 	= "<th>Reg Type</th>";
+		$additionalsCol 	= "<td>Normal</td>";
+	} else {
+		$additionalsHeader 	= "";
+		$additionalsCol 	= "";
 	}
 
+	$listToDisplay = [];
 	foreach($roster as $index => $fighter){
-		if($fighter['eventWaiver'] != 0){
-			$roster[$index]['waiver'] = 'checked';
+
+		$tmp = [];
+
+		$tmp['waiverID'] = "check-in-fighter-".$fighter['rosterID']."-waiver";
+		$tmp['eventWaiver'] = $fighter['eventWaiver'];
+		if($tmp['eventWaiver'] != 0){
+			$tmp['waiverText'] = 'signed';
 		} else {
-			$roster[$index]['waiver'] = '';
+			$tmp['waiverText'] = 'blank';
 		}
 
+		$tmp['checkInID'] = "check-in-fighter-".$fighter['rosterID']."-checkIn";
+		$tmp['eventCheckIn'] = $fighter['eventCheckIn'];
 		if($fighter['eventCheckIn'] != 0){
-			$roster[$index]['checkin'] = 'checked';
+			$tmp['checkInText'] = 'done';
 		} else {
-			$roster[$index]['checkin'] = '';
+			$tmp['checkInText'] = 'no';
 		}
+
+		$listToDisplay[$fighter['rosterID']] = $tmp;
 	}
 
-	
+	$listOfAdditionals = [];
 	foreach((array)$additionalRoster as $index => $additional){
-		if($additional['eventWaiver'] != 0){
-			$additionalRoster[$index]['waiver'] = 'checked';
+
+		$tmp = [];
+
+		$tmp['waiverID'] = "check-in-additional-".$additional['additionalRosterID']."-waiver";
+		$tmp['eventWaiver'] = $additional['eventWaiver'];
+		if($tmp['eventWaiver'] != 0){
+			$tmp['waiverText'] = 'signed';
 		} else {
-			$additionalRoster[$index]['waiver'] = '';
+			$tmp['waiverText'] = 'blank';
 		}
 
+		$tmp['checkInID'] = "check-in-additional-".$additional['additionalRosterID']."-checkIn";
+		$tmp['eventCheckIn'] = $additional['eventCheckIn'];
 		if($additional['eventCheckIn'] != 0){
-			$additionalRoster[$index]['checkin'] = 'checked';
+			$tmp['checkInText'] = 'done';
 		} else {
-			$additionalRoster[$index]['checkin'] = '';
+			$tmp['checkInText'] = 'no';
 		}
-	}
 
-	$startOfForm = "checkInFighters[event][{$eventID}]";
-	$startOfAdditionalForm = "checkInFighters[additional][{$eventID}]";
+		$tmp['regType'] = $additional['registrationType'];
+
+		$listOfAdditionals[$additional['additionalRosterID']] = $tmp;
+
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<div class='grid-x grid-margin-x'>
-	<div class='large-6 medium-10'>
+	<script>
 
-	<form method="POST">	
+		var refreshPeriod = 1000; // msec
+
+		window.onload = function(){
+			refreshCheckInList('event', <?=$eventID?>);
+			window.setInterval(
+				function(){ refreshCheckInList('event',<?=$eventID?>);}, 
+				refreshPeriod
+			);
+		}
+
+	</script>
+
+	<div class='callout primary'>
+		I'm trying something new for form inputs here. <u>On this section alone</u> the data is updated as soon as it changes, without needing to submit. This also means that multiple people can be working on this page at once. (If you're having trouble, try reloading the page.)<BR>
+		<a class='button tiny no-bottom secondary' href='participantsCheckIn.php'>Reload Page</a>
+	</div>
+
+	<div class='grid-x grid-margin-x'>
+	<div class='large-7 medium-10 cell'>
+
 	<table id="eventCheckInTable" class="display">
 		<thead>
 			<tr>
-				<?php if($isAdditionals == true): ?>
-					<th>Reg</th>
-				<?php endif ?>
-
 				<th> Name </th>
 				<th> Waiver </th>
-				<th> Check In </th>
-				<th> Update </th>
+				<th> Check-In </th>
+				<?=$additionalsHeader?>
 			</tr>
 		</thead>
 
 		<tbody>
-		<?php foreach($roster as $fighter): 
-			$rosterID = $fighter['rosterID'];
-			$startOfForm2 = $startOfForm."[{$rosterID}]";
-			?>
+		<?php foreach($listToDisplay as $rosterID => $f):?>
 			<tr>
-				<?php if($isAdditionals == true): ?>
-					<td>0</td>
-				<?php endif ?>
 
 				<td>
 					<?=getFighterName($rosterID)?>
 				</td>
 
-				<td data-sort="<?=$fighter['waiver']?>">
+				<td class='text-center'>
 
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[waiver]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[waiver]' <?=$fighter['waiver']?>
-							name='<?=$startOfForm2?>[waiver]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[waiver]'>
-						</label>
-					</div>
-				</td>
-
-				<td data-sort="<?=$fighter['checkin']?>">
+					<a class='button no-bottom' onclick="checkInFighterJs('waiver')"
+						id='<?=$f['waiverID']?>'
+						data-checkInType='event'
+						data-rosterID=<?=$rosterID?> 
+						data-signed=<?=$f['eventWaiver']?>>
+						<?=$f['waiverText']?>
+					</a>
 					
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[checkin]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[checkin]' <?=$fighter['checkin']?>
-							name='<?=$startOfForm2?>[checkin]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[checkin]'>
-						</label>
-					</div>
 				</td>
 
 				<td class='text-center'>
-					<button class='button success hollow tiny no-bottom' 
-						name='formName' value='checkInFighters'>
-						<strong>✓</strong>
-					</button>
+
+					<a class='button no-bottom' onclick="checkInFighterJs('checkIn')"
+						id='<?=$f['checkInID']?>'
+						data-checkInType='event'
+						data-rosterID=<?=$rosterID?> 
+						data-checked=<?=$f['eventCheckIn']?>>
+						<?=$f['checkInText']?>
+					</a>
+
 				</td>
+
+				<?=$additionalsCol?>
 
 			</tr>
 
 		<?php endforeach ?>
 
-		<?php foreach((array)$additionalRoster as $additional): 
-			$additionalID = $additional['additionalRosterID'];
-			$startOfForm2 = $startOfAdditionalForm."[{$additionalID}]";
-			?>
+		<?php foreach($listOfAdditionals as $additionalID => $a): ?>
 			<tr>
-				
-				<td>
-					<?=$additional['registrationType']?>
-				</td>
-				
 
 				<td>
 					<?=getAdditionalName($additionalID)?>
 				</td>
 
-				<td data-sort="<?=$fighter['waiver']?>">
+				<td class='text-center'>
 
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[waiver]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[waiver]' <?=$additional['waiver']?>
-							name='<?=$startOfForm2?>[waiver]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[waiver]'>
-						</label>
-					</div>
-				</td>
-
-				<td data-sort="<?=$fighter['checkin']?>">
+					<a class='button no-bottom italic' onclick="checkInFighterJs('waiver')"
+						id='<?=$a['waiverID']?>'
+						data-checkInType='additional'
+						data-additionalRosterID=<?=$additionalID?> 
+						data-signed=<?=$a['eventWaiver']?>>
+						<?=$a['waiverText']?>
+					</a>
 					
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[checkin]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[checkin]' <?=$additional['checkin']?>
-							name='<?=$startOfForm2?>[checkin]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[checkin]'>
-						</label>
-					</div>
 				</td>
 
 				<td class='text-center'>
-					<button class='button success hollow tiny no-bottom' 
-						name='formName' value='checkInFighters'>
-						<strong>✓</strong>
-					</button>
+
+					<a class='button no-bottom italic' onclick="checkInFighterJs('checkIn')"
+						id='<?=$a['checkInID']?>'
+						data-checkInType='additional'
+						data-additionalRosterID=<?=$additionalID?> 
+						data-checked=<?=$a['eventCheckIn']?>>
+						<?=$a['checkInText']?>
+					</a>
+
+				</td>
+
+				<td>
+					<?=$a['regType']?>
 				</td>
 
 			</tr>
@@ -182,7 +200,6 @@ if($eventID == null){
 
 		</tbody>
 	</table>
-	</form>
 
 	</div>
 	</div>

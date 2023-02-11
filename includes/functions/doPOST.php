@@ -314,6 +314,9 @@ function processPostData(){
 			case 'checkInFighters':
 				checkInFighters($_POST['checkInFighters']);
 				break;
+			case 'checkInFighter':
+				checkInFighters($_POST['checkInFighter']);
+				break;
 			case 'addNewSchool':
 				addNewSchool();
 				break;

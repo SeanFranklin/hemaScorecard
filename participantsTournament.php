@@ -15,6 +15,7 @@ $pageName = 'Tournament Roster';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
 $jsIncludes[] = 'roster_management_scripts.js';
+$jsIncludes[] = 'logistics_management_scripts.js';
 $createSortableDataTable[] = ['tournamentCheckInTable',100];
 include('includes/header.php');
 
@@ -51,18 +52,66 @@ if($tournamentID == null){
 		}
 	}
 
-	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
+	$tournamentRoster = (array)getTournamentFighters($tournamentID, $sortString);
 	$namesEntered = [];
 	$numFighters = count($tournamentRoster);
 
-	$startOfForm = "checkInFighters[tournament][{$tournamentID}]";
 	importRosterBox();
+
+	$rosterToDisplay = [];
+	foreach ($tournamentRoster as $fighter){
+
+		$tmp = [];
+		$tmp['name']   = getFighterName($fighter['rosterID']);
+		$tmp['school'] = getSchoolName($fighter['schoolID']);
+
+		$tmp['checkInID'] = "check-in-tournament-".$fighter['rosterID']."-checkIn";
+		$tmp['tournamentCheckIn'] = $fighter['tournamentCheckIn'];
+		if($fighter['tournamentCheckIn'] != 0){
+			$tmp['checkInText'] = 'done';
+		} else {
+			$tmp['checkInText'] = 'no';
+		}
+
+		$tmp['gearID'] = "check-in-tournament-".$fighter['rosterID']."-gearcheck";
+		$tmp['tournamentGearCheck'] = $fighter['tournamentGearCheck'];
+		if($tmp['tournamentGearCheck'] != 0){
+			$tmp['gearText'] = 'done';
+		} else {
+			$tmp['gearText'] = 'no';
+		}
+
+		$rosterToDisplay[$fighter['rosterID']] = $tmp;
+
+		$namesEntered[$fighter['rosterID']] = 'entered';
+		
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Page Structure -->
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == TRUE): ?>
+	<script>
+
+		var refreshPeriod = 1000; // msec
+
+		window.onload = function(){
+			refreshCheckInList('tournament', <?=$tournamentID?>);
+			window.setInterval(
+				function(){ refreshCheckInList('tournament',<?=$tournamentID?>);}, 
+				refreshPeriod
+			);
+		}
+
+	</script>
+
+	<div class='callout primary'>
+		I'm trying something new for form inputs here. <u>On this section alone</u> the data is updated as soon as it changes, without needing to submit. This also means that multiple people can be working on this page at once. (If you're having trouble, try reloading the page.)<BR>
+		<a class='button tiny no-bottom secondary' href='participantsTournament.php'>Reload Page</a>
+	</div>
+	<?php endif ?>
 	
 	<form method='POST' id='tournamentRosterForm'>
 	<fieldset>
@@ -89,29 +138,14 @@ if($tournamentID == null){
 		<?php if(ALLOW_CHECKIN == true):?>
 			<th style='width:0.1%;white-space: nowrap;'>Check-In</th>
 			<th style='width:0.1%;white-space: nowrap;'>Gear Check</th>
-			<th style='width:0.1%;white-space: nowrap;'>Update</th>
 		<?php endif ?>
 	</tr>
 	</thead>
 	<tbody>
 
 <!-- Display existing participants -->
-	<?php foreach ($tournamentRoster as $person):
-		$namesEntered[$person['rosterID']] = 'entered';
-		$rosterID = $person['rosterID'];
-		$schoolID = $person['schoolID'];
-		$startOfForm2 = $startOfForm."[{$rosterID}]";
-		if($person['tournamentCheckIn'] == SQL_TRUE){
-			$checkin = 'checked';
-		} else {
-			$checkin = '';
-		}
-		if($person['tournamentGearCheck'] == SQL_TRUE){
-			$gearcheck = 'checked';
-		} else {
-			$gearcheck = '';
-		}
-	?>
+	<?php foreach ($rosterToDisplay as $rosterID => $f):?>
+
 		<tr id='divFor<?= $rosterID ?>'>
 			<?php if(ALLOW_EDITING == true):?>
 				<td style="width:0.1%">
@@ -120,42 +154,36 @@ if($tournamentID == null){
 				</td>
 			<?php endif ?>
 
+			<td><?=$f['name']?></td>
 
-			<td><?=getFighterName($rosterID)?></td>
-			<td><?=getSchoolName($schoolID)?></td>
+			<td><?=$f['school']?></td>
+
 			<?php if(ALLOW_CHECKIN == true): ?>
 				
+				<td class='text-center'>
 
-				<td data-sort="<?=$checkin?>">
+					<a class='button no-bottom' onclick="checkInFighterJs('checkIn')"
+						id='<?=$f['checkInID']?>'
+						data-checkInType='tournament'
+						data-rosterID=<?=$rosterID?> 
+						data-checked=<?=$f['tournamentCheckIn']?>>
+						<?=$f['checkInText']?>
+					</a>
 
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[checkin]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[checkin]' <?=$checkin?>
-							name='<?=$startOfForm2?>[checkin]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[checkin]'>
-						</label>
-					</div>
-				</td>
-
-				<td data-sort="<?=$gearcheck?>">
-
-					<div class='switch text-center no-bottom'>
-						<input type='hidden' name='<?=$startOfForm2?>[gearcheck]' value='0'>
-						<input class='switch-input' type='checkbox' 
-							id='<?=$startOfForm2?>[gearcheck]' <?=$gearcheck?>
-							name='<?=$startOfForm2?>[gearcheck]' value='1'>
-						<label class='switch-paddle' for='<?=$startOfForm2?>[gearcheck]'>
-						</label>
-					</div>
 				</td>
 
 				<td class='text-center'>
-					<button class='button success hollow tiny no-bottom' 
-						name='formName' value='checkInFighters'>
-						<strong>✅</strong>
-					</button>
+
+					<a class='button no-bottom' onclick="checkInFighterJs('gearcheck')"
+						id='<?=$f['gearID']?>'
+						data-checkInType='tournament'
+						data-rosterID=<?=$rosterID?> 
+						data-gearcheck=<?=$f['tournamentGearCheck']?>>
+						<?=$f['gearText']?>
+					</a>
+
 				</td>
+
 			<?php endif ?>
 		</tr>
 	<?php endforeach ?>

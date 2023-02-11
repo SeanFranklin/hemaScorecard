@@ -633,3 +633,187 @@ function popOutSchedule(){
 }
 
 /******************************************************************************/
+
+function checkInFighterJs(mode){
+
+    var formData = [];
+    formData['functionName'] = 'checkInFighter';
+
+    formData['checkInType'] = $(event.target).attr("data-checkInType");
+
+    var str = "";
+
+    switch(formData['checkInType']){
+
+        case 'event':{
+            formData['rosterID'] = $(event.target).attr("data-rosterID");
+            str = "#check-in-fighter-"+formData['rosterID'];
+            formData['waiver']  = $(str+"-waiver").data("signed");
+            formData['checkIn'] = $(str+"-checkIn").data("checked");
+            break;
+        }
+
+        case 'additional':{
+            formData['additionalRosterID'] = $(event.target).attr("data-additionalRosterID");
+            str = "#check-in-additional-"+formData['additionalRosterID'];
+            formData['waiver']  = $(str+"-waiver").data("signed");
+            formData['checkIn'] = $(str+"-checkIn").data("checked");
+            break;
+        }
+
+        case 'tournament':{
+            formData['rosterID'] = $(event.target).attr("data-rosterID");
+            str = "#check-in-tournament-"+formData['rosterID'];
+            formData['checkIn'] = $(str+"-checkIn").data("checked");
+            formData['gearcheck']  = $(str+"-gearcheck").data("gearcheck");
+            break;
+        }
+
+        default: {return;}
+    }
+
+
+    if(mode == 'waiver'){
+        formData['waiver'] = (formData['waiver'] == 1 ? 0 : 1);
+    }
+
+    if(mode == 'checkIn'){
+        formData['checkIn'] = (formData['checkIn'] == 1 ? 0 : 1);
+    }
+
+    if(mode == 'gearcheck'){
+        formData['gearcheck'] = (formData['gearcheck'] == 1 ? 0 : 1);
+    }
+
+console.log(formData);
+    postForm(formData);
+
+}
+
+/******************************************************************************/
+
+
+function refreshCheckInList(listType, ID){
+
+    var query = "mode=getCheckInList";
+    query = query + "&listType="+listType;
+    query = query + "&ID="+ID;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            
+            if(this.responseText.length > 1){ // If the fighter has already fought
+          
+                var data = JSON.parse(this.responseText);
+
+                switch(listType){
+                    case 'event':{
+
+                        data['event'].forEach(function(fighter){
+                            str = "#check-in-fighter-"+fighter['rosterID'];
+                            updateEventCheckInList(fighter,  str);
+                        });
+
+                        data['additional'].forEach(function(additional){
+                            str = "#check-in-additional-"+additional['additionalRosterID'];
+                            updateEventCheckInList(additional,  str);
+                        });
+                        break;
+                    }
+                    case 'tournament':{
+
+                        data.forEach(function(fighter){
+                            str = "#check-in-tournament-"+fighter['rosterID'];
+                            updateTournamentCheckInList(fighter,  str);
+                        });
+
+                        break;
+                    }
+                    default: { break; }
+                }
+                
+
+               
+
+            }
+        }
+    };
+}
+
+/******************************************************************************/
+
+function updateEventCheckInList(regData, idName){
+
+    $(idName+"-waiver" ).data("signed", regData['eventWaiver']);
+    $(idName+"-checkIn").data("checked",regData['eventCheckIn']);
+
+    if(regData['eventWaiver'] == 1){
+        $(idName+"-waiver").removeClass("hollow");
+        $(idName+"-waiver").addClass("success");
+        $(idName+"-waiver").addClass("tiny");
+        $(idName+"-waiver").html('signed');
+    } else {
+        $(idName+"-waiver").addClass("hollow");
+        $(idName+"-waiver").removeClass("success");
+        $(idName+"-waiver").removeClass("tiny");
+        $(idName+"-waiver").html('blank');
+        
+    }
+
+    if(regData['eventCheckIn'] == 1){
+        $(idName+"-checkIn").removeClass("hollow");
+        $(idName+"-checkIn").addClass("success");
+        $(idName+"-checkIn").addClass("tiny");
+        $(idName+"-checkIn").html('done');
+    } else {
+        $(idName+"-checkIn").addClass("hollow");
+        $(idName+"-checkIn").removeClass("success");
+        $(idName+"-checkIn").removeClass("tiny");
+        $(idName+"-checkIn").html('no');
+        
+    }
+
+}
+
+/******************************************************************************/
+
+function updateTournamentCheckInList(regData, idName){
+
+    $(idName+"-checkIn").data("checked",regData['tournamentCheckIn']);
+    $(idName+"-gearcheck" ).data("gearcheck", regData['tournamentGearCheck']);
+
+    if(regData['tournamentCheckIn'] == 1){
+        $(idName+"-checkIn").removeClass("hollow");
+        $(idName+"-checkIn").addClass("success");
+        $(idName+"-checkIn").addClass("tiny");
+        $(idName+"-checkIn").html('done');
+    } else {
+        $(idName+"-checkIn").addClass("hollow");
+        $(idName+"-checkIn").removeClass("success");
+        $(idName+"-checkIn").removeClass("tiny");
+        $(idName+"-checkIn").html('no');
+    }
+
+    if(regData['tournamentGearCheck'] == 1){
+        $(idName+"-gearcheck").removeClass("hollow");
+        $(idName+"-gearcheck").addClass("success");
+        $(idName+"-gearcheck").addClass("tiny");
+        $(idName+"-gearcheck").html('done');
+    } else {
+        $(idName+"-gearcheck").addClass("hollow");
+        $(idName+"-gearcheck").removeClass("success");
+        $(idName+"-gearcheck").removeClass("tiny");
+        $(idName+"-gearcheck").html('no');
+    }
+
+}
+
+/******************************************************************************/
+
+
+/******************************************************************************/
