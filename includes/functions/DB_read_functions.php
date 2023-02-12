@@ -3238,6 +3238,18 @@ function getNameMode($eventID){
 
 /******************************************************************************/
 
+function getNextMatchInfo($matchInfo){
+
+	if($matchInfo['matchType'] == 'elim'){
+		return getNextBracketMatch($matchInfo);
+	} else {
+		return getNextPoolMatch($matchInfo);
+	}
+
+}
+
+/******************************************************************************/
+
 function getNextPoolMatch($matchInfo){
 // Gets the next match in a group, skipping matches which are set to be ignored
 	
@@ -3273,6 +3285,94 @@ function getNextPoolMatch($matchInfo){
 		return getMatchInfo($matchID);
 	}
 	
+}
+
+/******************************************************************************/
+
+function getNextBracketMatch($matchInfo){
+
+	if($matchInfo == null){
+		setAlert(SYSTEM,"No matchInfo in getNextPoolMatch()");
+		return;
+	}
+
+	if($matchInfo['matchType'] != 'elim' || (int)$matchInfo['locationID'] == 0){
+		// not an error, but nothing to return
+		return null;
+	}
+
+	$locationID = (int)$matchInfo['locationID'];
+	$groupID = (int)$matchInfo['groupID'];
+	$matchID = (int)$matchInfo['matchID'];
+
+	$sql = "SELECT matchID, bracketLevel, bracketPosition
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN logisticsLocationsMatches AS lLM USING(matchID)
+			WHERE groupType = 'elim'
+			AND matchID != {$matchID}
+			AND groupID = {$groupID}
+			AND fighter1ID IS NOT NULL
+			AND fighter2ID IS NOT NULL
+			AND lLM.locationID = {$locationID}
+			AND matchComplete = 0
+			AND ignoreMatch = 0
+			AND placeholderMatchID IS NULL
+			ORDER BY bracketLevel DESC, bracketPosition ASC";
+	$elimMatches = (array)mysqlQuery($sql, ASSOC);
+
+	if($elimMatches == []){
+		return null;
+	}
+
+	$matchID = (int)$elimMatches[0]['matchID'];
+
+	return (getMatchInfo($matchID));
+
+}
+
+/******************************************************************************/
+
+function getBracketMatchesIncomplete($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT matchID, bracketLevel, bracketPosition, lLM.locationID,
+				fighter1ID, fighter2ID, ignoreMatch
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			LEFT JOIN logisticsLocationsMatches AS lLM USING(matchID)
+			WHERE groupType = 'elim'
+			AND tournamentID = {$tournamentID}
+			AND matchComplete = 0
+			AND placeholderMatchID IS NULL
+			ORDER BY bracketLevel DESC, bracketPosition ASC";
+
+	$elimMatches = (array)mysqlQuery($sql, ASSOC);
+
+	$sortedMatches = [];
+	foreach($elimMatches as $match){
+
+		$locationID = (int)$match['locationID'];
+		$tmp = $match;
+
+		if((int)$match['fighter1ID'] != 0){
+			$tmp['name1'] = getFighterName($match['fighter1ID']);
+		} else {
+			$tmp['name1'] = "&lt;unsassigned&gt;";
+		}
+
+		if((int)$match['fighter2ID'] != 0){
+			$tmp['name2'] = getFighterName($match['fighter2ID']);
+		} else {
+			$tmp['name2'] = "&lt;unsassigned&gt;";
+		}
+
+		$sortedMatches[$locationID][] = $tmp;
+
+	}
+
+	return ($sortedMatches);
 }
 
 /******************************************************************************/

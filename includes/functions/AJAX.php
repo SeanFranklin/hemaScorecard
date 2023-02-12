@@ -19,6 +19,10 @@ switch ($_REQUEST['mode']){
 
 case 'postForm': {
 
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
 	if(isset($_REQUEST['functionName']) == ''){
 		break;
 	}
@@ -271,6 +275,10 @@ case 'getRankingTypes': {
 /******************************************************************************/
  
 case 'updateMatchTime': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
 
 	$matchTime = (int)$_REQUEST['matchTime'];
 	$matchID = (int)$_REQUEST['matchID'];
@@ -662,6 +670,97 @@ case 'getCheckInList': {
 
 } break;
 
+
+/******************************************************************************/
+
+case 'getBracketMatchesToAssignRings': {
+
+	$tournamentID = (int)$_REQUEST['tournamentID'];
+
+	$eventID = getTournamentEventID($tournamentID);
+
+	if($tournamentID == 0 || $eventID == 0){
+		return;
+	}
+
+	$upcomingMatches = (array)getBracketMatchesIncomplete($tournamentID);
+	$ringsInfo = (array)logistics_getEventLocations($eventID,'ring');
+
+	$ret_val['queue'] = $upcomingMatches[0];
+	unset($upcomingMatches[0]);
+	$ret_val['assigned'] = $upcomingMatches;
+
+	$avalibleRings = [];
+
+	foreach($ringsInfo as $ring){
+		if($ring['hasMatches'] == true){
+
+			unset($tmp);
+
+			$tmp['locationID'] = (int)$ring['locationID'];
+
+			if($ring['locationNameShort'] != null){
+				$tmp['locationName'] = $ring['locationNameShort'];
+			} else {
+				$tmp['locationName'] = $ring['locationName'];
+			}
+
+			if(isset($upcomingMatches[$tmp['locationID']])){
+				$tmp['numMatches'] = (int)count($upcomingMatches[$tmp['locationID']]);	
+			} else {
+				$tmp['numMatches'] = 0;
+			}
+			
+			
+			$avalibleRings[] = $tmp;
+		}
+	}
+
+	$ret_val['rings'] = $avalibleRings;
+
+	echo json_encode($ret_val);
+
+} break;
+
+/******************************************************************************/
+
+case 'assignBracketMatchesToRings': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$locationID = (int)$_REQUEST['locationID'];
+	$matchIDs = (array)json_decode($_REQUEST['matchIDs']);
+
+	if($locationID == 0){
+		return;
+	}
+
+	
+
+	foreach($matchIDs as $matchID){
+
+		$matchID = (int)$matchID;
+
+		$sql = "SELECT locationID
+				FROM logisticsLocationsMatches
+				WHERE matchID = {$matchID}";
+		$currentLocation = (int)mysqlQuery($sql, SINGLE, 'locationID');
+
+		if($currentLocation == 0){
+			$sql = "INSERT INTO logisticsLocationsMatches
+					(locationID, matchID)
+					VALUES
+					({$locationID}, {$matchID})";
+			mysqlQuery($sql, SEND);
+		}
+
+	}
+
+	echo json_encode(0);
+
+}
 
 /******************************************************************************/
 }

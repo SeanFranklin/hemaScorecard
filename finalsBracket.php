@@ -16,6 +16,7 @@
 $pageName = 'Finals Bracket';
 $includeTournamentName = true;
 $lockedTournamentWarning = true;
+$jsIncludes[] = "logistics_management_scripts.js";
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -27,7 +28,6 @@ if($tournamentID == null){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Bracket not yet released");
 } else {
-
 
 // Load bracket information
 	$allBracketInfo = getBracketInformation($tournamentID);
@@ -176,8 +176,8 @@ function bracketControl($allBracketInfo, $ringsInfo){
 
 
 <!-- Ring Assignment -->
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true && $ringsInfo != null): ?>
-		<div class='input-group shrink cell'>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $ringsInfo != null): ?>
+		<div class='input-group shrink cell no-bottom'>
 			<span class='input-group-label shrink'>
 				Move to Ring:
 				<?=tooltip("Moves all matches you have check-marked into this ring.")?>
@@ -191,11 +191,13 @@ function bracketControl($allBracketInfo, $ringsInfo){
 				<?php endforeach ?>
 				<option value='0'>- Remove -</option>
 			</select>
-			<button class='input-group-button button shrink success' 
-				onclick="submit_updateBracketRings()" >
-				Assign
-			</button> 
+			<input type='submit' class='input-group-button button shrink success' 
+				onclick="submit_updateBracketRings()" value='Assign' >
+				
+			</input> 
 		</div>
+
+		<?=assignMatchesToRingsBox($ringsInfo)?>
 	<?php endif ?>
 
 	</div>
@@ -204,6 +206,100 @@ function bracketControl($allBracketInfo, $ringsInfo){
 
 <?php
 }
+/******************************************************************************/
+
+function assignMatchesToRingsBox($ringsInfo){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$ringsToShowMatches = [];
+	foreach($ringsInfo as $ring){
+		if($ring['hasMatches'] ==  false){
+			continue;
+		}
+
+		$tmp = [];
+		$tmp['locationID'] = $ring['locationID'];
+		$tmp['name'] = $ring['locationName'];
+		$ringsToShowMatches[] = $tmp;
+	}
+
+?>
+	<a class='button align-self-middle' data-open='match-locations-box' onclick="populateBracketMatchesToAssign(<?=$_SESSION['tournamentID']?>,<?=$_SESSION['eventID']?>)">
+		Assign By Queue
+	</a>
+
+
+
+	<!----------------------------------------------------------------------->
+
+	<div class='reveal medium' id='match-locations-box' data-reveal>
+
+		<h3>Assign Matches To Rings</h3>
+
+		<a class='cell large-12 button warning' onClick="window.location.reload();">
+			<h4 class='no-bottom'>Refresh Page</h4>
+		</a>
+
+		<div class="tabs-content" data-tabs-content="assign-ring-tabs">
+		<div class='tabs-panel is-active' id="panel-assign">
+		<div class="grid-x grid-margin-x">
+			
+
+			<div class='cell large-12' id='assign-instructions'>
+				<!-- Populated by JS -->
+			</div>
+
+			<HR class='cell large-12' >
+
+			<div class='cell small-12 show-for-small-only top-border'>
+				<h3>Rings:</h3>
+			</div>
+
+			<div class='cell medium-3'>
+				<div class='grid-x grid-margin-x' id='rings-to-assign-div'>
+					<!-- Populated by JS -->
+				</div>
+			</div>
+
+			<div class='cell small-12 show-for-small-only top-border'>
+				<h3>Matches:</h3>
+			</div>
+
+			<div class='cell medium-9'>
+				<div class='grid-x grid-margin-x' id='matches-to-assign-div'>
+					<!-- Populated by JS -->
+				</div>
+
+			</div>
+
+		</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-view">
+		
+			<?php foreach($ringsToShowMatches as $ring):?>
+				<h3><?=$ring['name']?></h3>
+				<div class='grid-x grid-margin-x' id='matches-assigned-div-<?=$ring['locationID']?>'>
+				</div>
+			<?php endforeach ?>
+		
+		</div>
+
+		</div>
+
+		<ul class="tabs" data-tabs id="assign-ring-tabs">
+			<li class="tabs-title is-active"><a href="#panel-assign" aria-selected="true">Assign Matches</a></li>
+			<li class="tabs-title"><a data-tabs-target="panel-view" href="#panel-view">View Queue</a></li>
+		</ul>
+
+	</div>
+
+<?php
+}
+
 
 /******************************************************************************/
 

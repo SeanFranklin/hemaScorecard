@@ -685,7 +685,6 @@ function checkInFighterJs(mode){
         formData['gearcheck'] = (formData['gearcheck'] == 1 ? 0 : 1);
     }
 
-console.log(formData);
     postForm(formData);
 
 }
@@ -814,6 +813,210 @@ function updateTournamentCheckInList(regData, idName){
 }
 
 /******************************************************************************/
+
+function populateBracketMatchesToAssign(tournamentID, eventID){
+
+    var query = "mode=getBracketMatchesToAssignRings";
+    query = query + "&tournamentID="+tournamentID;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            
+            if(this.responseText.length > 1){
+          
+                var data = JSON.parse(this.responseText);
+                var matches = data['queue'];
+                var matchText = '';
+                var ringText = '';
+                var assignedText = '';
+
+
+                data['rings'].forEach(function(ring){
+
+                    var calloutClass = '';
+                    var numMatchesText = ''
+                    if(ring['numMatches'] == 0){
+                        calloutClass = 'alert';
+                        numMatchesText = "EMPTY!!!";
+                    } else if(ring['numMatches'] == 1){
+                        calloutClass = 'warning';
+                        numMatchesText = "Queue: "+ring['numMatches']+"";
+                    } else {
+                        calloutClass = '';
+                        numMatchesText = "Queue: "+ring['numMatches'];
+
+                    }
+
+                    ringText += "<div";
+                    ringText +=" id='location-div-"+ring['locationID']+"'";
+                    ringText += " class='large-12 small-6 medium-6 cell clickable callout "+calloutClass+"'";
+                    ringText += " onclick=\"assignMatchesToRing("+tournamentID+")\"";
+                    ringText += " data-locationID="+ring['locationID'];
+                    ringText += " >";
+
+                    ringText += ""
+                    ringText += ring['locationName']
+                    ringText += "<BR>";
+
+                    ringText += numMatchesText;
+
+                    ringText += "</div>";
+
+                    assignedText = "";
+                    if(typeof data['assigned'][ring['locationID']] !== 'undefined'){
+
+                        data['assigned'][ring['locationID']].forEach(function(match){
+
+                            assignedText += "<div";
+                            //assignedText += " id='"+id+"'";
+                            assignedText += " class='large-12 cell callout '";
+                            //assignedText += " onclick=\"selectMatchForAssignment()\"";
+                            assignedText += " data-matchID="+match['matchID'];;
+                            assignedText +=" >";
+
+                            assignedText += "<b>"+match['name1'] + "</b> vs <b>" + match['name2'] + "</b><BR>";
+                            assignedText += "(Tier: <b>"+match['bracketLevel']+"</b>, ";
+                            assignedText += "Position In Tier: <b>"+match['bracketPosition']+"</b>)";
+
+                            assignedText += "</div>";
+
+                        });
+                    } else {
+                        assignedText = "<div class='cell large-12'>None</div>";
+                    }
+
+                    $("#matches-assigned-div-"+ring['locationID']).html(assignedText);
+                    
+
+
+                });
+
+
+
+                var matchesToAssign = [];
+                const NUM_MATCHES_TO_LIST = 5;
+                var numUnassignedMatches = matches.length;
+
+                var numMatchesToList = Math.min(numUnassignedMatches, NUM_MATCHES_TO_LIST);
+                var numUnlistedMatches = numUnassignedMatches - numMatchesToList;
+
+                for(var index = 0; index < numMatchesToList; index++){
+
+                    var match = matches[index];
+                    var tmp = [];
+
+                    var id = 'match-to-assign-'+match['matchID'];
+
+                    matchText += "<div";
+                    matchText += " id='"+id+"'";
+                    matchText += " class='large-12 callout cell click-on-div clickable'";
+                    matchText += " onclick=\"selectMatchForAssignment()\"";
+                    matchText += " data-matchID="+match['matchID'];
+                    matchText += " data-pending='0'";
+                    matchText +=" >";
+
+                    matchText += match['name1'] + " vs " + match['name2'] + "<BR>";
+                    matchText += "(Tier: "+match['bracketLevel']+", Position In Tier: "+match['bracketPosition']+")";
+
+                    matchText += "</div>";
+                
+                }
+
+                if(numUnlistedMatches != 0){
+                    matchText += "<div class='large-12 cell'>And "+numUnlistedMatches+" more matches</div>";
+                }
+               
+
+            }
+
+            $("#matches-to-assign-div").html(matchText);
+            $("#rings-to-assign-div").html(ringText);
+
+
+            updateAssignInstructions();
+
+        }
+    };
+
+}
+
+/******************************************************************************/
+
+function updateAssignInstructions(){
+
+    if($("[data-pending=1]").length != 0){
+        $("#assign-instructions").html("Click on the <b>ring</b> (left) you want to add the matches to.");
+        $("#assign-instructions").css("text-align",'left');
+    } else {
+        $("#assign-instructions").html("Click on the <b>matches</b> (right) you wish to assign to a ring.");
+        $("#assign-instructions").css("text-align",'right');
+    }
+}
+
+/******************************************************************************/
+
+function selectMatchForAssignment(){
+
+
+    var matchID = $(event.target).attr('data-matchID');
+
+    var pending = $(event.target).attr("data-pending");
+
+    if(pending == 1){
+        $(event.target).removeClass("primary");
+        $(event.target).attr("data-pending",0);
+    } else {
+        $(event.target).addClass("primary");
+        $(event.target).attr("data-pending",1);
+    }
+
+
+    updateAssignInstructions();
+  
+}
+
+/******************************************************************************/
+
+function assignMatchesToRing(tournamentID){
+
+
+    var locationID = $(event.target).attr('data-locationID');
+
+    var matchesToAssign = [];
+
+    $("[data-pending=1]").each(function(){
+        matchesToAssign.push($(this).attr("data-matchID"));
+    });
+
+    if(matchesToAssign.length == 0){
+        return;
+    }
+
+    var query = "mode=assignBracketMatchesToRings";
+    query = query + "&locationID="+locationID;
+    query = query + "&matchIDs="+ encodeURIComponent(JSON.stringify(matchesToAssign));
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            
+            
+            populateBracketMatchesToAssign(tournamentID);
+            
+        }
+    }
+
+    
+}
 
 
 /******************************************************************************/

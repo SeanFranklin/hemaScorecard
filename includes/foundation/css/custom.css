@@ -1,6 +1,20 @@
 /* Added By Sean **************************************************************/
 
 
+div.clickable{
+  cursor: pointer;
+
+  border: 1px solid black ;
+  box-shadow: 4px 4px 5px 1px #666;
+  margin-top: 4 px;
+}
+
+div.clickable:active:hover {
+  box-shadow: none;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 .image-box{
   border: 1px solid black ;
   box-shadow: 4px 4px 5px 1px #666;
@@ -379,6 +393,10 @@ select {
 
 .bottom-border {
 	border-bottom:solid 1px black;
+}
+
+.top-border {
+  border-top:solid 1px black;
 }
 
 .no-margin {

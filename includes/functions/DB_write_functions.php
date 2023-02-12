@@ -6100,8 +6100,8 @@ function updateFinalsBracket(){
 		foreach((array)$_POST['newFinalists'] as $matchID => $finalists){
 
 			$matchID = (int)$matchID;
-			$finalists[1] = (int)$finalists[1];
-			$finalists[2] = (int)$finalists[2];
+			$finalists[1] = (int)@$finalists[1];
+			$finalists[2] = (int)@$finalists[2];
 
 			if(!empty($finalists[1]) && !empty($finalists[2])){
 				$sql = "DELETE eventExchanges FROM eventExchanges
