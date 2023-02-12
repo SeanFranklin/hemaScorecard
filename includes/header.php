@@ -12,8 +12,8 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.5.3'; // Javascript Version
-$vC = '?=1.2.1'; // CSS Version
+$vJ = '?=1.5.5'; // Javascript Version
+$vC = '?=1.2.2'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true 
 	|| ALLOW['VIEW_SETTINGS'] == true

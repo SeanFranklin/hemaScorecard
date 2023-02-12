@@ -1730,7 +1730,7 @@ function createSideBar($matchInfo){
 	$winnerID = $matchInfo['winnerID'];
 	$lastExchangeID = $matchInfo['lastExchange'];
 
-	$nextMatchInfo = getNextPoolMatch($matchInfo);
+	$nextMatchInfo = getNextMatchInfo($matchInfo);
 	$matchNumInfo = getPoolMatchesLeft($matchInfo);
 	$doubles = getMatchDoubles($matchID);
 
