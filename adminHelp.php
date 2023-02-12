@@ -18,6 +18,183 @@ include('includes/header.php');
 ?>
 <a name='topOfPage'></a>
 
+<?=helpDisplayAbout()?>
+
+<ul class="tabs" data-tabs id="help-tabs">
+	<li class="tabs-title is-active"><a href="#panel-user" aria-selected="true">Software Users</a></li>
+	<li class="tabs-title"><a data-tabs-target="panel-organizer" href="#panel-user">Event Organizers</a></li>
+</ul>
+
+
+
+<div class="tabs-content" data-tabs-content="help-tabs">
+	<div class="tabs-panel is-active" id="panel-user">
+		<?=helpDisplayPerticipant()?>
+	</div>
+	<div class="tabs-panel" id="panel-organizer">
+		<?=helpDisplayOrganizer()?>
+	</div>
+</div>
+
+
+
+
+<?php include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function helpDisplayPerticipant(){
+?>
+
+<div class='documentation-div'>
+
+<p>Thank you for checking out HEMA Scorecord. You’ve found your way to the Participant User Guide. Here you will get a how-to on how to navigate through the most important features of HEMA Scorecard. If you are an event organizer looking for help, please click on the "Event Organizers" tab above this paragraph.</p>
+
+
+
+<h1>Events</h1>
+
+<h3>Choosing An Event</h3>
+
+<img src="includes/images/help_01.png">
+
+<p>The landing page shows recently-completed, active, and upcoming events in chronological order <b class='red-text'>(1)</b>. If an upcoming or active event doesn’t appear here, it is either hidden by the event organizer or is not being hosted by HEMA Scorecard. If the event you are interested in has already occurred, you may need to navigate to “All Events” <b class='red-text'>(2)</b>, which is sorted by event name as a default.</p>
+
+<h3>Event Information</h3>
+
+<img src="includes/images/help_02.png">
+
+<p>When you choose an event from the landing page, you will see all the different tournaments offered at the event <b class='red-text'>(3)</b>. If the event has concluded, you will also see the top competitors in each category <b class='red-text'>(4)</b>. The event organizer may have also provided information about the event on this page <b class='red-text'>(5)</b>.</p>
+
+<img src="includes/images/help_03.png">
+
+<p>Underneath the Event Information tab (which is underneath the “Menu” tab if you are on a mobile device), you will have more options for event information. All events will have an Event Roster <b class='red-text'>(6)</b> which will show all individuals registered for the event. The event organizer may also choose to use features like Schedule <b class='red-text'>(7)</b> and Tournament Rules <b class='red-text'>(8)</b>. If the Schedule feature is used, you will also have the ability to look at Individual Schedules <b class='red-text'>(9)</b>.</p>
+
+<h3>Event Roster</h3>
+
+<img src="includes/images/help_04.png">
+
+<p>The Event Roster <b class='red-text'>(6)</b> will have basic statistics on those who have registered for the event. It will contain a full list of all the participants as well as their school, and will be sorted in alphabetical order by first name as a default.</p>
+
+<h3>Schedule</h3>
+
+<img src="includes/images/help_05.png">
+
+<p>The Schedule <b class='red-text'>(7)</b>, if an event organizer chooses to use this feature, will contain information about which events, classes, workshops, etc are occurring during which time slots and at which location(s).</p>
+
+<img src="includes/images/help_06.png">
+
+<p>If the Schedule is populated, you can also view Individual Schedules <b class='red-text'>(9)</b>. These will show you all commitments you have made for a tournament– tournament entry, judging, instructor roles, etc– in chronological order. You can select your name from a dropdown list of event participants <b class='red-text'>(10)</b> to view your schedule.</p>
+
+<a href='#topOfPage'>Back to Top</a>
+
+<!---------------------------------------------------------------------->
+
+<h1>Tournaments</h1>
+
+<img src="includes/images/help_07.png">
+
+<p>You may view an event’s tournaments by either clicking on them on the landing page <b class='red-text'>(3)</b> or by navigating to them underneath the “Select Tournament” menu <b class='red-text'>(11)</b>.</p>
+
+<img src="includes/images/help_08.png">
+
+<p>Selecting a tournament will bring you to the Tournament Roster page where you can view everyone in the tournament, in alphabetical order by first name. You are also able to navigate to Pool Rosters <b class='red-text'>(12)</b>, Pool Matches <b class='red-text'>(13)</b>, Pool Standings <b class='red-text'>(14)</b>, and Finals Bracket <b class='red-text'>(15)</b>.</p>
+
+<h3>Pools</h3>
+
+<img src="includes/images/help_09.png">
+
+<p>Clicking on Pool Rosters <b class='red-text'>(12)</b> will bring up a list of the pools and their participants. The pool number and location can also be found here <b class='red-text'>(16)</b>. Additionally, at the bottom of the pools list is an option to create a filter for specific schools <b class='red-text'>(17)</b>. Applying this filter will show only those pools that contain members of the school that’s being filtered on.</p>
+
+<img src="includes/images/help_10.png">
+
+<p>Navigating to Pool Matches <b class='red-text'>(13)</b> will bring up a list of the matches for each pool. Typically tournaments will run through the matches in the order they appear in this list. Scores for the matches will be updated in real time on this page, and once a fight has concluded the winner will be bolded. You are able to click on the specific match to get more details for that match <b class='red-text'>(18)</b>. Note that there is also an option to create a school filter <b class='red-text'>(17)</b> at the bottom of the page.</p>
+
+<img src="includes/images/help_11.png">
+
+<p>Once pools have concluded, Pool Standings <b class='red-text'>(14)</b> will be finalized. This will show the standings of competitors after coming out of pools. The individuals who came first in their pools will be italicized. There will be a solid black line in the table which indicates the cutoff for finals. At the bottom of the table is a link that can be clicked which will explain the way the standings were calculated <b class='red-text'>(19)</b>; different tournaments will have different algorithms for calculating their standings.</p>
+
+<h3>Finals</h3>
+
+<img src="includes/images/help_12.png">
+
+<p>Clicking on Finals Bracket <b class='red-text'>(15)</b> once pools are over will show a bracket that is populated in real time with the progression of finals. Competitors will see which ring they need to report to to the left of their names in the bracket <b class='red-text'>(20)</b>. Information about individual matches can be seen by pressing the “Go” button <b class='red-text'>(21)</b>.</p>
+
+
+<h3>Matches</h3>
+
+<img src="includes/images/help_13.png">
+
+<p>Pool Matches <b class='red-text'>(13)</b> can be seen in greater detail by clicking on the match number <b class='red-text'>(18)</b>. Finals Matches <b class='red-text'>(15)</b> can similarly be viewed by pressing the “Go” button (21) on the bracket. Once on this page, you can see a running score <b class='red-text'>(23)</b> with the time elapsed <b class='red-text'>(22)</b> for the match updated in real time after each exchange is recorded. This page may also contain video for the match if a link has been provided to one.</p>
+
+<a href='#topOfPage'>Back to Top</a>
+
+</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function helpDisplayAbout(){
+?>
+
+<a class='about-scorecard button hollow' onclick="$('.about-scorecard').toggle()">
+<h4 class='no-bottom'>About HEMA Scorecard</h4>
+</a>
+
+<fieldset class='fieldset hidden about-scorecard'>
+<legend>
+	<a class='button' onclick="$('.about-scorecard').toggle()">
+<h4 class='no-bottom'>About HEMA Scorecard</h4>
+</a>
+</legend>
+
+Developed by: Sean Franklin<BR>
+<em>'HEMA is filled with software guys, so why did I 
+have to teach myself how to code and do this?'</em>
+
+<BR><BR>
+
+<strong>About</strong><BR>
+HEMA Scorecard is intended to make information about <em>Historical European Martial Arts</em> tournaments publicly accessible.<BR>
+All* information captured by the software is public ably viewable on line, or can be requested as part of a statistical data dump.
+<BR><em>*Naturally we aren't sharing event organizer's contact info.</em>
+
+<BR><BR>
+
+<strong>Terms of Use</strong><BR>
+This software is free to use by all event organizers provided that:
+<ul>
+<li>You are running a HEMA tournament. (If you are doing re-enactment or sport fencing flash me some money and we can talk. :p )</li>
+<li>Record all exchanges as they happen. This means recording all the No Exchanges, 
+and if the score is 3 points minus 1 you record it as that, not as 2 points.</li>
+<li>You haven't done anything egregious to piss me off.</li>
+</ul>
+
+<strong>Thanks To</strong>
+<ul>
+<li>The HEMA Alliance for hosting and advertising.</li>
+<li>Jason Barrons for layout design and consultation.</li>
+<li>Kari Baker for writing documentation.</li>
+<li>Any event organizers who gave feedback and feature requests.</li>
+</ul>
+
+<a href='#topOfPage'>Back to Top</a>
+</fieldset>
+
+<?php
+}
+
+/******************************************************************************/
+
+function helpDisplayOrganizer(){
+?>
+
+
 <div class='grid-x  secondary callout'>
 <div class='large-3 cell align-self-middle' style='margin-bottom: 15px;'>
 	<div class='grid-x'>
@@ -25,7 +202,6 @@ include('includes/header.php');
 			<h4>Table of Contents:</h4>
 		</div>
 		<div class='large-12 medium-6 small-12'>
-			<li><a href='#about'>About HEMA Scorecard</a></li>
 			<li><a href='#FAQ'>Frequently Asked Questions</a></li>
 		</div>
 	</div>
@@ -60,43 +236,7 @@ include('includes/header.php');
 </div>
 
 
-<!-- About Scorecard -------------------------------------------------->
-<a name='about'></a>
-<fieldset class='fieldset'>
-<legend><h4>About HEMA Scorecard</h4></legend>
 
-
-Developed by: Sean Franklin<BR>
-<em>'HEMA is filled with software guys, so why did I 
-have to teach myself how to code and do this?'</em>
-
-<BR><BR>
-
-<strong>About</strong><BR>
-HEMA Scorecard is intended to make information about <em>Historical European Martial Arts</em> tournaments publicly accessible.<BR>
-All* information captured by the software is public ably viewable on line, or can be requested as part of a statistical data dump.
-<BR><em>*Naturally we aren't sharing event organizer's contact info.</em>
-
-<BR><BR>
-
-<strong>Terms of Use</strong><BR>
-This software is free to use by all event organizers provided that:
-<ul>
-<li>You are running a HEMA tournament. (If you are doing re-enactment or sport fencing flash me some money and we can talk. :p )</li>
-<li>Record all exchanges as they happen. This means recording all the No Exchanges, 
-and if the score is 3 points minus 1 you record it as that, not as 2 points.</li>
-<li>You haven't done anything egregious to piss me off.</li>
-</ul>
-
-<strong>Thanks To</strong>
-<ul>
-<li>The HEMA Alliance for hosting and advertising.</li>
-<li>Jayson Barrons with layout design and consultation.</li>
-<li>Any of you event organizers who gave feedback and feature requests.</li>
-</ul>
-
-<a href='#topOfPage'>Back to Top</a>
-</fieldset>
 
 
 <!-- FAQ ------------------------------------------------------------>
@@ -615,8 +755,11 @@ the selection options to be added to the next round, sorted by score.
 <BR><BR><a href='#topOfPage'>Back to Top</a>
 </fieldset>
 
+<?php
+}
 
-<?php include('includes/footer.php');
+
+/******************************************************************************/
 
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
