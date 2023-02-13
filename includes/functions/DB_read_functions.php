@@ -4123,6 +4123,24 @@ function logistics_getBlockTypes(){
 
 /******************************************************************************/
 
+function logistics_getTournamentsOnDay($eventID, $dayNum){
+
+	$eventID = (int)$eventID;
+	$dayNum = (int)$dayNum;
+
+	$sql = "SELECT DISTINCT(tournamentID)
+			FROM logisticsScheduleBlocks
+			WHERE eventID = {$eventID}
+			AND dayNum = {$dayNum}
+			AND tournamentID IS NOT NULL
+			ORDER BY startTime ASC ";
+
+	return ((array)mysqlQuery($sql, SINGLES, 'tournamentID'));
+
+}
+
+/******************************************************************************/
+
 function logistics_getEventMaxTimes($eventID){
 
 	$eventID = (int)$eventID;
