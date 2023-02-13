@@ -749,6 +749,8 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 			continue;
 		}
 
+		$tournamentIDs = logistics_getTournamentsOnDay($_SESSION['eventID'], $dayNum);;
+
 		foreach($schedule[$dayNum] as $block){
 
 			$startTime = floor($block['startTime']/SCHEDULE_TIME_INTERVAL)*SCHEDULE_TIME_INTERVAL;
@@ -765,6 +767,7 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 
 			if($block['blockTypeID'] == SCHEDULE_BLOCK_TOURNAMENT){
 				$itemInfo['name'] = getTournamentName($block['tournamentID']);
+				$itemInfo['color'] = getTournamentColor($block['tournamentID'],$tournamentIDs);
 			} else {
 				$itemInfo['name'] = $block['blockTitle'];
 			}
@@ -889,7 +892,7 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						} else {
 							switch($itemInfo['blockTypeID']){
 								case SCHEDULE_BLOCK_TOURNAMENT:
-									$color = SCHEDULE_COLOR_TOURNAMENT;
+									$color = $itemInfo['color'];
 									break;
 								case SCHEDULE_BLOCK_WORKSHOP:
 									$color = SCHEDULE_COLOR_WORKSHOP;
@@ -943,9 +946,65 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 
 /******************************************************************************/
 
+/******************************************************************************/	
+	
+function getTournamentColor($tournamentID, $tournamentIDs){
+
+	$numTournaments = count($tournamentIDs);
+
+	if($numTournaments <= 1){
+		return SCHEDULE_COLOR_TOURNAMENT;
+	}
+
+	$index = -1;
+	foreach($tournamentIDs as $i => $tID){
+
+		if((int)$tID == (int)$tournamentID){
+			$index = $i;
+			break;
+		}
+	}
+
+	if($index == -1){
+		return SCHEDULE_COLOR_TOURNAMENT;
+	}
+
+	$range = 0.2;
+
+
+	$scale = $range * $index / $numTournaments;
+	$scale *= pow(-1,$index);
+
+	$r = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,1,2), 1 + $scale);
+	$g = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,3,2), 1 + $scale);
+	$b = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,5,2), 1.1 + $scale);
+	
+	$color = "#".$r.$g.$b;
+
+	return ($color);
+
+}
 
 
 /******************************************************************************/
 
+function scaleColor($colorHexIn, $scale){
+
+	$decBase = (int)hexdec($colorHexIn);
+
+	$dec = (int)($scale * $decBase);
+	$dec = min($dec, 255);
+	$dec = max($dec, 0);
+	
+	if($dec < 16){
+		$hex = '0'.dechex($dec);
+	} else {
+		$hex = dechex($dec);
+	}
+
+	return ($hex);
+}
+
+/******************************************************************************/
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
