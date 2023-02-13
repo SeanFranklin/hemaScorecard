@@ -4132,8 +4132,7 @@ function logistics_getTournamentsOnDay($eventID, $dayNum){
 			FROM logisticsScheduleBlocks
 			WHERE eventID = {$eventID}
 			AND dayNum = {$dayNum}
-			AND tournamentID IS NOT NULL
-			ORDER BY startTime ASC ";
+			AND tournamentID IS NOT NULL";
 
 	return ((array)mysqlQuery($sql, SINGLES, 'tournamentID'));
 
