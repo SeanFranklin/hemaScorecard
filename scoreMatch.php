@@ -2289,6 +2289,10 @@ function matchOptionsBox($matchInfo){
 	
 		<HR>
 
+		<?=displayRandomizer()?>
+
+		<HR>
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
@@ -2297,6 +2301,200 @@ function matchOptionsBox($matchInfo){
 	</div>
 
 
+
+<?php
+}
+
+/******************************************************************************/
+
+function displayRandomizer(){
+?>
+
+	<a onclick="$('#random-num-div').toggle()">Random Number Generators ↓</a>
+
+	<div class='hidden' id='random-num-div'>
+
+	<HR>
+	
+	<div class='grid-x grid-margin-x'>
+
+		<h4 class='cell medium-9 no-bottom'>Team Order:</h4>
+
+		<a class='button cell medium-3 no-bottom' onclick='rollForTeamOrder()'>
+			Do it!
+		</a>
+
+		<div class='cell medium-6'>
+			<select id='roll-team-1'>
+				<option></option>
+				<option selected>Longsword (1)</option>
+				<option>Longsword (2)</option>
+				<option>Longsword (3)</option>
+				<option>Longsword (4)</option>
+				<option>Longsword (5)</option>
+				<option>Rapier (1)</option>
+				<option>Rapier (2)</option>
+				<option>Rapier (3)</option>
+				<option>Rapier (4)</option>
+				<option>Rapier (5)</option>
+				<option>Saber (1)</option>
+				<option>Saber (2)</option>
+				<option>Saber (3)</option>
+				<option>Saber (4)</option>
+				<option>Saber (5)</option>
+			</select>
+			<select id='roll-team-2'>
+				<option></option>
+				<option>Longsword (1)</option>
+				<option>Longsword (2)</option>
+				<option>Longsword (3)</option>
+				<option>Longsword (4)</option>
+				<option>Longsword (5)</option>
+				<option selected>Rapier (1)</option>
+				<option>Rapier (2)</option>
+				<option>Rapier (3)</option>
+				<option>Rapier (4)</option>
+				<option>Rapier (5)</option>
+				<option>Saber (1)</option>
+				<option>Saber (2)</option>
+				<option>Saber (3)</option>
+				<option>Saber (4)</option>
+				<option>Saber (5)</option>
+			</select>
+			<select id='roll-team-3'>
+				<option></option>
+				<option>Longsword (1)</option>
+				<option>Longsword (2)</option>
+				<option>Longsword (3)</option>
+				<option>Longsword (4)</option>
+				<option>Longsword (5)</option>
+				<option>Rapier (1)</option>
+				<option>Rapier (2)</option>
+				<option>Rapier (3)</option>
+				<option>Rapier (4)</option>
+				<option>Rapier (5)</option>
+				<option selected>Saber (1)</option>
+				<option>Saber (2)</option>
+				<option>Saber (3)</option>
+				<option>Saber (4)</option>
+				<option>Saber (5)</option>
+			</select>
+			<select id='roll-team-4'>
+				<option selected></option>
+				<option>Longsword (1)</option>
+				<option>Longsword (2)</option>
+				<option>Longsword (3)</option>
+				<option>Longsword (4)</option>
+				<option>Longsword (5)</option>
+				<option>Rapier (1)</option>
+				<option>Rapier (2)</option>
+				<option>Rapier (3)</option>
+				<option>Rapier (4)</option>
+				<option>Rapier (5)</option>
+				<option>Saber (1)</option>
+				<option>Saber (2)</option>
+				<option>Saber (3)</option>
+				<option>Saber (4)</option>
+				<option>Saber (5)</option>
+			</select>
+			<select id='roll-team-5'>
+				<option selected></option>
+				<option>Longsword (1)</option>
+				<option>Longsword (2)</option>
+				<option>Longsword (3)</option>
+				<option>Longsword (4)</option>
+				<option>Longsword (5)</option>
+				<option>Rapier (1)</option>
+				<option>Rapier (2)</option>
+				<option>Rapier (3)</option>
+				<option>Rapier (4)</option>
+				<option>Rapier (5)</option>
+				<option>Saber (1)</option>
+				<option>Saber (2)</option>
+				<option>Saber (3)</option>
+				<option>Saber (4)</option>
+				<option>Saber (5)</option>
+			</select>
+		</div>
+		<div class='cell medium-6 callout'>
+			<div id='roll-team-output-1'></div>
+			<div id='roll-team-output-2'></div>
+			<div id='roll-team-output-3'></div>
+			<div id='roll-team-output-4'></div>
+			<div id='roll-team-output-5'></div>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class='grid-x grid-margin-x'>
+		<h4 class='cell medium-9 no-bottom'>Offhand Weapon:</h4>
+
+		<a class='button cell medium-3 no-bottom' onclick='rollForOffhand()'>
+			Do it!
+		</a>
+
+		<div class='cell medium-6'>
+			<select id='roll-offhand-1'>
+				<option></option>
+				<option selected>No-Offhand</option>
+				<option>Any Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+			<select id='roll-offhand-2'>
+				<option></option>
+				<option>No-Offhand</option>
+				<option selected>Yes-Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+			<select id='roll-offhand-3'>
+				<option selected></option>
+				<option>No-Offhand</option>
+				<option>Any Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+			<select id='roll-offhand-4'>
+				<option selected></option>
+				<option>No-Offhand</option>
+				<option>Any Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+			<select id='roll-offhand-5'>
+				<option selected></option>
+				<option>No-Offhand</option>
+				<option>Any Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+			<select id='roll-offhand-6'>
+				<option selected></option>
+				<option>No-Offhand</option>
+				<option>Any Offhand</option>
+				<option>Dagger</option>
+				<option>Buckler</option>
+				<option>Cloak</option>
+				<option>Some Other Craziness</option>
+			</select>
+		</div>
+		<div class='cell medium-6 callout'>
+			<div id='roll-offhand-output'></div>
+		</div>
+	</div>
+	</div>
 
 <?php
 }
