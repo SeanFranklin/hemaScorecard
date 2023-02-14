@@ -1768,6 +1768,48 @@ function edit_tournamentCuttingQual($tournamentID = 0){
 
 /*****************************************************************************/
 
+function edit_tournamentDoublesCarryForward($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID != 0){
+		$isEnabled = readOption('T',$tournamentID,'DOUBLES_CARRY_FORWARD');
+	} else {
+		$isEnabled = 0;
+	}
+	
+	$hide = "hidden";
+
+?>
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Carry Doubles Forward  <?=tooltip("
+					If a fighter accrues enough double hits to 'double out' in a 
+					bracket match the table will be notified at the start 
+					of their next match.<BR>
+					<i>Doesn't work for double elim.</i>")?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+				<select name='updateTournament[doublesCarryForward]' class='shrink'
+						id='doublesCarryForward_select<?=$tournamentID?>'>
+					<option <?=optionValue(0,$isEnabled)?>>No</option>
+					<option <?=optionValue(1,$isEnabled)?>>Yes</option>
+				</select>
+			</div>
+		</td>
+	</tr>
+
+<?php
+
+}
+
+/*****************************************************************************/
+
 function edit_tournamentKeepPrivate($tournamentID = 0){
 // Select menu for whether or not the software should warn people the event
 // organizer would rather not have results posted or added to stuff like HEMA Ratings
@@ -1944,7 +1986,7 @@ function edit_tournamentTeams($tournamentID = 0){
 		</td>
 	</tr>
 
-<!-- Switch Fighters Alert -->
+<!-- Max Team Size -->
 	
 	<tr class='option-teams <?=$hide?>'>
 		<td class='shrink-column'>

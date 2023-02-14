@@ -946,6 +946,86 @@ function getBracketMatchesByPosition($bracketID){
 
 /******************************************************************************/
 
+function getBracketPriorDoubles($matchInfo){
+
+	$tournamentID = $matchInfo['tournamentID'];
+
+	if(readOption('T',$matchInfo['tournamentID'],'DOUBLES_CARRY_FORWARD') == 0){
+		return [];
+	}
+
+	$sql = "SELECT maxDoubleHits
+			FROM eventTournaments
+			WHERE tournamentID = {$tournamentID}";
+	$maxDoubles = (int)mysqlQuery($sql,SINGLE, 'maxDoubleHits');
+
+	if($maxDoubles == 0){
+		return [];
+	}
+
+	$doublesLimitExceeded = [];
+	$bracketLevel = (int)$matchInfo['bracketLevel'];
+	$prevBracketLevel = $bracketLevel + 1;
+	
+	$fighter1ID = $matchInfo['fighter1ID'];
+	$fighter2ID = $matchInfo['fighter2ID'];
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID,
+				(SELECT COUNT(*) AS numDoubles
+				FROM eventExchanges AS eE2
+				WHERE eE2.matchID = eM.matchID
+				AND exchangeType = 'double') AS numDoubles
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND bracketLevel = {$prevBracketLevel}
+			AND (fighter1ID = {$fighter1ID} OR fighter2ID = {$fighter1ID})";
+	$lastMatchInfo = mysqlQuery($sql, SINGLE);
+
+	$tmp = [];
+	if($lastMatchInfo != null && (int)$lastMatchInfo['numDoubles'] >= $maxDoubles){
+		$tmp['numDoubles'] = $lastMatchInfo['numDoubles'];
+		$tmp['fighterID'] = $fighter1ID;
+		if($lastMatchInfo['fighter1ID'] == $fighter1ID){
+			$tmp['versusID'] = $lastMatchInfo['fighter2ID'];
+		} else {
+			$tmp['versusID'] = $lastMatchInfo['fighter1ID'];
+		}
+
+		$doublesLimitExceeded[] = $tmp;
+	}
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID,
+				(SELECT COUNT(*) AS numDoubles
+				FROM eventExchanges AS eE2
+				WHERE eE2.matchID = eM.matchID
+				AND exchangeType = 'double') AS numDoubles
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND bracketLevel = {$prevBracketLevel}
+			AND (fighter1ID = {$fighter2ID} OR fighter2ID = {$fighter2ID})";
+	$lastMatchInfo = mysqlQuery($sql, SINGLE);
+
+	$tmp = [];
+	if($lastMatchInfo != null && (int)$lastMatchInfo['numDoubles'] >= $maxDoubles){
+		$tmp['numDoubles'] = $lastMatchInfo['numDoubles'];
+		$tmp['fighterID'] = $fighter2ID;
+		if($lastMatchInfo['fighter2ID'] == $fighter2ID){
+			$tmp['versusID'] = $lastMatchInfo['fighter1ID'];
+		} else {
+			$tmp['versusID'] = $lastMatchInfo['fighter2ID'];
+		}
+
+		$doublesLimitExceeded[] = $tmp;
+	}
+
+
+	return($doublesLimitExceeded);
+}
+
+/******************************************************************************/
+
 function isFinalsMatch($matchID){
 // returns true if it is a finals match (gold or bronze), or the sub-match of
 // a finals match.

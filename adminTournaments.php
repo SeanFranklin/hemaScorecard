@@ -117,6 +117,7 @@ if($_SESSION['eventID'] == null){
 			// Logistics
 				edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
 				edit_tournamentCuttingQual($tournamentID);
+				edit_tournamentDoublesCarryForward($tournamentID);
 				edit_tournamentHideFinalResults($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				edit_tournamentRequireSignOff($tournamentID);
