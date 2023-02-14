@@ -796,3 +796,76 @@ function selectActiveFighter(rosterID, num, buttonClicked){
 }
 
 /******************************************************************************/
+
+function rollForTeamOrder(){
+
+	var text = [];
+	text[1] = $("#roll-team-1 option:selected").text();
+	text[2] = $("#roll-team-2 option:selected").text();
+	text[3] = $("#roll-team-3 option:selected").text();
+	text[4] = $("#roll-team-4 option:selected").text();
+	text[5] = $("#roll-team-5 option:selected").text();
+
+	optionsList = [];
+	for(var i = 1;i<=5;i++){
+		if(text[i] !== ""){
+			optionsList.push(i);
+		} 
+	}
+
+	outputList = [];
+	while(optionsList.length > 0){
+		var index = Math.floor(Math.random() * optionsList.length);
+
+		outputList.push(optionsList[index]);
+		optionsList.splice(index,1)
+
+	}
+ 
+ 	for(var i = 1;i<=5;i++){
+ 		var index = i - 1;
+
+ 		if(typeof outputList[index] !== 'undefined'){
+ 			$("#roll-team-output-"+i).hide()
+ 			$("#roll-team-output-"+i).html(i+": "+text[outputList[index]]);
+ 			$("#roll-team-output-"+i).fadeIn(i*300);
+ 		} else {
+			$("#roll-team-output-"+i).html("");
+ 		}
+ 	}
+
+}
+
+/******************************************************************************/
+
+function rollForOffhand(){
+
+	var text = [];
+	text[1] = $("#roll-offhand-1 option:selected").text();
+	text[2] = $("#roll-offhand-2 option:selected").text();
+	text[3] = $("#roll-offhand-3 option:selected").text();
+	text[4] = $("#roll-offhand-4 option:selected").text();
+	text[5] = $("#roll-offhand-5 option:selected").text();
+	text[6] = $("#roll-offhand-6 option:selected").text();
+
+	optionsList = [];
+	for(var i = 1;i<=5;i++){
+		if(text[i] !== ""){
+			optionsList.push(text[i]);
+		} 
+	}
+
+	if(optionsList.length != 0){
+
+		var index = Math.floor(Math.random() * optionsList.length);
+
+		$("#roll-offhand-output").hide();
+		$("#roll-offhand-output").html(optionsList[index]);
+		$("#roll-offhand-output").fadeIn();
+	} else {
+		$("#roll-offhand-output").html("");
+	}
+
+}
+
+/******************************************************************************/
