@@ -170,6 +170,7 @@
 	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] = 8;
 	$options['T']['CONTROL_POINT_VALUE'] = 9;
 	$options['T']["TEAM_SIZE"] = 10;
+	$options['T']["DOUBLES_CARRY_FORWARD"] = 11;
 
 	define('OPTION',$options);
 

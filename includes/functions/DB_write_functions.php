@@ -5597,6 +5597,12 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		writeOption('T', $tournamentID, 'DOUBLES_ARE_NOT_SCORING_EXCH', 0);
 	}
 
+	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['doublesCarryForward'] == 1){
+		writeOption('T', $tournamentID, 'DOUBLES_CARRY_FORWARD', 1);
+	} else {
+		writeOption('T', $tournamentID, 'DOUBLES_CARRY_FORWARD', 0);
+	}
+
 
 	$allowTies = (int)$formInfo['allowTies'];
 	if($allowTies < MATCH_TIE_MODE_NONE || $allowTies > MATCH_TIE_MODE_UNEQUAL){

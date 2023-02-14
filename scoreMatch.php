@@ -2315,7 +2315,7 @@ function displayRandomizer(){
 	<div class='hidden' id='random-num-div'>
 
 	<HR>
-	
+
 	<div class='grid-x grid-margin-x'>
 
 		<h4 class='cell medium-9 no-bottom'>Team Order:</h4>
@@ -2604,16 +2604,28 @@ function showFighterPenalties($num){
 <?php
 }
 
+/******************************************************************************/
 
 function priorPenaltiesWarning($matchInfo){
 
-	$eventID = $_SESSION['eventID'];
-	$fightersWithPenalties = getEventPenalties($eventID, [$matchInfo['fighter1ID'],$matchInfo['fighter2ID']]);
-	if($fightersWithPenalties == null || ALLOW['EVENT_SCOREKEEP'] == false)
-	{
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
 		return;
 	}
-		
+
+	$fightersWithPenalties = (array)getEventPenalties($_SESSION['eventID'], 
+													  [$matchInfo['fighter1ID'],
+													  $matchInfo['fighter2ID']]);
+
+	if($matchInfo['matchType'] == 'elim'){
+		$priorDoubles = (array)getBracketPriorDoubles($matchInfo);
+	} else {
+		$priorDoubles = [];
+	}
+
+	if($fightersWithPenalties == [] && $priorDoubles == []){
+		return;
+	}
+
 ?>
 
 	<a class='button no-bottom hollow alert' data-open='veiwPenaltiesBox'>
@@ -2629,8 +2641,16 @@ function priorPenaltiesWarning($matchInfo){
 		<i>Use, or don't use, this information as event procedure dictates.</i>
 
 		<?php
-			$rosterID = 0;
-			foreach($fightersWithPenalties as $fighter):
+			foreach($priorDoubles as $match){
+
+					echo "<hr><b>";
+					echo getFighterName($match['fighterID']);
+					echo "</b> had <b>{$match['numDoubles']} Doubles</b> in the last match <i>(vs ";
+					echo getFighterName($match['versusID']);
+					echo ")</i>";
+			}
+
+			foreach($fightersWithPenalties as $fighter){
 
 					echo "<HR><h5>".getFighterName($fighter['fighterID']);
 					echo " [".$fighter['numPenalties']." Penalties]</h5>";
@@ -2639,7 +2659,7 @@ function priorPenaltiesWarning($matchInfo){
 					displayPenalty($penalty);
 				}
 				
-			endforeach
+			}
 		?>
 
 	<!-- Reveal close button -->
