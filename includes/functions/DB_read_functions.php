@@ -1930,7 +1930,8 @@ function getEventRoster($sortString = null, $staffInfo = false){
 		$sortString = "ORDER BY ".$sortString;
 	} else {
 		$orderName = NAME_MODE;
-		$sortString = "ORDER BY {$orderName}";
+		$orderName2 = NAME_MODE_2;
+		$sortString = "ORDER BY {$orderName} ASC, {$orderName2} ASC";
 	}
 
 	if($staffInfo != false){
@@ -1963,12 +1964,13 @@ function getEventRoster($sortString = null, $staffInfo = false){
 function getEventAdditionalParticipants($eventID){
 
 	$sortString = NAME_MODE;
+	$sortString2 = NAME_MODE_2;
 	$eventID = (int)$eventID;
 	
 	$sql = "SELECT firstName, lastName, registrationType, additionalRosterID 
 			FROM eventRosterAdditional
 			WHERE eventID = {$eventID}
-			ORDER BY registrationType ASC, {$sortString}";
+			ORDER BY registrationType ASC, {$sortString} ASC, {$sortString2} ASC";
 	$roster = mysqlQuery($sql, ASSOC);
 	
 	return $roster;
@@ -1980,14 +1982,13 @@ function getCheckInStatusEvent($eventID){
 
 	$eventID = (int)$eventID;
 
-	$orderName = NAME_MODE;
-	$sortString = "ORDER BY {$orderName}";
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 
 	$sql = "SELECT rosterID, eventCheckIn, eventWaiver
 			FROM eventRoster
 			INNER JOIN systemRoster USING(systemRosterID)
 			WHERE eventID = {$eventID}
-			{$sortString}";
+			ORDER BY {$sortString}";
 
 	return mysqlQuery($sql, ASSOC);
 
@@ -1999,7 +2000,7 @@ function getCheckInStatusAdditional($eventID){
 
 	$eventID = (int)$eventID;
 
-	$sortString = NAME_MODE;
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 
 	$sql = "SELECT firstName, lastName, registrationType,
 				additionalRosterID, eventWaiver, eventCheckIn
@@ -4091,15 +4092,14 @@ function getGroupRoster($groupID){
 
 	$groupID = (int)$groupID;
 
-	$orderName = NAME_MODE;
-	$sortString = "ORDER BY {$orderName}";
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 
 	$sql = "SELECT rosterID, groupCheckIn, groupGearCheck
 			FROM eventGroupRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)
 			WHERE groupID = {$groupID}
-			{$sortString}";
+			ORDER BY {$sortString}";
 	return mysqlQuery($sql, ASSOC);
 }
 
@@ -4450,22 +4450,19 @@ function logistics_getEventStaff($eventID,$areStaff = true){
 		$_SESSION['staffViewMode'] = 'name-asc';
 	}
 
-	$orderName = NAME_MODE;
-	$nameSort = "{$orderName} ASC";
-
 	switch($_SESSION['staffViewMode']){
 		case 'name-desc':
-			$sortString = "{$orderName} DESC";
+			$sortString = NAME_MODE." DESC, ".NAME_MODE_2." DESC";
 			break;
 		case 'comp-asc':
-			$sortString = "staffCompetency ASC, {$orderName} ASC";
+			$sortString = "staffCompetency ASC, ".NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 			break;
 		case 'comp-desc':
-			$sortString = "staffCompetency DESC, {$orderName} ASC";
+			$sortString = "staffCompetency DESC, ".NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 			break;
 		case 'name-asc':
 		default:
-			$sortString = "{$orderName} ASC";
+			$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 			break;
 	}
 	
@@ -5641,13 +5638,14 @@ function getSchoolRosterNotInEvent($schoolID, $eventID){
 	}	
 	
 	$orderName = NAME_MODE;
+	$orderName2 = NAME_MODE_2;
 	
-	$sql = "SELECT s.systemRosterID
-			FROM systemRoster AS s
-			LEFT JOIN eventRoster AS e ON s.systemRosterID = e.systemRosterID AND e.eventID = {$eventID}
-			WHERE s.schoolID = {$schoolID}
-			AND e.eventID IS null
-			ORDER BY s.{$orderName} ASC"; 
+	$sql = "SELECT sR.systemRosterID
+			FROM systemRoster AS sR
+			LEFT JOIN eventRoster AS eR ON sR.systemRosterID = eR.systemRosterID AND eR.eventID = {$eventID}
+			WHERE sR.schoolID = {$schoolID}
+			AND eR.eventID IS null
+			ORDER BY sR.{$orderName} ASC, sR.{$orderName2} ASC"; 
  
 	return mysqlQuery($sql, ASSOC);
 	
@@ -5678,16 +5676,15 @@ function getSystemRoster($tournamentID = 0){
 	
 // return a sorted array of all fighters in the system
 
-	$orderName = NAME_MODE;
-	$sortString = "ORDER BY {$orderName} ASC";
-	$tournamentID = (int)$tournamentID;
 
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
+	$tournamentID = (int)$tournamentID;
 
 	if($tournamentID == 0){
 
 		$sql = "SELECT systemRosterID
 				FROM systemRoster
-				{$sortString}";
+				ORDER BY {$sortString}";
 
 		return mysqlQuery($sql, SINGLES, 'systemRosterID');
 
@@ -5698,7 +5695,7 @@ function getSystemRoster($tournamentID = 0){
 				INNER JOIN eventRoster USING(rosterID)
 				INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
 				WHERE tournamentID = {$tournamentID}
-				{$sortString}";
+				ORDER BY {$sortString}";
 
 		return mysqlQuery($sql, SINGLES, 'systemRosterID');
 
@@ -5976,6 +5973,7 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 	$eventID = (int)$eventID;
 	$tournamentID = (int)$tournamentID;
 	$orderName = NAME_MODE;
+	$orderName2 = NAME_MODE_2;
 
 	if($tournamentID != 0){
 		$tSelect = "AND (	SELECT COUNT(*)
@@ -5988,13 +5986,13 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 
 	$sql = "SELECT eR.rosterID, staffCompetency, staffHoursTarget
 			FROM eventRoster as eR
-			INNER JOIN systemRoster USING(systemRosterID)
+			INNER JOIN systemRoster AS sR USING(systemRosterID)
 			LEFT JOIN logisticsStaffCompetency USING(rosterID)
 			WHERE eventID = {$eventID}
 			AND staffCompetency != 0
 			AND staffCompetency IS NOT NULL
 			{$tSelect}
-			ORDER BY staffCompetency DESC, systemRoster.{$orderName}";
+			ORDER BY staffCompetency DESC, sR.{$orderName} ASC, sR.{$orderName2} ASC";
 
 	$avaliableStaff = mysqlQuery($sql, KEY, 'rosterID');
 
@@ -6010,11 +6008,11 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 		if($numEventStaff == 0){
 			$sql = "SELECT eR.rosterID, staffCompetency, staffHoursTarget
 					FROM eventRoster as eR
-					INNER JOIN systemRoster USING(systemRosterID)
+					INNER JOIN systemRoster AS sR USING(systemRosterID)
 					LEFT JOIN logisticsStaffCompetency USING(rosterID)
 					WHERE eventID = {$eventID}
 					{$tSelect}
-					ORDER BY staffCompetency DESC, systemRoster.{$orderName}";
+					ORDER BY staffCompetency DESC, sR.{$orderName} ASC, sR.{$orderName2} ASC";
 			$avaliableStaff = mysqlQuery($sql, KEY, 'rosterID');
 		}
 	}
@@ -6032,6 +6030,7 @@ function logistics_getUnconflictedShiftStaff($shiftID){
 
 	$shiftID = (int)$shiftID;
 	$orderName = NAME_MODE;
+	$orderName2 = NAME_MODE_2;
 
 	// Get start/end time of shift
 	// Get if it is a tournament
@@ -6090,7 +6089,7 @@ function logistics_getUnconflictedShiftStaff($shiftID){
 								OR (startTime < {$endTime} AND endTime >= {$endTime})
 								OR (startTime >= {$startTime} AND endTime <= {$endTime}))
 							LIMIT 1)
-			ORDER BY staffCompetency DESC, systemRoster.{$orderName}";
+			ORDER BY staffCompetency DESC, systemRoster.{$orderName} ASC, systemRoster.{$orderName2} ASC";
 
 	$avaliableStaff = mysqlQuery($sql, KEY_SINGLES, 'rosterID','dummy');
 
@@ -6326,8 +6325,7 @@ function logistics_getEventStaffingMinutes($eventID){
 
 	$eventID = (int)$eventID;
 
-	$orderName = NAME_MODE;
-	$sortString = "{$orderName} ASC";
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 	$participantID = (int)LOGISTICS_ROLE_PARTICIPANT;
 
 	$sql = "SELECT rosterID, (shifts.endTime - shifts.startTime) AS length, 
@@ -6430,7 +6428,6 @@ function logistics_getEventStaffingMatches($eventID){
 	$eventID = (int)$eventID;
 
 	$orderName = NAME_MODE;
-	$sortString = "{$orderName} ASC";
 
 	$sql = "SELECT rosterID, logisticsRoleID as roleID
 			FROM logisticsStaffMatches
@@ -6749,7 +6746,6 @@ function getTournamentEventID($tournamentID){
 
 function getTournamentFighters($tournamentID, $sortType = null, $excluded = null){
 
-	$excludeTheDiscounted = null;
 
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){
@@ -6757,14 +6753,14 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 		return;
 	}
 	
-	$orderName = NAME_MODE;
+	$nameOrder = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 	
 	if($sortType == 'school'){
-		$sortString = "ORDER BY (CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, {$orderName} ASC";
+		$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, ".$nameOrder;
 	} elseif ($sortType == 'rating') {
-		$sortString = "ORDER BY rating DESC";
+		$sortString = "rating DESC";
 	} else {
-		$sortString = "ORDER BY systemRoster.{$orderName}";
+		$sortString = $nameOrder;
 	}
 
 	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID, 
@@ -6776,8 +6772,7 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 			LEFT JOIN eventRatings USING(tournamentRosterID)
 			WHERE tournamentID = {$tournamentID}
 			AND isTeam = 0
-			{$excludeTheDiscounted}
-			{$sortString}";	
+			ORDER BY {$sortString}";	
 
 	return mysqlQuery($sql, ASSOC);
 
@@ -6968,14 +6963,13 @@ function getTournamentRoster($tournamentID, $sortType = null, $excluded = null){
 		return;
 	}
 	
-	$excludeTheDiscounted = null;
-	
-	$orderName = NAME_MODE;
+
+	$nameOrder = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 	
 	if($sortType == 'school'){
-		$sortString = "ORDER BY (CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, {$orderName} ASC";
+		$sortString = "ORDER BY (CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, ".$nameOrder;
 	} else {
-		$sortString = "ORDER BY systemRoster.{$orderName}";
+		$sortString = $nameOrder;
 	}
 
 	$sql = "SELECT eventRoster.rosterID, systemSchools.schoolShortName, 
@@ -6985,8 +6979,7 @@ function getTournamentRoster($tournamentID, $sortType = null, $excluded = null){
 			INNER JOIN systemRoster USING(systemRosterID)
 			INNER JOIN systemSchools ON eventRoster.schoolID = systemSchools.schoolID
 			WHERE eventTournamentRoster.tournamentID = {$tournamentID}
-			{$excludeTheDiscounted}
-			{$sortString}";	
+			ORDER BY {$sortString}";	
 
 	if($sortType == 'rosterID'){
 		return mysqlQuery($sql,KEY,'rosterID');
@@ -7151,7 +7144,7 @@ function getTournamentStandings($tournamentID, $poolSet = 1, $groupType = 'pool'
 	
 	if($groupType == 'pool'){
 
-		$orderName = NAME_MODE;
+		$orderName = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 
 		if(isNoPools($tournamentID)){
 			$sql = "SELECT eventRoster.rosterID
@@ -7159,7 +7152,7 @@ function getTournamentStandings($tournamentID, $poolSet = 1, $groupType = 'pool'
 					INNER JOIN eventRoster ON eventTournamentRoster.rosterID = eventRoster.rosterID
 					INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
 					WHERE eventTournamentRoster.tournamentID = {$tournamentID}
-					ORDER BY {$orderName} ASC";
+					ORDER BY {$orderName}";
 
 		} else {
 
@@ -7710,10 +7703,9 @@ function getUngroupedRoster($tournamentID){
 		$notEligibleIDs = '';
 	}
 
-	$orderName = NAME_MODE;
-	$sortString = "ORDER BY systemRoster.{$orderName}";
 
-	
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
+
 	$sql = "SELECT eventTournamentRoster.rosterID, systemSchools.schoolShortName AS school, CONCAT(firstName,' ',lastName) AS name
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster ON eventTournamentRoster.rosterID = eventRoster.rosterID
@@ -7722,7 +7714,7 @@ function getUngroupedRoster($tournamentID){
 			WHERE eventTournamentRoster.tournamentID = {$tournamentID}
 			AND isTeam = 0
 			{$notEligibleIDs}
-			{$sortString}";
+			ORDER BY {$sortString}";
 	
 	$roster = mysqlQuery($sql, ASSOC);
 

@@ -91,6 +91,7 @@ function getCuttingQualificationsList($standardID, $date){
 	
 	$standardID = (int)$standardID;
 	$nameOrder = NAME_MODE;
+	$nameOrder2 = NAME_MODE_2;
 	
 	// Returns the most recent quallification
 	$sql = "SELECT Q.qualID, Q.systemRosterID, Q.date, Q.qualValue,
@@ -109,7 +110,7 @@ function getCuttingQualificationsList($standardID, $date){
 							ORDER BY Q2.date DESC
 							LIMIT 1)
 			
-			ORDER BY Q.date DESC, roster.{$nameOrder} ASC";
+			ORDER BY Q.date DESC, roster.{$nameOrder} ASC, roster.{$nameOrder2} ASC ";
 	$list = mysqlQuery($sql, KEY, 'systemRosterID');
 	
 	
@@ -155,13 +156,14 @@ function getTournamentSystemRosterIDs(){
 	}
 	
 	$orderName = NAME_MODE;
+	$orderName2 = NAME_MODE_2;
 	
 	$sql = "SELECT sR.systemRosterID, eR.rosterID 
 		FROM systemRoster as sR
 		INNER JOIN eventRoster as eR ON eR.systemRosterID = sR.systemRosterID
 		INNER JOIN eventTournamentRoster as eTR ON eTR.rosterID = eR.rosterID
 		WHERE eTR.tournamentID = {$tournamentID}
-		ORDER BY sR.{$orderName} ASC";
+		ORDER BY sR.{$orderName} ASC, sR.{$orderName2} ASC";
 	return mysqlQuery($sql, ASSOC);
 
 }

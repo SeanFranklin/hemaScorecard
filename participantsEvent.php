@@ -31,15 +31,11 @@ if($eventID == null){
 	$scheduleByRosterID = logistics_getScheduleByFighter($_SESSION['eventID']);
 	$scheduleBlockNames = logistics_getScheduleBlockNames($_SESSION['eventID']);
 
-	$nameOrder = NAME_MODE;
-	if($nameOrder == null){
-		$nameOrder = 'firstName';
-	}
+
+	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 	
 	if($_SESSION['rosterViewMode'] == 'school'){
-		$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, {$nameOrder} ASC";
-	} else {
-		$sortString = "{$nameOrder} ASC";
+		$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, ".$sortString;
 	}
 	
 	$roster = getEventRoster($sortString);
