@@ -53,8 +53,6 @@
 	define("DEFAULT_EVENT",1);
 	define("DEFAULT_TOURNAMENT_ID",0);
 	define("TEST_EVENT_ID",2);
-	
-	define("DEFAULT_NAME_MODE", 'firstName');
 
 	define("FINALS","0");
 	define("ALL_GROUP_SETS",0);
@@ -211,11 +209,21 @@ $conn = connectToDB();
 	
 // Name mode  -- this MUST go before processPostData
 	$defaults = getEventDefaults($_SESSION['eventID']);
-	$nameMode = $defaults['nameDisplay'];
-	if($nameMode == ''){
-		$nameMode = DEFAULT_NAME_MODE;
+
+	switch(@$defaults['nameDisplay']){
+		case 'lastName':
+			$nameMode = 'lastName';
+			$nameMode2 = 'firstName';
+			break;
+		case 'firstName':
+		default:
+			$nameMode = 'firstName';
+			$nameMode2 = 'lastName';
+			break;
 	}
+	
 	define("NAME_MODE", $nameMode);
+	define("NAME_MODE_2", $nameMode2);
 
 // Is Teams Mode -- MUST go before processPostData
 	if(isset($_SESSION['tournamentID']) && $_SESSION['tournamentID'] != null){
