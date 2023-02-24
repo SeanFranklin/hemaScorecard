@@ -21,6 +21,7 @@ include('includes/header.php');
 <?=helpDisplayAbout()?>
 
 <ul class="tabs" data-tabs id="help-tabs">
+	<li class="tabs-title"><a data-tabs-target="panel-video" href="#panel-video">Video Guides</a></li>
 	<li class="tabs-title is-active"><a href="#panel-user" aria-selected="true">Software Users</a></li>
 	<li class="tabs-title"><a data-tabs-target="panel-organizer" href="#panel-user">Event Organizers</a></li>
 </ul>
@@ -28,6 +29,9 @@ include('includes/header.php');
 
 
 <div class="tabs-content" data-tabs-content="help-tabs">
+	<div class="tabs-panel" id="panel-video">
+		<?=helpDisplayVideo()?>
+	</div>
 	<div class="tabs-panel is-active" id="panel-user">
 		<?=helpDisplayPerticipant()?>
 	</div>
@@ -43,6 +47,40 @@ include('includes/header.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function helpDisplayVideo(){
+	$url = "https://www.youtube.com/embed/2UFdMTLd9LU";
+?>
+
+<style>
+	.video-container {
+		position: relative;
+		padding-bottom: 56.25%; /* 16:9 */
+		height: 0;
+	}
+	.video-container iframe {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+<div class='video-container'>
+	<iframe width="100%" height="100%" 
+		src="<?=$url?>" 
+		title="YouTube video player" frameborder="0" 
+		allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+			gyroscope; picture-in-picture; web-share" 
+		allowfullscreen>
+	</iframe>
+</div>
+
+<?php
+}
 
 /******************************************************************************/
 

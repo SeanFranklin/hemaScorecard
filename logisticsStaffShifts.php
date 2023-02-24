@@ -90,7 +90,7 @@ if($_SESSION['eventID'] == null){
 			foreach($assignableStaff as $rosterID => $staffMember){
 				$name = '';
 				if($showStaffCompetency == true){
-					$name .= "[".$staffMember['staffCompetency']."] ";
+					//$name .= "[".$staffMember['staffCompetency']."] ";
 				}
 				$name .= getFighterName($rosterID);
 
@@ -122,7 +122,6 @@ if($_SESSION['eventID'] == null){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////	
 ?>
-
 
 	<?php if($_SESSION['blockID'] != null): ?>
 

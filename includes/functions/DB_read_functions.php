@@ -1638,7 +1638,7 @@ function getBurgeeRankingParameters($burgeeRankingID){
 
 			$tmp['name'] = 'Top Third';
 			$tmp['type'] = 'percent';
-			$tmp['value'] = (1/3);
+			$tmp['value'] = (0.34);
 			$tmp['weight'] = 3;
 			$tmp['priority'] = 1;
 			$paramList[$tmp['priority']] = $tmp;
