@@ -27,7 +27,12 @@ if($tournamentID == null){
 	$addableFighters = (array)getUngroupedRoster($tournamentID, $teamRostersRaw);
 
 	$teamSize = (int)readOption('T',$tournamentID,'TEAM_SIZE');
-	$numBlankEntries = min($teamSize, count($addableFighters));
+	if($teamSize != 0){
+		$numBlankEntries = min($teamSize, count($addableFighters));
+	} else {
+		$numBlankEntries = -1;
+	}
+	
 
 	$teamRostersSorted = [];
 	foreach($teamRostersRaw as $teamID => $team){
@@ -53,13 +58,21 @@ if($tournamentID == null){
 	<h3><?=$numTeams?> Teams</h3>
 
 	<form method='POST'>
-	<table>
+	<table class='stack'>
 		<tr>
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<th></th>
 			<?php endif ?>
+
 			<th>Team Name</th>
-			<th>Team Members</th>
+
+			<th>
+				Team Members
+				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+					<?=tooltip("The number to the left of the name is their order in the team, if you're wanting to specify fighter order." )?>
+				<?php endif ?>
+			</th>
+
 		</tr>
 		<?php foreach($teamRostersSorted as $teamID => $team): ?>
 			<?=displayTeam($team, $teamID, $addableFighters, $numBlankEntries)?>
@@ -100,11 +113,16 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 		$m['rosterID'] = $member['rosterID'];
 		$m['name'] = getFighterName($member['rosterID']);
 		$m['school'] = getFighterSchoolName($member['rosterID'],'short');
+		$m['teamOrder'] = (int)$member['teamOrder'];
 		$m['tableID'] = $member['tableID'];
 		$teamMembers[] = $m;
 	}
 
-	$numBlankEntries -= $numInTeam;
+	if($numBlankEntries >= 0){
+		$numBlankEntries -= $numInTeam;
+	} else {
+		$numBlankEntries = 2;
+	}
 
 ?>
 	<tr>
@@ -124,10 +142,25 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 
 			<?php foreach($teamMembers as $member): ?>
 				<li>
+					<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+
+						<input type='number' value=<?=$member['teamOrder']?>
+							name='updateTeams[<?=$teamID?>][order][<?=$member['tableID']?>]' 
+							style="width: 4em; display:inline;" class='no-bottom'  min=0 max=10>
+
+					<?php elseif($member['teamOrder'] != 0):?>
+
+						<?=$member['teamOrder']?>) 
+						
+					<?php endif ?>
+
+
+				<?=$member['name']?>  [<?=$member['school']?>]
+
+				
 				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 					<input type='checkbox' name='deleteTeamsInfo[membersToDelete][<?=$member['tableID']?>]'>
 				<?php endif ?>
-				<?=$member['name']?>  [<?=$member['school']?>]
 				</li>
 			<?php endforeach ?>
 
@@ -164,7 +197,7 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 function teamName($teamID){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
-		echo getTeamName($teamID);
+		echo "<b>".getTeamName($teamID)."</b>";
 		echo "<BR>";
 	} else {
 

@@ -142,19 +142,8 @@ if(true){
 
 	<div class='text-right'>
 
-		<form method='POST'>
-			<input type='hidden' name='formName' value='toggleStatsType'>
-
-			<?php $class = ifSet('percent' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
-			<button class='button <?=$class?>' name='statsType[display]' value='percent'>
-				% - Display Percentages
-			</button>
-
-			<?php $class = ifSet('value' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
-			<button class='button <?=$class?>' name='statsType[display]' value='value'>
-				# - Display Totals
-			</button>
-		</form>
+		<?=dataModeForm();?>
+		
 	</div>
 
 <?php }
@@ -237,7 +226,7 @@ function displayMatchLengthPlot($dataName, $toolText, $legend, $binWidth, $plotW
 		foreach($binData as $seriesNum => $num){
 			if($totalData[$seriesNum] != 0 && $allZeros[$seriesNum] == false){
 
-				if($_SESSION['StatsInfo']['displayType'] == 'value'){
+				if($_SESSION['dataModes']['percent'] == false){
 					$value = $num;
 				} else {
 					$value = 100 * $num / $totalData[$seriesNum];

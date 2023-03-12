@@ -2392,7 +2392,6 @@ function matchHistoryBar($matchInfo){
 			$isZeroNumberedExchanges = true;
 		}
 
-
 	// Create a list of exchanges with appropriate text for each
 		$i++;
 		if($exchange['exchangeTime'] > 0){
@@ -2412,10 +2411,12 @@ function matchHistoryBar($matchInfo){
 
 		if($exchange['rosterID'] == $matchInfo['fighter1ID']){
 			$index1 = 1;
-			$index2 = 2; 
+			$index2 = 2;
+			$color =  COLOR_NAME_1;
 		} else {
 			$index1 = 2;
-			$index2 = 1; 
+			$index2 = 1;
+			$color =  COLOR_NAME_2; 
 		}
 		
 		if((isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO)
@@ -2531,6 +2532,24 @@ function matchHistoryBar($matchInfo){
 				break;
 		}
 
+		$scoresheet = '';
+		$scoresheet .= "\n".$exchanges[$i]['time']." ".$color." ". $exchange['exchangeType'];
+	
+		$scoresheet .= " [".$exchange['scoreValue']."|".$exchange['scoreDeduction']."]";	
+		if((int)$exchange['refPrefix'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($exchange['refPrefix']);
+		}
+		if((int)$exchange['refTarget'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($exchange['refTarget']);
+		}
+		if((int)$exchange['refType'] != 0)
+		{
+			$scoresheet .= ", ".GetAttackName($exchange['refType']);
+		}
+
+		$exchanges[$i]['detail'] = $scoresheet;
 
 	}
 
@@ -2538,7 +2557,7 @@ function matchHistoryBar($matchInfo){
 	function displayExchangeReg($exchange, $num = null, $background = null){
 		$colorCode1 = COLOR_CODE_1;
 		$colorCode2 = COLOR_CODE_2;
-		
+
 		$t1 = $exchange[1][1];
 		if($t1 == null){$t1 = "&nbsp;";}
 		$t2 = $exchange[1][2];
@@ -2570,7 +2589,7 @@ function matchHistoryBar($matchInfo){
 		
 		?>	
 		
-		<div class='shrink text-center' style='width: 40px'>
+		<div class='shrink text-center' style='width: 40px' title='<?=$exchange['detail']?>'>
 			<div class='cell <?=$class?>'>
 				<?=$exchange['time']?>
 			</div>
@@ -3179,7 +3198,7 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 
 	$numDataSeries = count((array)$chartData[0]);
 
-	if($_SESSION['StatsInfo']['displayType'] == 'value'){
+	if($_SESSION['dataModes']['percent'] == false){
 		$yLabel = "# of matches";
 	} else {
 		$yLabel = "% of matches";
@@ -3501,6 +3520,52 @@ function displayBurgeeRankingExplanation($paramList){
 			
 	}
 	
+}
+
+/******************************************************************************/
+
+function dataModeForm(){
+
+	if($_SESSION['dataModes']['percent'] == true){
+		$percentClass = '';
+		$absClass = 'hollow';
+	} else {
+		$percentClass = 'hollow';
+		$absClass = '';
+	}
+
+	if($_SESSION['dataModes']['extendedExchangeInfo'] == false){
+		$extEchClass = 'hollow';
+		$extEchValue = 1;
+	} else {
+		$extEchClass = '';
+		$extEchValue = 0;
+	}
+
+?>
+	<form method='POST'>
+		<input type='hidden' name='formName' value='toggleDataModes'>
+
+		<button class='button <?=$percentClass?>' name='dataModes[percent]' value=1>
+			% - Display Percentages
+		</button>
+
+		<button class='button <?=$absClass?>' name='dataModes[percent]' value=0>
+			# - Display Totals
+		</button>
+
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+		<button class='button <?=$extEchClass?> secondary' 
+			name='dataModes[extendedExchangeInfo]' value=<?=$extEchValue?>>
+
+			Show Extended Exchange Info
+		</button>
+
+		<?=tooltip("The extended exchange info will break down exchange totals by all specifying info available, such as 'controlled thrusts to torso with afterblow'.<BR> <b>On a large event this makes the page pretty slow to load</b> so it's disabled by default. ")?>
+
+	</form>
+<?php
 }
 
 /******************************************************************************/

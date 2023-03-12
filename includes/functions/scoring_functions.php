@@ -973,6 +973,99 @@ function _Schnegel_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Schnegel2_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID, matches, wins, losses, ties
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+
+		$score = 0;
+
+		$sql = "SELECT 
+					(
+						SELECT COUNT(*) AS numClean
+						FROM eventExchanges AS eE2
+						WHERE eE2.matchID = eM.matchID
+						AND scoringID = {$rosterID}
+						AND exchangeType = 'clean'
+					) AS numClean,
+					(	
+						SELECT SUM(scoreValue) AS pointsFor1
+						FROM eventExchanges AS eE3
+						WHERE eE3.matchID = eM.matchID
+						AND scoringID = {$rosterID}
+						AND (exchangeType = 'clean' OR exchangeType = 'afterblow')
+					) AS pointsFor1,
+					(	
+						SELECT SUM(scoreDeduction) AS pointsFor2
+						FROM eventExchanges AS eE4
+						WHERE eE4.matchID = eM.matchID
+						AND receivingID = {$rosterID}
+						AND exchangeType = 'afterblow'
+					) AS pointsFor2,
+					(	
+						SELECT SUM(scoreValue) AS penalties
+						FROM eventExchanges AS eE5
+						WHERE eE5.matchID = eM.matchID
+						AND scoringID = {$rosterID}
+						AND exchangeType = 'penalty'
+					) AS penalties
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = (array)mysqlQuery($sql, ASSOC);
+
+		$cleanHits = 0;
+		$pointsAwarded = 0;
+		$numMatches = 0;
+
+		foreach($matches as $match){
+
+			$cleanHits += $match['numClean'];
+			$pointsAwarded += $match['pointsFor1'];
+			$pointsAwarded += $match['pointsFor2'];
+			$pointsAwarded += $match['penalties'];
+
+			$numMatches++;
+		}
+
+		$score =  0.01 * $cleanHits * $pointsAwarded;
+
+		if($numMatches != 0 && $numMatches != $normalizedMatches){
+			$score *= $normalizedMatches/$numMatches;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 
 	$tournamentID = (int)$tournamentID;

@@ -1247,6 +1247,104 @@ function logisticsAssignTournamentToRing($assignInfo, $overidePlaceID = null){
 
 /******************************************************************************/
 
+function InstructorBioUpdate($bioInfo){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$bioInfo['eventID'];
+	if($eventID != $_SESSION['eventID']){
+		return;
+	}
+
+	$rosterID = (int)@$bioInfo['rosterID'];
+	if($rosterID == 0){
+		setAlert(USER_ERROR,"No instructor name selected for bio: <BR><pre>{$bioInfo['instructorBio']}</pre>");
+		return;
+	}
+
+	$sql = "SELECT instructorID
+			FROM logisticsInstructors
+			WHERE eventID = {$eventID}
+			AND rosterID = {$rosterID}";
+	$instructorID = (int)mysqlQuery($sql, SINGLE, 'instructorID');
+
+	$name = getFighterName($rosterID);
+
+	if($instructorID == 0){
+
+		$sql = "INSERT INTO logisticsInstructors 
+				(rosterID, eventID, instructorBio)
+				VALUES
+				({$rosterID}, {$eventID}, ?)";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $bioInfo['instructorBio']);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Added <b>{$name}</b> as an instructor.");
+	} else {
+
+		$sql = "UPDATE logisticsInstructors 
+				SET instructorBio = ?
+				WHERE instructorID = {$instructorID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $bioInfo['instructorBio']);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		setAlert(USER_ALERT,"Updated instructor bio for <b>{$name}</b>.");
+	}
+
+	$sql = "SELECT staffCompetency
+			FROM logisticsStaffCompetency
+			WHERE rosterID = {$rosterID}";
+
+	$comp = (int)mysqlQuery($sql, SINGLE, 'staffCompetency');
+
+	if($comp == 0){
+		$sql = "INSERT INTO logisticsStaffCompetency
+				(rosterID, staffCompetency)
+				VALUES 
+				({$rosterID}, 1)";
+		mysqlQuery($sql, SEND);
+	}
+	
+}
+
+/******************************************************************************/
+
+function InstructorDelete($bioInfo){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)@$bioInfo['eventID'];
+	if($eventID != $_SESSION['eventID']){
+		return;
+	}
+
+	$rosterID = (int)@$bioInfo['rosterID'];
+
+	$name = getFighterName($rosterID);
+
+	$sql = "DELETE FROM logisticsInstructors
+			WHERE eventID = {$eventID}
+			AND rosterID = {$rosterID}";
+	$instructorID = (int)mysqlQuery($sql, SEND);
+
+	setAlert(USER_ALERT,"<b>{$name}</b> is no longer an instructor.");
+
+}
+
+/******************************************************************************/
+
 function updateFighterRatings($ratingData){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
@@ -2580,6 +2678,18 @@ function addTeamMembers($teamInfo, $tournamentID){
 
 	$teamID = (int)$teamInfo['teamID'];
 
+	foreach($teamInfo['order'] as $tableID => $teamOrder){
+
+		$tableID = (int)$tableID;
+		$teamOrder = (int)$teamOrder;
+
+		$sql = "UPDATE eventTeamRoster
+				SET teamOrder = {$teamOrder}
+				WHERE tableID = {$tableID}";
+		mysqlQuery($sql, SEND);
+		
+	}
+
 // Add members
 	if(isset($teamInfo['newMembers'])){
 		foreach($teamInfo['newMembers'] as $rosterID){
@@ -2610,9 +2720,12 @@ function addTeamMembers($teamInfo, $tournamentID){
 
 		// Enter fighter into team
 			$sql = "INSERT INTO eventTeamRoster
-					(teamID, rosterID, tournamentRosterID, memberRole)
+					(teamID, rosterID, tournamentRosterID, memberRole, teamOrder)
 					VALUES
-					({$teamID},{$rosterID},{$tournamentRosterID},'member')";
+					({$teamID},{$rosterID},{$tournamentRosterID},'member',
+						((SELECT COALESCE(MAX(teamOrder),0) AS teamOrder
+						FROM eventTeamRoster AS eTR2
+						WHERE teamID = {$teamID}) + 1))";
 			mysqlQuery($sql, SEND);
 		}
 	}

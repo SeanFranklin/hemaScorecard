@@ -1333,6 +1333,50 @@ function getEventExchanges($eventID){
 
 /******************************************************************************/
 
+function getExchangeCountsByExtraInfo($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT DISTINCT(refPrefix + 100*refType + 10000*refTarget) AS asdf,
+			exchangeType,
+			(
+				SELECT attackText
+				FROM systemAttacks
+				WHERE attackID = eE.refPrefix
+			) AS prefix,
+			(
+				SELECT attackText
+				FROM systemAttacks
+				WHERE attackID = eE.refType
+			) AS type,
+			(
+				SELECT attackText
+				FROM systemAttacks
+				WHERE attackID = eE.refTarget
+			) AS target,
+			(
+				SELECT COUNT(*) AS numExchanges
+				FROM eventExchanges AS eE2
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE tournamentID = {$tournamentID}
+				AND eE.exchangeType = eE2.exchangeType
+				AND ((eE.refPrefix IS NULL AND eE2.refPrefix IS NULL) OR (eE2.refPrefix = eE.refPrefix))
+				AND ((eE.refType IS NULL AND eE2.refType IS NULL) OR (eE2.refType = eE.refType))
+				AND ((eE.refTarget IS NULL AND eE2.refTarget IS NULL) OR (eE2.refTarget = eE.refTarget))
+			) AS numExchanges
+		FROM eventExchanges AS eE
+		INNER JOIN eventMatches USING(matchID)
+		INNER JOIN eventGroups USING(groupID)
+		WHERE tournamentID = {$tournamentID}
+		AND exchangeType IN ('clean','afterblow')
+		ORDER BY target, type, prefix, exchangeType DESC";
+
+	return ((array)mysqlQuery($sql, ASSOC));
+}
+
+/******************************************************************************/
+
 function getEventIncompletes($eventID){
 	
 	$eventID = (int)$eventID;
@@ -2503,7 +2547,8 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 		$sql = "SELECT rosterID
 				FROM eventTeamRoster
 				WHERE teamID = {$teamID}
-				AND memberRole = 'member'";
+				AND memberRole = 'member'
+				ORDER BY teamOrder ASC";
 		$teamMembers = mysqlQuery($sql, SINGLES);
 
 		if($splitName != null){
@@ -3767,7 +3812,8 @@ function getPoolTeamRosters($tournamentID, $groupSet = 1){
 			$sql = "SELECT rosterID
 					FROM eventTeamRoster
 					WHERE teamID = {$teamID}
-					AND memberRole = 'member'";
+					AND memberRole = 'member'
+					ORDER BY teamOrder ASC";
 			$teamRoster = mysqlQuery($sql, SINGLES);
 
 			$pools[$groupID][$teamID] = $teamRoster;
@@ -4364,6 +4410,19 @@ function logistics_getScheduleItemDescription($blockID, $shiftID = null){
 
 	return $returnData;
 
+}
+
+/******************************************************************************/
+
+function logistics_isEventInstructors($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(*) AS numInstructors
+			FROM logisticsInstructors
+			WHERE eventID = {$eventID}";
+	$numInstructors = (int)mysqlQuery($sql, SINGLE, 'numInstructors');
+
+	return ((bool)$numInstructors);
 }
 
 /******************************************************************************/
@@ -6026,6 +6085,32 @@ function logistics_getAvaliableStaff($eventID, $tournamentID = null){
 
 /******************************************************************************/
 
+function logistics_getEventInstructors($eventID){
+
+	$eventID = (int)$eventID;
+	$orderName = NAME_MODE;
+	$orderName2 = NAME_MODE_2;
+
+	if(NAME_MODE == 'firstName'){
+		$name = "CONCAT(firstName,' ',lastName)";
+	} else {
+		$name = "CONCAT(lastName,', ',firstName)";
+	}
+
+	$sql = "SELECT rosterID, {$name} AS name, instructorBio, systemRosterID
+			FROM logisticsInstructors AS lI
+			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN systemRoster USING(systemRosterID)
+			WHERE lI.eventID = {$eventID}
+			ORDER BY {$orderName} ASC, {$orderName2} ASC";
+	$list = (array)mysqlQuery($sql, ASSOC);
+
+	return ($list);
+
+}
+
+/******************************************************************************/
+
 function logistics_getUnconflictedShiftStaff($shiftID){
 
 	$shiftID = (int)$shiftID;
@@ -7604,12 +7689,13 @@ function getTeamRosters($tournamentID){
 		return null;
 	}
 
-	$sql = "SELECT teamRost.rosterID, teamRost.teamID, teamRost.tableID 
+	$sql = "SELECT teamRost.rosterID, teamRost.teamID, teamRost.tableID, teamRost.teamOrder
 			FROM eventTeamRoster as teamRost
 			INNER JOIN eventRoster roster ON roster.rosterID = teamRost.teamID
 			INNER JOIN eventTournamentRoster as tournRost ON tournRost.rosterID = roster.rosterID
 			WHERE tournRost.tournamentID = {$tournamentID}
-			AND teamRost.memberRole = 'member'";
+			AND teamRost.memberRole = 'member'
+			ORDER BY teamOrder ASC";
 
 	$allMembers =  mysqlQuery($sql, ASSOC);
 
@@ -7620,6 +7706,7 @@ function getTeamRosters($tournamentID){
 
 		$temp['rosterID'] = $member['rosterID'];
 		$temp['tableID'] = $member['tableID'];
+		$temp['teamOrder'] = $member['teamOrder'];
 		$retVal[$teamID]['members'][] = $temp;
 				
 		
@@ -7645,7 +7732,7 @@ function getTeamRoster($teamID, $role = 'member'){
 			FROM eventTeamRoster
 			WHERE teamID = {$teamID}
 			AND memberRole = '{$role}'
-			ORDER BY tableID ASC";
+			ORDER BY teamOrder ASC, tableID ASC";
 	return mysqlQuery($sql, SINGLES, 'rosterID');
 
 }

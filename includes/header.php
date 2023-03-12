@@ -135,6 +135,9 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		</div>
         
     </div>
+
+    <?=DisplayServerVersion()?>
+
 <!-- END Upper Navigation ----------------------------------------->	
 	
 <!-- START Page Title --------------------------------------------->
@@ -271,6 +274,25 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 // FUNCTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function DisplayServerVersion(){
+
+	switch(DEPLOYMENT){
+		case DEPLOYMENT_PRODUCTION: { return; break; } // don't display anything
+		case DEPLOYMENT_LOCAL: 		{$color="#39FF14";	$text = "Local Server";	break;}
+		case DEPLOYMENT_TEST: 		{$color="#FFAD00";	$text = "Test Server";	break;}
+		case DEPLOYMENT_UNKNOWN: 		
+		default:					{$color="#FF69B4";	$text = "Unknown Deployment";	break;}
+	}
+
+?>
+    
+    <div class='text-center' style='font-size:0.7em;background-color: <?=$color?>;'>
+    	<i><?=$text?></i>
+    </div>
+
+<?php
+}
+
 /******************************************************************************/
 
 function menuEvent(){
@@ -286,6 +308,8 @@ function menuEvent(){
 
 		return;
 	}
+
+	$isInstructors = logistics_isEventInstructors($_SESSION['eventID']);
 
 ?>
 	<li>
@@ -314,6 +338,10 @@ function menuEvent(){
 					<li><a href='participantsSchedules.php?t=0'>Individual Schedules</a></li>
 				</ul>
 			</li>
+
+			<?php if($isInstructors == true): ?>
+				<li><a href='logisticsInstructors.php?t=0'>Event Instructors</a></li>
+			<?php endif ?>
 			
 		</ul>
 	</li>
@@ -427,7 +455,8 @@ function menuEventOrgBefore(){
 		<ul class='menu vertical'>
 
 			<div class="drop-down-separator">Setup</div>
-			<li><a href='logisticsStaffRoster.php?t=0'>Roster</a></li>
+			<li><a href='logisticsStaffRoster.php?t=0'>Staff Roster</a></li>
+			<li><a href='logisticsInstructors.php?t=0'>Instructors</a></li>
 			<li><a href='logisticsStaffShifts.php?t=0'>Shifts</a></li>
 			<li><a href='logisticsStaffTemplates.php?t=0'>Shift Templates</a></li>
 

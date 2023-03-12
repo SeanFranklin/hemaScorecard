@@ -74,7 +74,7 @@ if($_SESSION['eventID'] == null){
 </form>
 
 
-<?php if(isFinalized($_SESSION['tournamentID']) == true): ?>
+<?php if(isFinalized($_SESSION['tournamentID']) == true && ALLOW['SOFTWARE_ADMIN'] == FALSE): ?>
 
 	<div class='callout alert text-center' data-closeable>
 		Results for this tournament have been finalized, most changes have been disabled.

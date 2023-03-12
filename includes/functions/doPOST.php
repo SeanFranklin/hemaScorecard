@@ -502,13 +502,24 @@ function processPostData(){
 			case 'hideAnnouncement':
 				$_SESSION['hideAnnouncement'][(int)$_POST['announcementID']] = true;
 				break;
+			case 'instructorBio':
+				InstructorBioUpdate($_POST['instructorBio']);
+				break;
+			case 'instructorDelete':
+				InstructorDelete($_POST['instructorBio']);
+				break;
 				
 	// Stats Cases
 			case 'hemaRatings_ExportCsv':
 				hemaRatings_ExportCsv($_POST['HemaRatingsExport']);
 				break;
-			case 'toggleStatsType':
-				$_SESSION['StatsInfo']['displayType'] = $_POST['statsType']['display'];
+			case 'toggleDataModes':
+				if(isset($_POST['dataModes']['percent']) == true){
+					$_SESSION['dataModes']['percent'] = (bool)(int)$_POST['dataModes']['percent'];
+				}
+				if(isset($_POST['dataModes']['extendedExchangeInfo']) == true){
+					$_SESSION['dataModes']['extendedExchangeInfo'] = (bool)(int)$_POST['dataModes']['extendedExchangeInfo'];
+				}
 				break;
 			case 'tournamentDataFilters':
 				$_SESSION['tDataFilters'] = $_POST['tDataFilter'];
