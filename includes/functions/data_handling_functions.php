@@ -857,6 +857,8 @@ function getEventStats($stats){
 			$stats[$tournamentID]['BpE'] = 	
 				round($bilaterals/
 				($bilaterals + $data['clean']),2)*100;
+		} else {
+			$stats[$tournamentID]['BpE'] = NULL;
 		}
 	}
 	
@@ -1275,10 +1277,6 @@ function createMatchScoresheet($matchInfo)
 
 function countNumDataSeries(){
 
-	if(!isset($_SESSION['StatsInfo']['displayType'])){
-		$_SESSION['StatsInfo']['displayType'] = 'percent';
-	}
-
 	$numDataSeries = 0;	if(isset($_SESSION['activeStatsItems']['tournamentIDs'][0]) == false || (int)$_SESSION['activeStatsItems']['tournamentIDs'][0] == 0){
 		$_SESSION['activeStatsItems']['tournamentIDs'][0] = (int)$_SESSION['tournamentID'];
 		if($_SESSION['activeStatsItems']['tournamentIDs'][0] != 0){
@@ -1460,7 +1458,8 @@ function burgeeFightersByPlace($params, $burgeeFighters, $tournamentIDs){
 				WHERE tournamentID IN ({$tournamentIDs})
 				AND placing <= {$place}
 				AND isTeam = 1
-				AND schoolID > 2)";
+				AND schoolID > 2)
+			ORDER BY teamOrder ASC";
 	$teamPlacings = mysqlQuery($sql, ASSOC);
 
 	$burgeeFighters = processBurgeeFighters($burgeeFighters, $teamPlacings, $priority, $params['weight']);
@@ -1507,7 +1506,8 @@ function burgeeFightersByPercent($params, $burgeeFighters, $tournamentIDs){
 								FROM eventTournaments AS eT3
 								WHERE eP2.tournamentID = eT3.tournamentID)
 				AND isTeam = 1
-				AND schoolID > 2)";
+				AND schoolID > 2)
+			ORDER BY teamOrder ASC";
 	$teamPercent = mysqlQuery($sql, ASSOC);
 
 	$burgeeFighters = processBurgeeFighters($burgeeFighters, $teamPercent, $priority, $params['weight']);

@@ -448,7 +448,7 @@ legend h4 {
 }
 
 .grey-text {
-  color: grey;
+  color: grey !important
 }
 
 .black-text {

@@ -18,10 +18,6 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Matches not yet released");
 } else {
 	
-	if(!isset($_SESSION['StatsInfo']['displayType'])){
-		$_SESSION['StatsInfo']['displayType'] = 'percent';
-	}
-
 	$exchangesByTournament = getEventExchanges($_SESSION['eventID']);
 	
 	$stats = getEventStats($exchangesByTournament);
@@ -41,6 +37,10 @@ if($_SESSION['eventID'] == null){
 		$weaponList[$weapon['weaponID']] = true;
 	}
 	$overall['weapons'] = count($weaponList);
+
+	foreach((array)$stats as $data){
+		$createSortableDataTable[] = ['tournament-stats-'.$data['tournamentID'],100];
+	}
 	
 	
 // Display tables
@@ -49,28 +49,20 @@ if($_SESSION['eventID'] == null){
 	tournamentExchangesTable($stats);
 	echo "<HR>";
 	tournamentTargetTable($stats);	
-
+	
 // Toggle button
 	
 	?>
 	<div class='text-right'>
 
-		<form method='POST'>
-			<input type='hidden' name='formName' value='toggleStatsType'>
-
-			<?php $class = ifSet('percent' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
-			<button class='button <?=$class?>' name='statsType[display]' value='percent'>
-				% - Display Percentages
-			</button>
-
-			<?php $class = ifSet('value' != $_SESSION['StatsInfo']['displayType'] , 'hollow');?>
-			<button class='button <?=$class?>' name='statsType[display]' value='value'>
-				# - Display Totals
-			</button>
-		</form>
+		<?=dataModeForm()?>
 	</div>
 
 	<?php
+
+	echo "<HR>";
+	tournamentExtendedExchangeInfo($stats);
+
 	
 }
 include('includes/footer.php');
@@ -80,9 +72,103 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function tournamentTargetTable($stats){
-	?>
+function tournamentExtendedExchangeInfo($stats){
+
+	if((int)@$_SESSION['dataModes']['extendedExchangeInfo'] != 1){
+		return;
+	}
 	
+	$extendedInfo = [];
+	$total = [];
+	$createSortableDataTable = [];
+
+	$tIDs = getEventTournaments($_SESSION['eventID']);
+
+	foreach((array)$tIDs as $tournamentID){
+		$extendedInfo[$tournamentID] = getExchangeCountsByExtraInfo($tournamentID);
+		$total[$tournamentID] = 0;
+
+		foreach($extendedInfo[$tournamentID] as $attack){
+			$total[$tournamentID] += (int)$attack['numExchanges'];
+		}
+
+	}
+
+	foreach((array)$extendedInfo as $tournamentID => $data){
+
+		foreach($data as $index => $attack){
+
+			if($total[$tournamentID] != 0){
+				$percent = 100*$attack['numExchanges']/$total[$tournamentID];
+			} else {
+				$percent = 0;
+			}
+
+			$percentDisp = number_format($percent,1)." %";
+			$extendedInfo[$tournamentID][$index]['percentDisp'] = $percentDisp;
+
+			if($percent < 1){
+				$extendedInfo[$tournamentID][$index]['class'] = 'grey-text';
+			} else {
+				$extendedInfo[$tournamentID][$index]['class'] = '';
+			}	
+		}
+
+	}
+	
+?>
+	<h3>Extended Exchange Info (<i>if captured</i>)</h3>
+
+	
+	<?php foreach((array)$extendedInfo as $tournamentID => $data): ?>
+		<h4><?=getTournamentName($tournamentID )?></h4>
+	<table  class="display" id='tournament-stats-<?=$tournamentID?>'>
+
+		
+
+		<thead>
+			<tr>
+				<th>prefix</td>
+				<th>type</td>
+				<th>target</td>
+				<th>exchangeType</td>
+				<th>numExchanges</td>
+				<th>percentDisp</td>
+			</tr>
+		</thead>
+
+		<tbody>
+		<?php foreach($data as $attack): 
+
+
+			?>
+			<tr>
+				<td class='text-right'><?=$attack['prefix']?></td>
+				<td class='text-right'><?=$attack['type']?></td>
+				<td class='text-right'><?=$attack['target']?></td>
+				<td class='text-right'><?=$attack['exchangeType']?></td>
+				<td class='text-right'><?=$attack['numExchanges']?></td>
+				<td class='text-right <?=$attack['class']?>'><?=$attack['percentDisp']?></td>
+			</tr>
+		
+		<?php endforeach ?>
+		</tbody>
+	</table>
+	<HR>
+	<?php endforeach ?>
+
+
+<?php 
+
+}
+
+/******************************************************************************/
+
+/******************************************************************************/
+
+function tournamentTargetTable($stats){
+?>
+
 	<table>
 		<caption>Target Areas By Tournament</caption>
 		
@@ -109,6 +195,8 @@ function tournamentTargetTable($stats){
 			$total += $data[$i];
 		}
 
+		$percent = [];
+
 		for($i = 1; $i <= 5; $i++){
 
 			if($total > 0 && $data[$i] > 0){
@@ -117,7 +205,7 @@ function tournamentTargetTable($stats){
 				$percent[$i] = '';
 			}
 
-			if($_SESSION['StatsInfo']['displayType'] == 'value'){
+			if($_SESSION['dataModes']['percent'] == false){
 				$disp[$i] = $data[$i];
 			} else {
 				$disp[$i] = $percent[$i];
@@ -141,7 +229,7 @@ function tournamentTargetTable($stats){
 	<?php endforeach ?>
 	
 	</table>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -367,7 +455,7 @@ function tournamentExchangesTable($stats){
 			$noExchangeP = (round($noExchangeN/$all,2)*100)."%";
 			$noQualityP = (round($noQualityN/$all,2)*100)."%";
 
-			if($_SESSION['StatsInfo']['displayType'] == 'value'){
+			if($_SESSION['dataModes']['percent'] == false){
 				$clean = $cleanN;
 				$afterblow = $afterblowN;
 				$double = $doubleN;

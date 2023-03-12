@@ -19,11 +19,20 @@
 	define("DEBUGGING", 0);
 	date_default_timezone_set("UTC");
 
+	define("DEPLOYMENT_UNKNOWN",0);
+	define("DEPLOYMENT_PRODUCTION",1);
+	define("DEPLOYMENT_TEST",2);
+	define("DEPLOYMENT_LOCAL",3);
+
 // Database Connection
 	if(!defined('BASE_URL')){
 		define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/');
 	}
 	include(BASE_URL.'includes/database.php');
+
+	if(!defined('DEPLOYMENT')){
+		define('DEPLOYMENT' , DEPLOYMENT_UNKNOWN);
+	}
 
 // Program Related Constants
 
@@ -553,6 +562,12 @@ function initializeSession(){
 	}
 	if(!isset($_SESSION['dataModes']['tournamentSort'])){
 		$_SESSION['dataModes']['tournamentSort'] = '';
+	}
+	if(!isset($_SESSION['dataModes']['percent'])){
+		$_SESSION['dataModes']['percent'] = true;
+	}
+	if(!isset($_SESSION['dataModes']['extendedExchangeInfo'])){
+		$_SESSION['dataModes']['extendedExchangeInfo'] = false;
 	}
 
 	if(!isset($_SESSION['filterForSystemRosterID'])){
