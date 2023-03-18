@@ -339,13 +339,17 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 	$fileName = "{$dir}{$tournamentName}.csv";
 
 // Get the match results
-	$sql = "SELECT scoringID, receivingID, exchangeType, matchID
-			FROM eventExchanges
-			INNER JOIN eventMatches USING(matchID)
+	$sql = "SELECT matchID, winnerID, fighter1ID, fighter2ID, ignoreMatch,
+				(	SELECT exchangeType
+					FROM eventExchanges AS eE2
+					WHERE eE2.matchID = eM.matchID
+					AND (exchangeType = 'winner' OR exchangeType = 'doubleOut' OR exchangeType = 'tie')
+					LIMIT 1) AS endExchangeType
+			FROM eventMatches AS eM
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
 			AND placeholderMatchID IS NULL
-			AND (exchangeType = 'winner' OR exchangeType = 'doubleOut' OR exchangeType = 'tie')";
+			AND matchComplete = 1";
 	$finishedMatches = mysqlQuery($sql, ASSOC);
 	
 // Create the CSV file	
@@ -353,23 +357,43 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 	
 	foreach($finishedMatches as $match){
 		
-		
-		$f1ID = $match['scoringID'];
-		$f2ID = $match['receivingID'];
-		$type = $match['exchangeType'];
-		$stageName = getMatchStageName($match['matchID']);
+		$winnerID = (int)$match['winnerID'];
+
+		if($winnerID == $match['fighter1ID']){
+			$f1ID = $match['fighter1ID'];
+			$f2ID = $match['fighter2ID'];
+			$f1Result = 'Win';
+			$f2Result = 'Loss';
+		} elseif ($winnerID == $match['fighter2ID']){
+			$f1ID = $match['fighter2ID'];
+			$f2ID = $match['fighter1ID'];
+			$f1Result = 'Win';
+			$f2Result = 'Loss';
+		} else {
+			$f1ID = $match['fighter1ID'];
+			$f2ID = $match['fighter2ID'];
+
+			if($match['endExchangeType'] == 'doubleOut'){
+				$f1Result = 'Loss';
+			} else {
+				$f1Result = 'Draw';
+			}
+
+			$f2Result = $f1Result;
+		}
 
 		$fighter1 = getFighterName($f1ID, null, 'first');
 		$fighter2 = getFighterName($f2ID, null, 'first');
-		$f1Result = 'Loss';
-		$f2Result = 'Loss';
+
 		
-		if($type == 'winner'){$f1Result = 'Win';}
-		if($type == 'tie'){
-			$f1Result = 'Draw';
-			$f2Result = 'Draw';
+
+		$stageName = (string)getMatchStageName($match['matchID']);
+
+		if((int)$match['ignoreMatch'] == 1){
+			$stageName = "!! Attention !! Excluded From Scoring Calculations ".$stageName;
 		}
-		
+
+
 		$fields = [$fighter1, $fighter2, $f1Result, $f2Result, $stageName];
 		
 		$comma = ',';

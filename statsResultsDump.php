@@ -105,12 +105,12 @@ if($_SESSION['eventID'] == null){
 
 			if(!isFinalized($tournamentID)){
 				$class = 'secondary';
-				$warning .= '<em> - Tournament not finalized</em>';
+				$warning .= '<em> - Tournament not finalized</em><BR>';
 			}
 
 			if(isTournamentPrivate($tournamentID)){
 				$class = 'alert';
-				$warning = '<em> - Request for private results</em>'.$warning;
+				$warning = '<em> - Request for private results</em><BR>'.$warning;
 			} 
 			
 			
