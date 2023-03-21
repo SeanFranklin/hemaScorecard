@@ -3349,8 +3349,9 @@ function deleteEvent($deleteInfo){
 		
 	} else {
 		$_SESSION['alertMessages']['userErrors'][] = "\"{$eventName}\" not deleted
-			<BR>Confirmation code incorrect. 
-			<BR>'{$deleteCode}' is the correct code.";
+			<BR>Confirmation code incorrect.<BR>
+			<u>Entered</u>:<pre>{$deleteInfo['confirmationCode']}</pre>
+			<u>Correct</u>:<pre>{$deleteCode}</pre>";
 	}
 	
 }
