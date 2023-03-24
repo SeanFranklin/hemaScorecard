@@ -110,6 +110,53 @@ if($tournamentID == null){
 	<div class='callout primary'>
 		I'm trying something new for form inputs here. <u>On this section alone</u> the data is updated as soon as it changes, without needing to submit. This also means that multiple people can be working on this page at once. (If you're having trouble, try reloading the page.)<BR>
 		<a class='button tiny no-bottom secondary' href='participantsTournament.php'>Reload Page</a>
+		<a onclick="$('.bulk-tournament-add').toggle()">Bulk Actions ↓</a>
+
+
+		<span class='hidden bulk-tournament-add'>
+
+		<form method="POST">
+			<input type='hidden' name='formName' value='bulkCheckIn'>
+			<input type='hidden' name='bulkCheckIn[tournamentID]' value='<?=$tournamentID?>'>
+
+			<div class='grid-x grid-margin-x'>
+				<HR class='cell'>
+
+
+				<div class='cell medium-2'>
+					<button class='button warning expanded' name='bulkCheckIn[mode]' value='tournament-in'>
+						Check-In<BR><b>Set All</b>
+					</button>
+				</div>
+
+				<div class='cell large-1'>&nbsp;</div>
+
+				<div class='cell medium-2'>
+					<button class='button warning expanded' name='bulkCheckIn[mode]' value='gear-in'>
+						Gear Check<BR><b>Set All</b>
+					</button>
+				</div>
+
+				<div class='cell large-1'>&nbsp;</div>
+
+				<div class='cell medium-2'>
+					<button class='button alert expanded' name='bulkCheckIn[mode]' value='tournament-out'>
+						Check-In<BR><b>Clear All</b>
+					</button>
+				</div>
+
+				<div class='cell large-1'>&nbsp;</div>
+
+				<div class='cell medium-2'>
+					<button class='button alert expanded' name='bulkCheckIn[mode]' value='gear-out'>
+						Gear Check<BR><b>Clear All</b>
+					</button>
+				</div>
+
+			</div>
+		</form>
+		</span>
+
 	</div>
 	<?php endif ?>
 	
@@ -162,7 +209,7 @@ if($tournamentID == null){
 				
 				<td class='text-center'>
 
-					<a class='button no-bottom' onclick="checkInFighterJs('checkIn')"
+					<a class='button no-bottom tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$f['checkInID']?>'
 						data-checkInType='tournament'
 						data-rosterID=<?=$rosterID?> 
@@ -174,7 +221,7 @@ if($tournamentID == null){
 
 				<td class='text-center'>
 
-					<a class='button no-bottom' onclick="checkInFighterJs('gearcheck')"
+					<a class='button no-bottom tiny' onclick="checkInFighterJs('gearcheck')"
 						id='<?=$f['gearID']?>'
 						data-checkInType='tournament'
 						data-rosterID=<?=$rosterID?> 

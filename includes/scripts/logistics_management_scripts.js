@@ -664,8 +664,11 @@ function checkInFighterJs(mode){
         case 'tournament':{
             formData['rosterID'] = $(event.target).attr("data-rosterID");
             str = "#check-in-tournament-"+formData['rosterID'];
+
+            formData['tournamentID'] = parseInt($("#tournamentID").val());
             formData['checkIn'] = $(str+"-checkIn").data("checked");
             formData['gearcheck']  = $(str+"-gearcheck").data("gearcheck");
+
             break;
         }
 
@@ -754,27 +757,21 @@ function updateEventCheckInList(regData, idName){
     if(regData['eventWaiver'] == 1){
         $(idName+"-waiver").removeClass("hollow");
         $(idName+"-waiver").addClass("success");
-        $(idName+"-waiver").addClass("tiny");
         $(idName+"-waiver").html('signed');
     } else {
         $(idName+"-waiver").addClass("hollow");
         $(idName+"-waiver").removeClass("success");
-        $(idName+"-waiver").removeClass("tiny");
         $(idName+"-waiver").html('blank');
-        
     }
 
     if(regData['eventCheckIn'] == 1){
         $(idName+"-checkIn").removeClass("hollow");
         $(idName+"-checkIn").addClass("success");
-        $(idName+"-checkIn").addClass("tiny");
         $(idName+"-checkIn").html('done');
     } else {
         $(idName+"-checkIn").addClass("hollow");
         $(idName+"-checkIn").removeClass("success");
-        $(idName+"-checkIn").removeClass("tiny");
         $(idName+"-checkIn").html('no');
-        
     }
 
 }
@@ -789,24 +786,20 @@ function updateTournamentCheckInList(regData, idName){
     if(regData['tournamentCheckIn'] == 1){
         $(idName+"-checkIn").removeClass("hollow");
         $(idName+"-checkIn").addClass("success");
-        $(idName+"-checkIn").addClass("tiny");
         $(idName+"-checkIn").html('done');
     } else {
         $(idName+"-checkIn").addClass("hollow");
         $(idName+"-checkIn").removeClass("success");
-        $(idName+"-checkIn").removeClass("tiny");
         $(idName+"-checkIn").html('no');
     }
 
     if(regData['tournamentGearCheck'] == 1){
         $(idName+"-gearcheck").removeClass("hollow");
         $(idName+"-gearcheck").addClass("success");
-        $(idName+"-gearcheck").addClass("tiny");
         $(idName+"-gearcheck").html('done');
     } else {
         $(idName+"-gearcheck").addClass("hollow");
         $(idName+"-gearcheck").removeClass("success");
-        $(idName+"-gearcheck").removeClass("tiny");
         $(idName+"-gearcheck").html('no');
     }
 

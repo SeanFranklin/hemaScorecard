@@ -131,7 +131,7 @@ if($eventID == null){
 
 				<td class='text-center'>
 
-					<a class='button no-bottom' onclick="checkInFighterJs('waiver')"
+					<a class='button no-bottom tiny' onclick="checkInFighterJs('waiver')"
 						id='<?=$f['waiverID']?>'
 						data-checkInType='event'
 						data-rosterID=<?=$rosterID?> 
@@ -143,7 +143,7 @@ if($eventID == null){
 
 				<td class='text-center'>
 
-					<a class='button no-bottom' onclick="checkInFighterJs('checkIn')"
+					<a class='button no-bottom tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$f['checkInID']?>'
 						data-checkInType='event'
 						data-rosterID=<?=$rosterID?> 
@@ -168,7 +168,7 @@ if($eventID == null){
 
 				<td class='text-center'>
 
-					<a class='button no-bottom italic' onclick="checkInFighterJs('waiver')"
+					<a class='button no-bottom italic tiny' onclick="checkInFighterJs('waiver')"
 						id='<?=$a['waiverID']?>'
 						data-checkInType='additional'
 						data-additionalRosterID=<?=$additionalID?> 
@@ -180,7 +180,7 @@ if($eventID == null){
 
 				<td class='text-center'>
 
-					<a class='button no-bottom italic' onclick="checkInFighterJs('checkIn')"
+					<a class='button no-bottom italic tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$a['checkInID']?>'
 						data-checkInType='additional'
 						data-additionalRosterID=<?=$additionalID?> 
