@@ -6628,7 +6628,7 @@ function checkInFighter($checkIn){
 			$sql = "UPDATE eventTournamentRoster
 					SET tournamentGearCheck = {$gearcheck}, 
 						tournamentCheckIn = {$checkin}
-					WHERE $tournamentID = {$tournamentID}
+					WHERE tournamentID = {$tournamentID}
 					AND rosterID = {$rosterID}";
 			mysqlQuery($sql, SEND);
 
@@ -6657,7 +6657,54 @@ function checkInFighter($checkIn){
 		default: {break;}
 	}
 
-	
+}
+
+/******************************************************************************/
+
+function bulkCheckIn($parameters){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$tournamentID = (int)@$parameters['tournamentID'];
+
+	switch($parameters['mode']){
+
+		case 'tournament-in':{
+			$sql = "UPDATE eventTournamentRoster
+					SET tournamentCheckIn = 1
+					WHERE tournamentID = {$tournamentID}";
+			mysqlQuery($sql, SEND);
+			break;
+		}
+
+		case 'gear-in':{
+			$sql = "UPDATE eventTournamentRoster
+					SET tournamentGearCheck = 1
+					WHERE tournamentID = {$tournamentID}";
+			mysqlQuery($sql, SEND);
+			break;
+		}
+
+		case 'tournament-out':{
+			$sql = "UPDATE eventTournamentRoster
+					SET tournamentCheckIn = 0
+					WHERE tournamentID = {$tournamentID}";
+			mysqlQuery($sql, SEND);
+			break;
+		}
+
+		case 'gear-out':{
+			$sql = "UPDATE eventTournamentRoster
+					SET tournamentGearCheck = 0
+					WHERE tournamentID = {$tournamentID}";
+			mysqlQuery($sql, SEND);
+			break;
+		}
+		
+		default:{break;}
+	}
 }
 
 /******************************************************************************/
