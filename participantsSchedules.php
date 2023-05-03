@@ -108,11 +108,24 @@ function displayIndividualSchedule($schedule, $eventDays){
 		</fieldset>
 	<?php endif ?>
 
+	<table class='stack cell'>
+
+	<tr class='hide-for-small-only'>
+		<th>Type</th>
+		<th>Scheduled</th>
+		<th>Time</th>
+		<th>Location</th>
+	</tr>
+
+
 	<?php if(isset($schedule['scheduled']) == true){
+		$dayNum = 0;
 		foreach($schedule['scheduled'] as $sItem){
-			displayScheduleItem($sItem, $eventDays);
+			$dayNum = displayScheduleItem($sItem, $eventDays, $dayNum);
 		}
 	} ?>
+
+	</table>
 
 	</div>
 <?php
@@ -120,7 +133,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 
 /******************************************************************************/
 
-function displayScheduleItem($info, $eventDays){
+function displayScheduleItem($info, $eventDays, $dayNum){
 
 
 	$name = logistics_getScheduleBlockName($info['blockID']);
@@ -135,6 +148,10 @@ function displayScheduleItem($info, $eventDays){
 	$roleString = '';
 	$locationString = '';
 
+	$class = '';
+	if($dayNum != $info['dayNum']){
+		$class = 'top-border';
+	}
 
 	if(isset($info['shiftID']) == true){
 
@@ -146,9 +163,9 @@ function displayScheduleItem($info, $eventDays){
 			
 		} else {
 			$locationString = '';
-			$typeString = 'Event Staffing';
+			$typeString = '<u>Staffing</u>';
 			if($info['logisticsRoleID'] != null){
-				$roleString = "- <em>".logistics_getRoleName($info['logisticsRoleID']).'</em>';
+				$roleString = ": <em>".logistics_getRoleName($info['logisticsRoleID']).'</em>';
 			} else {
 				$roleString = '';
 			}
@@ -162,27 +179,24 @@ function displayScheduleItem($info, $eventDays){
 		
 	?>
 
-	<fieldset class='fieldset large-7 medium-9 cell'>
+	<tr class='<?=$class?>'>
 
-		<legend class='no-bottom'>
-			<h5 class='no-bottom'> 
-				<?=$typeString?> 
-				<?=$roleString?>
-			</h5>
-		</legend>
-
+		<td><?=$typeString?>
+		<?=$roleString?></td>
+	
+		<td>
 		<?php if($name != ''): ?>
 			<strong> <?=$name?> </strong>
-			
-			<BR>
 		<?php endif ?>
+		</td>
 
-		<?=$timeString?><BR>
-		<?=$locationString?>
+		<td><?=$timeString?></td>
+		<td><?=$locationString?></td>
 
-	</fieldset>
+	</tr>
 
 <?php
+	return ($info['dayNum']);
 }
 
 /******************************************************************************/
