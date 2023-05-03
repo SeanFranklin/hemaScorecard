@@ -35,13 +35,21 @@ if($tournamentID == null){
 	
 
 	$teamRostersSorted = [];
-	foreach($teamRostersRaw as $teamID => $team){
-		$teamRostersSorted[$teamID] = getTeamName($teamID);
+	foreach($teamsList as $team){
+		$teamRostersSorted[$team['teamID']] = getTeamName($team['teamID']);
 	}
 	asort($teamRostersSorted);
 
+	$blank['members'] = [];
+
 	foreach($teamRostersSorted as $teamID => $team){
-		$teamRostersSorted[$teamID] = $teamRostersRaw[$teamID];
+
+		if(isset($teamRostersRaw[$teamID]) == true){
+			$teamRostersSorted[$teamID] = $teamRostersRaw[$teamID];
+		} else {
+			$teamRostersSorted[$teamID] = $blank;
+		}
+
 	}
 
 	$numTeams = (int)count(@$teamRostersSorted);
@@ -224,20 +232,22 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 		return;
 	}
 
+	$numUnassigned = count($addableFighters);
+
 ?>
 <!-- Visibility Button -->
 	<button class='button' id='createTeamButton' onclick="$(this).hide();$(createTeamForm).show();">
 		Create New Team
 	</button>
 	<button class='button hollow' id='soloFightersButton' onclick="$(this).hide();$(soloFightersDisplay).show();">
-		See Un-Assigned Fighters
+		See Un-Assigned Fighters (<?=$numUnassigned?>)
 	</button>
 
 <!-- Creation Form -->
 
 	<fieldset class='fieldset hidden' id='soloFightersDisplay'>
 		<legend><h4>
-			Un-Assigned Fighters &nbsp;
+			Un-Assigned Fighters (<?=$numUnassigned?>) &nbsp;
 			<a class='button secondary no-bottom hollow small' 
 				id='createTeamShow' style='float:right'
 				onclick="$(soloFightersButton).show();$(soloFightersDisplay).hide();">
