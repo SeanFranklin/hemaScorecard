@@ -23,12 +23,12 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 	if($matchID == 0 || $tournamentID == 0){
 		return;
 	}
-	
+
 	$sql = "SELECT exchangeID
 			FROM eventExchanges
 			WHERE matchID = {$matchID}";
 	$res = mysqlQuery($sql, SINGLE);
-	
+
 	$basePointValue = getBasePointValue($tournamentID, $_SESSION['groupSet']);
 
 	if($res == null){
@@ -40,11 +40,11 @@ function _DeductionBased_addExchanges($numToAdd, $matchInfo){
 			}
 		}
 	}
-	
+
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, null, 'pending', 'null', 0, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', 0, 0);
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -55,10 +55,10 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 
 	$basePoints = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
-	
+
 <!-- Table Headers -->
 	<?php if($exchangeNum == 'header'): ?>
-	
+
 		<tr>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<th></th>
@@ -66,12 +66,12 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 			<th></th>
 			<th>Deduction</th>
 		</tr>
-		
+
 		<?php return; ?>
 	<?php endif ?>
-	
+
 	<?php
-	
+
 	// Code Block /////////////////////////////
 	if($exchange == null){
 		// Not a valid exchange
@@ -81,7 +81,7 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 
 	$exchangeNum--;
 	$exchangeID = $exchange['exchangeID'];
-	
+
 	if($exchange['exchangeType'] == 'scored'){
 		$placeholder = '';
 		$against = $exchange['scoreDeduction'];
@@ -95,7 +95,7 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 		$for = '';
 	}
 	?>
-	
+
 	<tr>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<?php if($exchangeNum == 0): ?>
@@ -104,7 +104,7 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 				<td><input type='checkbox' name='exchangesToDelete[<?=$exchangeID?>]'></td>
 			<?php endif ?>
 		<?php endif ?>
-	
+
 		<td class='text-right'>
 			<?php if($exchangeNum == 0): ?>
 				<strong>Base Points:</strong>
@@ -112,32 +112,32 @@ function _DeductionBased_displayExchange($exchange = null, $exchangeNum = null){
 				#<?=$exchangeNum?>
 			<?php endif ?>
 		</td>
-	
+
 	<!-- Exchanges -->
 		<td class='text-center'>
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<?php if($exchangeNum == 0): ?>
-					<input type='number' step='0.1' class='no-bottom' 
+					<input type='number' step='0.1' class='no-bottom'
 						value='<?=$for?>' name=scores[<?=$exchangeID?>][value]>
 				<?php else: ?>
 					<input type='number' step='0.1' class='no-bottom' <?=$placeholder?>
 						value='<?=$against?>' name=scores[<?=$exchangeID?>][deduction] >
 				<?php endif ?>
-				
-			<?php else: ?> 
+
+			<?php else: ?>
 				<?php if($exchangeNum == 0): ?>
 					<strong><?=$for?></strong>
 				<?php else: ?>
 					<?php if($against != 0): ?>
 						- <!-- against scores are displayed as negative values -->
 					<?php endif ?>
-					<?=$against?> 
+					<?=$against?>
 				<?php endif ?>
 			<?php endif ?>
 		</td>
-	
+
 	</tr>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -147,14 +147,14 @@ function _DeductionBased_updateExchanges(){
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
-	
+
 		// Unset values are treated as zero.
 		$exchangesToUpdate[$exchangeID]['scoreValue'] = @(float)$data['value'];
 		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = @(float)$data['deduction'];
 	}
 
 	return $exchangesToUpdate;
-	
+
 }
 
 /******************************************************************************/
@@ -166,9 +166,9 @@ function _JNCR_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -179,7 +179,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 
 	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
-	
+
 <!--  Table Headers -->
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
@@ -219,14 +219,14 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 				</th>
 			<?php endif ?>
 		</tr>
-		
+
 		<?php return; ?>
 	<?php endif ?>
 <?php
 
 // Calculations
 	$exchangeID = $exchange['exchangeID'];
-	
+
 	if($exchange['exchangeType'] == 'scored'){
 		$for = $exchange['scoreValue'];
 		$against = $exchange['scoreDeduction'];
@@ -236,7 +236,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 		$cutPoints = '';
 		$upperPoints = '';
 		$lowerPoints = '';
-		
+
 	} else {
 		if(ALLOW['EVENT_SCOREKEEP'] == false){ return;}
 		$for = $exchange['scoreValue'];
@@ -249,7 +249,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 		$lowerPoints = 0;
 	}
 	?>
-	
+
 <!-- Table Row -->
 	<tr class='text-center'>
 
@@ -327,7 +327,7 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 			</td>
 
 			<td>
-				<?php if($against > 0): ?> 
+				<?php if($against > 0): ?>
 					- <!-- Points against are displayed as negative-->
 				<?php endif ?>
 				<?=$against;?>
@@ -346,8 +346,8 @@ function _JNCR_displayExchange($exchange,$exchangeNum){
 /******************************************************************************/
 
 function _JNCR_updateExchanges(){
-// Calculates the score of each cut for pieces using 'Pure Score'	
-	
+// Calculates the score of each cut for pieces using 'Pure Score'
+
 	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	$exchangesToUpdate = [];
 
@@ -402,7 +402,7 @@ function _JNCR_updateExchanges(){
 	}
 
 	return $exchangesToUpdate;
-	
+
 }
 
 /******************************************************************************/
@@ -414,9 +414,9 @@ function _PureScore_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -427,7 +427,7 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 
 	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
-	
+
 <!--  Table Headers -->
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
@@ -436,8 +436,8 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 					<strong>Cut Num</strong>
 				<?php endif ?>
 			</th>
-		
-		
+
+
 			<th class='text-center' style='padding: 1px;'>
 				Score
 			</th>
@@ -449,14 +449,14 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 				Points
 			</th>
 		</tr>
-		
+
 		<?php return; ?>
 	<?php endif ?>
 <?php
 
 // Calculations
 	$exchangeID = $exchange['exchangeID'];
-	
+
 	if($exchange['exchangeType'] == 'scored'){
 		$for = $exchange['scoreValue'];
 		$against = $exchange['scoreDeduction'];
@@ -472,17 +472,17 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 		$placeholder = "placeholder='0'";
 	}
 	?>
-	
+
 <!-- Table Row -->
 	<tr class='text-center'>
-	
+
 		<td>
 		<strong><?=$exchangeNum?></strong>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<input type='checkbox' class='no-bottom' name='exchangesToDelete[<?=$exchangeID?>]'>
 		<?php endif ?>
 		</td>
-	
+
 
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<td style='padding: 1px;'>
@@ -495,13 +495,13 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 			</td>
 		<?php else: ?>
 			<td>
-				<?php if($for < 0): ?> 
+				<?php if($for < 0): ?>
 					- <!-- Points against are displayed as negative-->
 				<?php endif ?>
 				<?=$for;?>
 			</td>
 			<td>
-				<?php if($against > 0): ?> 
+				<?php if($against > 0): ?>
 					- <!-- Points against are displayed as negative-->
 				<?php endif ?>
 				<?=$against;?>
@@ -518,17 +518,17 @@ function _PureScore_displayExchange($exchange,$exchangeNum){
 /******************************************************************************/
 
 function _PureScore_updateExchanges(){
-// Calculates the score of each cut for pieces using 'Pure Score'	
-	
+// Calculates the score of each cut for pieces using 'Pure Score'
+
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
-		
+
 		$exchangesToUpdate[$exchangeID]['scoreValue'] = (float)$data['scoreValue'];
 		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = (float)$data['scoreDeduction'];
 
 	}
 
 	return $exchangesToUpdate;
-	
+
 }
 
 /******************************************************************************/
@@ -540,9 +540,9 @@ function _RSScutting_addExchanges($numToAdd, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'],$groupSet);
 
 	for($i=1;$i<=$numToAdd;$i++){
-		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);	
+		insertLastExchange($matchInfo, null, 'pending', 'null', $basePointValue, 0);
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -553,7 +553,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 
 	$basePointValue = getBasePointValue($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
-	
+
 <!--  Table Headers -->
 	<?php if($exchangeNum == 'header'): ?>
 		<tr>
@@ -562,7 +562,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 					<strong>Cut Num</strong>
 				<?php endif ?>
 			</th>
-		
+
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<th class='text-center' style='padding: 1px;'>
 					Form
@@ -571,7 +571,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 					&nbsp;&nbsp;Cut&nbsp;&nbsp;
 				</th>
 			<?php endif ?>
-		
+
 			<th class='text-center'>
 				Penalty
 			</th>
@@ -579,14 +579,14 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 				Points
 			</th>
 		</tr>
-		
+
 		<?php return; ?>
 	<?php endif ?>
 <?php
 
 // Calculations
 	$exchangeID = $exchange['exchangeID'];
-	
+
 	if($exchange['exchangeType'] == 'scored'){
 		$for = $exchange['scoreValue'];
 		$against = $exchange['scoreDeduction'];
@@ -601,10 +601,10 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 		$placeholder = "placeholder='0'";
 	}
 	?>
-	
+
 <!-- Table Row -->
 	<tr class='text-center'>
-	
+
 		<td>
 		<?=$exchangeNum?>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
@@ -612,7 +612,7 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 			<input type='number' class='hidden' value=<?=$basePointValue?> name=scores[<?=$exchangeID?>][for]>
 		<?php endif ?>
 		</td>
-	
+
 
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<td style='padding: 1px;'>
@@ -626,14 +626,14 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 		<?php endif ?>
 
 		<td>
-			<?php if($against > 0): ?> 
+			<?php if($against > 0): ?>
 				- <!-- Points against are displayed as negative-->
 			<?php endif ?>
 			<?=$against;?>
-			<input type='number' step='0.1' style='width: 100%; display:none' 
+			<input type='number' step='0.1' style='width: 100%; display:none'
 				value='<?=$against?>' name=scores[<?=$exchangeID?>][against]>
 		</td>
-	
+
 		<td>
 			<strong>
 				<?=$total?>
@@ -645,19 +645,19 @@ function _RSScutting_displayExchange($exchange,$exchangeNum){
 /******************************************************************************/
 
 function _RSScutting_updateExchanges(){
-// Calculates the score of each cut for pieces using 'RSS Cutting'	
-	
+// Calculates the score of each cut for pieces using 'RSS Cutting'
+
 	foreach((array)$_POST['scores'] as $exchangeID => $data){
-		
+
 		$for = (float)$data['for'];
-		
+
 		if($data['against'] == 'N/A'){
 			$a = (float)$data['form'];
 			$b = (float)$data['cut'];
 		} else {
 			$a = (float)$data['form'];
 			$b = (float)$data['cut'];
-			
+
 			if($a !== '' || $b !== ''){
 				$a = (float)$a;
 				$b = (float)$b;
@@ -669,7 +669,7 @@ function _RSScutting_updateExchanges(){
 
 
 		$deduction = round(sqrt($a*$a + $b*$b),1);
-		
+
 		if($deduction > $for){
 			if($a <= $for AND $b <= $for){
 				$deduction = $for;
@@ -677,20 +677,20 @@ function _RSScutting_updateExchanges(){
 				$deduction = max($a,$b);
 			}
 		}
-		
+
 		$exchangesToUpdate[$exchangeID]['scoreValue'] = $for;
 		$exchangesToUpdate[$exchangeID]['scoreDeduction'] = $deduction;
 
 	}
 
 	return $exchangesToUpdate;
-	
+
 }
 
 /******************************************************************************/
 
 function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
-	
+
 	$tournamentID = (int)$tournamentID;
 	$groupSet = (int)$groupSet;
 	$scores = [];
@@ -731,7 +731,7 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 		$loserCalc = 0;
 
 		// These values may not exist, in which case they should be evaluated as zero.
-		@$scores[$winnerID] += $winnerCalc; 
+		@$scores[$winnerID] += $winnerCalc;
 		@$scores[$loserID] += $loserCalc;
 		@$numMatches[$winnerID]++;
 		@$numMatches[$loserID]++;
@@ -760,7 +760,7 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 				AND groupSet = {$groupSet}
 				AND rosterID = {$rosterID}";
 		mysqlQuery($sql, SEND);
-	}	
+	}
 
 }
 
@@ -813,7 +813,7 @@ function _FobDagger_calculateScore($tournamentID, $groupSet = 1){
 				AND ignoreMatch = 0
 				AND matchComplete = 1";
 		$score = (int)mysqlQuery($sql, SINGLE, 'numControlPoints');
-		
+
 
 
 		if($numMatches != 0){
@@ -821,7 +821,7 @@ function _FobDagger_calculateScore($tournamentID, $groupSet = 1){
 		} else {
 			$score = 0;
 		}
-		
+
 		$sql = "UPDATE eventStandings
 				SET score = {$score}
 				WHERE standingID = {$standing['standingID']}";
@@ -881,7 +881,7 @@ function _PhoMatchPoints_calculateScore($tournamentID, $groupSet = 1){
 
 		foreach($matches as $match){
 			$numMatches++;
-			
+
 			if($match['numDoubles'] > 1){
 				$doublesPenalty -= ($match['numDoubles'] - 1);
 			}
@@ -998,7 +998,7 @@ function _Schnegel2_calculateScore($tournamentID, $groupSet = 1){
 
 		$score = 0;
 
-		$sql = "SELECT 
+		$sql = "SELECT
 					(
 						SELECT COUNT(*) AS numClean
 						FROM eventExchanges AS eE2
@@ -1006,21 +1006,21 @@ function _Schnegel2_calculateScore($tournamentID, $groupSet = 1){
 						AND scoringID = {$rosterID}
 						AND exchangeType = 'clean'
 					) AS numClean,
-					(	
+					(
 						SELECT SUM(scoreValue) AS pointsFor1
 						FROM eventExchanges AS eE3
 						WHERE eE3.matchID = eM.matchID
 						AND scoringID = {$rosterID}
 						AND (exchangeType = 'clean' OR exchangeType = 'afterblow')
 					) AS pointsFor1,
-					(	
+					(
 						SELECT SUM(scoreDeduction) AS pointsFor2
 						FROM eventExchanges AS eE4
 						WHERE eE4.matchID = eM.matchID
 						AND receivingID = {$rosterID}
 						AND exchangeType = 'afterblow'
 					) AS pointsFor2,
-					(	
+					(
 						SELECT SUM(scoreValue) AS penalties
 						FROM eventExchanges AS eE5
 						WHERE eE5.matchID = eM.matchID
@@ -1129,7 +1129,7 @@ function _Wessex_calculateScore($tournamentID, $groupSet = 1){
 		} else {
 			$score = 0;
 		}
-		
+
 		$sql = "UPDATE eventStandings
 				SET score = {$score}
 				WHERE standingID = {$standingID}";
@@ -1176,20 +1176,20 @@ function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
 		$standingID = (int)$standing['standingID'];
 		$score = 0;
 
-		$sql = "SELECT matchID, winnerID, 
-					( 
+		$sql = "SELECT matchID, winnerID,
+					(
 						SELECT COUNT(*) AS num
 						FROM eventExchanges AS eE2
 						WHERE eE2.matchID = eM.matchID
 						AND (      (	 (scoringID != {$rosterID})
-								     AND (    exchangeType = 'clean' 
+									 AND (    exchangeType = 'clean'
 										   OR exchangeType = 'afterblow'))
 								OR (exchangeType = 'double')
 							)
 
 
 					) AS numExchangesLost,
-					( 
+					(
 						SELECT COUNT(*) AS num
 						FROM eventExchanges AS eE3
 						WHERE eE3.matchID = eM.matchID
@@ -1235,7 +1235,7 @@ function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
 			if($match['numDoubles'] != 0){
 				$score -= 1;
 			}
-			
+
 		}
 
 		if($numMatches != 0){
@@ -1243,7 +1243,7 @@ function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
 		} else {
 			$score = 0;
 		}
-		
+
 		$sql = "UPDATE eventStandings
 				SET score = {$score}
 				WHERE standingID = {$standingID}";
@@ -1254,7 +1254,7 @@ function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
 /******************************************************************************/
 
 function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
-	
+
 	$scoreData['score'] = 0;
 	$scoreData['pointsFor'] = 0;
 	$scoreData['pointsAgainst'] = 0;
@@ -1289,7 +1289,7 @@ function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $n
 /******************************************************************************/
 
 function _LpDeviation_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
-	
+
 	$scoreData['score'] = 0;
 	$pointsForFighter = [];
 
@@ -1329,7 +1329,7 @@ function _LpDeviation_calculateScore($tournamentPlacings, $basePointValue, $numE
 /******************************************************************************/
 
 function _PlacingCountdown_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
-	
+
 	$scoreData['score'] = 0;
 	$pointsForFighter = [];
 
@@ -1400,7 +1400,7 @@ function meta_ScoreFighters($mTournamentID){
 
 	$formula = getScoreFormula($mTournamentID);
 	$scoreFuncName = "_".substr($formula,1)."_calculateScore";
-	
+
 	$tournamentComponents = getMetaTournamentComponents($mTournamentID,true);
 	$basePointValue = (int)getBasePointValue($mTournamentID, null);
 
@@ -1420,7 +1420,7 @@ function meta_ScoreFighters($mTournamentID){
 	$notFinalized = [];
 	$cTournamentIDs = [];
 	$rosterIDs = [];
-	
+
 	foreach($tournamentComponents as $component){
 		$cTournamentID = (int)$component['cTournamentID'];
 
@@ -1433,7 +1433,7 @@ function meta_ScoreFighters($mTournamentID){
 			} else {
 				$numEntries[$cTournamentID] = getNumTournamentGroups($cTournamentID);
 			}
-			
+
 			$cTournamentIDs[] = $cTournamentID;
 
 		}
@@ -1451,8 +1451,8 @@ function meta_ScoreFighters($mTournamentID){
 		mysqlQuery($sql, SEND);
 
 		if($notFinalized != null){
-			$str = "Tournament standings for 
-				<strong>".getTournamentName($mTournamentID)."</strong> recalculated. 
+			$str = "Tournament standings for
+				<strong>".getTournamentName($mTournamentID)."</strong> recalculated.
 				The following components are not finalized and have not been included:";
 
 			foreach($notFinalized as $cTournamentID){
@@ -1500,14 +1500,14 @@ function meta_ScoreFighters($mTournamentID){
 		foreach($tournamentPlacings as $placing){
 			$placingByFighter[$placing['systemRosterID']][$placing['tournamentID']] = $placing;
 		}
-		
+
 
 
 
 
 	// Loop through all fighters and generate their scores
 		$placingByFighter = meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tString);
-		
+
 		foreach($tournamentRoster as $systemRosterID => $rosterID){
 
 			if(isset($placingByFighter[$systemRosterID]) == false){
@@ -1534,10 +1534,10 @@ function meta_ScoreFighters($mTournamentID){
 			if(isset($standingIDs[$rosterID]) == false){
 
 				$sql = "INSERT INTO eventStandings
-						(tournamentID, rosterID, groupType, score, 
+						(tournamentID, rosterID, groupType, score,
 							pointsFor, pointsAgainst, basePointValue)
 						VALUES
-						({$mTournamentID}, {$rosterID}, 'meta', {$score}, 
+						({$mTournamentID}, {$rosterID}, 'meta', {$score},
 							{$pointsFor}, {$pointsAgainst}, {$basePointValue})";
 				mysqlQuery($sql, SEND);
 
@@ -1545,7 +1545,7 @@ function meta_ScoreFighters($mTournamentID){
 
 				$standingID = (int)$standingIDs[$rosterID];
 				$sql = "UPDATE eventStandings
-						SET score = {$score}, pointsFor = {$pointsFor}, 
+						SET score = {$score}, pointsFor = {$pointsFor},
 							pointsAgainst = {$pointsAgainst}, basePointValue = {$basePointValue}
 						WHERE standingID = {$standingID}";
 				mysqlQuery($sql, SEND);
@@ -1557,7 +1557,7 @@ function meta_ScoreFighters($mTournamentID){
 
 // Delete any old standings hanging around from fighters without ranks
 	$fString = implode2int($rosterIDs);
-	
+
 	$sql = "DELETE FROM eventStandings
 			WHERE tournamentID = {$mTournamentID}
 			AND rosterID NOT IN ({$fString})";
@@ -1581,19 +1581,19 @@ function meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tStri
 		$cString = implode2int($cGroup['items']);
 		$usedComponents = (int)$cGroup['usedComponents'];
 
-		$sql = "SELECT sR.systemRosterID, COUNT(*) AS numInGroup, 
+		$sql = "SELECT sR.systemRosterID, COUNT(*) AS numInGroup,
 					'{$cString}' AS cString, '{$usedComponents}' AS usedComponents
 				FROM eventPlacings AS eP
 				INNER JOIN eventRoster AS eR USING(rosterID)
 				INNER JOIN systemRoster AS sR USING(systemRosterID)
 				WHERE eP.tournamentID IN ({$cString})
-				GROUP BY sR.systemRosterID	
-					HAVING numInGroup > {$usedComponents}"; 
+				GROUP BY sR.systemRosterID
+					HAVING numInGroup > {$usedComponents}";
 		$groupConflicts = mysqlQuery($sql, ASSOC);
 
 		if($groupConflicts != null){
 			$conflicts = array_merge($conflicts,$groupConflicts);
-		}	
+		}
 	}
 
 	foreach($conflicts as $conflict){
@@ -1610,12 +1610,12 @@ function meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tStri
 				ORDER BY placing ASC
 				LIMIT 9999 OFFSET {$usedComponents}";
 		$tournamentsToNotInclude = mysqlQuery($sql, SINGLES, 'tournamentID');
-		
+
 		foreach($tournamentsToNotInclude as $tournamentID){
 			unset($placingByFighter[$systemRosterID][$tournamentID]);
 		}
 	}
-	
+
 	return $placingByFighter;
 
 }
@@ -1625,7 +1625,7 @@ function meta_AdjustForComponentGroups($placingByFighter, $mTournamentID, $tStri
 function pool_ScoreFighters($tournamentID, $groupSet = 1){
 // Calls the appropriate function to score fighters given the tournament
 // scoring algorithm
-	
+
 	$groupSet = (int)$groupSet;
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){
@@ -1645,18 +1645,18 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 
 		mysqlQuery($sql, SEND);
 	} else {
-		// If a function has been specified instead of an algorithm then it is 
+		// If a function has been specified instead of an algorithm then it is
 		// prefixed with an '#';
 		$funcName = "_".substr($formula,1)."_calculateScore";
 		call_user_func($funcName,$tournamentID,$groupSet);
 	}
-	
+
 }
 
 /******************************************************************************/
 
 function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
-// Calls the appropriate function to display the fighters pool standings 
+// Calls the appropriate function to display the fighters pool standings
 // given the tournament scoring algorithm
 
 	$tournamentID = (int)$tournamentID;
@@ -1670,7 +1670,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	} else {
 		$numToElims = 0;
 	}
-	
+
 	$maxNumFields = 5;
 	$showTeams = (int)((bool)$showTeams);
 	$displayByPool = $_SESSION['displayByPool'];
@@ -1699,7 +1699,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		$selectStr .= ", {$tmpStr}";
 	}
 
-	
+
 	$orderBy = "eS.rank ASC";
 	if($displayByPool == true){
 		$orderBy = "groupNumber ASC, ".$orderBy;
@@ -1728,7 +1728,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			$displayByPool = false;
 		}
 	}
-	
+
 
 // Header row -----------------------------
 	function tableHeader($displayMeta, $maxNumFields){
@@ -1739,7 +1739,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			$index = "displayTitle".$i;
 			$name = $displayMeta[$index];
 
-			echo "<th>{$name}</th>";	
+			echo "<th>{$name}</th>";
 		}
 		echo "</tr>";
 	}
@@ -1774,7 +1774,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			echo "</td></tr>";
 
 			tableHeader($displayMeta, $maxNumFields);
-			
+
 		}
 
 		$class = '';
@@ -1808,7 +1808,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		} else {
 			$name = getCombatantName($fighter['rosterID']);
 		}
-	
+
 		echo "<tr class='text-center {$class}'>";
 		echo "<td>".$fighter['rank']."</td>";
 		echo "<td  class='text-left'>{$name}</td>";
@@ -1893,7 +1893,7 @@ function pool_standingsExplanation($tournamentID,$stopAtSetText = false, $bracke
 
 function pool_GeneratePools($specifications){
 // Calculate advancements to move onto the next pool set using the parameters specified.
-// Parameters are the number of 
+// Parameters are the number of
 
 	$tournamentID = (int)$specifications['tournamentID'];
 	if($tournamentID == 0){
@@ -1944,9 +1944,9 @@ function pool_GeneratePools($specifications){
 					INNER JOIN eventRoster USING(rosterID)
 					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
-					AND (	SELECT COUNT(*) 
-							FROM eventIgnores eI 
-							WHERE eI.rosterID = eTR.rosterID 
+					AND (	SELECT COUNT(*)
+							FROM eventIgnores eI
+							WHERE eI.rosterID = eTR.rosterID
 							AND eI.tournamentID = {$tournamentID} ) = 0
 					ORDER BY {$subGroupOrder} rating DESC";
 			$rankedList = mysqlQuery($sql, ASSOC);
@@ -1957,9 +1957,9 @@ function pool_GeneratePools($specifications){
 					INNER JOIN eventRoster USING(rosterID)
 					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
-					AND (	SELECT COUNT(*) 
-							FROM eventIgnores eI 
-							WHERE eI.rosterID = eTR.rosterID 
+					AND (	SELECT COUNT(*)
+							FROM eventIgnores eI
+							WHERE eI.rosterID = eTR.rosterID
 							AND eI.tournamentID = {$tournamentID} ) = 0
 					AND rating != 0
 					AND rating IS NOT NULL";
@@ -1991,7 +1991,7 @@ function pool_GeneratePools($specifications){
 				}
 
 			}
-			
+
 
 			break;
 
@@ -2003,9 +2003,9 @@ function pool_GeneratePools($specifications){
 					WHERE eS.tournamentID = {$tournamentID}
 					AND eTR.tournamentID = {$tournamentID}
 					AND groupSet = {$lastGroupSet}
-					AND (	SELECT COUNT(*) 
-							FROM eventIgnores eI 
-							WHERE eI.rosterID = eS.rosterID 
+					AND (	SELECT COUNT(*)
+							FROM eventIgnores eI
+							WHERE eI.rosterID = eS.rosterID
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
@@ -2018,15 +2018,15 @@ function pool_GeneratePools($specifications){
 					INNER JOIN eventRoster USING(rosterID)
 					WHERE tournamentID = {$tournamentID}
 					AND groupSet = {$lastGroupSet}
-					AND (	SELECT COUNT(*) 
-							FROM eventIgnores eI 
-							WHERE eI.rosterID = eS.rosterID 
+					AND (	SELECT COUNT(*)
+							FROM eventIgnores eI
+							WHERE eI.rosterID = eS.rosterID
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
 					ORDER BY {$subGroupOrder} rank ASC";
 			$maxRank = mysqlQuery($sql, SINGLE, 'maxRank');
-			
+
 			foreach($rankedList as $index => $fighter){
 				$rankedList[$index]['rating'] = $maxRank - $fighter['rank'];
 			}
@@ -2039,10 +2039,10 @@ function pool_GeneratePools($specifications){
 					INNER JOIN eventRoster USING(rosterID)
 					LEFT JOIN eventRatings USING(tournamentRosterID)
 					WHERE tournamentID = {$tournamentID}
-					AND (	SELECT COUNT(*) 
-							FROM eventIgnores eI 
-							WHERE eI.rosterID = eTR.rosterID 
-							AND eI.tournamentID = {$tournamentID} 
+					AND (	SELECT COUNT(*)
+							FROM eventIgnores eI
+							WHERE eI.rosterID = eTR.rosterID
+							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
 					ORDER BY {$subGroupOrder} RAND()";
@@ -2108,7 +2108,7 @@ function pool_GeneratePools($specifications){
 			$rosterID1 = $f1['rosterID'];
 			foreach($rankedList as $f2){
 				$rosterID2 = $f2['rosterID'];
-				$numberOfFightsTogether[$rosterID1][$rosterID2] = 
+				$numberOfFightsTogether[$rosterID1][$rosterID2] =
 					getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID);
 			}
 		}
@@ -2126,7 +2126,7 @@ $a = false;
 		} else {
 			$startPoolNum = 0;
 		}
-		
+
 		if($poolsInTier == 0){
 			$endPoolNum = $numberOfPools - 1; // zero-indexed
 		} else{
@@ -2180,17 +2180,17 @@ $a = false;
 														$numberOfFightsTogether,
 														$fighter['rosterID']);
 			}
-			
+
 			// Add in points function for fighter rank
 			// For using pool standings, assign each a rank based on their placing.
 			// First place gets highest rank
-			
+
 			$maxPoolPoints = -1;
 			$poolToAddTo = -1;
 
 
 			for($i = $startPoolNum;$i <= $endPoolNum; $i++){
-				
+
 				// If sizePoints < 0 then the pool is full
 				// You can't assign someone, no matter what the other metrics say.
 				if($sizePoints[$i] < 0){
@@ -2198,7 +2198,7 @@ $a = false;
 					continue;
 				}
 
-				// Add up all the different points 
+				// Add up all the different points
 				$poolPoints[$i] = $sizePoints[$i];
 				if($useRatings == true){
 					$poolPoints[$i] += $ratingPoints[$i];
@@ -2256,8 +2256,8 @@ $a = false;
 
 function pool_GeneratePolarPools($specifications){
 // Calculate advancements to move onto the next pool set using the parameters specified.
-// Parameters are the number of 
-			
+// Parameters are the number of
+
 	$tournamentID = (int)$_SESSION['tournamentID'];
 	if($tournamentID == 0){return;}
 	$groupSet = (int)$specifications['groupSet'];
@@ -2270,7 +2270,7 @@ function pool_GeneratePolarPools($specifications){
 		return;
 	}
 	$numberOfPools = count(getPools($tournamentID, $groupSet));
-	
+
 	$sql = "SELECT MAX(rating) AS maxRating1, MAX(rating2) AS maxRating2,
 					MIN(rating) AS minRating1, MIN(rating2) AS minRating2
 			FROM eventTournamentRoster
@@ -2332,7 +2332,7 @@ function pool_GeneratePolarPools($specifications){
 		}
 		$polarList[$subGroupNum][] = $p;
 		@$fightersInSubGroup[$subGroupNum]++; // might not exist, treat as zero.
-		
+
 	}
 
 	$lowestPoolInBound = 0;
@@ -2349,7 +2349,7 @@ function pool_GeneratePolarPools($specifications){
 		} else {
 			$numPoolsToUse = $numberOfPools;
 		}
-		
+
 		// There are no more pools to use
 		if($lowestPoolInBound > ($numberOfPools - 1)){
 			break;
@@ -2359,7 +2359,7 @@ function pool_GeneratePolarPools($specifications){
 		if($highestPoolInBound > ($numberOfPools - 1)){
 			$highestPoolInBound = ($numberOfPools - 1);
 		}
-		
+
 		$numPoolsInRange = ($highestPoolInBound - $lowestPoolInBound) + 1;
 
 		$poolPositions = [];
@@ -2403,7 +2403,7 @@ function pool_GeneratePolarPools($specifications){
 					$minDistance = $distanceToPool;
 					$closestPool = $poolNum;
 				}
-				
+
 			}
 
 			if($closestPool !== null){
@@ -2433,11 +2433,11 @@ function pool_GeneratePolarPools($specifications){
 
 function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 // Normalizes the raw exchange data of all fighters to the
-// value that the normalize pool size has been set to	
-	
+// value that the normalize pool size has been set to
+
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
-	
+
 	if(isEntriesByTeam($tournamentID) && isMatchesByTeam($tournamentID) == false){
 		$numberOfMatches = getNormalizationAveraged($tournamentID, $groupSet) - 1;
 	} elseif(isCumulative($groupSet, $tournamentID)){
@@ -2456,12 +2456,12 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 			if($dataIndex == 'groupID'){ continue; }
 
 			$fighterStats[$rosterID][$dataIndex] = round($data * $correction,3);
-			
+
 		}
 	}
 
 	return $fighterStats;
-	
+
 }
 
 /******************************************************************************/
@@ -2480,7 +2480,7 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 	$rankedPools = getRankedPools($tournamentID, $groupSet);
 
 // Load meta data on how to rank fighters
-	$sql = "SELECT poolWinnersFirst, 
+	$sql = "SELECT poolWinnersFirst,
 			orderByField1, orderBySort1,
 			orderByField2, orderBySort2,
 			orderByField3, orderBySort3,
@@ -2508,8 +2508,8 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 	}
 
 
-// Check which of the ORDER BY fields are valid/used	
-	if($meta['orderByField1'] == '' 
+// Check which of the ORDER BY fields are valid/used
+	if($meta['orderByField1'] == ''
 		|| ($meta['orderBySort1'] != 'ASC' && $meta['orderBySort1'] != 'DESC')){
 		$_SESSION['alertMessages']['systemErrors'][] = "Invalid sort data in sort_Simple()";
 		return;
@@ -2517,17 +2517,17 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 
 	$orderBy = "{$meta['orderByField1']} {$meta['orderBySort1']}";
 
-	if($meta['orderByField2'] != '' 
+	if($meta['orderByField2'] != ''
 		&& ($meta['orderBySort2'] == 'ASC' || $meta['orderBySort2'] == 'DESC')){
 			$orderBy .= ", {$meta['orderByField2']} {$meta['orderBySort2']}";
 	}
 
-	if($meta['orderByField3'] != '' 
+	if($meta['orderByField3'] != ''
 		&& ($meta['orderBySort3'] == 'ASC' || $meta['orderBySort3'] == 'DESC')){
 			$orderBy .= ", {$meta['orderByField3']} {$meta['orderBySort3']}";
 	}
 
-	if($meta['orderByField4'] != '' 
+	if($meta['orderByField4'] != ''
 		&& ($meta['orderBySort4'] == 'ASC' || $meta['orderBySort4'] == 'DESC')){
 			$orderBy .= ", {$meta['orderByField4']} {$meta['orderBySort4']}";
 	}
@@ -2544,10 +2544,10 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 	$rankedList = mysqlQuery($sql, ASSOC);
 
 	if($rankedPools != null){
-		$rankedList = pool_RankFightersByPool($rankedPools, $rankedList, $tournamentID, 
+		$rankedList = pool_RankFightersByPool($rankedPools, $rankedList, $tournamentID,
 											  $groupSet, $useTeams, $orderBy);
 	}
-		
+
 
 	$ignores = getIgnores($tournamentID, 'soloAtSet');
 	$winnerPlacing = 1;
@@ -2597,17 +2597,17 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 		$sql = "UPDATE eventStandings AS eS
 				SET eS.rank = {$placing}
 				WHERE standingID = {$standingID}";
-			
+
 		mysqlQuery($sql, SEND);
 
 	}
-	
+
 }
 
 /******************************************************************************/
 
-function pool_RankFightersByPool($rankedPools, $rankedList, 
-								 $tournamentID, $groupSet, 
+function pool_RankFightersByPool($rankedPools, $rankedList,
+								 $tournamentID, $groupSet,
 								 $useTeams, $orderBy){
 
 	$tournamentID = (int)$tournamentID;
@@ -2617,13 +2617,13 @@ function pool_RankFightersByPool($rankedPools, $rankedList,
 	$sql = "SELECT standingID, groupID, rosterID, groupRank, overlapSize, score
 			FROM eventStandings eS
 			INNER JOIN eventRoster USING(rosterID)
-			INNER JOIN eventGroupRankings USING(groupID) 
+			INNER JOIN eventGroupRankings USING(groupID)
 			WHERE tournamentID = {$tournamentID}
 			AND groupSet = {$groupSet}
 			AND isTeam = {$useTeams}
 			ORDER BY groupRank ASC, {$orderBy}";
 	$rankedByPoolList = mysqlQuery($sql, ASSOC);
-	
+
 	$maxPosition = count($rankedByPoolList) - 1;
 
 	$sql = "SELECT numFighters, groupID
@@ -2652,7 +2652,7 @@ function pool_RankFightersByPool($rankedPools, $rankedList,
 			if($poolPosition <= $entry['overlapSize'])
 			{
 				$overlapList[$entry['rosterID']] = true;
-			} 
+			}
 
 			if(    $poolPosition > $entry['overlapSize']
 				|| $absPosition >= $maxPosition){
@@ -2734,7 +2734,7 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 				AND groupSet = {$setNumber}
 				AND rosterID IN({$inRange})";
 		$numRecords = mysqlQuery($sql, SINGLE, 'numRecords');
-		
+
 		if($numRecords < 1){
 			continue;
 		}
@@ -2773,7 +2773,7 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 				AND groupSet = {$setNumber}
 				AND rosterID IN({$inRange})";
 		$teamData = mysqlQuery($sql, SINGLE);
-		
+
 		$updateClause = '';
 		foreach($fields as $field){
 			if($updateClause != ''){
@@ -2800,8 +2800,8 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 	} else {
 		$inString = "";
 	}
- 
-	$sql = "DELETE eventStandings 
+
+	$sql = "DELETE eventStandings
 			FROM eventStandings
 			INNER JOIN eventRoster ON eventStandings.rosterID = eventRoster.rosterID
 			WHERE tournamentID = {$tournamentID}
@@ -2817,7 +2817,7 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 function scored_AddExchanges(){
 // Select the appropriate function to add exchanges to a piece given
 // the tournament format
-	
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$matchID = $_SESSION['matchID'];
@@ -2829,27 +2829,27 @@ function scored_AddExchanges(){
 
 	$numToAdd = (int)$_POST['exchangesToAdd'];
 
-	
+
 // determine which algorithim to use
 	$funcName = getScoringFunctionName($tournamentID);
 	if($funcName == null){return;}
 	$funcName = "_".$funcName."_addExchanges";
-	
+
 	call_user_func($funcName,$numToAdd,$matchInfo);
-	
+
 }
 
 /******************************************************************************/
 
 function scored_DisplyExchanges($matchID = null){
 // Select the correct function to display the exchanges of a piece
-	
+
 	if($matchID == null){$matchID = $_SESSION['matchID'];}
 	if($matchID == null){return;}
 
 	$matchInfo = getMatchInfo($matchID);
 
-// Determine which algorithim to use	
+// Determine which algorithim to use
 	$funcName = getDisplayFunctionName($matchInfo['tournamentID']);
 	if($funcName == null){return;}
 	$funcName = "_".$funcName."_displayExchange";
@@ -2861,9 +2861,9 @@ function scored_DisplyExchanges($matchID = null){
 // Display Header
 	call_user_func($funcName,'','header');
 
-// Display Exchanges	
+// Display Exchanges
 	foreach($exchanges as $exchange){
-		call_user_func($funcName,$exchange,++$i);	
+		call_user_func($funcName,$exchange,++$i);
 	}
 	echo "</table>";
 
@@ -2873,14 +2873,14 @@ function scored_DisplyExchanges($matchID = null){
 
 function scored_UpdateExchanges($tournamentID = null){
 // Select the correct function to update the exchanges of a piece
-	
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	if(!isset($_POST['scores'])){return;}
-	
+
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
 	if($tournamentID == null){return;}
-	
+
 // determine which algorithim to use
 	$funcName = getScoringFunctionName($tournamentID);
 	if($funcName == null){return;}
@@ -2900,15 +2900,15 @@ function scored_UpdateExchanges($tournamentID = null){
 		$sampleExchangeID = $exchangeID;
 
 		$sql = "UPDATE eventExchanges
-				SET scoreValue = {$scoreValue}, 
+				SET scoreValue = {$scoreValue},
 				scoreDeduction = {$scoreDeduction},
 				exchangeType = 'scored'
 				WHERE exchangeID = {$exchangeID}";
 		mysqlQuery($sql, SEND);
 	}
-	
+
 	updateMatch(getMatchInfo($_POST['matchID']));
-	
+
 	if(isLastPiece($tournamentID)){
 		$_SESSION['askForFinalization'] = true;
 	}

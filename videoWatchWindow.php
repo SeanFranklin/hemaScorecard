@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -20,9 +20,9 @@ $vC = '?=1.0.6'; // CSS Version
 
 
 /////////////////////////////////////
-$backgroundColor = 'black';	
+$backgroundColor = 'black';
 if(ALLOW['SOFTWARE_ADMIN'] == true){
-	$backgroundColor = 'white';	
+	$backgroundColor = 'white';
 }
 ////////////////////////////////////
 
@@ -36,7 +36,7 @@ if($streamInfo['streamMode'] == VIDEO_STREAM_LOCATION){
 
 } else {
 
-	$videoInfo = getMatchVideoLink($matchID); 
+	$videoInfo = getMatchVideoLink($matchID);
 	$streamInfo['sourceLink'] = $videoInfo['sourceLink'];
 	$streamInfo['synchTime'] = $videoInfo['synchTime'];
 	$streamInfo['synchTime2'] = $videoInfo['synchTime2'];
@@ -54,9 +54,9 @@ if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
 		<BR>(If this is a software error please try closing this view window, reloading the main scorecard page, and re-opening the livestream link. If it is a bad link then nothing can save you.)";
 } else {
 
-	$backgroundColor = 'black';	
+	$backgroundColor = 'black';
 	if(ALLOW['SOFTWARE_ADMIN'] == true || $streamInfo['sourceType'] == VIDEO_SOURCE_NONE){
-		$backgroundColor = 'white';	
+		$backgroundColor = 'white';
 	}
 
 // FAKE HEADER \/////////////////////////////////////////////////////////////////
@@ -76,27 +76,27 @@ if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
 </script>
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="
-		HEMA Scorecard is a free online software application for running 
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="
+		HEMA Scorecard is a free online software application for running
 		Historical European Martial Arts tournaments and making the information
 		easily accessible.
 	">
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
-    <title>HEMA Scorecard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
-    
-    <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="includes/foundation/css/app.css">
-    <link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
+	<title>HEMA Scorecard</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
 
-    <link rel='icon' href='includes\images\favicon.png'>
+	<link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="includes/foundation/css/app.css">
+	<link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
 
-    <?=streamStylesheet($streamInfo)?>
-	
+	<link rel='icon' href='includes\images\favicon.png'>
+
+	<?=streamStylesheet($streamInfo)?>
+
 </head>
 
 <body style='background-color: <?=$backgroundColor?>;'>
@@ -104,7 +104,7 @@ if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
 <?php
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<input type='hidden' id='stream-locationID' value=<?=$locationID?>>
@@ -128,13 +128,13 @@ if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
 			<?=googleDriveFrame($streamInfo)?>
 
 			<?=streamOverlay($streamInfo)?>
-		
+
 		</div>
 	</div>
 
-<?php 
+<?php
 }
-	
+
 include('includes/footer.php');
 
 
@@ -149,7 +149,7 @@ function virtualStreamControl($streamInfo){
 	}
 
 	$transparency = 100 - $streamInfo['opacity'];
-	
+
 ?>
 
 	<div class='grid-x grid-margin-x'>
@@ -165,7 +165,7 @@ function virtualStreamControl($streamInfo){
 
 		<div class='input-group medium-6  no-bottom cell'>
 			<span class='input-group-label'>Overlay Transparency:</span>
-			<div class="slider input-group-field no-bottom" 
+			<div class="slider input-group-field no-bottom"
 				data-slider data-initial-start="<?=$transparency?>" data-end="100">
 				<span class="slider-handle" data-slider-handle role="slider" tabindex="1"></span>
 				<span class="slider-fill" data-slider-fill></span>
@@ -179,9 +179,9 @@ function virtualStreamControl($streamInfo){
 				<?=tooltip("The time when the director calls 'FIGHT' to start the first exchange.<BR><BR>
 				<i>(Not neceassary but the clock will be out of synch for the first exchange without it.)</i>")?>
 			</span>
-			
+
 		</div>
-		
+
 
 	</div>
 
@@ -211,7 +211,7 @@ function streamOverlay($streamInfo){
 				</div>
 			</div>
 
-			
+
 		</div>
 
 		<div class='auto text-center cell' >
@@ -224,7 +224,7 @@ function streamOverlay($streamInfo){
 
 		<div class='shrink cell' id='color2Div'>
 			<div class='grid-x align-middle'>
-				
+
 				<div class='shrink cell'>
 					<span class='overlay-name overlay-left' id='fighter2Name'>----</span><BR>
 					<span class='overlay-school overlay-left hide-for-small-only' id='fighter2School'>----</span>
@@ -236,7 +236,7 @@ function streamOverlay($streamInfo){
 		</div>
 	</div>
 	</div>
-	
+
 	<!-- Lower overlay. Last exchange, match time, and doubles -->
 	<div id="overlay2" class='overlay-container'>
 	<div class='grid-x align-middle overlay'>
@@ -255,7 +255,7 @@ function streamOverlay($streamInfo){
 				</span>
 			</div>
 			</div>
-			
+
 		</div>
 		<div class='small-2 text-center'>
 			<span class='overlay-score' id='timeDiv'>0:00</span>
@@ -270,7 +270,7 @@ function streamOverlay($streamInfo){
 		</div>
 	</div>
 	</div>
-	
+
 
 <?php
 }
@@ -296,10 +296,10 @@ function streamStylesheet($streamInfo){
 		position: relative;
 		padding-bottom: 56.25%; /* 16:9 */
 		padding-top: 30px; /* size of chrome */
-		height: 0; 
+		height: 0;
 		overflow: hidden;
 	}
-	 
+
 	.video-container iframe,
 	.video-container object,
 	.video-container embed {
@@ -309,7 +309,7 @@ function streamStylesheet($streamInfo){
 		width: 100%;
 		height: 100%;
 	}
-	
+
 
 	.video-container #overlay {
 		position: absolute;
@@ -317,14 +317,14 @@ function streamStylesheet($streamInfo){
 		left: 0;
 		width: 100%;
 	}
-	
+
 	.video-container #overlay2 {
 		position: absolute;
 		bottom: 0px;
 		left: 0;
 		width: 100%;
 	}
-	
+
 	#overlay, #overlay2 {
 		background:#000;
 		opacity:<?=$opacity?>;
@@ -333,7 +333,7 @@ function streamStylesheet($streamInfo){
 		color:#fff;
 		pointer-events: none;
 	}
-	
+
 	</style>
 <?php
 }
@@ -347,10 +347,10 @@ function googleDriveFrame($streamInfo){
 	}
 ?>
 
-	<iframe src="<?=$streamInfo['sourceType']?>" 
+	<iframe src="<?=$streamInfo['sourceType']?>"
 		width="640" height="480" allow="autoplay">
 	</iframe>
-	
+
 <?php
 }
 
@@ -438,7 +438,7 @@ function parseYoutubeLink($streamInfo){
 	} else {
 		$params = [];
 	}
-	
+
 	if(isset($params['v']) == true){
 		$streamInfo['youtubeID'] = $params['v'];
 	} elseif($linkComponents['path'] != '/watch'){

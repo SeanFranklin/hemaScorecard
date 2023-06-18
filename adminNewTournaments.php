@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Add New Tournaments
-	
+
 	Adds new tournaments to the event
 	LOGIN:
 		- ADMIN and above can view the page and add tournaments
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -20,16 +20,16 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false) {
 	pageError('user');
 } else {
-	
+
 	$tournamentIDs = getEventTournaments();
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
-	
+
 	<fieldset>
 	<form method='POST'>
-		
+
 	<input type='hidden' name='formName' value='updateTournamentInfo'>
 	<input type='hidden' name='modifyTournamentID' value='0'>
 
@@ -39,16 +39,16 @@ if($_SESSION['eventID'] == null){
 	<div class='large-7 cell'>
 
 	<table class='options-table stack'>
-	
+
 		<!-- Tournament Info --------------------------------------------->
-			<?php 
+			<?php
 
 			// Tournament Info --------------------------
 				edit_tournamentOptionsRow("General Configuration");
 				edit_tournamentName(0);
 				edit_tournamentFormatType(0);
 				edit_tournamentRankingType(0);
-				edit_tournamentBasePoints(0); 
+				edit_tournamentBasePoints(0);
 
 			// Sparring Tournaments Info --------------------------
 				edit_tournamentOptionsRow("Sparring Info","option-sparring");
@@ -71,7 +71,7 @@ if($_SESSION['eventID'] == null){
 
 			// Match Conclusion --------------------------
 				edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
-					"Optional settings for the software to automatically end a match when these conditions are met. 
+					"Optional settings for the software to automatically end a match when these conditions are met.
 					Scorekeepers can always conclude (or re-open) matches regardless of what is set here.");
 				edit_tournamentMaxDoubles(0);
 				edit_tournamentTimeLimit(0);
@@ -121,11 +121,11 @@ if($_SESSION['eventID'] == null){
 
 	</fieldset>
 
-	
+
 <!-- List of existing tournaments -->
 	<fieldset class='fieldset'>
 	<legend><h4>Current Tournaments</h4></legend>
-	
+
 	<?php foreach((array)$tournamentIDs as $tournamentID):
 		$name = getTournamentName($tournamentID); ?>
 		<li><?=$name?></li>

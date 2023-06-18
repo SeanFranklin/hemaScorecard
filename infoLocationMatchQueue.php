@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Locations
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -24,8 +24,8 @@ if($_SESSION['eventID'] == null){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Ring assignments not yet released");
 } else {
-	
-	
+
+
 	$locations = logistics_getEventLocations($_SESSION['eventID'], 'ring');
 	$numRings = sizeof($locations);
 	$numOptions = min($numRings,2);
@@ -55,7 +55,7 @@ if($_SESSION['eventID'] == null){
 	$color1 = COLOR_CODE_1;
 	$color2 = COLOR_CODE_2;
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<form method='POST'>

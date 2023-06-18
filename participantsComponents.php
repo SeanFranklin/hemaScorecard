@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
 	Tournament Components
-	
+
 	View and change the tournament components.
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ if($tournamentID == null){
 		}
 
 		$sourceTournaments = getEventComponentTournaments(
-										$_SESSION['metaTournamentComponentSource'], 
+										$_SESSION['metaTournamentComponentSource'],
 										$_SESSION['tournamentID']);
 
 	// Get tournaments which are already components
@@ -62,7 +62,7 @@ if($tournamentID == null){
 			}
 		}
 
-		
+
 
 	}
 
@@ -72,9 +72,9 @@ if($tournamentID == null){
 
 <!-- Page Structure -->
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == false): ?>
-		
-		The standings of 
-		<strong><?=getTournamentName($_SESSION['tournamentID'])?></strong> 
+
+		The standings of
+		<strong><?=getTournamentName($_SESSION['tournamentID'])?></strong>
 		are based on the final placings of:
 
 		<ul>
@@ -86,7 +86,7 @@ if($tournamentID == null){
 						echo "Best {$group['usedComponents']} placings in:";
 					}
 					?>
-					
+
 					<ul>
 					<?php foreach($group['items'] as $item): ?>
 						<li><?=getEventAndTournamentName($item)?></li>
@@ -116,9 +116,9 @@ if($tournamentID == null){
 		<?=manageTournamentComponentsGroups($tournamentComponents)?>
 
 	<?php endif ?>
-		
-<?php 		
-	
+
+<?php
+
 }
 
 include('includes/footer.php');
@@ -141,7 +141,7 @@ function manageTournamentComponents($sourceTournaments){
 <!-- If it is a meta-event then the user is able to choose which event to select tournament components from -->
 	<?php if(isMetaEvent($_SESSION['eventID']) == true): ?>
 		<form method='POST'>
-		
+
 			<input type='hidden' name='formName' value='changeSourceMetaEvent'>
 
 			<div class='input-group no-bottom'>
@@ -149,7 +149,7 @@ function manageTournamentComponents($sourceTournaments){
 				<span class='input-group-label no-bottom'>
 					Event:
 				</span>
-			
+
 				<select class='input-group-field no-bottom' name='changeEventSource[eventID]'
 					onchange="this.form.submit()">
 					<?php foreach(getEventListSmall() as $eventID => $name): ?>
@@ -169,17 +169,17 @@ function manageTournamentComponents($sourceTournaments){
 
 	<form method='POST' id='tournamentComponentsForm'>
 
-	<input type='hidden' name='sourceTournaments[metaTournamentID]' 
+	<input type='hidden' name='sourceTournaments[metaTournamentID]'
 		value='<?=$_SESSION['tournamentID']?>' >
 
 		<?php foreach($sourceTournaments as $tournamentID => $componentID):?>
 
-			
+
 			<input type='hidden' value='0'
 				name='sourceTournaments[componentTournamentIDs][<?=$tournamentID?>]'>
 			<input type='checkbox' class='no-bottom' value='1' <?=chk($componentID)?>
 				name='sourceTournaments[componentTournamentIDs][<?=$tournamentID?>]'>
-				
+
 			<?=getEventAndTournamentName($tournamentID)?>
 			<BR>
 
@@ -210,8 +210,8 @@ function manageComponentSettings($tournamentComponents){
 	</legend>
 
 	<form method='POST' id='tournamentComponentsForm'>
-	
-	<input type='hidden' name='metaTournament[mTournamentID]' 
+
+	<input type='hidden' name='metaTournament[mTournamentID]'
 		value=<?= $_SESSION['tournamentID']?>>
 
 		<table>
@@ -221,22 +221,22 @@ function manageComponentSettings($tournamentComponents){
 			<th>
 				Inclusive
 				<?php tooltip("
-					Roster is made up of fighters who are entered in <b>all</b> of the 
+					Roster is made up of fighters who are entered in <b>all</b> of the
 					tournaments with <i>Use Roster</i> selected.
 					")?>
 			</th>
 			<th>
 				Exclusive
 				<?php tooltip("
-					Roster is made up of fighters who are entered in <b>all</b> of the 
-					tournaments with <i>Use Roster</i> selected, and in <b>no other</b> 
+					Roster is made up of fighters who are entered in <b>all</b> of the
+					tournaments with <i>Use Roster</i> selected, and in <b>no other</b>
 					tournaments in this event.
 					")?>
 			</th>
 			<th>
 				Any
 				<?php tooltip("
-					Roster is made up of fighters who are entered in <b>any</b> of the 
+					Roster is made up of fighters who are entered in <b>any</b> of the
 					tournaments with <i>Use Roster</i> selected.
 					")?>
 			</th>
@@ -247,10 +247,10 @@ function manageComponentSettings($tournamentComponents){
 			</td>
 			<td>
 				<div class='switch no-bottom'>
-					<input type='radio' 
+					<input type='radio'
 						class='switch-input no-bottom'
 						name='metaTournament[rosterMode]'
-						value='<?=META_ROSTER_MODE_INCLUSIVE?>' 
+						value='<?=META_ROSTER_MODE_INCLUSIVE?>'
 						id='roster-mode-<?=META_ROSTER_MODE_INCLUSIVE?>'
 						<?=chk($rosterMode,META_ROSTER_MODE_INCLUSIVE)?>
 					>
@@ -260,10 +260,10 @@ function manageComponentSettings($tournamentComponents){
 			</td>
 			<td>
 				<div class='switch no-bottom'>
-					<input  type='radio' 
+					<input  type='radio'
 						class='switch-input no-bottom'
-						name='metaTournament[rosterMode]' 
-						value='<?=META_ROSTER_MODE_EXCLUSIVE?>' 
+						name='metaTournament[rosterMode]'
+						value='<?=META_ROSTER_MODE_EXCLUSIVE?>'
 						id='roster-mode-<?=META_ROSTER_MODE_EXCLUSIVE?>'
 						<?=chk($rosterMode,META_ROSTER_MODE_EXCLUSIVE)?>
 					>
@@ -274,9 +274,9 @@ function manageComponentSettings($tournamentComponents){
 			<td>
 				<div class='switch no-bottom'>
 					<input type='radio'
-						class='switch-input no-bottom'  
+						class='switch-input no-bottom'
 						name='metaTournament[rosterMode]'
-						value='<?=META_ROSTER_MODE_EXTENDED?>' 
+						value='<?=META_ROSTER_MODE_EXTENDED?>'
 						id='roster-mode-<?=META_ROSTER_MODE_EXTENDED?>'
 							<?=chk($rosterMode,META_ROSTER_MODE_EXTENDED)?>
 					>
@@ -316,17 +316,17 @@ function manageComponentSettings($tournamentComponents){
 			<!-- Name -->
 				<td>
 					<?=getEventAndTournamentName($cTournamentID)?>
-					<input class='hidden' name='<?=$fName?>[cTournamentID]' 
+					<input class='hidden' name='<?=$fName?>[cTournamentID]'
 						value='<?=$cTournamentID?>'>
 				</td>
 
 			<!-- Use result -->
 				<td>
 					<div class='switch no-bottom input-group-field'>
-						<input class='switch-input' type='hidden'  
+						<input class='switch-input' type='hidden'
 							name='<?=$fName?>[useResult]' value=0>
-						<input class='switch-input polar-disables' type='checkbox' 
-							id='<?=$fName?>[useResult]' name='<?=$fName?>[useResult]' 
+						<input class='switch-input polar-disables' type='checkbox'
+							id='<?=$fName?>[useResult]' name='<?=$fName?>[useResult]'
 							value=1 <?=chk($info['useResult'])?> >
 						<label class='switch-paddle' for='<?=$fName?>[useResult]'>
 						</label>
@@ -336,10 +336,10 @@ function manageComponentSettings($tournamentComponents){
 			<!-- Use roster -->
 				<td>
 					<div class='switch no-bottom input-group-field'>
-						<input class='switch-input' type='hidden'  
+						<input class='switch-input' type='hidden'
 							name='<?=$fName?>[useRoster]' value=0>
-						<input class='switch-input polar-disables' type='checkbox' 
-							id='<?=$fName?>[useRoster]' name='<?=$fName?>[useRoster]' 
+						<input class='switch-input polar-disables' type='checkbox'
+							id='<?=$fName?>[useRoster]' name='<?=$fName?>[useRoster]'
 							value=1 <?=chk($info['useRoster'])?> >
 						<label class='switch-paddle' for='<?=$fName?>[useRoster]'>
 						</label>
@@ -349,10 +349,10 @@ function manageComponentSettings($tournamentComponents){
 			<!-- Ignore roster -->
 				<td>
 					<div class='switch no-bottom input-group-field'>
-						<input class='switch-input' type='hidden'  
+						<input class='switch-input' type='hidden'
 							name='<?=$fName?>[ignoreRoster]' value=0>
-						<input class='switch-input polar-disables' type='checkbox' 
-							id='<?=$fName?>[ignoreRoster]' name='<?=$fName?>[ignoreRoster]' 
+						<input class='switch-input polar-disables' type='checkbox'
+							id='<?=$fName?>[ignoreRoster]' name='<?=$fName?>[ignoreRoster]'
 							value=1 <?=chk($info['ignoreRoster'])?> >
 						<label class='switch-paddle' for='<?=$fName?>[ignoreRoster]'>
 						</label>
@@ -366,9 +366,9 @@ function manageComponentSettings($tournamentComponents){
 	<button class='button success no-bottom' name='formName' value='updateMetaTournamentSettings'>
 		Update Component Settings
 	</button>
-		
-	
-	</form>	
+
+
+	</form>
 	</fieldset>
 
 <?php
@@ -398,7 +398,7 @@ function manageTournamentComponentsGroups($tournamentComponents){
 
 		<div class='grid-x'>
 
-		<input type='hidden' name='addComponentGroup[mTournamentID]' 
+		<input type='hidden' name='addComponentGroup[mTournamentID]'
 			value='<?=$_SESSION['tournamentID']?>' >
 
 		<div class='input-group large-5 medium-8 cell'>
@@ -414,7 +414,7 @@ function manageTournamentComponentsGroups($tournamentComponents){
 			<select class='input-group-field' name='addComponentGroup[numComponents]'>
 				<?=numberSelectMenu(2,$maxGroupSize)?>
 			</select>
-			
+
 			<button class='input-group-button button success hollow' name='formName'
 				value='addTournamentComponentGroup'>
 				Add New Group
@@ -430,9 +430,9 @@ function manageTournamentComponentsGroups($tournamentComponents){
 
 
 	<form method="POST">
-	<input type='hidden' name='updateTournamentComponentGroups[mTournamentID]' 
+	<input type='hidden' name='updateTournamentComponentGroups[mTournamentID]'
 		value='<?=$_SESSION['tournamentID']?>' >
-	<input type='hidden' name='deleteTournamentComponentGroups[mTournamentID]' 
+	<input type='hidden' name='deleteTournamentComponentGroups[mTournamentID]'
 		value='<?=$_SESSION['tournamentID']?>' >
 
 	<?php foreach($compGroups as $componentGroupID => $data):?>
@@ -443,18 +443,18 @@ function manageTournamentComponentsGroups($tournamentComponents){
 
 				<span class='input-group-label '>Best </span>
 
-				<select class='input-group-field' 
+				<select class='input-group-field'
 					name='updateTournamentComponentGroups[groups][<?=$componentGroupID?>][usedComponents]'>
 					<?=numberSelectMenu(1,$maxGroupSize,$data['usedComponents'])?>
 				</select>
 
 				<span class='input-group-label'> out of </span>
 
-				<select class='input-group-field' 
+				<select class='input-group-field'
 					name='updateTournamentComponentGroups[groups][<?=$componentGroupID?>][numComponents]'>
 					<?=numberSelectMenu(2,$maxGroupSize,$data['numComponents'])?>
 				</select>
-				
+
 				<span class='input-group-label'>
 					<input type='checkbox' class='no-bottom' name='deleteTournamentComponentGroups[componentGroupIDsToDelete][<?=$componentGroupID?>]' value='<?=$componentGroupID?>'>
 				</span>

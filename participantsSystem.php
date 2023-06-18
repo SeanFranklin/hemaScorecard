@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Tournament Roster
-	
+
 	View tournament roster and add fighters
 	Login:
 		- ADMIN or above can add or remove fighters from the tournament
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -76,9 +76,9 @@ include('includes/header.php');
 	</tbody>
 	</table>
 
-		
-<?php 		
-	
+
+<?php
+
 }
 
 include('includes/footer.php');
@@ -118,16 +118,16 @@ function editSystemFighterBox(){
 
 			<option value='1'>*Unknown</option>
 			<option value='2'>*Unaffiliated</option>
-		
+
 			<?php foreach($allSchools as $school):
 				if($school['schoolShortName'] == null || $school['schoolShortName'] == 'Unaffiliated'){continue;}
 				?>
-				
+
 				<option value='<?=$school['schoolID']?>'>
 					<?=$school['schoolShortName']?>, <?=$school['schoolBranch']?>
 					<?php if(ALLOW['SOFTWARE_ASSIST'] == TRUE): ?>
 						(<?=$school['schoolID']?>)
-					<?php endif ?>	
+					<?php endif ?>
 				</option>
 			<?php endforeach?>
 		</select>
@@ -145,12 +145,12 @@ function editSystemFighterBox(){
 		</button>
 	</div>
 	</form>
-	
+
 <!-- Reveal close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 	</div>
 
 

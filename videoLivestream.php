@@ -1,11 +1,11 @@
-<?php 
+<?php
 /*******************************************************************************
 	Info Summary
-	
+
 	Displays all the tournament medalists
-	Login: 
-		- ADMIN or above can add/remove final medalists 
-	
+	Login:
+		- ADMIN or above can add/remove final medalists
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ include('includes/header.php');
 if($_SESSION['eventID'] == null){
 	pageError('event');
 } else {
-	
+
 	$ringList = getEventVideoStreams($_SESSION['eventID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -43,8 +43,8 @@ if($_SESSION['eventID'] == null){
 		<?php endif ?>
 	</form>
 
-	
-	
+
+
 <?php }
 include('includes/footer.php');
 
@@ -71,7 +71,7 @@ function instructionsDisplay(){
 		<p>Streaming setup is done on a per-ring basis. First you must configure your rings using <a href='logisticsLocations.php'>Event Locations</a>, and then assign pools/matches to rings. If a livestream is active on a ring the table will receive prompts to continue to advance the active match for the display.</p>
 
 		<h5>Live Rings</h5>
-		<p>Prior to entering a Ring as <b>Live</b> the stream will not be viewable by anyone outside the event staff.</p> 
+		<p>Prior to entering a Ring as <b>Live</b> the stream will not be viewable by anyone outside the event staff.</p>
 		<p>If you have live rings that don't have a video source link they are viewable by anyone who navigates to <i>www.hemascorecard.com/videoLivestream.php</i>, but there won't be a way to navigate there from the main site. (This enables you to set up streaming overlays without needing to log in.) </p>
 		<p>Once a live ring is configured with a video source, a notification of the active livestream will show up on the top of the page for all visitors.</p>
 
@@ -82,14 +82,14 @@ function instructionsDisplay(){
 		<h5>Watching The Stream</h5>
 		<p>As an event organizer you can click on the big <b>Watch Ring</b> button at any time. If the stream is not live the button will be grey, but you can still click on it to test what someone would see if the stream was live, for testing purposes.<BR>
 		The active match indication <u>does not update in real time</u>, and is stale until you reload the page. </p>
-		
+
 		<a onclick="$('.livestream-help').toggle()">
 			Thanks, you can go away now.
 		</a>
 	</div>
 	<BR>
 
-	
+
 
 <?php
 }
@@ -108,7 +108,7 @@ function streamLocationInfoDisplay($info){
 		$matchDescription .= "<BR>";
 
 		$matchDescription .= "<b>".getTournamentName($matchInfo['tournamentID'])."</b>";
-		
+
 		$matchDescription .= " | ";
 		$matchDescription .= getGroupName($matchInfo['groupID']);
 
@@ -133,7 +133,7 @@ function streamLocationInfoDisplay($info){
 
 		<tr>
 			<td style="width:0.1%; white-space: nowrap;">
-				<a class='button hollow no-bottom' 
+				<a class='button hollow no-bottom'
 					onclick="openVideoWindow(<?=$info['locationID']?>,<?=VIDEO_STREAM_LOCATION?>)">
 					<h3 class='no-bottom'>Watch <b><?=$info['locationName']?></b></h3>
 				</a>
@@ -148,7 +148,7 @@ function streamLocationInfoDisplay($info){
 
 		<tr>
 			<td style="width:0.1%; white-space: nowrap;">
-				<a class='button hollow no-bottom secondary' 
+				<a class='button hollow no-bottom secondary'
 					onclick="openVideoWindow(<?=$info['locationID']?>,<?=VIDEO_STREAM_LOCATION?>)">
 					<h3 class='no-bottom'>Watch <b><?=$info['locationName']?></b></h3>
 				</a>
@@ -166,7 +166,7 @@ function streamLocationInfoDisplay($info){
 		<!-- Nothing to display -->
 
 	<?php endif ?>
-	
+
 <?php
 }
 
@@ -187,7 +187,7 @@ function streamLocationInfoEntry($info){
 	<tr>
 		<input type='hidden' name='<?=$nameStart?>[locationID]' value=<?=$info['locationID']?>>
 		<input type='hidden' name='<?=$nameStart?>[videoID]' value=<?=$info['videoID']?>>
-		
+
 		<td colspan='100%'>
 			<div class='grid-x grid-margin-x'>
 
@@ -213,8 +213,8 @@ function streamLocationInfoEntry($info){
 
 			</div>
 		</td>
-		
-	
+
+
 	</tr>
 
 	<tr>

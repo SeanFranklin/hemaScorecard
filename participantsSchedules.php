@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Participants Schedule
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@ $jsIncludes[] = 'roster_management_scripts.js';
 
 // This is necessary for the custom table-sortability
 $tableJS = "$(document).ready(function() {
-       			$('#particiantsScheduleSummaryTable').DataTable();
-    		} );"; 
-    		
+				$('#particiantsScheduleSummaryTable').DataTable();
+			} );";
+
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -40,10 +40,10 @@ if($_SESSION['eventID'] == null){
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<?php 
+	<?php
 
 	changeRosterID($eventRoster);
 
@@ -54,7 +54,7 @@ if($_SESSION['eventID'] == null){
 	if($_SESSION['rosterID'] > 0) {
 
 		displayIndividualSchedule($schedule, $eventDays);
-		
+
 	}
 	?>
 
@@ -87,7 +87,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 	<div class='grid-x grid-margin-x' id='personal-schedule-div'>
 
 	<?php if(isset($schedule['unScheduled']) == true): ?>
-	
+
 		<fieldset class='fieldset large-7 cell'>
 
 			<legend class='no-bottom'>
@@ -97,13 +97,13 @@ function displayIndividualSchedule($schedule, $eventDays){
 				</h5>
 			</legend>
 
-			
+
 			<?php foreach($schedule['unScheduled'] as $tournamentID): ?>
 				<li>
 					<?=getTournamentName($tournamentID)?>
 				</li>
 			<?php endforeach ?>
-			
+
 
 		</fieldset>
 	<?php endif ?>
@@ -160,7 +160,7 @@ function displayScheduleItem($info, $eventDays, $dayNum){
 
 			$typeString = $name;
 			$name = '';
-			
+
 		} else {
 			$locationString = '';
 			$typeString = '<u>Staffing</u>';
@@ -176,14 +176,14 @@ function displayScheduleItem($info, $eventDays, $dayNum){
 	} else {
 		$typeString = 'Tournament Entry';
 	}
-		
+
 	?>
 
 	<tr class='<?=$class?>'>
 
 		<td><?=$typeString?>
 		<?=$roleString?></td>
-	
+
 		<td>
 		<?php if($name != ''): ?>
 			<strong> <?=$name?> </strong>
@@ -216,7 +216,7 @@ function showStaffingHours($rosterID, $eventID){
 		<legend><h5>Staffing Summary</h5></legend>
 		<div class='grid-x grid-margin-x'>
 
-		<?php foreach($minutes as $roleID => $minutes): 
+		<?php foreach($minutes as $roleID => $minutes):
 			$hours = round($minutes/60,1);
 			$total += $hours;
 			?>

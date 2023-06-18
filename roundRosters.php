@@ -1,14 +1,14 @@
 <?php
 /*******************************************************************************
 	Round Roster
-	
+
 	Roster information for the tournament, including set and round management
 	and adding/removing fighters from the rounds.
 	LOGIN:
 		- ADMIN and above can create/delete/rename stages
 		- ADMIN and above can create/delete/rename rounds
 		- STAFF and above can add/remove fighters to rounds
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -34,19 +34,19 @@ if($_SESSION['eventID'] == null){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Rounds not yet released");
 } else {
-	
+
 	$numGroupSets = getNumGroupSets($tournamentID);
-	
+
 	// Omits the accordion menu if there is only one round per set
-	$showMultiple = isCumulativeRounds($tournamentID); 
-	
+	$showMultiple = isCumulativeRounds($tournamentID);
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>			
-	
+////////////////////////////////////////////////////////////////////////////////
+?>
+
 	<form method='POST' id='roundRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	
+
 	<?php if($showMultiple): ?>
 <!-- Accordion start -->
 		<ul class='accordion' data-accordion data-allow-all-closed='true'>
@@ -55,73 +55,73 @@ if($_SESSION['eventID'] == null){
 	<?php endif ?>
 
 	<?php for($groupSet = 1; $groupSet <= $numGroupSets; $groupSet++):
-		
+
 		$rounds = getRounds($tournamentID, $groupSet);
 		if($_SESSION['groupSet'] == $groupSet){
 			$active = 'is-active';
 		} else {
 			$active = '';
-		}	
+		}
 		?>
 
-		
+
 		<?php if($showMultiple):
 		// Accordion item start
 			$setName = getSetName($groupSet, $tournamentID);
 			?>
-		
+
 			<li class='accordion-item <?=$active?>' data-accordion-item>
 			<a class='accordion-title'>
 				<h4><?=$setName?></h4>
 			</a>
 			<div class='accordion-content' data-tab-content>
 		<?php endif ?>
-		
+
 		<?php if($rounds == null):
 			displayAlert("Stage {$groupSet}<BR>No Rounds Created");
 		else:
-			displayRounds($rounds, $showMultiple);	
+			displayRounds($rounds, $showMultiple);
 		endif ?>
-		
-		
+
+
 		<?php if($showMultiple): ?>
 		<!-- Accordion item end -->
 			</div>
 			</li>
 		<?php  endif ?>
-		
+
 	<?php endfor ?>
-	
+
 	<!-- Accordion end -->
-	<?php if($showMultiple): ?> 
-		</ul> 
+	<?php if($showMultiple): ?>
+		</ul>
 	<?php else: ?>
 		</div>
 	<?php endif ?>
-	
+
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
-		
+
 		<?php confirmDeleteReveal('roundRosterForm', 'deleteFromRounds'); ?>
 		<button class='button success' name='formName' value='addFightersToRound'
 			<?=LOCK_TOURNAMENT?>>
 			Add Fighters
-		</button> 
+		</button>
 		<span id='deleteButtonContainer'>
-			<button class='button alert hollow' name='formName' value='deleteFromPools' 
+			<button class='button alert hollow' name='formName' value='deleteFromPools'
 				id='deleteButton' <?=LOCK_TOURNAMENT?>>
 				Delete Selected
 			</button>
-			
+
 		</span>
 	<?php endif ?>
-	
+
 	</fieldset>
 	</form>
-	
+
 <!-- Round management -->
 	<?php roundManagement($numGroupSets, $showMultiple); ?>
-	
+
 <?php }
 include('includes/footer.php');
 
@@ -134,17 +134,17 @@ include('includes/footer.php');
 function displayRounds($rounds, $ownDiv = true){
 	$ignores = getIgnores($_SESSION['tournamentID'], 'stopAtSet');
 	?>
-	
+
 	<!-- If the round should span the entire screen -->
 	<?php if($ownDiv): ?>
 		<div class='grid-x grid-padding-x grid-margin-x' >
 	<?php endif ?>
-	
+
 <!-- Step through rounds in set -->
 	<?php foreach($rounds as $num => $round):
 
 		$name = $round['groupName'];
-		
+
 		$groupID = $round['groupID'];
 		$groupSet = $round['groupSet'];
 		$groupNumber = $round['groupNumber'];
@@ -162,43 +162,43 @@ function displayRounds($rounds, $ownDiv = true){
 			if(@$ignores[$rosterID] >= $groupSet){ // not existing is a logical zero
 				$numNotAdvancing++;
 			}
-		} 
-		
+		}
+
 		$numInRound = count($roundRoster);
 		$sortedRoster = getListForNextRound($_SESSION['tournamentID'], $groupSet, $groupNumber);
-		$numInEvent = count($sortedRoster); 
+		$numInEvent = count($sortedRoster);
 
 		// If a fighter has been removed from advancing but they are already in the
 		// round they will be taking up a spot in the round despite not adding
 		// to the number of fighters in the round. This corrects the number discrepency.
 		$numInEvent += $numNotAdvancing;
 		?>
-		
+
 	<!-- Display round -->
 		<fieldset class='fieldset large-4 medium-6 small-12 cell' id='divFor<?=$groupID?>'>
 		<legend>
 			<h3>
 				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-					<input type='checkbox' name='deleteGroup[<?=$groupID?>]' 
+					<input type='checkbox' name='deleteGroup[<?=$groupID?>]'
 						id=<?=$groupID?> onchange="checkIfFought(this)">
 				<?php endif ?>
 				<?=$name?>
 			</h3>
 		</legend>
-		
+
 		<div class='grid-x grid-padding-x grid-margin-x'>
 
 	<!-- Option to add multiple at a time ----------------------------------------------------->
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true
-				&& $numInRound < 1 
+				&& $numInRound < 1
 				&& ((count($sortedRoster) > 0) ||
 					($groupNumber > 1 && count($oldRoster) > 1 ))
-				&& LOCK_TOURNAMENT == ''): 
-			?>	
+				&& LOCK_TOURNAMENT == ''):
+			?>
 
 			<div class='input-group cell'>
-				<a class='input-group-button button align-middle' 
-					onclick="submitAddMultipleToRound(<?=$groupID?>)"> 
+				<a class='input-group-button button align-middle'
+					onclick="submitAddMultipleToRound(<?=$groupID?>)">
 					Add
 				</a>
 				<select class='input-group-field' name='numToAdd[<?=$groupID?>]'>
@@ -208,32 +208,32 @@ function displayRounds($rounds, $ownDiv = true){
 					<?php endfor ?>
 				</select>
 				<span class='input-group-label'>to round</span>
-				
+
 			</div>
 		<?php endif ?>
-		
+
 		<!------------------------------------------------------------------------------------>
-		
+
 	<!-- Fighters in the round -->
 		<?php foreach((array)$roundRoster as $fighter):
 			$rosterID = $fighter['rosterID'];
 			$name = getEntryName($rosterID);
 			?>
-		
+
 			<div class='large-12 cell' id='divFor<?=$groupID?>-<?=$rosterID?>'>
 			<div class='grid-x grid-padding-x'>
-			
+
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 				<div class='small-1 cell' >
-				<input type='checkbox' 
-					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]' 
+				<input type='checkbox'
+					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'
 					id=<?=$groupID?>-<?=$rosterID?> onchange="checkIfFought(this)">
-				</div>				
+				</div>
 			<?php endif ?>
 			<div class='small-10 cell'><?=$name?></div>
 			</div></div>
 		<?php endforeach ?>
-		
+
 	<!-- Add new fighters to the round -->
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<?php for($i=$numInRound+1;$i<=$numInEvent;$i++): ?>
@@ -243,23 +243,23 @@ function displayRounds($rounds, $ownDiv = true){
 							<?=$i?>
 						</div>
 						<div class='small-10 cell'>
-							
+
 						<select name='groupAdditions[<?=$groupID?>][<?=$i?>]'>
 							<option></option>
-				
-							<?php foreach($sortedRoster as $fighter): 
+
+							<?php foreach($sortedRoster as $fighter):
 								$rosterID = $fighter['rosterID'];
 								$name = getEntryName($rosterID);
 								if(isset($fightersInRound[$rosterID])){
 									continue;
-								} 
+								}
 
 								if(isset($fighter['place']) && !is_null($fighter['place'])){
 									$place = $fighter['place']+1;
 								} else {
 									$place = '';
 								} ?>
-								
+
 								<option value='<?=$rosterID?>'>
 									<?=$place?> <?=$name?>
 								</option>
@@ -270,18 +270,18 @@ function displayRounds($rounds, $ownDiv = true){
 				</div>
 			<?php endfor ?>
 		<?php endif ?>
-		
+
 		</div>
 		</fieldset>
-		
+
 		<?php $oldGroupID = $groupID; ?>
 		<?php $oldRoster = $roundRoster; ?>
 	<?php endforeach ?>
-	
+
 	<?php if($ownDiv): ?>
 		</div>
 	<?php endif ?>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -289,18 +289,18 @@ function displayRounds($rounds, $ownDiv = true){
 function roundManagement($numGroupSets, $multiRoundDisplay){
 //	Change the number of stages/sets & rename stages
 //	Add/remove/rename rounds in a set
-	
+
 	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
 
-	
+
 	$maxGroupSets = 5;
 	?>
-	
+
 	<fieldset class='fieldset'>
 	<legend><h4>Manage Rounds</h4></legend>
-	
+
 	<div class='grid-x grid-margin-x'>
-	
+
 	<!-- Number of stages -->
 		<div class='large-3 medium-4 text-center cell'>
 			<span class='button expanded' data-open='createStages' <?=LOCK_TOURNAMENT?>>
@@ -315,9 +315,9 @@ function roundManagement($numGroupSets, $multiRoundDisplay){
 				Add New Rounds
 			</span>
 		</div>
-		<?php createRoundsBox($numGroupSets); ?>	
-			
-			
+		<?php createRoundsBox($numGroupSets); ?>
+
+
 	<!-- Rename rounds -->
 		<div class='large-3 medium-4 text-center cell'>
 			<span class='button expanded' data-open='renameRounds'>
@@ -325,7 +325,7 @@ function roundManagement($numGroupSets, $multiRoundDisplay){
 			</span>
 		</div>
 		<?php changeRoundNamesBox($multiRoundDisplay); ?>
-		
+
 	<!-- Rename rounds -->
 		<div class='large-3 medium-4 text-center cell'>
 			<span class='button expanded' data-open='stageOptions' <?=LOCK_TOURNAMENT?>>
@@ -333,12 +333,12 @@ function roundManagement($numGroupSets, $multiRoundDisplay){
 			</span>
 		</div>
 		<?php stageOptionsBox($numGroupSets); ?>
-	
-	
+
+
 	</div>
 	</fieldset>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
@@ -347,36 +347,36 @@ function stageOptionsBox($numGroupSets){
 	$tournamentBase = getBasePointValue($_SESSION['tournamentID'], null);
 
 	?>
-	
+
 	<div class='reveal tiny' id='stageOptions' data-reveal>
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 		<h5>Stage Options</h5>
-		
+
 		Base score for:
 		<?php for($i=1;$i<=$numGroupSets;$i++): ?>
 			<?php $stageBase = getBasePointValue($_SESSION['tournamentID'], $i, true);
-			
+
 			 ?>
 			<div class='input-group grid-x'>
-				
+
 				<span class='input-group-label small-8 medium-12 large-8'>
 					<?=getSetName($i, $_SESSION['tournamentID']); ?>
 				</span>
-				<input type='number' class='input-group-field no-bottom' 
+				<input type='number' class='input-group-field no-bottom'
 					name='baseScore[<?=$i?>]' value='<?=$stageBase?>' placeholder='<?=$tournamentBase?>'>
-				
+
 			</div>
 		<?php endfor ?>
 		<em>The base score will be used in accordance with the tournament format.<BR>
-		<u>Examples:</u> If it is a cutting tournament where each cut is assigned a 
+		<u>Examples:</u> If it is a cutting tournament where each cut is assigned a
 		score with a deduction, it is the point value of a perfect cut.<BR>
 		If it is an event where every competitor has a perfect score
 		and is assesed deductions, it is the value of the perfect score.</em>
-		
+
 		<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='button success small-6 cell' name='formName' 
+			<button class='button success small-6 cell' name='formName'
 				value='stageOptions' <?=LOCK_TOURNAMENT?>>
 				Update
 			</button>
@@ -386,13 +386,13 @@ function stageOptionsBox($numGroupSets){
 		</div>
 	</fieldset>
 	</form>
-		
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -400,14 +400,14 @@ function stageOptionsBox($numGroupSets){
 function createStagesBox($numGroupSets){
 	$maxGroupSets = 5;	// Arbitrary
 	?>
-	
+
 	<div class='reveal tiny' id='createStages' data-reveal>
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 		<h5>Number of Tournament Stages</h5>
 		<BR>
 		<div class='input-group grid-x no-bottom'>
-			
+
 			<span class='input-group-label'>
 				Total Number of Stages:
 			</span>
@@ -415,37 +415,37 @@ function createStagesBox($numGroupSets){
 				<?php for($i=1;$i<=$maxGroupSets;$i++):
 					$s = isSelected($i == $numGroupSets);
 					?>
-					
+
 					<option value='<?=$i?>' <?=$s?>><?=$i?></option>
 				<?php endfor ?>
 			</select>
-			
+
 		</div>
 		<em>All rounds are cumulative within a stage</em>
-		
-	
+
+
 		<BR><BR>
 		<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='button success small-6 cell' name='formName' 
+			<button class='button success small-6 cell' name='formName'
 				value='numberOfGroupSets' <?=LOCK_TOURNAMENT?>>
 				Update
 			</button>
-			<a class='button secondary small-6 cell' data-close aria-label='Close modal' 
+			<a class='button secondary small-6 cell' data-close aria-label='Close modal'
 				type='button'>
 				Cancel
 			</a>
 		</div>
 	</fieldset>
 	</form>
-		
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
@@ -456,7 +456,7 @@ function createRoundsBox($numGroupSets){
 	<div class='reveal tiny' id='createRounds' data-reveal>
 		<form method='POST'>
 		<fieldset <?=LOCK_TOURNAMENT?>>
-			
+
 		<h5>Create new rounds</h5>
 		<div class='input-group grid-x'>
 
@@ -482,75 +482,75 @@ function createRoundsBox($numGroupSets){
 			</select>
 		</div>
 		<div class='grid-x grid-margin-x'>
-		
-			<button class='button success small-6 cell' 
+
+			<button class='button success small-6 cell'
 				name='formName' value='createNewRounds' <?=LOCK_TOURNAMENT?>>
 				Add
 			</button>
 			<a class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
 				Cancel
 			</a>
-		
+
 		</div>
 		</fieldset>
 		</form>
-		
-		
+
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
 
 function changeRoundNamesBox($multiRoundDisplay = true){
-	
+
 	$rounds = getRounds($_SESSION['tournamentID']);
 	$roundNum = 0;
 	$oldSet = 0;
 	?>
-	
+
 	<div class='reveal tiny' id='renameRounds' data-reveal>
 	<form method='POST'>
 	<h5>Rename Rounds:</h5>
 
-	<?php foreach($rounds as $round): 
+	<?php foreach($rounds as $round):
 		$set = $round['groupSet'];
 		$setName = getSetName($set, $_SESSION['tournamentID']);
-		if($setName == "Stage {$set}"){ 
+		if($setName == "Stage {$set}"){
 			$setName = null;
 		}
 		$roundNum++;
 		?>
-		
+
 		<!-- Stage name  -->
 		<?php if($set != $oldSet && $multiRoundDisplay): ?>
 			<?php if($set > 1){ echo "<BR>"; } ?>
 			<div class='input-group grid-x'>
 			<span class='input-group-label small-3 medium-5 large-3'>Stage <?=$set?>:</span>
-			<input class='input-group-field large-7' type='text' name='renameSet[<?=$set?>]' 
+			<input class='input-group-field large-7' type='text' name='renameSet[<?=$set?>]'
 				value='<?=$setName?>' placeholder='Stage <?=$set?>'>
 			<div class='small-2 hide-for-medium-only'></div>
 			</div>
-			<?php 
+			<?php
 				$oldSet = $set;
 				$roundNum = 1;
 			?>
 		<?php endif ?>
-		
+
 			<div class='input-group grid-x'>
 			<div class='small-1'></div>
 			<span class='input-group-label small-2'><?=$roundNum?>:</span>
-			<input class='input-group-field small-8' type='text' name='renameGroup[<?=$round['groupID']?>]' 
+			<input class='input-group-field small-8' type='text' name='renameGroup[<?=$round['groupID']?>]'
 				value='<?=$round['groupName']?>' placeholder='Round <?=$round['groupNumber']?>'>
 			</div>
 	<?php endforeach ?>
-	
-	
+
+
 	<!-- Sumbit/Cancel buttons -->
 	<div class='grid-x grid-margin-x'>
 		<button class='success button small-6 cell' name='formName' value='renameGroups'>
@@ -561,16 +561,16 @@ function changeRoundNamesBox($multiRoundDisplay = true){
 		</button>
 
 	</div>
-	
+
 	</form>
-	
+
 	<!-- Close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/

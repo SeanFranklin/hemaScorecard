@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Staff Assigments
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -24,8 +24,8 @@ if($_SESSION['eventID'] == null){
 	redirect('infoSummary.php');
 } else {
 
-	
-	
+
+
 	$eventRoster = getEventRoster();
 	$eventDays = getEventDays($_SESSION['eventID']);
 
@@ -35,19 +35,19 @@ if($_SESSION['eventID'] == null){
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Tabs -->
 	<ul class="tabs" data-tabs id="conflicts-tab">
 
-		
+
 		<li class="tabs-title">
 			<a data-tabs-target="panel-conflicts" href="#panel-conflicts">
 				Schedule Conflicts
 			</a>
 		</li>
-		
+
 
 		<li class="tabs-title">
 			<a data-tabs-target="panel-unstaffed" href="#panel-unstaffed">
@@ -66,11 +66,11 @@ if($_SESSION['eventID'] == null){
 <!-- Tab Content -->
 	<div class="tabs-content" data-tabs-content="conflicts-tab">
 
-		
+
 		<div class="tabs-panel" id="panel-conflicts">
 			<?=scheduleConflictList($conflictList, $eventDays)?>
 		</div>
-		
+
 
 		<div class="tabs-panel" id="panel-unstaffed">
 			<?=scheduleUnfilledShifts($unfilledShifts, $eventDays)?>
@@ -81,9 +81,9 @@ if($_SESSION['eventID'] == null){
 		</div>
 
 	</div>
-	
-	
-	
+
+
+
 
 <?php }
 include('includes/footer.php');
@@ -134,7 +134,7 @@ function scheduleStaffOverCompetency($staffOverCompetency, $eventDays){
 				<td><?=$roleName?></td>
 				<td><?=$shift['staffCompetency']?> / <?=$shift['roleCompetency']?></td>
 			</tr>
-			
+
 	<?php endforeach ?>
 
 	</table>
@@ -166,7 +166,7 @@ function scheduleUnfilledShifts($badShifts, $eventDays){
 
 	<?php foreach($badShifts as $shiftID => $shift):
 
-		
+
 		$sInfo = logistics_getShiftInfo($shiftID);
 		foreach($shift as $staffType):
 			$roleName = logistics_getRoleName($staffType['logisticsRoleID']);
@@ -205,7 +205,7 @@ function scheduleConflictList($conflictList, $eventDays){
 
 
 	<?php foreach($conflictList as $rosterID => $conflicts): ?>
-		<?php foreach($conflicts as $conflict): 
+		<?php foreach($conflicts as $conflict):
 			$info[1] = logistics_getScheduleItemDescription($conflict[1]['blockID'],$conflict[1]['shiftID']);
 			$info[2] = logistics_getScheduleItemDescription($conflict[2]['blockID'],$conflict[2]['shiftID']);
 

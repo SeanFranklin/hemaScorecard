@@ -2,46 +2,46 @@
 /*************************************
 	Function Library
 	Cutting Qualification Functions
-	
+
 	Functions relating to cuting qualification
 **************************************/
 
 /**********************************************************************/
 
 function addNewCuttingQual_event(){
-	
+
 	$date = getEventEndDate($_SESSION['eventID']);
 	$systemRosterID = $_POST['systemRosterID'];
-	
+
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){ return null;	}
-	
+
 	$standard = getCuttingStandard($tournamentID);
 	$standardID = $standard['standardID'];
 	$qualValue = 1;
-	
+
 	$sql = "INSERT INTO systemCutQualifications
 			(systemRosterID, standardID, date, qualValue)
 			VALUES
 			(?,?,?,?)";
-	
+
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	$bind = mysqli_stmt_bind_param($stmt, "iisi", $systemRosterID, $standardID, $date, $qualValue);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
-	
+
 }
 
 /**********************************************************************/
 
 function removeCuttingQual_event(){
-	
+
 	$qualID = (int)$_POST['qualID'];
 
 	$sql = "DELETE FROM systemCutQualifications
 			WHERE qualID = {$qualID}";
 	mysqlQuery($sql, SEND);
-	
+
 }
 
 /**********************************************************************/
@@ -53,28 +53,28 @@ function addNewCuttingQuals(){
 	}
 
 	foreach($_POST['newQuals'] as $newQual){
-		
+
 		$systemRosterID = (int)$newQual['systemRosterID'];
 		if($systemRosterID == 0){continue;}
-		
+
 		$date = $newQual['qualDate'];
 		if($date == null){$date = date('Y-m-d H:i:s');}
-		
+
 		$sql = "INSERT INTO systemCutQualifications
 			(systemRosterID, standardID, date, qualValue)
 			VALUES
 			(?,?,?,?)";
-	
+
 		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
-		$bind = mysqli_stmt_bind_param($stmt, "iisi", 
+		$bind = mysqli_stmt_bind_param($stmt, "iisi",
 				$systemRosterID, $newQual['standardID'], $date, $newQual['qualValue']);
 		$exec = mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
-		
-		
-		
+
+
+
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -88,16 +88,16 @@ function getCuttingQualificationsStandards(){
 /******************************************************************************/
 
 function getCuttingQualificationsList($standardID, $date){
-	
+
 	$standardID = (int)$standardID;
 	$nameOrder = NAME_MODE;
 	$nameOrder2 = NAME_MODE_2;
-	
+
 	// Returns the most recent quallification
 	$sql = "SELECT Q.qualID, Q.systemRosterID, Q.date, Q.qualValue,
 			S.standardName, S.standardCode
 			FROM systemCutQualifications as Q
-			
+
 			INNER JOIN systemCutStandards as S ON Q.standardID = S.standardID
 			INNER JOIN systemRoster as roster ON Q.systemRosterID = roster.systemRosterID
 
@@ -109,56 +109,56 @@ function getCuttingQualificationsList($standardID, $date){
 							AND Q2.standardID = {$standardID}
 							ORDER BY Q2.date DESC
 							LIMIT 1)
-			
+
 			ORDER BY Q.date DESC, roster.{$nameOrder} ASC, roster.{$nameOrder2} ASC ";
 	$list = mysqlQuery($sql, KEY, 'systemRosterID');
-	
-	
+
+
 // For West Coast Qualification fighters with a qualValue of 5 should be added
 // to the quals list regardless of date
 	$sql = "SELECT standardCode
 			FROM systemCutStandards
 			WHERE standardID = {$standardID}";
 	$code = mysqlQuery($sql, SINGLE, 'standardCode');
-	
+
 	if($code == 'westCoast'){
 		$sql = "SELECT Q.qualID, Q.systemRosterID, Q.date, Q.qualValue,
 				S.standardName, S.standardCode
 				FROM systemCutQualifications as Q
-				
+
 				INNER JOIN systemCutStandards as S ON Q.standardID = S.standardID
 				INNER JOIN systemRoster as roster ON Q.systemRosterID = roster.systemRosterID
-				
+
 				WHERE Q.standardID = {$standardID}
 				AND qualValue = 5";
 		$lifetimeList = mysqlQuery($sql, KEY, 'systemRosterID');
-		
-		
+
+
 		foreach($lifetimeList as $systemRosterID => $data){
 			if(!isset($list[$systemRosterID])){
 				$list[$systemRosterID] = $data;
 			}
-			
+
 		}
-		
+
 	}
-	
-	return $list;			
+
+	return $list;
 }
 
 /******************************************************************************/
 
 function getTournamentSystemRosterIDs(){
-	
+
 	$tournamentID = (int)$_SESSION['tournamentID'];
 	if($tournamentID == 0){
 		return;
 	}
-	
+
 	$orderName = NAME_MODE;
 	$orderName2 = NAME_MODE_2;
-	
-	$sql = "SELECT sR.systemRosterID, eR.rosterID 
+
+	$sql = "SELECT sR.systemRosterID, eR.rosterID
 		FROM systemRoster as sR
 		INNER JOIN eventRoster as eR ON eR.systemRosterID = sR.systemRosterID
 		INNER JOIN eventTournamentRoster as eTR ON eTR.rosterID = eR.rosterID
@@ -174,12 +174,12 @@ function isCuttingQual($tournamentID){
 
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){ return null;	}
-	
+
 	$sql = "SELECT isCuttingQual
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	return (bool)mysqlQuery($sql, SINGLE, 'isCuttingQual');
-	
+
 }
 
 /******************************************************************************/

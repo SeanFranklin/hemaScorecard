@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Locations
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -21,8 +21,8 @@ if($_SESSION['eventID'] == null){
 } elseif (ALLOW['VIEW_SCHEDULE'] == false){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
-	
-	
+
+
 	$entryList = getTournamentRosterByLocation($tournamentID);
 	if(isset($_SESSION['fighterListColumns']) == true){
 		$numColumns = (int)$_SESSION['fighterListColumns'];
@@ -30,9 +30,9 @@ if($_SESSION['eventID'] == null){
 	} else {
 		$numColumns = 0;
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 
@@ -56,7 +56,7 @@ if($_SESSION['eventID'] == null){
 		<table>
 
 		<?php foreach($entryList as $index => $entry): ?>
-			
+
 
 			<?php if(($index % $numColumns) == 0): ?>
 				</tr><tr>
@@ -67,9 +67,9 @@ if($_SESSION['eventID'] == null){
 			<td><?=$entry['location']?></td>
 
 		<?php endforeach ?>
-		
+
 		</table>
-	<?php endif ?>	
+	<?php endif ?>
 
 <?php }
 include('includes/footer.php');

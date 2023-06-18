@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	T
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ if((int)$_SESSION['eventID'] == 0){
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
-	
+
 	<p>Did you know that HEMA Scorecard allows you to attach a video link to matches? Here is a summary of the videos which have been attached to this event. If you are thinking <b>"Wow, this list sucks!"</b> you are probably right! HEMA Scorecard depends on a crew of passionate individuals to scour the land for video footage. If you are interested in helping, please get a hold of us.</p>
 
 	<div class='callout alert'>
@@ -81,7 +81,7 @@ if((int)$_SESSION['eventID'] == 0){
 				}
 
 				$name = "<a href='scoreMatch.php?m=".$match['matchID']."'>".$name."</a>";
-				
+
 			?>
 
 			<tr>
@@ -92,7 +92,7 @@ if((int)$_SESSION['eventID'] == 0){
 				<td><?=$name?></td>
 				<td><?=getFighterName($matchInfo['fighter1ID'])?></td>
 				<td><?=getFighterName($matchInfo['fighter2ID'])?></td>
-				
+
 
 				<?php if(ALLOW['EVENT_VIDEO'] == false):?>
 					<td><a href="<?=$match['sourceLink']?>"><?=$match['sourceLink']?></a></td>
@@ -118,7 +118,7 @@ if((int)$_SESSION['eventID'] == 0){
 	<?php endif ?>
 
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
-	
+
 
 <?
 }

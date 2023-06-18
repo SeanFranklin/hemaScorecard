@@ -1,11 +1,11 @@
-<?php 
+<?php
 /*******************************************************************************
 	Event Selection
-	
+
 	Select which event to use
 	Login:
 		- SUPER ADMIN can see hidden events
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ $eventList = getEventListByPublication();
 
 <ul class="tabs" data-tabs id="change-event-disp-tabs">
 
-		
+
 	<li class="tabs-title is-active">
 		<a data-tabs-target="panel-recent" href="#change-recent">
 			Recent and Upcoming
@@ -181,12 +181,12 @@ function displayArchivedEvents($eventList){
 				<a class='accordion-title' style='padding-top:10px; padding-bottom:1px'><h4>{$year} Events</h4></a>
 				<div class='accordion-content' data-tab-content>";
 			$oldYear = $year;
-			
+
 		}
 		displayEventButton($eventID, $eventInfo);
 	}
 	echo "</div></li>";
-	
+
 }
 
 /**********************************************************************/
@@ -198,7 +198,7 @@ function displayEventsInCategory($eventList, $dateLimit = 0){
 	}
 
 	foreach((array)$eventList as $eventID => $eventInfo){
-		// A check to make sure that old events don't show up in the 
+		// A check to make sure that old events don't show up in the
 		// active/upcoming category.
 		$then = date_create($eventInfo['eventEndDate']);
 		$today= date_create(date("Y-m-d"));

@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	Manage Tournament Teams
-	
+
 	Administrator page to add/edit/remove events
 	LOGIN
 		- SUPER ADMIN can access, no others can
@@ -23,6 +23,7 @@ if($tournamentID == null){
 } else {
 
 	$teamsList = (array)getTournamentTeams($_SESSION['tournamentID']);
+
 	$teamRostersRaw = (array)getTeamRosters($_SESSION['tournamentID']);
 	$addableFighters = (array)getUngroupedRoster($tournamentID, $teamRostersRaw);
 
@@ -32,7 +33,7 @@ if($tournamentID == null){
 	} else {
 		$numBlankEntries = -1;
 	}
-	
+
 
 	$teamRostersSorted = [];
 	foreach($teamsList as $team){
@@ -153,19 +154,19 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 					<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 
 						<input type='number' value=<?=$member['teamOrder']?>
-							name='updateTeams[<?=$teamID?>][order][<?=$member['tableID']?>]' 
+							name='updateTeams[<?=$teamID?>][order][<?=$member['tableID']?>]'
 							style="width: 4em; display:inline;" class='no-bottom'  min=0 max=10>
 
 					<?php elseif($member['teamOrder'] != 0):?>
 
-						<?=$member['teamOrder']?>) 
-						
+						<?=$member['teamOrder']?>)
+
 					<?php endif ?>
 
 
 				<?=$member['name']?>  [<?=$member['school']?>]
 
-				
+
 				<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 					<input type='checkbox' name='deleteTeamsInfo[membersToDelete][<?=$member['tableID']?>]'>
 				<?php endif ?>
@@ -213,10 +214,10 @@ function teamName($teamID){
 		$placeholder = htmlspecialchars(getTeamName($teamID, null, 'members'),ENT_QUOTES);
 		$placeholder = "placeholder='".$placeholder."'";
 
-		echo "<input 
-			name='updateTeams[{$teamID}][teamName]' 
+		echo "<input
+			name='updateTeams[{$teamID}][teamName]'
 			type='text' value='{$DbName}' {$placeholder}>";
-			
+
 	}
 
 	echo "<i>".getFighterSchoolName($teamID)."</i>";
@@ -248,7 +249,7 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 	<fieldset class='fieldset hidden' id='soloFightersDisplay'>
 		<legend><h4>
 			Un-Assigned Fighters (<?=$numUnassigned?>) &nbsp;
-			<a class='button secondary no-bottom hollow small' 
+			<a class='button secondary no-bottom hollow small'
 				id='createTeamShow' style='float:right'
 				onclick="$(soloFightersButton).show();$(soloFightersDisplay).hide();">
 				Close
@@ -263,7 +264,7 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 				</tr>
 			<?php endforeach ?>
 		</table>
-			
+
 	</fieldset>
 
 
@@ -271,7 +272,7 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 	<fieldset class='fieldset hidden' id='createTeamForm'>
 		<legend><h4>
 			Create Team &nbsp;
-			<a class='button secondary no-bottom hollow small' 
+			<a class='button secondary no-bottom hollow small'
 				id='createTeamShow' style='float:right'
 				onclick="$(createTeamButton).show();$(createTeamForm).hide();">
 				Close
@@ -290,7 +291,7 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 			</div>
 		<!-- Team Members -->
 
-		
+
 			<?php
 				for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
 					<div class='input-group'>
@@ -307,21 +308,21 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 					</select>
 					</div>
 				<?php endfor ?>
-		
+
 
 		<!-- Sumbit Buttons -->
 			<button class='button no-bottom success' name='formName' value='createNewTeam'>
 				Create Team
 			</button>
 
-			<a class='button secondary no-bottom align-right' 
+			<a class='button secondary no-bottom align-right'
 				id='createTeamShow' style='float:right'
 				onclick="$(createTeamButton).show();$(createTeamForm).hide();">
 				Cancel Team Creation
 			</a>
 
 		</form>
-			
+
 	</fieldset>
 <?php
 }

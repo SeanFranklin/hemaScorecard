@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
-	mysql_lib.php				
+	mysql_lib.php
 
 	This library holds the function that control access to the mysql database.
-	
+
 *******************************************************************************/
 
 
@@ -13,7 +13,7 @@
 // This function connects to the mysql server and selects the default database
 // ***NOT USED***
 function mysqlConn(){
-	($GLOBALS["___mysqli_ston"] = mysqli_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS));	
+	($GLOBALS["___mysqli_ston"] = mysqli_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS));
 	((bool)mysqli_query($GLOBALS["___mysqli_ston"], "USE " . constant('MYSQL_DB')));
 	checkMySQL();
 }
@@ -26,10 +26,10 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 	if($query == null){
 		return false;
 	}
-	
+
 	$retVal = null;
 	$res = mysqli_query($GLOBALS["___mysqli_ston"], $query);
-	
+
 	checkMySQL();
 	switch($type){
 
@@ -53,16 +53,16 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 			$retVal = mysqli_num_rows($res);
 			break;
 
-		// ASSOC	
-        case 4: // Return an associated array of results
-	        $x = 0;
-	        $retVal = array();
+		// ASSOC
+		case 4: // Return an associated array of results
+			$x = 0;
+			$retVal = array();
 			while($result = mysqli_fetch_assoc($res)){
-			    $retVal[$x++] = $result;
+				$retVal[$x++] = $result;
 			}
 			break;
 
-		// SINGLE	
+		// SINGLE
 		case 5: // Return the first value queried
 			if(is_bool($res)){ // There were no values
 				$retVal = null;
@@ -89,7 +89,7 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 			}
 			break;
 
-		// KEY_SINGLES	
+		// KEY_SINGLES
 		case 7: // Return an array of single values indexed by a key
 			if($key == null || $key2 == null){return false;}
 			$retVal = array();
@@ -98,7 +98,7 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 			}
 			break;
 
-		// SINGLES	
+		// SINGLES
 		case 8: // Return an array of single values indexed by their order in the query
 			$retVal = array();
 			while($result = mysqli_fetch_assoc($res)){
@@ -106,7 +106,7 @@ function mysqlQuery($query, $type, $key = null, $key2 = null){
 			}
 			break;
 		default:
-			echo("mysqlQuery type paramater is out of bounds on query \n " . $querry);			
+			echo("mysqlQuery type paramater is out of bounds on query \n " . $querry);
 			break;
 	}
 	checkMySQL();
@@ -127,11 +127,11 @@ function quote_smart($value)
 {
    // Stripslashes
    if (get_magic_quotes_gpc()) {
-       $value = stripslashes($value);
+	   $value = stripslashes($value);
    }
    // Quote if not integer
    if (!is_numeric($value)) {
-       $value = "'" . ((isset($GLOBALS["___mysqli_ston"]) && is_object($GLOBALS["___mysqli_ston"])) ? mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $value) : ((trigger_error("[MySQLConverterToo] Fix the mysql_escape_string() call! This code does not work.", E_USER_ERROR)) ? "" : "")) . "'";
+	   $value = "'" . ((isset($GLOBALS["___mysqli_ston"]) && is_object($GLOBALS["___mysqli_ston"])) ? mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $value) : ((trigger_error("[MySQLConverterToo] Fix the mysql_escape_string() call! This code does not work.", E_USER_ERROR)) ? "" : "")) . "'";
    }
    return $value;
 }

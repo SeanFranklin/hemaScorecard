@@ -1,11 +1,11 @@
-<?php 
+<?php
 /*******************************************************************************
 	Administrator Passwords Management
-	
+
 	Change the passwords for the general login types of the software
 	LOGIN:
 		- SUPER ADMIN required to access
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -14,8 +14,8 @@
 $pageName = "Software Password Management";
 include('includes/header.php');
 
-if(		$_SESSION['userName'] == null 
-	|| 	$_SESSION['userName'] == 'eventOrganizer' 
+if(		$_SESSION['userName'] == null
+	|| 	$_SESSION['userName'] == 'eventOrganizer'
 	|| 	$_SESSION['userName'] == 'eventStaff'){
 	pageError('user');
 } else {
@@ -33,9 +33,9 @@ if(		$_SESSION['userName'] == null
 		$userList = mysqlQuery($sql, ASSOC);
 		$firstOption = "";
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<form method='POST'>
@@ -52,7 +52,7 @@ if(		$_SESSION['userName'] == null
 
 					<option value=<?=$user['userID']?>><?=$user['userName']?></option>
 				<?php endforeach ?>
-				
+
 			</select>
 		</div>
 
@@ -62,11 +62,11 @@ if(		$_SESSION['userName'] == null
 			<input class='input-group-field' type='password'
 					name='changePasswords[passwordVerification]'>
 		</div>
-		
+
 	<!-- New password & confirm box-->
 		<div class='input-group large-12 cell'>
 			<span class='input-group-label inline'>New Password:</span>
-			<input class='input-group-field' type='password' required 
+			<input class='input-group-field' type='password' required
 					name='changePasswords[newPassword]'>
 
 			<span class='input-group-label inline'>Confirm:</span>
@@ -77,11 +77,11 @@ if(		$_SESSION['userName'] == null
 				Update
 			</button>
 		</div>
-		
-		
+
+
 	</div>
 	</fieldset>
-	
+
 
 	</form>
 

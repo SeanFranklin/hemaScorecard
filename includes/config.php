@@ -1,13 +1,13 @@
 <?php
 /*******************************************************************************
 	Configuration File
-	
+
 	Defines constants
 	Includes function libraries
 	Connects to database
 	Establishes proper session values
 	Runs the POST processing function
-	
+
 *******************************************************************************/
 
 // Initialize Session //////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 	initializeSession();
 
 // System Constants ////////////////////////////////////////////////////////////
-	
+
 	define("DEBUGGING", 0);
 	date_default_timezone_set("UTC");
 
@@ -159,9 +159,9 @@
 // Options Defines
 
 	// Match Options
-	$options['M']['NUM_SUB_MATCHES'] = 2; 
+	$options['M']['NUM_SUB_MATCHES'] = 2;
 	$options['M']['SWAP_FIGHTERS'] = 3;
-	
+
 	// Tournament Options
 	$options['T']["META_ROSTER_MODE"] = 1;
 		define("META_ROSTER_MODE_INCLUSIVE",0);
@@ -196,7 +196,7 @@ $conn = connectToDB();
 
 // Set tournament ID if there is only one tournament in the event
 	if($_SESSION['eventID'] != null){
-		
+
 		$_SESSION['eventName'] = getEventName($_SESSION['eventID']);
 
 		if($_SESSION['tournamentID'] == null){
@@ -204,7 +204,7 @@ $conn = connectToDB();
 					FROM eventTournaments
 					WHERE eventID = {$_SESSION['eventID']}";
 			$tournamentIDs = mysqlQuery($sql, SINGLES, 'tournamentID');
-			
+
 			if(count($tournamentIDs) == 1){
 				$_SESSION['tournamentID'] = $tournamentIDs[0];
 			}
@@ -215,7 +215,7 @@ $conn = connectToDB();
 
 // Pool Set
 	if(!isset($_SESSION['groupSet'])){$_SESSION['groupSet'] = 1;}
-	
+
 // Name mode  -- this MUST go before processPostData
 	$defaults = getEventDefaults($_SESSION['eventID']);
 
@@ -230,7 +230,7 @@ $conn = connectToDB();
 			$nameMode2 = 'lastName';
 			break;
 	}
-	
+
 	define("NAME_MODE", $nameMode);
 	define("NAME_MODE_2", $nameMode2);
 
@@ -244,7 +244,7 @@ $conn = connectToDB();
 
 // Process POST Data ///////////////////////////////////////////////////////////
 
-	processPostData(); 
+	processPostData();
 
 // Define Constants Based on DB ////////////////////////////////////////////////
 
@@ -255,11 +255,11 @@ $conn = connectToDB();
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$tSettings = mysqlQuery($sql, SINGLE);
-		
-	// Tournament Concluded	
+
+	// Tournament Concluded
 		if($tSettings['isFinalized'] == 1){
 			define("LOCK_TOURNAMENT", 'disabled');
-		}	
+		}
 
 	// Use timer in the matches
 		if($tSettings['logicMode'] != ''){
@@ -268,12 +268,12 @@ $conn = connectToDB();
 
 	// Tournament format
 		$_SESSION['formatID'] = $tSettings['formatID'];
-		
+
 	}
 	if(!defined('LOCK_TOURNAMENT')){ define("LOCK_TOURNAMENT", ''); }
 	if(!defined('LOGIC_MODE')){ define("LOGIC_MODE", 'normal'); }
-	
-	
+
+
 // Event Display Modes
 	$defaults = getEventDefaults($_SESSION['eventID']); // Have to re-load as it could change with POST
 	$_SESSION['dataModes']['tournamentDisplay'] = $defaults['tournamentDisplay'];
@@ -292,7 +292,7 @@ $conn = connectToDB();
 		define("COLOR_NAME_1",$result['colorName']);
 		define("COLOR_CODE_1",$result['colorCode']);
 		define("COLOR_CONTRAST_CODE_1",$result['contrastCode']);
-		
+
 		$sql = "SELECT colorName, colorCode, contrastCode
 				FROM eventTournaments, systemColors
 				WHERE tournamentID = {$tournamentID}
@@ -303,7 +303,7 @@ $conn = connectToDB();
 		define("COLOR_CODE_2",$result['colorCode']);
 		define("COLOR_CONTRAST_CODE_2",$result['contrastCode']);
 	}
-	
+
 	if(!defined('COLOR_NAME_1')){ define("COLOR_NAME_1", null); }
 	if(!defined('COLOR_NAME_2')){ define("COLOR_NAME_2", null); }
 	if(!defined('COLOR_CODE_1')){ define("COLOR_CODE_1", null); }
@@ -321,7 +321,7 @@ $conn = connectToDB();
 function setPermissions(){
 // Intialize the permissions constant with what the current user can and can't do.
 
-	$permissionsList = 
+	$permissionsList =
 		['EVENT_VIDEO','EVENT_SCOREKEEP','EVENT_MANAGEMENT',
 		'SOFTWARE_EVENT_SWITCHING','SOFTWARE_ASSIST','SOFTWARE_ADMIN',
 		'STATS_EVENT','STATS_ALL',
@@ -336,7 +336,7 @@ function setPermissions(){
 	$permissionsArray['VIEW_RULES'] 		= false;
 
 	switch($_SESSION['userName']){
-		
+
 		case 'eventOrganizer':
 
 			$permissionsArray['EVENT_MANAGEMENT'] 	= true;
@@ -350,7 +350,7 @@ function setPermissions(){
 			$permissionsArray['VIEW_SCHEDULE']		= true;
 			$permissionsArray['VIEW_MATCHES'] 		= true;
 			$permissionsArray['VIEW_RULES'] 		= true;
-			
+
 		case '':
 
 			if(isRosterPublished($_SESSION['eventID']) == true){
@@ -429,7 +429,7 @@ function setPermissions(){
 				$permissionsArray['STATS_EVENT'] = true;
 			}
 
-			if(    $permissionsArray['VIEW_HIDDEN'] == true 
+			if(    $permissionsArray['VIEW_HIDDEN'] == true
 				|| $permissionsArray['VIEW_SETTINGS'] == true
 				|| $permissionsArray['STATS_EVENT'] == true){
 
@@ -438,7 +438,7 @@ function setPermissions(){
 				$permissionsArray['VIEW_MATCHES']	= true;
 				$permissionsArray['VIEW_RULES'] 	= true;
 			}
-			
+
 	}
 
 	define("ALLOW",$permissionsArray);
@@ -482,7 +482,7 @@ VIEW_EMAIL
 /******************************************************************************/
 
 function initializeSession(){
-// Starts the session and initializes any session variables 
+// Starts the session and initializes any session variables
 // that are not set to null values.
 
 	session_start();
@@ -582,8 +582,8 @@ function initializeSession(){
 
 }
 
-/******************************************************************************/	
-	
+/******************************************************************************/
+
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

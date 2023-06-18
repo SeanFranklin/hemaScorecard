@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	Manage System Events
-	
+
 	Administrator page to add/edit/remove events
 	LOGIN
 		- SUPER ADMIN can access, no others can
@@ -44,7 +44,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 
 	echo "</div>";
 
-		
+
 }
 
 include('includes/footer.php');
@@ -69,7 +69,7 @@ function displayAdminEventList($eventList){
 			$isParticipants = true;
 			$eventID = (int)$eventID;
 			if($eventList[$eventID]['isArchived'] == 0){
-				
+
 
 			// Flags for publication settings
 				$str = '';
@@ -120,7 +120,7 @@ function displayAdminEventList($eventList){
 				} else {
 
 				}
-				
+
 			} else {
 				$eventList[$eventID]['Publish'] = "";
 				$eventList[$eventID]['Setup'] = "";
@@ -130,30 +130,30 @@ function displayAdminEventList($eventList){
 
 	}
 	$archivedReached = false;
-										
+
 	?>
-	
+
 	<div class='cell'>
 
 	<form method='POST'>
 	<input type='hidden' name='formName' value='editEvent'>
 	<table class='stack'>
 
-	
+
 <!-- Headers ------------------------------------------------------->
 	<tr class='hide-for-small-only'>
 		<th></th>
 		<th></th>
 		<?php foreach($fieldsToDisplay as $fieldName): ?>
 			<th>
-				<?=$fieldName?>	
-				<?php 
+				<?=$fieldName?>
+				<?php
 					if($fieldName == 'Setup'){
 						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
 							----------
 							<BR>4) Matches Fought<BR>5) Tournaments Finalized<BR>6) HEMA Ratings Info");
 					}
-					
+
 
 					if($fieldName == 'Publish'){
 						tooltip("1) Descrpition<BR>
@@ -164,15 +164,15 @@ function displayAdminEventList($eventList){
 							5) Matches<BR>
 							6) Archived");
 					}
-					
+
 				?>
 			</th>
 		<?php endforeach ?>
 	</tr>
-	
+
 
 <!-- Events -------------------------------------------------------------->
-	<?php foreach($eventList as $eventID => $info): 
+	<?php foreach($eventList as $eventID => $info):
 
 		$topBorder = '';
 
@@ -203,8 +203,8 @@ function displayAdminEventList($eventList){
 		<tr class='<?=$trClass?>'>
 			<td>
 				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['isArchived'] == false): ?>
-					<button class='button tiny hollow no-bottom expanded warning' 
-							name='eventInfo[eventToEdit]' 
+					<button class='button tiny hollow no-bottom expanded warning'
+							name='eventInfo[eventToEdit]'
 							value='<?=$eventID?>'>
 
 						Edit #<?=$eventID?>
@@ -213,15 +213,15 @@ function displayAdminEventList($eventList){
 				<?php endif ?>
 			</td>
 			<td>
-				
-				<a class='button tiny hollow no-bottom expanded' 
+
+				<a class='button tiny hollow no-bottom expanded'
 						onclick="changeEventJs(<?=$eventID?>)">
 					Go
 				</a>
-				
+
 			</td>
-			
-			<?php foreach($fieldsToDisplay as $fieldName): 
+
+			<?php foreach($fieldsToDisplay as $fieldName):
 
 				if($fieldName == 'Setup' || $fieldName == 'Publish'){
 					$noWrap = "style='white-space: nowrap;'";
@@ -242,7 +242,7 @@ function displayAdminEventList($eventList){
 	</table>
 	</form>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -257,9 +257,9 @@ function addNewEventMenu(){
 	$eventInfo['countryIso2'] = null;
 
 	?>
-	
+
 	<a class='button hollow' id="createNewEventToggleButton">
-	 	Create New Event
+		Create New Event
 	</a>
 	<fieldset class='fieldset cell large-6 hidden' id='createNewEventField'>
 	<legend><h4>Add New Event</h4></legend>
@@ -273,7 +273,7 @@ function addNewEventMenu(){
 				</td>
 				<td>
 					<input type='hidden' name='eventInfo[isMetaEvent]' value='0'>
-					<input class='switch-input' type='checkbox' id='eventInfo[isMetaEvent]' 
+					<input class='switch-input' type='checkbox' id='eventInfo[isMetaEvent]'
 						name='eventInfo[isMetaEvent]' value='1' >
 					<label class='switch-paddle' for='eventInfo[isMetaEvent]'>
 					</label>
@@ -281,18 +281,18 @@ function addNewEventMenu(){
 			</tr>
 
 		</table>
-		
+
 		<button class='button success'>Add Event</button>
-	
+
 	</form>
 	</fieldset>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function editEventMenu($eventID,$eventInfo){
-	
+
 	if(isEventArchived($eventID) == true){
 		$isArchived = 'selected';
 	} else {
@@ -306,7 +306,7 @@ function editEventMenu($eventID,$eventInfo){
 		return;
 	}
 	?>
-	
+
 	<fieldset class='fieldset cell large-6'>
 	<legend><h4>Edit Event</h4></legend>
 
@@ -319,7 +319,7 @@ function editEventMenu($eventID,$eventInfo){
 	<!-- Data fields -->
 		<table>
 			<?php entryFields($eventInfo); ?>
-			
+
 			<!-- Event status -->
 			<tr>
 				<td>Archived:</td>
@@ -361,16 +361,16 @@ function editEventMenu($eventID,$eventInfo){
 
 				<div class='input-group'>
 					<input type='hidden' name='deleteEvent[eventID]' value='<?=$eventID?>'>
-					<input class='input-group-field no-bottom' 
+					<input class='input-group-field no-bottom'
 						type='text' name='deleteEvent[confirmationCode]' size='1'
 						placeholder="delete-SoCal Swordfight 2016">
-					<button class='button alert hollow small input-group-button no-bottom' 
+					<button class='button alert hollow small input-group-button no-bottom'
 						name='formName' value='deleteEvent'>Delete Event</button>
 				</div>
 			</form>
 		<?php endif ?>
-	
-	
+
+
 	</fieldset>
 
 <?php }
@@ -379,7 +379,7 @@ function editEventMenu($eventID,$eventInfo){
 
 function entryFields($eventInfo){
 	?>
-	
+
 	<tr>
 		<td>Event Name</td>
 		<td>
@@ -390,7 +390,7 @@ function entryFields($eventInfo){
 	<tr>
 		<td>Abbreviation</td>
 		<td>
-			<input class='no-bottom' type='text' 
+			<input class='no-bottom' type='text'
 				name='eventInfo[eventAbbreviation]' value="<?=$eventInfo['eventAbbreviation']?>">
 		</td>
 	</tr>
@@ -419,11 +419,11 @@ function entryFields($eventInfo){
 	<tr>
 		<td>Province/State</td>
 		<td>
-			<input class='no-bottom' type='text' 
+			<input class='no-bottom' type='text'
 				name='eventInfo[eventProvince]' value="<?=$eventInfo['eventProvince']?>">
 		</td>
 	</tr>
-	
+
 	<tr>
 		<td>Country</td>
 		<td>

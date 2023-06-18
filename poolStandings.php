@@ -1,15 +1,15 @@
 <?php
 /*******************************************************************************
 	Pool Standings
-	
-	Displays the pool standings. The data table is generated in 
-	scoringFunctions.php, as each ruleset will have different 
+
+	Displays the pool standings. The data table is generated in
+	scoringFunctions.php, as each ruleset will have different
 	items to display in the table.
-	
+
 	Login
-		- STAFF or higher will have the option to have all incomplete 
-		matches shown 
-	
+		- STAFF or higher will have the option to have all incomplete
+		matches shown
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -74,8 +74,8 @@ if($tournamentID == null){
 			<div id='incompleteMatchesDiv' class='callout hidden'>
 				<?php displayIncompleteMatches($incompleteMatches);?>
 			</div>
-		<?php endif ?>	
-		</div>			
+		<?php endif ?>
+		</div>
 	<?php endif ?>
 
 	<?php if($_SESSION['formatID'] == FORMAT_META): ?>
@@ -84,7 +84,7 @@ if($tournamentID == null){
 				<button class='button' name='formName' value='updateMetaStandings'>
 					Update Standings
 				</button>
-				<input type='hidden' name='updateMetaStandings[tournamentID]' 
+				<input type='hidden' name='updateMetaStandings[tournamentID]'
 						value='<?=$_SESSION['tournamentID']?>'>
 			</form>
 		<?php endif ?>
@@ -124,8 +124,8 @@ if($tournamentID == null){
 
 
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
- 
-<?php 		
+
+<?php
 }
 
 include('includes/footer.php');

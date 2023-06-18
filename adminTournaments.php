@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Manage Tournaments
-	
+
 	View and change settings of tournaments. Delete existing tournaments.
 	LOGIN
 		- ADMIN or higher required to view
@@ -31,17 +31,17 @@ if($_SESSION['eventID'] == null){
 // Disable form elements if the settings should not be changed.
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		$formLock = 'disabled';
-	} 
+	}
 
 	if(isFinalized($tournamentID)){
 		$isLocked = 'disabled';
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	
+
 	<?php if($isLocked != null): ?>
 		<div class='callout alert text-center' data-closeable>
 			Results for this tournament have been finalized, most changes have been disabled.
@@ -50,10 +50,10 @@ if($_SESSION['eventID'] == null){
 	<?php endif ?>
 
 	<input type='hidden' id='doesBracketExist<?=$tournamentID?>' value=<?=isBrackets($tournamentID)?>>
-	
+
 	<fieldset <?=$isLocked?> <?=$formLock?> >
 	<form method='POST'>
-		
+
 	<input type='hidden' name='formName' value='updateTournamentInfo'>
 	<input type='hidden' name='modifyTournamentID' value='<?=$tournamentID?>'>
 
@@ -63,16 +63,16 @@ if($_SESSION['eventID'] == null){
 	<div class='large-7 cell'>
 
 	<table class='options-table stack'>
-	
+
 		<!-- Tournament Info --------------------------------------------->
-			<?php 
+			<?php
 
 			// Tournament Info --------------------------
 				edit_tournamentOptionsRow("General Configuration");
 				edit_tournamentName($tournamentID);
 				edit_tournamentFormatType($tournamentID);
 				edit_tournamentRankingType($tournamentID);
-				edit_tournamentBasePoints($tournamentID); 
+				edit_tournamentBasePoints($tournamentID);
 
 			// Sparring Tournaments Info --------------------------
 				edit_tournamentOptionsRow("Sparring Info","option-sparring");
@@ -95,7 +95,7 @@ if($_SESSION['eventID'] == null){
 
 			// Match Conclusion --------------------------
 				edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
-					"Optional settings for the software to automatically end a match when these conditions are met. 
+					"Optional settings for the software to automatically end a match when these conditions are met.
 					Scorekeepers can always conclude (or re-open) matches regardless of what is set here.");
 				edit_tournamentMaxDoubles($tournamentID);
 				edit_tournamentTimeLimit($tournamentID);
@@ -133,14 +133,14 @@ if($_SESSION['eventID'] == null){
 	<? if(isFinalsSubMatches($tournamentID) && getNumSubMatches($tournamentID) == 0): ?>
 		<div class='callout warning'>
 			<h4 class='red-text'>WARNING</h4>
-			You have a finals match with sub matches created in it. If you update these settings you will 
-			<u>overwrite</u> the settings for your finals matches to zero sub matces. 
+			You have a finals match with sub matches created in it. If you update these settings you will
+			<u>overwrite</u> the settings for your finals matches to zero sub matces.
 			<BR>
 			<strong>THIS WILL PERMINATLY ERASE MATCHES</strong>
 			<BR>
-			<em><u>Example</u>: If you have 3 sub-matches in the gold medal round, and you update this form 
-			with 'Use Sub Matches' set to 'No', it will delete all the sub matches and you would 
-		    lose your results for the finals.</em>
+			<em><u>Example</u>: If you have 3 sub-matches in the gold medal round, and you update this form
+			with 'Use Sub Matches' set to 'No', it will delete all the sub matches and you would
+			lose your results for the finals.</em>
 			<BR>
 			<strong class='red-text'>Do not click 'Update' unless you are <u>very</u> sure you know what you are doing.</strong>
 		</div>
@@ -153,7 +153,7 @@ if($_SESSION['eventID'] == null){
 <!-- Submit Form Options -------------------------------------------------->
 	<div>
 
-		<button class='button success' name='updateType' value='update' 
+		<button class='button success' name='updateType' value='update'
 			id='editTournamentButton<?=$tournamentID?>' <?=$isLocked?>  <?=$formLock?>>
 			Update <?=$tournamentName?>
 		</button>
@@ -168,7 +168,7 @@ if($_SESSION['eventID'] == null){
 			<?=$isLocked?>  <?=$formLock?>>
 			Import/Copy
 		</a>
-		<a class='button alert' data-open='boxFor-<?=$tournamentID?>' 
+		<a class='button alert' data-open='boxFor-<?=$tournamentID?>'
 			style='float:right' <?=$isLocked?>  <?=$formLock?>>
 			Delete Tournament
 		</a>
@@ -177,13 +177,13 @@ if($_SESSION['eventID'] == null){
 	<?=importSettingsForm($tournamentID)?>
 
 	</fieldset>
-			
 
-			
-	<?php 
+
+
+	<?php
 	if($isLocked == null &&  $formLock == null){
-		confirmTournamentDeletionBox($tournamentID); 
-	}	
+		confirmTournamentDeletionBox($tournamentID);
+	}
 	?>
 
 	<i>Use tournaments selection in upper left to change tournament.</i>
@@ -207,7 +207,7 @@ function importSettingsForm($tournamentID){
 
 		<h4>Import Tournament Settings</h4>
 		<p>
-	    This will import <strong>ALL</strong> settings from the selected tournament except:<BR>
+		This will import <strong>ALL</strong> settings from the selected tournament except:<BR>
 		- Names<BR>
 		- Group Set information<BR>
 		- Pre-defined tournament attacks
@@ -217,7 +217,7 @@ function importSettingsForm($tournamentID){
 			<strong>IMPORTANT!!</strong><BR>
 			This is meant as a feature to save time, but <u>does not</u> absolve you of needing to make sure
 			that your tournaments are set up correctly. <BR>
-			Options may have changed since a past event was run, 
+			Options may have changed since a past event was run,
 			or the options might not work the same way.<BR>
 			<span class='red-text'>CHECK THAT THE IMPORTED SETTINGS WORK!</span>
 		</div>
@@ -251,7 +251,7 @@ function importSettingsForm($tournamentID){
 
 	</form>
 	</div>
-	
+
 <?php
 }
 
@@ -259,40 +259,40 @@ function importSettingsForm($tournamentID){
 
 function confirmTournamentDeletionBox($tournamentID){
 	$name = getTournamentName($tournamentID);
-	
-	?>	
-	
+
+	?>
+
 	<div class='reveal text-center' id='boxFor-<?=$tournamentID?>' data-reveal>
-	
+
 	<form method='POST'>
 		<input type='hidden' name='formName' value='deleteTournament'>
 		<input type='hidden' name='deleteTournamentID' value='<?=$tournamentID?>'>
-		
+
 		<p>You are about to delete the following tournament:</p>
 		<h1><?=$name?></h1><BR>
-		
-		<p><span style='color:red'>Warning: </span> 
-		Deleting this tournament will <u>permanently</u> 
+
+		<p><span style='color:red'>Warning: </span>
+		Deleting this tournament will <u>permanently</u>
 		erase any data associated with it.</p>
-	
+
 		<button class='button alert large text-center'>
 			Delete Tournament
 		</button>
-		
+
 		<span class='button large secondary' data-close aria-label='Close modal' type='button'>
 			Cancel
 		</span>
-		
+
 	</form>
-	
+
 	<!-- Close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 	</div>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/

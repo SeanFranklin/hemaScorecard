@@ -1,4 +1,4 @@
-<?php 
+<?php
 /*******************************************************************************
 
 *******************************************************************************/
@@ -86,9 +86,9 @@ if(isset($_SESSION['statsAttendanceFilters']) == true){
 		$placings[$tID][2] = null;
 		$placings[$tID][3] = null;
 	}
-	
 
-	
+
+
 } else {
 
 	$filters['countryIso2'] = '';
@@ -100,7 +100,7 @@ if(isset($_SESSION['statsAttendanceFilters']) == true){
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <form method="POST">
@@ -113,7 +113,7 @@ if(isset($_SESSION['statsAttendanceFilters']) == true){
 	<div class='input-group-button'>
 		<button class='button' name='formName' value='statsAttendanceFilters'>Submit</button>
 	</div>
-	
+
 </div>
 </form>
 

@@ -1,10 +1,10 @@
 <?php
 /*******************************************************************************
 	Log In Page
-	
+
 	Log in to events or as a specialty user
 	LOGIN: N/A
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -42,17 +42,17 @@ if($typeSelect == null){
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
+////////////////////////////////////////////////////////////////////////////////
+?>
 
 	<div class='grid-x grid-margin-x'>
 		<div id='login-form' class='small-12 medium-6 large-4 cell'>
 		<form action='adminLogIn.php' method='POST'>
-		
+
 		<!-- User type -->
 			<label>
 				<span>User Type</span>
-				<select id='logInType' name='logInData[type]' autocomplete='username' 
+				<select id='logInType' name='logInData[type]' autocomplete='username'
 					onchange="logInTypeToggle(this)" required>
 					<option selected disabled></option>
 					<option <?=optionValue('logInStaff', $typeSelect)?>>
@@ -66,12 +66,12 @@ if($typeSelect == null){
 					</option>
 				</select>
 			</label>
-			
+
 
 		<!-- Event list -->
 			<label id='logInEventListDiv' class='<?=$eventListVisibility?>'>
 				<span>Event</span>
-				<select id='logInEventID' name='logInData[eventID]'  onchange="logInEventToggle('logInEventID')">	
+				<select id='logInEventID' name='logInData[eventID]'  onchange="logInEventToggle('logInEventID')">
 					<option selected disabled></option>
 					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
 					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
@@ -80,21 +80,21 @@ if($typeSelect == null){
 					<?php populateEventSelectFields($metaEvents, $defaultEventID); ?>
 				</select>
 			</label>
-		
+
 
 		<!-- User Name -->
 			<label id='logInUserNameDiv' class='<?=$userNameVisibility?>'>
 				<span>Username</span>
 				<input id='logInUserName' type='text' name='logInData[userName]'>
 			</label>
-			
 
-		<!-- Password -->	
+
+		<!-- Password -->
 			<label>
 				<span>Password</span>
 			<input type='password' name='logInData[password]'>
 			</label>
-			<button id='logInSubmitButton' class='button large small-12 cell' 
+			<button id='logInSubmitButton' class='button large small-12 cell'
 					name='formName' value='logUserIn'>
 				<strong>Log In</strong>
 			</button>
@@ -103,7 +103,7 @@ if($typeSelect == null){
 	</div>
 
 
-<?php 
+<?php
 include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
@@ -119,12 +119,12 @@ function populateEventSelectFields($eventList, $defaultEventID){
 
 	foreach($eventList as $eventID => $eventInfo){
 		$eventName = getEventName($eventID);
-		$selected = isSelected($eventID, $defaultEventID);		
-		
+		$selected = isSelected($eventID, $defaultEventID);
+
 		echo "<option value='{$eventID}' {$selected} id='eventName{$eventID}'>";
 			echo $eventName;
 		echo "</option>";
-						
+
 	}
 
 }

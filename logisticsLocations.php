@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Locations
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@ if($_SESSION['eventID'] == null){
 } elseif($_SESSION['isMetaEvent'] == true){
 	redirect('infoSummary.php');
 } else {
-	
+
 	// If they are just viewing the page without management permisions all the forms are locked.
 	if(ALLOW['EVENT_MANAGEMENT'] == true){
 		$formLock = '';
@@ -30,15 +30,15 @@ if($_SESSION['eventID'] == null){
 	}
 
 	$locationInfo = (array)logistics_getEventLocations($_SESSION['eventID']);
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <form method='POST' id="ll-form">
 <fieldset class='fieldset' <?=$formLock?> >
 <legend><h3>Tournament Layout</h3></legend>
-	
+
 	<input type='hidden' name='editLocationInformation[eventID]' value='<?=$_SESSION['eventID']?>'>
 
 	<table>
@@ -60,7 +60,7 @@ if($_SESSION['eventID'] == null){
 			</th>
 		</tr>
 
-		<?php 
+		<?php
 
 
 			foreach($locationInfo as $location){
@@ -92,8 +92,8 @@ if($_SESSION['eventID'] == null){
 
 
 
-</form>	
-	
+</form>
+
 
 <?php }
 include('includes/footer.php');
@@ -193,18 +193,18 @@ function editLocationRow($locationInfo){
 		<td>
 			<?php if(((int)$locationID) > 0): ?>
 				<input type='checkbox' class='no-bottom'
-						name='locationsToDelete[<?=$locationID?>]' 
+						name='locationsToDelete[<?=$locationID?>]'
 						value=<?=$locationID?> >
 			<?php endif ?>
 		</td>
 		<td>
-			<input type='text' class='no-bottom' 
-					name='editLocationInformation[locations][<?=$locationID?>][locationName]' 
+			<input type='text' class='no-bottom'
+					name='editLocationInformation[locations][<?=$locationID?>][locationName]'
 					value='<?=$locationName?>' placeholder='eg: Ring 1 (Red), South Classrom, etc...'>
 		</td>
 		<td>
-			<input type='text' class='no-bottom' 
-					name='editLocationInformation[locations][<?=$locationID?>][locationNameShort]' 
+			<input type='text' class='no-bottom'
+					name='editLocationInformation[locations][<?=$locationID?>][locationNameShort]'
 					value='<?=$locationNameShort?>' placeholder='eg: Ring 1, South, etc...'>
 		</td>
 		<td>
@@ -215,7 +215,7 @@ function editLocationRow($locationInfo){
 				<input class='switch-input' type='checkbox' <?=$onClick?>
 					id='editLocationInformation[locations][<?=$locationID?>][hasMatches]' <?=$hasMatches?>
 					name='editLocationInformation[locations][<?=$locationID?>][hasMatches]' value='1' >
-				<label class='switch-paddle' 
+				<label class='switch-paddle'
 					for='editLocationInformation[locations][<?=$locationID?>][hasMatches]'>
 				</label>
 			</div>
@@ -223,14 +223,14 @@ function editLocationRow($locationInfo){
 		</td>
 
 		<td>
-			
+
 			<div class='switch text-center no-bottom'>
 				<input type='hidden' value='0'
 						name='editLocationInformation[locations][<?=$locationID?>][hasClasses]'>
 				<input class='switch-input' type='checkbox' <?=$onClick?>
 					id='editLocationInformation[locations][<?=$locationID?>][hasClasses]' <?=$hasClasses?>
 					name='editLocationInformation[locations][<?=$locationID?>][hasClasses]' value='1' >
-				<label class='switch-paddle' 
+				<label class='switch-paddle'
 					for='editLocationInformation[locations][<?=$locationID?>][hasClasses]'>
 				</label>
 			</div>

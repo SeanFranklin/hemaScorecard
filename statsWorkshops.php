@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -15,21 +15,21 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['VIEW_SCHEDULE'] == false){
 	displayAlert("Event is still upcoming<BR>Schedule not yet released");
 } else {
-	
+
 	$stats = logistics_getWorkshopStats($_SESSION['eventID']);
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
-	
+////////////////////////////////////////////////////////////////////////////////
+?>
+
 <!-- Participant summary -->
 
 	<div class='grid-x align-center'>
 	<div class='large-6 medium-10 small-12'>
-	
+
 
 	<table>
-	
+
 		<div class='callout success text-center'>
 		<h5>
 			Number of Workshops:
@@ -45,7 +45,7 @@ if($_SESSION['eventID'] == null){
 
 
 	<table class='stack'>
-	
+
 	<caption>Instructor List </caption>
 
 	<?php foreach($stats['instructors'] as $instructor): ?>
@@ -59,10 +59,10 @@ if($_SESSION['eventID'] == null){
 
 	</table>
 
-	
+
 	</div>
 	</div>
-	
+
 <?php }
 include('includes/footer.php');
 

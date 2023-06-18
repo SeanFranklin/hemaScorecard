@@ -1,5 +1,4 @@
 
-
 // CONSTANT DECLARATIONS ///////////////////////////////////////
 const AJAX_LOCATION = "/includes/functions/AJAX.php";
 
@@ -18,23 +17,23 @@ const TIE_NO      = '&nbsp;';
 /******************************************************************************/
 
 function toggle(divName, divName2 = null) {
-	
+
     var x = document.getElementById(divName);
     if (x.offsetHeight == 0) {
         x.style.display = 'block';
     } else {
         x.style.display = 'none';
     }
-    
+
     if(divName2 == null){return;}
-    
+
     var x = document.getElementById(divName2);
     if (x.offsetHeight == 0) {
         x.style.display = 'block';
     } else {
         x.style.display = 'none';
     }
-    
+
 }
 
 /******************************************************************************/
@@ -54,7 +53,7 @@ function show(text){
 
 function rankingDescriptionToggle(rankingID){
     $(".rankingDescription").hide();
-    var divName = "rankingID"+rankingID; 
+    var divName = "rankingID"+rankingID;
     $("#"+divName).show();
 }
 
@@ -76,13 +75,13 @@ function showForOption(selectElement, value, classToToggle){
 function autoRefresh(timeInterval){
 // Automatically refreshes a page for a given time interval.
 // timeInterval is in msec
-	
+
 	if(timeInterval == 0){ return; }
 	var refreshPeriod = timeInterval * 1000; // seconds
-	
+
 	var intervalID = window.setInterval(function(){ a(); }, refreshPeriod);
-	
-	function a(){ 
+
+	function a(){
 		location.reload();
 	}
 }
@@ -115,8 +114,8 @@ function updateSession(index, value){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
-            if(this.responseText.length > 1){ 
+
+            if(this.responseText.length > 1){
                 // Could read the success/failure message here.
             }
         }
@@ -127,20 +126,20 @@ function updateSession(index, value){
 /******************************************************************************/
 
 function submitForm(formID, formName, directMode = false){
-   
+
     if(directMode == false){
         form = document.getElementById(formID);
     } else {
         form = formID;
     }
-    
+
 
     var formNameInput = document.createElement('input');
     formNameInput.type = 'hidden';
     formNameInput.name = 'formName';
     formNameInput.value = formName;
     form.appendChild(formNameInput);
-    
+
     form.submit();
 }
 
@@ -183,7 +182,7 @@ function submit_updateBracketRings(){
     formNameInput.name = 'locationID';
     formNameInput.value = $('#bracketLocationID').val();
     form.appendChild(formNameInput);
-    
+
     submitForm('bracketForm','assignMatchesToLocations');
 }
 
@@ -204,7 +203,7 @@ function placingsDeclareTie(place1, maxPlace){
     var set2 = '';
 
     switch(state1){
-        case TIE_NO: 
+        case TIE_NO:
             set1 = TIE_TOP;
 
             if(state2 == TIE_NO){
@@ -237,7 +236,7 @@ function placingsDeclareTie(place1, maxPlace){
 
         case TIE_MIDDLE:
             set1 = TIE_NO;
-           
+
             if(state2 == TIE_BOTTOM){
                 set2 = TIE_NO;
             } else if(state2 == TIE_MIDDLE){
@@ -297,12 +296,12 @@ function placingsDeclareTie(place1, maxPlace){
             $("#place-label-"+i).addClass('blue-text');
             $("#place-label-"+i).html(startOfTie);
             $("#place-value-"+i).val(startOfTie);
-  
+
         }
 
     // Detect end of a tie
         if(endOfTie != 0){
-           
+
             for(j = startOfTie;j <= endOfTie; j++){
                 $("#place-tie-"+j).val(tieSize);
                 $("#place-tie-start-"+j).val(tieSize);
@@ -382,7 +381,7 @@ function postForm(formData){
 
             if(this.responseText.length > 1){
                 //console.log(this.responseText);
-                
+
             }
         }
     }

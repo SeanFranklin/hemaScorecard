@@ -1,11 +1,11 @@
-<?php 
+<?php
 /*******************************************************************************
 	Info Summary
-	
+
 	Displays all the tournament medalists
-	Login: 
-		- ADMIN or above can add/remove final medalists 
-	
+	Login:
+		- ADMIN or above can add/remove final medalists
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@ include('includes/header.php');
 if($_SESSION['eventID'] == null){
 	pageError('event');
 } else {
-	
+
 	define("NUM_FINALISTS_DISPLAYED",4);
 	$tournamentList = getTournamentsFull($_SESSION['eventID']);
 	$tournamentList = sortTournamentsForPlacings($tournamentList);
@@ -47,11 +47,11 @@ if($_SESSION['eventID'] == null){
 
 	<?=showEventBurgees()?>
 
-			
+
 	<?php foreach((array)$tournamentList as $tournamentID => $data):
-		
+
 		$isTeams = isTeams($tournamentID);
-		$name = getTournamentName($tournamentID); 
+		$name = getTournamentName($tournamentID);
 		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
 					style='cursor: pointer;'";
 
@@ -61,10 +61,10 @@ if($_SESSION['eventID'] == null){
 		}
 
 		?>
-		
-		
+
+
 		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
-		
+
 			<a name='anchor<?=$tournamentID?>'></a>
 			<legend><h4><a <?=$link?>><?= $name ?></a></h4></legend>
 
@@ -85,9 +85,9 @@ if($_SESSION['eventID'] == null){
 				<?= manageTournamentPlacings($tournamentID)?>
 
 			<?php endif ?>
-		
+
 		</fieldset>
-			
+
 	<?php endforeach ?>
 	</div>
 
@@ -189,8 +189,8 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 		&& (ALLOW['VIEW_SETTINGS'] == false)
 		&& (ALLOW['STATS_EVENT'] == false)){
 
-	 	echo "This tournament does not have placings.";
-	 	return;
+		echo "This tournament does not have placings.";
+		return;
 	 }
 
 // Calculate which results to show on the main screen
@@ -198,7 +198,7 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 	$placingsToShow = sizeof($placings);
 	$placingDisplay1 = [];
 	while($i < $placingsToShow){
-		
+
 		if($placings[$i]['lowBound'] != null){
 			if($placings[$i]['lowBound'] > 4){
 				break;
@@ -216,7 +216,7 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 			$tmp['name'] = getFighterName($rosterID);
 		}
 
-		
+
 		if(isset($placings[$i]['schoolFullName'])){
 			$tmp['school'] = $placings[$i]['schoolFullName'];
 			if($placings[$i]['schoolBranch'] != null){
@@ -279,11 +279,11 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
 ?>
 
-			
+
 <!-- Display the top 4 -->
 	<table>
 		<?php foreach($placingDisplay1 as $data):?>
-			
+
 			<tr>
 				<td class='text-center'>
 					<?= $data['place'] ?>
@@ -295,7 +295,7 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 					<em><?= $data['school'] ?></em>
 				</td>
 			</tr>
-			
+
 		<?php endforeach ?>
 	</table>
 
@@ -303,7 +303,7 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
 	<!-- Toggle visibility -->
 	<?php if($placingDisplay2 != null): ?>
-		<a class='extra-results-<?=$tournamentID?>' 
+		<a class='extra-results-<?=$tournamentID?>'
 			onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
 
 			Show More ↓
@@ -334,7 +334,7 @@ function manageTournamentPlacings($tournamentID){
 		return;
 	}
 
-	
+
 
 	$tournamentID = (int)$tournamentID;
 
@@ -359,11 +359,11 @@ function manageTournamentPlacings($tournamentID){
 	<form method='POST'>
 	<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
 
- 	<?php if($isFinalized == false): ?>
+	<?php if($isFinalized == false): ?>
 
 		<?php if(!isResultsOnly($tournamentID)): ?>
 			<?php if($useSpecs == false): ?>
-				<button class='button no-bottom success' name='formName' 
+				<button class='button no-bottom success' name='formName'
 					value='autoFinalizeTournament' <?=$autoDisable?>>
 					Auto Finalize Tournament
 				</button>
@@ -378,7 +378,7 @@ function manageTournamentPlacings($tournamentID){
 		<button class='button hollow no-bottom <?=$manualClass?>' name='formName' value='editTournamentPlacings'>
 			Manually Finalize Tournament
 		</button>
-						
+
 	<?php else: ?>
 
 		<a class='button hollow no-bottom alert' data-open='deleteConfirmBox<?=$tournamentID?>'>
@@ -388,7 +388,7 @@ function manageTournamentPlacings($tournamentID){
 			Edit Final Results
 		</button>
 
-	<?php endif ?>	
+	<?php endif ?>
 	</form>
 
 <!-- Delete Confirmation Box -->
@@ -399,7 +399,7 @@ function manageTournamentPlacings($tournamentID){
 		<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
 
 		<h4>Please Confirm Removal</h4>
-		<em>Removing the final results will not affect any match data, only the list of 
+		<em>Removing the final results will not affect any match data, only the list of
 		final placings.</em>
 		<HR>
 	<!-- Submit buttons -->
@@ -415,15 +415,15 @@ function manageTournamentPlacings($tournamentID){
 		</div>
 
 		</form>
-	
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
-	
+
 	</div>
-	<?php endif ?>	
-		
+	<?php endif ?>
+
 <?php
 }
 
@@ -476,13 +476,13 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 	<form method='POST'>
 	<input type='hidden' name='formName' value='finalizeTournament'>
 	<input type='hidden' name='tournamentID' value='<?= $tournamentID ?>'>
-		
-	<?php 
+
+	<?php
 	$tieCounter = 0;
-	for($i=1;$i<=$max;$i++): 
+	for($i=1;$i<=$max;$i++):
 
 
-		
+
 		if(@$placings[$i]['tie'] != 0){
 			$tieCounter++;
 			if($tieCounter == 1){
@@ -512,9 +512,9 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 			$cursor  = '';
 			$onClick = '';
 		}
-		
+
 		?>
-	
+
 		<!-- Select field -->
 		<div class='input-group'>
 
@@ -531,7 +531,7 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 		<!-- Select tournament participant -->
 			<select class='input-group-field' name='tournamentPlacings[placings][<?=$i?>][rosterID]'>
 				<option></option>";
-				<?php 
+				<?php
 				$checkAgainstID = @$placings[$i]['rosterID']; // Could not exist. Treat as null.
 				foreach($roster as $person):
 					$rosterID = $person['rosterID'];?>
@@ -548,7 +548,7 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 			</span>
 		</div>
 
-		
+
 	<?php endfor ?>
 	<button class='button' name='formName' value='finalizeTournament'>
 		Finalize Tournament
@@ -556,9 +556,9 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 	<button class='button secondary' name='formName' value='finalizeTournament-no'>
 		Cancel
 	</button>
-	
+
 	</form>
-	
+
 <?php
 	unset($_SESSION['manualPlacing']);
 }

@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Staff Roster
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ if($_SESSION['eventID'] == null){
 	} else {
 		$formLock = 'disabled';
 	}
-	
+
 	$staffRoster = logistics_getEventStaff($_SESSION['eventID']);
 	$nonStaffRoster = logistics_getEventStaff($_SESSION['eventID'],false);
 	$defaults = getEventDefaults($_SESSION['eventID']);
@@ -65,7 +65,7 @@ if($_SESSION['eventID'] == null){
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<input type='hidden' id='eventID' value="<?=$_SESSION['eventID']?>">
@@ -73,13 +73,13 @@ if($_SESSION['eventID'] == null){
 <!-- Tabs -->
 	<ul class="tabs" data-tabs id="staffRoster-tab">
 
-		
+
 		<li class="tabs-title is-active">
 			<a data-tabs-target="panel-roster" href="#panel-roster">
 				Staff Roster
 			</a>
 		</li>
-		
+
 
 		<li class="tabs-title">
 			<a data-tabs-target="panel-all" href="#panel-all">
@@ -92,7 +92,7 @@ if($_SESSION['eventID'] == null){
 <!-- Tab Content -->
 	<div class="tabs-content" data-tabs-content="staffRoster-tab">
 
-		
+
 		<div class="tabs-panel is-active" id="panel-roster">
 			<div class='grid-x grid-margin-x'>
 			<div class='large-8 medium-10 cell'>
@@ -122,7 +122,7 @@ if($_SESSION['eventID'] == null){
 						</th>
 					</tr>
 
-					<?php 
+					<?php
 						foreach($staffRoster as $index => $staffInfo){
 							editStaffEntry($index, $staffInfo);
 						}
@@ -150,7 +150,7 @@ if($_SESSION['eventID'] == null){
 			</div>
 			</div>
 		</div>
-		
+
 
 		<div class="tabs-panel" id="panel-all">
 			<?=fullRosterDisplay($defaults)?>
@@ -159,8 +159,8 @@ if($_SESSION['eventID'] == null){
 	</div>
 
 
-	
-	
+
+
 
 <?php }
 include('includes/footer.php');
@@ -221,12 +221,12 @@ function fullRosterDisplay($defaults){
 			<td>
 
 				<div class='switch text-center no-bottom'>
-					<input class='switch-input edit-staff-list' type='checkbox' 
+					<input class='switch-input edit-staff-list' type='checkbox'
 						id='<?=$r['nameStart']?>-isStaff' <?=$r['checked']?> data-rosterID=<?=$r['rosterID']?>>
 					<label class='switch-paddle' for='<?=$r['nameStart']?>-isStaff'>
 					</label>
 				</div>
-				
+
 			</td>
 
 			<td class='<?=$r['nameClass']?> no-wrap'>
@@ -236,7 +236,7 @@ function fullRosterDisplay($defaults){
 			<td>
 				<select class='edit-staff-list' id='<?=$r['nameStart']?>-staffCompetency' data-rosterID=<?=$r['rosterID']?>>
 					<?php for($i=1;$i<=STAFF_COMPETENCY_MAX;$i++):?>
-						<option <?=optionValue($i,$r['comp'])?> > 
+						<option <?=optionValue($i,$r['comp'])?> >
 							<?=$i?>
 						</option>
 					<?php endfor ?>
@@ -270,7 +270,7 @@ function editStaffEntry($index, $info){
 			value='<?=$info['rosterID']?>' class='no-bottom'>
 
 			<?=getFighterName($info['rosterID'])?>
-			<input type='hidden' name="editStaffList[staffList][<?=$index?>][rosterID]" 
+			<input type='hidden' name="editStaffList[staffList][<?=$index?>][rosterID]"
 				value='<?=$info['rosterID']?>' >
 		</td>
 		<td>
@@ -298,7 +298,7 @@ function addStaffEntry($index, $roster, $defaults){
 		<td>
 			<select name="editStaffList[staffList][<?=$index?>][rosterID]" class='no-bottom'>
 				<option></option>
-				<?php foreach($roster as $member): 
+				<?php foreach($roster as $member):
 					$rosterID = $member['rosterID'];
 					?>
 					<option <?=optionValue($rosterID,null)?> >

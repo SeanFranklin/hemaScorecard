@@ -1,3 +1,4 @@
+
 /******************************************************************************/
 
 const VIDEO_STREAM_MATCH    = 1;
@@ -61,7 +62,7 @@ function getStreamMatchInfo(){
 			if(this.responseText.length > 1){
 				//console.log(this.responseText);
 				matchInfo= JSON.parse(this.responseText);
-				updateStreamOverlay(matchInfo);	
+				updateStreamOverlay(matchInfo);
 			}
 		}
 	}
@@ -85,11 +86,11 @@ function updateStreamOverlay(matchInfo){
 	}
 
 	streamMatchInfo.lastExch = matchInfo['lastExchange'];
-	
+
 	document.getElementById('tournamentName').innerHTML = matchInfo['tournamentName'];
 	document.getElementById('matchName').innerHTML = matchInfo['matchName'];
 	document.getElementById('doublesDiv').innerHTML = matchInfo['doubles']+" Doubles";
-		
+
 // If match is concluded
 	if(matchInfo['endType'] == 'doubleOut'){
 		document.getElementById('fighter1Name').style.textDecoration = 'line-through';
@@ -110,14 +111,14 @@ function updateStreamOverlay(matchInfo){
 	document.getElementById('fighter1School').innerHTML = matchInfo['fighter1School'];
 	document.getElementById('fighter1Score').innerHTML = matchInfo['fighter1Score'];
 	document.getElementById('color1Div').style.background = matchInfo['color1Code'];
-	
+
 	document.getElementById('fighter2Name').innerHTML = matchInfo['fighter2Name'];
 	document.getElementById('fighter2School').innerHTML = matchInfo['fighter2School'];
 	document.getElementById('fighter2Score').innerHTML = matchInfo['fighter2Score'];
 	document.getElementById('color2Div').style.background = matchInfo['color2Code'];
-	
 
-	
+
+
 // Last Exchange
 	exchName = getExchangeName( matchInfo['exchangeType'], matchInfo['points']);
 	document.getElementById('exchangeType').innerHTML = exchName[0];
@@ -135,13 +136,13 @@ function updateStreamOverlay(matchInfo){
 /******************************************************************************/
 
 function getExchangeName(type, points){
-	
+
 	if(Math.abs(points) == 1){
 		pts = points+" Point";
 	} else {
 		pts = points+" Points";
 	}
-	
+
 	switch(type){
 		case 'clean':
 			return ['Clean Hit', pts];
@@ -158,8 +159,8 @@ function getExchangeName(type, points){
 		default:
 			return ['&nbsp;','&nbsp;'];
 	}
-	
-	
+
+
 }
 
 /******************************************************************************/
@@ -208,8 +209,8 @@ function updateStreamSession(mode, matchID, locationID){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
-            if(this.responseText.length > 1){ 
+
+            if(this.responseText.length > 1){
             	console.log(this.responseText);
                 // Could read the success/failure message here.
             }
@@ -223,10 +224,10 @@ function updateStreamSession(mode, matchID, locationID){
 function validateVideoLink(){
 
 	var buttons = document.getElementsByClassName('videoSubmitButton');
-	
+
 	var url = document.getElementById('updateVideoSource[sourceLink]').value;
-	
-	if(    url.startsWith("https://www.youtube.com") 
+
+	if(    url.startsWith("https://www.youtube.com")
 		|| url.startsWith("https://youtu.be")
 		|| url.startsWith("https://drive/google.com/file")
 		|| url == ''){

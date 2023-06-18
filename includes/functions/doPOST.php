@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	doPOST
-	
+
 	Landing platform for POST form submissions.
-	Every form submision contains a 'formName' which directs the 
+	Every form submision contains a 'formName' which directs the
 	appropriate action to handle POST data.
-	
+
 *******************************************************************************/
 
 function _select_above(){
@@ -36,14 +36,14 @@ function processPostData(){
 		if(!isset($refreshPage)){
 			$refreshPage = true;
 		}
-	
+
 		$formName = $_POST['formName'];
 		unset($_POST['formName']);
 
 		checkSession();
 
 		switch($formName){
-		
+
 	// Navigation Cases
 			case 'logUserIn':
 				logUserIn($_POST['logInData']);
@@ -96,13 +96,13 @@ function processPostData(){
 			case 'setDataFilters':
 				setDataFilters($_POST['filters']);
 				break;
-				
+
 	// Roster Management Cases
 			case 'addEventParticipants':
 				if(empty($_POST['newParticipants']) == false){
 					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);
 				}
-				
+
 				break;
 			case 'addAdditionalParticipants':
 				addAdditionalParticipants($_POST['addAdditional']);
@@ -157,8 +157,8 @@ function processPostData(){
 					addTeamMembers($teamInfo, $_SESSION['tournamentID']);
 				}
 				break;
-			
-		
+
+
 	// Pool Management Cases
 			case 'createNewPools':
 				createNewPools();
@@ -187,7 +187,7 @@ function processPostData(){
 			case 'updateRankByPool':
 				updateRankByPool($_POST['rankByPool']);
 				break;
-				
+
 	// Scored Rounds
 			case 'numberOfGroupSets':
 				updateNumberOfGroupSets();
@@ -216,8 +216,8 @@ function processPostData(){
 			case 'stageOptions':
 				updateStageOptions();
 				break;
-				
-			
+
+
 	// Match Scoring
 			case 'newExchange':
 				addNewExchange();
@@ -247,8 +247,8 @@ function processPostData(){
 			case 'flipMatchSides':
 				$_SESSION['flipMatchSides'] = !(@(bool)$_SESSION['flipMatchSides']); //If it doesn't exist it is logically the same as false
 				break;
-			
-					
+
+
 	// Finals
 			case 'changeBracketView':
 				$_SESSION['bracketView'] = (int)$_POST['bracketView'];
@@ -306,7 +306,7 @@ function processPostData(){
 			case 'deleteBurgee':
 				deleteBurgee($_POST['deleteBurgee']);
 				break;
-				
+
 	// Event Organzer Cases
 			case 'ignoreFightersInTournament':
 				updateIgnoredFighters($_POST['manageFighters']);
@@ -419,7 +419,7 @@ function processPostData(){
 			case 'updateEventSponsors':
 				updateEventSponsors($_POST['sponsorList']);
 				break;
-			
+
 
 	// Admin Cases
 			case 'editExistingSchool':
@@ -463,8 +463,8 @@ function processPostData(){
 			case 'assignMatchesToLocations':
 				logisticsAssignTournamentToRing($_POST['selectedBracketMatches'],$_POST['locationID']);
 				break;
-			case 'editScheduleBlock':	
-				logisticsEditScheduleBlock($_POST['editScheduleBlock']);		
+			case 'editScheduleBlock':
+				logisticsEditScheduleBlock($_POST['editScheduleBlock']);
 				break;
 			case 'deleteScheduleBlocks':
 				logisticsDeleteScheduleBlocks(@$_POST['deleteScheduleBlocks']);
@@ -511,7 +511,7 @@ function processPostData(){
 			case 'instructorDelete':
 				InstructorDelete($_POST['instructorBio']);
 				break;
-				
+
 	// Stats Cases
 			case 'hemaRatings_ExportCsv':
 				hemaRatings_ExportCsv($_POST['HemaRatingsExport']);
@@ -542,7 +542,7 @@ function processPostData(){
 			case 'statsAttendanceFilters':
 				updateStatsAttendanceFilters($_POST['statsAttendanceFilters']);
 				break;
-				
+
 	// Cutting Qualification Cases
 			case 'newCutQuals':
 				addNewCuttingQuals();
@@ -566,8 +566,8 @@ function processPostData(){
 				$_SESSION['cuttingQualStandard'] = $_POST['standardID'];
 				$_SESSION['cuttingQualDate'] = $_POST['cuttingQualDate'];
 				break;
-		
-		
+
+
 	// Video Cases
 			case 'videoStreamSetLocations':
 				videoStreamSetLocations($_POST['videoStreamSetLocations']);
@@ -575,8 +575,8 @@ function processPostData(){
 			case 'videoStreamSetMatch':
 				videoStreamSetMatch($_POST['videoStreamSetMatch']);
 				break;
-				
-				
+
+
 	// Default Cases
 			case null:
 				break;
@@ -618,7 +618,7 @@ function processPostData(){
 	}
 
 	if(isset($_SESSION['updatePoolStandings'])){
-		
+
 		foreach($_SESSION['updatePoolStandings'] as $tournamentID => $groupSet){
 			updatePoolStandings($tournamentID, $groupSet);   //doPOST.php
 		}
@@ -679,7 +679,7 @@ function checkEvent(){
 	if(isset($_SESSION['checkEvent']['placings']) && $_SESSION['checkEvent']['placings'] === true){
 		unset($_SESSION['checkEvent']['placings']);
 	}
-	
+
 	// If it has been specified to check only certain tournament in the event
 	$mTournamentIDs = [];
 	foreach($_SESSION['checkEvent'] as $tournamentID => $tournament){
@@ -687,7 +687,7 @@ function checkEvent(){
 
 		if(ctype_digit($tournamentID) || is_int($tournamentID)){
 			$name = getTournamentName($tournamentID);
-			
+
 			// Check everything in the tournament
 			if(isset($tournament['all']) && $tournament['all'] === true){
 				if(isPools($tournamentID)){
@@ -697,7 +697,7 @@ function checkEvent(){
 
 				}
 				if($formatID == FORMAT_SOLO){
-					
+
 					checkGroupOrders($tournamentID);
 					checkRoundRoster($tournamentID);
 					updateRoundMatchList($tournamentID);
@@ -707,14 +707,14 @@ function checkEvent(){
 					$mTournamentIDs[] = $tournamentID;
 
 				}
-			
-			// Only check the pool orders/names	
+
+			// Only check the pool orders/names
 			} elseif(isset($tournament['order']) && $tournament['order'] === true){
 				checkGroupOrders($tournamentID);
-			
+
 			// Only check specified groups
 			} else {
-				foreach($tournament as $groupID => $groupOp){				
+				foreach($tournament as $groupID => $groupOp){
 					if(isPools($tournamentID)){
 						checkGroupOrders($tournamentID, $groupID);
 						updatePoolMatchList($groupID, 'pool', $tournamentID);
@@ -723,17 +723,17 @@ function checkEvent(){
 						checkRoundRoster($tournamentID, $groupID);
 						updateRoundMatchList($tournamentID);
 					}
-					
+
 				}
-			}	
-			
+			}
+
 			updatePoolStandings($tournamentID, ALL_GROUP_SETS);
 		}
 	}
 	updateTournamentFighterCounts(null, $_SESSION['eventID']);
 
 	unset($_SESSION['checkEvent']);
-	
+
 }
 
 /******************************************************************************/
@@ -788,7 +788,7 @@ function updateSessionByUrl($urlParams, $urlPath = null){
 	}
 
 	return $updated;
-	
+
 }
 
 /******************************************************************************/
@@ -806,7 +806,7 @@ function hemaRatings_ExportCsv($informationType){
 		uploadCsvFile($fileName);
 
 	} elseif($informationType == 'roster'){
-		
+
 		$fileName = hemaRatings_createEventRosterCsv($_SESSION['eventID'], EXPORT_DIR);
 		uploadCsvFile($fileName);
 
@@ -849,7 +849,7 @@ function processToS($ToS){
 	$bind = mysqli_stmt_bind_param($stmt, "s", $ToS['email']);
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
-	
+
 
 	$_SESSION['tosConfirmed'] = true;
 
@@ -868,22 +868,22 @@ function toggleBracketHelper(){
 		$_SESSION['bracketHelper'] = 'on';
 		return;
 	}
-	
+
 	// Turns the helper off it is on
 	if($_SESSION['bracketHelper'] == 'on' || $_SESSION['bracketHelper'] == 'try'){
 		$_SESSION['bracketHelper'] = '';
 		return;
 	}
-	
+
 	// Error checking
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){
 		$_SESSION['alertMessages']['systemErrors'][] = "No tournamentID in toggleBracketHelper()";
 		return;
 	}
-	
+
 	$incompletes = getTournamentPoolIncompletes($tournamentID);
-	
+
 	// Turns the bracket helper on if there are no incomplete pool matches
 	if($incompletes == null){
 		$_SESSION['bracketHelper'] = 'on';
@@ -893,14 +893,14 @@ function toggleBracketHelper(){
 		$_SESSION['incompletePoolMatches'] = $incompletes;
 		$_SESSION['bracketHelper'] = 'try';
 	}
-	
+
 }
 
 /******************************************************************************/
 
 function setDataFilters($filters){
 // Sets the data filters for fighter analytics display
-	
+
 	if(isset($filters['schoolID']) == true){
 
 		$_SESSION['filters']['school'] = false;
@@ -942,7 +942,7 @@ function updateActiveStatsItems($activeStatsItems){
 
 		if($index != $lastIndex){
 
-			if($_SESSION['activeStatsItems']['tournamentIDs'][$index] == 0 
+			if($_SESSION['activeStatsItems']['tournamentIDs'][$index] == 0
 				&& $_SESSION['activeStatsItems']['tournamentIDs'][$index+1] != 0){
 
 				$_SESSION['activeStatsItems']['tournamentIDs'][$index] = $_SESSION['activeStatsItems']['tournamentIDs'][$index+1];
@@ -970,7 +970,7 @@ function updateStatsAttendanceFilters($filters){
 	$m = (int)substr($filters['startDate'],5,7);;
 	$d = (int)substr($filters['startDate'],8,10);
 	$_SESSION['statsAttendanceFilters']['startDate'] = $y.'-'.sprintf('%02d',$m).'-'.sprintf('%02d',$d);
-	
+
 	$y = (int)substr($filters['endDate'],0,4);
 	$m = (int)substr($filters['endDate'],5,7);
 	$d = (int)substr($filters['endDate'],8,10);
@@ -999,13 +999,13 @@ function createTournamentBrackets($bracketSpecs){
 		setAlert(SYSTEM,"No tournamentID in createTournamentBrackets().");
 		return;
 	}
-	if($sizePrimary < 2){ 
+	if($sizePrimary < 2){
 		setAlert(USER_ERROR,"Can not create a bracket with less than 2 people!");
 		return;
 	}
-	if($sizeSecondary > $sizePrimary){ 
+	if($sizeSecondary > $sizePrimary){
 		setAlert(USER_ERROR,"Secondary Bracket can no be bigger than the primary bracket.<BR>
-							Secondary Bracket size has been adjusted to 
+							Secondary Bracket size has been adjusted to
 							<strong>Top {$sizePrimary}</strong> fighters.");
 		$sizeSecondary = $sizePrimary;
 		return;
@@ -1033,7 +1033,7 @@ function createTournamentBrackets($bracketSpecs){
 	} else {
 		if($sizeSecondary != $sizePrimary){
 			$sizeSecondary = $sizePrimary;
-			setAlert(USER_ERROR,"For a True Double Elim bracket the size of the Secondary Bracket must 
+			setAlert(USER_ERROR,"For a True Double Elim bracket the size of the Secondary Bracket must
 								be the same as the size of the Primary Bracket.
 								<BR>This has been automatically corrected for you.");
 		}
@@ -1061,38 +1061,38 @@ function createTournamentBrackets($bracketSpecs){
 	if($sizeSecondary >= 2){
 		createSecondaryBracket($tournamentID, $sizeSecondary, $extraSecondary);
 	}
-	
+
 }
 
 /******************************************************************************/
 
 function addNewExchange(){
 // Add a new exchange to a match
-	
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){return;}
-	
+
 	// Easter egg for anyone who gets the the Score Match page while they are in
 	// event that has rounds and pieces rather than matches
 	$formatID = getTournamentFormat($tournamentID);
 	if($formatID == FORMAT_SOLO){
-		$_SESSION['alertMessages']['userAlerts'][] = "<p>If you go against yourself with a 
+		$_SESSION['alertMessages']['userAlerts'][] = "<p>If you go against yourself with a
 			sharp sword and come out alive, are you a winner or a loser?</p>";
 		return;
 	} elseif($formatID != FORMAT_MATCH) {
 		setAlert(SYSTEM,"Invalid formatID in addNewExchange()");
 		return;
 	}
-	
+
 	$matchID = $_SESSION['matchID'];
 	if($matchID == null){return;}
 
 	if(@$_POST['restartTimer'] == 1){ // May not exist. This is logical '0'.
 		$_SESSION['restartTimer'] = 1;
 	}
-	
+
 // updates the last exchange
 
 	$matchInfo = getMatchInfo($matchID);
@@ -1136,14 +1136,14 @@ function addNewExchange(){
 		default:
 			$_SESSION['alertMessages']['systemErrors'][] = "Could not figure out the exchange type in doUpdateMatch.php()";
 			break;
-		
-	} 
+
+	}
 	updateMatch($matchInfo);
-	
+
 	// Check if it is the type of tournament which has a set number of exchanges
 
 	if($_POST['lastExchange'] != 'clearLastExchange'){
-		
+
 		$matchCap = getMatchCaps($tournamentID);
 		$matchInfo = getMatchInfo($matchID);
 
@@ -1179,7 +1179,7 @@ function addNewExchange(){
 
 	}
 
-	
+
 }
 
 /******************************************************************************/
@@ -1229,13 +1229,13 @@ function shouldTeamsSwitch($matchInfo, $previousScores){
 /******************************************************************************/
 
 function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
-// determine which type of scoring is in effect so the exchange 
+// determine which type of scoring is in effect so the exchange
 // can be added appropriately
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 
 	$tournamentID = $matchInfo['tournamentID'];
-	
+
 	$scoring = array_filter_recursive($scoring);
 
 	$matchID = $matchInfo['matchID'];
@@ -1250,7 +1250,7 @@ function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 
 	// Get the afterblow Type
 	$doubleTypes = getDoubleTypes($tournamentID);
-	
+
 	if($doubleTypes['afterblowDisabled'] == true){
 		noAfterblowScoring($matchInfo, $scoring, $lastExchangeID);
 	} else if($doubleTypes['afterblowType'] == 'deductive'){
@@ -1259,9 +1259,9 @@ function calculateLastExchange($matchInfo, $scoring, $lastExchangeID){
 		fullAfterblowScoring($matchInfo, $scoring, $lastExchangeID);
 	}
 
-	
+
 	return;
-	
+
 }
 
 /******************************************************************************/
@@ -1278,7 +1278,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$rPrefix = null;
 	$rType = null;
 	$rTarget = null;
-	
+
 // Doesn't do anything if a score was entered in both boxes
 	if($scoring[$id1]['hit'] && $scoring[$id2]['hit']){
 		return;
@@ -1299,7 +1299,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	} else {
 		return;
 	}
-	
+
 // Base score value
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
 
@@ -1329,7 +1329,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode set in deductiveAfterblowScoring()";
 		return;
 	}
-	
+
 	if(isset($_POST['attackModifier']) && $_POST['attackModifier'] == ATTACK_CONTROL_DB){
 		$rPrefix = (int)$_POST['attackModifier'];
 		$scoreValue += getControlPointValue($_SESSION['tournamentID']);
@@ -1339,7 +1339,7 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$scoreDeduction = 0;
 	// checks for clean or afterblow
 	if($scoring[$rosterID]['afterblow'] == 0){
-		$exchangeType = 'clean';	
+		$exchangeType = 'clean';
 	} else {
 		$exchangeType = 'afterblow';
 		$scoreDeduction = $scoring[$rosterID]['afterblow'];
@@ -1350,10 +1350,10 @@ function deductiveAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	}
 
 	if(isReverseScore() != REVERSE_SCORE_NO){
-		$rosterID = $otherID; 
+		$rosterID = $otherID;
 	}
-	
-	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
+
+	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue,
 					$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 }
 
@@ -1372,20 +1372,20 @@ function insertPenalty($matchInfo, $scoring, $lastExchangeID){
 	$card 		= $scoring['penalty']['card'];
 	$action		= $scoring['penalty']['action'];
 	$rosterID 	= $scoring['penalty']['rosterID'];
-	
-	insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue, 
+
+	insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue,
 						0, null, $card, $action, $exchangeID);
-	
+
 }
 
 
 /******************************************************************************/
 
 function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
-// scoring calculations for Full Afterblow	
-	
+// scoring calculations for Full Afterblow
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
-	
+
 	$matchID = $matchInfo['matchID'];
 	$id1 =$matchInfo['fighter1ID'];
 	$id2 = $matchInfo['fighter2ID'];
@@ -1397,7 +1397,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$rTarget = null;
 	$rType = null;
 	$afterblowPrefix = null;
-	
+
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
 		$score1 = (int)$scoring[$id1]['hit'];
@@ -1406,7 +1406,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
 		$score1 = $at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
-		
+
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = $at2['attackPoints'];
 		$scoring[$id2]['hit'] = $score2;
@@ -1442,7 +1442,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		}
 
 		// These could both not exist, which is functionally the same as being null
-		if(    @$at1['attackPrefix'] == ATTACK_CONTROL_DB 
+		if(    @$at1['attackPrefix'] == ATTACK_CONTROL_DB
 			|| @$at2['attackPrefix'] == ATTACK_CONTROL_DB){
 
 			$rPrefix = (int)ATTACK_CONTROL_DB;
@@ -1465,12 +1465,12 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 				$rosterID = $id1;
 				$otherID = $id2;
 			}
-			
+
 		}
 
 		// Manages afterblows
 		// If the higher scoring fighter has the afterblow prefix it adds
-		// it to the exchange. If the lower scoring fighter had it, they 
+		// it to the exchange. If the lower scoring fighter had it, they
 		// would have had the afterblow anyways.
 		if($rPrefix == null){
 			if($rosterID == $id1 && $afterblowPrefix == 1){
@@ -1483,18 +1483,18 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$scoreValue = 	$scoring[$rosterID]['hit'];
 		$scoreDeduction = $scoring[$otherID]['hit'];
 		$exchangeType = 'afterblow';
-		
+
 		// sets the score deduction to the string 'null' for SQL storage
 		if($scoreDeduction == ""){$scoreDeduction = 'null';}
-		
+
 	}
 
 	if(isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO){
 		$rosterID = $otherID;
 	}
-	
-	
-	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue, 
+
+
+	insertLastExchange($matchInfo, $lastExchangeID, $exchangeType, $rosterID, $scoreValue,
 		$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 }
 
@@ -1515,13 +1515,13 @@ function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$rPrefix = null;
 	$rType = null;
 	$rTarget = null;
-	
+
 	// Checks if points are entered for both fighters
 	if(!($scoring[$id1]['hit'] xor $scoring[$id2]['hit'])){
 		insertLastExchange($matchInfo, $lastExchangeID, 'double', 'null', 'null', 'null', null, null, null, $exchangeID);
 		return;
 	}
-	
+
 	// Determine which fighter hit
 	if($scoring[$id1]['hit']){
 		if($scoring[$id2]['hit']){
@@ -1537,7 +1537,7 @@ function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	} else {
 		return;
 	}
-	
+
 	// Base score value
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
 		$scoreValue = $scoring[$rosterID]['hit'];
@@ -1560,7 +1560,7 @@ function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	if(isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO){
 		$rosterID = $otherID;
 	}
-	
+
 	insertLastExchange($matchInfo, $lastExchangeID, 'clean', $rosterID, $scoreValue,
 						$scoreDeduction, $rPrefix, $rType, $rTarget, $exchangeID);
 
@@ -1571,7 +1571,7 @@ function noAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 function checkSession(){
 // Corrects and possible error conditions in the current session
 // Checks that the event/tournament/match referenced by SESSION actualty exists
-	
+
 
 	if(ALLOW['EVENT_SCOREKEEP'] == true && ALLOW['SOFTWARE_ADMIN'] == false){
 		$_SESSION['filters']['school'] = false;
@@ -1596,14 +1596,14 @@ function checkSession(){
 			WHERE blockID = {$blockID}";
 	$_SESSION['blockID'] = (int)mysqlQuery($sql, SINGLE, 'blockID');
 
-	
+
 // Checks if the event in SESSION exists
 	if($eventID == 0){
 		$_SESSION['tournamentID'] = null;
 		$_SESSION['matchID'] = null;
 		return;
-	}		
-	
+	}
+
 	$sql = "SELECT eventID
 			FROM systemEvents
 			WHERE eventID = {$eventID}";
@@ -1616,7 +1616,7 @@ function checkSession(){
 		return;
 	}
 
-	
+
 // Checks if the ruleset in SESSION is valid. Set to zero if invalid.
 	$rulesID = (int)$_SESSION['rulesID'];
 	$sql = "SELECT rulesID
@@ -1624,14 +1624,14 @@ function checkSession(){
 			WHERE eventID = {$eventID}
 			AND rulesID = {$rulesID}";
 	$_SESSION['rulesID'] = (int)mysqlQuery($sql, SINGLE, 'rulesID');
-	
+
 // Checks if the tournament in SESSION exists
 	if($tournamentID == 0){
 		$_SESSION['matchID'] =null;
 		return;
-	}	
+	}
 
-	
+
 	$sql = "SELECT tournamentID
 			FROM eventTournaments
 			WHERE eventID = {$eventID}
@@ -1650,21 +1650,21 @@ function checkSession(){
 	if($matchID == 0){
 		return;
 	}
-	
+
 	$sql = "SELECT matchID
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE matchID = {$matchID}
 			AND tournamentID = {$tournamentID}";
 	$validMatchID = (bool)mysqlQuery($sql, SINGLE, null);
-	
+
 	if($validMatchID == false){
 		$_SESSION['matchID'] = null;
 		return;
 	}
 
 	return;
-	
+
 }
 
 /******************************************************************************/
@@ -1696,8 +1696,8 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		$_SESSION['eventID'] = $eventID;
 		$_SESSION['eventName'] = getEventName($eventID);
 		$_SESSION['isMetaEvent'] = isMetaEvent($eventID);
-		
-		
+
+
 		$IDs = getEventTournaments();
 		$tournamentID = (int)$tournamentID;
 
@@ -1760,11 +1760,11 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 /******************************************************************************/
 
 function logUserIn($logInData){
-// Attempts to log a user in	
-	
+// Attempts to log a user in
+
 	$type = $logInData['type'];
 	$passwordInput = $logInData['password'];
-	
+
 	if($type == 'logInUser'){
 		$eventID = $_SESSION['eventID'];
 		$userName = $logInData['userName'];
@@ -1831,13 +1831,13 @@ function checkGroupOrders($tournamentID, $groupID = null){
 	} else {
 		$pools = getGroupInfo($groupID);
 	}
-	
+
 // Check that fighters are ordered sequentialy in their pools
 
 	$poolRosters = getPoolRosters($tournamentID, 'all');
 
 	foreach($pools as $pool){
-		
+
 		$groupID = $pool['groupID'];
 		if(isset($poolRosters[$groupID])){
 			$poolRoster = $poolRosters[$groupID];
@@ -1855,20 +1855,20 @@ function checkGroupOrders($tournamentID, $groupID = null){
 						SET poolPosition = {$i}
 						WHERE tableID = {$tableID}";
 				mysqlQuery($sql, SEND, null);
-				
-			}	
+
+			}
 		}
-	}	
-	
+	}
+
 	$i = 0;
 	if($groupID != null){
 		$pools = getPools($tournamentID, 'all');
 	}
-	
+
 	$itemNumber = 0;
 //Check the pools are numbered sequentialy.
 	foreach($pools as $poolData){
-		
+
 		$poolSet = $poolData['groupSet'];
 
 		if(!isset($groupNumbers[$poolSet])){
@@ -1892,14 +1892,14 @@ function checkGroupOrders($tournamentID, $groupID = null){
 		} else {
 			$name = $oldName;
 		}
-			
-		$sql = "UPDATE eventGroups 
+
+		$sql = "UPDATE eventGroups
 				SET groupNumber = {$poolNum}, groupName = '{$name}'
 				WHERE groupID = {$groupID}";
 		mysqlQuery($sql,SEND);
 	}
-	
-	
+
+
 // Check if rounds are numbered sequentialy.
 	$groupNumber = 0;
 
@@ -1908,7 +1908,7 @@ function checkGroupOrders($tournamentID, $groupID = null){
 	}
 
 	foreach($rounds as $roundData){
-		
+
 		$groupSet = (int)$roundData['groupSet'];
 		if(!isset($groupNumbers[$groupSet])){
 			$groupNumbers[$groupSet] = 0;
@@ -1925,21 +1925,21 @@ function checkGroupOrders($tournamentID, $groupID = null){
 
 		$oldNumber = $data['groupNumber'];
 		$oldName = $data['groupName'];
-		
+
 		if($oldName ==  "Round {$oldNumber}"){
 			$name = "Round {$groupNumber}";
 		} else {
 			$name = $oldName;
 		}
-		
-		$sql = "UPDATE eventGroups 
+
+		$sql = "UPDATE eventGroups
 				SET groupNumber = {$groupNumber}, groupName = '{$name}'
 				WHERE groupID = {$groupID}";
 		mysqlQuery($sql,SEND);
-		
-		// Check 
-		
-		
+
+		// Check
+
+
 	}
 
 }

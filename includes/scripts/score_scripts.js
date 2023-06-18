@@ -1,3 +1,4 @@
+
 /************************************************************************************/
 
 const NO_AFTERBLOW = 1;
@@ -12,30 +13,30 @@ const ATTACK_CONTROL_DB = 9;
 function isValidExchange(){
 
 	if(GRID_ENTRY_MODE == true){
-		// This function is designed to check for conflicts between the dropdowns 
-		// of each fighter and the exchange types that apply to both. 
+		// This function is designed to check for conflicts between the dropdowns
+		// of each fighter and the exchange types that apply to both.
 		// In grid entry mode you can not have conflicting information, therefore this is not needed.
 		return;
 	}
 
 
 	var exchButton = document.getElementById('New_Exchange_Button');
-	
+
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
 	var exchangeID = parseInt(document.getElementById('exchangeID').value);
-	
+
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
 	var radioValOverlap = false;
 	var isValid = true;
-	
+
 	if(radioVal == "hit"){
 		radioValOverlap = true;
 	}
-	
+
 	var invalidText = "Invalid Exchange";
 
-// Two scores are selected	
+// Two scores are selected
 	if(DOUBLE_TYPE != FULL_AFTERBLOW)
 	{
 		if(fighter1Score.value != "" && fighter2Score.value != ""){
@@ -60,7 +61,7 @@ function isValidExchange(){
 
 
 // A radio button and a score is checked
-	if(    (fighter1Score.value != "" || fighter2Score.value != "") 
+	if(    (fighter1Score.value != "" || fighter2Score.value != "")
 		&& (radioValOverlap == false))
 		{
 		isValid = false;
@@ -76,14 +77,14 @@ function isValidExchange(){
 			}
 		}
 	}
-	
+
 	if(isValid){
 		exchButton.disabled = null;
 	} else {
 		exchButton.innerHTML = invalidText;
 		exchButton.disabled = "Disabled";
 	}
-	
+
 }
 
 /************************************************************************************/
@@ -94,7 +95,7 @@ function scoreDropdownChange(selectID){
 	var fighter1Score = document.getElementById('fighter1_score_dropdown');
 	var fighter2Score = document.getElementById('fighter2_score_dropdown');
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-	
+
 	document.getElementById('NA_Radio').checked = 'checked';
 
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
@@ -106,7 +107,7 @@ function scoreDropdownChange(selectID){
 			fighter1Afterblow.selectedIndex=0;
 			fighter1Afterblow.disabled = "disabled";
 		} else {fighter1Afterblow.disabled = null;}
-		
+
 		if(fighter2Score.value == "" || fighter2Score.value == "noQuality"){
 			fighter2Afterblow.selectedIndex=0;
 			fighter2Afterblow.disabled = "disabled";
@@ -123,7 +124,7 @@ function scoreDropdownChange(selectID){
 			$(fighter2Control).prop('checked', false);
 			$(fighter2Control).prop('disabled', true);
 			$(fighter1Control).prop('disabled', false);
-		} 
+		}
 		if(fighter2Score.value != ""){
 			$(fighter1Control).prop('checked', false);
 			$(fighter1Control).prop('disabled', true);
@@ -142,7 +143,7 @@ function scoreDropdownChange(selectID){
 
 	}
 
-	
+
 // Select no exchange if no scores are selected
 	if(fighter1Score.value === "" && fighter2Score.value == ""){
 		document.getElementById('No_Exchange_Radio').checked = 'checked';
@@ -156,25 +157,25 @@ function scoreDropdownChange(selectID){
 		{
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
-			setExchButtonClasses("hollow");	
+			setExchButtonClasses("hollow");
 		} else {
 			exchButton.value = "scoringHit";
 			if(fighter1Score.value !== "" && fighter2Score.value !== ""){
-				setExchButtonClasses("alert");	
+				setExchButtonClasses("alert");
 				exchButton.innerHTML = "Add: Bilateral Hit";
 			} else {
-				setExchButtonClasses("success");	
+				setExchButtonClasses("success");
 				exchButton.innerHTML = "Add: Clean Hit";
 			}
 		}
-		
-	} else {	
+
+	} else {
 		if(fighter1Score.value == "noQuality" || fighter2Score.value == "noQuality"){
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
 
 			setExchButtonClasses("hollow");
-			
+
 		} else {
 			exchButton.value = "scoringHit";
 
@@ -189,13 +190,13 @@ function scoreDropdownChange(selectID){
 			}else {
 
 				exchButton.innerHTML = "Add: Clean Hit";
-				
+
 			}
 		}
 	}
 
 	isValidExchange();
-	
+
 }
 
 /************************************************************************************/
@@ -210,9 +211,9 @@ function setExchButtonClasses(classes){
 
 function modifiersRadioButtons(){
 	var exchButton = document.getElementById('New_Exchange_Button');
-	
+
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-	
+
 	$('#fighter1_score_dropdown').prop('selectedIndex',0);
 	$('#fighter2_score_dropdown').prop('selectedIndex',0);
 	fighter1Control = document.getElementById('fighter1_control_check');
@@ -229,7 +230,7 @@ function modifiersRadioButtons(){
 		$('#fighter2_afterblow_dropdown').prop('selectedIndex',0);
 	}
 
-	
+
 	switch(radioVal){
 		case 'noExch':
 			exchButton.value = "noExchange";
@@ -252,7 +253,7 @@ function modifiersRadioButtons(){
 			setExchButtonClasses("alert hollow");
 			break;
 	}
-	
+
 	isValidExchange();
 
 }
@@ -263,7 +264,7 @@ function gridScoreUpdate(rosterID, id){
 
 	var undefinedCombination = false;
 	var scoreValue = 0;
-	
+
 	var target = $('input[name="score['+rosterID+'][attackTarget]"]:checked').val();
 	var targetName = $('input[name="score['+rosterID+'][attackTarget]"]:checked').attr("data-attackName");
 
@@ -343,7 +344,7 @@ function gridScoreUpdate(rosterID, id){
 	} else {
 
 		$("input[name='score["+rosterID+"][hit]'][value='"+scoreValue+"']").prop('checked', true);
-		
+
 
 		if(typeof typeName !== "undefined" || typeof typeName !== "undefined"){
 			exchangeSummary = "[" + exchangeSummary;
@@ -450,7 +451,7 @@ function editExchange(exchangeID, exchangeTime){
 		$('.conclude-match-button').attr("disabled",false);
 		$('#Clear_Last_Radio').attr('disabled',false);
 		$('.Clear_Last_Radio').css('text-decoration','none');
-		
+
 		disableTimer = false;
 		$('#matchTime').attr('value',originalMatchTime);
 		updateTimerDisplay();
@@ -477,16 +478,16 @@ function editExchange(exchangeID, exchangeTime){
 /************************************************************************************/
 
 function refreshOnNewExchange(matchID, exchangeID = 0){
-	
+
 	var refreshPeriod = 1 * 1000; // seconds
 	var intervalID = window.setInterval(function(){ a(); }, refreshPeriod);
-	
-	function a(){ 
+
+	function a(){
 		var query = {};
 		var query = "mode=newExchange";
 		query = query + "&matchID=" + matchID.toString();
 		query = query + "&exchangeID=" + exchangeID.toString();
-		
+
 		var xhr = new XMLHttpRequest();
 		xhr.open("POST", AJAX_LOCATION+"?"+query, true);
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -501,7 +502,7 @@ function refreshOnNewExchange(matchID, exchangeID = 0){
 					if(recievedData['refresh'] == true){
 						location.reload();
 					} else {
-						
+
 						$('#matchTime').val(recievedData['matchTime'])
 						updateTimerDisplay();
 					}
@@ -557,7 +558,7 @@ function secondsToDisplay(time){
 		seconds = "0"+seconds.toString();
 	}
 	str = minutes.toString()+":"+seconds.toString();
-	
+
 	return str;
 }
 
@@ -567,7 +568,7 @@ function increaseTime(){
 	time = parseInt(document.getElementById('matchTime').value);
 	if(isNaN(time)){ time = 0; }
 	time += 1;
-	document.getElementById('matchTime').value = time;	
+	document.getElementById('matchTime').value = time;
 	updateMatchTimer();
 }
 
@@ -583,7 +584,7 @@ function updateMatchTimer(){
 	for(var i=0; i<timerInputs.length; i++){
 		timerInputs[i].value = time;
 	}
-	
+
 	updateTimerDisplay(time);
 
 	// Update the match time in the DB
@@ -618,7 +619,7 @@ function updateTimerDisplay(time = null){
 	if($("#hideNegativeTime").length == 0){
 		displayNegative = true;
 	}
-	
+
 	var str = secondsToMinAndSec(displayTime, displayNegative);
 	document.getElementById('currentTime').innerHTML = str;
 
@@ -674,7 +675,7 @@ function setTimerButtonColor(time){
 			target.classList.add('alert');
 			if(wasFilled == false){
 				target.classList.remove('hollow');
-			} 
+			}
 		} else {
 			target.classList.add('warning');
 		}
@@ -763,7 +764,7 @@ function miscTimerReset(){
 
 	$('#misc-timer-value').val(0);
 	$('#misc-timer-display').html("0:00");
-	$('#misc-timer-container').fadeTo(100, 0.1, function() { $(this).fadeTo(500, 1.0); }); 
+	$('#misc-timer-container').fadeTo(100, 0.1, function() { $(this).fadeTo(500, 1.0); });
 
 }
 
@@ -810,7 +811,7 @@ function rollForTeamOrder(){
 	for(var i = 1;i<=5;i++){
 		if(text[i] !== ""){
 			optionsList.push(i);
-		} 
+		}
 	}
 
 	outputList = [];
@@ -821,7 +822,7 @@ function rollForTeamOrder(){
 		optionsList.splice(index,1)
 
 	}
- 
+
  	for(var i = 1;i<=5;i++){
  		var index = i - 1;
 
@@ -852,7 +853,7 @@ function rollForOffhand(){
 	for(var i = 1;i<=5;i++){
 		if(text[i] !== ""){
 			optionsList.push(text[i]);
-		} 
+		}
 	}
 
 	if(optionsList.length != 0){

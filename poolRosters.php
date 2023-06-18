@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Pool Rosters
-	
+
 	View and update the pool rosters
 	Create pools, pool sets, change pool order, rename pools
 	Login:
@@ -27,7 +27,7 @@ if($tournamentID != 0){
 }
 
 if($tournamentID == 0){
-	pageError('tournament');	
+	pageError('tournament');
 } elseif($pools == null){
 	poolSetNavigation();
 	if($_SESSION['formatID'] != FORMAT_MATCH){
@@ -39,7 +39,7 @@ if($tournamentID == 0){
 		displayAlert("There are no pools for this tournament");
 	} else {
 		displayAlert("No Pools Created");
-		poolManagement(); 
+		poolManagement();
 	}
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
@@ -47,7 +47,7 @@ if($tournamentID == 0){
 
 	$numPools = count($pools);
 	$ringsInfo = (array)logistics_getEventLocations($_SESSION['eventID'],'ring');
-	
+
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
 	if(isEntriesByTeam($tournamentID) == false){
@@ -58,7 +58,7 @@ if($tournamentID == 0){
 		$tournamentRoster = getTournamentTeams($tournamentID);
 	}
 
-	
+
 	$assignedFighters = array();
 
 	$ignores = getIgnores($tournamentID);
@@ -72,7 +72,7 @@ if($tournamentID == 0){
 			}
 		}
 	}
-	
+
 //gets list of fighters already in a pool
 	$arePoolsEmpty = true;
 	foreach($poolRosters as $poolEntry){
@@ -97,7 +97,7 @@ if($tournamentID == 0){
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Pool Set Navigation -->
@@ -112,7 +112,7 @@ if($tournamentID == 0){
 	</div>
 
 	<?=activeFilterWarning()?>
-	
+
 <!-- Pool Displays -->
 	<form method='POST' name='poolRosterForm' id='poolRosterForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
@@ -122,8 +122,8 @@ if($tournamentID == 0){
 				continue;
 			}
 			$pool['hide'] = $hide;
-			poolEntryField($pool, $poolRosters[$pool['groupID']], $freeFighters, $isTeams, $ringsInfo); 
-			
+			poolEntryField($pool, $poolRosters[$pool['groupID']], $freeFighters, $isTeams, $ringsInfo);
+
 		} ?>
 		</div>
 
@@ -132,9 +132,9 @@ if($tournamentID == 0){
 			<?php confirmDeleteReveal('poolRosterForm', 'deleteFromPools'); ?>
 			<button class='button success' name='formName' value='addFightersToPool' <?=LOCK_TOURNAMENT?>>
 				Add Fighters
-			</button> 
+			</button>
 			<span id='deleteButtonContainer'>
-				<button class='button alert hollow' name='formName' value='deleteFromPools' 
+				<button class='button alert hollow' name='formName' value='deleteFromPools'
 					id='deleteButton' <?=LOCK_TOURNAMENT?>>
 					Delete Selected
 				</button>
@@ -151,7 +151,7 @@ if($tournamentID == 0){
 				</button>
 			<?php endif ?>
 		<?php endif ?>
-	
+
 	</fieldset>
 	</form>
 	</div>
@@ -160,7 +160,7 @@ if($tournamentID == 0){
 	<?=clearPoolsForm()?>
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 	<?php poolManagement(count($pools)); ?>
-	
+
 <?php }
 
 if(isset($_SESSION['poolSeeds'])){
@@ -187,7 +187,7 @@ function clearPoolsForm(){
 
 	<div class='reveal tiny' id='clear-pools-box' data-reveal>
 
-	
+
 		<i>After selecting all use the "Delete Selected" button to delete.</i>
 		<BR>
 
@@ -228,14 +228,14 @@ function sortableScript(){
 	<script>
 
 		$(function() {
-		    $("#group-rank-sortable").sortable({
-		        stop: function () {
+			$("#group-rank-sortable").sortable({
+				stop: function () {
 
-		            $("input.grs-input").each(function (index){
-		                $(this).val(index+1);
-		            });
-		        }
-		    });
+					$("input.grs-input").each(function (index){
+						$(this).val(index+1);
+					});
+				}
+			});
 		});
 
 	</script>
@@ -252,11 +252,11 @@ function poolManagement($numPools = 0){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){  return; }
 	$tournamentID = $_SESSION['tournamentID'];
-	
+
 	$noReOrder = '';
 	if($numPools <= 1){
 		$noReOrder = "disabled";
-	} 
+	}
 
 	$rankedPools = getRankedPools($tournamentID, $_SESSION['groupSet']);
 	if($rankedPools != null){
@@ -276,18 +276,18 @@ function poolManagement($numPools = 0){
 	} else {
 		$numPoolsClass = 'hollow';
 	}
-	
+
 	?>
-	
+
 	<fieldset class='fieldset'>
 	<legend><h4>Manage Pools</h4></legend>
-	
+
 	<div class='grid-x grid-margin-x'>
-	
-	
+
+
 	<div class='large-12 cell'>
 	<div class='grid-x grid-margin-x'>
-	
+
 	<!-- Create new pools -->
 		<div class='large-3 medium-4 text-center cell'>
 			<button class='button expanded <?=$numPoolsClass?>' data-open='addPoolsBox' <?=LOCK_TOURNAMENT?>>
@@ -295,7 +295,7 @@ function poolManagement($numPools = 0){
 			</button>
 			<?php addPoolsBox($tournamentID); ?>
 		</div>
-		
+
 	<!-- Pool set management -->
 		<div class='large-3 medium-4 text-center cell'>
 			<button class='button expanded <?=$groupSetClass?>' data-open='poolSetBox' <?=LOCK_TOURNAMENT?>>
@@ -305,7 +305,7 @@ function poolManagement($numPools = 0){
 		</div>
 
 	<?php if($numPools != 0): ?>
-		
+
 	<!-- Show More Options -->
 		<div class='large-3 medium-4 text-center cell'>
 			<a  onclick="toggleClass('pool-management-hidden')">
@@ -319,7 +319,7 @@ function poolManagement($numPools = 0){
 
 	<!-- Re-order pools -->
 		<div class='large-3 medium-4 cell'>
-			<button class='button expanded hollow dont-disable' <?=$noReOrder?> 
+			<button class='button expanded hollow dont-disable' <?=$noReOrder?>
 				onclick="reOrderPools(this)" <?=LOCK_TOURNAMENT?>>
 				Re-Order Pools
 			</button>
@@ -329,7 +329,7 @@ function poolManagement($numPools = 0){
 				Cancel
 			</button>
 		</div>
-	
+
 	<!-- Rename pools -->
 		<div class='large-3 medium-4 cell '>
 			<button class='button expanded hollow ' data-open='renamePools'>
@@ -337,8 +337,8 @@ function poolManagement($numPools = 0){
 			</button>
 			<?php renamePoolsBox(); ?>
 		</div>
-		
-	
+
+
 
 	<!-- Pool set management -->
 		<div class='large-3 medium-4 text-center cell'>
@@ -353,11 +353,11 @@ function poolManagement($numPools = 0){
 		</div>
 
 	<?php endif ?>
-		
+
 	</div>
 	</div>
 	</fieldset>
-	
+
 <?php }
 
 
@@ -380,7 +380,7 @@ function poolStandingsSetBox($tournamentID, $allPools){
 	$position = 0;
 
 	?>
-	
+
 	<div class='reveal tiny' id='pool-standings-box' data-reveal>
 
 	<form method='POST'>
@@ -400,7 +400,7 @@ function poolStandingsSetBox($tournamentID, $allPools){
 		<input class='hidden' name='rankByPool[tournamentID]' value='<?=$tournamentID?>'>
 		<input class='hidden' name='rankByPool[groupSet]' value='<?=$_SESSION['groupSet']?>'>
 
-		
+
 	<!-- Is used -->
 		<div class='input-group'>
 			<span class='input-group-label'>
@@ -408,7 +408,7 @@ function poolStandingsSetBox($tournamentID, $allPools){
 			</span>
 
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='rankByPool[used]' value=0>
 				<input class='switch-input polar-disables' type='checkbox' id='use-rank-by-pool'
 					name='rankByPool[used]' value=1 <?=$isUsed?> >
@@ -450,15 +450,15 @@ function poolStandingsSetBox($tournamentID, $allPools){
 				<a onclick="toggle('rank-by-pool-explanation')"><em>Hide</em></a>
 			</div>
 		</div>
-	
+
 	<!-- Group list -->
 		<fieldset class='fieldset'>
 
 		<legend><em>(Drag and Drop)</em></legend>
 
 		<ol id='group-rank-sortable'>
-			
-			<?php foreach($allPools as $pool): 
+
+			<?php foreach($allPools as $pool):
 				$position++;
 				?>
 
@@ -473,15 +473,15 @@ function poolStandingsSetBox($tournamentID, $allPools){
 			<?php endforeach ?>
 		</ol>
 		</fieldset>
-			
-		
+
+
 		<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='success button small-6 cell' name='formName' 
+			<button class='success button small-6 cell' name='formName'
 				value='updateRankByPool'>
 				Update Rank Order
 			</button>
-			<button class='secondary button small-6 cell' 
+			<button class='secondary button small-6 cell'
 				data-close aria-label='Close modal' type='button'>
 				Cancel
 			</button>
@@ -494,9 +494,9 @@ function poolStandingsSetBox($tournamentID, $allPools){
 
 	</fieldset>
 	</form>
-		
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -504,14 +504,14 @@ function poolStandingsSetBox($tournamentID, $allPools){
 function addPoolsBox(){
 	$maxPoolsToAdd = 40;	// Arbitrary
 	?>
-	
+
 	<div class='reveal tiny' id='addPoolsBox' data-reveal>
 	<form method='POST'>
 		<h5>Create New Pools</h5>
-		
+
 		<form method='POST'>
 		<fieldset <?=LOCK_TOURNAMENT?>>
-			
+
 			<div class='input-group shrink grid-x'>
 				<span class='input-group-label small-6 medium-12 large-6'>New Pools:</span>
 				<select class='input-group-field' name='numPoolsToAdd'>
@@ -530,17 +530,17 @@ function addPoolsBox(){
 				Cancel
 			</button>
 		</div>
-		
+
 		</fieldset>
 		</form>
-		
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
-		
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -548,7 +548,7 @@ function addPoolsBox(){
 function poolSetBox($tournamentID){
 // Creates a form to change the number of pool sets, the names of the
 // sets and if the set is cumulative or not
-	
+
 	$currentNum = getNumGroupSets($tournamentID);
 	$attributes = getSetAttributes($tournamentID);
 	$tNorm = getNormalization($tournamentID);
@@ -558,43 +558,43 @@ function poolSetBox($tournamentID){
 	$tournamentNormalization = "Default ({$tNorm})";
 
 	?>
-	
+
 	<div class='reveal large' id='poolSetBox' data-reveal>
 
 	<h5>Manage Pool Sets</h5>
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-						
+
 <!-- Number of Pool Sets -->
 	<div class='grid-x'>
 	<div class='cell input-group shrink'>
 		<span class='input-group-label'>Number of Pool Sets:</span>
-			
+
 		<select name='numPoolSets' class='input-group-field'>
 			<?php for($i = 1; $i <= 10; $i++):
 				$selected = isSelected ($i == $currentNum);
 				?>
-				
+
 				<option value='<?=$i?>' <?=$selected?> >
 					<?=$i?>
 				</option>
 			<?php endfor ?>
 		</select>
-		
+
 	</div>
-	</div>	
-		
-	
+	</div>
+
+
 <!-- Set name and cumulative status -->
 	<?php foreach($attributes as $setNumber => $setData):
 		if((int)@$setData['cumulative'] != 0){
 			$checked = 'checked';
 		} else {
 			$checked = '';
-		} 
+		}
 		$setName = @$setData['name'];
 		?>
-		
+
 	<!-- Name -->
 		<div class='grid-x grid-margin-x align-middle' style='margin-bottom: 15px;'>
 			<div class='small-2 cell text-center'>
@@ -606,50 +606,50 @@ function poolSetBox($tournamentID){
 			<span class='input-group-label'>Name:</span>
 			<input type='text' class='input-group-field' value='<?=$setName?>'
 				 name='renameSet[<?=$setNumber?>]' placeholder='Pool Set <?=$setNumber?>'>
-		</div>	 
-		
+		</div>
+
 	<!-- Is cumulative -->
-		<div class='input-group medium-6 small-12 no-bottom'> 
+		<div class='input-group medium-6 small-12 no-bottom'>
 			<span class='input-group-label'>
 				Is Cumulative &nbsp;
 				<?php tooltip("A cumulative pool will combine the stats of all prior cumulative pools, and the first non-cumulative pool preceding a block of cumulative pools")?>:
 			</span>
 			<div class='switch input-group-button large no-bottom'>
 				<input type='hidden' name='cumulativeSet[<?=$setNumber?>]' value='0'>
-				<input class='switch-input' type='checkbox' id='cumulativeSet-<?=$setNumber?>' 
+				<input class='switch-input' type='checkbox' id='cumulativeSet-<?=$setNumber?>'
 					name='cumulativeSet[<?=$setNumber?>]' value='1' <?=$checked?> >
 				<label class='switch-paddle' for='cumulativeSet-<?=$setNumber?>'>
 				</label>
 			</div>
 		</div>
-		
+
 	<!-- Normalization size -->
-		<div class='input-group medium-6 small-12 no-bottom'> 
+		<div class='input-group medium-6 small-12 no-bottom'>
 			<span class='input-group-label'>
 				Normalization Size &nbsp;
 				<?php tooltip("Regardless of the option selected, cumulative pools will all have the same normalization as the first pool that they combine results from.")?>:
 			</span>
-			<select type='number' class='input-group-field' 
+			<select type='number' class='input-group-field'
 				 name='normalizeSet[<?=$setNumber?>]'>
 				 <option value=0> <?= $tournamentNormalization?></option>
-				 <?php for($i=2;$i<=20;$i++): 
+				 <?php for($i=2;$i<=20;$i++):
 					$selected = isSelected($i, @$setData['normalization']);
 					?>
-				 
+
 					<option value='<?=$i?>' <?=$selected?>><?=$i?></option>
 				 <?php endfor ?>
 				</select>
-			
+
 		</div>
 		</div>
-		
+
 		</div>
 		</div>
-			 
-		
-	<?php endforeach ?>		
-			
-<!-- Submit buttons -->	
+
+
+	<?php endforeach ?>
+
+<!-- Submit buttons -->
 	<div class='grid-x grid-margin-x'>
 		<button class='button success small-6 cell' name='formName' value='updatePoolSets' <?=LOCK_TOURNAMENT?>>
 			Update Pool Sets
@@ -658,47 +658,47 @@ function poolSetBox($tournamentID){
 			Cancel
 		</a>
 	</div>
-		
-	</fieldset>			
+
+	</fieldset>
 	</form>
-	
+
 <!-- Reveal close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function renamePoolsBox(){
 // Form to changethe name of pools in the current pool set
-	
+
 	$pools = getPools($_SESSION['tournamentID'], $_SESSION['groupSet']);
 	?>
-	
+
 	<div class='reveal tiny' id='renamePools' data-reveal>
 	<form method='POST'>
 	<h5>Rename Pools:</h5>
-	
+
 <!-- Pool names -->
 
-	<?php 
+	<?php
 	$i = 0;
 	foreach($pools as $pool):
 		$i++; ?>
 		<div class='input-group'>
 		<span class='input-group-label'><?=$i?>:</span>
-		<input class='input-group-field' 
-			type='text' 
-			name='renameGroup[<?=$pool['groupID']?>]' 
-			value='<?=$pool['groupName']?>' 
+		<input class='input-group-field'
+			type='text'
+			name='renameGroup[<?=$pool['groupID']?>]'
+			value='<?=$pool['groupName']?>'
 			placeholder='Pool <?=$pool['groupNumber']?>'>
 		</div>
 	<?php endforeach ?>
-	
+
 <!-- Submit buttons -->
 	<div class='grid-x grid-margin-x'>
 		<button class='success button small-6 cell' name='formName' value='renameGroups'>
@@ -709,14 +709,14 @@ function renamePoolsBox(){
 		</button>
 	</div>
 	</form>
-	
+
 <!-- Reveal close button -->
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 	</div>
-	
+
 <?php }
 
 
@@ -725,7 +725,7 @@ function renamePoolsBox(){
 function autoPopluateButton($numPools, $enabled){
 // Generate pool seedings based on the previous pool sets and the
 // scoring algorithm of the tournament
-	
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
 		return;
 	}
@@ -739,10 +739,10 @@ function autoPopluateButton($numPools, $enabled){
 			Generate Pools
 		</button>
 	<?php else: ?>
-		<a class='button hollow disabled' data-tooltip aria-haspopup='true' class='has-tip' 
-				data-disable-hover='false' tabindex='2' data-position='bottom' data-allow-html='true' 
+		<a class='button hollow disabled' data-tooltip aria-haspopup='true' class='has-tip'
+				data-disable-hover='false' tabindex='2' data-position='bottom' data-allow-html='true'
 				title="Pools generation is only configured to work with for empty pools." >
-				
+
 			Generate Pools
 		</a>
 		<?php return ?>
@@ -777,7 +777,7 @@ function autoPopluateButton($numPools, $enabled){
 			</span>
 			<select class='input-group-field' type='text' size='1' required
 				name='generatePools[seedMethod]' value='' placeholder='all'
-				onchange="togglePolarGeneration(this)"> 
+				onchange="togglePolarGeneration(this)">
 				<option selected disabled></option>
 				<?php if($_SESSION['groupSet'] > 1): ?>
 					<option value='poolStanding'>Previous Pool Ranking</option>
@@ -794,14 +794,14 @@ function autoPopluateButton($numPools, $enabled){
 		<div class='input-group'>
 			<span class='input-group-label polar-disables'>
 				Separate Schools? &nbsp;
-				<?php tooltip("The software will attempt to create pools that 
-						avoids people from the same school fighting each other, 
+				<?php tooltip("The software will attempt to create pools that
+						avoids people from the same school fighting each other,
 						while also seeding based on rank."); ?>
 			</span>
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='generatePools[avoidSchoolFights]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='avoidSchoolFights' 
+				<input class='switch-input polar-disables' type='checkbox' id='avoidSchoolFights'
 					name='generatePools[avoidSchoolFights]' value=1>
 				<label class='switch-paddle' for='avoidSchoolFights'>
 				</label>
@@ -812,14 +812,14 @@ function autoPopluateButton($numPools, $enabled){
 		<div class='input-group'>
 			<span class='input-group-label polar-disables'>
 				Avoid Re-Fights? &nbsp;
-					<?php tooltip("The software will attempt to create pools with 
+					<?php tooltip("The software will attempt to create pools with
 						the least number of fighters facing fighters
 						they have fought before, while also seeding based on rank."); ?>
 			</span>
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='generatePools[avoidRefights]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='avoidRefights' 
+				<input class='switch-input polar-disables' type='checkbox' id='avoidRefights'
 					name='generatePools[avoidRefights]' value=1>
 				<label class='switch-paddle' for='avoidRefights'>
 				</label>
@@ -830,15 +830,15 @@ function autoPopluateButton($numPools, $enabled){
 		<div class='input-group'>
 			<span class='input-group-label polar-disables'>
 				Pools per tier: &nbsp;
-				<?php tooltip("Specifying a number allows you to create 
+				<?php tooltip("Specifying a number allows you to create
 					&#39;groupings&#39; of fighters.<BR>
 					Leave blank to distribute fighters between all the pools.
 					<BR><BR>
 					eg: 2 Pools per tier will fill the first 2 pools up
 					 with the highest ranked, and so on."); ?>
 			</span>
-			<select class='input-group-field polar-disables' type='text' size='1' 
-				name='generatePools[poolsInTier]' value='' placeholder='all'> 
+			<select class='input-group-field polar-disables' type='text' size='1'
+				name='generatePools[poolsInTier]' value='' placeholder='all'>
 				<option value=0>- all -</option>
 				<?php for($i=1;$i<=$numPools;$i++): ?>
 					<option value=<?=$i?>><?=$i?></option>
@@ -855,9 +855,9 @@ function autoPopluateButton($numPools, $enabled){
 						<strong><u>Do Not Use</u></strong> unless you know what you are doing.</strong>"); ?>
 			</span>
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='generatePools[useSubGroups]' value=0>
-				<input class='switch-input' type='checkbox' id='useSubGroups' 
+				<input class='switch-input' type='checkbox' id='useSubGroups'
 					name='generatePools[useSubGroups]' value=1>
 				<label class='switch-paddle' for='useSubGroups'>
 				</label>
@@ -872,9 +872,9 @@ function autoPopluateButton($numPools, $enabled){
 					<u>Warning</u>: This will flood your screen with numbers."); ?>
 			</span>
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='generatePools[debug]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='debug' 
+				<input class='switch-input polar-disables' type='checkbox' id='debug'
 					name='generatePools[debug]' value=1>
 				<label class='switch-paddle' for='debug'>
 				</label>
@@ -897,12 +897,12 @@ function autoPopluateButton($numPools, $enabled){
 			<button class='success button small-6 cell' name='formName' value='generatePools'>
 				Populate
 			</button>
-			<button class='secondary button small-6 cell' 
+			<button class='secondary button small-6 cell'
 				data-close aria-label='Close modal' type='button'>
 				Cancel
 			</button>
 		</div>
-	
+
 	</form>
 
 	<!-- Reveal close button -->
@@ -911,7 +911,7 @@ function autoPopluateButton($numPools, $enabled){
 	</button>
 
 	</div>
-	
+
 <?php }
 
 
@@ -930,20 +930,20 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	$numPools = getNumPools($_SESSION['groupSet'], $_SESSION['tournamentID']);
 	$index = $poolNum - 1;
 	?>
-	
+
 	<div class='large-12 small-12 callout' id='divFor<?=$groupID?>'>
 	<div class='grid-x '>
-	
+
 <!-- Pool Name -->
 	<div class='large-1 small-12 medium-12 cell hide-toggle' >
-		
+
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true):
 		// checkbox to delete pool ?>
-		<input type='checkbox' name='deleteGroup[<?=$groupID?>]' 
+		<input type='checkbox' name='deleteGroup[<?=$groupID?>]'
 		id='<?=$groupID?>' onchange="checkIfFought(this)"
 		 class='pool-group-checkbox'>
-	<?php endif ?>	
-	
+	<?php endif ?>
+
 
 	<strong><?=$poolName?></strong>
 
@@ -955,7 +955,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 					<option <?=optionValue($ring['locationID'],$poolInfo['locationID'])?> >
 						<?=logistics_getLocationName($ring['locationID'])?>
 					</option>
-				<?php endforeach ?>	
+				<?php endforeach ?>
 			</select>
 		<?php else: ?>
 			<BR><em><?=logistics_getLocationName($poolInfo['locationID'])?></em>
@@ -963,13 +963,13 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	<?php endif ?>
 
 	</div>
-	
-	
+
+
 
 <!-- Hidden options for re-ordering pools -->
 	<div class='large-1 small-12 medium-12 hide-toggle hidden' >
 	<div class='black-border'>
-		<select class='pool-number-select' id='group<?=$groupID?>' 
+		<select class='pool-number-select' id='group<?=$groupID?>'
 			name='newGroupNumber[<?=$groupID?>]' onchange="poolNumberChange(this)"
 			data-groupID='<?=$groupID?>' data-current-index='<?=$index?>'>
 		<?php for($i = 1; $i <= $numPools; $i++):
@@ -981,18 +981,18 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	</div>
 	</div>
 
-	
-<!-- Pool fighters -->	
+
+<!-- Pool fighters -->
 	<div class='large-11 medium-12 cell'>
 	<div class='grid-x grid-padding-x'>
 
-	
+
 	<?php for($i=1;$i<=$maxPoolSize;$i++): ?>
 
 		<!-- Empty pool position -->
 		<?php if(!isset($poolRoster[$i])): ?>
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
-			<div class='large-2 medium-3 small-6'>	
+			<div class='large-2 medium-3 small-6'>
 				<select name='groupAdditions[<?=$groupID?>][<?=$i?>]' class='opacity-toggle'>
 					<option value=''></option>
 					<?php foreach((array)$tournamentRoster as $entry):
@@ -1015,12 +1015,12 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 						</option>
 					<?php endforeach ?>
 				</select>
-			</div>	
+			</div>
 			<?php endif ?>
-		
-		<!-- Fighter Already entered in position -->	
+
+		<!-- Fighter Already entered in position -->
 		<?php else:?>
-			<?php $rosterID = $poolRoster[$i]['rosterID']; 
+			<?php $rosterID = $poolRoster[$i]['rosterID'];
 				if($isTeams == false){
 					$name = getFighterName($rosterID)." ";
 					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abbreviation').")</em>";
@@ -1035,7 +1035,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 			?>
 
 			<div class='medium-shrink small-6 cell opacity-toggle <?=$class?>' id='divFor<?=$rosterID?>'>
-			
+
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<input type='checkbox' id=<?=$rosterID?>
 					onchange="checkIfFought(this)" class='pool-fighter-checkbox'
@@ -1044,13 +1044,13 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 			<?=$name?>
 			</div>
 		<?php endif ?>
-		
+
 	<?php endfor ?>
 	</div>
 	</div>
 	</div>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/

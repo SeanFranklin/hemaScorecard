@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
-	
+
 	$tournamentIDs = getEventTournaments();
 	$rankingIDs = getBurgeeRankings();
 	$burgeeIDs = getEventBurgees($_SESSION['eventID']);
@@ -63,14 +63,14 @@ function rankingExplainReveal($rankingIDs){
 
 		<p><b class='red-text'>Note:</b> Each club member is counted only once with their best result. (No matter how many tournaments they win.)</p>
 
-		
+
 		<?php foreach($rankingsToDisplay as $ranking){
 
 			echo "<ul><u><b>{$ranking['name']}</b></u>";
 			displayBurgeeRankingExplanation($ranking['params']);
 			echo "</ul>";
 		}?>
-		
+
 
 		<!-- Reveal close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
@@ -118,10 +118,10 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 
 
 		<div class='grid-x grid-margin-x'>
-	
+
 		<input class='hidden' name='<?=$nameStart?>[eventID]' value=<?=$_SESSION['eventID']?>>
 		<input class='hidden' name='<?=$nameStart?>[burgeeID]' value=<?=$burgeeID?>>
-			
+
 		<div class='large-6 cell'>
 			Name:
 			<input type='text' name='<?=$nameStart?>[burgeeName]' required
@@ -131,7 +131,7 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 
 		<div class='large-6 cell'>
 
-			Ranking: 
+			Ranking:
 			<a data-open="burgee-ranking-explain-box" >
 				(?)
 			</a>
@@ -194,8 +194,8 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 
 		</div>
 	</form>
-	
-	
+
+
 	<div class='hidden extra-burgee-<?=$burgeeID?>'>
 	<?=burgeeDisplay($burgeeID)?>
 	</div>
@@ -208,7 +208,7 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 
 	<?=deleteBurgeeRevealBox($burgeeID, $title)?>
 
-<?php	
+<?php
 }
 
 /******************************************************************************/

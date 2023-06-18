@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
 	Function Library
-	
+
 	Functions required by HEMA Scorecard
-		
+
 *******************************************************************************/
 
 	require_once(BASE_URL.'includes/functions/DB_read_functions.php');

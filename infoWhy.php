@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	Sales Page
-	
+
 	Information about the software and why people should use it
 	LOGIN: N/A
 *******************************************************************************/
@@ -15,7 +15,7 @@ $hidePageTitle = true;
 include('includes/header.php');
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <div class='grid-x grid-margin-x'>
@@ -25,17 +25,17 @@ include('includes/header.php');
 		You might be skeptical of switching from good ol' reliable pen and paper to tournament software. What can HEMA Scorecard do for you?
 
 		<BR><BR><h5 style='display:inline;'><a href='#math'>Skip the math</a>:</h5>
-		Scorecard calculates all of your pool scores and bracket advancements. 
+		Scorecard calculates all of your pool scores and bracket advancements.
 		It can even do solo events like cutting! </li>
 
-		<BR><BR><h5 style='display:inline;'><a href='#show'>Show the world</a>:</h5>  
+		<BR><BR><h5 style='display:inline;'><a href='#show'>Show the world</a>:</h5>
 		Results from HEMA Scorecard are live online as soon as the scorkeeper inputs them.
 		Participants know how they are doing as soon as they can check their phone,
 		and folks back home can follow a match blow for blow.
 
 
 		<BR><BR><h5 style='display:inline;'><a href='#stats'>See the big picture</a>:</h5>
-		HEMA Scorecard can give you detailed stats on how your tournaments ran, 
+		HEMA Scorecard can give you detailed stats on how your tournaments ran,
 		how the fighters fought, and compare across multiple events.
 
 
@@ -54,7 +54,7 @@ include('includes/header.php');
 <a name='math'></a>
 <h4>Skip the Math</h4>
 <p>
-	HEMA Scorecard supports all sorts of tournament formats. Deductive or Full Afterblows, Pools or Brackets, 
+	HEMA Scorecard supports all sorts of tournament formats. Deductive or Full Afterblows, Pools or Brackets,
 	or even crazy one hit tournaments with several rounds of pools. The program was designed to be as versitile
 	as possible and run as many types of tournaments as possible.
 </p>

@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Staff Templates
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ if($_SESSION['eventID'] == null){
 	$template = logistics_getStaffTemplate($_SESSION['tournamentID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<h4>Template for: <strong><?=getTournamentName($_SESSION['tournamentID'])?></strong></h4>
@@ -50,7 +50,7 @@ if($_SESSION['eventID'] == null){
 			</th>
 		</tr>
 
-		<?php foreach($roles as $role): 
+		<?php foreach($roles as $role):
 			if(isset($template[$role['logisticsRoleID']]) == true){
 				$value = $template[$role['logisticsRoleID']];
 			} else {

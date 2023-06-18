@@ -1,5 +1,4 @@
 
-
 /**********************************************************************/
 
 function statsUpdateTournamentTimeCalc(){
@@ -48,14 +47,14 @@ function statsUpdateTournamentTimeCalc(){
 	} else {
 		document.getElementById('t-time-calc-num-fights').innerHTML = "-";
 	}
-	
+
 // Longest concurent fights in a pool
-	
+
 	if(numRings > numPools){
 		numRings = numPools;
 	}
-	
-	// Assume the worst case scenario of a ring that is the longest possible number 
+
+	// Assume the worst case scenario of a ring that is the longest possible number
 	consecutivePoolsBase = Math.floor(numPools / numRings);
 	ringsWithExtraPool = numPools % numRings;
 	ringsWithoutExtraPool = numRings - ringsWithExtraPool;
@@ -73,7 +72,7 @@ function statsUpdateTournamentTimeCalc(){
 		consecutivePoolsOversize--;
 		consecutivePoolsNormal++;
 	}
-	
+
 	totalConsecutivePools = consecutivePoolsOversize + consecutivePoolsNormal;
 	normalPoolFights = consecutivePoolsNormal * numFightsPerPool(poolSize);
 	oversizePoolFights = consecutivePoolsOversize * numFightsPerPool(poolSize+1);
@@ -123,7 +122,7 @@ function matchLengthEventSelect(index){
 	xhr.onreadystatechange = function (){
 		if(this.readyState == 4 && this.status == 200){
 			if(this.responseText.length > 1){
-				
+
 				tournamentList = JSON.parse(this.responseText);
 
 				select = document.getElementById('match-length-tournament-'+index);

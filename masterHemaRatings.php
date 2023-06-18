@@ -23,7 +23,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	$unratedFighters = hemaRatings_getUnrated();
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 	<script>
 		<?php if(ALLOW['SOFTWARE_ADMIN'] == true):?>
@@ -66,8 +66,8 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	</form>
 
 
-<?php 
-	
+<?php
+
 }
 include('includes/footer.php');
 
@@ -78,7 +78,7 @@ include('includes/footer.php');
 
 function displayUnratedFighters($fighterList){
 ?>
-	<?php foreach($fighterList as $fighter): 
+	<?php foreach($fighterList as $fighter):
 		$name = getFighterNameSystem($fighter['systemRosterID']);
 		?>
 
@@ -93,7 +93,7 @@ function displayUnratedFighters($fighterList){
 			<td><?=getSchoolName($fighter['schoolID'])?></td>
 			<td><?=$fighter['countryName']?></td>
 			<td id='divFor-<?=$fighter['systemRosterID']?>'>
-				<a class='button hollow warning tiny no-bottom hemaRatingsGetInfo' 
+				<a class='button hollow warning tiny no-bottom hemaRatingsGetInfo'
 					onclick="hemaRatings_getByName(this,`<?=$name?>`,<?=$fighter['systemRosterID']?>)">
 					<strong>?</strong>
 				</a>

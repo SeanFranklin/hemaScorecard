@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Participants Schedule
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@ include('includes/header.php');
 
 if($_SESSION['isMetaEvent'] == true){
 	redirect('infoSummary.php');
-} 
+}
 
 $tournamentID = $_SESSION['tournamentID'];
 
@@ -38,7 +38,7 @@ if($_SESSION['eventID'] == null){
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Tabs -->
@@ -75,7 +75,7 @@ if($_SESSION['eventID'] == null){
 
 	</div>
 
-	
+
 
 <?php }
 include('includes/footer.php');
@@ -129,7 +129,7 @@ function displayStaffingMatchesSummary(){
 						Total*
 						<?=tooltip($str)?>
 					<?php endif ?>
-					
+
 				</th>
 		</tr>
 		</thead>
@@ -141,7 +141,7 @@ function displayStaffingMatchesSummary(){
 					<?=getFighterName($rosterID)?>
 				</td>
 
-				<?php foreach($staffData['roleMatches'] as $matches): 
+				<?php foreach($staffData['roleMatches'] as $matches):
 					if($matches == 0){
 						$matches = '';
 					}
@@ -207,7 +207,7 @@ function displayStaffingHoursSummary(){
 		onclick="toggleWithButton('scheduled-hours',true)">
 		Scheduled Hours
 	</a>
-	<a class='button tiny scheduled-hours secondary' 
+	<a class='button tiny scheduled-hours secondary'
 		onclick="toggleWithButton('scheduled-hours',false)">
 		Scheduled Hours
 	</a>

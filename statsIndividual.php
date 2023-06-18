@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 			INNER JOIN eventGroups USING(groupID)
 			INNER JOIN eventTournaments AS eT USING(tournamentID)
 			INNER JOIN eventRoster AS eR ON eR.rosterID = eE.scoringID
-			WHERE 
+			WHERE
 			{$filt1}
 			{$filt2}";
 	$for = mysqlQuery($sql, KEY_SINGLES,'exchangeType','numExchanges');
@@ -108,10 +108,10 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 	$rankingList = mysqlQuery($sql, KEY_SINGLES,'tournamentRankingID','name');
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
-	
-	
+////////////////////////////////////////////////////////////////////////////////
+?>
+
+
 
 		<h4>Exchanges For: <?=getFighterNameSystem($filt['systemRosterID'])?></h4>
 
@@ -135,10 +135,10 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 				</tr>
 			<?php endforeach ?>
 		</table>
-		
+
 		<hr>
 
-	
+
 
 	<!---------------------------------------------------------------->
 
@@ -211,7 +211,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 				</tr>
 			<?php endforeach?>
 		</tbody>
-	
+
 	</table>
 	</div>
 

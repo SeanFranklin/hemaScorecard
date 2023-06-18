@@ -1,10 +1,10 @@
 <?php
 /*******************************************************************************
 	Data Handling Functions
-	
-	Functions for HEMA Scorecard which deal with data, but do not 
+
+	Functions for HEMA Scorecard which deal with data, but do not
 	access the database directly or display any information to a page
-	
+
 *******************************************************************************/
 
 /******************************************************************************/
@@ -90,7 +90,7 @@ $matchList[$matchNum]['fighter2ID'] = ???
 	}
 
 
-	
+
 
 	$matchesInList = count($matchOrder);
 	$indexOffset = floor($matchesInList/2); // Don't start at match 1 to make it seem more random.
@@ -127,8 +127,8 @@ $matchList[$matchNum]['fighter2ID'] = ???
 		if(($numMatches[$f1ID] < $maxFights && $numMatches[$f2ID] < $maxFights)
 			|| ($fightersUnAssigned == 1
 				 && (   $numMatches[$f1ID] < $maxFights
-				 	 || $numMatches[$f2ID] < $maxFights
-				 	)
+					 || $numMatches[$f2ID] < $maxFights
+					)
 				)
 			){
 
@@ -150,7 +150,7 @@ $matchList[$matchNum]['fighter2ID'] = ???
 			if($fightersUnAssigned == 0){
 				break;
 			}
- 
+
 		}
 
 		if(DEBUG){ echo "</tr>"; }
@@ -173,7 +173,7 @@ function getRandomOpponent($groupSize, $positionsTaken){
 	if($avaliableSpots == 0){
 		return null;
 	}
-	
+
 	$findingOpponent = true;
 	$opponentNum = mt_rand(1,$groupSize);
 	do{
@@ -205,7 +205,7 @@ function makePoolMatchOrderTeamVsTeam ($groupRoster, $ignores = [], $groupSet = 
 			if(isset($teamsSet[$team2ID])){
 				continue;
 			}
-			
+
 			foreach($team1Roster as $rosterID1){
 
 				// Skip if fighter 1 can't continue
@@ -243,7 +243,7 @@ function generate_RefightPoints($poolRefights,$numberOfFightsTogether,$fighterID
 
 	foreach($poolRefights as $poolNum => $existingRefights){
 		$totalRefights = $existingRefights;
-		foreach((array)@$_SESSION['poolSeeds'][$poolNum] as $rosterID){ 
+		foreach((array)@$_SESSION['poolSeeds'][$poolNum] as $rosterID){
 		// This could not exist, in this case there is no need to loop through
 			$totalRefights += $numberOfFightsTogether[$fighterID][$rosterID];
 		}
@@ -278,7 +278,7 @@ function generate_SameSchoolPoints($poolSchools,$schoolID){
 
 	if($sumAlreadyIn != 0){
 		foreach($numAlreadyIn as $poolNum => $num){
-			$numAlreadyIn[$poolNum] = -$num /$sumAlreadyIn; 
+			$numAlreadyIn[$poolNum] = -$num /$sumAlreadyIn;
 		}
 	}
 
@@ -431,23 +431,23 @@ function uploadCsvFile($fileName){
 
 function uploadZipFile($filesToZip){
 
-    $zip = new ZipArchive();
-    $zipName = EXPORT_DIR."export.zip";
+	$zip = new ZipArchive();
+	$zipName = EXPORT_DIR."export.zip";
 
-    //create the file and throw the error if unsuccessful
-    if ($zip->open($zipName, ZipArchive::CREATE )!==TRUE) {
-        exit("cannot open export\n");
-    }
+	//create the file and throw the error if unsuccessful
+	if ($zip->open($zipName, ZipArchive::CREATE )!==TRUE) {
+		exit("cannot open export\n");
+	}
 
 
-    //add each files of $file_name array to archive
-    foreach($filesToZip as $files)
-    {
-        $zip->addFile(EXPORT_DIR.$files);
-    }
-    $zip->close();
+	//add each files of $file_name array to archive
+	foreach($filesToZip as $files)
+	{
+		$zip->addFile(EXPORT_DIR.$files);
+	}
+	$zip->close();
 
-    if (file_exists($zipName)) {
+	if (file_exists($zipName)) {
 		header('Content-Type: application/zip');
 		header('Content-Disposition: attachment; filename="'.basename($zipName).'"');
 		header('Content-Length: ' . filesize($zipName));
@@ -456,7 +456,7 @@ function uploadZipFile($filesToZip){
 		readfile($zipName);
 		// delete file
 		unlink($zipName);
- 
+
    }
 
 }
@@ -523,7 +523,7 @@ function min2hr($num, $AmPm = true){
 /******************************************************************************/
 
 function autoRefreshTime($poolsInProgress){
-// Specifies the time interval that a page should be refreshed used for the match 
+// Specifies the time interval that a page should be refreshed used for the match
 // list pages. Returns 0 if no matches are in progress of if staff are logged in.
 
 	if($poolsInProgress != true){
@@ -534,7 +534,7 @@ function autoRefreshTime($poolsInProgress){
 	}
 
 	return 60;
-	
+
 }
 
 /******************************************************************************/
@@ -550,13 +550,13 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 	$bracketLevels = $allBracketInfo[BRACKET_PRIMARY]['bracketLevels'];
 
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
-	
+
 	$fighterSeed = $numFighters = $allBracketInfo[BRACKET_PRIMARY]['numFighters'];
-	
+
 	$maxFightersAtLevel = pow(2,$bracketLevels);
 	$numFightersAtLevel = 2*count($bracketMatches[$bracketLevels]);
 	$currentLevel = $bracketLevels;
-	
+
 	// Fighter positions for winners bracket based on pool seeding
 	$fightersCounted = 0;
 	for($fighterSeed;$fighterSeed >= 1; $fighterSeed--){
@@ -567,11 +567,11 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 			$maxFightersAtLevel /= 2;
 			$numFightersAtLevel = 99;
 		}
-		
+
 		$position = getBracketPositionByRank($fighterSeed,$maxFightersAtLevel);
 		$matchNumber = ceil($position/2);
 		$fighterNumber = 2 - ($position % 2);
-		
+
 
 		$seed = '';
 		if(isset($finalists[$fighterSeed-1]['rosterID']))
@@ -581,19 +581,19 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 
 		$matchPositions[$currentLevel][$matchNumber][$fighterNumber]['rosterID'] = $seed;
 	}
-	
+
 	// Fighter positions for winners bracket based on bracket advancement
 	foreach((array)$bracketMatches as $bracketLevel => $levelMatches){
 		foreach($levelMatches as $bracketPosition => $matchInfo){
-			
+
 			if($matchInfo['winnerID'] != null){
 				$winnerID = $matchInfo['winnerID'];
-				
+
 				if($bracketLevel == 1 && $bracketPosition >= 2){
 					if($winnerID != null){
 						$matchPositions[1][$bracketPosition+1][1]['rosterID'] = $matchInfo['fighter1ID'];
 						$matchPositions[1][$bracketPosition+1][2]['rosterID'] = $matchInfo['fighter2ID'];
-					} 
+					}
 				} elseif($bracketLevel > 1){
 
 					$nextLevel = $bracketLevel - 1;
@@ -601,13 +601,13 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 
 					if($bracketPosition % 2 == 1){
 						$matchPositions[$nextLevel][$nextPosition][1]['rosterID'] = $winnerID;
-						
+
 					} else {
 						$matchPositions[$nextLevel][$nextPosition][2]['rosterID'] = $winnerID;
 
 					}
 				} elseif(isset($allBracketInfo[BRACKET_SECONDARY]['groupID']) == true) {
-					// Used in ELIM_TYPE_TRUE_DOUBLE where there are multiple matches after the 
+					// Used in ELIM_TYPE_TRUE_DOUBLE where there are multiple matches after the
 					// end of the bracket.
 
 					// May not be set yet. Treat as null.
@@ -620,7 +620,7 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 
 			}
 		}
-		
+
 	}
 
 
@@ -632,20 +632,20 @@ function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubl
 		@$matchPositions[1][1][1]['rosterID'] = $bracketMatches[2][1]['loserID'];
 		@$matchPositions[1][1][2]['rosterID'] = $bracketMatches[2][2]['loserID'];
 	}
-	
-	
-	
+
+
+
 	return ($matchPositions);
-	
+
 }
 
 /******************************************************************************/
 
 function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 // Determines which fighters should be advanced into which spots in the bracket
-//   IMPORTANT:	Behavior is undefined if the consolation bracket size 
-//				is not a power of 2. ie. top8, top16. 
-	
+//   IMPORTANT:	Behavior is undefined if the consolation bracket size
+//				is not a power of 2. ie. top8, top16.
+
 	if(!isset( $allBracketInfo[BRACKET_SECONDARY]) || $allBracketInfo[BRACKET_SECONDARY] == null){
 		return [];
 	}
@@ -656,7 +656,7 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
 	$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
 	$changeOverBracket = false;
-	
+
 
 	$matchPositions = [];
 	$numExtraMatchesAtEnd = 0;
@@ -665,7 +665,7 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 		if($bracketLevel % 2 == 0 AND $bracketLevel != $bracketLevels){
 			// Crosses fighters over to the other side of the bracket every second time they are added
 			$changeOverBracket = !$changeOverBracket;
-		} 
+		}
 
 		$matchesInLevel = count($levelMatches);
 
@@ -679,7 +679,7 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 				$method = "mixed";
 			} else {
 				$method = "allSecondary";
-			} 
+			}
 
 			if($bracketLevel == 1){
 				$numExtraMatchesAtEnd++;
@@ -690,24 +690,24 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 					$winBLevel = (($bracketLevel+1)/2) + 1;
 					$winPos = ($pos*2) -1;
 					if(isset($winnerBracketMatches[$winBLevel][$winPos]['loserID'])){
-						$matchPositions[$bracketLevel][$pos][1]['rosterID'] = 
+						$matchPositions[$bracketLevel][$pos][1]['rosterID'] =
 							$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
 					}
 
 					if(isset($winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'])){
-						$matchPositions[$bracketLevel][$pos][2]['rosterID'] = 
-							$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];	
-					}	
+						$matchPositions[$bracketLevel][$pos][2]['rosterID'] =
+							$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];
+					}
 					break;
 
 				case 'allSecondary':
 					$oldPos = ($pos*2) - 1;
 
 					// winnerID could not exist
-					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = 
+					$matchPositions[$bracketLevel][$pos][1]['rosterID'] =
 						@$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
-					
-					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = 
+
+					$matchPositions[$bracketLevel][$pos][2]['rosterID'] =
 						@$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
 					break;
 
@@ -727,11 +727,11 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 					} else {
 						$newPos = $pos;
 					}
-						
+
 					// Might not exist. Treat as null.
 					$fighter1 = @$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
 					$fighter2 = @$bracketMatches[$fetchBracketLevel][$fetchPos]['winnerID'];
-					
+
 					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = $fighter1;
 					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = $fighter2;
 
@@ -742,13 +742,13 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 					break;
 
 			}
-			
+
 		}
-			
+
 	}
-	
+
 	return $matchPositions;
-	
+
 }
 
 /******************************************************************************/
@@ -756,7 +756,7 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 function checkPassword($input, $userName, $eventID = null){
 // Checks if the password provided matches the password in the database
 // Returns true if the passwords match, false if they don't
- 
+
 // Get password to compare
 	switch($userName){
 		case 'eventStaff':
@@ -798,9 +798,9 @@ function checkPassword($input, $userName, $eventID = null){
 	if($password == null){
 		return true;
 	}
-	
+
 	return password_verify($input, $password);
-	
+
 }
 
 /******************************************************************************/
@@ -808,10 +808,10 @@ function checkPassword($input, $userName, $eventID = null){
 function getBracketDepthByFighterCount($numFighters, $bracketType){
 // return the how many brackets levels there should be based on the number of
 // fighters in the bracket. Winner and Loser brackets have different geometry.
-	
+
 	if($bracketType == 'winner'){$bracketType = 1;}
 	if($bracketType == 'loser'){$bracketType = 2;}
-	
+
 	if($bracketType == 1){
 		return ceil(log($numFighters,2));
 	} else if($bracketType == 2){
@@ -839,29 +839,29 @@ function getEventStats($stats){
 	$stats['overall']['noExchange'] = 0;
 	$stats['overall']['noQuality']= 0;
 	$stats['overall']['all'] = 0;
-	
+
 	foreach($stats as $tournamentID => $data){
 		$stats['overall']['clean'] += $data['clean'];
 		$stats['overall']['double'] += $data['double'];
 		$stats['overall']['afterblow'] += $data['afterblow'];
 		$stats['overall']['noExchange'] += $data['noExchange'];
 		$stats['overall']['noQuality'] += $data['noQuality'];
-		
-		$stats[$tournamentID]['total'] = $data['clean'] + 
+
+		$stats[$tournamentID]['total'] = $data['clean'] +
 			$data['double'] + $data['afterblow'] + $data['noExchange'] + $data['noQuality'];
 		$stats['overall']['all'] += $stats[$tournamentID]['total'];
 		$stats[$tournamentID]['tournamentID'] = $tournamentID;
-				
+
 		$bilaterals = $data['double'] + $data['afterblow'];
-		if($bilaterals + $data['clean'] != 0){	
-			$stats[$tournamentID]['BpE'] = 	
+		if($bilaterals + $data['clean'] != 0){
+			$stats[$tournamentID]['BpE'] =
 				round($bilaterals/
 				($bilaterals + $data['clean']),2)*100;
 		} else {
 			$stats[$tournamentID]['BpE'] = NULL;
 		}
 	}
-	
+
 	// Sort by total number of exchanges
 	foreach($stats as $index => $data){
 		if($data['total'] == 0 && $index != 'overall'){
@@ -870,11 +870,11 @@ function getEventStats($stats){
 		}
 		$key[] = $data['total'];
 	}
-	
+
 	if($stats != null){ array_multisort($key, SORT_DESC, $stats); }
-	
+
 	return $stats;
-	
+
 }
 
 /******************************************************************************/
@@ -885,7 +885,7 @@ function getNumEntriesAtLevel_consolation($bracketLevel,$mode){
 // default mode: 	the number of fighters which the bracket can accomodate
 //					this is just the number of fighters in the consolation bracket
 //					and does not include the 2 who remain in the winners bracket
-	
+
 	if($mode == 'matches' || $mode == 'match'){
 		return (int)pow(2,floor($bracketLevel/2));
 	} else {
@@ -901,7 +901,7 @@ function getNumEntriesAtLevel_consolation($bracketLevel,$mode){
 /******************************************************************************/
 
 function getBracketPositionByRank($rank, $numPositions){
-// returns where in the winners bracket a fighter should be seeded based on 
+// returns where in the winners bracket a fighter should be seeded based on
 // their rank and the total number of fighters being entered in the bracket.
 // the return position is the position measured down from the top of the bracket
 
@@ -912,18 +912,18 @@ function getBracketPositionByRank($rank, $numPositions){
 	$currentRank = 1;
 	$newPosition = 1;
 	$ranksCounted[1] = 1;
-	
+
 	while($currentRank<=$numPositions){
 		for($j=$currentRank;$j>0;$j--){
-		
-			$currentRank++;	
+
+			$currentRank++;
 			$oldPosition = $ranksCounted[$j];
 			if($j % 2 ==0){
 				$jump = -$jumpSize;
 			} else {
 				$jump = $jumpSize;
 			}
-					
+
 			$newPosition = $oldPosition + $jump;
 			$ranksCounted[$currentRank] = $newPosition;
 
@@ -934,8 +934,8 @@ function getBracketPositionByRank($rank, $numPositions){
 		$jumpSize = (($jumpSize +1) / 2) -1;
 
 	}
-	
-	// Error message 
+
+	// Error message
 	$_SESSION['alertMessages']['systemErrors'][] = "getBracketPositionByRank() - Could Not Find Bracket Position For Values: <BR>
 	Rank: {$rank}, Bracket Level: {$bracketLevels}<BR>";
 	return;
@@ -948,15 +948,15 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 // Calls the functions in poolScoring.php required to update the pool standings
 // If called with groupSet == 0 it does them all
 // If called with a groupSet number it does that set and all the ones after
-		
+
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){return;}
-	
+
 	// Check to catch non-pool events
 	$formatID = getTournamentFormat($tournamentID);
 	if($formatID != FORMAT_MATCH){
-		return; 
+		return;
 	}
 
 	$setNumber = $groupSet;
@@ -977,7 +977,7 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 	}
 
 	for(; $setNumber <= $numberOfGroupSets; $setNumber++){
-		
+
 		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
 		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
 
@@ -987,26 +987,26 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 		pool_ScoreFighters($tournamentID, $setNumber);
 
 		pool_RankFighters($tournamentID, $setNumber, $entriesAreTeams);
-		
+
 		if($calculateTeamScores == true){
 			pool_CalculateTeamScores($tournamentID, $setNumber);
 			pool_RankFighters($tournamentID, $setNumber, true);
-		
+
 		}
-	
+
 	}
 
 	unset($_SESSION['updatePoolStandings'][$tournamentID]);
-	
+
 }
 
 /******************************************************************************/
 
 function updateMetaTournamentStandings($mTournamentID){
-	
+
 	meta_ScoreFighters($mTournamentID);
 	pool_RankFighters($mTournamentID); // Once fighters have been scored they are ranked just the same as they would be in a regular pool.
-	
+
 }
 
 
@@ -1021,7 +1021,7 @@ function groupList($list, $key){
 		unset($entry[$key]);
 		$orderedList[$index] = $entry;
 	}
-	
+
 	return $orderedList;
 }
 
@@ -1048,11 +1048,11 @@ function implode2int($array){
 
 function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 // Returns true if the software should auto-conclude a match because it has reached
-// the maximum number of scoring exchanges.	
+// the maximum number of scoring exchanges.
 
-	if($matchInfo['matchComplete'] == 1 
+	if($matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
-	){ 
+	){
 		return false;
 	}
 
@@ -1064,7 +1064,7 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 		case REVERSE_SCORE_INJURY:
 
 			if(    ($matchInfo['lastExchange'] != 0)
-				&& (   $matchInfo['fighter1score'] <= 0 
+				&& (   $matchInfo['fighter1score'] <= 0
 					|| $matchInfo['fighter2score'] <= 0)
 			  ){
 
@@ -1077,7 +1077,7 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 		default:
 
 			if(    ($maxPoints != 0)
-				&& (   $matchInfo['fighter1score'] >= $maxPoints 
+				&& (   $matchInfo['fighter1score'] >= $maxPoints
 					|| $matchInfo['fighter2score'] >= $maxPoints)
 			  ){
 
@@ -1085,25 +1085,25 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 			}
 			break;
 	}
-	
+
 	if($shouldConclude == true){
 		setAlert(USER_ALERT,"Point cap reached.");
 	}
 
 	return $shouldConclude;
-	
+
 }
 
 /******************************************************************************/
 
 function shouldMatchConcludeBySpread($matchInfo,$maxSpread){
 // Returns true if the software should auto-conclude a match because it has reached
-// the maximum number of scoring exchanges.	
+// the maximum number of scoring exchanges.
 
-	if($matchInfo['matchComplete'] == 1 
+	if($matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
 		|| $maxSpread == 0
-	){ 
+	){
 		return false;
 	}
 
@@ -1117,19 +1117,19 @@ function shouldMatchConcludeBySpread($matchInfo,$maxSpread){
 	}
 
 	return $shouldConclude;
-	
+
 }
 
 /******************************************************************************/
 
 function shouldMatchConcludeByTime($matchInfo){
 // Returns true if the software should auto-conclude a match because it has reached
-// the maximum number of scoring exchanges.	
-	
-	if(    $matchInfo['matchComplete'] == 1 
-		|| $matchInfo['ignoreMatch'] == 1 
+// the maximum number of scoring exchanges.
+
+	if(    $matchInfo['matchComplete'] == 1
+		|| $matchInfo['ignoreMatch'] == 1
 		|| $matchInfo['timeLimit'] == 0)
-	{ 
+	{
 		return false;
 	}
 
@@ -1145,11 +1145,11 @@ function shouldMatchConcludeByTime($matchInfo){
 
 function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
 // Returns true if the software should auto-conclude a match because it has reached
-// the maximum number of scoring exchanges.	
-	
-	if(		$matchInfo['matchComplete'] == 1 
+// the maximum number of scoring exchanges.
+
+	if(		$matchInfo['matchComplete'] == 1
 		 || $matchInfo['ignoreMatch'] == 1
-		 || $maxExchanges == 0){ 
+		 || $maxExchanges == 0){
 		return false;
 	}
 
@@ -1176,8 +1176,8 @@ function autoConcludeMatch($matchInfo){
 
 	$_POST['matchID'] = $matchInfo['matchID'];
 	$_POST['lastExchangeID'] = $matchInfo['lastExchange'];
-	
-	if($matchInfo['maxDoubles'] != 0 
+
+	if($matchInfo['maxDoubles'] != 0
 		&& getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
 
 		$_POST['matchWinnerID'] = 'doubleOut';
@@ -1212,7 +1212,7 @@ function autoConcludeMatch($matchInfo){
 		return;
 
 	}
-	
+
 	addMatchWinner();
 }
 
@@ -1233,7 +1233,7 @@ function createMatchScoresheet($matchInfo)
 	} else {
 		$groupInfo = "{$matchInfo['groupName']} (#{$matchInfo['groupID']})";
 		$groupInfo .= ", Set ".getGroupSetOfMatch($matchInfo['matchID']);
-	}	
+	}
 
 	$groupInfo .= "\n";
 
@@ -1254,7 +1254,7 @@ function createMatchScoresheet($matchInfo)
 
 	foreach($exchanges as $e){
 		$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
-		$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";	
+		$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";
 		if((int)$e['refPrefix'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refPrefix']);
@@ -1355,7 +1355,7 @@ function selectDataSeriesTournaments(){
 	<button class='button' name='formName' value='updateActiveStatsItems'>
 		Update
 	</button>
-	
+
 	</form>
 
 <?php
@@ -1391,7 +1391,7 @@ function calculateBurgeePoints($burgeeID){
 	$burgeePoints = [];
 	$burgeePoints['schools'] = [];
 	$rankings = [];
-	
+
 	$paramList = getBurgeeRankingParameters($info['burgeeRankingID']);
 
 // Find who earned points for each team
@@ -1415,7 +1415,7 @@ function calculateBurgeePoints($burgeeID){
 	}
 
 	arsort($rankings);
-	
+
 	$burgeePoints['ranking'] = $rankings;
 
 	return ($burgeePoints);
@@ -1451,7 +1451,7 @@ function burgeeFightersByPlace($params, $burgeeFighters, $tournamentIDs){
 			FROM eventTeamRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
-			WHERE teamID IN 
+			WHERE teamID IN
 				(SELECT rosterID
 				FROM eventPlacings
 				INNER JOIN eventRoster USING(rosterID)
@@ -1493,7 +1493,7 @@ function burgeeFightersByPercent($params, $burgeeFighters, $tournamentIDs){
 			FROM eventTeamRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
-			WHERE teamID IN 
+			WHERE teamID IN
 				(SELECT rosterID
 				FROM eventPlacings AS eP2
 				INNER JOIN eventRoster USING(rosterID)

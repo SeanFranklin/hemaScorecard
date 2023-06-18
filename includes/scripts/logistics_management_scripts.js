@@ -38,7 +38,7 @@ function logistics_esbPopulateForm(){
         $('#esb-deleteButton').attr("disabled", 'disabled');
         $("#esb-tournamentID").attr("disabled",false);
         $("#esb-blockTypeID").attr("disabled", false);
-        
+
         var query = "mode=getSessionDayNum";
         var xhr2 = new XMLHttpRequest();
         xhr2.open("POST", AJAX_LOCATION+"?"+query, true);
@@ -50,7 +50,7 @@ function logistics_esbPopulateForm(){
                 if(this.responseText.length >= 1){
                     var dayNum = JSON.parse(this.responseText);
                     $("#esb-dayNum").val(dayNum);
-                    
+
                 }
             }
         };
@@ -71,9 +71,9 @@ function logistics_esbPopulateForm(){
         xhr.onreadystatechange = function (){
             if(this.readyState == 4 && this.status == 200){
                 if(this.responseText.length > 1){
-                    
+
                     var data = JSON.parse(this.responseText);
-             
+
                     // Schedule block data
                     $("#esb-blockID").val(data['blockID']);
                     $("#esb-blockTypeID").val(data['blockTypeID']);
@@ -89,7 +89,7 @@ function logistics_esbPopulateForm(){
                     } else {
                         $("#esb-suppressConflicts").prop('checked', true);
                     }
-                    
+
 
                     $("#esb-blockTitle").val(data['blockTitle']);
                     $("#esb-blockSubtitle").val(data['blockSubtitle']);
@@ -98,7 +98,7 @@ function logistics_esbPopulateForm(){
                     $("#esb-blockLinkDescription").val(data['blockLinkDescription']);
                     $("#esb-blockAttributeExperience").val(data['blockAttributes']['experience']);
                     $("#esb-blockAttributeEquipment").val(data['blockAttributes']['equipment']);
-                    
+
                     // Start time
                     var hour = Math.floor(data['startTime']/60);
                     var min = data['startTime'] - (hour * 60);
@@ -157,10 +157,10 @@ function logistics_esbRingCheck(checkboxID){
         // multiple locations are involved at the same time.
         $("#esb-warningLog").html(``);
 
-    } else if(   $("#esb-blockID").val() != 0 
+    } else if(   $("#esb-blockID").val() != 0
               && $(checkboxID).prop('checked') == false){
 
-        $("#esb-warningLog").html(`<li>Software is unpredictable if you remove locations 
+        $("#esb-warningLog").html(`<li>Software is unpredictable if you remove locations
             with staff assigned.<BR>You have been warned.`);
 
     } else {
@@ -175,7 +175,7 @@ function logistics_esbTournamentCheck(){
 
     if($("#esb-blockID").val() != 0 ){
 
-        $("#esb-warningLog").html(`<li>Software is unpredictable if you change the 
+        $("#esb-warningLog").html(`<li>Software is unpredictable if you change the
             scheduled tournament with staff assigned.<BR>You have been warned.`);
     }
 }
@@ -214,7 +214,7 @@ function logistics_esbSubmit(){
     var errorLog = '';
 
 // Check the tournament ID
-    if(     $("#esb-blockTypeID").val() == 1 
+    if(     $("#esb-blockTypeID").val() == 1
         &&  $("#esb-tournamentID").prop('selectedIndex') == 0){
 
         errorLog = errorLog + "<li>No Tournament Selected</li>";
@@ -225,9 +225,9 @@ function logistics_esbSubmit(){
     if($("#esb-blockTypeID").val() == null ){
         errorLog = errorLog + "<li>No Block Type selected</li>";
         readyToSubmit = false;
-    } else if(    $("#esb-blockTypeID").val() != 1 
+    } else if(    $("#esb-blockTypeID").val() != 1
                && $("#esb-blockTitle").val() == ''){
-        
+
         errorLog = errorLog + "<li>No Block Name entered</li>";
         readyToSubmit = false;
     }
@@ -251,7 +251,7 @@ function logistics_esbSubmit(){
 
     if( (startHour > endHour)
         || (   (startHour == endHour)
-            && (startMinute >= endMinute) 
+            && (startMinute >= endMinute)
         )){
         errorLog = errorLog + "<li>End Time can not be before Start Time</li>";
         readyToSubmit = false;
@@ -282,7 +282,7 @@ function logistics_esbSubmit(){
 /******************************************************************************/
 
 function logistics_esbDeleteSubmit(){
-    
+
     // Create form
     var myForm = document.createElement("form");
     myForm.method = 'POST';
@@ -330,9 +330,9 @@ function logistics_populateBlockDescription(blockID){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
+
             if(this.responseText.length > 1){ // If the fighter has already fought
-            
+
                 var data = JSON.parse(this.responseText);
 
                 if(data['blockTypeID'] == 1){
@@ -407,7 +407,7 @@ function logistics_populateBlockDescription(blockID){
                 }
 
                 $("#sbd-instructors").html("");
-               
+
                 if (data['instructors'] !== undefined && data['instructors'].length > 0) {
 
                     var text = "Instructor";
@@ -432,8 +432,8 @@ function logistics_populateBlockDescription(blockID){
 
                     var str = "<HR><a onclick=\"$('#sbd-staffing-box').toggle();$('#sbd-modal').removeClass('medium');$('#sbd-modal').addClass('large')\">Staffing ↓</a>";
                     str = str + "<table id='sbd-staffing-box' class='hidden'>";
-                    
-                    
+
+
                     data['staffing'].forEach(function(staffDetails){
                         str = str + "<tr><td>";
                         str = str + secondsToMinAndSec(staffDetails['startTime']);
@@ -574,7 +574,7 @@ function popOutSchedule(){
     <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
-    
+
     <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
     <link rel="stylesheet" href="includes/foundation/css/app.css">
     <link rel="stylesheet" href="includes/foundation/css/custom.css">
@@ -596,7 +596,7 @@ function popOutSchedule(){
     w.document.write(window.document.getElementById('personal-schedule-div').innerHTML);
 
 
-    w.document.write(`  
+    w.document.write(`
     <div class="large-12 cell text-right " style='border-top: 1px solid black; margin-top: 20px;'>
         <div class='grid-x grid-margin-x align-right'>
             <div class='shrink cell'>
@@ -613,10 +613,10 @@ function popOutSchedule(){
 
 
     w.document.write('</html>');
-    
+
 
     if (is_chrome) {
-        setTimeout(function() { // wait until all resources loaded 
+        setTimeout(function() { // wait until all resources loaded
             w.document.close(); // necessary for IE >= 10
             w.focus(); // necessary for IE >= 10
             w.print(); // change window to winPrint
@@ -708,9 +708,9 @@ function refreshCheckInList(listType, ID){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
+
             if(this.responseText.length > 1){ // If the fighter has already fought
-          
+
                 var data = JSON.parse(this.responseText);
 
                 switch(listType){
@@ -738,9 +738,9 @@ function refreshCheckInList(listType, ID){
                     }
                     default: { break; }
                 }
-                
 
-               
+
+
 
             }
         }
@@ -819,9 +819,9 @@ function populateBracketMatchesToAssign(tournamentID, eventID){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
+
             if(this.responseText.length > 1){
-          
+
                 var data = JSON.parse(this.responseText);
                 var matches = data['queue'];
                 var matchText = '';
@@ -884,7 +884,7 @@ function populateBracketMatchesToAssign(tournamentID, eventID){
                     }
 
                     $("#matches-assigned-div-"+ring['locationID']).html(assignedText);
-                    
+
 
 
                 });
@@ -917,13 +917,13 @@ function populateBracketMatchesToAssign(tournamentID, eventID){
                     matchText += "(Tier: "+match['bracketLevel']+", Position In Tier: "+match['bracketPosition']+")";
 
                     matchText += "</div>";
-                
+
                 }
 
                 if(numUnlistedMatches != 0){
                     matchText += "<div class='large-12 cell'>And "+numUnlistedMatches+" more matches</div>";
                 }
-               
+
 
             }
 
@@ -970,7 +970,7 @@ function selectMatchForAssignment(){
 
 
     updateAssignInstructions();
-  
+
 }
 
 /******************************************************************************/
@@ -1001,14 +1001,14 @@ function assignMatchesToRing(tournamentID){
 
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
-            
-            
+
+
             populateBracketMatchesToAssign(tournamentID);
-            
+
         }
     }
 
-    
+
 }
 
 
