@@ -1,24 +1,25 @@
+
 /**********************************************************************/
 
 function toggleTournamentEditingFields(tournamentID, formatID){
-	
+
 	displayOn = 'inline'
 
 	var hideSpeed = 'fast';
 	var showSpeed = 'fast';
-	
+
 	var fieldsToDisplay = [];
-	
+
 	// Results Only
-	fieldsToDisplay [FORMAT_RESULTS] = {			
+	fieldsToDisplay [FORMAT_RESULTS] = {
 		formatID: 'show',
 		isTeams: 'show',
 		hideFinalResults: 'show'
 	};
-	
-	// Matches 
+
+	// Matches
 	fieldsToDisplay [FORMAT_MATCH] = {
-		formatID: 'show',			
+		formatID: 'show',
 		doubleID: 'show',
 		rankingID: 'refresh',
 		color1: 'show',
@@ -44,10 +45,10 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		timerCountdown: 'show',
 		maxPointSpread: 'show'
 	};
-	
+
 	// Solo
 	fieldsToDisplay [FORMAT_SOLO] = {
-		formatD: 'show',			 
+		formatD: 'show',
 		rankingID: 'refresh',
 		baseValue: 'show',
 		isCuttingQual: 'show',
@@ -56,10 +57,10 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 		isTeams: 'show',
 		hideFinalResults: 'show'
 	};
-	
+
 	// Meta-tournament
 	fieldsToDisplay [FORMAT_META] = {
-		formatD: 'show',			 
+		formatD: 'show',
 		rankingID: 'refresh',
 		baseValue: 'show',
 		hideFinalResults: 'show'
@@ -68,8 +69,8 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 	function toggleTournamentEntryDiv(){
 		var divID = $(this).attr('Id');
 		if(typeof divID !== 'string'){ return; }
-		
-		
+
+
 		var divName = divID.substring(0,divID.lastIndexOf("_"));
 		if(divName == 'formatID'){ return; }
 
@@ -90,7 +91,7 @@ function toggleTournamentEditingFields(tournamentID, formatID){
 // Toggle fields on or off based on fieldsToDisplay table
 	$("#requiredFields_"+tournamentID).children().each(toggleTournamentEntryDiv);
 	$("#optionalFields_"+tournamentID).children().each(toggleTournamentEntryDiv);
-	
+
 
 // Check for fields which are just toggled by double hits
 	if(fieldsToDisplay[formatID]['maxDoubles'] == 'show'){
@@ -131,7 +132,7 @@ function enableTournamentButton(tournamentID){
 		} else {
 			$("#maxDoubles_div"+tournamentID).show(fadeTime);
 			$("#overrideDoubles_div"+tournamentID).hide(fadeTime);
-			
+
 		}
 	}
 
@@ -170,7 +171,7 @@ function enableTournamentButton(tournamentID){
 	numSubMatches = Number($('#numSubMatches_select'+tournamentID).val());
 	numSubMatches_original = Number($('#numSubMatches_select'+tournamentID).data('original'));
 	doesBracketExist = Boolean($('#doesBracketExist'+tournamentID).val());
-	
+
 	if(numSubMatches != numSubMatches_original && doesBracketExist == true){
 		warrningMessages.push('Can not change number of sub matches once a bracket is created. You must delete bracket to change the number.');
 	}
@@ -191,7 +192,7 @@ function enableTournamentButton(tournamentID){
 		button.disabled = true;
 	}
 
-	
+
 }
 
 /**********************************************************************/
@@ -199,7 +200,7 @@ function enableTournamentButton(tournamentID){
 function edit_doubleType(tournamentID){
 
 	doubleID = document.getElementById('doubleID_select'+tournamentID).value;
-	
+
 	if(doubleID == 3){ // Full Afterblow
 		$('#maxDoubles_div'+tournamentID).hide('fast');
 		$('#notNetScore_div'+tournamentID).show('fast');
@@ -218,15 +219,15 @@ function edit_doubleType(tournamentID){
 function edit_formatType(tournamentID){
 
 	formatID = document.getElementById('formatID_select'+tournamentID).value;
-	
+
 	toggleTournamentEditingFields(tournamentID, formatID);
 
-	
+
 	if(formatID == FORMAT_RESULTS){
 		document.getElementById('editTournamentButton'+tournamentID).disabled = false;
 		return;
 	}
-	
+
 
 	var query = "mode=getRankingTypes&formatID="+formatID;
 
@@ -238,7 +239,7 @@ function edit_formatType(tournamentID){
 	xhr.onreadystatechange = function (){
 		if(this.readyState == 4 && this.status == 200){
 			if(this.responseText.length > 1){
-				
+
 				rankingTypes = JSON.parse(this.responseText);
 
 				select = document.getElementById('rankingID_select'+tournamentID);

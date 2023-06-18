@@ -1,11 +1,11 @@
-<?php 
+<?php
 /*******************************************************************************
 	Event Selection
-	
+
 	Select which event to use
 	Login:
 		- SUPER ADMIN can see hidden events
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ $eventList = getEventListByPublication(ALLOW['VIEW_HIDDEN'],'date');
 ?>
 
 <div class='cell' style='border-bottom:2px solid black'>
-	
+
 		<img style='width: 400px;' src="includes/images/logo_rect.jpg">
 		<BR><BR>
 		<p>HEMA Scorecard is a <b>FREE</b> online tournament management software for Historical European Martial Arts tournaments. Scorecard allows you to:<ul>
@@ -33,7 +33,7 @@ $eventList = getEventListByPublication(ALLOW['VIEW_HIDDEN'],'date');
 		</ul></p>
 
 		<p>If you are interested in using HEMA Scorecard to hold a tournament of your own, <a href='infoWhy.php'> why not have a look at some of it's best features</a>? </p>
-	
+
 </div>
 
 <h3>Recent and Upcoming Events (<a href='infoSelect.php'>Full Event List</a>)</h3>

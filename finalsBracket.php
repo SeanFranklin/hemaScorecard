@@ -1,13 +1,13 @@
 <?php
 /*******************************************************************************
 	Finals Bracket 1
-	
+
 	Displays the main/winners bracket, and bracket management
 	LOGIN:
 		- ADMIN and above can create/delete brackets
 		- STAFF and above can add/remove fighters from matches
 		- STAFF and above can enable/disable the bracket helper
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ if($tournamentID == null){
 
 	if($_SESSION['bracketView'] == BRACKET_SECONDARY
 		&& $elimType == ELIM_TYPE_SINGLE){
-		
+
 		$_SESSION['bracketView'] = BRACKET_PRIMARY;
 
 	}
@@ -91,19 +91,19 @@ if($tournamentID == null){
 		}
 
 	}
-	
+
 
 
 // Auto-refresh
 	$time = autoRefreshTime(isInProgress($tournamentID, 'bracket'));
 	echo "<script>window.onload = function(){autoRefresh({$time});}</script>";
-	
+
 
 }
 
 include('includes/footer.php');
- 
- 
+
+
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -118,14 +118,14 @@ function bracketControl($allBracketInfo, $ringsInfo){
 	// Warns the user that the bracket helper is not defined for consolation
 	// brackets that are not for a number of fighters equal to a power of 2
 	if(	   $_SESSION['bracketView'] == BRACKET_SECONDARY
-		&& $_SESSION['bracketHelper'] == 'on' 
+		&& $_SESSION['bracketHelper'] == 'on'
 		&& $allBracketInfo[BRACKET_SECONDARY]['numFighters'] > 0){
 
 		$s = $allBracketInfo[BRACKET_SECONDARY]['numFighters'] + 2;
-	
+
 		if(($s & ($s - 1)) != 0){ // is not a power of 2
-			
-			$_SESSION['bracketWarnings']['loser'] = "<u>Warning:</u> 
+
+			$_SESSION['bracketWarnings']['loser'] = "<u>Warning:</u>
 			Bracket Helper not configured for this size bracket.<BR>
 			Seeding results may be unpredictable.";
 		}
@@ -137,7 +137,7 @@ function bracketControl($allBracketInfo, $ringsInfo){
 	<div class='callout grid-x grid-margin-x small'>
 
 <!-- Switch brackets -->
-	<?php if($allBracketInfo['elimType'] != ELIM_TYPE_SINGLE): 
+	<?php if($allBracketInfo['elimType'] != ELIM_TYPE_SINGLE):
 		if($_SESSION['bracketView'] == BRACKET_PRIMARY){
 			$primary = '';
 			$secondary = 'hollow';
@@ -152,7 +152,7 @@ function bracketControl($allBracketInfo, $ringsInfo){
 
 			<input type='hidden' name='formName' value='changeBracketView'>
 
-			<button class='button <?=$primary?> no-bottom' 
+			<button class='button <?=$primary?> no-bottom'
 				name='bracketView' value='<?=BRACKET_PRIMARY?>'>
 
 				Main Bracket
@@ -191,10 +191,10 @@ function bracketControl($allBracketInfo, $ringsInfo){
 				<?php endforeach ?>
 				<option value='0'>- Remove -</option>
 			</select>
-			<input type='submit' class='input-group-button button shrink success' 
+			<input type='submit' class='input-group-button button shrink success'
 				onclick="submit_updateBracketRings()" value='Assign' >
-				
-			</input> 
+
+			</input>
 		</div>
 
 		<?=assignMatchesToRingsBox($ringsInfo)?>
@@ -246,7 +246,7 @@ function assignMatchesToRingsBox($ringsInfo){
 		<div class="tabs-content" data-tabs-content="assign-ring-tabs">
 		<div class='tabs-panel is-active' id="panel-assign">
 		<div class="grid-x grid-margin-x">
-			
+
 
 			<div class='cell large-12' id='assign-instructions'>
 				<!-- Populated by JS -->
@@ -279,13 +279,13 @@ function assignMatchesToRingsBox($ringsInfo){
 		</div>
 
 		<div class="tabs-panel" id="panel-view">
-		
+
 			<?php foreach($ringsToShowMatches as $ring):?>
 				<h3><?=$ring['name']?></h3>
 				<div class='grid-x grid-margin-x' id='matches-assigned-div-<?=$ring['locationID']?>'>
 				</div>
 			<?php endforeach ?>
-		
+
 		</div>
 
 		</div>
@@ -317,46 +317,46 @@ function bracketHelperToggleButton(){
 	if(!isset($_SESSION['bracketHelper'])){
 		$_SESSION['bracketHelper'] = '';
 	}
-		
+
 // Checks if bracket helper is attempted to be turned on
 // and turns on if no incomplete matches
 
 	if($_SESSION['bracketHelper'] == 'try'){
-		$_SESSION['incompletePoolMatches'] = getTournamentPoolIncompletes($tournamentID);	
+		$_SESSION['incompletePoolMatches'] = getTournamentPoolIncompletes($tournamentID);
 		if($_SESSION['incompletePoolMatches'] == null){
 			$_SESSION['bracketHelper'] = 'on';
-		}	
-		
+		}
+
 	}
-	
+
 	// For the tooltip
-	$descriptionText = "Automatically seeds based on pool placements, 
+	$descriptionText = "Automatically seeds based on pool placements,
 			and suggests bracket advancements based on fight winners.";
-	
+
 	?>
-	
+
 <!-- Start display -->
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
 		<div class='callout secondary'>
 	<?php endif ?>
-	
+
 	<form method='POST' style='display:inline'>
-	
-	
+
+
 <!-- Text for the toggle button -->
 	<?php switch($_SESSION['bracketHelper']):
 		case 'on': ?>
-			<button class='button warning no-bottom' value='toggleBracketHelper' 
+			<button class='button warning no-bottom' value='toggleBracketHelper'
 				name='formName' <?=LOCK_TOURNAMENT?>>
 
 				Disable Bracket Helper
 			</button>
 			<?php break;
 		case 'try': ?>
-			There are still incomplete pool matches. 
+			There are still incomplete pool matches.
 			Finalize all matches before to ensure pool rankings are accurate.<BR>
 			<input type='hidden' name='formName' value='toggleBracketHelper'>
-			<button class='button secondary no-bottom' value='toggleBracketHelper' 
+			<button class='button secondary no-bottom' value='toggleBracketHelper'
 				name='formName' <?=LOCK_TOURNAMENT?>>
 				Cancel
 			</button>
@@ -365,17 +365,17 @@ function bracketHelperToggleButton(){
 			</button>
 
 			<?php break;
-		case 'off': 
+		case 'off':
 		default: ?>
-			<button class='button hollow warning no-bottom' value='toggleBracketHelper' name='formName' <?=LOCK_TOURNAMENT?>> 
+			<button class='button hollow warning no-bottom' value='toggleBracketHelper' name='formName' <?=LOCK_TOURNAMENT?>>
 				Enable Bracket Helper
 			</button>
 			<?php tooltip($descriptionText); ?>
 			<?php break;
 	endswitch; ?>
-	
+
 	</form>
-	
+
 <!-- Displays incomplete pool matches inhibiting bracket helper from enabling -->
 
 
@@ -384,20 +384,20 @@ function bracketHelperToggleButton(){
 		displayIncompleteMatches($_SESSION['incompletePoolMatches']);
 	}
 	?>
-	
+
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
 		</div>
 	<?php endif ?>
-	
+
 
 <?php }
 
 /******************************************************************************/
 
 function bracketManagement($tournamentID, $doesBracketExist, $finalists){
-	
-	if(ALLOW['EVENT_MANAGEMENT'] == false){ 
-		return; 
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
 	}
 
 	?>
@@ -408,31 +408,31 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 	<legend>Bracket Management</legend>
 
 	<div class='grid-x grid-padding-x'>
-		
-	<!-- Create Bracket -->	
+
+	<!-- Create Bracket -->
 		<?php if($doesBracketExist == false): ?>
-			
+
 			<div class='large-3 medium-4 cell'>
 				<a class='button expanded no-bottom' data-open='createBracket' <?=LOCK_TOURNAMENT?>>
 					Create Bracket
 				</a>
 			</div>
-		
+
 	<!-- Delete Bracket -->
 		<?php else: ?>
-		
+
 			<div class='large-3 medium-4 cell'>
 				<a class='button alert expanded no-bottom' data-open='deleteBracket' <?=LOCK_TOURNAMENT?>>
 					Delete Bracket
 				</a>
 			</div>
-		
+
 		<?php endif ?>
-	
+
 	</div>
 	</fieldset>
-	
-	
+
+
 <!-- Create Bracket Box ------------------------------------------------------->
 
 	<?php $maxBracketSize = 128; ?>
@@ -440,10 +440,10 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 		<h4>Create Bracket</h4>
-		
+
 		<form method='POST'>
 		<input class='hidden' name='createBracket[tournamentID]' value='<?=$_SESSION['tournamentID']?>'>
-	
+
 		<div class='input-group'>
 			<span class='input-group-label'>Number of Fighters:</span>
 			<input class='input-group-field' type='number' name='createBracket[sizePrimary]'
@@ -452,9 +452,9 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 
 		<h5>
 			Elimination Type
-			
+
 		</h5>
-		
+
 		<table class='stack'><tr>
 		<tr><td>
 			<input type='radio' name='createBracket[elimType]' checked
@@ -477,7 +477,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		</tr></td>
 		</table>
 
-		
+
 		<div class='input-group'>
 			<span class='input-group-label'>
 				Limit Secondary:
@@ -485,33 +485,33 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 					<em>Mode only supported for Consolation type double-elim</em>")?>
 			</span>
 			<input class='input-group-field' type='number' min=4
-				name='createBracket[sizeSecondary]' 
+				name='createBracket[sizeSecondary]'
 				placeholder='Leave blank for single elim'
 				min=2 max=<?=$maxBracketSize?>>
-		</div>	
+		</div>
 
-	
+
 	<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='button success small-6 cell' name='formName' 
+			<button class='button success small-6 cell' name='formName'
 				value='createBracket' <?=LOCK_TOURNAMENT?>>
 				Create
 			</button>
-			<button class='button secondary small-6 cell' data-close aria-label='Close modal' 
+			<button class='button secondary small-6 cell' data-close aria-label='Close modal'
 				type='button' <?=LOCK_TOURNAMENT?>>
 				Cancel
 			</button>
 		</div>
 		</fieldset>
 		</form>
-		
+
 	<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
-	
-	
+
+
 <!-- Delete Bracket Box ------------------------------------------------------->
 
 	<div class='reveal' id='deleteBracket' data-reveal>
@@ -520,36 +520,36 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		<h4 class='text-center'>Warning!</h4>
 		<p>You are about to erase all finals brackets for this tournament.<BR>
 		This includes data from any matches in the Main and Secondary brackets.</p>
-		
+
 		<div class='grid-x grid-margin-x'>
-		
+
 			<button class='button alert small-6 cell' name='formName' value='deleteBracket'
 				<?=LOCK_TOURNAMENT?>>
 				Delete Bracket
 			</button>
-			<button class='button secondary small-6 cell' data-close aria-label='Close modal' 
+			<button class='button secondary small-6 cell' data-close aria-label='Close modal'
 				type='button' <?=LOCK_TOURNAMENT?>>
 				Cancel
 			</button>
-		
+
 		</div>
 		</fieldset>
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
 
-function displayBracket($bracketInfo, 
+function displayBracket($bracketInfo,
 						$finalists,
 						$bracketType,
 						$bracketAdvancements,
 						$elimType){
-// Displays the bracket described by $bracket info	
-	
+// Displays the bracket described by $bracket info
+
 // Initialization
 	if($bracketInfo == null){
 		return;
@@ -566,15 +566,15 @@ function displayBracket($bracketInfo,
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
 
 	if(    $bracketType == BRACKET_PRIMARY
-		&& $elimType == ELIM_TYPE_SINGLE 
+		&& $elimType == ELIM_TYPE_SINGLE
 		&& isset($bracketInfo['secondaryID']) == true){
 
 		$bracketLevelsToDisplay++;
-		
+
 		$secondaryMatches = getBracketMatchesByPosition($bracketInfo['secondaryID']);
 		$bracketMatches[1][2] = $bracketMatches[1][1];
 		$bracketMatches[1][1] = $secondaryMatches[1][1];
-		
+
 	}
 
 	if($elimType == ELIM_TYPE_TRUE_DOUBLE){
@@ -586,7 +586,7 @@ function displayBracket($bracketInfo,
 	} elseif ($elimType == ELIM_TYPE_LOWER_BRACKET){
 		$bracketLevelsToDisplay++;
 	}
-	
+
 	// Warning if there are ties
 	$numTies = getNumNoWinners($bracketID);
 	if($numTies > 0 && $_SESSION['bracketHelper'] == 'on'){
@@ -595,20 +595,20 @@ function displayBracket($bracketInfo,
 		I hope you know what you are doing, because the bracket helper no longer does.
 		";
 	}
-	
-	
+
+
 	// php to generate css based on bracket properties
-	include('finalsCSS.php');	
+	include('finalsCSS.php');
 	?>
 
-<!-- Buttons above bracket -->	
+<!-- Buttons above bracket -->
 	<form method='POST' id='bracketForm' style='display:inline;'>
-	
+
 	<input type='hidden' name='formName' value='updateBracket'>
 	<input type='hidden' name='groupID' value='<?=$bracketID?>'>
 
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		
+
 		<button class= 'button success' name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
 			Add Fighters
 		</button>
@@ -617,15 +617,15 @@ function displayBracket($bracketInfo,
 		</button>
 
 
-			
+
 		<?php if(isset($_SESSION['bracketWarnings'])):
 			foreach($_SESSION['bracketWarnings'] as $type => $warning):
 
-				if($bracketType == BRACKET_PRIMARY && $type == BRACKET_SECONDARY){ 
-					continue; 
+				if($bracketType == BRACKET_PRIMARY && $type == BRACKET_SECONDARY){
+					continue;
 				}
 				?>
-			
+
 				<div class='callout warning' data-closable>
 					<?=$warning?>
 					<button class="close-button" aria-label="Dismiss secondary" type="button" data-close>
@@ -633,16 +633,16 @@ function displayBracket($bracketInfo,
 					</button>
 				</div>
 			<?php endforeach ?>
-			
-		<?php unset($_SESSION['bracketWarnings']); 
+
+		<?php unset($_SESSION['bracketWarnings']);
 		endif?>
-		
+
 	<?php endif; ?>
 
 <!-- Bracket display -->
 	<div id='tournament_box' class='tournament_box'>
-		
-	<?php	
+
+	<?php
 	for($currentLevel=$bracketLevels;$currentLevel >=1;$currentLevel--):
 
 		$bracketLevelsDisplayed++;
@@ -652,13 +652,13 @@ function displayBracket($bracketInfo,
 
 		echo"<div class='tier'>";
 		insertTierName($currentLevel, $bracketType, $elimType, $extraLevelsNum);
-	
-		if($bracketType == BRACKET_PRIMARY){ 
+
+		if($bracketType == BRACKET_PRIMARY){
 			$maxMatchesAtLevel = pow(2,$currentLevel-1);
 		} else {
 			$maxMatchesAtLevel = getNumEntriesAtLevel_consolation($currentLevel,'matches');
 		}
-		
+
 		for($bracketPosition = 1;$bracketPosition<=$maxMatchesAtLevel;$bracketPosition++):
 
 			$secondaryMatch = false;
@@ -681,17 +681,17 @@ function displayBracket($bracketInfo,
 				$matchInfo = $bracketMatches[$currentLevel][$effectivePosition];
 				$matchID = $matchInfo['matchID'];
 				$isNotBlank = true;
-					
-				// may not exist, treat as null	
-				$seed1 = @$seedList[$effectivePosition][1]['rosterID']; 
+
+				// may not exist, treat as null
+				$seed1 = @$seedList[$effectivePosition][1]['rosterID'];
 				$seed2 = @$seedList[$effectivePosition][2]['rosterID'];
-					
+
 			}
-	
+
 			$name = "depth{$currentLevel}";
-			
+
 			?>
-			
+
 <!--  Bracket level -->
 		<div class='<?=$name?>'>
 			<div class='centerCrap'>
@@ -708,34 +708,34 @@ function displayBracket($bracketInfo,
 
 				</div>
 				<div class='large-10 small-10 medium-10'>
-	
+
 				<?php if($isNotBlank): ?>
 
 					<?php bracket_finalistEntry(1,$matchInfo, $bracketInfo, $finalists,$seed1,$teamEntry); ?>
 					<?php bracket_finalistEntry(2,$matchInfo, $bracketInfo, $finalists,$seed2,$teamEntry); ?>
 					<a name='anchor<?=$matchID?>'></a>
-				<?php endif ?>	
+				<?php endif ?>
 				</div>
 			</div>
 			</div>
-			
+
 		<!-- Vertical Lines -->
-			<?php if($currentLevel > 1 && $isNotBlank 
+			<?php if($currentLevel > 1 && $isNotBlank
 				AND ($bracketType == BRACKET_PRIMARY || $currentLevel % 2 == 0)):
-					
+
 				if($bracketPosition % 2 != 0){
 					$name .='_rightTop';
 				} else {
 					$name .= '_rightBottom';
 				} ?>
-			
+
 				<div class='<?=$name?>'>
 				</div>
 			<?php endif ?>
-			
-				
+
+
 			</div>
-			
+
 
 			<?php if($currentLevel == 1 && $bracketLevelsDisplayed < $bracketLevelsToDisplay){
 					$currentLevel++;
@@ -743,9 +743,9 @@ function displayBracket($bracketInfo,
 
 		<?php endfor ?>
 		</div>
-		
+
 	<?php endfor ?>
-	
+
 	</div>
 
 	</form>
@@ -756,8 +756,8 @@ function displayBracket($bracketInfo,
 
 function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
 // Inserts the name of the bracket level
-// Context dependent based on winners/consolation bracket	
-	
+// Context dependent based on winners/consolation bracket
+
 	if($extraLevelsNum > 0){
 		$isFirstPlace = true;
 	} else {
@@ -794,7 +794,7 @@ function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
 				}
 
 			}
-			
+
 		} else {
 			switch($level){
 				case 1:
@@ -804,7 +804,7 @@ function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
 						$name = '3rd Place';
 					}
 					break;
-				case 2: 
+				case 2:
 					$name = 'Semi-Finals';
 					break;
 				case 3:
@@ -822,7 +822,7 @@ function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
 
 
 /******************************************************************************/
- 
+
  function bracket_finalistDropDown($fighterNum,$matchID, $finalists, $seedID, $isTeams){
 // Creates a drop down list of all the fighters provided
 // Used in elimination brackets
@@ -841,11 +841,11 @@ function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
 			}
 			$selected = isSelected($fighter['rosterID'], $seedID);
 			?>
-			
+
 			<option value='<?=$fighter['rosterID']?>' <?=$selected?>>
 				<?=$rank?><?=getFighterName($fighter['rosterID'],null,null,$isTeams)?>
 			</option>
-			
+
 		<?php endforeach ?>
 	</select>
 <?php }
@@ -862,24 +862,24 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		$color = COLOR_CODE_1;
 	}else if($fighterNum == 2){
 		$fighterID = 'fighter2ID';
-		$color = COLOR_CODE_2; 
-	}else { 
+		$color = COLOR_CODE_2;
+	}else {
 	 displayAlert("Error in 'finalistEntry' !!!!!!");
 	}
 	?>
-	
+
 <!-- If no data exists for the bracket position	-->
 	<?php if($matchInfo[$fighterID] == 0 || $matchInfo[$fighterID] == null):
-	
+
 		$class = '';
 		if($fighterNum == 1){
 			$class = "bracket-top-slot";
 		}
 		?>
-		
+
 		<div class='<?=$class?>'>
-							
-		<?php 
+
+		<?php
 			if(ALLOW['EVENT_SCOREKEEP'] == true){
 				// Staff and higher can add fighters
 				bracket_finalistDropDown($fighterNum, $matchID, $finalists, $seedID,$teamEntry);
@@ -888,26 +888,26 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 				echo "&nbsp;";
 			}
 		?>
-		
-		</div>
-		
 
-<!-- If data exists for the bracket position -->		
-	<?php else: 
+		</div>
+
+
+<!-- If data exists for the bracket position -->
+	<?php else:
 		$name = getFighterName($matchInfo['fighter'.$fighterNum.'ID'],null,null,$teamEntry);
 		$score = $matchInfo['fighter'.$fighterNum.'Score'];
 		$style = '';
-		
+
 		// If is match winner
 		if ($matchInfo['fighter'.$fighterNum.'ID'] == $matchInfo['winnerID']){
 			$style .= "font-weight: bold; ";
 		}
-		
+
 		$class = '';
 		if($fighterNum == 1){
 			$class = "bracket-top-slot";
 		}
-		
+
 		if(ALLOW['EVENT_SCOREKEEP'] == true){	// shows fighter color for staff only
 			$style .= "background-color: {$color}; ";
 		}

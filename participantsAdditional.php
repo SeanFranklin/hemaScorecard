@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Non-participant roster
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -49,12 +49,12 @@ if($eventID == null){
 		</tr>
 
 
-		<?php foreach($participants as $person): 
+		<?php foreach($participants as $person):
 			$i = $person['additionalRosterID']
 			?>
 			<tr>
 				<td>
-					<input type='checkbox' name='deleteAdditional[IDsToDelete][<?=$i?>]' 
+					<input type='checkbox' name='deleteAdditional[IDsToDelete][<?=$i?>]'
 					class='no-bottom' value='<?=$i?>'>
 				</td>
 				<td>
@@ -116,7 +116,7 @@ function addNewParticpants(){
 	<em>
 		Note: This is simply a list of names to help you (as an organizer) keep track and check people in.
 		The list is not connected to the tournament list, and there is no way to 'promote' any non-participant to a participant. You have to enter them from scratch.<BR>
-		<u>Staff and Instructors should be entered as participants.</u> 
+		<u>Staff and Instructors should be entered as participants.</u>
 		You can no schedule any staff from this list.
 	</em>
 
@@ -161,7 +161,7 @@ function addNewParticpants(){
 
 	</div>
 
-<?	
+<?
 }
 
 /******************************************************************************/

@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@ if($_SESSION['eventID'] == null){
 } else {
 
 	$allMatches = getMatchesBySchool($_SESSION['eventID'], @$_SESSION['filters']['schoolID']);
-	
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ if($_SESSION['eventID'] == null){
 			<?php endforeach ?>
 			<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 		</h3>
-		
+
 		<?=displayMatchTable($allMatches)?>
 	<?php else: ?>
 		<div class='grid-x grid-padding-x'>
@@ -44,15 +44,15 @@ if($_SESSION['eventID'] == null){
 			<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 		</div>
 		</div>
-		
+
 	<?php endif ?>
 
-	
 
-	
-		
-<?php 		
-	
+
+
+
+<?php
+
 }
 
 include('includes/footer.php');
@@ -84,7 +84,7 @@ function displayMatchTable($allMatches){
 			if($m['groupType'] == 'pool'){
 				$name = "Match ".$m['matchNumber'];
 				$page = 'scoreMatch.php';
-				
+
 			} elseif($m['groupType'] == 'round') {
 				$name = "- Go -";
 				$page = 'scorePiece.php';

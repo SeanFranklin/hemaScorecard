@@ -1,12 +1,12 @@
 <?php
 /*******************************************************************************
 	Event Summary
-	
+
 	Displays information about the event, such as fighter counts for
 	each tournament and registrations from each club
 	LOGIN
 		- ADMIN and above can view the page
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -29,15 +29,15 @@ if($_SESSION['eventID'] == null){
 	$clubTotals = getAttendanceFromSchools($_SESSION['eventID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
-	
+////////////////////////////////////////////////////////////////////////////////
+?>
+
 <!-- Participant summary -->
 
 	<div class='grid-x align-center'>
 	<div class='large-6 medium-10 small-12'>
-	
-	
+
+
 	<div class='callout success text-center'>
 		<h5>
 			Total Event Participants
@@ -53,10 +53,10 @@ if($_SESSION['eventID'] == null){
 			<strong><?=$totalTournamentEntries?></strong>
 		</h5>
 	</div>
-	
+
 	<table>
 	<caption>Participant Numbers</caption>
-	
+
 
 	<?php foreach((array)$tournamentList as $tID => $data): ?>
 		<tr>
@@ -66,10 +66,10 @@ if($_SESSION['eventID'] == null){
 				<?php if($data['isTeams'] != 0):?>
 				(<i><?=$data['numParticipants']?> teams</i>)
 			<?php endif ?>
-			</td>			
+			</td>
 		</tr>
 	<?php endforeach ?>
-	
+
 		<tr style='border-top:solid 1px'>
 			<th class='text-right'>
 				<em>Total:</em>
@@ -88,26 +88,26 @@ if($_SESSION['eventID'] == null){
 			if($schoolID == 1){ continue;}
 			$name = getSchoolName($schoolID, 'full', 'Branch');
 			?>
-			
+
 			<tr>
 				<td><?=$name?></td>
 				<td class='text-center'><?=$num?></td>
 			</tr>
-			
+
 		<?php endforeach ?>
-		
+
 		<?php if(@$clubTotals[1] > 0): ?>
 			<tr>
 				<td><i>Unknown</i></td>
 				<td class='text-center'><i><?=$clubTotals[1]?></i></td>
 			</tr>
 		<?php endif ?>
-		
+
 	</table>
-	
+
 	</div>
 	</div>
-	
+
 <?php }
 include('includes/footer.php');
 

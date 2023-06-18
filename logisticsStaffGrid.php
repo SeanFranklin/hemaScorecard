@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Staff Assigments
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -56,16 +56,16 @@ if($_SESSION['eventID'] == null){
 		$staffInfo[$rosterID]['staffCompetency'] = $person['staffCompetency'];
 		if($staffInfo[$rosterID]['staffCompetency'] == 0){
 			$staffInfo[$rosterID]['staffCompetency'] = '';
-		} 
+		}
 		$staffInfo[$rosterID]['hours'] = 0;
 		$staffInfo[$rosterID]['staffHoursTarget'] = $person['staffHoursTarget'];
 		if($staffInfo[$rosterID]['staffHoursTarget'] == 0){
 			$staffInfo[$rosterID]['staffHoursTarget'] = '';
 		}
-		
+
 
 		$personalSchedule = logistics_getParticipantSchedule($person['rosterID'], $_SESSION['eventID']);
-		
+
 		if(isset($personalSchedule['scheduled']) == false){
 			if($staffInfo[$rosterID]['staffCompetency'] == ''){
 				$staffInfo[$rosterID]['hours'] = '';
@@ -77,30 +77,30 @@ if($_SESSION['eventID'] == null){
 		$lastDayNum = 0;
 		$lastSuppressConflicts = false;
 		foreach($personalSchedule['scheduled'] as $scheduleItem){
-			
+
 			$dayNum = $scheduleItem['dayNum'];
 			$startTime = floor($scheduleItem['startTime']/TIME_INTERVAL)*TIME_INTERVAL;
 			$endTime = ceil($scheduleItem['endTime']/TIME_INTERVAL)*TIME_INTERVAL;
 
-			if(isset($scheduleItem['shiftID']) == true 
+			if(isset($scheduleItem['shiftID']) == true
 				&& $scheduleItem['blockTypeID'] != SCHEDULE_BLOCK_MISC){
 
 				$length = $scheduleItem['endTime'] - $scheduleItem['startTime'];
 				$staffInfo[$rosterID]['hours'] += round($length/60,1);
 			}
 
-			if(    $scheduleItem['suppressConflicts'] == 0 
+			if(    $scheduleItem['suppressConflicts'] == 0
 				&& $lastSuppressConflicts == 0
-				&& $dayNum == $lastDayNum 
+				&& $dayNum == $lastDayNum
 				&& $scheduleItem['startTime'] < $lastEndTime){
-				
+
 				$isConflict = true;
 			}
 
 			for($time = $startTime; $time < $endTime; $time += TIME_INTERVAL){
 
 				if(	   $isConflict == true
-					&& $timeLine[$dayNum][$rosterID][$time]['show'] != '' 
+					&& $timeLine[$dayNum][$rosterID][$time]['show'] != ''
 					&& substr($timeLine[$dayNum][$rosterID][$time]['show'],0,1) != '!'){
 
 					$timeLine[$dayNum][$rosterID][$time]['show'] = '!'.$timeLine[$dayNum][$rosterID][$time]['show'];
@@ -115,12 +115,12 @@ if($_SESSION['eventID'] == null){
 					} else {
 						$timeLine[$dayNum][$rosterID][$time]['show'] .= 'S';
 					}
-					
+
 					$timeLine[$dayNum][$rosterID][$time]['blockID'] = $scheduleItem['blockID'];
 				} else {
 					$timeLine[$dayNum][$rosterID][$time]['show'] .= 'T';
 					$timeLine[$dayNum][$rosterID][$time]['tournamentID'] = $scheduleItem['tournamentID'];
-				} 
+				}
 
 
 			}
@@ -147,12 +147,12 @@ if($_SESSION['eventID'] == null){
 		<u>Note:</u> Staff shifts can sometimes 'share' a block on this display without being a conflict. eg: a shift ending at 10:40 and one starting at 10:50 would both have to share the 10:30-11:00 block. There will be a warning in red above this if you have real staff conflicts.");
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
-	
+
 <!-- Tabs -->
 	<ul class="tabs" data-tabs id="participantsGrid-tab">
-		<?php foreach($eventDays as $dayNum => $day): 
+		<?php foreach($eventDays as $dayNum => $day):
 			if($dayNum == $_SESSION['dayNum']){
 				$firstDay = 'is-active';
 			} else {
@@ -161,7 +161,7 @@ if($_SESSION['eventID'] == null){
 			?>
 
 			<li class="tabs-title <?=$firstDay?>">
-				<a data-tabs-target="panel-grid-<?=$dayNum?>" href="#panel-grid-<?=$dayNum?>" 
+				<a data-tabs-target="panel-grid-<?=$dayNum?>" href="#panel-grid-<?=$dayNum?>"
 					onclick="updateSession('dayNum',<?=$dayNum?>)">
 					Day <?=$dayNum?>, <?=$day?>
 				</a>
@@ -171,7 +171,7 @@ if($_SESSION['eventID'] == null){
 
 <!-- Panels -->
 	<div class="tabs-content" data-tabs-content="participantsGrid-tab">
-		<?php foreach($eventDays as $dayNum => $day): 
+		<?php foreach($eventDays as $dayNum => $day):
 			if($dayNum == $_SESSION['dayNum']){
 				$firstDay = 'is-active';
 			} else {
@@ -228,7 +228,7 @@ function displayDayTable($timeLine, $emptyTimeLine, $dayNum, $staffInfo){
 					<?=$staffInfo[$rosterID]['staffHoursTarget']?>
 				</td>
 
-				<?php foreach($personalTimeLine as $time => $timeSlot): 
+				<?php foreach($personalTimeLine as $time => $timeSlot):
 					switch(substr($timeSlot['show'],0,1)){
 						case 'T':
 							$color = SCHEDULE_COLOR_TOURNAMENT;
@@ -279,12 +279,12 @@ function createTextForGridItem($info){
 
 	// This text is to make tooltips.
 
-	
-	
+
+
 
 ?>
 
-	<?php foreach($charArray as $char): 
+	<?php foreach($charArray as $char):
 		switch($char){
 			case 'T':
 				$hoverText = getTournamentName($info['tournamentID']);
@@ -298,7 +298,7 @@ function createTextForGridItem($info){
 		}?>
 
 		<?php if($hoverText != null): ?>
-			<span data-tooltip aria-haspopup='true' class='has-tip' 
+			<span data-tooltip aria-haspopup='true' class='has-tip'
 				data-disable-hover='false'  title="<?=$hoverText?>"
 				data-position='top' data-allow-html='true' >
 				<?=$char?>

@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -44,27 +44,27 @@ $vC = '?=1.0.6'; // CSS Version
 </script>
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="
-		HEMA Scorecard is a free online software application for running 
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="
+		HEMA Scorecard is a free online software application for running
 		Historical European Martial Arts tournaments and making the information
 		easily accessible.
 	">
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
-    <title>HEMA Scorecard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
-    
-    <link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="includes/foundation/css/app.css">
-    <link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
+	<title>HEMA Scorecard</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
 
-    <link rel='icon' href='includes\images\favicon.png'>
+	<link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="includes/foundation/css/app.css">
+	<link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
+
+	<link rel='icon' href='includes\images\favicon.png'>
 
 
-    
+
 </head>
 
 
@@ -102,10 +102,10 @@ $vC = '?=1.0.6'; // CSS Version
 		$leftFighter = 1;
 		$rightFighter = 2;
 	}
-	
-	
+
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 
@@ -118,23 +118,23 @@ $vC = '?=1.0.6'; // CSS Version
 	</script>
 
 
-	<div class='grid-y medium-grid-frame' 
+	<div class='grid-y medium-grid-frame'
 		style='height: 100vh; font-size:0;'>
 
 		<div class='cell shrink'>
 
-		<div class='cell shrink text-center align-middle'style='background:black;'>
+		<div class='cell shrink text-center align-middle'style='background:black; vertical-align: middle;'>
 
 
 
-			<span style='display:inline-block; height:100%; vertical-align: middle; padding-right: 20px'>
-				<img src="includes/images/favicon2.png" style='height:5vh'>
+			<span style='display:inline-block; height:100%; padding-right: 20px;vertical-align: top;'>
+				<img src="includes/images/favicon2.png" style='height:7vh; '>
 			</span>
-			
+
 			<span class='white-text' style='font-size:5vh'>HEMA Scorecard</span>
 
-			<span style='display:inline-block; height:100%; vertical-align: middle; padding-left: 20px'>
-				<img src="includes/images/favicon2.png" style='height:5vh'>
+			<span style='display:inline-block; height:100%; vertical-align: top; padding-left: 20px'>
+				<img src="includes/images/favicon2.png" style='height:7vh'>
 			</span>
 		</div>
 
@@ -174,7 +174,7 @@ $vC = '?=1.0.6'; // CSS Version
 
 
 <?php }
-	
+
 include('includes/footer.php');
 
 
@@ -185,7 +185,7 @@ include('includes/footer.php');
 function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 	$class = '';
 	if($fighterNum == 1){
-		
+
 		$fighterName = getFighterName($matchInfo['fighter1ID']);
 		$class = 'f1-BG f1-text';
 		$border = 'right';
@@ -208,13 +208,13 @@ function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 	}
 ?>
 
-	<div class='small-6 cell medium-cell-block-y <?=$class?>' 
+	<div class='small-6 cell medium-cell-block-y <?=$class?>'
 		style='border-<?=$border?>: 2px solid black;'>
 
-		<span style='font-size: 5.5vw;'> 
-			
+		<span style='font-size: 5.5vw;'>
+
 			<?=$fighterName?>
-				
+
 		</span>
 
 	</div>
@@ -251,7 +251,7 @@ function fighterSchoolDisplay($matchInfo, $fighterNum, $pageSide){
 
 ?>
 
-	<div class='small-6 cell medium-cell-block-y <?=$class?>' 
+	<div class='small-6 cell medium-cell-block-y <?=$class?>'
 		style='border-<?=$border?>: 2px solid black;'>
 		<i>
 			<?php if(isTeamLogic($matchInfo['tournamentID']) == false): ?>
@@ -293,9 +293,9 @@ function fighterScoreDisplay($matchInfo, $fighterNum, $pageSide){
 	}
 
 ?>
-	<div class='small-4 cell medium-cell-block-y text-center <?=$class?>' 
+	<div class='small-4 cell medium-cell-block-y text-center <?=$class?>'
 		style='border-top: 4px solid black;'>
-		
+
 		<span style='font-size:30vh;'><?=$score?></span>
 
 	</div>
@@ -355,7 +355,7 @@ function matchInfoDisplay($matchInfo){
 			<div class='match-winner-name black-text  <?=$class?> '>
 				<span style='font-size:5.5vw;'>
 					<?=$endText2?>
-						
+
 					</span>
 			</div>
 
@@ -367,7 +367,7 @@ function matchInfoDisplay($matchInfo){
 	<!-- Show timer -->
 		<?php else: ?>
 
-			<input type='hidden' class='matchTime' id='matchTime' 
+			<input type='hidden' class='matchTime' id='matchTime'
 				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 			<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
 			<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
@@ -376,11 +376,11 @@ function matchInfoDisplay($matchInfo){
 
 			<script>
 				window.addEventListener("load",function(event) {
-				    	updateTimerDisplay();
-				    });
+						updateTimerDisplay();
+					});
 			</script>
 
-			
+
 			<div id='currentTimeDiv'>
 				<span id='currentTime' style="font-size:20vh;">
 					0:00
@@ -392,7 +392,7 @@ function matchInfoDisplay($matchInfo){
 	<!-- Double hit text -->
 		<?php doublesTextDisplay($matchInfo) ?>
 
-	
+
 
 	</div>
 
@@ -415,14 +415,14 @@ function doublesTextDisplay($matchInfo){
 
 	$doubleOut = false;
 
-	if(    (int)$matchInfo['maxDoubles'] != 0 
+	if(    (int)$matchInfo['maxDoubles'] != 0
 		&& (int)$doubles >= (int)$matchInfo['maxDoubles']){
 
 		$doubleOut = true;
 
 	} else if($reverseScore == REVERSE_SCORE_INJURY){
 
-		if( 	(  $matchInfo['fighter1score'] <= 0 
+		if( 	(  $matchInfo['fighter1score'] <= 0
 				&& $matchInfo['fighter2score'] <= 0
 				&& $matchInfo['lastExchange'] != 0)
 			|| ($basePointValue == 0)
@@ -433,7 +433,7 @@ function doublesTextDisplay($matchInfo){
 
 	} elseif($reverseScore == REVERSE_SCORE_GOLF){
 
-		if(		(  $matchInfo['fighter1score'] >= $basePointValue 
+		if(		(  $matchInfo['fighter1score'] >= $basePointValue
 				&& $matchInfo['fighter2score'] >= $basePointValue)
 			&& $basePointValue != 0)
 		{
@@ -445,7 +445,7 @@ function doublesTextDisplay($matchInfo){
 		$doubleOut = false;
 
 	}
-	
+
 	$class = ifSet($doubleOut,"class='red-text'");
 	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
 
@@ -464,11 +464,11 @@ function doublesTextDisplay($matchInfo){
 		break;
 	}
 	?>
-	
+
 	<span <?=$class?> style='font-size:4vw;'>
-		<?=$string?>		
+		<?=$string?>
 	</span>
-	
+
 <?php
 }
 
@@ -483,10 +483,10 @@ function displayFighterPenalties($matchInfo, $num){
 		$class = '';
 	}
 ?>
-	
+
 	<div class='cell small-6 <?=$class?>'>
 
-	<?php foreach($penaltyList as $penalty): 
+	<?php foreach($penaltyList as $penalty):
 
 		switch($penalty['card']){
 			case 'yellowCard':

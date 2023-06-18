@@ -39,7 +39,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 					break;
 			}
 
-			if(count($newDuplicates) == 0){ 
+			if(count($newDuplicates) == 0){
 				continue;
 			}
 
@@ -51,14 +51,14 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 
 
 			$allDuplicates[] = $duplicateToAdd;
-			
-			
+
+
 		}
 	}
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 <!-- Select search type -->
@@ -83,7 +83,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 			<th></th>
 		</tr>
 
-	<?php 
+	<?php
 
 // No search results
 	if(count($allDuplicates) == 0){
@@ -96,7 +96,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	foreach((array)$allDuplicates as $setNum => $set):
 		$numInSet = count($set);
 
-		
+
 		$setInfo = [];
 
 	// Display the duplicate fighters in a set
@@ -122,7 +122,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 			</tr>
 
 		<?php endforeach; ?>
-		
+
 	<!-- Options to deal with duplicate entry -->
 		<tr>
 			<td colspan='100%' class='text-right' style='border-bottom:1px solid black'>
@@ -135,7 +135,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 	</table>
 
 <?php
-	
+
 }
 include('includes/footer.php');
 
@@ -147,7 +147,7 @@ include('includes/footer.php');
 function match_LastName_School($fighter){
 
 	// Ignores fighters that have ' character in their name, because
-	//  the query is not properly escaped. 
+	//  the query is not properly escaped.
 	// THIS NEEDS TO BE FIXED!!!!!
 	if(strpos($fighter['lastName'],"'") !== false){return [];}
 
@@ -184,31 +184,31 @@ function match_LastName_School($fighter){
 <style>
 /* Tooltip container */
 .tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
 }
 
 /* Tooltip text */
 .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 330px;
-    background-color: black;
-    color: #fff;
-    text-align: left;
-    padding: 5px 0;
-    border-radius: 6px;
- 	top: -5px;
-    right: 105%; 
+	visibility: hidden;
+	width: 330px;
+	background-color: black;
+	color: #fff;
+	text-align: left;
+	padding: 5px 0;
+	border-radius: 6px;
+	top: -5px;
+	right: 105%;
 
-    /* Position the tooltip text - see examples below! */
-    position: absolute;
-    z-index: 0;
+	/* Position the tooltip text - see examples below! */
+	position: absolute;
+	z-index: 0;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
-    visibility: visible;
+	visibility: visible;
 }
 </style>
 
@@ -219,7 +219,7 @@ function match_LastName_School($fighter){
 function tournamentEntryTooltip($systemRosterID){
 
 	$sql = "SELECT tournamentID, eventID
-			FROM eventTournamentRoster 
+			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			WHERE systemRosterID = {$systemRosterID}
 			ORDER BY eventID DESC";
@@ -237,12 +237,12 @@ function tournamentEntryTooltip($systemRosterID){
 		$str .= "<li>".getTournamentName($entry['tournamentID'])."</li>";
 	}
 	$str .= "</ul>";
-	
+
 	?>
 	<div class="tooltip">?
-  		<span class="tooltiptext"><?=$str?></span>
+		<span class="tooltiptext"><?=$str?></span>
 	</div>
-	
+
 	<?php
 
 }
@@ -252,7 +252,7 @@ function tournamentEntryTooltip($systemRosterID){
 function combineFightersButton($setNum, $setInfo){
 	?>
 
-	<a class='button warning' name='formName' value='newNotDuplicate' 
+	<a class='button warning' name='formName' value='newNotDuplicate'
 		data-open='combineFightersBox<?=$setNum?>'>
 		Combine Fighters
 	</a>
@@ -260,18 +260,18 @@ function combineFightersButton($setNum, $setInfo){
 	<div class='reveal medium' id='combineFightersBox<?=$setNum?>' data-reveal>
 		<form method='POST'>
 		<center><h4>- Combine Fighters-</h4></center>
-	
+
 		This will mark the combine the following fighters into a single fighter.
 		<center><h5 class='red-text'>THIS CAN NOT BE UNDONE!</h5></center>
 		If you do this wrong they can not be split into two people again.
 		<hr>
-		
+
 		<center><strong>WHICH FIGHTER DO YOU WANT TO KEEP?</strong></center>
 		<table>
 
 		<tr>
 		<?php foreach($setInfo as $index => $fighter): ?>
-			
+
 			<tr id='set<?=$setNum?>_<?=$index?>' class='combineFighersRow strike-through'>
 				<td><input type='radio' name='combineInto' value='<?=$setInfo[$index]['systemRosterID']?>'
 					onchange="strikeOutDuplicateFighters('set<?=$setNum?>_<?=$index?>','combineButton<?=$setNum?>');">
@@ -281,13 +281,13 @@ function combineFightersButton($setNum, $setInfo){
 				<td><?=$setInfo[$index]['schoolName']?></td>
 				<td><?=$setInfo[$index]['numTournaments']?></td>
 			</tr>
-			
-		
+
+
 		<?php endforeach ?>
-		
+
 		</table>
 			<hr>
-	
+
 		<!-- Submit buttons -->
 			<div class='grid-x grid-margin-x'>
 				<button class='alert button small-6 cell no-bottom' id='combineButton<?=$setNum?>'
@@ -299,12 +299,12 @@ function combineFightersButton($setNum, $setInfo){
 				</button>
 			</div>
 		</form>
-		
+
 		<!-- Reveal close button -->
 			<button class='close-button' data-close aria-label='Close modal' type='button'>
 				<span aria-hidden='true'>&times;</span>
 		</button>
-		
+
 		</div>
 
 
@@ -316,7 +316,7 @@ function combineFightersButton($setNum, $setInfo){
 function distinctFightersButton($setNum, $setInfo){
 	?>
 
-	<a class='button success' name='formName' value='newNotDuplicate' 
+	<a class='button success' name='formName' value='newNotDuplicate'
 		data-open='distinctFightersBox<?=$setNum?>'>
 		Two Distinct Fighters
 	</a>
@@ -324,13 +324,13 @@ function distinctFightersButton($setNum, $setInfo){
 	<div class='reveal medium' id='distinctFightersBox<?=$setNum?>' data-reveal>
 		<form method='POST'>
 		<h5>- Comfirm Distinct Fighters-</h5>
-	
-		This will mark the following fighters as unique, and they will no longer 
+
+		This will mark the following fighters as unique, and they will no longer
 		be flaged as posisble duplicates.
 		<hr>
 		<table>
 
-	
+
 
 		<?php foreach($setInfo as $index => $fighter): ?>
 			<tr>
@@ -346,7 +346,7 @@ function distinctFightersButton($setNum, $setInfo){
 		<?php endforeach ?>
 		</table>
 			<hr>
-	
+
 		<!-- Submit buttons -->
 			<div class='grid-x grid-margin-x'>
 				<button class='success button small-6 cell no-bottom' name='formName' value='addNewDuplicateException'>
@@ -357,12 +357,12 @@ function distinctFightersButton($setNum, $setInfo){
 				</button>
 			</div>
 		</form>
-		
+
 		<!-- Reveal close button -->
 			<button class='close-button' data-close aria-label='Close modal' type='button'>
 				<span aria-hidden='true'>&times;</span>
 		</button>
-		
+
 		</div>
 
 

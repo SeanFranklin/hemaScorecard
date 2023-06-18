@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
 	Match Scoring
-	
+
 	Scores a match
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -47,19 +47,19 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	}
 
 // If it is the last match in the tournament the staff is asked to finalize the event
-	askForFinalization($matchInfo); 
-	
+	askForFinalization($matchInfo);
+
 // If the livestream is active it asks to make this the displayed match
 	livestreamMatchSet($matchInfo);
 
 // Checks if the user has left unconcluded matches, and warns them
 	$matchInfo['unconcludedMatchWarning'] = unconcludedMatchWarning($matchInfo);
-	
+
 //Passes data to Javascript
 	echo "<input type='hidden' value='{$matchInfo['doubleType']}' id='doubleType'>";
-	
+
 // Auto refresh if match is in progress
-	if(($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0) && $matchInfo['matchComplete'] == 0 
+	if(($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0) && $matchInfo['matchComplete'] == 0
 		&& $matchInfo['ignoreMatch'] != 1 && ALLOW['EVENT_SCOREKEEP'] == false){
 		echo "<script>window.onload = function(){refreshOnNewExchange($matchID, {$matchInfo['lastExchange']});}</script>";
 	}
@@ -80,7 +80,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 	<script>
 		var GRID_ENTRY_MODE = <?=$attackGrid?>
@@ -94,8 +94,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		<div class='callout secondary text-center'>
 			<span class='red-text'>This match has been excluded from scoring calculations</span>
 			<BR>Possible reasons include injury or disqualification from the tournament
-		</div>	
-		
+		</div>
+
 	<?php endif ?>
 
 	<div class='callout alert text-center hidden editExchangeWarningDiv'>
@@ -103,17 +103,17 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		You are editing an old exchange, not inserting a new one!<BR>
 		<a class='button alert hollow' onclick="editExchange('')">Cancel Editing</a>
 	</div>
-	
+
 
 	<div class='grid-x grid-margin-x'>
 
 <!-- Main column -->
-		<div class='medium-9 cell'>	
+		<div class='medium-9 cell'>
 			<?php backToListButton($matchInfo); ?>
 			<?php confirmStaffBox($matchInfo) ?>
 			<?php addPenaltyBox($matchInfo) ?>
 			<?php switchFighersBox($matchInfo) ?>
-			
+
 			<!-- Fighter scores -->
 			<div class='large-12 cell'>
 				<form method='POST'>
@@ -123,25 +123,25 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
 					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 					<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
-					<?php dataEntryBox($matchInfo);	?>	
-				</fieldset>		
+					<?php dataEntryBox($matchInfo);	?>
+				</fieldset>
 				</form>
 
 				<?php if(	ALLOW['EVENT_SCOREKEEP'] == true
 						 && $matchInfo['matchComplete'] == 1
 						 && isSignOffRequired($matchInfo['tournamentID'])
-					 	){
+						){
 
 						signOffForm($matchInfo);
 				}?>
 
 			</div>
-			
+
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 				<BR>
 			<?php endif ?>
-			
-			
+
+
 		</div>
 
 	<!-- Side column -->
@@ -149,16 +149,16 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			<?php createSideBar($matchInfo); ?>
 		</div>
 
-	<!-- Exchange history -->	
+	<!-- Exchange history -->
 		<?php $exchangesNotNumbered = matchHistoryBar($matchInfo); ?>
 
 	</div>
-	
+
 <!-- Match Video -->
 	<?php addVideoLink($matchID);?>
 
 <?php }
-	
+
 include('includes/footer.php');
 
 
@@ -180,7 +180,7 @@ function signOffForm($matchInfo){
 	<div class='small-12'>
 		<em>Clicking this box is considered a digital signature by the named individual.</em>
 	</div>
-	
+
 	<div class='small-6 cell'>
 		<h3><?=getFighterName($matchInfo['fighter1ID'])?></h3>
 	</div>
@@ -202,7 +202,7 @@ function signOffForm($matchInfo){
 	</div>
 
 	<div class='small-6 cell'>
-	
+
 		<?php if($signOffs['signOff2'] == 0): ?>
 			<BR>
 			<input type='checkbox' class='no-bottom' style="transform: scale(6)"
@@ -217,7 +217,7 @@ function signOffForm($matchInfo){
 
 	</div>
 	</form>
-	
+
 <?php
 }
 
@@ -253,7 +253,7 @@ function subMatchBox($matchInfo){
 				break;
 			}
 		}
-	
+
 		if($uncompletedSubMatchID != 0){
 				if(   $_SESSION['matchID'] != $uncompletedSubMatchID
 				   && $matchInfo['isPlaceholder'] == 1){
@@ -264,7 +264,7 @@ function subMatchBox($matchInfo){
 			} else{
 				$showOverall = false;
 			}
-		}	
+		}
 	}
 //---------------------
 ?>
@@ -345,7 +345,7 @@ function confirmStaffBox($matchInfo, $staffList = null){
 ?>
 
 	<div class='reveal' id='matchStaffConfirmBox' data-reveal>
-	
+
 		<h4>Check In Staff</h4>
 		<form method='POST'>
 		<input type='hidden' name='updateMatchStaff[matchID]' value='<?=$matchInfo['matchID']?>'>
@@ -361,14 +361,14 @@ function confirmStaffBox($matchInfo, $staffList = null){
 		[<strong>&#x2714;</strong>]: Already Checked In <BR>
 		[<strong>?</strong>]: Guess based on last staff in this ring. <BR>
 
-	
+
 		<em>
 			<?=toggleClass('hiddenCheckStaffRow','(Show More Rows &#8595;)','(Show Less Rows &#8593;)')?>
 		</em>
 
 	<!-- Data entry fields -->
 		<table>
-			<?php foreach($matchStaffList as $member): 
+			<?php foreach($matchStaffList as $member):
 				$msID = $member['matchStaffID'];
 				$totalRowsShowing++;
 				if($msID < 0){
@@ -407,7 +407,7 @@ function confirmStaffBox($matchInfo, $staffList = null){
 			<?php endforeach ?>
 
 
-		<!-- Add New Staff -->	
+		<!-- Add New Staff -->
 			<?php for($i=$msIDcounter;$i>=($msIDcounter-10);$i--): // Negative values for new staff
 				$totalRowsShowing++;
 				if($totalRowsShowing > 7){
@@ -461,7 +461,7 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 		<div class='grid-x grid-margin-x'>
 
-			<button class='button success small-6 cell <?=$bClass?>' name='formName' 
+			<button class='button success small-6 cell <?=$bClass?>' name='formName'
 				value='updateMatchStaff'>
 				<?=$bText?>
 			</button>
@@ -471,8 +471,8 @@ function confirmStaffBox($matchInfo, $staffList = null){
 			</button>
 		</div>
 
-		
-	
+
+
 		</form>
 
 		<!-- Close button -->
@@ -486,11 +486,11 @@ function confirmStaffBox($matchInfo, $staffList = null){
 	<div class='reveal' id='matchStaffLoadShiftBox' data-reveal>
 		<form method="POST">
 
-			<input type='hidden' name='updateMatchStaffFromShift[matchID]' 
+			<input type='hidden' name='updateMatchStaffFromShift[matchID]'
 				value='<?=$matchInfo['matchID']?>'>
 
 			<h4>Load Staffing Shift</h4>
-			Shifts avaliable for 
+			Shifts avaliable for
 			<em><?=getTournamentName($matchInfo['tournamentID'])?></em>,
 			<strong><?=logistics_getLocationName($matchInfo['locationID'])?></strong>
 
@@ -520,7 +520,7 @@ function confirmStaffBox($matchInfo, $staffList = null){
 					Confirm
 				</button>
 
-				<button class='button secondary small-6 cell' 
+				<button class='button secondary small-6 cell'
 					data-close aria-label='Close modal' type='button'>
 					Cancel
 				</button>
@@ -544,8 +544,8 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 function livestreamMatchSet($matchInfo){
 
-	if(ALLOW['EVENT_SCOREKEEP'] == false){ 
-		return; 
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
 	}
 
 	$streamInfo = getStreamForLocation($matchInfo['locationID']);
@@ -558,28 +558,28 @@ function livestreamMatchSet($matchInfo){
 	}
 
 ?>
-	
+
 	<form method='POST' onclick="this.submit()" class='pointer'>
 	<input type='hidden' name='formName' value='videoStreamSetMatch'>
 	<input type='hidden' name='videoStreamSetMatch[matchID]' value='<?=$matchInfo['matchID']?>'>
 	<input type='hidden' name='videoStreamSetMatch[videoID]' value='<?=$streamInfo['videoID']?>'>
 	<input type='hidden' name='videoStreamSetMatch[locationID]' value='<?=$matchInfo['locationID']?>'>
-	
+
 	<div class='callout alert text-center'>
 		This match is currently not displayed on the livestream overlay<BR>
 		<a>Change to Active Match</a>
 	</div>
 	</form>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
 
 function askForFinalization($matchInfo){
-/*	After the final match of a tournament has concluded this will prompt the 
+/*	After the final match of a tournament has concluded this will prompt the
 	scorekeeper to finalize the tournament results */
-	
+
 	if(    ALLOW['EVENT_SCOREKEEP'] == false
 		|| LOCK_TOURNAMENT != null){ return;}
 
@@ -588,7 +588,7 @@ function askForFinalization($matchInfo){
 	$finalize = false;
 	$finalize_bracket = false;
 	if(isset($_SESSION['askForFinalization']) == true){
-		
+
 		$finalize = true;
 		if(isBrackets($tournamentID) == true){
 			$finalize_bracket = true;
@@ -596,7 +596,7 @@ function askForFinalization($matchInfo){
 		} else {
 			$finalize_bracket = false;
 		}
-		
+
 	}
 
 
@@ -619,7 +619,7 @@ function askForFinalization($matchInfo){
 			&& $matchInfo['lastExchange'] == null){
 			$shorten = true;
 		}
-		
+
 	}
 
 	if($finalize == false && $extend == false && $shorten == false){
@@ -630,7 +630,7 @@ function askForFinalization($matchInfo){
 
 	unset($_SESSION['askForFinalization']);
 	?>
-	
+
 	<div class='callout alert text-center'>
 	<form method='POST'>
 	<input type='hidden' name='tournamentID' value='<?=$tournamentID?>'>
@@ -640,7 +640,7 @@ function askForFinalization($matchInfo){
 		<?php endif ?>
 
 		<?php if($finalize == true): ?>
-			<p>This appears to be the last match of the tournament. 
+			<p>This appears to be the last match of the tournament.
 			Would you like to finalize the results?</p>
 		<?php endif ?>
 
@@ -676,7 +676,7 @@ function askForFinalization($matchInfo){
 		<?php endif ?>
 	</form>
 	</div>
-	
+
 <?php }
 
 
@@ -688,13 +688,13 @@ function backToListButton($matchInfo){
 	Pool match - Button returns to pool
 	Winners bracket match - Button returns to winners bracket
 	Consolation bracket match - Button returns to consolation bracket*/
-	
+
 	if($matchInfo['placeholderMatchID'] != null){
 		$matchID = $matchInfo['placeholderMatchID'];
 	} else {
 		$matchID = $matchInfo['matchID'];
 	}
-	
+
 	$name = getTournamentName();
 
 	if(ALLOW['EVENT_SCOREKEEP'] == true){
@@ -703,9 +703,9 @@ function backToListButton($matchInfo){
 		$hideForSmall = '';
 	}
 	?>
-	
+
 	<div class='grid-x align-middle grid-padding-x cell'>
-	
+
 	<div class='medium-shrink small-12 cell' style='margin-bottom: 10px;'>
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
 		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php'>
@@ -714,14 +714,14 @@ function backToListButton($matchInfo){
 		<a class='button no-bottom <?=$hideForSmall?>' href='poolMatches.php#anchor{<?=$matchID?>'>
 			Back To Match List
 		</a>
-		
+
 	<?php elseif($matchInfo['matchType'] == 'pool'): ?>
 		<a class='button small-expanded no-bottom  <?=$hideForSmall?>' href='poolMatches.php#anchor<?=$matchID?>'>
 			Back To Match List
 		</a>
-		
+
 	<?php else: ?>
-		
+
 		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php#anchor<?=$matchID?>'>
 			Back To Bracket
 		</a>
@@ -729,7 +729,7 @@ function backToListButton($matchInfo){
 	<?php endif ?>
 
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<a class='button no-bottom hollow hide-for-small-only' 
+		<a class='button no-bottom hollow hide-for-small-only'
 			onclick="window.open('scoreMatchDisplay.php','scoreDisplayWindow','toolbar=0,location=0,menubar=0')">
 			Display Window
 			<?=tooltip("Opens a display window to put onto a projector. This window will <u>not</u> update itself when you switch to a different match. You will need to click the <strong>Display Window</strong> button to have the display window update to your currently active match.")?>
@@ -740,14 +740,14 @@ function backToListButton($matchInfo){
 	<?php endif ?>
 
 	</div>
-	
+
 	<!-- Tournament name -->
 	<div class='auto text-center cell hide-for-small-only' >
 		<h5 class='inline-block'><?=$name?></h5>
 	</div>
 
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -763,10 +763,10 @@ function dataEntryBox($matchInfo){
 	define("RE_OPEN_CHECK",2);
 
 	$reOpenStatus = RE_OPEN_NO;
-	if(    $matchInfo['matchComplete'] == SQL_TRUE 
+	if(    $matchInfo['matchComplete'] == SQL_TRUE
 		&& ALLOW['EVENT_SCOREKEEP'] == true){
 
-		
+
 		$signOffInfo = getMatchSignOff($matchInfo['matchID']);
 		$numSignOff = (int)$signOffInfo['signOff1'] + (int)$signOffInfo['signOff2'];
 
@@ -781,13 +781,13 @@ function dataEntryBox($matchInfo){
 		}
 
 	}
-?>	
+?>
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true):?>
 		<a onclick="$('#more-options-div').removeClass('hide-for-small-only')" class='show-for-small-only'>Show Exchange Types↓</a>
 	<?php endif ?>
 <!-- Score boxes for individual fighters -->
 
-	<div class='grid-x grid-margin-x'>	
+	<div class='grid-x grid-margin-x'>
 
 		<?php
 			if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
@@ -796,19 +796,19 @@ function dataEntryBox($matchInfo){
 				fighterDataEntryBox($matchInfo,1);
 			} else {
 				fighterDataEntryBox($matchInfo,1);
-				fighterDataEntryBox($matchInfo,2); 
+				fighterDataEntryBox($matchInfo,2);
 			}
 		?>
 	</div>
-	
-	
+
+
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == false){ return; } ?>
-	
+
 	<!-- If match is complete the only option is to re-open it -->
 	<?php if($reOpenStatus != RE_OPEN_NO): ?>
 		<div class='large-12 cell'>
 			<?php if($reOpenStatus == RE_OPEN_CHECK): ?>
-				
+
 				<a class='re-open-match' onclick="toggleClass('re-open-match')">
 					Unlock Match
 				</a>
@@ -823,16 +823,16 @@ function dataEntryBox($matchInfo){
 				<span>
 			<?php endif ?>
 
-			
+
 			<BR>
-			<button class='button success large ' id='New_Exchange_Button' 
+			<button class='button success large ' id='New_Exchange_Button'
 				name='lastExchange' value='clearLastExchange' <?=LOCK_MATCH?>>
 				Re-Open Match
 			</button>
-			
+
 
 			</span>
-	
+
 		</div>
 
 		<?php return; ?>
@@ -841,21 +841,21 @@ function dataEntryBox($matchInfo){
 <!-- Return if match is over -->
 	<?php if($matchInfo['matchComplete'] == SQL_TRUE){ return; } ?>
 
-<!-- Scoring form fields -->	
+<!-- Scoring form fields -->
 	<div class='large-12 cell'>
 	<div class='grid-x grid-margin-x grid-padding-x align-middle'>
-		
-	
+
+
 	<div class='medium-6 cell'>
-	
+
 	<table class='hide-for-small-only' id='more-options-div'>
-		
-	<!-- No Exchange -->	
+
+	<!-- No Exchange -->
 	<tr>
 		<td>No Exchange</td>
 		<td>
 			<div class='switch no-bottom'>
-			<input class='switch-input no-bottom' type='radio' name='mod' 
+			<input class='switch-input no-bottom' type='radio' name='mod'
 				value='noExch' id='No_Exchange_Radio' checked
 				onchange="modifiersRadioButtons()">
 			<label class='switch-paddle' for='No_Exchange_Radio'>
@@ -863,15 +863,15 @@ function dataEntryBox($matchInfo){
 			</div>
 		</td>
 	</tr>
-	
+
 	<!-- Double Hit -->
 	<?php if(isDoubleHits($matchInfo['tournamentID'])): ?>
 		<tr>
 			<td>Double Hit</td>
 			<td>
 				<div class='switch no-bottom'>
-				<input class='switch-input' type='radio' name='mod' 
-					value='doubleHit'id='Double_Hit_Radio' 
+				<input class='switch-input' type='radio' name='mod'
+					value='doubleHit'id='Double_Hit_Radio'
 					onchange="modifiersRadioButtons()">
 				<label class='switch-paddle' for='Double_Hit_Radio'>
 				</label>
@@ -879,8 +879,8 @@ function dataEntryBox($matchInfo){
 			</td>
 		</tr>
 	<?php endif ?>
-		
-		
+
+
 <!-- Clear last exchange -->
 	<tr>
 		<td>
@@ -918,13 +918,13 @@ function dataEntryBox($matchInfo){
 			</a>
 		</td>
 	</tr>
-	
+
 	<!-- Clear all exchanges, only for software admin-->
 	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
 		<tr>
 			<td>Clear All Exchanges</td>
 			<td><div class='switch no-bottom'>
-				<input class='switch-input' type='radio' name='mod' 
+				<input class='switch-input' type='radio' name='mod'
 					value='clearAll' id='Clear_All_Radio'
 					onchange="modifiersRadioButtons()">
 				<label class='switch-paddle' for='Clear_All_Radio'>
@@ -933,15 +933,15 @@ function dataEntryBox($matchInfo){
 			</td>
 		</tr>
 	<?php endif ?>
-	
+
 	</table>
-	
+
 	<!-- Hidden button to be selected if a score is entered from the dropdowns -->
 	<input type='radio' name='mod' value='hit' class='hidden' id='NA_Radio'>
 	<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
-	
+
 	</div>
-	
+
 	<!-- Submit button -->
 	<div class='medium-6 cell '>
 		<button class='button large expanded' id='New_Exchange_Button'
@@ -957,17 +957,17 @@ function dataEntryBox($matchInfo){
 			</a>
 		</div>
 	</div>
-	
+
 	</div>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function fighterDataEntryBox($matchInfo,$num){
-// box with data entry fields for each fighter	
-	
+// box with data entry fields for each fighter
+
 	$isFinished = $matchInfo['winnerID'];
 	$tournamentID = $matchInfo['tournamentID'];
 
@@ -981,7 +981,7 @@ function fighterDataEntryBox($matchInfo,$num){
 		$colorName = COLOR_NAME_2;
 		$pre = "fighter2";
 	}
-	
+
 	$id = $matchInfo[$pre.'ID'];
 	$fighterName = getCombatantName($id);
 	$fighterSchool = $matchInfo[$pre.'School'];
@@ -991,7 +991,7 @@ function fighterDataEntryBox($matchInfo,$num){
 		$score = "/";
 	}
 
-	
+
 	$doubleTypes = getDoubleTypes($tournamentID);
 	$maxPoints = 8;
 	if($doubleTypes['afterblowType'] != 'deductive'){
@@ -1014,9 +1014,9 @@ function fighterDataEntryBox($matchInfo,$num){
 	<div class='small-6 cell fighter-score-box' style='background-color: <?=$colorCode?>;'
 		data-open='attack-grid-box-<?=$num?>'>
 
-		
+
 		<div class='grid-x' style='height: 100%'>
-			
+
 			<!-- Fighter information -->
 			<div class='align-self-top cell'>
 				<span style='font-size:20px;'> <?=$fighterName?></span>
@@ -1028,34 +1028,34 @@ function fighterDataEntryBox($matchInfo,$num){
 				<?php endif ?>
 				<span style='font-size:30px;'><?=$colorName?></span><BR>
 				<span style='font-size:60px;'><?=$score?></span><BR>
-		
+
 				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false || $attackGrid == true): ?>
 					</div>
 					</div>
 					</div>
 					<?php return; ?>
 				<?php endif ?>
-	
-				
+
+
 
 			<!-- Hit score select -->
 				<div class='input-group grid-x'>
 					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
 					<?php scoreSelectDropDown($id, $pre, isReverseScore($tournamentID)); ?>
-					
+
 				</div>
-			
+
 			<!-- Afterblow score select -->
 				<?php if($doubleTypes['afterblowType'] == 'deductive'): ?>
-					
+
 					<div class='input-group grid-x'>
 						<span class='input-group-label large-4 medium-6 small-12'>
 							Afterblow
 						</span>
-						
+
 						<select class='input-group-field' disabled
-							name='score[<?=$id?>][afterblow]' 
-							id='<?=$pre?>_afterblow_dropdown' 
+							name='score[<?=$id?>][afterblow]'
+							id='<?=$pre?>_afterblow_dropdown'
 							onchange="scoreDropdownChange(this)">
 							<option value=''></option>
 							<option value='1'>1 Point</option>
@@ -1064,18 +1064,18 @@ function fighterDataEntryBox($matchInfo,$num){
 							<?php endfor ?>
 						</select>
 					</div>
-					
+
 				<?php endif ?>
 
-			<!-- Control point select -->	
+			<!-- Control point select -->
 				<?php $cVal = getControlPointValue($_SESSION['tournamentID']);
 					if($cVal != 0): ?>
 					<div class='input-group'>
 						<span class='input-group-label large-4 medium-6 small-12'>
-							Control <BR class='show-for-small-only'>(+<?=$cVal?> Point): 
+							Control <BR class='show-for-small-only'>(+<?=$cVal?> Point):
 						</span>
 						<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
-							<input class='switch-input' type='checkbox' name='attackModifier' 
+							<input class='switch-input' type='checkbox' name='attackModifier'
 							value=9 id='<?=$pre?>_control_check' onclick="scoreDropdownChange()">
 							<label class='switch-paddle' for='<?=$pre?>_control_check'>
 							</label>
@@ -1089,7 +1089,7 @@ function fighterDataEntryBox($matchInfo,$num){
 		</div>
 	</div>
 
-<?php 
+<?php
 }
 
 /******************************************************************************/
@@ -1136,7 +1136,7 @@ function gridScoreBox($matchInfo, $num){
 		$pre = "fighter2";
 		$otherPre = "fighter1";
 	}
-	
+
 	$rosterID = $matchInfo[$pre.'ID'];
 	$otherID = $matchInfo[$otherPre.'ID'];
 	$fighterName = getCombatantName($rosterID);
@@ -1152,9 +1152,9 @@ function gridScoreBox($matchInfo, $num){
 
 		</div>
 
-		
+
 		<?=scoreSelectGrid($matchInfo, $num, $rosterID, $otherID)?>
-		
+
 	</form>
 	<!-- Reveal close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
@@ -1186,7 +1186,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		foreach($parameters['attackPrefix'] as $index => $attackID){
 			if($attackID == ATTACK_CONTROL_DB){
 				unset($parameters['attackPrefix'][$index]);
-				
+
 			}
 		}
 
@@ -1198,7 +1198,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 	}
 
 ?>
-	
+
 	<div class='grid-x grid-margin-x'>
 
 		<input hidden name='scoreLookupMode' value='grid'>
@@ -1227,7 +1227,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 			<?php endif ?>
 
 			<?php if($afterblowValue != 0): ?>
-				
+
 				<?=scoreGridOptionList($parameters, 'afterblow', $rosterID)?>
 			<?php else: ?>
 				<input type='hidden' name='score[<?=$rosterID?>][afterblow]' value='0'>
@@ -1244,7 +1244,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 		<div class='large-4 medium-4 cell'>
 			<a class='button secondary expanded' data-close aria-label='Close modal' >Cancel</a>
-			
+
 		</div>
 
 		<div class='large-4 medium-4 cell'>
@@ -1264,7 +1264,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 		<HR class='large-12 cell'>
 
 <!-- Raw Score Values --------------------------------------------------------------->
-		
+
 		<div class='grid-x grid-margin-x cell' id="raw-points-grid">
 			<div class='cell shrink'>
 				Score Before Afterblow:
@@ -1273,7 +1273,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 			<div class='cell shrink'>
 				<div class='switch input-group-button large no-bottom'>
 					<span class='input-group-label'>No Quality</span>
-					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][noQuality]' 
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][noQuality]'
 						name='score[<?=$rosterID?>][hit]' value='noQuality'
 						onchange="gridScoreManualPoints(<?=$rosterID?>)">
 					<label class='switch-paddle' for='score[<?=$rosterID?>][hit][noQuality]'>
@@ -1284,22 +1284,22 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 			<div class='cell shrink'>
 				<div class='switch input-group-button large no-bottom'>
 					<span class='input-group-label'>0</span>
-					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][0]' 
-						name='score[<?=$rosterID?>][hit]' value='0' checked 
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][0]'
+						name='score[<?=$rosterID?>][hit]' value='0' checked
 						onchange="gridScoreManualPoints(<?=$rosterID?>)">
 					<label class='switch-paddle' for='score[<?=$rosterID?>][hit][0]'>
 					</label>
 				</div>
 			</div>
-				
+
 
 
 			<?php foreach($pointValues as $attackPoints): ?>
 				<div class='cell shrink'>
-				
+
 					<div class='switch input-group-button large no-bottom'>
 						<span class='input-group-label'><?=$attackPoints?></span>
-						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][<?=$attackPoints?>]' 
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][hit][<?=$attackPoints?>]'
 							name='score[<?=$rosterID?>][hit]' value='<?=$attackPoints?>'
 							onchange="gridScoreManualPoints(<?=$rosterID?>)">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][hit][<?=$attackPoints?>]'>
@@ -1312,7 +1312,7 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 
 
 	</div>
-	
+
 <?php
 
 }
@@ -1344,7 +1344,7 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 	} else {
 		$hideNotApplicable = '';
 	}
-	
+
 
 ?>
 	<?php if($name != ''):?>
@@ -1358,14 +1358,14 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 			<td><i>n/a</i></td>
 			<td>
 				<div class='switch input-group-button large no-bottom'>
-					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][0]' 
+					<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][0]'
 						name='score[<?=$rosterID?>][<?=$paramType?>]' value='0' checked onclick="gridScoreUpdate(<?=$rosterID?>,this)">
 					<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][0]'>
 					</label>
 				</div>
 			</td>
 		</tr>
-	
+
 
 		<?php foreach($options as $attackID):
 			$attackName = getAttackName($attackID);
@@ -1383,8 +1383,8 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 				</td>
 				<td>
 					<div class='switch input-group-button large no-bottom'>
-						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]' 
-							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>' 
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]'
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$attackID?>'
 							onclick="gridScoreUpdate(<?=$rosterID?>,this)" data-attackName="<?=$attackName?>">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>][<?=$attackID?>]'>
 						</label>
@@ -1399,8 +1399,8 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 				<td>Control</td>
 				<td>
 					<div class='switch input-group-button large no-bottom'>
-						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>]' 
-							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$controlAttackID?>' 
+						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>]'
+							name='score[<?=$rosterID?>][<?=$paramType?>]' value='<?=$controlAttackID?>'
 							onchange="gridScoreUpdate(<?=$rosterID?>,this)">
 						<label class='switch-paddle' for='score[<?=$rosterID?>][<?=$paramType?>]'>
 						</label>
@@ -1419,9 +1419,9 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 /******************************************************************************/
 
 function scoreSelectDropDown($id, $pre, $isReverseScore){
-	
+
 	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
-	
+
 	if($attacks == null){
 		$minPoints = 1;
 		$maxPoints = 10;
@@ -1446,7 +1446,7 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 ?>
 
 	<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
-	<select class='input-group-field ' name='score[<?=$id?>][hit]' 
+	<select class='input-group-field ' name='score[<?=$id?>][hit]'
 		id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
 		<option value=''></option>
 		<option value='noQuality'>No Quality</option>
@@ -1455,8 +1455,8 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 			<option value='<?=$a['tableID']?>'><?=$a['attackText']?></option>
 		<?php endforeach ?>
 	</select>
-	
-<?php					
+
+<?php
 }
 
 /******************************************************************************/
@@ -1533,7 +1533,7 @@ function switchFighersBox($matchInfo){
 				Cancel
 			</button>
 		</div>
-		
+
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
@@ -1572,20 +1572,20 @@ function switchFighersBoxTeam($matchInfo, $num, $activeFighterID){
 
 ?>
 
-	<div class='large-6 text-center cell' 
+	<div class='large-6 text-center cell'
 		style='border-right: 1px solid black; border-left: 1px solid black; margin-top: 2.5em' >
 
-		<div class='grid-x grid-padding-x grid-margin-x'>	
+		<div class='grid-x grid-padding-x grid-margin-x'>
 			<div class='large-12 text-center cell' style='background-color: <?=$colorCode?>; border: 1px solid black'>
 				<span style='font-size:1.5em '><?=$colorName?></span>
 			</div>
 		</div>
 
-		<input type='hidden' name='activeFighters[<?=$num?>][rosterID]' 
+		<input type='hidden' name='activeFighters[<?=$num?>][rosterID]'
 			value='<?=$activeFighterID?>' id='active-fighter-rosterID-<?=$num?>'>
-		<input type='hidden' name='activeFighters[<?=$num?>][teamID]' 
+		<input type='hidden' name='activeFighters[<?=$num?>][teamID]'
 			value='<?=$teamID?>' id='active-fighter-rosterID-<?=$num?>'>
-		
+
 		<?php foreach($teamRoster as $index => $rosterID):
 			if($rosterID == $activeFighterID){
 				$class = 'alert';
@@ -1595,17 +1595,17 @@ function switchFighersBoxTeam($matchInfo, $num, $activeFighterID){
 
 			?>
 
-			
-			<a class='button expanded cell <?=$class?> team-fighters-<?=$num?>' style='margin-top: 2em' 
+
+			<a class='button expanded cell <?=$class?> team-fighters-<?=$num?>' style='margin-top: 2em'
 				onclick="selectActiveFighter(<?=$rosterID?>,<?=$num?>,this)">
 				(<?=($index+1)?>) <?=getFighterName($rosterID)?>
 			</a>
-			
 
-			
+
+
 		<?php endforeach ?>
-		
-		
+
+
 	</div>
 
 
@@ -1628,11 +1628,11 @@ function addPenaltyBox($matchInfo){
 	$actions = getPenaltyActions();
 
 	?>
-	
+
 	<div class='reveal tiny' id='addPenaltyBox' data-reveal>
 
 		<h5>Insert Penalty</h5>
-		
+
 		<form method='POST'>
 			<input type='hidden' name='formName' value='newExchange'>
 			<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
@@ -1644,9 +1644,9 @@ function addPenaltyBox($matchInfo){
 				value='<?=$matchInfo['fighter1ID']?>' ><BR>
 
 			<strong>[<?=COLOR_NAME_2?>]</strong>
-			<input type='radio' name='score[penalty][rosterID]' 
+			<input type='radio' name='score[penalty][rosterID]'
 				value='<?=$matchInfo['fighter2ID']?>'>
-			
+
 		<!-- Point deduction -->
 			<div class='input-group'>
 				<span class='input-group-label'>
@@ -1699,30 +1699,30 @@ function addPenaltyBox($matchInfo){
 					Cancel
 				</button>
 			</div>
-			
+
 			<!-- Close button -->
 			<button class='close-button' data-close aria-label='Close modal' type='button'>
 				<span aria-hidden='true'>&times;</span>
 			</button>
 
 		</form>
-		
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function createSideBar($matchInfo){
-/* 	box on the rights side of the screen with buttons to declare winners, 
+/* 	box on the rights side of the screen with buttons to declare winners,
 	links to other matches, and the option to switch fighter colors */
-	
+
 	$colorCode1 = COLOR_CODE_1;
 	$colorCode2 = COLOR_CODE_2;
-	
+
 	$name1 = COLOR_NAME_1;
 	$name2 = COLOR_NAME_2;
-	
+
 	$matchID = $matchInfo['matchID'];
 	$tournamentID = $matchInfo['tournamentID'];
 	$fighter1ID = $matchInfo['fighter1ID'];
@@ -1767,7 +1767,7 @@ function createSideBar($matchInfo){
 		$signOffPending = '';
 		$signOffMouse = '';
 	}
-	
+
 
 	if(LOCK_MATCH == 'disabled' || $staffConfirmRequired == true){
 		$lockInputs = 'disabled';
@@ -1789,9 +1789,9 @@ function createSideBar($matchInfo){
 				$endText2 = $name1;
 				$endColor = $colorCode1;
 			} elseif($winnerID == $fighter2ID){
-				
+
 				$endText2 = $name2;
-				$endColor = $colorCode2; 
+				$endColor = $colorCode2;
 			}
 			break;
 		case 'tie':
@@ -1823,9 +1823,9 @@ function createSideBar($matchInfo){
 		$allowMatchTie = false;
 	}
 
-///////////////////////////////////////////////// ?> 
-	
-	
+///////////////////////////////////////////////// ?>
+
+
 <!-- Staff Confirmation Mandatory Request -->
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $staffConfirmRequired == true): ?>
 		<div class='callout alert'>
@@ -1838,33 +1838,33 @@ function createSideBar($matchInfo){
 
 	<?php endif ?>
 
-	
+
 <!-- Match winner management/display -->
 	<?php if($endText1 != null || $endText2 != null): ?>
 		<h4><?=$endText1?></h4>
 		<div class='match-winner-name' style='background-color:<?=$endColor?>'>
 		<h3 class='no-bottom'><?=$endText2?></h3>
 		</div>
-		
-		
+
+
 	<?php else: ?>
 
 	<!-- Timer -->
-		
-		<input type='hidden' class='matchTime' id='matchTime' 
+
+		<input type='hidden' class='matchTime' id='matchTime'
 			name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 		<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
-		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<script>
 				window.onload = function(){
 
-					<?php 
+					<?php
 						if(isset($GLOBALS['showSwitchFightersBox'])){
 							unset($GLOBALS['showSwitchFightersBox']);
 							echo "$('#switchFightersBox').foundation('open');";
 						}
 					?>
-					
+
 					updateTimerDisplay();
 
 					<?php if($matchInfo['restartTimer'] == true): ?>
@@ -1873,41 +1873,41 @@ function createSideBar($matchInfo){
 
 				};
 			</script>
-		
+
 			Timer:
-			<a class='button hollow expanded success no-bottom timer-input' 
+			<a class='button hollow expanded success no-bottom timer-input'
 				onclick="startTimer()" id='timerButton'>
 			<h4 class='no-bottom button-extra-pad-small' id='currentTime'>0:00</h4>
 			</a>
-			
+
 			<!--Manual Time Set -->
 			<a onclick="$('#manualSetDiv').toggle();"
 				id='manualTimerToggle'>
 				Manual Time Set
 			</a>
-			
+
 			<div class='hidden' id='manualSetDiv'>
 			<div class='input-group grid-x'>
 				<input class='input-group-field timer-input' type='number' name='timerMinutes'
 					id='timerMinutes' placeholder='Min'>
 				<input class='input-group-field timer-input' type='number' name='timerSeconds'
 					id='timerSeconds' placeholder='Sec'>
-				<button class='button success input-group-button large-shrink 
+				<button class='button success input-group-button large-shrink
 							medium-12 small-shrink timer-input'
 					onclick="manualTimeSet()">
 					&#10004;
 				</button>
 			</div>
-			
+
 			</div>
-			
+
 			<HR>
 		<?php else: ?>
 
 			<script>
 				window.addEventListener("load",function(event) {
-				    	updateTimerDisplay();
-				    });
+						updateTimerDisplay();
+					});
 			</script>
 
 			<?php if($matchInfo['matchTime'] != 0){
@@ -1928,21 +1928,21 @@ function createSideBar($matchInfo){
 
 
 	<!-- Match Winner -->
-		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>		
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
 			<form method='POST'>
 			<fieldset <?=$lockInputs?>>
 			<input type='hidden' name='formName' value='matchWinner'>
 			<input type='hidden' name='lastExchangeID' value='<?=$lastExchangeID?>'>
 			<input type='hidden' name='matchID' value='<?=$matchID?>'>
 			<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-		
+
 			Winner:
 			<div class='grid-x'>
 
-			<?php 
+			<?php
 				$winButton1 = "
 				<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
-					<button class='button large success no-bottom expanded conclude-match-button' 
+					<button class='button large success no-bottom expanded conclude-match-button'
 						style='background-color:{$colorCode1};'
 						name='matchWinnerID' value='{$fighter1ID}' {$lockInputs} >
 						{$name1}
@@ -1951,7 +1951,7 @@ function createSideBar($matchInfo){
 
 				$winButton2 = "
 				<div class='small-6 medium-12 large-6 cell match-winner-button-div'>
-					<button class='button large success no-bottom expanded conclude-match-button' 
+					<button class='button large success no-bottom expanded conclude-match-button'
 						style='background-color:{$colorCode2}; '
 						name='matchWinnerID' value='{$fighter2ID}' {$lockInputs} >
 						{$name2}
@@ -1967,11 +1967,11 @@ function createSideBar($matchInfo){
 					echo $winButton2;
 				}
 			?>
-		
-		<!-- Tie -->	
+
+		<!-- Tie -->
 			<?php if($allowMatchTie == true): ?>
 				<div class='small-12 cell'>
-				
+
 				<button class='button large hollow  expanded no-bottom' style='margin-top: 10px;'
 					name='matchWinnerID' value='tie' <?=$lockInputs?>>
 				Tie
@@ -1979,10 +1979,10 @@ function createSideBar($matchInfo){
 				</div>
 			<?php endif ?>
 			</div>
-			
+
 			</fieldset>
 			</form>
-			
+
 		<?php elseif($matchInfo['ignoreMatch']): ?>
 			<h4>Match Incomplete</h4>
 		<?php elseif($matchInfo['lastExchange'] != null || $matchInfo['matchTime'] > 0): ?>
@@ -1991,8 +1991,8 @@ function createSideBar($matchInfo){
 			<h4>Not Started</h4>
 		<?php endif ?>
 	<?php endif ?>
-	
-	
+
+
 <!-- Doubles management/display -->
 	<?php if(isDoubleHits($matchInfo['tournamentID'])): ?>
 		<hr>
@@ -2008,8 +2008,8 @@ function createSideBar($matchInfo){
 		</fieldset>
 		</form>
 	<?php endif ?>
-	
-	
+
+
 <!-- Go to next match buttons -->
 
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
@@ -2033,7 +2033,7 @@ function createSideBar($matchInfo){
 			</a>
 
 			<div class='reveal tiny' id='confirmNextPoolNavigation' data-reveal>
-			
+
 			<h5>Alert</h5>
 			You haven't closed this match yet. The software doesn't know if it is done or still running.<BR>
 			Make sure to conclude the match (declare winner/double out/tie/etc..) when a match is finished.<BR>
@@ -2041,7 +2041,7 @@ function createSideBar($matchInfo){
 
 			<form method='POST'>
 			<input type='hidden' value='<?=$nextMatchInfo['matchID']?>' name='matchID'>
-				
+
 		<!-- Submit buttons -->
 			<div class='grid-x grid-margin-x'>
 				<button class='success button small-6 cell' name='formName' value='goToMatch'>
@@ -2055,21 +2055,21 @@ function createSideBar($matchInfo){
 				</button>
 			</div>
 			</form>
-			
-			
+
+
 		<!-- Reveal close button -->
 			<button class='close-button' data-close aria-label='Close modal' type='button'>
 				<span aria-hidden='true'>&times;</span>
 			</button>
-			
+
 			</div>
 
 		<?php else: ?>
 
 			<form method='POST'>
 			<input type='hidden' name='formName' value='goToMatch'>
-			
-			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>' 
+
+			<button class='button hollow expanded' value='<?=$nextMatchInfo['matchID']?>'
 				name='matchID' <?=$lockInputs?> <?=$signOffPending?>>
 				<?=getCombatantName($nextMatchInfo['fighter1ID'])?>
 				<BR> <?=$name1?>
@@ -2079,7 +2079,7 @@ function createSideBar($matchInfo){
 			</button>
 
 			</form>
-			
+
 
 		<?php endif ?>
 
@@ -2101,18 +2101,18 @@ function createSideBar($matchInfo){
 <!-- Staff Confirmation Optional Request -->
 	<?php if($staffConfirmActive == true && $staffConfirmRequired == false): ?>
 		<HR>
-		
+
 			<strong>
 				<a data-open='matchStaffConfirmBox'>
 					Edit Match Staff
 				</a>
 			</strong>
-		
+
 
 	<?php endif ?>
 
-	<?=matchOptionsBox($matchInfo)?>	
-	
+	<?=matchOptionsBox($matchInfo)?>
+
 <?php }
 
 /******************************************************************************/
@@ -2120,7 +2120,7 @@ function createSideBar($matchInfo){
 function matchOptionsBox($matchInfo){
 
 	if(    ALLOW['EVENT_SCOREKEEP'] == false
-	    || LOCK_TOURNAMENT == true
+		|| LOCK_TOURNAMENT == true
 		|| $matchInfo['matchComplete'] == 1){
 		return;
 	}
@@ -2139,8 +2139,8 @@ function matchOptionsBox($matchInfo){
 	$showSubMatchOption = false;
 	if(   isFinalsMatch($mainMatchID) == 1
 	   && getNumSubMatches($matchInfo['tournamentID']) == 0){
-	   	// Only allow editing of sub matches for finals in tournaments 
-	   	// that aren't already sub-match tournaments.
+		// Only allow editing of sub matches for finals in tournaments
+		// that aren't already sub-match tournaments.
 		$showSubMatchOption = true;
 	}
 
@@ -2182,18 +2182,18 @@ function matchOptionsBox($matchInfo){
 			<button class='button no-bottom' id='editExchangeButton' data-open='editExchangeBox'>
 				Edit Previous Exchange
 			</button>
-			<button class='button hidden warning no-bottom' id='cancelEditExchangeButton' 
+			<button class='button hidden warning no-bottom' id='cancelEditExchangeButton'
 				onclick="editExchange('')">
 				Cancel Editing
 			</button>
 
 
 			<div class='reveal tiny' id='editExchangeBox' data-reveal>
-				
-				
+
+
 				<h5>Edit Exchange</h5>
-				
-				<?php foreach($exchangeInfo as $exchange): 
+
+				<?php foreach($exchangeInfo as $exchange):
 
 					if($exchange['exchangeType'] == 'winner'
 					   || $exchange['exchangeType'] == 'tie'
@@ -2201,16 +2201,16 @@ function matchOptionsBox($matchInfo){
 						break;
 					}
 					?>
-					<a class='button hollow small-6 cell' data-close aria-label='Close modal' 
-						type='button' 
+					<a class='button hollow small-6 cell' data-close aria-label='Close modal'
+						type='button'
 						onclick="editExchange('<?=$exchange['exchangeID']?>',
 												'<?=$exchange['exchangeTime']?>')">
-						[Edit #<?=$exchange['exchangeNumber']?>] 
+						[Edit #<?=$exchange['exchangeNumber']?>]
 						<?=convertExchangeIntoText($exchange, $matchInfo['fighter1ID'])?>
 					</a>
 				<?php endforeach ?>
 
-				<a class='button secondary small-6 cell' data-close aria-label='Close modal' 
+				<a class='button secondary small-6 cell' data-close aria-label='Close modal'
 					type='button' onclick="editExchange('')">
 					Cancel
 				</a>
@@ -2244,12 +2244,12 @@ function matchOptionsBox($matchInfo){
 
 			<form method='POST'>
 
-			<input type='hidden' name='updateSubMatchesByMatch[matchID]' 
+			<input type='hidden' name='updateSubMatchesByMatch[matchID]'
 				value='<?=$mainMatchID?>'>
 
 			<div class='input-group'>
 				<span class='input-group-label'>
-					Number of Sub-Matches 
+					Number of Sub-Matches
 					<?=tooltip("Sub-matches will create multiple stages for this match.
 						<BR><u>Example</u>: A best 2 out of 3 finals match.")?>
 				</span>
@@ -2268,7 +2268,7 @@ function matchOptionsBox($matchInfo){
 					Sub-Match Mode
 					<?=tooltip("<u>Analog</u>: The points from all sub-matches are added to determine
 						the match winner.
-						<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches, 
+						<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches,
 						regardless of what the scores were.")?>
 				</span>
 				<select class='input-group-field' name='updateSubMatchesByMatch[subMatchMode]'>
@@ -2285,8 +2285,8 @@ function matchOptionsBox($matchInfo){
 			</button>
 
 			</form>
-		<?php endif // if($matchInfo['bracketLevel'] == 1)?> 
-	
+		<?php endif // if($matchInfo['bracketLevel'] == 1)?>
+
 		<HR>
 
 		<?=displayRandomizer()?>
@@ -2510,14 +2510,14 @@ function doublesText($doubles, $matchInfo){
 	$basePointValue = getBasePointValue($matchInfo['tournamentID'], $_SESSION['groupSet']);
 
 	$doubleOut = false;
-	if(    (int)$matchInfo['maxDoubles'] != 0 
+	if(    (int)$matchInfo['maxDoubles'] != 0
 		&& (int)$doubles >= (int)$matchInfo['maxDoubles']){
 
 		$doubleOut = true;
 
 	} else if($reverseScore == REVERSE_SCORE_INJURY){
 
-		if( 	(  $matchInfo['fighter1score'] <= 0 
+		if( 	(  $matchInfo['fighter1score'] <= 0
 				&& $matchInfo['fighter2score'] <= 0
 				&& $matchInfo['lastExchange'] != 0)
 			|| ($basePointValue == 0)
@@ -2528,7 +2528,7 @@ function doublesText($doubles, $matchInfo){
 
 	} elseif($reverseScore == REVERSE_SCORE_GOLF){
 
-		if(		(  $matchInfo['fighter1score'] >= $basePointValue 
+		if(		(  $matchInfo['fighter1score'] >= $basePointValue
 				&& $matchInfo['fighter2score'] >= $basePointValue)
 			&& $basePointValue != 0)
 		{
@@ -2540,7 +2540,7 @@ function doublesText($doubles, $matchInfo){
 		$doubleOut = false;
 
 	}
-	
+
 	$class = ifSet($doubleOut,"class='red-text'");
 	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
 
@@ -2559,16 +2559,16 @@ function doublesText($doubles, $matchInfo){
 		break;
 	}
 	?>
-	
+
 	<span <?=$class?>><?=$string?></span>
 	<?php if($doubleOut && !$matchInfo['matchComplete'] && ALLOW['EVENT_SCOREKEEP'] == true): ?>
 		<BR>
-		<button class='button large alert no-bottom conclude-match-button' name='matchWinnerID' 
+		<button class='button large alert no-bottom conclude-match-button' name='matchWinnerID'
 			value='doubleOut' <?=LOCK_MATCH?>>
 			Double Out
 		</button>
 	<?php endif ?>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -2576,8 +2576,8 @@ function doublesText($doubles, $matchInfo){
 function showFighterPenalties($num){
 	$penaltyList = getFighterMatchPenalties($_SESSION['matchID'], $num);
 ?>
-	
-	<?php foreach($penaltyList as $penalty): 
+
+	<?php foreach($penaltyList as $penalty):
 
 		switch($penalty['card']){
 			case 'yellowCard':
@@ -2612,7 +2612,7 @@ function priorPenaltiesWarning($matchInfo){
 		return;
 	}
 
-	$fightersWithPenalties = (array)getEventPenalties($_SESSION['eventID'], 
+	$fightersWithPenalties = (array)getEventPenalties($_SESSION['eventID'],
 													  [$matchInfo['fighter1ID'],
 													  $matchInfo['fighter2ID']]);
 
@@ -2654,11 +2654,11 @@ function priorPenaltiesWarning($matchInfo){
 
 					echo "<HR><h5>".getFighterName($fighter['fighterID']);
 					echo " [".$fighter['numPenalties']." Penalties]</h5>";
-				
+
 				foreach($fighter['list'] as $penalty){
 					displayPenalty($penalty);
 				}
-				
+
 			}
 		?>
 
@@ -2700,13 +2700,13 @@ function unconcludedMatchWarning($matchInfo){
 /******************************************************************************/
 
 function inlineHelp(){
-/*	Displays a link which opens a reveal containing a help menu 
+/*	Displays a link which opens a reveal containing a help menu
 	for scorekeepers who are new to the program */
 ?>
 	<div class='callout alert'>
 		<a data-open='newUserHelp'>First Time Using Scorecard?</a>
 	</div>
-	
+
 	<div class='reveal large' id='newUserHelp' data-reveal>
 		<h5>Entering Exchanges</h5>
 		Each exchange can be one of the following:
@@ -2714,7 +2714,7 @@ function inlineHelp(){
 		<li><u>No Exchange:</u> If no item is selected the exchange will be 'No Exchange' and no score is assigned to either fighter.</li>
 		<li><u>No Quality:</u> A fighter has hit, but the attack is deemed insuficient. Located above the point values in the drop down menus.</li>
 		<li><u>Clean Hit:</u> Select a score for one of the fighters.</li>
-		<li><u>Afterblow:</u> When using deductive afterblows select a score for a fighter and select the afterblow value. 
+		<li><u>Afterblow:</u> When using deductive afterblows select a score for a fighter and select the afterblow value.
 			For full afterblow rules select scores for each of the fighters.</li>
 		<li><u>Double Hit:</u> Select the double hit switch if the exchange is double.</li>
 		<li><u>Penalty:</u> Selecting the penalty switch will change the scores to negative values to asses a fighter a score penalty.</li>
@@ -2723,24 +2723,24 @@ function inlineHelp(){
 
 		<div class='callout alert'>
 		<h5 class='text-center'>ENTER ALL DATA IN THE SOFTWARE</h5>
-		Make sure to enter all non-scoring exchanges and no quality hits. 
-		If there is a hit with a value of 2 and an afterblow deduction of 1 
+		Make sure to enter all non-scoring exchanges and no quality hits.
+		If there is a hit with a value of 2 and an afterblow deduction of 1
 		<u>do not</u> enter a clean hit of 1 point.<BR>
-		<i>You may not think this is important, but I do. 
-		Having good quality tournament data is the reason I put so much time 
+		<i>You may not think this is important, but I do.
+		Having good quality tournament data is the reason I put so much time
 		into developing free software for you to use. :)</i>
 		</div>
 
 		<h5>Concluding Matches</h5>
-		The buttons to conclude a match are located right bellow what you clicked on to get this help menu. 
-		Once a winner has been determined for the match select the appropriate button. 
+		The buttons to conclude a match are located right bellow what you clicked on to get this help menu.
+		Once a winner has been determined for the match select the appropriate button.
 		If the fight has reached the maximum number of double hits a red <strong>Double Out</strong>
 		 button will appear, to conclude the match as a double loss.
 		<BR>Selecting <strong>Re-Open Match</strong> after a match has been concluded will re-open the match to the last recorded exchange.
 		<ul><li><u>Important:</u>
-		If a match is not concluded properly the scoring calculations will not 
-		function properly, and the Bracket Helper will not know which fighters to advance.</li></ul>	
-			
+		If a match is not concluded properly the scoring calculations will not
+		function properly, and the Bracket Helper will not know which fighters to advance.</li></ul>
+
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>

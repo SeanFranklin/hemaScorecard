@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Fighter Management
-	
+
 	Withdraw fighters if they are injured and can no longer compete
 	LOGIN:
 		- ADMIN or higher required to access
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	if(isEntriesByTeam($tournamentID) == true){
 		$showTeams = true;
 		$teamRoster = getTournamentTeams($tournamentID);
-		
+
 	} else {
 		$showTeams = false;
 	}
@@ -50,13 +50,13 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-?>	
-	
+?>
+
 <!-- Navigate pool sets -->
 
 	<div class='grid-x grid-padding-x'>
 	<div class='large-7 medium-8 small-12'>
-	
+
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?> <?=$formLock?>>
 	<input type='hidden' name='formName' value='ignoreFightersInTournament'>
@@ -82,15 +82,15 @@ if(ALLOW['EVENT_SCOREKEEP'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<?php else: ?>
 		<?php removeRosterTable($fighterRoster, $ignores, 'fighter')?>
 	<?php endif ?>
-	
+
 	<BR>
-	<button class='button large success' name='updateTournament' 
+	<button class='button large success' name='updateTournament'
 		value='<?=$tournamentID?>' <?=LOCK_TOURNAMENT?>>
 		Update List
 	</button>
 	</fieldset>
 	</form>
-		
+
 	</div>
 	</div>
 
@@ -107,7 +107,7 @@ include('includes/footer.php');
 function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 
 	$numGroupSets = getNumGroupSets($_SESSION['tournamentID']);
-	
+
 	// Text for tooltips
 	$stopTitle = "Can not advance";
 	$soloTitle = "Remove Individual";
@@ -162,7 +162,7 @@ function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 			<td>
 				<?
 					if($entryType == 'team'){
-					
+
 						$name = getTeamName($rosterID);
 					} else {
 						$name = getFighterName($rosterID);
@@ -170,26 +170,26 @@ function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 				?>
 				<?=$name?>
 			</td>
-			
+
 		<!-- Remove from scoring in a set -->
 			<td>
-				<?=ignoreAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['ignoreAtSet'])?>	
+				<?=ignoreAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['ignoreAtSet'])?>
 			</td>
-			
+
 		<!-- Keep fighter pool results but don't advance them to the bracket -->
 			<td>
-				<?=stopAtInput($rosterID, $numSetsForStops, (int)@$ignores[$rosterID]['stopAtSet'])?>	
+				<?=stopAtInput($rosterID, $numSetsForStops, (int)@$ignores[$rosterID]['stopAtSet'])?>
 			</td>
 
 		<!-- Keep fighter pool match data, but don't display their results -->
 			<td>
-				<?=soloAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['soloAtSet'])?>	
+				<?=soloAtInput($rosterID, $numGroupSets, (int)@$ignores[$rosterID]['soloAtSet'])?>
 			</td>
-		</tr>	
+		</tr>
 	<?php endforeach ?>
-	
+
 	</table>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -215,8 +215,8 @@ function stopAtInput($rosterID, $numGroupSets, $selectValue){
 	<?php else: ?>
 		<div class='switch text-center no-bottom'>
 			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' value='0'>
-			<input class='switch-input' type='checkbox' 
-				id='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' 
+			<input class='switch-input' type='checkbox'
+				id='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]'
 				name='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]' value='1' <?=$stopCheck?>>
 			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][stopAtSet]'>
 			</label>
@@ -250,8 +250,8 @@ function ignoreAtInput($rosterID, $numGroupSets, $selectValue){
 	<?php else: ?>
 		<div class='switch text-center no-bottom'>
 			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' value='0'>
-			<input class='switch-input' type='checkbox' 
-				id='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' 
+			<input class='switch-input' type='checkbox'
+				id='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]'
 				name='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]' value='1' <?=$stopCheck?>>
 			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][ignoreAtSet]'>
 			</label>
@@ -285,8 +285,8 @@ function soloAtInput($rosterID, $numGroupSets, $selectValue){
 	<?php else: ?>
 		<div class='switch text-center no-bottom'>
 			<input type='hidden' name='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' value='0'>
-			<input class='switch-input' type='checkbox' 
-				id='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' 
+			<input class='switch-input' type='checkbox'
+				id='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]'
 				name='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]' value='1' <?=$stopCheck?>>
 			<label class='switch-paddle' for='manageFighters[rosterList][<?=$rosterID?>][soloAtSet]'>
 			</label>

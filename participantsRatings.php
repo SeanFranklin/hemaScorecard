@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Fighter Management
-	
+
 	Withdraw fighters if they are injured and can no longer compete
 	LOGIN:
 		- ADMIN or higher required to access
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -47,16 +47,16 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-?>	
+?>
 
 
 <!-- Page Structure -->
-	
-	
+
+
 	<a onclick="$('.hema-ratings-id').toggle()">
 		Show HEMA Ratings ID
 	</a>
-	 | 
+	 |
 	<a onclick="$('.school-name-id').toggle()">
 		Show School Name
 	</a>
@@ -65,15 +65,15 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 
 	<form method='POST' id='tournamentRatingsForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
-	
+
 	<div class='grid-x grid-padding-x'>
-	<div class='large-9 medium-12 cell'>			
+	<div class='large-9 medium-12 cell'>
 	<input type='hidden' name='updateRatings[tournamentID]' value=<?= $tournamentID ?> >
 
 	<table>
 
 <!-- Table headers -->
-	
+
 	<tr>
 		<th  class='hidden hema-ratings-id'>
 			HR Id
@@ -107,7 +107,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 			</td>
 		--->
 	</tr>
-	
+
 	<tbody>
 
 	<?php foreach($tournamentRoster as $fighter):
@@ -149,21 +149,21 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 <!-- Page Structure -->
 	</tbody>
 	</table>
-	
+
 	</div>
 	</div>
 
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 <!-- Add / Delete Fighter Buttons -->
-		<button class='button success' name='formName' 
+		<button class='button success' name='formName'
 			value='updateFighterRatings' <?=LOCK_TOURNAMENT?>>
 			Update Ratings
 		</button>
-		
-	<?php endif ?>	
-		
+
+	<?php endif ?>
+
 	</fieldset>
-	</form>	
+	</form>
 
 
 	<BR><BR>
@@ -185,13 +185,13 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 			</tr>
 		<?php endforeach ?>
 	</table>
-	
+
 <!-- Navigate pool sets -->
 
 <?php
 }
 
-include('includes/footer.php');	
+include('includes/footer.php');
 
 /******************************************************************************/
 

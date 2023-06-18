@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	Tournament Rules
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ function displaySponsorList($sponsorList, $eventSponsors){
 				<td>
 					<div class='switch text-center no-bottom'>
 					<input class='switch-input' type='checkbox' <?=chk(@$eventSponsors[$sponsor['sponsorID']])?>
-						id='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][sponsorID]' 
+						id='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][sponsorID]'
 						name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][sponsorID]' value='<?=$sponsor['sponsorID']?>'>
 					<label class='switch-paddle' for='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][sponsorID]'>
 					</label>
@@ -85,7 +85,7 @@ function displaySponsorList($sponsorList, $eventSponsors){
 					<input type='number' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorPercent]'
 						value='<?=@$eventSponsors[$sponsor['sponsorID']]['eventSponsorPercent']?>' placeholder='100%'>
 				</td>
-				<input type='hidden' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorID]' 
+				<input type='hidden' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorID]'
 					value='<?=@$eventSponsors[$sponsor['sponsorID']]['eventSponsorID']?>'>
 			</tr>
 		<?php endforeach ?>

@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	HEMA Ratings Export Information
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -10,7 +10,6 @@
 $pageName = "HEMA Ratings";
 
 include('includes/header.php');
-
 
 if($_SESSION['eventID'] == null){
 	pageError('event');
@@ -48,7 +47,7 @@ if($_SESSION['eventID'] == null){
 	$dataEntries['allMatchesFought'] 	= ['check',"If someone withdrew due to injury or for some other reason didn't fight all their fights, those fight should not be included. We want to rate people's fighting ability, not their injuries"];
 	$dataEntries['missingMatches'] 		= ['check',"Sometimes there are fights missing for various reasons. If there are any fights missing, please let us know why and we'll find out how to proceed."];
 	$dataEntries['notes'] 		= ['textField',''];
-	
+
 	foreach($dataEntries as $field => $entry){
 		unset($tmp);
 		$tmp['type'] = $entry[0];
@@ -82,7 +81,7 @@ if($_SESSION['eventID'] == null){
 
 		<?php if($tournamentsFinalized == false): ?>
 			<li>
-				All tournaments must be finalized before form can be completed. 
+				All tournaments must be finalized before form can be completed.
 					<a href='infoSummary.php'>Finalize Tournaments</a>
 			</li>
 		<?php endif ?>
@@ -92,7 +91,7 @@ if($_SESSION['eventID'] == null){
 		<?php endif ?>
 
 		<?php if($incompleteWarning != null): ?>
-			<li>There are incomplete matches. 
+			<li>There are incomplete matches.
 				<em><a onclick="$('#incomplete-matches').toggle()">Show/Hide Matches</a></em>
 				<div class='callout hidden' id='incomplete-matches'>
 					<ul >
@@ -128,7 +127,7 @@ if($_SESSION['eventID'] == null){
 		<?php foreach($dataItems as $field => $item): ?>
 			<?=formEntry($item, $field, $hemaRatingInfo)?>
 		<?php endforeach ?>
-		
+
 	</table>
 
 	<button class='button success' name='formName' value='hemaRatings_UpdateEventInfo'>
@@ -161,13 +160,13 @@ function formEntry($item, $field, $hemaRatingInfo){
 	}
 ?>
 	<tr>
-	
+
 	<?php if($item['type'] == 'header'): ?>
 
 		<th class='warning-text' colspan='100%'>
 			<?=$item['extraInfo']?>
 		</th>
-		
+
 	<?php else: ?>
 
 		<td class="<?=$class?>">
@@ -184,14 +183,14 @@ function formEntry($item, $field, $hemaRatingInfo){
 				<em>Disabled until all tournaments are finalized</em>
 				<input type='hidden' value=""
 					name='eventHemaRatings[<?=$field?>]'>
-					
+
 			<?php elseif($item['type'] == 'check'): ?>
 
 				<?=confirmPaddles($field, $hemaRatingInfo[$field])?>
-		
+
 			<?php elseif($item['type'] == 'locked'): ?>
 
-				<input type='text' class='no-bottom' disabled 
+				<input type='text' class='no-bottom' disabled
 					value="<?=$hemaRatingInfo[$field]?>">
 
 			<?php elseif($item['type'] == 'text'): ?>
@@ -205,14 +204,14 @@ function formEntry($item, $field, $hemaRatingInfo){
 				<textarea class='no-bottom'
 					 rows="4" cols="50"
 					name='eventHemaRatings[<?=$field?>]'><?=$hemaRatingInfo[$field]?></textarea>
-				
+
 			<?php elseif($item['type'] == 'select'): ?>
 
 				<select class='no-bottom'
 					name='eventHemaRatings[<?=$field?>]'>
 					<?=schoolSelectDropDown($hemaRatingInfo[$field])?>
 				</select>
-	
+
 			<?php endif ?>
 		</td>
 	<?php endif ?>
@@ -244,8 +243,8 @@ function confirmPaddles($field, $value){
 		}
 	?>
 		<div class='switch no-bottom inline'>
-						
-			<input class='switch-input no-bottom' type='radio' 
+
+			<input class='switch-input no-bottom' type='radio'
 				name='eventHemaRatings[<?=$field?>]'
 				value='<?=$i?>' <?=$checked?>
 				id='<?=$field?><?=$str?>'>
@@ -266,11 +265,11 @@ function schoolSelectDropDown($selectedID = null){
 ?>
 	<option <?=optionValue(1, $selectedID)?> >*Unknown</option>
 	<option <?=optionValue(2, $selectedID)?> >*Unaffiliated</option>
-	
+
 	<?php foreach($schoolList as $school):
 		if($school['schoolShortName'] == null || $school['schoolShortName'] == 'Unaffiliated'){continue;}
 		?>
-		
+
 		<option <?=optionValue($school['schoolID'], $selectedID)?> >
 			<?=$school['schoolShortName']?>, <?=$school['schoolBranch']?>
 		</option>
@@ -282,11 +281,11 @@ function schoolSelectDropDown($selectedID = null){
 /******************************************************************************/
 
 function listIncompleteMatches($incompletes){
-	
+
 	if($incompletes == null){
 		return null;
 	}
-	
+
 	$incompleteWarning = "";
 	foreach($incompletes as $match){
 		if($match['fighter1ID'] != null){

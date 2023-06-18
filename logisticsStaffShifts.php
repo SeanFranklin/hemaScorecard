@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Staff Assigments
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@ if($_SESSION['eventID'] == null){
 	} else {
 		$formLock = 'disabled';
 	}
-	
-	
+
+
 	$roles = logistics_getRoles();
 	$schedule = logistics_getEventSchedule($_SESSION['eventID'],true);
 
@@ -55,7 +55,7 @@ if($_SESSION['eventID'] == null){
 	if($blockInfo != null){
 
 		$shifts = logistics_getScheduleBlockShifts($blockInfo['blockID']);
-		
+
 		if($blockInfo['blockTypeID'] == SCHEDULE_BLOCK_MISC){
 
 			$eventRoster = getEventRoster();
@@ -71,7 +71,7 @@ if($_SESSION['eventID'] == null){
 			if(logistics_limitStaffConflicts($_SESSION['eventID']) == STAFF_CONFLICTS_NO){
 				$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID']);
 			} else {
-				$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID'], 
+				$assignableStaff = logistics_getAvaliableStaff($_SESSION['eventID'],
 																$blockInfo['tournamentID'] );
 			}
 
@@ -79,8 +79,8 @@ if($_SESSION['eventID'] == null){
 
 			// Get a count of how much each person has worked
 			foreach($assignableStaff as $rosterID => $person){
-				$hrsStaffed = logistics_getStaffingMinutes($rosterID, 
-															$_SESSION['eventID'], 
+				$hrsStaffed = logistics_getStaffingMinutes($rosterID,
+															$_SESSION['eventID'],
 															'comb');
 				$hrsStaffed = round($hrsStaffed/60,1);
 				$assignableStaff[$rosterID]['hrsStaffed'] = $hrsStaffed;
@@ -120,7 +120,7 @@ if($_SESSION['eventID'] == null){
 	bulkAddBox($roles);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<?php if($_SESSION['blockID'] != null): ?>
@@ -161,7 +161,7 @@ if($_SESSION['eventID'] == null){
 		}
 		?>
 
-		
+
 		<div class="tabs-panel <?=$firstPanel?>" id="panel-shift-<?=$index?>">
 
 		<form method='POST'>
@@ -179,10 +179,10 @@ if($_SESSION['eventID'] == null){
 
 					<legend><h4>
 						<?=logistics_getLocationName($shiftInfo['locationID'])?>
-						<a style='font-size:0.8em' 
+						<a style='font-size:0.8em'
 							onclick="logistics_bulkAddStaff(<?=$shiftInfo['shiftID']?>)">
 							<em>(Bulk Add)</em>
-						</a>	
+						</a>
 					</h4></legend>
 
 					<?= shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTemplate);?>
@@ -202,14 +202,14 @@ if($_SESSION['eventID'] == null){
 
 		</div>
 
-		
-		
+
+
 
 	<?php endforeach ?>
 	</div>
 
 	<?php endif ?>
-	
+
 
 <?php }
 include('includes/footer.php');
@@ -224,7 +224,7 @@ function bulkAddBox($roles){
 
 ?>
 	<div class='reveal' id='bulkStaffAssignBox' data-reveal>
-	
+
 		<h4>Bulk Assignment</h4>
 
 		This will add <u>everyone</u> to the shift. Examples:
@@ -240,7 +240,7 @@ function bulkAddBox($roles){
 			<li>This will add everyone regardless of conflicts</li>
 			<li>If someone is already added it will not change their role.</li>
 			<li>Assigning people as Participants does not count as staffing hours.</li>
-		
+
 		</div>
 
 		<form method='POST'>
@@ -276,7 +276,7 @@ function bulkAddBox($roles){
 	<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
 
-			<button class='button success small-6 cell' name='formName' 
+			<button class='button success small-6 cell' name='formName'
 				value='bulkStaffAssign'>
 				Bulk Add
 			</button>
@@ -286,8 +286,8 @@ function bulkAddBox($roles){
 			</button>
 		</div>
 
-		
-	
+
+
 		</form>
 
 		<!-- Close button -->
@@ -317,12 +317,12 @@ function shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTempl
 			@$staffOnShift[$staffShift['logisticsRoleID']]++; // Could not exist. Treat as zero.
 		}
 
-		
+
 		foreach($staffTemplate as $roleID => $numStaff){
 			$onShift = (int)@$staffOnShift[$roleID]; // COuld not be set. Treat as zero.
 
 
-		
+
 			if($onShift != $numStaff){
 				$err['set'] = $onShift;
 				$err['template'] = $numStaff;
@@ -350,10 +350,10 @@ function shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTempl
 		<div class='grid-x grix-margin-x grid-padding-x'>
 			<?php foreach($staffingErrors as $err): ?>
 			<div class='callout alert shrink cell'>
-				
+
 					<strong><?=$err['set']?> / <?=$err['template']?></strong>
 					<?=$err['name']?> staff assigned</li>
-				
+
 			</div>
 			<?php endforeach ?>
 		</div>
@@ -381,10 +381,10 @@ function shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTempl
 			$emptyShift['staffShiftID'] = $i;
 			shiftTableRow($shiftID, $emptyShift, $assignableStaff, $roles, $emptyShift);
 		}
-		
+
 
 		?>
-						
+
 
 	</table>
 
@@ -410,7 +410,7 @@ function shiftTableRow($shiftID, $shiftInfo, $assignableStaff, $roles){
 				id='staffShift-select<?=$staffShiftID?>'>
 
 				<option></option>
-				<?php if($shiftInfo['rosterID'] != null): 
+				<?php if($shiftInfo['rosterID'] != null):
 					if(isset($assignableStaff[$shiftInfo['rosterID']]['optionName'])){
 						$name = $assignableStaff[$shiftInfo['rosterID']]['optionName'];
 					} else {
@@ -430,11 +430,11 @@ function shiftTableRow($shiftID, $shiftInfo, $assignableStaff, $roles){
 			</select>
 		</td>
 		<td>
-			<select class='no-bottom' 
+			<select class='no-bottom'
 				name="<?=$inputNamePath?>[logisticsRoleID]" >
 				<?php foreach($roles as $role): ?>
 					<option <?=optionValue($role['logisticsRoleID'],$shiftInfo['logisticsRoleID'])?> >
-						<?=$role['roleName']?>	
+						<?=$role['roleName']?>
 					</option>
 				<?php endforeach ?>
 			</select>
@@ -458,7 +458,7 @@ function changeScheduleBlock($blockInfo, $schedule){
 	<?php if($schedule == null): ?>
 		<div class='callout warning'>
 			<strong>No Staffing Blocks Created</strong>
-			<BR>You have to create <em>Schedule Blocks</em> with <em>Staffing Shifts</em> to be 
+			<BR>You have to create <em>Schedule Blocks</em> with <em>Staffing Shifts</em> to be
 			able to assign staff.
 			<BR><a href='logisticsSchedule.php'>Edit Event Schedule</a>
 		</div>
@@ -482,7 +482,7 @@ function changeScheduleBlock($blockInfo, $schedule){
 				Day <?=$dayNum?>
 				<?foreach($daySchedule as $loopBlock): ?>
 					<option <?=optionValue($loopBlock['blockID'], $blockID)?> >
-						<?php if(logistics_isBlockStaffed($loopBlock['blockID'], 
+						<?php if(logistics_isBlockStaffed($loopBlock['blockID'],
 															$loopBlock['blockTypeID']) == false): ?>
 							***
 						<?php endif ?>
@@ -495,7 +495,7 @@ function changeScheduleBlock($blockInfo, $schedule){
 		<?php endforeach ?>
 	</select>
 
-	<select id='staffShift-numToAdd' onchange="logistics_staffShiftNumToAdd()" 
+	<select id='staffShift-numToAdd' onchange="logistics_staffShiftNumToAdd()"
 			class='large-2 medium-3 small-12'>
 		<?php for($i=1;$i<=10;$i++):?>
 			<option value='<?=$i?>'>

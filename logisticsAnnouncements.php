@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Announcements
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -27,14 +27,14 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-?>	
-	
+?>
 
-	<p>This allows you to set an announcement that will appear on the page for all users, 
-		until they confirm they have seen it. The specified time shows how long the announcment 
-		will be displayed after you add/update it. If you select <b>Staff</b> as the announcment 
+
+	<p>This allows you to set an announcement that will appear on the page for all users,
+		until they confirm they have seen it. The specified time shows how long the announcment
+		will be displayed after you add/update it. If you select <b>Staff</b> as the announcment
 		type it will only display if they are logged into the event as staff or organizer. <BR>
-		<i>When doing staff announcements don't put anything sensitive you don't want to be public. 
+		<i>When doing staff announcements don't put anything sensitive you don't want to be public.
 		People could still see this announcment if there is a database pull in the future.</i>
 	</p>
 
@@ -49,13 +49,13 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<h4>Edit Announcements</h4>
 	<i>If you want to hide an announcement set the remaining time to 0.</i>
 
-	<?php 
+	<?php
 		foreach($announcements as $announcement){
 			editAnnouncementForm($announcement);
 		}
 	?>
-	
-		
+
+
 
 
 
@@ -92,7 +92,7 @@ function editAnnouncementForm($announcement){
 	}
 
 ?>
-	
+
 	<div class='grid-x grid-margin-x'>
 	<div class='large-8 medium-10 cell'>
 

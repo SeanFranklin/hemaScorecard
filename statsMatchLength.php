@@ -81,7 +81,7 @@ if(true){
 									$dataSeries[2]['match']['length'],
 									$dataSeries[3]['match']['length']]
 							)?>
-	
+
 	<?=displayMatchLengthPlot("Match Changeover [sec]",
 								"Time between pool matches",
 								$legend,
@@ -103,7 +103,7 @@ if(true){
 									$dataSeries[3]['exch']['count']]
 							)?>
 
-	
+
 
 
 
@@ -117,7 +117,7 @@ if(true){
 									$dataSeries[3]['exch']['total']]
 							)?>
 
-	
+
 
 
 	<?=displayMatchLengthPlot("Fighting Time [sec]",
@@ -143,7 +143,7 @@ if(true){
 	<div class='text-right'>
 
 		<?=dataModeForm();?>
-		
+
 	</div>
 
 <?php }
@@ -168,7 +168,7 @@ function displayMatchLengthPlot($dataName, $toolText, $legend, $binWidth, $plotW
 	$numBins = ceil($plotWidth/$binWidth);
 	$avgString = '';
 	$allZeros = [];
-	
+
 	$plotData = "['x'";
 	for($seriesNum = 0; $seriesNum < $numDataSeries; $seriesNum++){
 
@@ -214,9 +214,9 @@ function displayMatchLengthPlot($dataName, $toolText, $legend, $binWidth, $plotW
 	}
 
 	$combinedData = [];
-	
+
 	foreach($bins as $binNum => $binData){
-		
+
 		$binValue = ($binNum * $binWidth);
 		if($binWidth != 1){
 			$binValue += $binWidth/2;
@@ -235,7 +235,7 @@ function displayMatchLengthPlot($dataName, $toolText, $legend, $binWidth, $plotW
 			} else {
 				$value = 0;
 			}
-			
+
 			$plotData .= ",{$value}";
 		}
 		$plotData .="]";
@@ -249,7 +249,7 @@ function displayMatchLengthPlot($dataName, $toolText, $legend, $binWidth, $plotW
 		<?=tooltip($toolText)?>
 	</h5>
 	<?=plotLineChart($plotData,$plotNum,$dataName, $binWidth, $plotWidth)?>
-	
+
 <?php
 }
 

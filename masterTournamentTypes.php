@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Add Tournament Types
-	
+
 	Page for adding new tournament meta types (weapons/classes/materials/etc...)
-	LOGIN: 
+	LOGIN:
 		- SUPER ADMIN required for access
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -19,9 +19,9 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 } else {
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
-	
+
 	<form method='POST'>
 	<input type='hidden' name='formName' value='addTournamentType'>
 
@@ -36,7 +36,7 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 			<option value='suffix'>Suffix</option>
 			<option value='gender'>Gender</option>
 		</select>
-		
+
 		<span class='input-group-label'>Name:</span>
 		<input class='input-group-field' type='text' name='tournamentType'>
 

@@ -1,10 +1,10 @@
 <?php
 /*******************************************************************************
 	AJAX Functions
-	
+
 	Database queries requested by Javascrip.
 	Sorted into a giant select case based on the value passed through $_REQUEST['mode']
-	
+
 *******************************************************************************/
 
 define('BASE_URL' , $_SERVER['DOCUMENT_ROOT'].'/');
@@ -46,7 +46,7 @@ case 'postForm': {
 	echo json_encode($success);
 
 } break;
-	
+
 /******************************************************************************/
 
 case 'updateSession': {
@@ -64,7 +64,7 @@ case 'updateSession': {
 
 } break;
 
-/******************************************************************************/	
+/******************************************************************************/
 
 case 'updateStream': {
 
@@ -76,7 +76,7 @@ case 'updateStream': {
 
 } break;
 
-/******************************************************************************/	
+/******************************************************************************/
 
 case 'getSessionDayNum':{
 
@@ -84,12 +84,12 @@ case 'getSessionDayNum':{
 
 } break;
 
-/******************************************************************************/	
+/******************************************************************************/
 
 case 'hasFought': {
-// Returns null if no exchanges have been recorded that meet the selection 
+// Returns null if no exchanges have been recorded that meet the selection
 // criteria, or 'HAS FOUGHT' if there is an exchange that matches.
-// Table join structure is dynamicaly changed depending on what the calling 
+// Table join structure is dynamicaly changed depending on what the calling
 // function wants to know about. ie. Has fought in the event? Has fought in a pool?
 
 	if(isset($_REQUEST['rosterID'])){
@@ -154,26 +154,26 @@ case 'hasFought': {
 	if($joinLevel >= 3){
 		$joinString .= "INNER JOIN eventTournaments USING(tournamentID) ";
 	}
-	
+
 
 	$isFirst = true;
 	foreach($where as $string){
-		if($isFirst){ 
-			$whereString = "WHERE "; 
+		if($isFirst){
+			$whereString = "WHERE ";
 			$isFirst = false;
 		} else {
 			$whereString .= "AND ";
 		}
 		$whereString .= $string;
 	}
-	
+
 	$sql = "SELECT exchangeID
 			FROM eventExchanges
 			$joinString
 			$whereString";
-	
+
 	$result = mysqlQuery($sql, SINGLE, 'exchangeID');
-	
+
 	if(isset($result) && $result != null){
 		echo "HAS FOUGHT";
 	}
@@ -187,12 +187,12 @@ case 'newExchange': {
 
 	$lastExchange = (int)$_REQUEST['exchangeID'];
 	$matchID = (int)$_REQUEST['matchID'];
-	
+
 	if($matchID == null){return;}
-	
+
 	$sql = "SELECT MAX(exchangeID)
 			FROM eventExchanges
-			WHERE matchID = {$matchID}";	
+			WHERE matchID = {$matchID}";
 	$newExchange = mysqlQuery($sql, SINGLE, 'MAX(exchangeID)');
 
 	$ReturnValue['refresh'] = false;
@@ -204,9 +204,9 @@ case 'newExchange': {
 	} else {
 		$sql = "SELECT matchTime
 				FROM eventMatches
-				WHERE matchID = {$matchID}";	
+				WHERE matchID = {$matchID}";
 		$ReturnValue['matchTime'] = mysqlQuery($sql, SINGLE, 'matchTime');
-	}	
+	}
 
 	echo json_encode($ReturnValue);
 } break;
@@ -217,21 +217,21 @@ case 'fighterInfo': {
 
 	$rosterID = (int)$_REQUEST['rosterID'];
 	$eventID = (int)$_REQUEST['eventID'];
-	
+
 	$sql = "SELECT firstName, lastName, eventRoster.schoolID
 			FROM eventRoster
 			INNER JOIN systemRoster USING(systemRosterID)
 			WHERE rosterID = {$rosterID}";
 	$res = mysqlQuery($sql, SINGLE);
-	
-	$sql = "SELECT tournamentID 
+
+	$sql = "SELECT tournamentID
 			FROM eventTournamentRoster
 			INNER JOIN eventTournaments USING(tournamentID)
 			WHERE rosterID = {$rosterID}
 			AND eventID = {$eventID}";
-			
+
 	$result = mysqlQuery($sql, ASSOC);
-	
+
 	$temp = [];
 	foreach((array)$result as $item){
 		$tournamentID = $item['tournamentID'];
@@ -239,7 +239,7 @@ case 'fighterInfo': {
 	}
 
 	$res['tournamentIDs'] = $temp;
-	
+
 	echo json_encode($res);
 } break;
 
@@ -271,9 +271,9 @@ case 'getRankingTypes': {
 	echo json_encode($rankingTypes);
 
 } break;
- 
+
 /******************************************************************************/
- 
+
 case 'updateMatchTime': {
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
@@ -288,7 +288,7 @@ case 'updateMatchTime': {
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
 
-	
+
 } break;
 
 /******************************************************************************/
@@ -320,12 +320,12 @@ case 'getScheduleBlockInfo':{
 			GROUP BY locationID";
 	$info['numShifts'] = mysqlQuery($sql, SINGLE,'numShifts');
 
-	
+
 	$info['instructors'] = logistics_getBlockInstructors($blockID);
 
 	$info['rules'] = getTournamentRules($info['tournamentID']);
 
-	$sql = "SELECT rosterID, locationName, lSS.startTime, lSS.endTime, roleName 
+	$sql = "SELECT rosterID, locationName, lSS.startTime, lSS.endTime, roleName
 			FROM logisticsStaffShifts
 			INNER JOIN logisticsScheduleShifts AS lSS USING(shiftID)
 			INNER JOIN logisticsScheduleBlocks USING(blockID)
@@ -347,7 +347,7 @@ case 'getScheduleBlockInfo':{
 
 case 'getStreamOverlayInfo':{
 
-	
+
 	$streamMode = (int)$_REQUEST['streamMode'];
 	//$_REQUEST['identifier'] processed below
 	$lastExchangeInPlayer = (int)$_REQUEST['lastExchange'];
@@ -402,8 +402,8 @@ case 'getStreamOverlayInfo':{
 				LIMIT 1";
 		$firstCallTimeAbs = (int)mysqlQuery($sql, SINGLE, 'firstCallTimeAbs');
 		$currentTimeAbs = $firstCallTimeAbs + $currentTimeReal;
-		
-		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal, 
+
+		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal,
 					exchangeTime AS exchangeTimeClock
 				FROM eventExchanges
 				WHERE matchID = {$matchID}
@@ -412,7 +412,7 @@ case 'getStreamOverlayInfo':{
 				LIMIT 1";
 		$nextExchange = mysqlQuery($sql, SINGLE);
 
-		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal, 
+		$sql = "SELECT exchangeID, (UNIX_TIMESTAMP(timestamp) - {$firstCallTimeAbs}) AS exchangeTimeReal,
 					exchangeTime AS exchangeTimeClock
 				FROM eventExchanges
 				WHERE matchID = {$matchID}
@@ -442,22 +442,22 @@ case 'getStreamOverlayInfo':{
 		} elseif($currentTimeClock > $nextExchange['exchangeTimeClock']){
 			$currentTimeClock = $nextExchange['exchangeTimeClock'];
 		}
-		
+
 	}
 
 	$returnInfo['lastExchange'] = $lastExchangeID;
 	$returnInfo['matchTime'] = $currentTimeClock;
 
 // If there has been no new exchanges it returns no data
-	if($lastExchangeInPlayer == $lastExchangeID){ 
+	if($lastExchangeInPlayer == $lastExchangeID){
 		echo(json_encode($returnInfo));
 		return;
 	}
-		
+
 // Fighter Scores
 
 	if($streamMode == VIDEO_STREAM_VIRTUAL){
-		// Can't use the match info for scores and winners, because it reflects 
+		// Can't use the match info for scores and winners, because it reflects
 		// the final score and not the 'current' score based on the video time.
 		$fighter1ID = (int)$matchInfo['fighter1ID'];
 		$sql = "SELECT (SUM(scoreValue) - SUM(scoreDeduction)) AS fighter1score
@@ -481,10 +481,10 @@ case 'getStreamOverlayInfo':{
 	$returnInfo['fighter2Score'] = $matchInfo['fighter2score'];
 	if($returnInfo['fighter1Score'] == ''){$returnInfo['fighter1Score'] = 'X';}
 	if($returnInfo['fighter2Score'] == ''){$returnInfo['fighter2Score'] = 'X';}
-	
+
 // Meta information about the match and tournament
 	$returnInfo['tournamentName'] = getTournamentName($matchInfo['tournamentID']);
-	
+
 	$matchName = '';
 	if($matchInfo['matchType'] == 'pool'){
 		$matchName .= "Pool Match";
@@ -524,7 +524,7 @@ case 'getStreamOverlayInfo':{
 
 	$returnInfo['doubles'] = getMatchDoubles($matchID);
 
-// Fighter Schools	
+// Fighter Schools
 	$returnInfo['fighter1School'] = $matchInfo['fighter1School'];
 	$returnInfo['fighter2School'] = $matchInfo['fighter2School'];
 
@@ -540,7 +540,7 @@ case 'getStreamOverlayInfo':{
 			WHERE tournamentID = {$matchInfo['tournamentID']}
 			AND color2ID = colorID";
 	$returnInfo['color2Code'] = mysqlQuery($sql, SINGLE, 'colorCode');
-	
+
 // Return last exchange information
 
 	$returnInfo['endType'] = $matchInfo['endType'];
@@ -565,11 +565,11 @@ case 'getStreamOverlayInfo':{
 				ORDER BY exchangeID DESC
 				LIMIT 1";
 		$tmp = mysqlQuery($sql, SINGLE);
-		
+
 		$returnInfo['exchangeType'] = $tmp['exchangeType'];
 		$returnInfo['points'] = $tmp['scoreValue'] - $tmp['scoreDeduction'];
 
-		if($tmp['exchangeType'] == 'clean' || $tmp['exchangeType'] == 'afterblow' 
+		if($tmp['exchangeType'] == 'clean' || $tmp['exchangeType'] == 'afterblow'
 			|| $tmp['exchangeType'] == 'penalty' || $tmp['exchangeType'] == 'noQuality'){
 
 			if($tmp['scoringID'] == $matchInfo['fighter1ID']){
@@ -595,13 +595,13 @@ case 'getStreamOverlayInfo':{
 			}
 		}
 
-	
+
 	}
 
-	
+
 	echo json_encode($returnInfo);
 	return;
-	
+
 } break;
 
 /******************************************************************************/
@@ -706,12 +706,12 @@ case 'getBracketMatchesToAssignRings': {
 			}
 
 			if(isset($upcomingMatches[$tmp['locationID']])){
-				$tmp['numMatches'] = (int)count($upcomingMatches[$tmp['locationID']]);	
+				$tmp['numMatches'] = (int)count($upcomingMatches[$tmp['locationID']]);
 			} else {
 				$tmp['numMatches'] = 0;
 			}
-			
-			
+
+
 			$avalibleRings[] = $tmp;
 		}
 	}
@@ -737,7 +737,7 @@ case 'assignBracketMatchesToRings': {
 		return;
 	}
 
-	
+
 
 	foreach($matchIDs as $matchID){
 

@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
 	General Functions
-	
+
 	Functions which perform general functions, not specific to any application
-	
+
 *******************************************************************************/
 
 /******************************************************************************/
@@ -97,7 +97,7 @@ function optionValue($value, $selectValue = null){
 
 function chk($value, $compare = null){
 // For use in setting checkboxes to true/false
-// It is OK to suppress errors on inputs, non-existant values are acceptable inputs.	
+// It is OK to suppress errors on inputs, non-existant values are acceptable inputs.
 
 	if(isset($value) == false){
 		return '';
@@ -115,7 +115,7 @@ function chk($value, $compare = null){
 function plrl($num){
 // Returns an 's' if the number is not 1.
 // Used for writing things like 1 Point vs 2 Points
-	
+
 	if(abs($num) != 1){
 		return 's';
 	}
@@ -131,7 +131,7 @@ function redirect($url){
 /******************************************************************************/
 
 function appendArray($a1, $a2){
-	
+
 	$out = [];
 	foreach((array)$a1 as $index => $data){
 		$out[$index] = $data;
@@ -140,7 +140,7 @@ function appendArray($a1, $a2){
 		$out[$index] = $data;
 	}
 	return $out;
-	
+
 }
 
 /******************************************************************************/
@@ -195,7 +195,7 @@ function isNotSelected($val1, $val2='selected', $output='selected'){
 /******************************************************************************/
 
 function getGoogleSpreadsheet($spreadsheet_url,$headers){
-	
+
 	if(!ini_set('default_socket_timeout',    15)) {echo "<!-- unable to change socket timeout -->";}
 
 	if (($handle = fopen($spreadsheet_url, "r")) !== false) {
@@ -206,25 +206,25 @@ function getGoogleSpreadsheet($spreadsheet_url,$headers){
 	} else {
 		die("Problem reading csv");
 	}
-	
-	
-	
+
+
+
 	if($headers == null){
 		foreach($spreadsheetData[0] as $i => $columnName){
 			$headers[$i] = $columnName;
 		}
 	}
-	
+
 	unset($spreadsheetData[0]);
 	$arrayLength = count($spreadsheetData);
-	
+
 	for($i=1;$i<=$arrayLength;$i++){
 		foreach($headers as $j => $header){
 			$spreadsheetData[$i][$header] = $spreadsheetData[$i][$j];
 			unset($spreadsheetData[$i][$j]);
 		}
 	}
-	
+
 	return $spreadsheetData;
 }
 
@@ -235,10 +235,10 @@ function intToString($int, $num){
 // $num characters long
 
 	$string = (string)$int;
-	
+
 	for($length = strlen($string);$length<$num;$length++){
 		$string = "0".$string;
-		
+
 	}
 
 	return $string;
@@ -249,7 +249,7 @@ function intToString($int, $num){
 
 function nullBlankInt($input){
 // returns the string 'null' if the input is null. Used for sql queries
-	
+
 	if($input != null){
 		return $input;
 	} else {
@@ -263,57 +263,57 @@ function mysqlSetRecordToDefault($tableName, $whereClause, $fieldsToKeep){
 	// Sets the values of all fields on $tableName to their defaults
 	// Function affects rows identified by $whereClause
 	// and ignores the fields named in the array $fieldsToKeep
-	
+
 	if($whereClause == null){return;}
-	
+
 	if(is_string($fieldsToKeep)){
 		// If a single field is passed, instead of an array of fields, convert to a single entry array
 		$a = $fieldsToKeep;
 		unset($fieldsToKeep);
 		$fieldsToKeep[] = $a;
 	}
-	
+
 	$sql = "SHOW COLUMNS FROM {$tableName}";
 	$result = mysqlQuery($sql, ASSOC);
-	
+
 	foreach($result as $record){
 		$name = $record['Field'];
 		if($record['Key'] != 'PRI'){
 			$fieldNames[$name] = true;
 		}
 	}
-	
+
 	foreach($fieldsToKeep as $field){
 		unset($fieldNames[$field]);
 	}
-	
+
 	$sql = "UPDATE {$tableName}
 		SET ";
 	foreach($fieldNames as $name => $true){
 		$sql .= "{$name}= DEFAULT, ";
-		
+
 	}
 
 	$sql = rtrim($sql,', \t\n');
 	$sql .= " ".$whereClause;
-	
+
 	mysqlQuery($sql, SEND);
 }
 
 /******************************************************************************/
 
 function xorWithZero($in1, $in2){
-// XOR function where zero is recognized as a number and not a null	
-	
+// XOR function where zero is recognized as a number and not a null
+
 	$num1 = false;
 	$num2 = false;
 
 	if($in1){$num1 = true;}
 	if($in2){$num2 = true;}
-	
+
 	if($in1 === '0'){$num1 = true;}
 	if($in2 === '0'){$num2 = true;}
-	
+
 	if($num1){
 		if($num2){
 			return false;
@@ -326,7 +326,7 @@ function xorWithZero($in1, $in2){
 		} else {
 			return true;
 		}
-		
+
 	}
 }
 
@@ -361,18 +361,18 @@ function numSuffix($number){
 function sqlDateToString($sqlDate){
 // Converts dates read from sql into human readable format. Month and day only.
 // Example: '2017-12-15' -> 'Dec 15th'
-	
+
 	if(strcmp($sqlDate,"0000-00-00") == 0){
 		return null;
 	}
-	
+
 	// Day
 	$day = $sqlDate[8];
 	$day .= $sqlDate[9];
-	
+
 	$day .= "<sup>".numSuffix($day)."</sup>";
 
-	
+
 	if($day[0] == 0){
 		$day = substr($day, 1);
 	}
@@ -418,10 +418,10 @@ function sqlDateToString($sqlDate){
 			$month = 'Dec';
 			break;
 	}
-	
+
 	$date = $month." ".$day;
 	return $date;
-		
+
 }
 
 /******************************************************************************
@@ -449,9 +449,9 @@ function connectToDB(){
 	if (mysqli_connect_errno()){
 		echo "Failed to connect to MySQL: " . mysqli_connect_error();
 	}
-	
+
 	((bool)mysqli_query($GLOBALS["___mysqli_ston"], "USE " . constant('PRIMARY_DATABASE')));
-	
+
 	return $connection;
 }
 
@@ -460,15 +460,15 @@ function connectToDB(){
 function array_filter_recursive($input) {
 // unset empty entries from a multi-dimensional array
 
-	foreach ($input as &$value) 
-	{ 
-	  if (is_array($value)) 
-	  { 
-		 $value = array_filter_recursive($value); 
-	  } 
-	}     
-	return array_filter($input,'isNotNull'); 
-} 
+	foreach ($input as &$value)
+	{
+	  if (is_array($value))
+	  {
+		 $value = array_filter_recursive($value);
+	  }
+	}
+	return array_filter($input,'isNotNull');
+}
 
 /******************************************************************************/
 
@@ -481,40 +481,40 @@ function isNotNull($val){
 /******************************************************************************/
 
 function in_array_r($needle, $haystack, $strict = false) {
-// recursively checks a multi-dimensional array for a value	
-	
-    foreach ($haystack as $item) {
-        if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_array_r($needle, $item, $strict))) {
-            return true;
-        }
-    }
+// recursively checks a multi-dimensional array for a value
 
-    return false;
+	foreach ($haystack as $item) {
+		if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_array_r($needle, $item, $strict))) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /******************************************************************************/
 
 function standardDeviation($arr) {
-// function to calculate the standard deviation of array elements 
+// function to calculate the standard deviation of array elements
 
-    $num_of_elements = count($arr);
-    if($num_of_elements == 0){
-    	return null;
-    } 
-      
-    $variance = 0.0; 
-      
-    // calculating mean using array_sum() method 
-    $average = array_sum($arr)/$num_of_elements; 
-      
-    foreach($arr as $i){ 
-        // sum of squares of differences between all numbers and means. 
-        $variance += pow(($i - $average), 2); 
-    } 
-      
-    return (float)sqrt($variance/$num_of_elements); 
-} 
-	
+	$num_of_elements = count($arr);
+	if($num_of_elements == 0){
+		return null;
+	}
+
+	$variance = 0.0;
+
+	// calculating mean using array_sum() method
+	$average = array_sum($arr)/$num_of_elements;
+
+	foreach($arr as $i){
+		// sum of squares of differences between all numbers and means.
+		$variance += pow(($i - $average), 2);
+	}
+
+	return (float)sqrt($variance/$num_of_elements);
+}
+
 /******************************************************************************/
 
 function numberSelectMenu($start,$end,$selected = 0){
@@ -527,7 +527,7 @@ function numberSelectMenu($start,$end,$selected = 0){
 		echo "<option value='{$i}' ".isSelected($i,$selected).">";
 		echo $i;
 		echo "</option>";
-	}	
+	}
 
 
 }
@@ -580,7 +580,7 @@ function compareDates($compareDate, $currentDate = null){
 	} else {
 		$date2 = date_create($currentDate);
 	}
-	
+
 	$diff = date_diff($date1,$date2);
 	$num = (int)$diff->format('%R%a');
 

@@ -1,18 +1,18 @@
 <?php
 /*******************************************************************************
 	Display Functions
-	
+
 	Functions to display information to the screen which may be called from
 	multiple pages.
 	Also performs database access in some cases
-	
+
 *******************************************************************************/
 
 /******************************************************************************/
 
 function displayPageAlerts(){
-// This function will display any messages which have been added to 
-// $_SESSION['alertMessages']. These alert messages are written to by many 
+// This function will display any messages which have been added to
+// $_SESSION['alertMessages']. These alert messages are written to by many
 // data processing functions, either as errors or completion confirmations.
 // This function is called at the top of every page by the header
 // to display error messages created in processing POST data.
@@ -74,16 +74,16 @@ function displayAlert ($text = null, $class = 'secondary'){
 			<span aria-hidden='true'>&times;</span>
 		</button>
 
-		{$text}	
+		{$text}
 	</div>";
-	
+
 
 }
 
 /******************************************************************************/
 
 function checkboxPaddle($name, $onVal, $isOn = false, $offVal = 0, $class1 = null, $class2 = null){
-	
+
 	// This is explicityly designed to catch a value of 0 as false
 	$checked = '';
 	if($isOn != false){
@@ -95,7 +95,7 @@ function checkboxPaddle($name, $onVal, $isOn = false, $offVal = 0, $class1 = nul
 
 		<input type='hidden' name='<?=$name?>' value='<?=$offVal?>' class='<?=$class2?>' >
 
-		<input class='switch-input <?=$class1?>' type='checkbox' 
+		<input class='switch-input <?=$class1?>' type='checkbox'
 			id='<?=$name?>'  <?=$checked?>
 			name='<?=$name?>' value='<?=$onVal?>'>
 
@@ -108,7 +108,7 @@ function checkboxPaddle($name, $onVal, $isOn = false, $offVal = 0, $class1 = nul
 /******************************************************************************/
 
 function pageError($type){
-	
+
 	if(strcasecmp($type, 'event') == 0){
 		$str = "<strong>No Event Selected</strong><BR>
 				<a href='infoSelect.php'>Select Event</a>";
@@ -122,8 +122,8 @@ function pageError($type){
 	} else {
 		$str = "Page can not be displayed";
 	}
-	
- 	displayAlert($str);
+
+	displayAlert($str);
 }
 
 /******************************************************************************/
@@ -161,7 +161,7 @@ function checkForTermsOfUse(){
 	} elseif($_SESSION['userName'] != 'eventOrganizer' || isEventTermsAccepted($_SESSION['eventID'])){
 		return;
 
-// If they need to sign ToS, kicks them back to the log in page. 
+// If they need to sign ToS, kicks them back to the log in page.
 // This won't let them leave the log-in screen until they sign the ToS or log out
 	} elseif($pageName != 'adminLogIn.php'){
 		refreshPage('adminLogIn.php');
@@ -203,7 +203,7 @@ function checkForTermsOfUse(){
 					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][3]'>
 					I will make sure that all directors & staff enter the original score and the afterblow value, not just the overall points awarded.
 				<BR>
-			
+
 					<i>(eg: 3 points with a -1 afterblow is not a 2 point clean hit)</i>
 				</div>
 			</div>
@@ -217,7 +217,7 @@ function checkForTermsOfUse(){
 					I understand that the HEMA Scorecard team is delighted to receive constructive feedback on improvements but are in no way obligated to put up with any crap from me.
 				</div>
 			</div>
-			
+
 		<!-- Contact Info -->
 			<div class='cell' style='margin-bottom:1em;'>
 				<strong>The following person should be contacted with questions about the tournaments</strong>
@@ -225,7 +225,7 @@ function checkForTermsOfUse(){
 					<span class='input-group-label'>Contact E-mail</span>
 					<input type='text' class='input-group-field' name='ToS[email]' value='<?=$email?>'>
 				</div>
-	
+
 			</div>
 
 		<!-- Submit -->
@@ -242,7 +242,7 @@ function checkForTermsOfUse(){
 			</div>
 
 		</form>
-		
+
 	</div>
 
 <?php
@@ -252,7 +252,7 @@ function checkForTermsOfUse(){
 
 function displayEventButton($eventID, $eventInfo){
 //Creates a button to navigate to an event
-	
+
 // Format location string
 
 	$location = '';
@@ -269,14 +269,14 @@ function displayEventButton($eventID, $eventInfo){
 	}
 
 	$location = rtrim($location,', \t');
-	
+
 // Format year and date string
 	$name = $eventInfo['eventName'];
 	$year = $eventInfo['eventYear'];
-	
+
 	$startDate = sqlDateToString($eventInfo['eventStartDate']);
 	$endDate = sqlDateToString($eventInfo['eventEndDate']);
-	
+
 	if($startDate != null){
 		if($endDate == null OR $endDate == $startDate){
 			$dateString = $startDate;
@@ -286,14 +286,14 @@ function displayEventButton($eventID, $eventInfo){
 	} else if($endDate != null){
 		$dateString = $endDate;
 	}
-	
+
 // Displays current event in red
 	if($eventID == $_SESSION['eventID']){
 		$isActive = "alert";
-	} else { 
-		$isActive = ''; 
-	} 
-	
+	} else {
+		$isActive = '';
+	}
+
 	?>
 
 
@@ -307,14 +307,14 @@ function displayEventButton($eventID, $eventInfo){
 		<?= $dateString ?>
 	</button>
 
-	
+
 <?php }
 
 /******************************************************************************/
 
 
 function displayPenalty($penalty, $showPoints = false){
-	
+
 	switch($penalty['card']){
 		case 'yellowCard':
 			$class = 'penalty-card-yellow';
@@ -332,11 +332,11 @@ function displayPenalty($penalty, $showPoints = false){
 
 ?>
 	<div class='<?=$class?> penalty-card-display'>
-		
+
 		<strong><?=$penalty['cardName']?>: </strong>
 		<i><?=$penalty['action']?></i> (<?=$penalty['scoreValue']?>)
 		<BR>
-		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong> 
+		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong>
 		 <?=getGroupName($penalty['groupID'])?> (vs <?=getFighterName($penalty['receivingID'])?>)
 	</div>
 
@@ -346,42 +346,42 @@ function displayPenalty($penalty, $showPoints = false){
 /******************************************************************************/
 
 function confirmDeleteReveal($formID, $formName){
-	
+
 	?>
 
-	
+
 	<script>
-	
+
 	</script>
-	
-	
+
+
 	<input type='hidden' value = '<?=$formName?>' id='deleteFormName'>
 	<div class='reveal medium text-center' id='confirmDelete' data-reveal>
-	
-	
+
+
 	<div class='callout alert'><h4>Warning</h4></div>
-	<p>You are attempting to delete fighters who have already fought and/or 
+	<p>You are attempting to delete fighters who have already fought and/or
 	groups which have already started.</p>
-	<p>If fighters have been injured or disqualified please remove them using 
+	<p>If fighters have been injured or disqualified please remove them using
 	<strong><a href='adminFighters.php'>Manage Fighters > Withdraw Fighters</a></strong></p>
 	<HR>
-	
+
 	<div class='grid-x grid-margin-x'>
 
-		<button class='button alert small-6 cell no-bottom' 
+		<button class='button alert small-6 cell no-bottom'
 			onclick="submitForm('<?=$formID?>','<?=$formName?>');">
 			I still want to Delete
 		</button>
 
-		<button class='button secondary small-6 cell no-bottom' 
+		<button class='button secondary small-6 cell no-bottom'
 			data-close aria-label='Close modal' type='button'>
 			Cancel
 		</button>
 
 	</div>
-	
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -412,7 +412,7 @@ function edit_tournamentName($tournamentID){
 // Select boxes for editing a tournament name
 // Select boxes for creation of a new tournament will be made if no
 // tournamentID is passed to the function
-	
+
 	$tournamentID = (int)$tournamentID;
 	$name = '';
 
@@ -422,19 +422,19 @@ function edit_tournamentName($tournamentID){
 			WHERE tournamentTypeMeta = 'prefix'
 			ORDER BY tournamentType ASC";
 	$prefixList = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
-	
+
 	$sql = "SELECT tournamentTypeID, tournamentType
 			FROM systemTournaments
 			WHERE tournamentTypeMeta = 'gender'
 			ORDER BY numberOfInstances DESC";
 	$genderList = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
-	
+
 	$sql = "SELECT tournamentTypeID, tournamentType
 			FROM systemTournaments
 			WHERE tournamentTypeMeta = 'material'
 			ORDER BY numberOfInstances DESC";
 	$materialList = mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
-	
+
 	// Weapon List
 	$sql = "SELECT tournamentTypeID, tournamentType
 			FROM systemTournaments
@@ -451,18 +451,18 @@ function edit_tournamentName($tournamentID){
 
 // Read the current attributes of the tournament
 	if($tournamentID != 0){
-		$sql = "SELECT tournamentID, tournamentWeaponID, tournamentPrefixID, 
+		$sql = "SELECT tournamentID, tournamentWeaponID, tournamentPrefixID,
 					tournamentGenderID, tournamentMaterialID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$currentSettings = mysqlQuery($sql, KEY, 'tournamentID');
-		$tournamentName = getTournamentName($tournamentID);	
+		$tournamentName = getTournamentName($tournamentID);
 	} else {
 		$tournamentName = "<i>New Tournament</i>";
 	}
 
 ?>
-	
+
 <!-- Begin Display --------------------------------------------->
 
 <!-- Prefix ----------------------------------->
@@ -586,14 +586,14 @@ function edit_tournamentName($tournamentID){
 		</td>
 
 	</tr>
-	
+
 <?php }
 
 /*****************************************************************************/
 
 function edit_tournamentFormatType($tournamentID = 0){
 // Select menu for the type of tournament
-	
+
 	$tournamentID = (int)$tournamentID;
 
 	if($_SESSION['isMetaEvent'] == false){
@@ -613,7 +613,7 @@ function edit_tournamentFormatType($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr>
 		<td class='shrink-column'>
@@ -631,10 +631,10 @@ function edit_tournamentFormatType($tournamentID = 0){
 			<select name='updateTournament[formatID]' class='shrink'
 				onchange="edit_formatType('<?=$tournamentID?>')"
 				id='formatID_select<?=$tournamentID?>'>
-				
+
 				<?php if($tournamentID == 0): ?>
 					<option selected disabled></option>
-				<?php endif ?>	
+				<?php endif ?>
 				<?php foreach($formatTypes as $ID => $name): ?>
 					<option <?=optionValue($ID, @$currentID)?> >
 						<?=$name?>
@@ -645,10 +645,10 @@ function edit_tournamentFormatType($tournamentID = 0){
 
 		</td>
 	</tr>
-	
-	
-	
-	
+
+
+
+
 <?php }
 
 /*****************************************************************************/
@@ -657,11 +657,11 @@ function edit_tournamentDoubleType($tournamentID = 0){
 // Select menu for the method of handling bilateral hits (double+afterblow)
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a select box to create a new tournament if no parameter is passed
-	
+
 	$sql = "SELECT doubleTypeID, doubleTypeName
 			FROM systemDoubleTypes";
 	$doubleTypes = mysqlQuery($sql, KEY_SINGLES, 'doubleTypeID', 'doubleTypeName');
-	
+
 	$doubleTypeID = null;
 	$formatID = FORMAT_MATCH;
 	$tournamentID = (int)$tournamentID;
@@ -688,31 +688,31 @@ function edit_tournamentDoubleType($tournamentID = 0){
 ?>
 
 <!-- Start display -->
-	
+
 	<tr class='option-sparring <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
-				Double/Afterblow Type 
+				Double/Afterblow Type
 			</div>
 		</td>
 
 		<td>
-		<div class='grid-x grid-padding-x'>		
-	
-		
+		<div class='grid-x grid-padding-x'>
+
+
 			<select name='updateTournament[doubleTypeID]' class='shrink'
 				onchange="edit_doubleType('<?=$tournamentID?>')" id='doubleID_select<?=$tournamentID?>'>
-				
+
 					<?php foreach($doubleTypes as $ID => $name):?>
 						<option <?=optionValue($ID, $doubleTypeID)?>>
-							<?=$name?>						
+							<?=$name?>
 						</option>
 					<?php endforeach ?>
 			</select>
 		</div>
 		</td>
 	</tr>
-	
+
 <?php }
 
 /*****************************************************************************/
@@ -748,14 +748,14 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 		if($rankingTypes != null){
 			$display = null;
-			$nullOptionSelected = null;	
+			$nullOptionSelected = null;
 		}
 
 
 		$sql = "SELECT tournamentRankingID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
-		$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');	
+		$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');
 	}
 	?>
 
@@ -767,7 +767,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 			<strong><a data-open='rankingTypesReveal'>Ranking Type</a></strong>
 			<?php tooltip("Method for calculating pool rankings/round scores.<BR>
 							Click on link for description of each algorithm/method"); ?>
-			
+
 		</td>
 
 		<td>
@@ -776,7 +776,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 			<select name='updateTournament[tournamentRankingID]' class="shrink"
 				onchange="enableTournamentButton('<?=$tournamentID?>')"
 				id='rankingID_select<?=$tournamentID?>'>
-			
+
 				<option disabled <?=$nullOptionSelected?>></option>
 
 				<?php if($rankingTypesPopular != []): ?>
@@ -785,7 +785,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 				<?php foreach($rankingTypesPopular as $ID => $name):?>
 					<option <?=optionValue($ID, $currentID)?> >
-						<?=$name?>	
+						<?=$name?>
 					</option>
 				<?php endforeach ?>
 
@@ -795,7 +795,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 				<?php foreach($rankingTypes as $ID => $name):?>
 					<option <?=optionValue($ID, $currentID)?> >
-						<?=$name?>	
+						<?=$name?>
 					</option>
 				<?php endforeach ?>
 			</select>
@@ -803,11 +803,11 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 		</td>
 	</tr>
-	
+
 <!----- Ranking types reveal -->
 
 	<div class='reveal large' id='rankingTypesReveal' data-reveal>
-	
+
 		<h4 class='text-center'>- Ranking Types -</h4>
 
 		<div class='grid-x grid-padding-x'>
@@ -819,9 +819,9 @@ function edit_tournamentRankingType($tournamentID = 0){
 					</li>
 				<?php endforeach ?>
 				</ul>
-				
-				
-				<ul class='dropdown menu tourney-menu-mobile 
+
+
+				<ul class='dropdown menu tourney-menu-mobile
 					show-for-small-only align-center' data-dropdown-menu>
 					<li>
 						<a href='#'>Ranking Algorithms</a>
@@ -834,8 +834,8 @@ function edit_tournamentRankingType($tournamentID = 0){
 						</ul>
 					</li>
 				</ul>
-				
-				
+
+
 			</div>
 			<div class='large-9 cell' id='rankingDescriptionContainer'>
 				<div class='rankingDescription'>
@@ -853,11 +853,11 @@ function edit_tournamentRankingType($tournamentID = 0){
 					</div>
 				<?php endforeach ?>
 			</div>
-		
-		
+
+
 		</div>
 
-		
+
 		<?php closeRevealButton(); ?>
 
 	</div>
@@ -871,7 +871,7 @@ function closeRevealButton(){
 	<button class='close-button' data-close aria-label='Close modal' type='button'>
 		<span aria-hidden='true'>&times;</span>
 	</button>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -879,7 +879,7 @@ function closeRevealButton(){
 function edit_tournamentBasePoints($tournamentID){
 // Select menu for the base points associated with a turnament
 // This is for scored events, such as the value of a cut, or points before deductions
-	
+
 	$tournamentID = (int)$tournamentID;
 	$display = "hidden"; // Hidden for most cases
 	$value = null;
@@ -890,7 +890,7 @@ function edit_tournamentBasePoints($tournamentID){
 					FROM eventTournaments
 					WHERE tournamentID = {$tournamentID}";
 		$value = (int)mysqlQuery($sql, SINGLE, 'basePointValue');
-		
+
 		if($value == 0){
 			$value = '';
 		}
@@ -898,28 +898,28 @@ function edit_tournamentBasePoints($tournamentID){
 	?>
 
 <!-- Start display -->
-	
+
 	<tr>
 		<td  class='shrink-column'>
 		Base Point Value
-		<?php 
+		<?php
 		tooltip("Number to use as a base for scoring calculations. (Most tournaments don't use this.)<BR>
 			<u>Examples:</u> Base value for a cut, total round score before deductions,
 			 or initial fighter score in Injury Score mode");
 		?>
 		</td>
-		<td>	
+		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number'
-				name='updateTournament[basePointValue]' value='<?=$value?>' 
+				name='updateTournament[basePointValue]' value='<?=$value?>'
 				onkeyup="enableTournamentButton('<?=$tournamentID?>')"
 				id='baseValue_select<?=$tournamentID?>'>
 			</div>
 		</td>
 	</tr>
 
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
@@ -927,7 +927,7 @@ function edit_tournamentBasePoints($tournamentID){
 function edit_tournamentMaxDoubles($tournamentID = 0){
 // Select menu for the maximum doubles allowed in a tournament
 // Appears or disapears as controled by javascript
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 	$maxDoublesLimit = 10;	// Arbitrary
@@ -975,8 +975,8 @@ function edit_tournamentMaxDoubles($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[maxDoubleHits]' class='shrink'
 					id='maxDoubles_select<?=$tournamentID?>'>
-					
-					<?php for($i = 1; $i <= $maxDoublesLimit; $i++):?>	
+
+					<?php for($i = 1; $i <= $maxDoublesLimit; $i++):?>
 						<option <?=optionValue($i,$maxDoubleHits)?> ><?=$i?></option>
 					<?php endfor ?>
 
@@ -1002,9 +1002,9 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 	}
 
 	$hide = "hidden";
-	
+
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
@@ -1026,7 +1026,7 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 					<?php for($i = 1; $i <= $maxMatchesLimit; $i++):?>
 						<option <?=optionValue($i,$maxMatches)?> ><?=$i?></option>
 					<?php endfor ?>
-			</select>	
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -1038,28 +1038,28 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 
 function edit_tournamentMaxPoolSize($tournamentID = 0){
 // Select menu for the maximum pool size allowed in a tournament
-	
+
 	$tournamentID = (int)$tournamentID;
 	$maxSize = null;
-	$formatID = FORMAT_MATCH;					
-	
+	$formatID = FORMAT_MATCH;
+
 	if($tournamentID != 0){
 
 		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
-		
+
 		$sql = "SELECT maxPoolSize
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$maxSize = mysqlQuery($sql, SINGLE, 'maxPoolSize');
-		
+
 		if($formatID == FORMAT_MATCH){
 			$display ='';
 		}
 	}
-	
+
 	if($maxSize == null){
 		$sql = "SELECT maxPoolSize
 				FROM eventDefaults
@@ -1093,11 +1093,11 @@ function edit_tournamentMaxPoolSize($tournamentID = 0){
 						<?php for($i = 2; $i <= POOL_SIZE_LIMIT; $i++):
 							$selected = isSelected($i, $maxSize);
 							?>
-							
+
 							<option value=<?=$i?> <?=$selected?>><?=$i?></option>
 						<?php endfor ?>
-					
-			</select>	
+
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -1108,11 +1108,11 @@ function edit_tournamentMaxPoolSize($tournamentID = 0){
 
 function edit_tournamentSubMatches($tournamentID = 0){
 // Select menu for the maximum pool size allowed in a tournament
-	
-	$tournamentID = (int)$tournamentID;	
+
+	$tournamentID = (int)$tournamentID;
 	$numSubMatches = 0;
-	$subMatchMode = SUB_MATCH_ANALOG;				
-	
+	$subMatchMode = SUB_MATCH_ANALOG;
+
 	if($tournamentID != 0){
 
 		$sql = "SELECT subMatchMode, numSubMatches
@@ -1130,7 +1130,7 @@ function edit_tournamentSubMatches($tournamentID = 0){
 	} else {
 		$hide = '';
 	}
-	
+
 	?>
 
 <!-- Start display -->
@@ -1149,13 +1149,13 @@ function edit_tournamentSubMatches($tournamentID = 0){
 					data-original='<?=$numSubMatches?>' >
 						<option value=0>No</option>
 						<?php for($i = 2; $i <= 9; $i++): ?>
-							
+
 							<option <?=optionValue($i,$numSubMatches)?> >
-								<?=$i?> Sub-matches per Match	
+								<?=$i?> Sub-matches per Match
 							</option>
 						<?php endfor ?>
-					
-			</select>	
+
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -1167,7 +1167,7 @@ function edit_tournamentSubMatches($tournamentID = 0){
 				Sub-match Mode
 				<?=tooltip("<u>Analog</u>: The points from all sub-matches are added to determine
 							the match winner.
-							<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches, 
+							<BR><BR><u>Digital</u>: Winner is determined by who wins the most sub-matches,
 							regardless of what the scores were.")?>
 			</div>
 		</td>
@@ -1178,7 +1178,7 @@ function edit_tournamentSubMatches($tournamentID = 0){
 					id='subMatchMode_select<?=$tournamentID?>'>
 					<option <?=optionValue(SUB_MATCH_ANALOG,$subMatchMode)?> >	Analog 	</option>
 					<option <?=optionValue(SUB_MATCH_DIGITAL,$subMatchMode)?> >	Digital	</option>
-					
+
 			</select>
 			</div>
 		</td>
@@ -1189,13 +1189,13 @@ function edit_tournamentSubMatches($tournamentID = 0){
 /******************************************************************************/
 
 function edit_tournamentNormalization($tournamentID = 0){
-// Select menu for the normalization pool size All pools results will be 
-	
+// Select menu for the normalization pool size All pools results will be
+
 	$tournamentID = (int)$tournamentID;
 	$normSize = 0;
 
 	if($tournamentID !=  0){
-	
+
 		$sql = "SELECT normalizePoolSize
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
@@ -1223,7 +1223,7 @@ function edit_tournamentNormalization($tournamentID = 0){
 					<?php for($i = 2; $i <= POOL_SIZE_LIMIT; $i++):?>
 						<option <?=optionValue($i,$normSize)?>><?=$i?></option>
 					<?php endfor ?>
-			</select>	
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -1234,7 +1234,7 @@ function edit_tournamentNormalization($tournamentID = 0){
 function edit_tournamentPoolWinners($tournamentID = 0){
 // Select menu for the number of pool winners to rank ahead of non-pool winners.
 // Appears or disapears as controled by javascript.
-	
+
 	$tournamentID = (int)$tournamentID;
 	$numWinners = 0;
 	$formatID = null;
@@ -1257,7 +1257,7 @@ function edit_tournamentPoolWinners($tournamentID = 0){
 	} else {
 		$hide = '';
 	}
-	
+
 ?>
 
 <!-- Start display -->
@@ -1279,7 +1279,7 @@ function edit_tournamentPoolWinners($tournamentID = 0){
 					<?php for($i = 1; $i <= (POOL_SIZE_LIMIT-1); $i++): ?>
 						<option <?=optionValue($i,$numWinners)?> >Top <?=$i?> from pool</option>
 					<?php endfor ?>
-			</select>	
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -1292,23 +1292,23 @@ function edit_tournamentColors($tournamentID, $num){
 // Select menu for the fighter colors. Called for fighter 1 and 2 depending
 // on the value of $num.
 
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 
 	$num = (int)$num;
 	if($num != 1 AND $num != 2){ return; }
-	
+
 	$currentID = '';
 	$colors = getColors();
-	
+
 	if($tournamentID != 0){
 
 		$sql = "SELECT formatID
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$formatID = mysqlQuery($sql, SINGLE, 'formatID');
-		
+
 		$sql = "SELECT color{$num}ID, colorName
 				FROM eventTournaments
 				INNER JOIN systemColors ON color{$num}ID = colorID
@@ -1317,18 +1317,18 @@ function edit_tournamentColors($tournamentID, $num){
 
 		$currentName = $color['colorName'];
 		$currentID = $color["color{$num}ID"];
-			
-		
+
+
 	} else {
 
 		$eventID = $_SESSION['eventID'];
-		
+
 		$sql = "SELECT color{$num}ID, colorName
 				FROM eventDefaults
 				INNER JOIN systemColors ON color{$num}ID = colorID
 				WHERE eventID = {$eventID}";
 		$color = mysqlQuery($sql, SINGLE);
-		
+
 		if($color != null){
 			$currentName = $color['colorName'];
 			$currentID = $color["color{$num}ID"];
@@ -1350,8 +1350,8 @@ function edit_tournamentColors($tournamentID, $num){
 	}
 
 ?>
-	
-<!-- Start display -->	
+
+<!-- Start display -->
 	<tr class='option-match-display <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
@@ -1363,7 +1363,7 @@ function edit_tournamentColors($tournamentID, $num){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[color<?=$num?>ID]' class='shrink'
 					id='color<?=$num?>_select<?=$tournamentID?>'>
-					
+
 					<?php foreach($colors as $color):?>
 						<option <?=optionValue($color['colorID'], $currentID)?> >
 							<?=$color['colorName']?>
@@ -1382,7 +1382,7 @@ function edit_tournamentTies($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
 // Calls to java-script on change to alter the form based on it's selection
 // Appears as a checkbox to create a new tournament if no parameter is passed
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 	$allowTies = 0;
@@ -1390,7 +1390,7 @@ function edit_tournamentTies($tournamentID = 0){
 	if($tournamentID !=  0){
 		$formatID = getTournamentFormat($tournamentID);
 		$allowTies = readOption('T',$tournamentID,'MATCH_TIE_MODE');
-	} 
+	}
 
 	if($formatID != FORMAT_MATCH){
 		$hide = 'hidden';
@@ -1399,7 +1399,7 @@ function edit_tournamentTies($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 
 	<tr class='option-sparring <?=$hide?>'>
@@ -1415,7 +1415,7 @@ function edit_tournamentTies($tournamentID = 0){
 				<option <?=optionValue(MATCH_TIE_MODE_NONE,$allowTies)?>>No</option>
 				<option <?=optionValue(MATCH_TIE_MODE_EQUAL,$allowTies)?>>If Score Equal</option>
 				<option <?=optionValue(MATCH_TIE_MODE_UNEQUAL,$allowTies)?>>Always</option>
-					
+
 			</select>
 			</div>
 		</td>
@@ -1429,25 +1429,25 @@ function edit_tournamentTimerCountdown($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection
 // Appears as a checkbox to create a new tournament if no parameter is passed
-	
+
 
 	$formatID = getTournamentFormat($tournamentID);
 	if($formatID != FORMAT_MATCH){
 		$hide = 'hidden';
 	} else {
-		$hide = ""; 
+		$hide = "";
 	}
-	
+
 	$timerCountdown = isTimerCountdown($tournamentID);
 
 	?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-match-display <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
-				Timer Mode	
+				Timer Mode
 			</div>
 		</td>
 
@@ -1469,7 +1469,7 @@ function edit_tournamentTimerCountdown($tournamentID = 0){
 
 function edit_tournamentStaffCheckin($tournamentID){
 
-	
+
 	$tournamentID = (int)$tournamentID;
 	$checkInStaff = STAFF_CHECK_IN_NONE;
 
@@ -1478,19 +1478,19 @@ function edit_tournamentStaffCheckin($tournamentID){
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$checkInStaff = (int)mysqlQuery($sql, SINGLE, 'checkInStaff');
-	} 
+	}
 
 	$hide = "hidden";
-	
+
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
 				Check in Staff for Matches
-				<?=tooltip("Use this if you want to keep track of your judging/table staff on a match by match basis.")?>	
+				<?=tooltip("Use this if you want to keep track of your judging/table staff on a match by match basis.")?>
 			</div>
 		</td>
 
@@ -1521,19 +1521,19 @@ function edit_tournamentRequireSignOff($tournamentID = 0){
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$requireSignOff = (int)mysqlQuery($sql, SINGLE, 'requireSignOff');
-	} 
+	}
 
 	$hide = "hidden";
-	
+
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
 				Match Sign Off
-		<?=tooltip("Use this to require fighters to sign off on their scores after every match.")?>	
+		<?=tooltip("Use this to require fighters to sign off on their scores after every match.")?>
 			</div>
 		</td>
 
@@ -1554,9 +1554,9 @@ function edit_tournamentRequireSignOff($tournamentID = 0){
 
 function edit_tournamentReverseScore($tournamentID){
 // Select menu for whether or not the tournament uses reverse scores,
-// if points are entered to the fighter who got hit rather than 
+// if points are entered to the fighter who got hit rather than
 // the fighter who hits
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 	$isReverseScore = REVERSE_SCORE_NO;
@@ -1569,16 +1569,16 @@ function edit_tournamentReverseScore($tournamentID){
 
 		$isReverseScore = $info['isReverseScore'];
 		$formatID = $info['formatID'];
-	} 
+	}
 
 	if($formatID != FORMAT_MATCH){
 		$hide = 'hidden';
 	} else {
 		$hide = '';
-	}	
+	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-sparring <?=$hide?>'>
 		<td class='shrink-column'>
@@ -1595,11 +1595,11 @@ function edit_tournamentReverseScore($tournamentID){
 			<select name='updateTournament[isReverseScore]' class='shrink'
 					onchange="enableTournamentButton('<?=$tournamentID?>')"
 					id='reverseScore_select<?=$tournamentID?>'>
-					
+
 					<option <?=optionValue(0,$isReverseScore)?> >No (Normal)</option>
 					<option <?=optionValue(1,$isReverseScore)?> >Golf Score</option>
 					<option <?=optionValue(2,$isReverseScore)?> >Injury Score</option>
-			
+
 			</select>
 			</div>
 		</td>
@@ -1610,9 +1610,9 @@ function edit_tournamentReverseScore($tournamentID){
 /******************************************************************************/
 
 function edit_tournamentOverrideDoubles($tournamentID = 0){
-// Select menu for whether or not the tournament uses overrides 
+// Select menu for whether or not the tournament uses overrides
 // the default double hit behavior.
-	
+
 
 	$tournamentID = (int)$tournamentID;
 	$overrideDoubleType = 0;
@@ -1638,7 +1638,7 @@ function edit_tournamentOverrideDoubles($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-sparring <?=$hide?>' id="overrideDoubles_div<?=$tournamentID?>">
 		<td class='shrink-column'>
@@ -1653,22 +1653,22 @@ function edit_tournamentOverrideDoubles($tournamentID = 0){
 			<select name='updateTournament[overrideDoubleType]' class='shrink'
 					onchange="enableTournamentButton('<?=$tournamentID?>')"
 					id='overrideDoubles_select<?=$tournamentID?>'>
-					
+
 					<option <?=optionValue(0,$overrideDoubleType)?> >No (Normal)</option>
 					<option <?=optionValue(1,$overrideDoubleType)?> >Yes</option>
-			
+
 			</select>
 			</div>
 		</td>
 	</tr>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function edit_tournamentNetScore($tournamentID = 0){
 // Select menu for whether or not the tournament uses net score for Full Afterblow
-	
+
 	$formatID = FORMAT_MATCH;
 	$tournamentID = (int)$tournamentID;
 	$isNotNetScore = 0;
@@ -1692,7 +1692,7 @@ function edit_tournamentNetScore($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-sparring <?=$hide?>'>
 		<td class='shrink-column'>
@@ -1711,10 +1711,10 @@ function edit_tournamentNetScore($tournamentID = 0){
 			<select name='updateTournament[isNotNetScore]' class='shrink'
 					onchange="enableTournamentButton('<?=$tournamentID?>')"
 					id='notNetScore_select<?=$tournamentID?>'>
-				
+
 				<option <?=optionValue(0,$isNotNetScore);?> >Yes</option>
 				<option <?=optionValue(1,$isNotNetScore);?> >No</option>
-			
+
 			</select>
 			</div>
 		</td>
@@ -1736,13 +1736,13 @@ function edit_tournamentCuttingQual($tournamentID = 0){
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$isQual = (int)mysqlQuery($sql, SINGLE, 'isCuttingQual');
-		
+
 	}
 
 	$hide = "hidden";
 
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
@@ -1758,7 +1758,7 @@ function edit_tournamentCuttingQual($tournamentID = 0){
 					id='isCuttingQual_select<?=$tournamentID?>'>
 					<option <?=optionValue(0,$isQual)?>>No</option>
 					<option <?=optionValue(1,$isQual)?>>Yes</option>
-					
+
 			</select>
 			</div>
 		</td>
@@ -1777,7 +1777,7 @@ function edit_tournamentDoublesCarryForward($tournamentID = 0){
 	} else {
 		$isEnabled = 0;
 	}
-	
+
 	$hide = "hidden";
 
 ?>
@@ -1786,8 +1786,8 @@ function edit_tournamentDoublesCarryForward($tournamentID = 0){
 		<td class='shrink-column'>
 			<div class='shrink'>
 				Carry Doubles Forward  <?=tooltip("
-					If a fighter accrues enough double hits to 'double out' in a 
-					bracket match the table will be notified at the start 
+					If a fighter accrues enough double hits to 'double out' in a
+					bracket match the table will be notified at the start
 					of their next match.<BR>
 					<i>Doesn't work for double elim.</i>")?>
 			</div>
@@ -1813,7 +1813,7 @@ function edit_tournamentDoublesCarryForward($tournamentID = 0){
 function edit_tournamentKeepPrivate($tournamentID = 0){
 // Select menu for whether or not the software should warn people the event
 // organizer would rather not have results posted or added to stuff like HEMA Ratings
-	
+
 	$tournamentID = (int)$tournamentID;
 	$isPrivate = 0;
 
@@ -1828,7 +1828,7 @@ function edit_tournamentKeepPrivate($tournamentID = 0){
 	$hide = 'hidden';
 
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
@@ -1873,14 +1873,14 @@ function edit_tournamentHideFinalResults($tournamentID = 0){
 	$hide = "hidden";
 
 ?>
-	
+
 
 <!-- Start display -->
 	<tr class='option-misc <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
 				Show Final Results<?=tooltip("Disable this to not show the overall tournament results.<BR>
-					<BR>eg: Not showing the final results of tournaments that 
+					<BR>eg: Not showing the final results of tournaments that
 					are components of a meta-tournament.")?>
 			</div>
 		</td>
@@ -1902,7 +1902,7 @@ function edit_tournamentHideFinalResults($tournamentID = 0){
 
 function edit_tournamentTeams($tournamentID = 0){
 // Select if the tournament is a team event
-	
+
 	$tournamentID = (int)$tournamentID;
 	$isTeams = 0;
 	$mode = '';
@@ -1910,7 +1910,7 @@ function edit_tournamentTeams($tournamentID = 0){
 	$teamSize = 0;
 
 	if($tournamentID != 0){
-		
+
 		$sql = "SELECT isTeams
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
@@ -1940,7 +1940,7 @@ function edit_tournamentTeams($tournamentID = 0){
 
 
 ?>
-	
+
 <!-- Start display -->
 
 	<tr class='option-teams <?=$hide?>'>
@@ -1963,7 +1963,7 @@ function edit_tournamentTeams($tournamentID = 0){
 
 
 <!-- Start display -->
-	
+
 	<tr class='option-teams <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
@@ -1987,7 +1987,7 @@ function edit_tournamentTeams($tournamentID = 0){
 	</tr>
 
 <!-- Max Team Size -->
-	
+
 	<tr class='option-teams <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
@@ -1998,14 +1998,14 @@ function edit_tournamentTeams($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' placeholder='n/a'
-				name='updateTournament[teamSize]' value='<?=$teamSize?>' 
+				name='updateTournament[teamSize]' value='<?=$teamSize?>'
 				id='teamSize_select<?=$tournamentID?>' min=0 max=10>
 			</div>
 		</td>
 	</tr>
 
 <!-- Switch Fighters Alert -->
-	
+
 	<tr class='option-teams <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
@@ -2017,7 +2017,7 @@ function edit_tournamentTeams($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' placeholder='n/a'
-				name='updateTournament[teamSwitchPoints]' value='<?=$teamSwitchPoints?>' 
+				name='updateTournament[teamSwitchPoints]' value='<?=$teamSwitchPoints?>'
 				id='teamSwitchPoints_select<?=$tournamentID?>' min=0 max=99>
 			</div>
 		</td>
@@ -2029,7 +2029,7 @@ function edit_tournamentTeams($tournamentID = 0){
 
 function edit_tournamentMaxExchanges($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 
@@ -2062,7 +2062,7 @@ function edit_tournamentMaxExchanges($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-auto-conclude <?=$hide?>'>
 		<td class='shrink-column'>
@@ -2109,7 +2109,7 @@ function edit_tournamentMaxExchanges($tournamentID = 0){
 
 function edit_tournamentMaxPoints($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
-	
+
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 	$maximumPoints = 0;
@@ -2123,7 +2123,7 @@ function edit_tournamentMaxPoints($tournamentID = 0){
 
 		$maximumPoints = $info['maximumPoints'];
 		$formatID = $info['formatID'];
-	} 
+	}
 
 	if($formatID != FORMAT_MATCH){
 		$hide = 'hidden';
@@ -2136,7 +2136,7 @@ function edit_tournamentMaxPoints($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-auto-conclude <?=$hide?>'>
 		<td class='shrink-column'>
@@ -2201,15 +2201,15 @@ function edit_tournamentMaxPointSpread($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[maxPointSpread]' class='shrink'
 					id='maxPointSpread_select<?=$tournamentID?>'>
-					
+
 					<option <?=optionValue(0,$maxPointSpread)?> >Unlimited</option>
 
-					<?php for($i = 1; $i <= $pointSpreadLimit; $i++):?>	
+					<?php for($i = 1; $i <= $pointSpreadLimit; $i++):?>
 						<option <?=optionValue($i,$maxPointSpread)?> ><?=$i?></option>
 					<?php endfor ?>
 
 
-			</select>	
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -2235,7 +2235,7 @@ function edit_tournamentTimeLimit($tournamentID = 0){
 
 		$timeLimit = $info['timeLimit'];
 		$formatID = $info['formatID'];
-	
+
 	}
 
 	if($formatID != FORMAT_MATCH){
@@ -2249,7 +2249,7 @@ function edit_tournamentTimeLimit($tournamentID = 0){
 	}
 
 ?>
-	
+
 <!-- Start display -->
 	<tr class='option-auto-conclude <?=$hide?>'>
 		<td class='shrink-column'>
@@ -2282,30 +2282,30 @@ function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bot
 		<img src='includes/images/help.png'>
 	<?php endif ?>
 
-	
-	<span data-tooltip aria-haspopup='true' class='has-tip' 
+
+	<span data-tooltip aria-haspopup='true' class='has-tip'
 		data-disable-hover='false' tabindex='2' title="<?=$text?>"
 		data-position='<?=$dir?>' data-allow-html='true' >
-		
+
 		<?=$tip?>
-		
+
 	</span>
-	
+
 <?php }
 
 /******************************************************************************/
 
 function poolSetNavigation($displayByPoolsButton = false){
-// Buttons to navigate between pool sets, only display if it is a pool set tournament	
-	
-	
+// Buttons to navigate between pool sets, only display if it is a pool set tournament
+
+
 // Check that the tournament has pool sets
 	$tournamentID = (int)$_SESSION['tournamentID'];
 	if($tournamentID == 0){
 	 displayAlert('No Tournament selected for poolSetNavigation in display_functions.php');
 		return;
 	}
-	
+
 	$numGroupSets = getNumGroupSets($tournamentID);
 
 	if($displayByPoolsButton == true){
@@ -2327,25 +2327,25 @@ function poolSetNavigation($displayByPoolsButton = false){
 	}
 
 	?>
-	
+
 <!-- Start display -->
 	<form method='POST' style='display:inline'>
 
 	<?php if($numGroupSets > 1): ?>
-		
+
 		<input type='hidden' name='formName' value='changePoolSet'>
-		
+
 			<?php for($i = 1; $i <= $numGroupSets; $i++):
-				
-				if($i == $_SESSION['groupSet'] || !isset($_SESSION['groupSet'])){ 
+
+				if($i == $_SESSION['groupSet'] || !isset($_SESSION['groupSet'])){
 					$selected = null;
-				} else { 
-					$selected = 'hollow'; 
+				} else {
+					$selected = 'hollow';
 				}
 				$name = getSetName($i, $tournamentID);
 				?>
-				
-				<button class='button <?=$selected?> secondary' 
+
+				<button class='button <?=$selected?> secondary'
 					name='groupSet' value='<?=$i?>'>
 					<?=$name?>
 				</button>
@@ -2359,8 +2359,8 @@ function poolSetNavigation($displayByPoolsButton = false){
 	<?php endif ?>
 
 	</form>
-	
-<?php 
+
+<?php
 }
 
 /******************************************************************************/
@@ -2381,7 +2381,7 @@ function matchHistoryBar($matchInfo){
 	$i=0;
 	$doubles = 0;
 	$exchanges = array();
-	
+
 	$colorCode1 = COLOR_CODE_1;
 	$colorCode2 = COLOR_CODE_2;
 	$isZeroNumberedExchanges = false;
@@ -2407,7 +2407,7 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$exchanges[$i]['time'] = '';
 		}
-		
+
 
 		if($exchange['rosterID'] == $matchInfo['fighter1ID']){
 			$index1 = 1;
@@ -2416,11 +2416,11 @@ function matchHistoryBar($matchInfo){
 		} else {
 			$index1 = 2;
 			$index2 = 1;
-			$color =  COLOR_NAME_2; 
+			$color =  COLOR_NAME_2;
 		}
-		
+
 		if((isReverseScore($matchInfo['tournamentID']) > REVERSE_SCORE_NO)
-			&& ($exchange['exchangeType'] == 'clean' 
+			&& ($exchange['exchangeType'] == 'clean'
 				|| $exchange['exchangeType'] == 'afterblow')){
 			$temp = $index1;
 			$index1 = $index2;
@@ -2458,7 +2458,7 @@ function matchHistoryBar($matchInfo){
 				$exchanges[$i][$index1][2] = "<b>".$exchange['scoreValue']."</b>";
 
 				if($exchange['refType'] != null || $exchange['refTarget'] != null){
-					$penalties[$i] = getPenaltyInfo($exchange['exchangeID']); 
+					$penalties[$i] = getPenaltyInfo($exchange['exchangeID']);
 				}
 
 				break;
@@ -2476,17 +2476,17 @@ function matchHistoryBar($matchInfo){
 				$exchanges[$i][2][1] = $exchanges[$i][1][1];
 				$exchanges[$i][2][2] = $exchanges[$i][1][2];
 				break;
-				
+
 			case "noExchange":
 				$exchanges[$i][1][2] = "<b>/</b>";
 				$exchanges[$i][2][1] = "<b>/</b>";
 				break;
-				
+
 			case "afterblow":
-				if($doubleTypes['afterblowType'] == 'deductive'){	
+				if($doubleTypes['afterblowType'] == 'deductive'){
 
 					$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
-					$exchanges[$i][$index1][2] = "(".(-$exchange['scoreDeduction']).")";	
+					$exchanges[$i][$index1][2] = "(".(-$exchange['scoreDeduction']).")";
 
 				} else {
 
@@ -2499,7 +2499,7 @@ function matchHistoryBar($matchInfo){
 						if(($exchange['scoreValue'] - $exchange['scoreDeduction']) == 0){
 							$exchanges[$i][$index1][1] = '';
 						}
-						
+
 					} else {
 
 						$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
@@ -2509,7 +2509,7 @@ function matchHistoryBar($matchInfo){
 
 				}
 				break;
-				
+
 			case "clean":
 				$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
 				$exchanges[$i][$index1][2] = "";
@@ -2525,7 +2525,7 @@ function matchHistoryBar($matchInfo){
 				$teamID = $exchange['rosterID'];
 				$position = getTeamMemberPosition($teamID, $rosterID);
 				$exchanges[$i][$index1][2] = "({$position})";
-				
+
 				break;
 
 			default:
@@ -2534,8 +2534,8 @@ function matchHistoryBar($matchInfo){
 
 		$scoresheet = '';
 		$scoresheet .= "\n".$exchanges[$i]['time']." ".$color." ". $exchange['exchangeType'];
-	
-		$scoresheet .= " [".$exchange['scoreValue']."|".$exchange['scoreDeduction']."]";	
+
+		$scoresheet .= " [".$exchange['scoreValue']."|".$exchange['scoreDeduction']."]";
 		if((int)$exchange['refPrefix'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($exchange['refPrefix']);
@@ -2569,12 +2569,12 @@ function matchHistoryBar($matchInfo){
 
 		if($exchange['time'] == ''){
 			$exchange['time'] = "0:00";
-		}	
-		
+		}
+
 		$class = '';
 		$odd = '';
-		if($num % 2 != 1){ 
-			$class= 'old-exch-odd'; 
+		if($num % 2 != 1){
+			$class= 'old-exch-odd';
 		} else {
 			$odd= "opacity:0.92;";
 		}
@@ -2586,9 +2586,9 @@ function matchHistoryBar($matchInfo){
 			$back2 = $background;
 		}
 
-		
-		?>	
-		
+
+		?>
+
 		<div class='shrink text-center' style='width: 40px' title='<?=$exchange['detail']?>'>
 			<div class='cell <?=$class?>'>
 				<?=$exchange['time']?>
@@ -2600,15 +2600,15 @@ function matchHistoryBar($matchInfo){
 				<?=$b1?><BR><?=$b2?>
 			</div>
 		</div>
-		
+
 		<?php
 	}
-	
+
 /* Function to display each exchange on small screens ***/
 	function displayExchangeSmall($exchange, $num = null, $background = null){
 		$colorCode1 = COLOR_CODE_1;
 		$colorCode2 = COLOR_CODE_2;
-		
+
 		$t1 = $exchange[1][1];
 		if($t1 == null){$t1 = "&nbsp;";}
 		$t2 = $exchange[1][2];
@@ -2617,15 +2617,15 @@ function matchHistoryBar($matchInfo){
 		if($b1 == null){$b1 = "&nbsp;";}
 		$b2 = $exchange[2][2];
 		if($b2 == null){$b2 = "&nbsp;";}
-		
+
 		if($exchange['time'] == ''){
 			$exchange['time'] = "0:00";
-		}	
+		}
 
 		$class = '';
 		$odd = '';
-		if($num % 2 != 1){ 
-			$class= 'old-exch-odd'; 
+		if($num % 2 != 1){
+			$class= 'old-exch-odd';
 		} else {
 			$odd= "opacity:0.92;";
 		}
@@ -2636,9 +2636,9 @@ function matchHistoryBar($matchInfo){
 			$back1 = $background;
 			$back2 = $background;
 		}
-		
-		?>	
-		
+
+		?>
+
 		<tr class='old-exch-mini'>
 			<td class='<?=$class?>'>
 				<?=$exchange['time']?>
@@ -2656,16 +2656,16 @@ function matchHistoryBar($matchInfo){
 				<?=$b2?>
 			</td>
 		</tr>
-	
+
 		<?php
 	}
-	
+
 /***************************************************/
 
-?>		
+?>
 
 <!-- Normal size fight history -->
-	<div class='large-12 cell black-border hide-for-small-only'>	
+	<div class='large-12 cell black-border hide-for-small-only'>
 	<div class='grid-x grid-padding-x'>
 		<?php foreach($exchanges as $num => $exchange){
 
@@ -2683,17 +2683,17 @@ function matchHistoryBar($matchInfo){
 					$penaltyColor = null;
 					break;
 			}
-		
+
 			displayExchangeReg($exchange, $num, $penaltyColor);
 		} ?>
 	</div>
 	</div>
-	
+
 <!-- Small size fight history -->
 
 	<div class='large-12 cell show-for-small-only'>
 	<table>
-	<caption>Match Exchanges</caption>	
+	<caption>Match Exchanges</caption>
 	<?php foreach($exchanges as $num => $exchange){
 
 			switch(@$penalties[$num]['card']){
@@ -2734,10 +2734,10 @@ function matchHistoryBar($matchInfo){
 		</div>
 	<?php endif ?>
 
-	
 
 
-<?php 
+
+<?php
 	return $isZeroNumberedExchanges;
 
 }
@@ -2750,33 +2750,33 @@ function goToMatchButton($matchInfo){
 // If referencing an empty bracket match it becomes an 'add' button
 
 	$matchID = $matchInfo['matchID'];
-	
+
 	?>
-	
-	
+
+
 <!-- If a matchID was passed instead of $matchInfo data it is a simple button -->
 	<?php if(is_int($matchInfo)):
 		$matchID = $matchInfo;
 		?>
-		
+
 		<form method='POST'>
 			<input type='hidden' name='formName' value='goToMatch'>
 			<button class='button hollow tiny' value='<?=$matchID?>' name='matchID'>Go</button>
 		</form>";
-		
-	<?php return;
-	endif; ?>	
 
-<!-- If a match with both fighters was passed -->	
+	<?php return;
+	endif; ?>
+
+<!-- If a match with both fighters was passed -->
 	<?php if($matchInfo['fighter1ID'] != null && $matchInfo['fighter2ID'] != null): ?>
-		
+
 		<button class='button hollow tiny no-bottom' name='goToMatch' value='<?=$matchID?>'>Go</button>
 
 <!-- If an unfiled match was passed -->
 	<?php else: ?>
-	
+
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-			<button class='button success hollow tiny' style='margin-bottom: 5px;' 
+			<button class='button success hollow tiny' style='margin-bottom: 5px;'
 				name='updateBracket' value='newFighters' <?=LOCK_TOURNAMENT?>>
 				&#10004;
 			</button>
@@ -2785,14 +2785,14 @@ function goToMatchButton($matchInfo){
 		<?php endif ?>
 
 	<?php endif ?>
-	
+
 	<!-- Checkbox for staff to delete fighters from a match -->
 	<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-		<input type='checkbox' class='no-bottom'  name='selectedBracketMatches[matchIDs][<?=$matchID?>]' 
+		<input type='checkbox' class='no-bottom'  name='selectedBracketMatches[matchIDs][<?=$matchID?>]'
 			value='true' <?=LOCK_TOURNAMENT?>>
 	<?php endif ?>
-	
-	
+
+
 <?php }
 
 /******************************************************************************/
@@ -2817,7 +2817,7 @@ function addVideoLink($matchID, $divider = true){
 	define("VIRTUAL_LIVESTREAM_ENABLED",false);
 
 ?>
-	
+
 	<div class='grid-x grid-margin-x'>
 
 		<div class='cell large-12'>
@@ -2833,7 +2833,7 @@ function addVideoLink($matchID, $divider = true){
 		<?php endif ?>
 
 		<?php if(ALLOW['EVENT_VIDEO'] == true): ?>
-			
+
 			<!-- Display entry field for staff -->
 			<div class='cell large-9 medium-10 align-self-middle'>
 			<form method='POST'>
@@ -2843,7 +2843,7 @@ function addVideoLink($matchID, $divider = true){
 
 				<span class='input-group-label large-2 medium-3 small-12 text-center'>YouTube URL:</span>
 
-				<input class='input-group-field' type='url' name='updateVideoSource[sourceLink]' value='<?=$url?>' 
+				<input class='input-group-field' type='url' name='updateVideoSource[sourceLink]' value='<?=$url?>'
 					id='updateVideoSource[sourceLink]' onkeyup="validateVideoLink()"  placeholder='Include https://'>
 
 				<button name='formName'  value='updateVideoSource' disabled
@@ -2851,7 +2851,7 @@ function addVideoLink($matchID, $divider = true){
 					 Update Link
 				</button>
 
-				<button class='button success expanded show-for-small-only videoSubmitButton' 
+				<button class='button success expanded show-for-small-only videoSubmitButton'
 					name='formName' value='updateVideoSource' disabled >
 					Update Link
 				</button>
@@ -2875,9 +2875,9 @@ function addVideoLink($matchID, $divider = true){
 			</a>
 
 			</div>
-			
+
 		<?php endif ?>
-		
+
 		<?php if($virtualLivestream == false && VIRTUAL_LIVESTREAM_ENABLED): ?>
 			<div class='cell large-2 medium-3'>
 			<a class='button warning hollow expanded' onclick="openVideoWindow(<?=$matchID?>,<?=VIDEO_STREAM_VIRTUAL?>)">
@@ -2890,25 +2890,25 @@ function addVideoLink($matchID, $divider = true){
 
 <!-- Virtual Livestream Reveal Window -------------->
 
-	
+
 <?php }
 
 /******************************************************************************/
 
 function displayIncompleteMatches($incompleteMatches){
 // Displays incomplete matches from a tournament
-// Used to show staff which events are not complete if they need to 
-// close them all to enable the bracket helper	
-	
+// Used to show staff which events are not complete if they need to
+// close them all to enable the bracket helper
+
 	if(count($incompleteMatches) < 1){
 		return;
 	}
 
 	?>
-	
+
 	<form method='POST'>
 	<input type='hidden' name='formName' value='goToMatch'>
-	
+
 	The following pool matches are incomplete:<BR>
 	<?php foreach($incompleteMatches as $matchID):
 		$matchInfo = getMatchInfo($matchID);
@@ -2916,16 +2916,16 @@ function displayIncompleteMatches($incompleteMatches){
 		$name2 = getFighterName($matchInfo['fighter2ID'],null,null,$matchInfo['teamEntry']);
 		$poolName = getGroupName($matchInfo['groupID']);
 		?>
-		
-		
+
+
 		<button class='button no-bottom' name='matchID' value='<?=$matchID?>'>
 			<?=$poolName?> - <?=$name1?> vs <?=$name2?>
 		</button>
-	
+
 	<?php endforeach ?>
-	
+
 	</form>
-	
+
 	<?php unset($_SESSION['incompletePoolMatches']); ?>
 <?php }
 
@@ -2939,7 +2939,7 @@ function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
 // THIS SHOULD NOT BE USED IN PRODUCTION
 
 	$info = getFighterInfo($fighterID);
-	echo "<BR><BR><h4>Adding <strong class='red-text'>{$info['name']}</strong> 
+	echo "<BR><BR><h4>Adding <strong class='red-text'>{$info['name']}</strong>
 		from <strong>{$info['schoolName']}</strong></h4>";
 
 	echo "<BR><u>Algorithm Scoring</u>";
@@ -2978,7 +2978,7 @@ function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
 			}else{
 				echo "<td>{$name}</td>";
 			}
-	
+
 		}
 		echo "</tr>";
 	}
@@ -3047,9 +3047,9 @@ function autoFinalizeBracketForm($tournamentID){
 			</span>
 
 			<div class='switch no-bottom input-group-field'>
-				<input class='switch-input' type='hidden'  
+				<input class='switch-input' type='hidden'
 					name='autoFinalizeSpecs[breakTies]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='breakTies' 
+				<input class='switch-input polar-disables' type='checkbox' id='breakTies'
 					name='autoFinalizeSpecs[breakTies]' value=1>
 				<label class='switch-paddle' for='breakTies'>
 				</label>
@@ -3066,8 +3066,8 @@ function autoFinalizeBracketForm($tournamentID){
 								<BR> For example you may want to only include the first 2 of 3 matches.")?>
 					</strong>
 				</span>
-				<select class='input-group-field' 
-					name='autoFinalizeSpecs[subMatchLimit]'> 
+				<select class='input-group-field'
+					name='autoFinalizeSpecs[subMatchLimit]'>
 					<option value='0'></option>
 					<?php for($i = 1;$i<=$numSubMatches;$i++): ?>
 						<option value='<?=$i?>'>First <?=$i?> Match(es)</option>
@@ -3080,11 +3080,11 @@ function autoFinalizeBracketForm($tournamentID){
 
 		<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='success button small-6 cell' name='formName' 
+			<button class='success button small-6 cell' name='formName'
 				value='autoFinalizeTournament'>
 				Auto Finalize Tournament
 			</button>
-			<button class='secondary button small-6 cell' 
+			<button class='secondary button small-6 cell'
 				data-close aria-label='Close modal' type='button'>
 				Cancel
 			</button>
@@ -3100,7 +3100,7 @@ function autoFinalizeBracketForm($tournamentID){
 /******************************************************************************/
 
 function toggleClass($class,$text1,$text2 = null, $hide = false){
-// $type uses jQuery syntax to call a class or id. By default this uses classes 
+// $type uses jQuery syntax to call a class or id. By default this uses classes
 	if($text2 == null){
 		$text2 = $text1;
 	}
@@ -3168,7 +3168,7 @@ function selectCountry($name, $selected = null, $countryList = null, $classes = 
 	}
 
 	echo "<select name='{$name}' class='{$classes}' {$required}>";
-	
+
 	if($selected == null){
 		echo "<option selected disabled></option>";
 	}
@@ -3206,15 +3206,15 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 
 ?>
 	<script type="text/javascript">
-		
+
 		google.charts.setOnLoadCallback(drawChart);
 
 		function drawChart() {
-			
+
 			data = [<?=$chartData?>];
 
 			var chartData = google.visualization.arrayToDataTable(data);
-				
+
 
 			var options = {
 				legend: { position: 'top' },
@@ -3223,7 +3223,7 @@ function plotLineChart($chartData,$chartNum,$xLabel = null, $binWidth = null, $p
 						viewWindow: {min: 0}
 						 },
 				hAxis: { title: "<?=$xLabel?>",
-						viewWindow: {min: 0 <?=$plotWidthClause?>} 
+						viewWindow: {min: 0 <?=$plotWidthClause?>}
 						}
 
 			};
@@ -3279,7 +3279,7 @@ function changeParticipantFilterForm($eventID){
 				</select>
 			<?php endfor ?>
 
-			
+
 
 			<HR class='cell large-12'>
 			<a class='button secondary cell large-6' data-close aria-label='Close modal'>Cancel</a>
@@ -3308,12 +3308,12 @@ function activeFilterWarning(){
 ?>
 	<div class='callout secondary' data-closable>
 
-		One or more filters are active and hiding data. 
+		One or more filters are active and hiding data.
 
 		<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 
 		<form method='POST' style='display:inline-block'>
-			
+
 			<button class='button secondary tiny no-bottom' name='formName' value='setDataFilters'>Clear Filters</button>
 			<input type='hidden' name='filters[schoolID][0]' value='0'>
 			<input type='hidden' name='filters[rosterID][0]' value='0'>
@@ -3393,14 +3393,14 @@ function burgeeDisplay($burgeeID){
 ?>
 
 	<fieldset class='large-10 small-12 fieldset'>
-		
+
 		<legend><h4><?=$name?></h4></legend>
 
 
 		<table class='extra-burgee-<?=$burgeeID?>'>
 
 		<?php foreach($top4Burgees as $burgee):?>
-			
+
 			<tr>
 				<td class='text-center'>
 					<?=$burgee['placeText']?>
@@ -3409,12 +3409,12 @@ function burgeeDisplay($burgeeID){
 					<strong><?=$burgee['school']?></strong>
 				</td>
 			</tr>
-			
+
 		<?php endforeach ?>
 		</table>
 
 		<?php if($top4Burgees != []):?>
-			<a class='extra-burgee-<?=$burgeeID?>' 
+			<a class='extra-burgee-<?=$burgeeID?>'
 				onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()">
 				Full Standings ↓
 			</a>
@@ -3434,12 +3434,12 @@ function burgeeDisplay($burgeeID){
 				<th>School</th>
 				<?php foreach($paramList as $params):?>
 					<th><?=$params['name']?></th>
-				<?php endforeach ?>	
+				<?php endforeach ?>
 				<th>Points</th>
 			</tr>
 
-			
-			<?php  
+
+			<?php
 				foreach($burgeePoints as $schoolID => $placing):?>
 
 				<tr>
@@ -3451,8 +3451,8 @@ function burgeeDisplay($burgeeID){
 					</td>
 					<?php foreach($paramList as $i => $params):?>
 						<td><?=@$burgeePoints['schools'][$schoolID]['count'][$i]?></td>
-					<?php endforeach ?>	
-					
+					<?php endforeach ?>
+
 					<td><?=$placing['score']?></td>
 				</tr>
 
@@ -3466,16 +3466,16 @@ function burgeeDisplay($burgeeID){
 						<?php foreach($burgeePoints[$schoolID]['fighters'] as $rosterID => $fighter):?>
 
 							<li style='margin-bottom:0.3em;'>
-								<i><?=$fighter['placingName']?>:</i> 
+								<i><?=$fighter['placingName']?>:</i>
 								<b><?=getFighterName($rosterID)?></b>
-								
+
 									<?php foreach($fighter['tournamentIDs'] as $tournamentID):?>
 										&nbsp; &nbsp; &nbsp;[<?=getTournamentName($tournamentID)?>]
-									<?php endforeach ?> 
-									
-								
+									<?php endforeach ?>
+
+
 							</li>
-							
+
 						<?php endforeach ?>
 					</td>
 				</tr>
@@ -3490,12 +3490,12 @@ function burgeeDisplay($burgeeID){
 			<?=displayBurgeeRankingExplanation($paramList)?>
 			Each club member is counted only once with their best result. (No matter how many tournaments they win.)
 		</div>
-		
+
 	</fieldset>
 
-	
 
-	
+
+
 
 <?php
 }
@@ -3504,7 +3504,7 @@ function burgeeDisplay($burgeeID){
 
 function displayBurgeeRankingExplanation($paramList){
 
-	
+
 	foreach($paramList as $param){
 		if($param['type'] == 'percent'){
 			$val = round($param['value']*100)." %";
@@ -3517,9 +3517,9 @@ function displayBurgeeRankingExplanation($paramList){
 		echo "<li>";
 		echo "{$param['weight']} pt - Individuals who made it into the top {$val} of at least one tournament they entered.";
 		echo "</li>";
-			
+
 	}
-	
+
 }
 
 /******************************************************************************/
@@ -3556,7 +3556,7 @@ function dataModeForm(){
 
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-		<button class='button <?=$extEchClass?> secondary' 
+		<button class='button <?=$extEchClass?> secondary'
 			name='dataModes[extendedExchangeInfo]' value=<?=$extEchValue?>>
 
 			Show Extended Exchange Info

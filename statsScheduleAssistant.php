@@ -59,7 +59,7 @@ if($_SESSION['eventID'] == null){
 	} else {
 		$tournamentIDs = [];
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -82,11 +82,11 @@ if($_SESSION['eventID'] == null){
 
 		<div class='input-group no-bottom'>
 			<span class='input-group-label no-bottom'>Average Match Length & Changeover [sec]: </span>
-			<input class='input-group-field no-bottom' type=number id='time-per-match' 
+			<input class='input-group-field no-bottom' type=number id='time-per-match'
 				value='<?=$totalMatchLength?>' placeholder='<?=$totalMatchLength?>'
 				onchange="statsUpdateTournamentTimeCalc()">
 		</div>
-		
+
 	</div>
 
 	<a onclick="$('#time-source-div').toggle()"><i>Use Historical Data</i></a>
@@ -100,14 +100,14 @@ if($_SESSION['eventID'] == null){
 
 		<div class='input-group no-bottom'>
 			<span class='input-group-label no-bottom'>
-				Delay between pools [sec]: 
+				Delay between pools [sec]:
 				<?=tooltip("There is no historical data import for this. You are on your own to estimate.")?>
 			</span>
-			<input class='input-group-field no-bottom' type=number id='time-between-pools' 
+			<input class='input-group-field no-bottom' type=number id='time-between-pools'
 				value='0' placeholder='???'
 				onchange="statsUpdateTournamentTimeCalc()">
 		</div>
-		
+
 	</div>
 
 	<p id='time-calculation-error' class='red-text'>
@@ -136,7 +136,7 @@ if($_SESSION['eventID'] == null){
 			<th>Total Time [hrs]</th>
 		</tr>
 
-		
+
 		<tr>
 
 			<td>
@@ -162,14 +162,14 @@ if($_SESSION['eventID'] == null){
 			<td id='t-time-calc-total-time'>-</td>
 
 		</tr>
-		
+
 
 
 	</table>
 
 
 
-	
+
 <?php }
 include('includes/footer.php');
 

@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Add/Edit Schools
-	
+
 	Page where administrators can add/edit schools in the database
 	LOGIN
 		- ADMIN or higher can add new schools
@@ -16,17 +16,17 @@ $pageName = 'School Management';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-if(ALLOW['EVENT_MANAGEMENT'] == false 
+if(ALLOW['EVENT_MANAGEMENT'] == false
 	&& ALLOW['SOFTWARE_ASSIST'] == false
 	&& ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
 	$schools = getSchoolListLong();
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
-	
+
 	<form method='POST' action='participantsEvent.php'>
 	<input type='hidden' name='on' value='1'>
 	<button class='button' value='addEventParticipantsMode' name='formName'>
@@ -34,26 +34,26 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 	</button>
 	<BR><BR>
 	</form>
-	
+
 <!-- Add New School -->
-	<?php 
+	<?php
 		if(isset($_SESSION['editSchoolID'])){
 			editExistingSchool();
 		} else {
 			addNewSchoolInput();
 		}
 	?>
-	
+
 <!-- Display Existing Schools -->
 	<HR><h5>Schools in Database</h5>
-	
+
 	<form method='POST'>
 	<input type='hidden' name='formName' value='editExistingSchool'>
 	<input type='hidden' name='enableEditing' value='true'>
-	
+
 	<table>
 	<?php displaySchoolHeaders(); ?>
-	
+
 	<?php foreach($schools as $school): ?>
 		<tr>
 			<td>
@@ -72,10 +72,10 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 			<td><?= $school['schoolProvince'] ?></td>
 			<td><?= $school['schoolCity'] ?></td>
 		</tr>
-		
-		
-	<?php endforeach ?>	
-		
+
+
+	<?php endforeach ?>
+
 	</table>
 
 <?php }
@@ -105,18 +105,18 @@ function displaySchoolHeaders(){
 /******************************************************************************/
 
 function editExistingSchool(){
-	
+
 	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 	$schoolID = $_SESSION['editSchoolID'];
 	unset($_SESSION['editSchoolID']);
 	$schoolInfo = getSchoolInfo($schoolID); ?>
-	
+
 	<h5>Edit School (ID: <?= $schoolID ?>)</h5>
-	
+
 	<form method='POST'>
 	<input type='hidden' name='formName' value='editExistingSchool'>
 	<input type='hidden' name='schoolID' value='<?= $schoolID ?>'>
-	
+
 	<table>
 	<tr>
 		<td>School Full Name</td>
@@ -128,7 +128,7 @@ function editExistingSchool(){
 	<tr>
 		<td>School Short Name </td>
 		<td>
-			<input type='text' name='schoolShortName' 
+			<input type='text' name='schoolShortName'
 			value='<?= $schoolInfo['schoolShortName'] ?>' size='10'>
 		</td>
 	</tr>
@@ -142,7 +142,7 @@ function editExistingSchool(){
 	<tr>
 		<td>School Branch </td>
 		<td>
-			<input type='text' name='schoolBranch' 
+			<input type='text' name='schoolBranch'
 			value='<?= $schoolInfo['schoolBranch'] ?>' size='10'>
 		</td>
 	</tr>
@@ -155,19 +155,19 @@ function editExistingSchool(){
 	<tr>
 		<td>School Province </td>
 		<td>
-			<input type='text' name='schoolProvince' 
+			<input type='text' name='schoolProvince'
 			value='<?= $schoolInfo['schoolProvince'] ?>'>
 		</td>
 	</tr>
 	<tr>
 		<td>School City </td>
 		<td>
-			<input type='text' name='schoolCity' 
+			<input type='text' name='schoolCity'
 			value='<?= $schoolInfo['schoolCity'] ?>'>
 		</td>
 	</tr>
 	</table>
-	
+
 	<div class='grid-x grid-padding-x row'>
 		<div class='small-12 medium-3 large-2 cell'>
 			<button class='button primary expanded'>Update School</button>
@@ -179,21 +179,21 @@ function editExistingSchool(){
 		</div>
 	</div>
 	</form>
-	
-	
+
+
 <?php }
 
 
- 
+
 /******************************************************************************/
 
 function addNewSchoolInput(){
 ?>
 	<h5>Add School:</h5>
-		
+
 	<div class='grid-x grid-margin-x'>
 	<div class='medium-6 cell'>
-		
+
 		<form method='POST'>
 		<input type='hidden' name='formName' value='addNewSchool'>
 		<div class='grid-x cell'>
@@ -208,7 +208,7 @@ function addNewSchoolInput(){
 				id='schoolShort'>
 		</div>
 		<div class='input-group grid-x cell'>
-			<span class='input-group-label small-5'><strong>School Abbreviation</strong> 
+			<span class='input-group-label small-5'><strong>School Abbreviation</strong>
 				<?=tooltip("This is used as a shorthand for things like pool rosters, to help avoid people from the same school fighting.<BR>
 				Please keep it as short as possible, 3-5 characters.<BR>
 				(Max is 7)")?>:
@@ -237,7 +237,7 @@ function addNewSchoolInput(){
 		<button class='button success'>Add New School</button>
 		</form>
 	</div>
-	
+
 	<div class='hide-for-small-only medium-6 cell'>
 		The school's short name is the name that will mostly show up.<BR>
 		The school's full name is the full title of the school.
@@ -248,15 +248,15 @@ function addNewSchoolInput(){
 		<li>Branch: <em>True Edge South</em></li>
 		<li>Abbreviation: <em>TEA</em></ul>
 		The school's branch will show up after the schools full name<BR>
-		
+
 		<em>True Edge Academy of Swordsmanship, <u>True Edge South</u></em><BR><BR>
-		If you don't fill in the short name the software will use the full name. 
-		If you don't fill in an abbreviation the software will make one up 
+		If you don't fill in the short name the software will use the full name.
+		If you don't fill in an abbreviation the software will make one up
 		of all the capital letters in the name.
 	</div>
-	
+
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/

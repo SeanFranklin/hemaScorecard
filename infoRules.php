@@ -1,7 +1,7 @@
-<?php 
+<?php
 /*******************************************************************************
 	Tournament Rules
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -18,8 +18,7 @@ if((int)$_SESSION['eventID'] == 0){
 } else if(ALLOW['VIEW_RULES'] == false){
 	displayAlert("Rules for this event have not been published.");
 } else {
-	
-	
+
 	$rulesIDs = (array)getEventRules($_SESSION['eventID']);
 
 	if((int)$_SESSION['rulesID'] != 0){
@@ -57,7 +56,7 @@ if((int)$_SESSION['eventID'] == 0){
 		<div class='medium-8 large-6 cell input-group no-bottom'>
 			<span class='input-group-label no-bottom hide-for-small-only'>Select Rules:</span>
 			<span class='input-group-label no-bottom show-for-small-only'>Rules:</span>
-			<select class='input-group-field no-bottom' name='changeRules[rulesID]' 
+			<select class='input-group-field no-bottom' name='changeRules[rulesID]'
 				id='change-rules-select' onchange="submitForm('change-active-rules','changeRulesID')">
 
 				<?php if(ALLOW['EVENT_MANAGEMENT'] == true):?>
@@ -80,14 +79,14 @@ if((int)$_SESSION['eventID'] == 0){
 		</div>
 	</form>
 
-	
+
 
 <!-- Show Rules -------------------------------------->
 
 	<?=reOrderRules($rulesIDs)?>
-		
+
 	<?=editRules($rulesInfo)?>
-		
+
 	<?=displayRules($rulesInfo)?>
 
 
@@ -125,7 +124,7 @@ function reOrderRules($rulesIDs){
 		</div>
 
 		<?php foreach($rulesIDs as $index => $rulesID): ?>
-			<input class='hidden' name='orderRules[rulesIDs][<?=$rulesID?>]' 
+			<input class='hidden' name='orderRules[rulesIDs][<?=$rulesID?>]'
 				id='rules-order-for-<?=$rulesID?>' value=<?=$index?>>
 		<?php endforeach ?>
 
@@ -182,12 +181,12 @@ function editRules($rulesInfo){
 	<HR>
 
 	<form method="POST">
-	
+
 		<div class='grid-x grid-margin-x'>
 		<div class='medium-8 large-6 cell input-group'>
 			<h4 class='input-group-label hide-for-small-only'>Name of Rules:</h4>
 			<h4 class='input-group-label show-for-small-only'>Name:</h4>
-			<input class='input-group-field' type='text' 
+			<input class='input-group-field' type='text'
 				name='updateRules[rulesName]' value="<?=$rulesInfo['rulesName']?>"
 				placeholder='Add new ruleset' required>
 		</div>
@@ -212,7 +211,7 @@ function editRules($rulesInfo){
 							<div class='switch text-center no-bottom'>
 							<input type='hidden' name='updateRules[tournamentIDs][<?=$tournamentID?>]' value='0'>
 							<input class='switch-input' type='checkbox' <?=chk(@$rulesInfo['tournamentIDs'][$tournamentID])?>
-								id='updateRules[tournamentIDs][<?=$tournamentID?>]' 
+								id='updateRules[tournamentIDs][<?=$tournamentID?>]'
 								name='updateRules[tournamentIDs][<?=$tournamentID?>]' value='1'>
 							<label class='switch-paddle' for='updateRules[tournamentIDs][<?=$tournamentID?>]'>
 							</label>
@@ -234,7 +233,7 @@ function editRules($rulesInfo){
 		<a class='button alert' data-open='deleteRules'>
 			Delete Rule-set
 		</a>
-		
+
 	</form>
 
 
@@ -256,12 +255,12 @@ function editRules($rulesInfo){
 			</button>
 		</div>
 		</form>
-		
+
 	<!-- Reveal close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
-	
+
 	</div>
 
 <?

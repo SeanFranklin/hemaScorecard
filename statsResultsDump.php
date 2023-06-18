@@ -1,13 +1,13 @@
 <?php
 /*******************************************************************************
 	Results Dump
-	
+
 	Exports the results and roster of a tournament in accordance with
 	HEMA Scorecard standards.
 	LOGIN:
 		- SUPER ADMIN and above can use
 		- Analytics user can use
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ if($_SESSION['eventID'] == null){
 			$unfinalizedTournaments[$tournamentID] = $tournament;
 		}
 	}
-	
+
 	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
 	$email = getEventEmail($_SESSION['eventID']);
 
@@ -48,10 +48,10 @@ if($_SESSION['eventID'] == null){
 		$eventExportClass = "alert hollow";
 		$eventExportErrText = "<em>Form incomplete</em> ";
 	}
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
+////////////////////////////////////////////////////////////////////////////////
+?>
 	<?php if(ALLOW['VIEW_EMAIL']):?>
 		<strong>Event Contact Information: </strong>
 		<a href='mailto:<?=$email?>'><?=$email?></a>
@@ -60,7 +60,7 @@ if($_SESSION['eventID'] == null){
 
 
 	<h4><a class="hema-ratings-export" onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4>
-		
+
 	<fieldset class='fieldset hema-ratings-export hidden'>
 
 	<legend><h4><a onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4></legend>
@@ -69,7 +69,7 @@ if($_SESSION['eventID'] == null){
 
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
-		
+
 	<!-- Export roster -->
 		<?php if(ALLOW['VIEW_EMAIL']):?>
 			<div class='large-3 medium-5 cell'>
@@ -92,7 +92,7 @@ if($_SESSION['eventID'] == null){
 			<i> - Remember to return any HEMA Ratings IDs not on this list!</i>
 			</div>
 		<?php endif ?>
-		
+
 
 		<div class='large-12 cell'><HR></div>
 
@@ -111,9 +111,9 @@ if($_SESSION['eventID'] == null){
 			if(isTournamentPrivate($tournamentID)){
 				$class = 'alert';
 				$warning = '<em> - Request for private results</em><BR>'.$warning;
-			} 
-			
-			
+			}
+
+
 			?>
 
 			<div class='large-4 medium-6 cell'>
@@ -122,7 +122,7 @@ if($_SESSION['eventID'] == null){
 			</button>
 			<?=$warning?>
 			</div>
-			
+
 		<?php endforeach ?>
 		</div>
 
@@ -141,7 +141,7 @@ include('includes/footer.php');
 /******************************************************************************
 
 	----------------------------------------------------------
-	-- 	Used as a hack to export results from a tournament	-- 
+	-- 	Used as a hack to export results from a tournament	--
 	-- 	where each exchange was a different weapon 			--
 	----------------------------------------------------------
 
@@ -156,21 +156,21 @@ function exportTournament_SingleExchange($tournamentID){
 		echo "<BR>Error in exportTournament(): No Tournament Loaded<BR>";
 		return;
 	}
-	
+
 	$sql = "SELECT exchangeType, scoringID, receivingID, matchID
 			FROM eventGroups
 			INNER JOIN eventMatches ON eventGroups.groupID = eventMatches.groupID
 			INNER JOIN eventExchanges USING(matchID)
 			WHERE tournamentID = {$tournamentID}";
 	$matchData = mysqlQuery($sql, ASSOC);
-	
+
 	$tournamentName = getTournamentName($tournamentID);
-	
+
 	for($useExchange = 1; $useExchange<=EXCHANGE_NUM; $useExchange++){
-	
+
 		$matchID = null;
 		$exchangeNum = 1;
-		
+
 		foreach($matchData as $index => $data){
 			if($matchID == $data['matchID']){
 				$exchangeNum++;
@@ -178,7 +178,7 @@ function exportTournament_SingleExchange($tournamentID){
 				$exchangeNum = 1;
 				$matchID = $data['matchID'];
 			}
-			
+
 			if($exchangeNum == $useExchange){
 				$wantedExchanges[$matchID] = $data;
 			}
@@ -186,29 +186,29 @@ function exportTournament_SingleExchange($tournamentID){
 		}
 
 		$fp = fopen("exports/{$tournamentName}- {$useExchange}.csv", 'w');
-			
+
 		foreach($wantedExchanges as $match){
 			$f1ID = $match['scoringID'];
 			$f2ID = $match['receivingID'];
 			$winID = $match['scoringID'];
 			$matchID = $match['matchID'];
-			
+
 			$fighter1 = getFighterName($f1ID);
 			$fighter2 = getFighterName($f2ID);
 			$f1Result = 'Loss';
 			$f2Result = 'Loss';
-			
+
 			echo "$fighter1 vs $fighter2 - {$match['exchangeType']}<BR>";
 			if($match['exchangeType'] == 'clean' or $match['exchangeType'] == 'afterblow'){
 				$f1Result = 'Win';
 			}
-			
+
 			$fields = [$fighter1, $fighter2, $f1Result, $f2Result];
 			$numFields = 4;
-			
+
 			//fputcsv($fp, $fields);
 			$comma = ',';
-			
+
 			foreach($fields as $index => $field){
 				if ($index == $numFields-1){
 					$comma = null;
@@ -216,10 +216,10 @@ function exportTournament_SingleExchange($tournamentID){
 				fputs($fp, $field.$comma);
 			}
 			fputs($fp, PHP_EOL);
-			
+
 		}
 		fclose($fp);
-		
+
 	}
 }
 

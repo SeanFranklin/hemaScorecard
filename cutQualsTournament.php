@@ -1,8 +1,8 @@
 <?php
 /*******************************************************************************
 	Cutting Qualifications for Tournaments
-	
-	Displays which fighters registered in a tournament have completed the 
+
+	Displays which fighters registered in a tournament have completed the
 	approprtiate cutting qualification
 	LOGIN: N/A
 
@@ -34,17 +34,17 @@ if($_SESSION['tournamentID'] == null){
 	$nonQualledFighters = [];
 	$qualledFighters = [];
 	$hide = getItemsHiddenByFilters($tournamentID,$_SESSION['filters'],'roster');
-	
+
 	if(isset($qualList)){
 		foreach($tournamentList as $fighter){
 			$entry = [];
-			$systemRosterID = $fighter['systemRosterID']; 
+			$systemRosterID = $fighter['systemRosterID'];
 			$entry['name'] = getFighterNameSystem($systemRosterID);
 			$entry['systemRosterID'] = $systemRosterID;
-			$entry['rosterID'] = $fighter['rosterID']; 
+			$entry['rosterID'] = $fighter['rosterID'];
 			$eventDate = getEventEndDate($_SESSION['eventID']);
-			
-			if(isset($qualList[$systemRosterID])){ 
+
+			if(isset($qualList[$systemRosterID])){
 				$entry['qualled'] = true;
 				if($qualList[$systemRosterID]['date'] == $eventDate){
 					$entry['thisEvent'] = true;
@@ -54,7 +54,7 @@ if($_SESSION['tournamentID'] == null){
 				$entry['qualled'] = false;
 				$numToQual++;
 			}
-			
+
 			$displayMode = '';
 			if(isset($_SESSION['cutQualDisplayMode'])){
 				$displayMode = $_SESSION['cutQualDisplayMode'];
@@ -66,7 +66,7 @@ if($_SESSION['tournamentID'] == null){
 					break;
 				case 'qual':
 				default:
-					if($entry['qualled']){ 
+					if($entry['qualled']){
 						$qualledFighters[] = $entry;
 					} else {
 						$nonQualledFighters[] = $entry;
@@ -82,19 +82,19 @@ if($_SESSION['tournamentID'] == null){
 			$displayList[] = $fighter;
 		}
 	}
-	
-	
-	
+
+
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<?=activeFilterWarning()?>
 
 <!-- Select tournament standard -->
 	<?php if($thisStandard != null): ?>
-		Fighters who have completed 
-		<strong><?=$thisStandard['standardName']?></strong> 
+		Fighters who have completed
+		<strong><?=$thisStandard['standardName']?></strong>
 		since <strong><?=$thisStandard['date']?></strong><BR>
 	<?php else:
 		$alertText = "No Cutting Qualification Standards Set";
@@ -111,21 +111,21 @@ if($_SESSION['tournamentID'] == null){
 	<?php endif ?>
 
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-		
+
 		<a class='button small-expanded' data-open='changeStandardsBox'>
 			Change Tournament Standards
 		</a>
-		
-		
+
+
 		<div class='reveal' id='changeStandardsBox' data-reveal>
 		<form method='POST'>
-			
+
 		<h4>Tournament Cutting Standard</h4>
 		<!-- Standards -->
 		<div class='input-group grid-x'>
 			<span class='input-group-label medium-shrink small-12'>Qualification Type:</span>
 			<select class='input-group-field' name='qualStandard'>
-				<?php foreach($allStandards as $standard): 
+				<?php foreach($allStandards as $standard):
 					$standardID = $standard['standardID'];
 					$name = $standard['standardName'];
 					$selected = isSelected($standardID, $thisStandard['standardID']);
@@ -134,14 +134,14 @@ if($_SESSION['tournamentID'] == null){
 				<?php endforeach ?>
 			</select>
 		</div>
-		
+
 		<!-- Relative Time -->
 		<fieldset class='fieldset'>
 		<legend>
 			Use Relative Time:
 			<input type='radio' name='useDateType' value='relative' checked id='relative-date'>
 		</legend>
-		
+
 		<div class='input-group grid-x'>
 			<input class='input-group-field' type='number' name='qualYears'
 				min=0 max=10 placeholder='Years' onchange="toggleRadio('relative-date')">
@@ -152,21 +152,21 @@ if($_SESSION['tournamentID'] == null){
 			<span class='input-group-label medium-shrink small-12'>Prior to event start</span>
 		</div>
 		</fieldset>
-		
+
 		<!-- Absolute Date -->
 		<fieldset class='fieldset'>
 		<legend>
 			Use Absolute Date:
 			<input type='radio' name='useDateType' value='absolute' id='absolute-date'>
 		</legend>
-		
+
 		<div class='input-group grid-x'>
 			<span class='input-group-label medium-shrink small-12'>Since Date:</span>
 			<input class='input-group-field' type='date' name='qualDate' value='<?=$thisStandard['date']?>'
 				onchange="toggleRadio('absolute-date')">
 		</div>
 		</fieldset>
-		
+
 		<div class='grid-x grid-margin-x'>
 			<button class='button success small-6 cell' name='formName' value='setCutQualStandards'>
 				Update
@@ -175,23 +175,23 @@ if($_SESSION['tournamentID'] == null){
 				Cancel
 			</a>
 		</div>
-		
+
 		</form>
-		
+
 	<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
-		
-	</div>	
-		
+
+	</div>
+
 	<?php endif ?>
 
 	<div class='grid-x grid-padding-x'>
 	<div class='large-5 medium-7 cell'>
-		
-	
-	
+
+
+
 <!-- Display List of Fighters -->
 	<?php if($thisStandard != null): ?>
 
@@ -199,11 +199,11 @@ if($_SESSION['tournamentID'] == null){
 			<h4><strong><?=$numToQual?></strong> left to Qualify.</h4>
 		<?php endif ?>
 	<table>
-		
+
 	<!-- Header -->
 		<form method='post'>
 		<input type='hidden' name='formName' value='changeCutQualDisplay'>
-		
+
 		<tr>
 			<th>
 				<button name='cutQualDisplayMode' value='name'><a><strong>
@@ -225,8 +225,8 @@ if($_SESSION['tournamentID'] == null){
 		</form>
 
 	<!-- Data -->
-		
-		<?php foreach((array)$displayList as $fighter): 
+
+		<?php foreach((array)$displayList as $fighter):
 			if(isset($fighter['qualID'])){
 				$qualID = $fighter['qualID'];
 			} else {
@@ -242,17 +242,17 @@ if($_SESSION['tournamentID'] == null){
 				<form method='POST'>
 				<input type='hidden' name='systemRosterID' value='<?=$fighter['systemRosterID']?>'>
 				<input type='hidden' name='qualID' value='<?=$qualID?>'>
-				
+
 				<td><?=$fighter['name']?></td>
 				<th>
 					<?php if($fighter['qualled']): ?>
 						<?php if(isset($fighter['thisEvent']) && ALLOW['EVENT_SCOREKEEP'] == true):?>
-							<button class='button tiny hollow alert no-bottom' 
+							<button class='button tiny hollow alert no-bottom'
 								name='formName' value='removeQualledFighterEvent'>
 								Remove
 							</button>
-						<?php elseif(ALLOW['EVENT_SCOREKEEP'] == true): ?>	
-							<button class='button tiny hollow no-bottom' 
+						<?php elseif(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+							<button class='button tiny hollow no-bottom'
 								name='formName' value='addQualledFighterEvent'>
 								Update
 							</button>
@@ -263,7 +263,7 @@ if($_SESSION['tournamentID'] == null){
 						<?php endif ?>
 					 <?php else: ?>
 						 <?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-							<button class='button tiny hollow success no-bottom' 
+							<button class='button tiny hollow success no-bottom'
 								name='formName' value='addQualledFighterEvent'>
 								Add
 							</button>
@@ -273,8 +273,8 @@ if($_SESSION['tournamentID'] == null){
 				</form>
 			</tr>
 		<?php endforeach ?>
-		
-	
+
+
 	</table>
 	<?php else: ?>
 		<?php displayAlert('Qualification Standard not yet applied'); ?>
@@ -283,7 +283,7 @@ if($_SESSION['tournamentID'] == null){
 	</div>
 
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
-	
+
 <?php }
 
 include('includes/footer.php');

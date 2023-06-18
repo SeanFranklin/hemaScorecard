@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Event Check In
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ if($eventID == null){
 		window.onload = function(){
 			refreshCheckInList('event', <?=$eventID?>);
 			window.setInterval(
-				function(){ refreshCheckInList('event',<?=$eventID?>);}, 
+				function(){ refreshCheckInList('event',<?=$eventID?>);},
 				refreshPeriod
 			);
 		}
@@ -134,11 +134,11 @@ if($eventID == null){
 					<a class='button no-bottom tiny' onclick="checkInFighterJs('waiver')"
 						id='<?=$f['waiverID']?>'
 						data-checkInType='event'
-						data-rosterID=<?=$rosterID?> 
+						data-rosterID=<?=$rosterID?>
 						data-signed=<?=$f['eventWaiver']?>>
 						<?=$f['waiverText']?>
 					</a>
-					
+
 				</td>
 
 				<td class='text-center'>
@@ -146,7 +146,7 @@ if($eventID == null){
 					<a class='button no-bottom tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$f['checkInID']?>'
 						data-checkInType='event'
-						data-rosterID=<?=$rosterID?> 
+						data-rosterID=<?=$rosterID?>
 						data-checked=<?=$f['eventCheckIn']?>>
 						<?=$f['checkInText']?>
 					</a>
@@ -171,11 +171,11 @@ if($eventID == null){
 					<a class='button no-bottom italic tiny' onclick="checkInFighterJs('waiver')"
 						id='<?=$a['waiverID']?>'
 						data-checkInType='additional'
-						data-additionalRosterID=<?=$additionalID?> 
+						data-additionalRosterID=<?=$additionalID?>
 						data-signed=<?=$a['eventWaiver']?>>
 						<?=$a['waiverText']?>
 					</a>
-					
+
 				</td>
 
 				<td class='text-center'>
@@ -183,7 +183,7 @@ if($eventID == null){
 					<a class='button no-bottom italic tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$a['checkInID']?>'
 						data-checkInType='additional'
-						data-additionalRosterID=<?=$additionalID?> 
+						data-additionalRosterID=<?=$additionalID?>
 						data-checked=<?=$a['eventCheckIn']?>>
 						<?=$a['checkInText']?>
 					</a>

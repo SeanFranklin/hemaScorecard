@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Manage Tournaments
-	
+
 	View and change settings of tournaments. Delete existing tournaments.
 	LOGIN
 		- ADMIN or higher required to view
@@ -128,7 +128,7 @@ if($_SESSION['eventID'] == null){
 
 	<fieldset <?=$formLock?> >
 	<form method='POST'>
-	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>> 
+	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
 		Submit
 	</button>
 	<a class='button warning' onclick="$('#import-attacks').toggle()" <?=$formLock?> >
@@ -138,14 +138,14 @@ if($_SESSION['eventID'] == null){
 		Leave the points field blank to delete an entry
 	</i>
 
-	<?php 
+	<?php
 		if($useGrid == false){
 			displayModeIndividual($formLock);
 		} else {
 			displayModeIndividual($formLock);
 		}
 	?>
-	
+
 
 	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
 		Submit
@@ -199,20 +199,20 @@ function displayModeIndividual($formLock){
 			<th>Attack Prefix</th>
 			<th>Attack Target</th>
 			<th>Attack Type</th>
-			<th>Points</th>	
+			<th>Points</th>
 		</tr>
-		
+
 	<!-- Old Attacks -->
-		<?php foreach($existingAttacks as $attack): 
+		<?php foreach($existingAttacks as $attack):
 			$i++; ?>
 			<tr>
-				
-			<!-- Order -->	
+
+			<!-- Order -->
 				<td>
-					<input class='no-margin' type='number' 
+					<input class='no-margin' type='number'
 						name='newAttack[<?=$i?>][attackNumber]' value='<?=$i?>'>
 				</td>
-			
+
 			<!-- Prefixes -->
 				<td>
 					<select name='newAttack[<?=$i?>][attackPrefix]'>
@@ -226,7 +226,7 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Targets -->
 				<td>
 					<select name='newAttack[<?=$i?>][attackTarget]'>
@@ -240,7 +240,7 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Types -->
 				<td>
 					<select name='newAttack[<?=$i?>][attackType]'>
@@ -254,14 +254,14 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Points -->
 				<td>
 					<input type='number' name='newAttack[<?=$i?>][attackPoints]' step=0.1 min=0 max=30
 						value='<?=$attack['attackPoints']?>'
 						class='no-bottom' >
 				</td>
-			
+
 			</tr>
 		<?php endforeach ?>
 
@@ -272,18 +272,18 @@ function displayModeIndividual($formLock){
 				<td colspan='100%'><HR></td>
 			</tr>
 		<?php endif ?>
-		
+
 	<!-- New Attacks -->
 		<?php for($j = (++$i); ($i - $j) < 5; $i++): ?>
 			<tr>
-			
+
 			<!-- Order -->
 				<td>
 					<input class='no-margin' type='number' name='newAttack[<?=$i?>][attackNumber]'>
 				</td>
-				
+
 			<!-- Prefixs -->
-				
+
 				<td>
 					<select name='newAttack[<?=$i?>][attackPrefix]'>
 						<option value=''>-blank-</option>
@@ -294,7 +294,7 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Targets -->
 				<td>
 					<select name='newAttack[<?=$i?>][attackTarget]'>
@@ -304,7 +304,7 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Types -->
 				<td>
 					<select name='newAttack[<?=$i?>][attackType]'>
@@ -314,14 +314,14 @@ function displayModeIndividual($formLock){
 						<?php endforeach ?>
 					</select>
 				</td>
-				
+
 			<!-- Points -->
 				<td>
-					<input type='number' name='newAttack[<?=$i?>][attackPoints]' 
+					<input type='number' name='newAttack[<?=$i?>][attackPoints]'
 						step=0.1 min=0 max=30 placeholder='leave blank to delete'
 						class='no-bottom'>
 				</td>
-			
+
 			</tr>
 		<?php endfor ?>
 	</table>
@@ -333,7 +333,7 @@ function displayModeIndividual($formLock){
 /******************************************************************************/
 
 function importAttacksForm($tournamentID){
-    $thisTournaments = getEventTournaments($_SESSION['eventID']);
+	$thisTournaments = getEventTournaments($_SESSION['eventID']);
 	$allTournaments = getSystemTournaments();
 ?>
 
@@ -344,7 +344,7 @@ function importAttacksForm($tournamentID){
 
 		<h4>Import Tournament Attacks</h4>
 		<p>
-	    This will import the attacks from the selected tournament <strong>delete all existing attacks.</strong>
+		This will import the attacks from the selected tournament <strong>delete all existing attacks.</strong>
 		</p>
 
 		<p>From this event:

@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Event Details
-	
+
 	Change event passwords and set defaults for newly created tournaments
 	LOGIN:
 		- ADMIN or higher required to view
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	pageError('user');
 } else {
-	
+
 	$defaults = getEventDefaults($_SESSION['eventID']);
 
 	if(ALLOW['SOFTWARE_ASSIST'] == true){
@@ -35,7 +35,7 @@ if($_SESSION['eventID'] == null){
 		$canChangeSettings = false;
 	}
 
-	
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ if($_SESSION['eventID'] == null){
 	<div class='grid-x grid-margin-x'>
 
 		<?=publicationsSettingsBox($canChangeSettings)?>
-		<?=eventInfoBox($canChangeSettings)?>		
+		<?=eventInfoBox($canChangeSettings)?>
 
 		<?=eventDescriptionBox($canChangeSettings)?>
 		<?=displaySettingsBox($defaults, $canChangeSettings)?>
@@ -52,8 +52,8 @@ if($_SESSION['eventID'] == null){
 		<?=changePasswordBox($canChangeSettings)?>
 
 	</div>
-		
-	
+
+
 <?php }
 include('includes/footer.php');
 
@@ -99,7 +99,7 @@ function publicationsSettingsBox($canChangeSettings){
 	}
 
 ?>
-	
+
 	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
 	<legend><h4 class='no-bottom'>Event Publication</h4></legend>
 	<form method='POST'>
@@ -117,7 +117,7 @@ function publicationsSettingsBox($canChangeSettings){
 					<td>
 						<input type='hidden'  name='publicationSettings[publishDescription]' value='0'>
 						<input class='switch-input' type='checkbox' <?=$publishDescriptionChecked?>
-							id='publicationSettings[publishDescription]' 
+							id='publicationSettings[publishDescription]'
 							name='publicationSettings[publishDescription]' value='1'>
 						<label class='switch-paddle' for='publicationSettings[publishDescription]'>
 						</label>
@@ -129,11 +129,11 @@ function publicationsSettingsBox($canChangeSettings){
 						Rules
 						<?=tooltip("Publish any rules that you created in <b>Manage Event -> Rules</b>.")?>
 					</td>
-					
+
 					<td>
 						<input type='hidden' name='publicationSettings[publishRules]' value='0'>
 						<input class='switch-input' type='checkbox' <?=$publishRulesChecked?>
-							id='publicationSettings[publishRules]' 
+							id='publicationSettings[publishRules]'
 							name='publicationSettings[publishRules]' value='1'>
 						<label class='switch-paddle' for='publicationSettings[publishRules]'>
 						</label>
@@ -164,7 +164,7 @@ function publicationsSettingsBox($canChangeSettings){
 					</td>
 					<td>
 						<input type='hidden' name='publicationSettings[publishRoster]' value='0'>
-						<input class='switch-input' type='checkbox' 
+						<input class='switch-input' type='checkbox'
 							id='publicationSettings[publishRoster]' <?=$publishRosterChecked?>
 							name='publicationSettings[publishRoster]' value='1'>
 						<label class='switch-paddle' for='publicationSettings[publishRoster]'>
@@ -181,7 +181,7 @@ function publicationsSettingsBox($canChangeSettings){
 					<td>
 						<input type='hidden' name='publicationSettings[publishMatches]' value='0'>
 					<input class='switch-input' type='checkbox' <?=$publishMatchesChecked?>
-						id='publicationSettings[publishMatches]' 
+						id='publicationSettings[publishMatches]'
 						name='publicationSettings[publishMatches]' value='1'>
 					<label class='switch-paddle' for='publicationSettings[publishMatches]'>
 					</label>
@@ -190,19 +190,19 @@ function publicationsSettingsBox($canChangeSettings){
 
 			</table>
 
-			
-			<button class='button success no-bottom expanded <?=$formDiabled?>' 
+
+			<button class='button success no-bottom expanded <?=$formDiabled?>'
 				name='formName' value='updateEventPublication'>
 				Update Visibility
 			</button>
-			
+
 
 		</div>
 		</div>
 
 	</form>
 	</fieldset>
-	
+
 <?php
 }
 
@@ -231,8 +231,8 @@ function eventInfoBox($canChangeSettings){
 		<div class='cell'>
 			<div class=' input-group cell no-bottom'>
 				<span class='input-group-label no-bottom'>Event Name:</span>
-				<input class='input-group-field no-bottom' type='text' 
-					name='newEventInfo[eventName]' 
+				<input class='input-group-field no-bottom' type='text'
+					name='newEventInfo[eventName]'
 					value="<?=getEventName($_SESSION['eventID'],'raw')?>">
 			</div>
 			<p class='red-text'>Don't include a year, it will be added automatically!</p>
@@ -240,21 +240,21 @@ function eventInfoBox($canChangeSettings){
 
 		<div class='large-6 cell input-group cell'>
 			<span class='input-group-label no-bottom'>Start:</span>
-			<input class='input-group-field no-bottom' type='date' name='newEventInfo[startDate]' 
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[startDate]'
 				value='<?=$eventDates['eventStartDate']?>'>
 		</div>
 
 		<div class='large-6 cell input-group cell'>
 			<span class='input-group-label'>End:</span>
-			<input class='input-group-field no-bottom' type='date' name='newEventInfo[endDate]' 
+			<input class='input-group-field no-bottom' type='date' name='newEventInfo[endDate]'
 				value='<?=$eventDates['eventEndDate']?>'>
 		</div>
 
 		<div class='cell'>
 			<div class=' input-group cell no-bottom'>
 				<span class='input-group-label no-bottom'>City:</span>
-				<input class='input-group-field no-bottom' type='text' 
-					name='newEventInfo[eventCity]' 
+				<input class='input-group-field no-bottom' type='text'
+					name='newEventInfo[eventCity]'
 					value="<?=$location['eventCity']?>">
 			</div>
 		</div>
@@ -262,8 +262,8 @@ function eventInfoBox($canChangeSettings){
 		<div class='cell'>
 			<div class=' input-group cell no-bottom'>
 				<span class='input-group-label no-bottom'>State/Province:</span>
-				<input class='input-group-field no-bottom' type='text' 
-					name='newEventInfo[eventProvince]' 
+				<input class='input-group-field no-bottom' type='text'
+					name='newEventInfo[eventProvince]'
 					value="<?=$location['eventProvince']?>">
 			</div>
 		</div>
@@ -271,7 +271,7 @@ function eventInfoBox($canChangeSettings){
 		<div class='cell'>
 			<div class=' input-group cell'>
 				<span class='input-group-label no-bottom'>Country:</span>
-				<input class='input-group-field no-bottom' type='text' 
+				<input class='input-group-field no-bottom' type='text'
 					disabled
 					value="<?=$location['countryName']?>">
 			</div>
@@ -282,7 +282,7 @@ function eventInfoBox($canChangeSettings){
 				Update Event Information
 			</button>
 		</div>
-	
+
 	</div>
 	</form>
 
@@ -295,11 +295,11 @@ function eventInfoBox($canChangeSettings){
 		<div class='grid-x grid-margin-x'>
 			<div class='large-12 input-group cell'>
 				<span class='input-group-label'>Contact E-mail: <?=tooltip('This e-mail will not appear anywhere publicly visible.')?></span>
-				<input class='input-group-field' type='text' name='contactEmail' 
+				<input class='input-group-field' type='text' name='contactEmail'
 					value='<?=$contactEmail?>' placeholder="Don't leave this blank!">
 				<input type='submit' class='button success input-group-button' value='Update' <?=$formDiabled?>>
 			</div>
-		
+
 		</div>
 		</form>
 	<?php endif ?>
@@ -319,7 +319,7 @@ function eventDescriptionBox($canChangeSettings){
 	} else {
 		$numTextLines = 10;
 	}
-	
+
 
 	$formDiabled = '';
 	if($canChangeSettings == false){
@@ -328,7 +328,7 @@ function eventDescriptionBox($canChangeSettings){
 	}
 
 
-	
+
 ?>
 
 	<!--  Event Description -------------------------------->
@@ -341,19 +341,19 @@ function eventDescriptionBox($canChangeSettings){
 
 		<form method='POST'>
 		<div class='grid-x grid-margin-x'>
-		
+
 			<div class='large-12 cell'>
 				<textarea name='eventDescription' required rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
 			</div>
 
-			
+
 			<div class='large-3 cell'>
-				<button class='button success expanded no-bottom' 
+				<button class='button success expanded no-bottom'
 					name='formName' value='setEventDescription' <?=$formDiabled?>>
 					Update Event Description
 				</button>
 			</div>
-			
+
 		</div>
 		</form>
 
@@ -368,7 +368,7 @@ function eventDescriptionBox($canChangeSettings){
 	</fieldset>
 
 
-<?php	
+<?php
 }
 
 /******************************************************************************/
@@ -394,9 +394,9 @@ function displaySettingsBox($defaults, $canChangeSettings){
 	<fieldset class='fieldset cell large-6' <?=$formDiabled?>>
 	<legend><h4>Display Settings</h4></legend>
 	<form method='POST'>
-	
+
 	<div class='grid-x grid-margin-x'>
-	
+
 	<!-- Fighter names -->
 		<div class='large-12 cell'>
 			<div class='input-group'>
@@ -404,7 +404,7 @@ function displaySettingsBox($defaults, $canChangeSettings){
 				<select class='input-group-field' name='displaySettings[nameDisplay]'>
 
 					<option value='firstName'>First Last</option>
-					
+
 					<option <?=optionValue('lastName', $defaults['nameDisplay'])?>>Last, First</option>
 
 				</select>
@@ -437,11 +437,11 @@ function displaySettingsBox($defaults, $canChangeSettings){
 					onchange="showForOption(this, 'custom', 'tournament-order-box')">
 
 					<option value='numGrouped'>Number of Fighters, Group By Weapon</option>
-					
+
 					<option <?=optionValue('numSort', $defaults['tournamentSorting'])?>>
 						Number of Fighters
 					</option>
-					
+
 					<option <?=optionValue('nameSort', $defaults['tournamentSorting'])?>>
 						Alphabetically
 					</option>
@@ -455,18 +455,18 @@ function displaySettingsBox($defaults, $canChangeSettings){
 
 		<div class='large-12 cell tournament-order-box <?=$showCustomSort?>'>
 			<h5>Tournament Order:</h5>
-	  		<div id='sort-tournament-order'>
-		
+			<div id='sort-tournament-order'>
+
 				<?php foreach($tournamentIDs as $index => $tournamentID): ?>
 					<div class='callout primary' value=<?=$tournamentID?>>
 						<?=getTournamentName($tournamentID)?>
 					</div>
 				<?php endforeach ?>
-			
+
 			</div>
 
 			<?php foreach($tournamentIDs as $index => $tournamentID): ?>
-				<input class='hidden' name='displaySettings[customSort][<?=$tournamentID?>]' 
+				<input class='hidden' name='displaySettings[customSort][<?=$tournamentID?>]'
 					id='tournament-order-for-<?=$tournamentID?>' value=<?=$index?>>
 			<?php endforeach ?>
 
@@ -476,14 +476,14 @@ function displaySettingsBox($defaults, $canChangeSettings){
 		</div>
 
 		<!-- Submit button -->
-		
+
 		<div class='large-6 cell'>
 			<button class='button success expanded no-bottom' <?=$formDiabled?>
 				name='formName' value='displaySettings'>
 				Update Display Settings
 			</button>
 		</div>
-		
+
 
 	</div>
 	</form>
@@ -508,11 +508,11 @@ function staffSettingsBox($defaults, $canChangeSettings){
 	<fieldset class='fieldset cell large-6' <?=$formDiabled?>>
 	<legend><h4>Staff Settings</h4></legend>
 	<form method='POST'>
-	<input type='hidden' name="eventSettings[staffRegistration][eventID]" 
+	<input type='hidden' name="eventSettings[staffRegistration][eventID]"
 		value="<?=$_SESSION['eventID']?>">
-	
+
 	<div class='grid-x grid-margin-x'>
-	
+
 	<!-- Tournament name order -->
 		<div class='large-12 cell'>
 			<div class='input-group'>
@@ -522,7 +522,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 						You can always assign staff using the <em>Event Logistics</em> features.")?>
 					:
 				</span>
-				<select class='input-group-field' 
+				<select class='input-group-field'
 					name='eventSettings[staffRegistration][addStaff]'>
 
 					<option value='weapon'>No</option>
@@ -531,7 +531,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 				</select>
 			</div>
 		</div>
-		
+
 	<!-- Staff Competency -->
 		<div class='large-12 cell'>
 			<div class='input-group'>
@@ -546,7 +546,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					</ol>")?>
 					:
 				</span>
-				<select class='input-group-field' 
+				<select class='input-group-field'
 					name='eventSettings[staffRegistration][staffCompetency]'>
 
 					<option <?=optionValue(0,$defaults['staffCompetency'])?> >Don't Use</option>
@@ -566,7 +566,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					<?=tooltip("You can assign a target number of staffing hours for each staff member.
 								This is the default number that is applied to all staff.<BR>
 								<u>Note</u>: This is only applied when you add someone in as a staff member
-								for the first time. It will not change the target hours of staff already 
+								for the first time. It will not change the target hours of staff already
 								added to the event.")?>
 					:
 				</span>
@@ -586,11 +586,11 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					<BR><strong>WARNING:</strong>
 					<BR>This is not perfect. You need to double check the Staff Conflicts
 					page to be sure.
-					<BR><em>If you create conflicts and then turn this on, they won't 
+					<BR><em>If you create conflicts and then turn this on, they won't
 					be removed.</em>")?>
-					
+
 				</span>
-				<select class='input-group-field' 
+				<select class='input-group-field'
 					name='eventSettings[staffRegistration][limitStaffConflicts]'>
 
 					<option <?=optionValue(STAFF_CONFLICTS_NO,$defaults['limitStaffConflicts'])?> >
@@ -627,7 +627,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					<th>Role</th>
 					<th>Minimum Competency</th>
 				</tr>
-			<?php foreach($roles as $role): 
+			<?php foreach($roles as $role):
 				$roleID = $role['logisticsRoleID'];
 				if(	   $roleID == LOGISTICS_ROLE_UNKONWN
 					|| $roleID == LOGISTICS_ROLE_UNKONWN
@@ -677,13 +677,13 @@ function staffSettingsBox($defaults, $canChangeSettings){
 
 			When calculating the number of matches judged the count will be multiplied by the number entered below
 
-			
+
 			<table>
 				<tr>
 					<th>Role</th>
 					<th>Multiplier</th>
 				</tr>
-			<?php foreach($roles as $role): 
+			<?php foreach($roles as $role):
 				$roleID = $role['logisticsRoleID'];
 				if($roleID == LOGISTICS_ROLE_PARTICIPANT){
 					continue;
@@ -693,36 +693,36 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					<td><?=$role['roleName']?></td>
 					<td>
 						<input type='number' class='no-bottom' min=0 max=99 placeholder="x0"
-						name='eventSettings[staffRegistration][matchMultipliers][<?=$roleID?>]' 
+						name='eventSettings[staffRegistration][matchMultipliers][<?=$roleID?>]'
 						value="<?=$matchMultipliers[$roleID]?>" step="0.01">
 					</td>
 				</tr>
 
 			<?php endforeach ?>
 			</table>
-			
+
 
 		</fieldset>
 
 		<div class='large-12 cell'>
 			<BR>
 		</div>
-		
+
 	<!-- Submit button -->
-		
+
 		<div class='large-6 cell'>
 			<button class='button success expanded' <?=$formDiabled?>
 				name='formName' value='staffRegistrationSettings'>
 				Update Staff Settings
 			</button>
 		</div>
-		
-		
+
+
 	</div>
 	</form>
 	</fieldset>
 
-<?php	
+<?php
 }
 
 /******************************************************************************/
@@ -738,8 +738,8 @@ function changePasswordBox($canChangeSettings){
 	<fieldset class='fieldset cell large-12' <?=$formDiabled?> >
 	<legend><h4>Change Password - Event Staff</h4></legend>
 	<form method='POST'>
-	
-		
+
+
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
 
@@ -748,7 +748,7 @@ function changePasswordBox($canChangeSettings){
 			<span class='input-group-label'>New Staff Password:</span>
 			<input class='input-group-field' type='text' name='changePasswords[newPassword]' required>
 		</div>
-		
+
 	<!-- Current password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
@@ -762,7 +762,7 @@ function changePasswordBox($canChangeSettings){
 				Update Staff Password
 			</button>
 		</div>
-		
+
 		</div>
 	</form>
 	</fieldset>
@@ -772,22 +772,22 @@ function changePasswordBox($canChangeSettings){
 	<legend><h4>Change Password - Event Organizer</h4></legend>
 
 	<form method='POST'>
-		
+
 		<div class='grid-x grid-margin-x'>
 		<input type='hidden' name='formName' value='updatePasswords'>
 
-	<!-- New admin password -->	
+	<!-- New admin password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>New Admin Password:</span>
 			<input class='input-group-field' type='text' name='changePasswords[newPassword]'>
 		</div>
-		
+
 	<!-- Current password -->
 		<div class='large-5 input-group cell'>
 			<span class='input-group-label'>Current Admin Password: </span>
 			<input class='input-group-field' type='password' name='changePasswords[passwordVerification]'>
 		</div>
-		
+
 	<!-- Submit button -->
 		<div class='large-2 cell'>
 			<button class='button success expanded' <?=$formDiabled?>
@@ -795,13 +795,13 @@ function changePasswordBox($canChangeSettings){
 				Update Organizer Password
 			</button>
 		</div>
-		
+
 		</div>
-	
+
 	</form>
 	</fieldset>
 
-<?php	
+<?php
 }
 
 /******************************************************************************/

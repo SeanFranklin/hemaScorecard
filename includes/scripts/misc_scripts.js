@@ -60,7 +60,7 @@ function logInEventToggle(){
 	$('#logInUserName').val(eventName);
 
 	logInSubmitEnable();
-	
+
 }
 
 /******************************************************************************/
@@ -105,17 +105,17 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 	$(buttonID).removeClass("warning");
 
 	name = encodeURIComponent(JSON.stringify(name));
-	
+
 	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?";
 	path = path + "token=" + HEMA_RATINGS_TOKEN;
 	path = path + "&fighterName=" + name;
-	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME; 
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME;
 
 	/* Unused code to fetch fighter by ID
 	var path = "http://hemaranking.azurewebsites.net/api/OrganizerToolsApi/GetById/?";
 	path = path + "token=" + HEMA_RATINGS_TOKEN;
 	path = path + "&id=6=";
-	path = path + "&fbclid=" + HEMA_RATINGS_BY_ID; 
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_ID;
 	*/
 
 	var xhr = new XMLHttpRequest();
@@ -124,7 +124,7 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 
 	xhr.onreadystatechange = function (){
 		if(this.readyState == 4 && this.status == 200){
-			if(this.responseText.length > 0){ 
+			if(this.responseText.length > 0){
 				var data = JSON.parse(this.responseText);
 
 
@@ -157,11 +157,11 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 
 	                    var hemaRatingsId = fighterInfo['id'];
 	                    str = str + `<input type='checkbox' class='no-bottom'
-	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
+	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]'
 	                    				value='${hemaRatingsId}'>`;
 
 	                    str = str + "<strong>";
-	                    
+
 	                    str = str + fighterInfo['name'];
 	                    str = str + "</strong><BR>";
 	                    str = str + fighterInfo['clubName'];
@@ -173,7 +173,7 @@ function hemaRatings_getByName(buttonID, name, systemRosterID){
 
 	                });
 				}
-				
+
 			} else {
 				alert("!");
 			}
@@ -209,7 +209,7 @@ function hemaRatings_getById(hemaRatingsID){
 	var path = "https://hemaranking.azurewebsites.net/api/OrganizerToolsApi/Search/?";
 	path = path + "token=" + HEMA_RATINGS_TOKEN;
 	path = path + "&id=6=" + hemaRatingsID;
-	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME; 
+	path = path + "&fbclid=" + HEMA_RATINGS_BY_NAME;
 
 
 	var xhr = new XMLHttpRequest();
@@ -218,7 +218,7 @@ function hemaRatings_getById(hemaRatingsID){
 
 	xhr.onreadystatechange = function (){
 		if(this.readyState == 4 && this.status == 200){
-			if(this.responseText.length > 0){ 
+			if(this.responseText.length > 0){
 				var data = JSON.parse(this.responseText);
 
 
@@ -252,11 +252,11 @@ function hemaRatings_getById(hemaRatingsID){
 
 	                    var hemaRatingsId = fighterInfo['id'];
 	                    str = str + `<input type='checkbox' class='no-bottom'
-	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]' 
+	                    				name='hemaRatings[hemaRatingsIdFor][${systemRosterID}]'
 	                    				value='${hemaRatingsId}'>`;
 
 	                    str = str + "<strong>";
-	                    
+
 	                    str = str + fighterInfo['name'];
 	                    str = str + "</strong><BR>";
 	                    str = str + fighterInfo['clubName'];
@@ -268,7 +268,7 @@ function hemaRatings_getById(hemaRatingsID){
 
 	                });
 				}
-				
+
 			} else {
 				alert("!");
 			}
@@ -277,7 +277,7 @@ function hemaRatings_getById(hemaRatingsID){
 }
 
 /******************************************************************************/
- 
+
 function eventStartDateUpdated(startDateStr){
 
     end = document.getElementById("event-end-date").value;

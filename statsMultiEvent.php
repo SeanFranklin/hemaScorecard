@@ -1,12 +1,12 @@
 <?php
 /*******************************************************************************
 	Event Summary
-	
+
 	Displays information about the event, such as fighter counts for
 	each tournament and registrations from each club
 	LOGIN
 		- ADMIN and above can view the page
-		
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ include('includes/header.php');
 if(ALLOW['STATS_ALL'] == false){
 	pageError('user');
 } else {
-	
+
 	filterBoxes();
 
 	if(isset($_SESSION['tDataFilters'])){
@@ -33,12 +33,12 @@ if(ALLOW['STATS_ALL'] == false){
 	} else {
 		$isDataQueried = false;
 	}
-	
+
 	unset($_SESSION['tDataFilters']);
-	
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
+////////////////////////////////////////////////////////////////////////////////
+?>
 
 		<div class='grid-x'>
 		<div class='small-12 medium-10 text-center align-self-middle'>
@@ -72,21 +72,21 @@ include('includes/footer.php');
 function displayResults($tournamentList){
  ?>
 
- 	<table>
- 		<tr>
- 			<th>Event</th>
- 			<th>Year</th>
- 			<th>Weapon</th>
- 			<th>Division</th>
- 			<th>Clean Hits</th>
- 			<th>Double Hits</th>
- 			<th>Afterblows</th>
- 			<th>No Quality</th>
- 			<th>No Exchange</th>
- 		</tr>
+	<table>
+		<tr>
+			<th>Event</th>
+			<th>Year</th>
+			<th>Weapon</th>
+			<th>Division</th>
+			<th>Clean Hits</th>
+			<th>Double Hits</th>
+			<th>Afterblows</th>
+			<th>No Quality</th>
+			<th>No Exchange</th>
+		</tr>
 
 
-	<?php foreach($tournamentList as $t): 
+	<?php foreach($tournamentList as $t):
 		$tStats = getTournamentExchangeStats($t['tournamentID']);
 		?>
 
@@ -116,7 +116,7 @@ function displayResults($tournamentList){
 
 function getTournamentExchangeStats($tournamentID){
 
-	$sql = "SELECT  
+	$sql = "SELECT
 					COUNT(IF(exchangeType = 'clean',1,null)) AS clean,
 					COUNT(IF(exchangeType = 'double',1,null)) AS 'double',
 					COUNT(IF(exchangeType = 'afterblow',1,null)) AS afterblow,
@@ -134,16 +134,16 @@ function getTournamentExchangeStats($tournamentID){
 /******************************************************************************/
 
 function filterBoxes(){
-	
+
 	$weaponList = getTournamentWeaponsList();
 
 	?>
-	
+
 	<div class='reveal large' id='filterBoxes' data-reveal >
 	<form method='POST'>
 	<div class='grid-x grid-margin-x'>
-			
-<!-- Weapon select -->	
+
+<!-- Weapon select -->
 	<div class='input-group small-12 medium-6 large-3 cell'>
 		<span class='input-group-label inline'>Weapon:</span>
 		<select class='input-group-field' name='tDataFilter[tournamentWeaponID]'>
@@ -158,7 +158,7 @@ function filterBoxes(){
 		</select>
 	</div>
 
-<!-- Double Type select -->	
+<!-- Double Type select -->
 	<div class='input-group small-12 medium-6 large-3 cell'>
 		<span class='input-group-label inline'>Double Type:</span>
 		<select class='input-group-field' name='tDataFilter[doubleTypeID]'>
@@ -175,15 +175,15 @@ function filterBoxes(){
 			Lookup
 		</button>
 	</div>
-	
-	
+
+
 	</div>
 	</form>
-	
+
 	<?php closeRevealButton(); ?>
-	
+
 	</div>
-		
+
 <?php }
 
 /******************************************************************************/
@@ -200,8 +200,8 @@ function getTournamentsForStats($filters){
 		$whereCases .= "AND {$fIndex} = {$id} ";
 	}
 
-	$sql = "SELECT tournamentID, eventID, tournamentWeaponID, 
-			tournamentPrefixID, tournamentGenderID, 
+	$sql = "SELECT tournamentID, eventID, tournamentWeaponID,
+			tournamentPrefixID, tournamentGenderID,
 			tournamentMaterialID, tournamentRankingID,
 			eventName, eventYear
 			FROM eventTournaments

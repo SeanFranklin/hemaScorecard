@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Tournament Roster
-	
+
 	View tournament roster and add fighters
 	Login:
 		- ADMIN or above can add or remove fighters from the tournament
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ if($tournamentID == null){
 		$rosterToDisplay[$fighter['rosterID']] = $tmp;
 
 		$namesEntered[$fighter['rosterID']] = 'entered';
-		
+
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ if($tournamentID == null){
 		window.onload = function(){
 			refreshCheckInList('tournament', <?=$tournamentID?>);
 			window.setInterval(
-				function(){ refreshCheckInList('tournament',<?=$tournamentID?>);}, 
+				function(){ refreshCheckInList('tournament',<?=$tournamentID?>);},
 				refreshPeriod
 			);
 		}
@@ -159,17 +159,17 @@ if($tournamentID == null){
 
 	</div>
 	<?php endif ?>
-	
+
 	<form method='POST' id='tournamentRosterForm'>
 	<fieldset>
-	
+
 	<div class='grid-x grid-padding-x'>
 	<div class='large-8 medium-10 cell'>
-	<h4>Number of Fighters: <?=$numFighters?></h4>					
+	<h4>Number of Fighters: <?=$numFighters?></h4>
 	<input type='hidden' name='tournamentID' value=<?= $tournamentID ?> id='tournamentID'>
 
 	<table id="tournamentCheckInTable" class="display">
-		
+
 <!-- Table headers -->
 	<thead>
 	<tr>
@@ -206,13 +206,13 @@ if($tournamentID == null){
 			<td><?=$f['school']?></td>
 
 			<?php if(ALLOW_CHECKIN == true): ?>
-				
+
 				<td class='text-center'>
 
 					<a class='button no-bottom tiny' onclick="checkInFighterJs('checkIn')"
 						id='<?=$f['checkInID']?>'
 						data-checkInType='tournament'
-						data-rosterID=<?=$rosterID?> 
+						data-rosterID=<?=$rosterID?>
 						data-checked=<?=$f['tournamentCheckIn']?>>
 						<?=$f['checkInText']?>
 					</a>
@@ -224,7 +224,7 @@ if($tournamentID == null){
 					<a class='button no-bottom tiny' onclick="checkInFighterJs('gearcheck')"
 						id='<?=$f['gearID']?>'
 						data-checkInType='tournament'
-						data-rosterID=<?=$rosterID?> 
+						data-rosterID=<?=$rosterID?>
 						data-gearcheck=<?=$f['tournamentGearCheck']?>>
 						<?=$f['gearText']?>
 					</a>
@@ -235,19 +235,19 @@ if($tournamentID == null){
 		</tr>
 	<?php endforeach ?>
 	</tbody>
-	<table>
+	</table>
 
 	</div>
 	</div>
 
 <!-- Add / Delete Fighter Buttons -->
 	<?=tournamentRosterManagement($eventRoster, $namesEntered)?>
-		
+
 	</fieldset>
-	</form>	
-		
-<?php 		
-	
+	</form>
+
+<?php
+
 }
 
 include('includes/footer.php');
@@ -271,7 +271,7 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 
 	<?php confirmDeleteReveal('tournamentRosterForm', 'deleteFromTournamentRoster', 'large'); ?>
 	<span id='deleteButtonContainer'>
-		<button class='button alert hollow' name='formName' value='deleteFromTournamentRoster' 
+		<button class='button alert hollow' name='formName' value='deleteFromTournamentRoster'
 			id='deleteButton' <?=LOCK_TOURNAMENT?>>
 			Delete Selected
 		</button>
@@ -293,7 +293,7 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 <!-- Add new participants -->
 	<div class='hidden add-fighters'>
 		<table class='hidden add-fighters'>
-		
+
 		<?php $numBlankEntries = 5;
 			for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
 				<tr>
@@ -310,11 +310,11 @@ function tournamentRosterManagement($eventRoster, $namesEntered){
 					</select>
 				</td>
 				</tr>
-		
+
 			<?php endfor ?>
 		</table>
 
-		<button class='button success hidden add-fighters' name='formName' 
+		<button class='button success hidden add-fighters' name='formName'
 			value='addToTournamentRoster' <?=LOCK_TOURNAMENT?>>
 			Add Fighters
 		</button>
@@ -339,7 +339,7 @@ function importRosterBox(){
 		<h5>Import Roster:</h5>
 
 		<input class='hidden' name='importTournamentRoster[toTournamentID]' value=<?=$_SESSION['tournamentID']?> >
-		
+
 		<div class='input-group'>
 			<span class='input-group-label'>Tournament</span>
 			<select class='input-group-field' name='importTournamentRoster[fromTournamentID]'>
@@ -356,7 +356,7 @@ function importRosterBox(){
 
 		<div class='input-group'>
 			<span class='input-group-label'>
-				Seeding 
+				Seeding
 				<?=tooltip("Inport only the final placings of the above tournament, within this range. Leave blank to import the entire roster.<p><strong>Note:</strong> This can only be used on finalized tournaments</p>")?>
 			</span>
 			<input type='number' class='input-group-field' name='importTournamentRoster[minPlacing]'>
@@ -377,12 +377,12 @@ function importRosterBox(){
 			</button>
 		</div>
 		</form>
-		
+
 	<!-- Reveal close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
 			<span aria-hidden='true'>&times;</span>
 		</button>
-	
+
 	</div>
 
 

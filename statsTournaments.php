@@ -1,12 +1,12 @@
 <?php
 /*******************************************************************************
 	Tournament Summary
-	
+
 	Summary of all the tournament events, including clean hits, double, etc..
 	LOGIN:
 		- ADMIN and above can view
 		- STATS can view
-		
+
 *******************************************************************************/
 
 $pageName = 'Tournament Summary';
@@ -17,17 +17,17 @@ if($_SESSION['eventID'] == null){
 } elseif(ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Matches not yet released");
 } else {
-	
+
 	$exchangesByTournament = getEventExchanges($_SESSION['eventID']);
-	
+
 	$stats = getEventStats($exchangesByTournament);
 	$overall = $stats['overall'];
 	unset($stats['overall']);
-	
+
 	$matchTotals = getNumEventMatches($_SESSION['eventID']);
 	$overall['matches'] = $matchTotals['matches'];
 	$overall['pieces'] = $matchTotals['pieces'];
-	
+
 	$eventTournaments = getEventTournaments();
 	$overall['tournaments'] = count($eventTournaments);
 
@@ -41,17 +41,17 @@ if($_SESSION['eventID'] == null){
 	foreach((array)$stats as $data){
 		$createSortableDataTable[] = ['tournament-stats-'.$data['tournamentID'],100];
 	}
-	
-	
+
+
 // Display tables
 	eventExchangesTable($overall);
 	echo "<HR>";
 	tournamentExchangesTable($stats);
 	echo "<HR>";
-	tournamentTargetTable($stats);	
-	
+	tournamentTargetTable($stats);
+
 // Toggle button
-	
+
 	?>
 	<div class='text-right'>
 
@@ -63,7 +63,7 @@ if($_SESSION['eventID'] == null){
 	echo "<HR>";
 	tournamentExtendedExchangeInfo($stats);
 
-	
+
 }
 include('includes/footer.php');
 
@@ -77,7 +77,7 @@ function tournamentExtendedExchangeInfo($stats){
 	if((int)@$_SESSION['dataModes']['extendedExchangeInfo'] != 1){
 		return;
 	}
-	
+
 	$extendedInfo = [];
 	$total = [];
 	$createSortableDataTable = [];
@@ -111,20 +111,20 @@ function tournamentExtendedExchangeInfo($stats){
 				$extendedInfo[$tournamentID][$index]['class'] = 'grey-text';
 			} else {
 				$extendedInfo[$tournamentID][$index]['class'] = '';
-			}	
+			}
 		}
 
 	}
-	
+
 ?>
 	<h3>Extended Exchange Info (<i>if captured</i>)</h3>
 
-	
+
 	<?php foreach((array)$extendedInfo as $tournamentID => $data): ?>
 		<h4><?=getTournamentName($tournamentID )?></h4>
 	<table  class="display" id='tournament-stats-<?=$tournamentID?>'>
 
-		
+
 
 		<thead>
 			<tr>
@@ -138,7 +138,7 @@ function tournamentExtendedExchangeInfo($stats){
 		</thead>
 
 		<tbody>
-		<?php foreach($data as $attack): 
+		<?php foreach($data as $attack):
 
 
 			?>
@@ -150,7 +150,7 @@ function tournamentExtendedExchangeInfo($stats){
 				<td class='text-right'><?=$attack['numExchanges']?></td>
 				<td class='text-right <?=$attack['class']?>'><?=$attack['percentDisp']?></td>
 			</tr>
-		
+
 		<?php endforeach ?>
 		</tbody>
 	</table>
@@ -158,7 +158,7 @@ function tournamentExtendedExchangeInfo($stats){
 	<?php endforeach ?>
 
 
-<?php 
+<?php
 
 }
 
@@ -171,7 +171,7 @@ function tournamentTargetTable($stats){
 
 	<table>
 		<caption>Target Areas By Tournament</caption>
-		
+
 	<!-- Headers -->
 		<tr>
 			<th>Tournament</th>
@@ -183,14 +183,14 @@ function tournamentTargetTable($stats){
 		</tr>
 
 	<?php foreach((array)$stats as $tournamentID => $data):
-		
+
 		$name = getTournamentName($data['tournamentID']);
 		$total = 0;
 
 
 		for($i = 1; $i <= 5; $i++){
 			if(!isset($data[$i])){
-				$data[$i] = 0;	
+				$data[$i] = 0;
 			}
 			$total += $data[$i];
 		}
@@ -215,8 +215,8 @@ function tournamentTargetTable($stats){
 
 
 		?>
-		
-	<!-- Data -->	
+
+	<!-- Data -->
 		<tr>
 			<td><?=$name?></td>
 			<td><?=$disp[1]?></td>
@@ -225,9 +225,9 @@ function tournamentTargetTable($stats){
 			<td><?=$disp[4]?></td>
 			<td><?=$disp[5]?></td>
 		</tr>
-		
+
 	<?php endforeach ?>
-	
+
 	</table>
 
 <?php }
@@ -268,7 +268,7 @@ function eventExchangesTable($totals){
 		$afterN = $totals['afterblow'];
 		$afterP = "(".(round($afterN/$total,2)*100).'%)';
 	}
-	
+
 	if(empty($totals['noExchange'])){
 		$noExchangeN = 0;
 		$noExchangeP = '';
@@ -276,7 +276,7 @@ function eventExchangesTable($totals){
 		$noExchangeN = $totals['noExchange'];
 		$noExchangeP = "(".(round($noExchangeN/$total,2)*100).'%)';
 	}
-	
+
 	if(empty($totals['noQuality'])){
 		$noQualityN = 0;
 		$noQualityP = '';
@@ -288,21 +288,21 @@ function eventExchangesTable($totals){
 	?>
 
 	<div class='grid-x grid-margin-x'>
-	
+
 
 	<div class='medium-6 small-12 callout cell'>
 		<h5>
 		<div class='grid-x  grid-margin-x'>
-		
+
 		<!-- Title -->
 		<div class='large-12 small-12 text-center'>
 			<strong>Event Summary</strong>
 		</div>
-		
+
 		<div class='medium-12 show-for-large'>
 			&nbsp;
 		</div>
-		
+
 		<!-- Tournaments -->
 		<div class='small-9 cell'>
 			Number of Tournaments:
@@ -310,11 +310,11 @@ function eventExchangesTable($totals){
 		<div class='small-3 cell align-self-middle'>
 			<?=$totals['tournaments']?>
 		</div>
-		
+
 		<div class='medium-12 hide-for-small-only'>
 			&nbsp;
 		</div>
-		
+
 		<!-- Weapons -->
 		<div class='small-9 cell'>
 			Number of Weapon Sets:
@@ -322,11 +322,11 @@ function eventExchangesTable($totals){
 		<div class='small-3 cell align-self-middle'>
 			<?=$totals['weapons']?>
 		</div>
-		
+
 		<div class='medium-12 hide-for-small-only'>
 			&nbsp;
 		</div>
-		
+
 		<!-- Matches -->
 		<div class='small-9 cell'>
 			Number of Matches:
@@ -334,31 +334,31 @@ function eventExchangesTable($totals){
 		<div class='small-3 cell align-self-middle'>
 			<?=$totals['matches']?>
 		</div>
-		
+
 		<div class='medium-12 hide-for-small-only'>
 			&nbsp;
 		</div>
-		
+
 		<!-- Pieces -->
 		<div class='small-9 cell'>
 			Number of Pieces:
-			<?php tooltip("A piece is a &#39;match&#39; from a solo event. If you have an idea 
+			<?php tooltip("A piece is a &#39;match&#39; from a solo event. If you have an idea
 						for a better name that doesn&#39;t already belong to something please let us know. :)
 						<BR><em>A &#39;round&#39; is already something.</em>");?>
 		</div>
 		<div class='small-3 cell align-self-middle'>
 			<?=$totals['pieces']?>
 		</div>
-		
+
 		</div>
-		
-		
+
+
 		</h5>
-		
-	
-	
+
+
+
 	</div>
-	
+
 <!-- Exchanges -->
 	<div class='medium-6 small-12 cell'>
 	<table>
@@ -388,7 +388,7 @@ function eventExchangesTable($totals){
 			<td><?=$noExchangeN?></td>
 			<td><?=$noExchangeP?></td>
 		</tr>
-		
+
 		<tr style='border-top:solid 1px'>
 			<th>
 				<em>Total Exchanges:</em>
@@ -401,10 +401,10 @@ function eventExchangesTable($totals){
 			</th>
 		</tr>
 	</table>
-	
+
 	</div>
 	</div>
-	
+
 <?php }
 
 /******************************************************************************/
@@ -414,10 +414,10 @@ function tournamentExchangesTable($stats){
 	$displaMode = 'a';
 	?>
 
-	
+
 	<table>
 	<caption>Tournament Exchanges by Type</caption>
-	
+
 	<!-- Headers -->
 		<tr>
 			<th>Tournament</th>
@@ -434,7 +434,7 @@ function tournamentExchangesTable($stats){
 		</tr>
 
 		<?php foreach((array)$stats as $tournamentID => $data):
-			
+
 			$name = getTournamentName($data['tournamentID']);
 
 			$cleanN = $data['clean'];
@@ -444,11 +444,11 @@ function tournamentExchangesTable($stats){
 			$afterblowN = $data['afterblow'];
 			$all = $data['total'];
 			$BpE = $data['BpE'];
-			
+
 			if($all == 0){
 				continue;
 			}
-				
+
 			$cleanP = (round($cleanN/$all,2)*100)."%";
 			$doubleP = (round($doubleN/$all,2)*100)."%";
 			$afterblowP = (round($afterblowN/$all,2)*100)."%";
@@ -468,9 +468,9 @@ function tournamentExchangesTable($stats){
 				$noExchange = $noExchangeP;
 				$noQuality = $noQualityP;
 			}
-			
+
 			?>
-			
+
 	<!-- Data -->
 			<tr>
 				<td><?=$name?></td>
@@ -482,9 +482,9 @@ function tournamentExchangesTable($stats){
 				<td><?=$noExchange?></td>
 				<td><?=$BpE?>%</td>
 			</tr>
-			
+
 		<?php endforeach ?>
-	
+
 	</table>
 
 <?php }

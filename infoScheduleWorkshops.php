@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Schedule
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ if($_SESSION['eventID'] == null){
 				$tmp['location'] .= logistics_getLocationName($locationID, true).", ";
 			}
 			$tmp['location'] = rtrim($tmp['location'], ', ');
-			
+
 			$tmp['name'] = "<b>".$block['blockTitle']."</b> <i>".$block['blockSubtitle']."</i>";
 
 			$instructors = logistics_getBlockInstructors($block['blockID']);
@@ -77,10 +77,10 @@ if($_SESSION['eventID'] == null){
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<table class="display" id='workshopListView'>	
+	<table class="display" id='workshopListView'>
 
 		<thead>
 		<tr>
@@ -95,7 +95,7 @@ if($_SESSION['eventID'] == null){
 			<th>Experience</th>
 		</tr>
 		</thead>
-		
+
 		<tbody>
 		<?php foreach($workshopList as $workshop):?>
 
@@ -133,7 +133,7 @@ if($_SESSION['eventID'] == null){
 					<?=$workshop['experience']?>
 				</td>
 			</tr>
-			
+
 
 		<?php endforeach ?>
 		</tbody>

@@ -1,11 +1,11 @@
 <?php
 /*******************************************************************************
 	Fighter Management
-	
+
 	Withdraw fighters if they are injured and can no longer compete
 	LOGIN:
 		- ADMIN or higher required to access
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -33,22 +33,22 @@ if(ALLOW['VIEW_MATCHES'] == false){
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-?>	
-	
+?>
+
 <!-- Navigate pool sets -->
 
 	<a onclick="$('#pageExplanation').toggle()"><em>What is this?</em></a>
 
 	<div id='pageExplanation' class='callout success hidden'>
 
-		This page is to show summaries of the number of certain types of exchanges each fighter has 
+		This page is to show summaries of the number of certain types of exchanges each fighter has
 		been involved in over the course of [<strong><?=$tournamentName?></strong>].
 		<BR>
 		<strong>✓</strong> indicates the fighter delivered the intial hit (Deductive AB), or higher valued hit* (Full AB).
 		<BR>
 		<strong>✗</strong> indicates the fighter recieved the intial hit (Deductive AB), or landed the lower valued hit (Full AB).
 		<BR><em>
-			&#8195;* in Full Afterblow an exchange worth equal points (eg: 1-1) it is randomly assigned which fighter had the 'initial' hit. 
+			&#8195;* in Full Afterblow an exchange worth equal points (eg: 1-1) it is randomly assigned which fighter had the 'initial' hit.
 		</em>
 	</div>
 
@@ -71,7 +71,7 @@ if(ALLOW['VIEW_MATCHES'] == false){
 					<?php endforeach ?>
 
 					<?php foreach($rawData[$first_key]['points'] as $name => $data):?>
-						<th  style='white-space: nowrap'> 
+						<th  style='white-space: nowrap'>
 							<?=$name?>
 						</th>
 					<?php endforeach ?>
@@ -85,7 +85,7 @@ if(ALLOW['VIEW_MATCHES'] == false){
 					<td>
 						<?=getFighterName($rosterID)?>
 					</td>
-				
+
 
 					<?php foreach((array)$person['exchanges'] as $num):?>
 						<td>
@@ -111,7 +111,7 @@ if(ALLOW['VIEW_MATCHES'] == false){
 		<?=displayAlert("No data found for this tournament.")?>
 
 	<?php endif ?>
-		
+
 
 
 

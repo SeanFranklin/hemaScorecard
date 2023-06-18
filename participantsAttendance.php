@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ $eventID = (int)$_SESSION['eventID'];
 				if($m['groupType'] == 'pool'){
 					$name .= ", Match ".$m['matchNumber'];
 					$page = 'scoreMatch.php';
-					
+
 				} elseif($m['groupType'] == 'round') {
 					$page = 'scorePiece.php';
 					$m['fighter2ID'] = 0;
@@ -115,9 +115,9 @@ $eventID = (int)$_SESSION['eventID'];
 		<?php endforeach ?>
 		</tbody>
 	</table>
-		
-<?php 		
-	
+
+<?php
+
 }
 
 include('includes/footer.php');

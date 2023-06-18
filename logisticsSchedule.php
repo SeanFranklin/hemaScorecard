@@ -1,7 +1,7 @@
 <?php
 /*******************************************************************************
 	Logistics Schedule
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ if($_SESSION['eventID'] == null){
 	displayScheduleConflicts($conflicts);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 ?>
 
 	<fieldset <?=$formLock?> >
@@ -82,7 +82,7 @@ if($_SESSION['eventID'] == null){
 		<?php showHideScheduleBlocks() ?>
 
 		<ul class="tabs" data-tabs id="dayNum-tab">
-			<?php foreach($eventDays as $dayNum => $dayName): 
+			<?php foreach($eventDays as $dayNum => $dayName):
 				if($dayNum == $_SESSION['dayNum']){
 					$class = 'is-active';
 				} else {
@@ -90,11 +90,11 @@ if($_SESSION['eventID'] == null){
 				}
 				?>
 				<li class="tabs-title <?=$class?>">
-	  				<a data-tabs-target="panel<?=$dayNum?>" href="#panel<?=$dayNum?>"
-	  					onclick="updateSession('dayNum',<?=$dayNum?>)">
-	  					Day <?=$dayNum?> (<?=$dayName?>)
-	  				</a>
-	  			</li>
+					<a data-tabs-target="panel<?=$dayNum?>" href="#panel<?=$dayNum?>"
+						onclick="updateSession('dayNum',<?=$dayNum?>)">
+						Day <?=$dayNum?> (<?=$dayName?>)
+					</a>
+				</li>
 			<?php endforeach ?>
 		</ul>
 
@@ -105,7 +105,7 @@ if($_SESSION['eventID'] == null){
 					$class = 'is-active';
 				} else {
 					$class = '';
-				} 
+				}
 				?>
 				<div class="tabs-panel <?=$class?>" id="panel<?=$dayNum?>">
 					<?=displayScheduleDay_asTable(@$scheduleData_table[$dayNum],  	//Index may not exist,
@@ -161,9 +161,9 @@ function showHideScheduleBlocks(){
 	<?=$imgHtml?>
 	<BR><BR>
 </div>
-	
 
-	
+
+
 <?php
 }
 
@@ -202,7 +202,7 @@ function displayBlockDescriptionModal(){
 
 ?>
 	<div class='reveal medium' id='sbd-modal' data-reveal>
-		
+
 		<?=displayBlockDescription()?>
 
 		<!-- Close button -->
@@ -262,15 +262,15 @@ function editScheduleBlockBox($schedule,$tournamentIDs,$eventDays, $eventLocatio
 		</div>
 
 		<div class='large-6 cell'>
-	
+
 			<select id='blockID' style='text-align-last:center;'
 				onchange="logistics_changeScheduleBlock()">
 				<option value=0>* Add New Block *</option>
-					
+
 				<?php foreach($schedule as $dayNum => $daySchedule): ?>
 					<option disabled>
 						Day <?=$dayNum?>
-						<?foreach($daySchedule as $block): 
+						<?foreach($daySchedule as $block):
 							$blockID = $block['blockID'];?>
 							<option <?=optionValue($blockID, null)?> >
 								<?=logistics_getScheduleBlockName($blockID,'before')?>
@@ -311,7 +311,7 @@ function editScheduleBlockBox($schedule,$tournamentIDs,$eventDays, $eventLocatio
 
 		<div class="tabs-panel" id="sbd-edit">
 			<?=editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations)?>
-			
+
 		</div>
 	</div>
 
@@ -340,10 +340,10 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 ?>
 
 	<?php if($eventLocations == null): ?>
-		
+
 		Looks like there are no Locations created to hold anything.
 		<BR>Please create Locations using <a href='logisticsLocations.php'>Manage Locations</a> first.
-	
+
 	<?php else: ?>
 
 	<form method='POST' id='esb-form'>
@@ -355,7 +355,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 
 	<div class='grid-x grid-margin-x'>
 
-	
+
 	<!-- Type -->
 		<div class='input-group large-4 cell'>
 			<span class='input-group-label'>
@@ -420,7 +420,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 	<!-- Subtitle -->
 		<div class='input-group large-6 cell'>
 			<span class='input-group-label'>
-				Subtitle: 
+				Subtitle:
 			</span>
 			<input type='text' class='input-group-field' id='esb-blockSubtitle'
 				name='editScheduleBlock[blockSubtitle]'
@@ -432,13 +432,13 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 			<span class='input-group-label'>
 				Start Time (24hr):
 			</span>
-			<input type='number' class='input-group-field'  
+			<input type='number' class='input-group-field'
 				id='esb-startTimeHour' min=0 max=24
-				name='editScheduleBlock[startTimeHour]'> 
+				name='editScheduleBlock[startTimeHour]'>
 			<span class='input-group-label'>
 				:
 			</span>
-			<input type='number' class='input-group-field' 
+			<input type='number' class='input-group-field'
 				id='esb-startTimeMinute' min=0 max=59
 				name='editScheduleBlock[startTimeMinute]' >
 		</div>
@@ -463,7 +463,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 
 		<div class='input-group large-8 cell'>
 			<span class='input-group-label'>
-				Description: 
+				Description:
 			</span>
 			<textarea class='input-group-field' id='esb-blockDescription'
 				name='editScheduleBlock[blockDescription]' style='overflow: auto;'
@@ -479,9 +479,9 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 				# Staffing Shifts:
 				<?=tooltip("A Staffing Shift is the unit of time you can assign staff to. <BR>
 				<u>Example</u><BR>
-				If you take a 3 hour tournament block and assign 2 staffing shifts, you will have the option 
+				If you take a 3 hour tournament block and assign 2 staffing shifts, you will have the option
 				to set staff for the first and last 1.5 hour shifts. If you chose 1 shift you can set one group of
-				staff for the whole thing.")?> 
+				staff for the whole thing.")?>
 			</span>
 			<input type='number' class='input-group-field' id='esb-numShifts'
 				name='editScheduleBlock[numShifts]' min=0 max=12 >
@@ -492,12 +492,12 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 				Suppress Conflicts:
 				<?=tooltip("This will tell the software not to include this block in any sort
 							of conflict checks. Each participant in this block will be considered
-							to be 'free'.")?> 
+							to be 'free'.")?>
 			</span>
 			<div class='switch input-group-field'>
 				<input type='hidden' value='0'
 						name='editScheduleBlock[suppressConflicts]' >
-				<input class='switch-input' type='checkbox' 
+				<input class='switch-input' type='checkbox'
 						value='1'
 						id='esb-suppressConflicts'
 						name='editScheduleBlock[suppressConflicts]'>
@@ -513,16 +513,16 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 			<span class='input-group-label'>
 				Link:
 				<?=tooltip("Use if you want the description to contain a link to an external
-							document, such as the tournament rules.")?> 
+							document, such as the tournament rules.")?>
 			</span>
 			<input type='text' class='input-group-field' id='esb-blockLink'
-				name='editScheduleBlock[blockLink]' 
+				name='editScheduleBlock[blockLink]'
 				placeholder="You MUST include the 'https://' or this link will not work!">
 		</div>
 
 		<div class='input-group large-5 cell'>
 			<span class='input-group-label'>
-				Link Description: 
+				Link Description:
 			</span>
 			<input type='text' class='input-group-field' id='esb-blockLinkDescription'
 				name='editScheduleBlock[blockLinkDescription]'
@@ -535,13 +535,13 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 				Equipment:
 			</span>
 			<input type='text' class='input-group-field' id='esb-blockAttributeEquipment'
-				name='editScheduleBlock[blockEquipment]' 
+				name='editScheduleBlock[blockEquipment]'
 				placeholder="Optional">
 		</div>
 
 		<div class='input-group large-6 cell'>
 			<span class='input-group-label'>
-				Experience Levels: 
+				Experience Levels:
 			</span>
 			<input type='text' class='input-group-field' id='esb-blockAttributeExperience'
 				name='editScheduleBlock[blockExperience]'
@@ -559,7 +559,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 		<div class='large-12 cell text-center esb-locationIDs'>
 		<div class='cell grid-x grid-margin-x'>
 
-			<?php foreach($eventLocations as $location): 
+			<?php foreach($eventLocations as $location):
 				$locationID = $location['locationID'];
 				$classes = 'esb-location-checkbox';
 				if($location['hasMatches'] == 0){
@@ -573,7 +573,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 					$classes .= ' esb-classes-yes';
 				}
 				?>
-				
+
 				<div class='cell large-2 medium-4 small-6 <?=$classes?>'>
 				<div class='cell grid-x'>
 
@@ -583,23 +583,23 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 				<div class='switch text-center esb-ring-checkbox'>
 					<input type='hidden' value='0'
 							name='editScheduleBlock[locationIDs][<?=$locationID?>]' >
-					<input class='switch-input esb-locationID' type='checkbox' 
+					<input class='switch-input esb-locationID' type='checkbox'
 							value='<?=$locationID?>'
 							id='esb-location-<?=$locationID?>'
 							name='editScheduleBlock[locationIDs][<?=$locationID?>]'
 							onclick="logistics_esbRingCheck(this)" >
-					<label class='switch-paddle' 
+					<label class='switch-paddle'
 						for='esb-location-<?=$locationID?>'>
 					</label>
 				</div>
 
 				</div>
 				</div>
-						
+
 			<?php endforeach ?>
 		</div>
 		</div>
-		
+
 
 		<div class='large-12 cell text-center red-text' id='esb-errorLog'></div>
 		<div class='large-12 cell text-center red-text' id='esb-warningLog'></div>
@@ -610,16 +610,16 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 		<div class='grid-x grid-margin-x'>
 			<div class='large-1 medium-0 cell'>
 				<!-- Spacing Div -->
-			</div> 
+			</div>
 			<div class='large-10 medium-12 cell'>
 			<div class='grid-x grid-margin-x'>
-				
 
-				<a class='button success large-4 medium-4 small-12 cell' 
+
+				<a class='button success large-4 medium-4 small-12 cell'
 					type='button' onclick="logistics_esbSubmit()" id='esb-submitButton'>
 					Add/Update
 				</a>
-				<a class='button alert medium-4 small-12 cell' 
+				<a class='button alert medium-4 small-12 cell'
 					type='button' data-open="confirmBlockDeleteModal" id='esb-deleteButton'>
 					Delete Item
 				</a>
@@ -627,7 +627,7 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 					Cancel
 				</a>
 			</div>
-			</div> 
+			</div>
 		</div>
 
 	</form>
@@ -642,8 +642,8 @@ function editScheduleBlockForm($tournamentIDs,$eventDays, $eventLocations = null
 		If you just want to keep the block, but remove it from a location, use the checkboxes on the
 		previous form.
 		<div class='grid-x grid-margin-x'>
-					
-			<a class='button alert large-6 small-12 cell' 
+
+			<a class='button alert large-6 small-12 cell'
 				type='button' onclick="logistics_esbDeleteSubmit()" id='esb-realDeleteButton'>
 				Yes, I want to Delete
 			</a>
@@ -688,7 +688,7 @@ function displayScheduleConflicts($conflicts){
 					-
 					<?=min2hr($conflict['item1']['endTime'])?>]
 					<?=logistics_getScheduleBlockName($conflict['item1']['blockID'])?>
-						
+
 				</li>
 
 				<li>
@@ -696,7 +696,7 @@ function displayScheduleConflicts($conflicts){
 					-
 					<?=min2hr($conflict['item2']['endTime'])?>]
 					<?=logistics_getScheduleBlockName($conflict['item2']['blockID'])?>
-						
+
 				</li>
 
 			</div>
@@ -710,8 +710,8 @@ function displayScheduleConflicts($conflicts){
 			Conflicting items are displayed in <strong class='red-text'>RED</strong> (and may be displayed in incorrect rings.)
 		</div>
 	<?php endif ?>
-	
-	
+
+
 <?php
 }
 
@@ -772,14 +772,14 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 				$itemInfo['name'] = $block['blockTitle'];
 			}
 			$itemInfo['subtitle'] = $block['blockSubtitle'];
-			
+
 			foreach($block['locationIDs'] as $locationID){
 				$itemInfo['itemType'] = 'new';
 				$scheduleData_table[$dayNum][$startTime][$locationID] = $itemInfo;
 
 				$itemInfo['itemType'] = 'skip';
-				for($time = $startTime +  SCHEDULE_TIME_INTERVAL; 
-					$time < $endTime; 
+				for($time = $startTime +  SCHEDULE_TIME_INTERVAL;
+					$time < $endTime;
 					$time +=  SCHEDULE_TIME_INTERVAL){
 
 					$scheduleData_table[$dayNum][$time][$locationID] = $itemInfo;
@@ -830,10 +830,10 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						<?=logistics_getLocationName($place['locationID'])?>
 					<?php else: ?>
 						????
-						<?=tooltip("Schedule conflicts break the table and 
-									things show up in the wrong places.")?> 
+						<?=tooltip("Schedule conflicts break the table and
+									things show up in the wrong places.")?>
 					<?php endif ?>
-						
+
 				</th>
 			<?php endforeach ?>
 		</tr>
@@ -907,7 +907,7 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 
 						$style .= " background: {$color};";
 
-						
+
 					}
 
 						?>
@@ -946,8 +946,8 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 
 /******************************************************************************/
 
-/******************************************************************************/	
-	
+/******************************************************************************/
+
 function getTournamentColor($tournamentID, $tournamentIDs){
 
 	$numTournaments = count($tournamentIDs);
@@ -978,7 +978,7 @@ function getTournamentColor($tournamentID, $tournamentIDs){
 	$r = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,1,2), 1 + $scale);
 	$g = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,3,2), 1 + $scale);
 	$b = scaleColor(substr(SCHEDULE_COLOR_TOURNAMENT,5,2), 1.1 + $scale);
-	
+
 	$color = "#".$r.$g.$b;
 
 	return ($color);
@@ -995,7 +995,7 @@ function scaleColor($colorHexIn, $scale){
 	$dec = (int)($scale * $decBase);
 	$dec = min($dec, 255);
 	$dec = max($dec, 0);
-	
+
 	if($dec < 16){
 		$hex = '0'.dechex($dec);
 	} else {

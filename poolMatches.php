@@ -1,10 +1,10 @@
 <?php
 /*******************************************************************************
 	Pool Matches
-	
+
 	Displays all pool matches
 	LOGIN: N/A
-	
+
 *******************************************************************************/
 
 // INITIALIZATION //////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ if($tournamentID == null){
 } elseif (ALLOW['VIEW_MATCHES'] == false){
 	displayAlert("Event is still upcoming<BR>Pools not yet released");
 } else {
-		
+
 	$poolSet = $_SESSION['groupSet'];
 	$matchList = getPoolMatches($tournamentID, 'all', $poolSet);
 	$tournamentName = getTournamentName($tournamentID);
@@ -36,9 +36,9 @@ if($tournamentID == null){
 	foreach((array)$matchList as $groupID => $pool){
 		$incompletes = false;
 		$completes = false;
-		
+
 		foreach ($pool as $matchID => $match){
-			
+
 			if(gettype($match) != 'string'){
 				if($match['ignoreMatch'] == 1){continue;}
 				if($match['isComplete'] == true){ $completes = true; }
@@ -55,9 +55,9 @@ if($tournamentID == null){
 	$hide = getItemsHiddenByFilters($tournamentID, $_SESSION['filters']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////	
-?>	
-	
+////////////////////////////////////////////////////////////////////////////////
+?>
+
 	<?php poolSetNavigation(); ?>
 
 	<?=activeFilterWarning()?>
@@ -65,7 +65,7 @@ if($tournamentID == null){
 <!-- Navigation to pools -->
 	<a name='topOfPage'></a>
 	<?php if($matchList != null): ?>
-		<ul class='dropdown menu align-center pool-switcher' data-dropdown-menu>	  
+		<ul class='dropdown menu align-center pool-switcher' data-dropdown-menu>
 			<li>
 			<button class='dropdown button'>Jump to Pool : <?=$tournamentName?></button>
 			<ul class='menu'>
@@ -73,28 +73,28 @@ if($tournamentID == null){
 				<?php $name = "{$group['groupName']}";
 				if(isset($poolsInProgress[$groupID])){
 					$inProgress = '- In Progress';
-				} else { 
+				} else {
 					$inProgress = null;
 				} ?>
 				<li><a href='#group<?=$groupID?>'><?=$name?> <?=$inProgress?></a></li>
-			<?php endforeach ?>		
+			<?php endforeach ?>
 			</ul>
 			</li>
 		</ul>
 
 	<?php else: ?>
 		<?php displayAlert('No Scheduled Matches'); ?>
-	<?php endif ?>	
-		
-<!-- Display pools -->	
-	<?php foreach((array)$matchList as $groupID => $pool): 
+	<?php endif ?>
+
+<!-- Display pools -->
+	<?php foreach((array)$matchList as $groupID => $pool):
 		$locationName = logistics_getGroupLocationName($groupID);
 		$matchNum = 0;
 		if(isset($hide['group'][$groupID]) == true){
 			continue;
 		}
 		?>
-		
+
 		<a name='group<?=$groupID?>'></a>
 		<h5>
 			<?=$pool['groupName']?>
@@ -107,34 +107,34 @@ if($tournamentID == null){
 				</a>
 			<?php endif ?>
 		</h5>
-		
+
 		<div class='grid-x grid-margin-x' name='group<?=$groupID?>'>
 
-			<?php  
+			<?php
 			checkFightersIn($groupID);
 
 			foreach ($pool as $matchID => $match){
-				
+
 				if(gettype($match) == 'array' && isset($hide['match'][$matchID]) == false){
 					$matchNum++;
 					displayMatch($matchID, $match, $matchScores, $matchNum, $schoolIDs);
-				}	
+				}
 			} ?>
 		</div>
 
 		<a href='#topOfPage'>Back to Top</a>
 		<HR>
 
-	<?php endforeach ?>    
+	<?php endforeach ?>
 
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 
 	<?php // Auto refresh function if matches are inprogress
 	$time = autoRefreshTime(isInProgress($tournamentID, 'pool')); ?>
 	<script>window.onload = function(){autoRefresh(<?=$time?>);}</script>
-	
-	
-<?php }	
+
+
+<?php }
 include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ function checkFightersIn($groupID){
 
 ?>
 	<div class='large-12 cell hidden check-in-<?=$groupID?>'>
-		
+
 		<form method='POST'>
 		<table>
 			<tr>
@@ -185,12 +185,12 @@ function checkFightersIn($groupID){
 					<td>
 						<?=$fighter['name']?>
 					</td>
-				
+
 				<td>
 
 					<div class='switch text-center no-bottom'>
 						<input type='hidden' name='<?=$fighter['form']?>[checkin]' value='0'>
-						<input class='switch-input' type='checkbox' 
+						<input class='switch-input' type='checkbox'
 							id='<?=$fighter['form']?>[checkin]' <?=$fighter['checkin']?>
 							name='<?=$fighter['form']?>[checkin]' value='1'>
 						<label class='switch-paddle' for='<?=$fighter['form']?>[checkin]'>
@@ -202,7 +202,7 @@ function checkFightersIn($groupID){
 
 					<div class='switch text-center no-bottom'>
 						<input type='hidden' name='<?=$fighter['form']?>[gearcheck]' value='0'>
-						<input class='switch-input' type='checkbox' 
+						<input class='switch-input' type='checkbox'
 							id='<?=$fighter['form']?>[gearcheck]' <?=$fighter['gearcheck']?>
 							name='<?=$fighter['form']?>[gearcheck]' value='1'>
 						<label class='switch-paddle' for='<?=$fighter['form']?>[gearcheck]'>
@@ -211,7 +211,7 @@ function checkFightersIn($groupID){
 				</td>
 
 				<td class='text-center'>
-					<button class='button success hollow tiny no-bottom' 
+					<button class='button success hollow tiny no-bottom'
 						name='formName' value='checkInFighters'>
 						<strong>✅</strong>
 					</button>
@@ -225,7 +225,7 @@ function checkFightersIn($groupID){
 
 
 	</div>
-	
+
 <?php
 }
 
@@ -233,7 +233,7 @@ function checkFightersIn($groupID){
 /******************************************************************************/
 
 function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolIDs){
-// displays the fighters and score of a match. Also button to go to the match	
+// displays the fighters and score of a match. Also button to go to the match
 
 	if(NAME_MODE == 'lastName'){
 		$topName = 'lastName';
@@ -244,7 +244,7 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 		$bottomName = 'lastName';
 		$extra = '';
 	}
-	
+
 
 	$id1 = $match['fighter1ID'];
 	$id2 = $match['fighter2ID'];
@@ -256,12 +256,12 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 
 	$topName1 = $nameData1[$topName].$extra;
 	$bottomName1 = $nameData1[$bottomName];
-	
+
 	$topName2 = $nameData2[$topName].$extra;
 	$bottomName2 = $nameData2[$bottomName];
 
 	$winnerID = $match['winnerID'];
-	
+
 	// Weights of the fonts for fighter 1 and 2
 	$t1 = "h6";
 	$t2 = "h6";
@@ -297,7 +297,7 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 
 	$code1 = COLOR_CODE_1;
 	$code2 = COLOR_CODE_2;
-	
+
 	// The scores to display
 	if($matchScores[$matchID]['fighter1Score'] != null){
 		$score1 = $matchScores[$matchID]['fighter1Score'];
@@ -309,11 +309,11 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 	} else {
 		$score2 = '-';
 	}
-	
-	
+
+
 // MATCH DISPLAY /////////////////////////////////////
 	?>
-	
+
 	<div class='small-12 medium-6 large-3 cell match-item <?=$divClass?>'>
 		<a name='anchor<?=$matchID?>' style='display:inline'></a>
 		<form method='POST' name='goToMatch<?=$matchID?>'>
@@ -323,11 +323,11 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 				Match <?=$matchNum?>
 			</a>
 		</form>
-		
+
 		<ul>
 			<li class='person fighter_1_color'>
 				<<?=$t1?>><?=$topName1?><BR><?=$bottomName1?></<?=$t1?>>
-				<<?=$t1?>><?=$score1?></<?=$t1?>>	
+				<<?=$t1?>><?=$score1?></<?=$t1?>>
 			</li>
 			<li class='versus-item'>
 				vs</li>
@@ -338,7 +338,7 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 		</ul>
 	</div>
 
-<?php 
+<?php
 }
 
 /******************************************************************************/

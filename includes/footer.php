@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
 	Footer
-	
+
 	Page footer and javascript declarations
-		
+
 *******************************************************************************/
 
 	displayPageAlerts();
@@ -55,7 +55,7 @@
 
 
 			<div class='shrink cell'>
-				
+
 			</div>
 
 		</div>
@@ -64,18 +64,18 @@
 
 <!-- Start Scripts -->
 	<script src="includes/foundation/js/vendor/jquery.js"></script>
-    <script src="includes/foundation/js/vendor/what-input.js"></script>
-    <script src="includes/foundation/js/vendor/foundation.js"></script>
-    <script src="includes/foundation/js/app.js<?=$vJ?>"></script>
-    
-    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+	<script src="includes/foundation/js/vendor/what-input.js"></script>
+	<script src="includes/foundation/js/vendor/foundation.js"></script>
+	<script src="includes/foundation/js/app.js<?=$vJ?>"></script>
+
+	<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
 
 	<script type='text/javascript' src='includes/scripts/general_scripts.js<?=$vJ?>'></script>
 	<script type='text/javascript' src='includes/scripts/delete_checking_scripts.js<?=$vJ?>'></script>
-	
-	
-	<?php 
+
+
+	<?php
 		if(isset($jsIncludes)){
 			foreach((array)$jsIncludes as $includePath){
 				echo "<script type='text/javascript' src='includes/scripts/{$includePath}{$vJ}'></script>";
@@ -85,30 +85,30 @@
 
 
 	<?php if(isset($createSortableDataTable)): ?>
-			
-	    <script src='https://code.jquery.com/jquery-3.3.1.js'></script>
+
+		<script src='https://code.jquery.com/jquery-3.3.1.js'></script>
 		<script src='https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js'></script>
 		<script src='https://cdn.datatables.net/1.10.19/js/dataTables.foundation.min.js'></script>
 
 		<script>
-		<?php foreach($createSortableDataTable as $table): 
+		<?php foreach($createSortableDataTable as $table):
 			$tableName = $table[0];
 			$tableSize = $table[1];
 			?>
 
-			$(document).ready(function() { 
+			$(document).ready(function() {
 				$('#<?=$tableName?>').DataTable({
 					"pageLength": <?=$tableSize?>,
 					stateSave: true,
-				}); 
+				});
 			} );
-			
+
 		<?php endforeach ?>
 
 		google.charts.load('current', {'packages':['corechart']});
-		
+
 		</script>
-		
+
 	<?php endif ?>
 
 <!-- End Scripts -->
@@ -154,14 +154,14 @@ function displaySponsors(){
 
 		<div class='grid-x grid-margin-x align-center align-top' id='sponsor-large'>
 
-		
+
 				<?php foreach($eventSponsors as $sponsorID => $sponsor): ?>
 					<div class='shrink cell'>
 					<img class='align-self-top' src="includes/images/sponsors/<?=$sponsorID?>.png" style='display: inline-block'
 						width="<?=($sponsor['eventSponsorPercent'] * $imageSize)?>" title="<?=$sponsor['sponsorName']?>">
 					</div>
 				<?php endforeach ?>
-		
+
 		</div>
 	</div>
 
