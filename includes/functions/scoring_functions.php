@@ -2762,7 +2762,8 @@ function pool_CalculateTeamScores($tournamentID, $setNumber = 1){
 		$fields = ['score', 'matches', 'wins', 'losses','ties','pointsFor','pointsAgainst',
 					'hitsFor','hitsAgainst','afterblowsFor','afterblowsAgainst',
 					'doubles','noExchanges','AbsPointsFor','AbsPointsAgainst', 'AbsPointsAwarded',
-					'numPenalties','penaltiesAgainstOpponents','penaltiesAgainst','doubleOuts'];
+					'numPenalties','numYellowCards','numRedCards','penaltiesAgainstOpponents',
+					'penaltiesAgainst','doubleOuts'];
 		$selectClause = implode("), SUM(", $fields);
 		$selectClause = "SUM(".$selectClause.")";
 

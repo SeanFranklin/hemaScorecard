@@ -600,6 +600,7 @@ function activeLivestream(){
 /******************************************************************************/
 
 function displayEventAnnouncements(){
+
 	$eventID = (int)$_SESSION['eventID'];
 	if($eventID == 0){
 		return;
@@ -611,12 +612,45 @@ function displayEventAnnouncements(){
 		$showStaffAnnouncements = false;
 	}
 
-
-	$announcements = (array)logistics_getEventAnnouncments($_SESSION['eventID']);
-	$currentTime = time();
 	if(isset($_SESSION['hideAnnouncement']) == false){
 		$_SESSION['hideAnnouncement']= [];
 	}
+
+	$announcements 	= (array)logistics_getEventAnnouncments($_SESSION['eventID']);
+	$currentTime 	= time();
+
+
+// - Add a warning if there are ties in the standings that can't be resolved --/
+	if(ALLOW['EVENT_SCOREKEEP'] == TRUE){
+
+		$tournamentID = $_SESSION['tournamentID'];
+		$tiedFighters = findTiedFighters($tournamentID);
+		$poolsActive = isInProgress($tournamentID,'pool');
+		$bracketPopulated = isBracketPopulated($tournamentID);
+
+		if($tiedFighters != [] && $poolsActive == false && $bracketPopulated == false){
+
+			$a['message'] = 'There are ties between the following fighters:<ul>';
+			foreach($tiedFighters as $fighter){
+				$a['message'] .= "<li>{$fighter}a</li>";
+			}
+			$a['message'] .= "</ul>Scorecard has used all specified tiebreakers
+				and can not resolve the results. Place has been assigned randomly,
+				please take any necessary measures to break the tie if you intend
+				to seed a bracket based on this.";
+
+			$a['announcementID'] = -($tournamentID);
+
+			$a['displayUntil'] = $currentTime + 99999;
+			$a['visibility'] = 'staff';
+
+			$announcements[] = $a;
+
+		}
+	}
+
+
+// -- Display announcements ---------------------------------------------------/
 
 	foreach($announcements as $a){
 		$timeLeft = $a['displayUntil'] - $currentTime;

@@ -2498,6 +2498,16 @@ function clearExchangeWinners($matchID){
 
 	$matchID = (int)$matchID;
 
+	$sql = "SELECT matchComplete, tournamentID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE matchID = {$matchID}";
+	$priorInfo = mysqlQuery($sql, SINGLE);
+
+	if((int)$priorInfo['matchComplete'] == 1){
+		$_SESSION['updatePoolStandings'][(int)$priorInfo['tournamentID']] = getGroupSetOfMatch($matchID);
+	}
+
 	$sql = "DELETE FROM eventExchanges
 			WHERE matchID = {$matchID}
 			AND exchangeType IN ('winner','doubleOut','tie')";
@@ -2507,6 +2517,7 @@ function clearExchangeWinners($matchID){
 			SET winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
 			WHERE matchID = {$matchID}";
 	mysqlQuery($sql, SEND);
+
 }
 
 /******************************************************************************/
@@ -4755,7 +4766,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 		$sql = "SELECT rosterID, matches, wins, losses, ties, pointsFor, pointsAgainst,
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst, doubles,
 					noExchanges, AbsPointsFor, AbsPointsAgainst, AbsPointsAwarded, numPenalties,
-					penaltiesAgainstOpponents, penaltiesAgainst, doubleOuts
+					numYellowCards, numRedCards, penaltiesAgainstOpponents, penaltiesAgainst,
+					doubleOuts
 				FROM eventStandings
 				WHERE tournamentID = {$tournamentID}
 				AND groupType = 'pool'
@@ -4787,6 +4799,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 						AbsPointsAgainst 	= AbsPointsAgainst + {$score['AbsPointsAgainst']},
 						AbsPointsAwarded 	= AbsPointsAwarded + {$score['AbsPointsAwarded']},
 						numPenalties 		= numPenalties + {$score['numPenalties']},
+						numYellowCards 		= numYellowCards + {$score['numYellowCards']},
+						numRedCards 		= numRedCards + {$score['numRedCards']},
 						penaltiesAgainstOpponents = penaltiesAgainstOpponents + {$score['penaltiesAgainstOpponents']},
 						penaltiesAgainst	= penaltiesAgainst + {$score['penaltiesAgainst']},
 						doubleOuts 			= doubleOuts + {$score['doubleOuts']}

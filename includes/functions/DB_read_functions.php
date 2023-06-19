@@ -690,7 +690,7 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 	}
 
 	$sql = "SELECT exchangeID, exchangeType, scoringID, receivingID,
-			scoreValue, scoreDeduction, matchID, groupID
+			scoreValue, scoreDeduction, matchID, groupID, refType
 			FROM eventExchanges
 			INNER JOIN eventMatches USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
@@ -758,6 +758,14 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 				@$fighterStats[$scoringID]['penaltiesAgainst'] -= $exchange['scoreValue'];
 				@$fighterStats[$scoringID]['pointsFor'] += $exchange['scoreValue'];
 				@$fighterStats[$receivingID]['penaltiesAgainstOpponents'] -= $exchange['scoreValue'];
+
+				if($exchange['refType'] == PENALTY_CARD_YELLOW){
+					@$fighterStats[$scoringID]['numYellowCards']++;
+				}
+				if($exchange['refType'] == PENALTY_CARD_RED){
+					@$fighterStats[$scoringID]['numRedCards']++;
+				}
+
 				break;
 			case 'winner':
 				@$fighterStats[$scoringID]['wins']++;
@@ -793,6 +801,8 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 	$attributes[] = 'doubles';
 	$attributes[] = 'noExchanges';
 	$attributes[] = 'numPenalties';
+	$attributes[] = 'numYellowCards';
+	$attributes[] = 'numRedCards';
 	$attributes[] = 'penaltiesAgainstOpponents';
 	$attributes[] = 'penaltiesAgainst';
 	$attributes[] = 'wins';
@@ -815,6 +825,99 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 
 	return $fighterStats;
 
+}
+
+/******************************************************************************/
+
+function findTiedFighters($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == null){
+		return;
+	}
+	$groupSet = (int)$_SESSION['groupSet'];
+
+	if(isTeams($tournamentID) == false){
+		$useTeams = 0;
+	} elseif(isMatchesByTeam($tournamentID) == true){
+		$useTeams = 1;
+	} else {
+		$useTeams = 0;
+	}
+
+	$rankedPools = getRankedPools($tournamentID, $groupSet);
+
+// Load meta data on how to rank fighters
+	$sql = "SELECT poolWinnersFirst,
+			orderByField1, orderBySort1,
+			orderByField2, orderBySort2,
+			orderByField3, orderBySort3,
+			orderByField4, orderBySort4
+			FROM eventTournaments
+			INNER JOIN systemRankings USING(tournamentRankingID)
+			WHERE tournamentID = {$tournamentID}";
+
+	$meta = mysqlQuery($sql, SINGLE);
+	$numWinners = (int)$meta['poolWinnersFirst'];
+	unset($meta['poolWinnersFist']);
+
+
+// Check which of the ORDER BY fields are valid/used
+	if($meta['orderByField1'] == ''
+		|| ($meta['orderBySort1'] != 'ASC' && $meta['orderBySort1'] != 'DESC')){
+
+		return [];
+	}
+
+	$orderBy = "eS.{$meta['orderByField1']} = eS2.{$meta['orderByField1']}";
+
+	if($meta['orderByField2'] != ''
+		&& ($meta['orderBySort2'] == 'ASC' || $meta['orderBySort2'] == 'DESC')){
+			$orderBy .= "
+		AND eS.{$meta['orderByField2']} = eS2.{$meta['orderByField2']}";
+	}
+
+	if($meta['orderByField3'] != ''
+		&& ($meta['orderBySort3'] == 'ASC' || $meta['orderBySort3'] == 'DESC')){
+			$orderBy .= "
+		AND eS.{$meta['orderByField3']} = eS2.{$meta['orderByField3']}";
+	}
+
+	if($meta['orderByField4'] != ''
+		&& ($meta['orderBySort4'] == 'ASC' || $meta['orderBySort4'] == 'DESC')){
+			$orderBy .= "
+		AND eS.{$meta['orderByField4']} = eS2.{$meta['orderByField4']}";
+	}
+
+// Retrieve List
+	$sql = "SELECT standingID, rosterID, rank,
+				(
+					SELECT standingID
+					FROM eventStandings AS eS2
+					INNER JOIN eventRoster USING(rosterID)
+					WHERE eS.standingID != eS2.standingID
+					AND tournamentID = {$tournamentID}
+					AND groupSet = {$groupSet}
+					AND isTeam = {$useTeams}
+					AND {$orderBy}
+					LIMIT 1
+				) AS tiedStandingID
+			FROM eventStandings AS eS
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}
+			AND isTeam = {$useTeams}
+			ORDER BY rank ASC";
+	$standingsWithTies = mysqlQuery($sql, ASSOC);
+
+	$ties = [];
+	foreach($standingsWithTies as $standing){
+		if($standing['tiedStandingID'] != null){
+			$ties[$standing['rank']] = getFighterName($standing['rosterID']);
+		}
+	}
+
+	return($ties);
 }
 
 /******************************************************************************/
