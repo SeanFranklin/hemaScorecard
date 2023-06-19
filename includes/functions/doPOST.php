@@ -1415,21 +1415,31 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
+
 		$score1 = (int)$scoring[$id1]['hit'];
 		$score2 = (int)$scoring[$id2]['hit'];
+
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
 		$score1 = @$at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
+
 
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
 		$score2 = @$at2['attackPoints']; // Passes null on purpose
 		$scoring[$id2]['hit'] = $score2;
 
-		if(@$at1['attackPrefix'] == ATTACK_AFTERBLOW_DB){
-			$afterblowPrefix = 1;
-		} elseif(@$at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){
-			$afterblowPrefix = 2;
+		if((int)$score1 > (int)$score2){
+			$rType = @$at1['attackType'];
+			$rTarget = @$at1['attackTarget'];
+			$rPrefix = @$at1['attackPrefix'];
+		} elseif((int)$score2 > (int)$score1) {
+			$rType = @$at2['attackType'];
+			$rTarget = @$at2['attackTarget'];
+			$rPrefix = @$at2['attackPrefix'];
+		} else {
+			// Don't add attack info on equal scores
 		}
 
 	} else {
@@ -1480,18 +1490,6 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 				$otherID = $id2;
 			}
 
-		}
-
-		// Manages afterblows
-		// If the higher scoring fighter has the afterblow prefix it adds
-		// it to the exchange. If the lower scoring fighter had it, they
-		// would have had the afterblow anyways.
-		if($rPrefix == null){
-			if($rosterID == $id1 && $afterblowPrefix == 1){
-				$rPrefix = ATTACK_AFTERBLOW_DB;
-			} elseif($rosterID == $id2 && $afterblowPrefix == 2){
-				$rPrefix = ATTACK_AFTERBLOW_DB;
-			}
 		}
 
 		$scoreValue = 	$scoring[$rosterID]['hit'];
