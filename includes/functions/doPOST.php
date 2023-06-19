@@ -16,7 +16,7 @@ function _select_above(){
 
 function processPostData(){
 
-	///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 	/* For debugging, commented out for regular use ///
 	if(ALLOW['SOFTWARE_ADMIN'] == true){
 		$refreshPage = false;
@@ -25,7 +25,7 @@ function processPostData(){
 		$_SESSION['post'] = $_POST;
 	}
 	//define('SHOW_SESSION', true);
-	//////////////////////////////////////////////////////////////////////*/
+//////////////////////////////////////////////////////////////////////*/
 
 	$urlComponents = parse_url(basename($_SERVER['REQUEST_URI']));
 
@@ -743,6 +743,21 @@ function changeTournament($tournamentID, $matchID = 0){
 	$_SESSION['matchID'] = (int)$matchID;
 	$_SESSION['bracketHelper'] = '';
 	$_SESSION['groupSet'] = 1;
+
+
+	if(isset($_SESSION['hideAnnouncement']) == true && $tournamentID != 0){
+		show($_SESSION['hideAnnouncement']);
+		foreach($_SESSION['hideAnnouncement'] as $announcementID => $on){
+			$aID = (int)$announcementID;
+			if((int)$aID < 0 && $aID != -$tournamentID){
+
+				unset($_SESSION['hideAnnouncement'][$announcementID]);
+			}
+
+		}
+	}
+
+
 }
 
 /******************************************************************************/
@@ -1404,19 +1419,18 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$score2 = (int)$scoring[$id2]['hit'];
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
-		$score1 = $at1['attackPoints'];
+		$score1 = @$at1['attackPoints'];
 		$scoring[$id1]['hit'] = $score1;
 
 		$at2 = getAttackAttributes($scoring[$id2]['hit']);
-		$score2 = $at2['attackPoints'];
+		$score2 = @$at2['attackPoints']; // Passes null on purpose
 		$scoring[$id2]['hit'] = $score2;
 
-		if($at1['attackPrefix'] == ATTACK_AFTERBLOW_DB){
+		if(@$at1['attackPrefix'] == ATTACK_AFTERBLOW_DB){
 			$afterblowPrefix = 1;
-		} elseif($at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){
+		} elseif(@$at2['attackPrefix'] == ATTACK_AFTERBLOW_DB){
 			$afterblowPrefix = 2;
 		}
-
 
 	} else {
 		$_SESSION['alertMessages']['systemErrors'][] = "No scoreLookupMode in fullAfterblowScoring()";

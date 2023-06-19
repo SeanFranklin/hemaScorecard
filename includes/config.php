@@ -79,6 +79,11 @@
 	define("POOL_SIZE_LIMIT",13);	// If you raise this you also need to add the match order to the table.
 	define("STAFF_COMPETENCY_MAX",9);
 
+	define("PENALTY_CARD_NONE",		null);
+	define("PENALTY_CARD_YELLOW",	34);
+	define("PENALTY_CARD_RED",		35);
+	define("PENALTY_CARD_BLACK",	38);
+
 	// The types of tournaments
 	define("FORMAT_NONE",0);
 	define("FORMAT_RESULTS",1);
