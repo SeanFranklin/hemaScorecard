@@ -17,6 +17,43 @@ if($_SESSION['eventID'] == null){
 	pageError('user');
 } else {
 
+
+
+
+
+// PAGE DISPLAY ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+?>
+
+	<div class='callout alert'>
+
+		<h4>Please use the new HEMA Ratings Submission Tool to submit your events.</h4>
+
+		<ul>
+		<li><a href="statsResultsDump.php" target="_blank">
+			Export Results From Scorecard
+		</a></li>
+
+		<li>HEMA Ratings Submission:
+		<a href="https://submit.hemaratings.com/" target="_blank">
+			https://submit.hemaratings.com/
+		</a></li></ul>
+
+		<i>(There was never an automatic integration, it was just HEMA Ratings
+			team being nice and grabbing info directly from Scorecard.)</i>
+
+
+<?
+}
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/**********************************************************************/
+/*
+DEAD Code for form
+
 	$hemaRatingInfo = hemaRatings_GetEventInfo($_SESSION['eventID']);
 	$tournamentsFinalized = areAllTournamentsFinalized($_SESSION['eventID']);
 	$incompletes = getEventIncompletes($_SESSION['eventID']);
@@ -69,10 +106,6 @@ if($_SESSION['eventID'] == null){
 	if($tournamentsFinalized == false){
 		$errorStr .= "";
 	}
-
-// PAGE DISPLAY ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-?>
 
 <?php if($dataComplete == false || $tournamentsFinalized == false):?>
 
@@ -139,14 +172,7 @@ if($_SESSION['eventID'] == null){
 </div>
 </div>
 
-
-<?
-}
-include('includes/footer.php');
-
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
+*/
 /**********************************************************************/
 
 function formEntry($item, $field, $hemaRatingInfo){
