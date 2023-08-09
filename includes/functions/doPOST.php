@@ -516,6 +516,9 @@ function processPostData(){
 			case 'hemaRatings_ExportCsv':
 				hemaRatings_ExportCsv($_POST['HemaRatingsExport']);
 				break;
+			case 'ferrotas_ExportCsv':
+				ferrotas_ExportCsv($_POST['FerrotasExportTournamentID']);
+				break;
 			case 'toggleDataModes':
 				if(isset($_POST['dataModes']['percent']) == true){
 					$_SESSION['dataModes']['percent'] = (bool)(int)$_POST['dataModes']['percent'];
@@ -739,6 +742,7 @@ function checkEvent(){
 /******************************************************************************/
 
 function changeTournament($tournamentID, $matchID = 0){
+
 	$_SESSION['tournamentID'] = (int)$tournamentID;
 	$_SESSION['matchID'] = (int)$matchID;
 	$_SESSION['bracketHelper'] = '';
@@ -748,7 +752,9 @@ function changeTournament($tournamentID, $matchID = 0){
 	if(isset($_SESSION['hideAnnouncement']) == true && $tournamentID != 0){
 
 		foreach($_SESSION['hideAnnouncement'] as $announcementID => $on){
+
 			$aID = (int)$announcementID;
+
 			if((int)$aID < 0 && $aID != -$tournamentID){
 
 				unset($_SESSION['hideAnnouncement'][$announcementID]);
@@ -803,6 +809,23 @@ function updateSessionByUrl($urlParams, $urlPath = null){
 	}
 
 	return $updated;
+
+}
+
+/******************************************************************************/
+
+function ferrotas_ExportCsv($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID != 0){
+
+		$fileName = ferrotas_createTournamentResultsCsv($tournamentID, EXPORT_DIR);
+		uploadCsvFile($fileName);
+
+	} else {
+		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid tournamentID provided to ferrotas_ExportCsv()';
+	}
 
 }
 

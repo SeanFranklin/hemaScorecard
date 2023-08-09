@@ -38,16 +38,6 @@ if($_SESSION['eventID'] == null){
 	$tournamentList = appendArray($finalizedTournaments, $unfinalizedTournaments);
 	$email = getEventEmail($_SESSION['eventID']);
 
-	$eventExportClass = '';
-	$eventExportErrText = '';
-	if(areAllTournamentsFinalized($_SESSION['eventID']) == false){
-		$eventExportClass = "alert hollow";
-		$eventExportErrText = "<em>Unfinalized Tournaments.</em> ";
-	}
-	if(hemaRatings_isEventInfoComplete($_SESSION['eventID']) == false){
-		$eventExportClass = "alert hollow";
-		$eventExportErrText = "<em>Form incomplete</em> ";
-	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +49,86 @@ if($_SESSION['eventID'] == null){
 	<?php endif ?>
 
 
+	<?=HemaRatingExportOptions($tournamentList)?>
+
+	<?=FerrotasRatingExportOptions($tournamentList)?>
+
+	<div class='callout'>
+	Do you have a different format you would like to be able to export results in? Contact the HEMA Scorecard team.
+	</div>
+
+
+<?php }
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
+
+function FerrotasRatingExportOptions($tournamentList){
+?>
+	<h4><a class="ferrotas-export" onclick="$('.ferrotas-export').toggle()">Ferrotas Ratings Format</a></h4>
+
+	<fieldset class='fieldset ferrotas-export hidden'>
+
+	<legend><h4><a onclick="$('.ferrotas-export').toggle()">Ferrotas Format</a></h4></legend>
+
+	<p><i>This export assumes the tournament was pool(s) followed by a single elimination bracket.
+		<BR>Other fomats will lead to unpredictable results.</i></p>
+
+	<form method='POST'>
+
+		<div class='grid-x grid-margin-x'>
+		<input type='hidden' name='formName' value='ferrotas_ExportCsv'>
+
+	<!-- Export tournaments -->
+		<?php foreach((array)$tournamentList as $tournamentID => $tournament):
+			$name = getTournamentName($tournamentID);
+			$class = '';
+				$warning = null;
+
+
+			if(!isFinalized($tournamentID)){
+				$class = 'secondary';
+				$warning .= '<em> - Tournament not finalized</em><BR>';
+			}
+
+			if(isTournamentPrivate($tournamentID)){
+				$class = 'alert';
+				$warning = '<em> - Request for private results</em><BR>'.$warning;
+			}
+
+
+			?>
+
+			<div class='large-4 medium-6 cell'>
+			<button class='button hollow <?=$class?> expanded' name='FerrotasExportTournamentID' value='<?=$tournamentID?>'>
+				Export <?=$name?>
+			</button>
+			<?=$warning?>
+			</div>
+
+		<?php endforeach ?>
+		</div>
+
+	</form>
+<HR>
+	<p>Ratings order:
+	<ol>
+		<li>Bracket placing.</li>
+		<li>To break ties in the bracket (<i>eg:</i> everyone who was eliminated in top 8) the pool standings are used.</li>
+		<li>Pool standings used for everyone not included in the elimination bracket.</li>
+	</ol>
+
+	</fieldset>
+<?php
+}
+
+
+/******************************************************************************/
+
+function HemaRatingExportOptions($tournamentList){
+?>
 	<h4><a class="hema-ratings-export" onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4>
 
 	<fieldset class='fieldset hema-ratings-export hidden'>
@@ -71,27 +141,12 @@ if($_SESSION['eventID'] == null){
 		<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
 
 	<!-- Export roster -->
-		<?php if(ALLOW['VIEW_EMAIL']):?>
-			<div class='large-3 medium-5 cell'>
-			<button class='button <?=$eventExportClass?> expanded' name='HemaRatingsExport' value='eventInfo'>
-				Export Event Information
-			</button>
-			</div>
-		<?php endif ?>
-
-		<?=$eventExportErrText?>
-
 
 		<div class='large-3 medium-5 cell'>
 		<button class='button expanded' name='HemaRatingsExport' value='roster'>
 			Export Roster
 		</button>
 		</div>
-		<?php if(ALLOW['STATS_ALL'] == true): ?>
-			<div class='large-6 medium-12 cell'>
-			<i> - Remember to return any HEMA Ratings IDs not on this list!</i>
-			</div>
-		<?php endif ?>
 
 
 		<div class='large-12 cell'><HR></div>
@@ -129,13 +184,12 @@ if($_SESSION['eventID'] == null){
 	</form>
 
 	</fieldset>
+<?php
+}
 
 
-<?php }
-include('includes/footer.php');
+/******************************************************************************/
 
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 
 /******************************************************************************
