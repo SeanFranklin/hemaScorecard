@@ -76,7 +76,7 @@
 	define("DEFAULT_COLOR_CODE_2",'#66F');
 
 	define("DEFAULT_MAX_DOUBLES",3);
-	define("POOL_SIZE_LIMIT",13);	// If you raise this you also need to add the match order to the table.
+	define("POOL_SIZE_LIMIT",16);	// If you raise this you also need to add the match order to the table.
 	define("STAFF_COMPETENCY_MAX",9);
 
 	define("PENALTY_CARD_NONE",		null);

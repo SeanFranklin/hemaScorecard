@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jun 19, 2023 at 12:55 AM
+-- Generation Time: Aug 16, 2023 at 01:31 AM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -1774,7 +1774,323 @@ INSERT INTO `systemMatchOrder` (`tableID`, `numberOfFighters`, `matchNumber`, `f
 (361, 13, 75, 3, 9),
 (362, 13, 76, 3, 10),
 (363, 13, 77, 4, 10),
-(364, 13, 78, 4, 11);
+(364, 13, 78, 4, 11),
+(365, 14, 1, 1, 2),
+(366, 14, 2, 3, 4),
+(367, 14, 3, 5, 6),
+(368, 14, 4, 7, 8),
+(369, 14, 5, 9, 10),
+(370, 14, 6, 11, 12),
+(371, 14, 7, 13, 14),
+(372, 14, 8, 1, 3),
+(373, 14, 9, 2, 4),
+(374, 14, 10, 5, 7),
+(375, 14, 11, 6, 8),
+(376, 14, 12, 9, 11),
+(377, 14, 13, 10, 12),
+(378, 14, 14, 13, 1),
+(379, 14, 15, 14, 3),
+(380, 14, 16, 2, 5),
+(381, 14, 17, 4, 7),
+(382, 14, 18, 6, 9),
+(383, 14, 19, 8, 11),
+(384, 14, 20, 10, 13),
+(385, 14, 21, 12, 1),
+(386, 14, 22, 14, 2),
+(387, 14, 23, 3, 5),
+(388, 14, 24, 4, 6),
+(389, 14, 25, 7, 9),
+(390, 14, 26, 8, 10),
+(391, 14, 27, 11, 13),
+(392, 14, 28, 12, 14),
+(393, 14, 29, 1, 5),
+(394, 14, 30, 2, 3),
+(395, 14, 31, 4, 9),
+(396, 14, 32, 6, 7),
+(397, 14, 33, 8, 13),
+(398, 14, 34, 10, 11),
+(399, 14, 35, 12, 5),
+(400, 14, 36, 14, 1),
+(401, 14, 37, 2, 9),
+(402, 14, 38, 3, 6),
+(403, 14, 39, 4, 8),
+(404, 14, 40, 7, 13),
+(405, 14, 41, 10, 5),
+(406, 14, 42, 11, 14),
+(407, 14, 43, 12, 2),
+(408, 14, 44, 1, 9),
+(409, 14, 45, 3, 8),
+(410, 14, 46, 6, 13),
+(411, 14, 47, 4, 10),
+(412, 14, 48, 7, 11),
+(413, 14, 49, 5, 14),
+(414, 14, 50, 12, 9),
+(415, 14, 51, 2, 8),
+(416, 14, 52, 1, 6),
+(417, 14, 53, 3, 13),
+(418, 14, 54, 4, 11),
+(419, 14, 55, 10, 7),
+(420, 14, 56, 5, 9),
+(421, 14, 57, 14, 8),
+(422, 14, 58, 12, 6),
+(423, 14, 59, 2, 13),
+(424, 14, 60, 1, 4),
+(425, 14, 61, 3, 11),
+(426, 14, 62, 10, 14),
+(427, 14, 63, 7, 12),
+(428, 14, 64, 5, 8),
+(429, 14, 65, 9, 13),
+(430, 14, 66, 6, 2),
+(431, 14, 67, 1, 11),
+(432, 14, 68, 4, 14),
+(433, 14, 69, 3, 10),
+(434, 14, 70, 7, 2),
+(435, 14, 71, 12, 8),
+(436, 14, 72, 5, 13),
+(437, 14, 73, 9, 14),
+(438, 14, 74, 6, 11),
+(439, 14, 75, 1, 10),
+(440, 14, 76, 4, 12),
+(441, 14, 77, 3, 7),
+(442, 14, 78, 2, 11),
+(443, 14, 79, 8, 9),
+(444, 14, 80, 5, 4),
+(445, 14, 81, 13, 12),
+(446, 14, 82, 14, 6),
+(447, 14, 83, 1, 7),
+(448, 14, 84, 10, 2),
+(449, 14, 85, 3, 9),
+(450, 14, 86, 11, 5),
+(451, 14, 87, 8, 1),
+(452, 14, 88, 4, 13),
+(453, 14, 89, 12, 3),
+(454, 14, 90, 14, 7),
+(455, 14, 91, 6, 10),
+(456, 15, 1, 1, 2),
+(457, 15, 2, 3, 4),
+(458, 15, 3, 5, 6),
+(459, 15, 4, 7, 8),
+(460, 15, 5, 9, 10),
+(461, 15, 6, 11, 12),
+(462, 15, 7, 13, 14),
+(463, 15, 8, 15, 1),
+(464, 15, 9, 2, 3),
+(465, 15, 10, 4, 5),
+(466, 15, 11, 6, 7),
+(467, 15, 12, 8, 9),
+(468, 15, 13, 10, 11),
+(469, 15, 14, 12, 13),
+(470, 15, 15, 14, 15),
+(471, 15, 16, 1, 3),
+(472, 15, 17, 2, 4),
+(473, 15, 18, 5, 7),
+(474, 15, 19, 6, 8),
+(475, 15, 20, 9, 11),
+(476, 15, 21, 10, 12),
+(477, 15, 22, 13, 15),
+(478, 15, 23, 14, 1),
+(479, 15, 24, 3, 5),
+(480, 15, 25, 2, 7),
+(481, 15, 26, 4, 6),
+(482, 15, 27, 8, 11),
+(483, 15, 28, 9, 12),
+(484, 15, 29, 10, 13),
+(485, 15, 30, 15, 3),
+(486, 15, 31, 14, 5),
+(487, 15, 32, 1, 7),
+(488, 15, 33, 2, 6),
+(489, 15, 34, 4, 8),
+(490, 15, 35, 11, 13),
+(491, 15, 36, 9, 15),
+(492, 15, 37, 12, 3),
+(493, 15, 38, 10, 14),
+(494, 15, 39, 5, 1),
+(495, 15, 40, 7, 4),
+(496, 15, 41, 2, 8),
+(497, 15, 42, 6, 11),
+(498, 15, 43, 13, 9),
+(499, 15, 44, 15, 12),
+(500, 15, 45, 3, 10),
+(501, 15, 46, 14, 7),
+(502, 15, 47, 5, 2),
+(503, 15, 48, 1, 4),
+(504, 15, 49, 8, 13),
+(505, 15, 50, 6, 9),
+(506, 15, 51, 11, 15),
+(507, 15, 52, 12, 14),
+(508, 15, 53, 3, 7),
+(509, 15, 54, 10, 5),
+(510, 15, 55, 2, 13),
+(511, 15, 56, 1, 8),
+(512, 15, 57, 4, 9),
+(513, 15, 58, 6, 15),
+(514, 15, 59, 11, 14),
+(515, 15, 60, 12, 7),
+(516, 15, 61, 3, 13),
+(517, 15, 62, 10, 2),
+(518, 15, 63, 5, 8),
+(519, 15, 64, 1, 9),
+(520, 15, 65, 4, 15),
+(521, 15, 66, 6, 14),
+(522, 15, 67, 11, 7),
+(523, 15, 68, 12, 2),
+(524, 15, 69, 3, 8),
+(525, 15, 70, 13, 5),
+(526, 15, 71, 10, 1),
+(527, 15, 72, 9, 14),
+(528, 15, 73, 4, 11),
+(529, 15, 74, 15, 7),
+(530, 15, 75, 6, 12),
+(531, 15, 76, 2, 9),
+(532, 15, 77, 3, 14),
+(533, 15, 78, 8, 10),
+(534, 15, 79, 13, 1),
+(535, 15, 80, 5, 11),
+(536, 15, 81, 4, 12),
+(537, 15, 82, 15, 2),
+(538, 15, 83, 7, 9),
+(539, 15, 84, 6, 3),
+(540, 15, 85, 14, 8),
+(541, 15, 86, 10, 4),
+(542, 15, 87, 13, 7),
+(543, 15, 88, 1, 11),
+(544, 15, 89, 5, 12),
+(545, 15, 90, 15, 8),
+(546, 15, 91, 2, 14),
+(547, 15, 92, 9, 3),
+(548, 15, 93, 6, 10),
+(549, 15, 94, 4, 13),
+(550, 15, 95, 7, 10),
+(551, 15, 96, 1, 12),
+(552, 15, 97, 11, 2),
+(553, 15, 98, 5, 15),
+(554, 15, 99, 8, 12),
+(555, 15, 100, 14, 4),
+(556, 15, 101, 9, 5),
+(557, 15, 102, 3, 11),
+(558, 15, 103, 6, 13),
+(559, 15, 104, 10, 15),
+(560, 15, 105, 1, 6),
+(561, 16, 1, 1, 2),
+(562, 16, 2, 3, 4),
+(563, 16, 3, 5, 6),
+(564, 16, 4, 7, 8),
+(565, 16, 5, 9, 10),
+(566, 16, 6, 11, 12),
+(567, 16, 7, 13, 14),
+(568, 16, 8, 15, 16),
+(569, 16, 9, 1, 3),
+(570, 16, 10, 2, 4),
+(571, 16, 11, 5, 7),
+(572, 16, 12, 6, 8),
+(573, 16, 13, 9, 11),
+(574, 16, 14, 10, 12),
+(575, 16, 15, 13, 15),
+(576, 16, 16, 14, 16),
+(577, 16, 17, 1, 4),
+(578, 16, 18, 3, 2),
+(579, 16, 19, 5, 8),
+(580, 16, 20, 7, 6),
+(581, 16, 21, 9, 12),
+(582, 16, 22, 11, 10),
+(583, 16, 23, 13, 16),
+(584, 16, 24, 15, 14),
+(585, 16, 25, 1, 5),
+(586, 16, 26, 4, 8),
+(587, 16, 27, 3, 7),
+(588, 16, 28, 2, 6),
+(589, 16, 29, 9, 13),
+(590, 16, 30, 12, 16),
+(591, 16, 31, 11, 15),
+(592, 16, 32, 10, 14),
+(593, 16, 33, 1, 8),
+(594, 16, 34, 5, 4),
+(595, 16, 35, 3, 6),
+(596, 16, 36, 7, 2),
+(597, 16, 37, 9, 16),
+(598, 16, 38, 13, 12),
+(599, 16, 39, 11, 14),
+(600, 16, 40, 15, 10),
+(601, 16, 41, 1, 6),
+(602, 16, 42, 8, 3),
+(603, 16, 43, 5, 2),
+(604, 16, 44, 4, 7),
+(605, 16, 45, 9, 14),
+(606, 16, 46, 16, 11),
+(607, 16, 47, 13, 10),
+(608, 16, 48, 12, 15),
+(609, 16, 49, 1, 7),
+(610, 16, 50, 6, 4),
+(611, 16, 51, 8, 2),
+(612, 16, 52, 3, 5),
+(613, 16, 53, 9, 15),
+(614, 16, 54, 14, 12),
+(615, 16, 55, 16, 10),
+(616, 16, 56, 11, 13),
+(617, 16, 57, 1, 9),
+(618, 16, 58, 7, 15),
+(619, 16, 59, 6, 14),
+(620, 16, 60, 4, 12),
+(621, 16, 61, 8, 16),
+(622, 16, 62, 2, 10),
+(623, 16, 63, 3, 11),
+(624, 16, 64, 5, 13),
+(625, 16, 65, 1, 15),
+(626, 16, 66, 9, 7),
+(627, 16, 67, 6, 12),
+(628, 16, 68, 14, 4),
+(629, 16, 69, 8, 10),
+(630, 16, 70, 16, 2),
+(631, 16, 71, 3, 13),
+(632, 16, 72, 11, 5),
+(633, 16, 73, 1, 12),
+(634, 16, 74, 15, 6),
+(635, 16, 75, 9, 4),
+(636, 16, 76, 7, 14),
+(637, 16, 77, 8, 13),
+(638, 16, 78, 10, 3),
+(639, 16, 79, 16, 5),
+(640, 16, 80, 2, 11),
+(641, 16, 81, 1, 14),
+(642, 16, 82, 12, 7),
+(643, 16, 83, 15, 4),
+(644, 16, 84, 6, 9),
+(645, 16, 85, 8, 11),
+(646, 16, 86, 13, 2),
+(647, 16, 87, 10, 5),
+(648, 16, 88, 3, 16),
+(649, 16, 89, 1, 11),
+(650, 16, 90, 14, 8),
+(651, 16, 91, 12, 2),
+(652, 16, 92, 7, 13),
+(653, 16, 93, 15, 5),
+(654, 16, 94, 4, 10),
+(655, 16, 95, 6, 16),
+(656, 16, 96, 9, 3),
+(657, 16, 97, 1, 13),
+(658, 16, 98, 11, 7),
+(659, 16, 99, 14, 2),
+(660, 16, 100, 8, 12),
+(661, 16, 101, 15, 3),
+(662, 16, 102, 5, 9),
+(663, 16, 103, 4, 16),
+(664, 16, 104, 10, 6),
+(665, 16, 105, 1, 16),
+(666, 16, 106, 13, 4),
+(667, 16, 107, 11, 6),
+(668, 16, 108, 7, 10),
+(669, 16, 109, 14, 3),
+(670, 16, 110, 2, 15),
+(671, 16, 111, 8, 9),
+(672, 16, 112, 12, 5),
+(673, 16, 113, 1, 10),
+(674, 16, 114, 16, 7),
+(675, 16, 115, 13, 6),
+(676, 16, 116, 4, 11),
+(677, 16, 117, 14, 5),
+(678, 16, 118, 3, 12),
+(679, 16, 119, 2, 9),
+(680, 16, 120, 15, 8);
 
 -- --------------------------------------------------------
 
@@ -1847,31 +2163,31 @@ CREATE TABLE `systemRankings` (
 --
 
 INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `numberOfInstances`, `description`, `displayFunction`, `scoringFunction`, `scoreFormula`, `orderByField1`, `orderBySort1`, `orderByField2`, `orderBySort2`, `orderByField3`, `orderBySort3`, `orderByField4`, `orderBySort4`, `displayTitle1`, `displayField1`, `displayTitle2`, `displayField2`, `displayTitle3`, `displayField3`, `displayTitle4`, `displayField4`, `displayTitle5`, `displayField5`) VALUES
-(1, 'Franklin 2014', 2, 148, '== Ranking ====\nIndicator Score\n1st Tiebreaker: Wins [Highest]\n2nd Tiebreaker: Doubles [Lowest]\n3rd Tiebreaker: Hits Against [Lowest]\n\n==Indicator Score ====\n +[Points For]\n +(5 * [Wins])\n -[Points Against]\n -(Doubles Penalty)\n\nDoubles Penalty:\n1 Double -> 1 = 1\n2 Doubles -> 1+2 = 3\n3 Doubles -> 1+2+3 = 6 etc...', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst - ((doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
+(1, 'Franklin 2014', 2, 149, '== Ranking ====\nIndicator Score\n1st Tiebreaker: Wins [Highest]\n2nd Tiebreaker: Doubles [Lowest]\n3rd Tiebreaker: Hits Against [Lowest]\n\n==Indicator Score ====\n +[Points For]\n +(5 * [Wins])\n -[Points Against]\n -(Doubles Penalty)\n\nDoubles Penalty:\n1 Double -> 1 = 1\n2 Doubles -> 1+2 = 3\n3 Doubles -> 1+2+3 = 6 etc...', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst - ((doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
 (2, 'RSS Cutting', 3, 11, '(Root Sum Square Cutting)\n\n== Ranking ====\nIndicator Score\n1st Tiebreaker: Least deductions\n\n== Indicator Score Score ====\n\nTotal Deduction = sqrt([Cut Deduction]^2 + [Form Deduction]^2)\n\nScore = 20 - Total Deduction\n\n', 'RSScutting', 'RSScutting', NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(3, 'Results Only', 1, 20, NULL, NULL, NULL, NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(3, 'Results Only', 1, 23, NULL, NULL, NULL, NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (4, 'Deduction Based', 3, 8, '== Ranking ====\nIndicator Score\n\n== Indicator Score ====\n100 point base score\nDeductions are applied against the base score', 'DeductionBased', 'DeductionBased', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (5, 'FNY 2017', 2, 5, '(Fechtshule New York 2017)\n\n== Ranking ====\nIndicator Score\n\n== Indicator Score ====\n+ 1*Wins\n- 2*[Losses]\n- 2*[Doubles]', NULL, NULL, 'pointsFor - 2 * (losses + doubles)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Pushes', 'matches - hitsFor - losses - doubles', 'Losses', 'losses', 'Doubles', 'doubles', 'Score', 'score'),
-(7, 'Total Points Scored', 2, 80, 'Ranking\nNet Points For, after removing deductions due to afterblows.\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Wins\n', NULL, NULL, 'pointsFor', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points Scored', 'score', NULL, NULL, NULL, NULL),
-(8, 'Hit Ratio', 2, 12, '== Ranking ====\nIndicator Score\n1st Tiebreaker: Wins\n\n== Indicator Score ====\n[Points For] / [Total Times Hit]\n\n', NULL, NULL, 'case \n	when (hitsAgainst + afterblowsAgainst + doubles) > 0 then\n		pointsFor /  (hitsAgainst + afterblowsAgainst + doubles)\n	else\n		9001\nend', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Points For', 'pointsFor', 'Total Times Hit', 'hitsAgainst + afterblowsAgainst + doubles', 'Score', 'score', NULL, NULL, NULL, NULL),
+(7, 'Total Points Scored', 2, 77, 'Ranking\nNet Points For, after removing deductions due to afterblows.\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Wins\n', NULL, NULL, 'pointsFor', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points Scored', 'score', NULL, NULL, NULL, NULL),
+(8, 'Hit Ratio', 2, 13, '== Ranking ====\nIndicator Score\n1st Tiebreaker: Wins\n\n== Indicator Score ====\n[Points For] / [Total Times Hit]\n\n', NULL, NULL, 'case \n	when (hitsAgainst + afterblowsAgainst + doubles) > 0 then\n		pointsFor /  (hitsAgainst + afterblowsAgainst + doubles)\n	else\n		9001\nend', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Points For', 'pointsFor', 'Total Times Hit', 'hitsAgainst + afterblowsAgainst + doubles', 'Score', 'score', NULL, NULL, NULL, NULL),
 (9, 'Sandstorm 2017', 2, 2, '== Ranking ====\nIndicator Score\n\n== Indicator Score ====\n3 Points - Controlled Win/Artful Exchange\n2 Points - Win\n1 Point - Win w/ Afterblow\n', NULL, NULL, 'pointsFor - doubles', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Control Wins', 'score + doubles - (2*wins) - (3*afterblowsAgainst)', 'Wins', '(3 * wins) - (2 * afterblowsAgainst) - score + doubles', 'Afterblow Wins', 'afterblowsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
 (10, '2 Point Cumulative', 2, 2, '== Ranking ====\nIndicator Score\n\n== Indicator Score ====\n2 Points for Win\n1 Point for Tie', NULL, NULL, '(2 * wins) + ties', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Ties', 'ties', 'Losses', 'losses', 'Score', 'score', NULL, NULL),
 (11, 'Flowerpoint', 2, 20, '== Ranking ====\nIndicator Score\n\n== Indicator Score ====\n-1 Point for every time hit\n(Scoring action or double)\n\n', NULL, NULL, '0 - hitsAgainst - doubles', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Number of Times Hit', 'hitsAgainst', 'Doubles', 'doubles', 'Score', 'score', NULL, NULL, NULL, NULL),
 (13, 'Thokk Continuous', 2, 1, '== Ranking ====\nNumber of Time Hit [Ascending]\n1st Tiebreaker: Number of hits delivered [Descending]\n2nd Tiebreaker: Indicator Score [Descending]\n\n== Indicator Score ====\n(0 - Points Against*)\n*Points Against is the absolute value before afterblow deduction is applied.', NULL, NULL, '0 - AbsPointsAgainst', 'hitsAgainst', 'ASC', 'hitsFor', 'DESC', 'score', 'DESC', NULL, NULL, 'Bouts Won', 'hitsFor', 'Bouts Lost', 'hitsAgainst', 'Points Against', 'pointsAgainst', NULL, NULL, NULL, NULL),
-(14, 'Alls Fair', 2, 7, '== Ranking =====\nWins\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Points +/-', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'doubles', 'ASC', 'score', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score'),
+(14, 'Alls Fair', 2, 8, '== Ranking =====\nWins\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Points +/-', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'doubles', 'ASC', 'score', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score'),
 (15, 'JNCR', 3, 7, '(Julian\'s Nameless Cutting Rules)\n\nCuts are assigned scored as follows:\n8 points cut quality\n4 points upper body form\n4 points lower body form\n\n0 in cut quality or 0 in combined form is 0 for the entire cut.\n\nA negative score in any of the three becomes the final score.\n\nA cut with perfect scores earns an additional +4 points.', 'JNCR', 'JNCR', NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(16, 'Aussie Reversed', 2, 90, '<u>This score mode is meant to be used with reverse scores!</u>\nPoints are assigned to the fighter who was hit.\n\n== Ranking ====\nWins\n1st Tiebreaker: Least points hit with (this is the points you give to the fighter!)\n2nd Tiebreaker: Most points hit against opponents\n\nThese are the absolute values of points, without the afterblow deduction.', NULL, NULL, 'AbsPointsAgainst', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'DESC', NULL, NULL, 'Wins', 'wins', 'Points Against', 'score', 'Points For', 'AbsPointsFor', 'Mutual Hits', 'doubles + afterblowsFor + afterblowsAgainst', NULL, NULL),
+(16, 'Aussie Reversed', 2, 91, '<u>This score mode is meant to be used with reverse scores!</u>\nPoints are assigned to the fighter who was hit.\n\n== Ranking ====\nWins\n1st Tiebreaker: Least points hit with (this is the points you give to the fighter!)\n2nd Tiebreaker: Most points hit against opponents\n\nThese are the absolute values of points, without the afterblow deduction.', NULL, NULL, 'AbsPointsAgainst', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'DESC', NULL, NULL, 'Wins', 'wins', 'Points Against', 'score', 'Points For', 'AbsPointsFor', 'Mutual Hits', 'doubles + afterblowsFor + afterblowsAgainst', NULL, NULL),
 (17, 'AHWG 2018', 2, 2, '== Ranking ====\nIndicator Score\n\n== Indicator Score ====\nWins - Losses - Double Outs', NULL, NULL, 'wins - losses - doubleOuts', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Doubles', 'doubles', 'Score', 'score', NULL, NULL),
 (18, 'MART', 2, 1, '(Mid Atlantic Rookie Tournament: Fighty McFightface)\n\n== Ranking ====\nIndicator Score\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Points against\n3rs Tiebreaker: Points for\n\n== Indicator Score ====\n2 * Wins + Ties\n\n\n\n\n', NULL, NULL, '(2 * Wins) + Ties', 'score', 'DESC', '(doubles + afterblowsFor + afterblowsAgainst)', 'ASC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'DESC', 'Wins', 'wins', 'Ties', 'ties', 'Doubles', '(doubles + afterblowsFor + afterblowsAgainst)', 'Points Against', 'AbsPointsAgainst', 'Points For', 'AbsPointsFor'),
 (19, 'Franklin 2014 (x25)', 2, 23, '== Ranking ====\nIndicator Score\n1st Tiebreaker: Wins [Highest]\n2nd Tiebreaker: Doubles [Lowest]\n3rd Tiebreaker: Hits Against [Lowest]\n\n==Indicator Score ====\n +[Points For]\n +(5 * [Wins])\n -[Points Against]\n -(Doubles Penalty) * 1.25\n\nDoubles Penalty:\n1 Double -> 1 = 1\n2 Doubles -> 1+2 = 3\n3 Doubles -> 1+2+3 = 6 etc...', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst - (1.25*(doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
 (20, 'Baer Score', 2, 13, '== Ranking ====\nWins\n1st Tiebreaker: Points Against\n2nd Tiebreaker: Doubles', NULL, NULL, '0', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points Against', 'AbsPointsAgainst', 'Doubles', 'doubles', NULL, NULL, NULL, NULL),
-(21, 'Wins | Plus/Minus', 2, 279, '== Ranking ====\nWins\n1st Tiebreaker: Indicator Score\n\n== Indicator Score ====\npointsFor - pointsAgainst\n\n', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'score', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score', NULL, NULL),
+(21, 'Wins | Plus/Minus', 2, 287, '== Ranking ====\nWins\n1st Tiebreaker: Indicator Score\n\n== Indicator Score ====\npointsFor - pointsAgainst\n\n', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'score', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score', NULL, NULL),
 (22, 'Ram Rules', 2, 6, '== Ranking ====\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nPoints For - (2 * Doubles)', NULL, NULL, 'pointsFor - (2 * Doubles)', 'score', 'DESC', 'doubles', 'ASC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Doubles', 'doubles', 'Score', 'score', NULL, NULL),
 (23, 'Swiss League', 2, 5, '==Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Points scored\r\n\r\n== Indicator Score ====\r\nMatch Score for Winner = (Winner Pts - Loser Pts) / Winner Pts\r\nMatch Score for Lower = 0\r\nPool Indicator Score = Sum of Match Indicator Scores', NULL, NULL, '#SwissScore', 'score', 'DESC', 'AbsPointsFor', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points For', 'AbsPointsFor', 'Points Against', 'AbsPointsAgainst', 'Indicator Score', 'score', NULL, NULL),
 (24, 'Wins & Aggregate Score', 2, 25, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Total Points Scored\r\n\r\n*points scored before afterblow deduction is applied', NULL, NULL, 'AbsPointsFor', 'wins', 'DESC', 'pointsFor', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Points Scored', 'pointsFor', 'Points Against', 'pointsAgainst', 'Bilateral Hits', 'doubles + afterblowsFor + afterblowsAgainst', NULL, NULL),
-(25, 'Wessex League', 2, 58, 'Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: (Hits For - Hits Against)\r\n2nd Tiebreaker: Doubles\r\n\r\n== Indicator Score ====\r\n+ 3 * Wins\r\n+ 1 * Ties\r\n- Doubles Penalty\r\n\r\nDoubles Penalty:\r\nEvery second double per match -1\r\n(ie: First double every match is free)', NULL, NULL, '#Wessex', 'score', 'DESC', 'hitsFor - hitsAgainst', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Draws', 'ties', 'Doubles', 'doubles', 'Score', 'score'),
+(25, 'Wessex League', 2, 55, 'Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: (Hits For - Hits Against)\r\n2nd Tiebreaker: Doubles\r\n\r\n== Indicator Score ====\r\n+ 3 * Wins\r\n+ 1 * Ties\r\n- Doubles Penalty\r\n\r\nDoubles Penalty:\r\nEvery second double per match -1\r\n(ie: First double every match is free)', NULL, NULL, '#Wessex', 'score', 'DESC', 'hitsFor - hitsAgainst', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Draws', 'ties', 'Doubles', 'doubles', 'Score', 'score'),
 (26, 'WEIRD 2019', 2, 12, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Points Against\r\n\r\n== Indicator Score ====\r\n+ (10 * Wins)\r\n- (10 * Losses)\r\n- (10 * Double Outs)\r\n+ pointsFor\r\n\r\n', NULL, NULL, '(10 * wins) - (10 * losses) - (10 * doubleOuts) + pointsFor', 'score', 'DESC', 'pointsAgainst', 'ASC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Losses', 'losses', 'Doubles', 'doubleOuts', 'Points For', 'pointsFor', 'Score', 'score'),
-(27, 'Cut & Deduction', 3, 31, 'Each cut is input with a score and deduction', 'PureScore', 'PureScore', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(27, 'Cut & Deduction', 3, 32, 'Each cut is input with a score and deduction', 'PureScore', 'PureScore', 'pointsFor', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (28, 'Flat Score', 3, 6, 'Only a score value is input for each cut', 'PureScore', 'PureScore', NULL, 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (29, 'Longpoint Deviation', 4, 5, '== Ranking ====\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nScore = Sum([Tournament Scores]) - Standard Deviation([Tournament Scores])\r\n\r\nComponent Tournament Scores:\r\n[Tournament Score] = [Base Point Value] * ([Number of Entries] - (place -1))/[Number of Entries]\r\n\r\n', NULL, NULL, '#LpDeviation', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Component Scores', 'pointsFor', 'Inconsistency Penalty', '-pointsAgainst', 'Score', 'score', NULL, NULL, NULL, NULL),
 (30, 'LP Hit Ratio', 2, 9, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Doubles [Lowest]\r\n2nd Tiebreaker: High Wins [Highest]\r\n3rd Tiebreaker: Time Hit [Lowest]\r\n\r\n== Indicator Score ====\r\n[Absolute Points For + Win Bonus]/[Total Times Hit]\r\n\r\nAbsolute Points For\r\nPoints scored *before* the afterblow is deducted.\r\n\r\nWin Bonus\r\n2 Points for every win\r\n\r\nTotal Times Hit\r\n[# Clean Hits Against] + [# Doubles] + [# Afterblows Hit With]\r\n\r\n\r\n', NULL, NULL, 'case \n	when (hitsAgainst + afterblowsAgainst + doubles) > 0 then\n		(AbsPointsAwarded + 2 * wins) /  (hitsAgainst + afterblowsAgainst + doubles)\n	else\n		9001\nend', 'score', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', NULL, NULL, 'Wins', 'wins', 'Target Points', 'absPointsAwarded', 'Total Times Hit', 'hitsAgainst + afterblowsAgainst + doubles', 'Score', 'score', NULL, NULL),
@@ -1879,22 +2195,22 @@ INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `number
 (32, 'Points Remaining', 2, 7, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Number of Doubles\r\n\r\n== Indicator Score ====\r\nSum of remaining points from each match (dependent on what the base point value is set at)', NULL, '', '(basePointValue * matches) - AbsPointsAgainst - penaltiesAgainst', 'score', 'DESC', 'pointsFor + penaltiesAgainst', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Points Remaining', 'score', 'Points For', 'pointsFor + penaltiesAgainst', 'Doubles', 'doubles', NULL, NULL, NULL, NULL),
 (33, 'Fairfax', 2, 1, '== Ranking ====\nPoints For\n1st Tiebreaker: Wins\n2nd Tiebreaker: Doubles\n3rd Tiebreaker: Points Against', NULL, NULL, '0', 'pointsFor', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', 'Points For', 'pointsFor', 'Wins', 'wins', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', NULL, NULL),
 (34, 'FoB Dagger', 2, 1, '== Ranking ====\r\nWins [Highest] \r\n1st Tiebreaker: # Control Points [Highest]\r\n2nd Tiebreaker: Points Against [Lowest]\r\n3rd Tiebreaker: Points For [Highest]\r\n\r\n*this is points after the net points for afterblow is taken into account.', NULL, NULL, '#FobDagger', 'wins', 'DESC', 'score', 'DESC', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'Wins', 'wins', '# Control Points', 'score', 'Points Against', 'pointsAgainst', 'Points For', 'pointsFor', NULL, NULL),
-(35, 'Wins and Points', 2, 63, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Points Against\r\n3rd Tiebreaker: Doubles', NULL, NULL, '0', 'wins', 'DESC', 'pointsFor', 'DESC', 'pointsAgainst', 'DESC', 'doubles', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', NULL, NULL),
+(35, 'Wins and Points', 2, 64, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Points Against\r\n3rd Tiebreaker: Doubles', NULL, NULL, '0', 'wins', 'DESC', 'pointsFor', 'DESC', 'pointsAgainst', 'DESC', 'doubles', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', NULL, NULL),
 (36, 'Placing Countdown', 4, 1, '== Ranking ==\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nGo through each component tournament and award points in descending order, starting from the specified Base Point Value.\r\n\r\nExample:\r\nBase Point Value = 20 points.\r\n1st Place: 20 pts\r\n2nd Place: 19 pts\r\n3rd Place: 18 pts\r\netc...', NULL, NULL, '#PlacingCountdown', 'score', 'DESC', 'pointsFor', 'DESC', NULL, NULL, NULL, NULL, '# of Tournaments', 'round((pointsFor/basePointValue),2)', 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL),
 (37, 'Placing Percentage', 4, 6, '== Ranking ====\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nScore = Sum([Tournament Scores])\r\n\r\nComponent Tournament Scores:\r\n[Tournament Score] = [Base Point Value] * ([Number of Entries] - (place -1))/[Number of Entries]\r\n\r\n', NULL, NULL, '#PlacingPercent', 'score', 'DESC', 'pointsFor', 'ASC', NULL, NULL, NULL, NULL, '# of Tournaments', 'pointsFor', 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL),
 (38, 'Hit and Don\'t Double', 2, 15, '== Ranking ====\r\nMost Hits\r\n1st Tiebreaker: Doubles [Lowest]\r\n2nd Tiebreaker: Most Wins [Highest]\r\n3rd Tiebreaker: Hits Against [Lowest]', NULL, NULL, '0', 'hitsFor', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', 'hitsAgainst', 'ASC', 'Hits For', 'hitsFor', 'Doubles', 'doubles', 'Wins', 'wins', 'Hits Against', 'hitsAgainst', NULL, NULL),
 (39, 'Franklin 2014 - Rev Score', 2, 1, 'Modified Franklin 2014 to work with reverse score matches.\r\n\r\n== Ranking ====\r\n1) Indicator Score [Highest]\r\n2) Wins [Highest]\r\n3) Doubles [Lowest]\r\n4) Hits Against [Lowest]\r\n\r\n== Indicator Score ====\r\n + (5 * [Wins])\r\n +[Points Remaining]\r\n -[Opponent\'s Points Remaining]\r\n -(Doubles Penalty)\r\n\r\nDoubles Penalty\r\n1 Double -> 1 = 1\r\n2 Doubles -> 1+2 = 3\r\n3 Doubles -> 1+2+3 = 6 etc...\r\n', NULL, NULL, '(5*wins) + pointsFor - pointsAgainst + penaltiesAgainstOpponents - ((doubles * (doubles+1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points Remaining', '(basePointValue * matches) - pointsAgainst - penaltiesAgainst', 'Opponent Points Remaining', '(basePointValue * matches) - pointsFor - penaltiesAgainstOpponents - penaltiesAgainst', 'Doubles', 'doubles', 'Score', 'score'),
-(40, 'Donnybrook', 2, 12, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Doubles [lowest]\r\n2nd Tiebreaker: Points Against [lowest]\r\n3rd Tiebreaker: Points For [highest]\r\n\r\n*points awarded after the afterblow deduction is taken into account', NULL, NULL, '0', 'wins', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'Wins', 'wins', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', 'Points For', 'pointsFor', NULL, NULL),
+(40, 'Donnybrook', 2, 18, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Doubles [lowest]\r\n2nd Tiebreaker: Points Against [lowest]\r\n3rd Tiebreaker: Points For [highest]\r\n\r\n*points awarded after the afterblow deduction is taken into account', NULL, NULL, '0', 'wins', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'Wins', 'wins', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', 'Points For', 'pointsFor', NULL, NULL),
 (41, 'CSEN Nazionale - Scherma Storica', 2, 4, '== Ranking ====\r\nNumber of Wins [Highest]\r\n1st Tiebreaker: # Double Outs [Lowest]\r\n2nd Tiebreaker: Indicator Score [Highest]\r\n3rd Tiebreaker: Total Hits Received [Lowest]\r\n\r\n== Indicator Score ====\r\npointsFor - pointsAgainst', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'doubleOuts', 'DESC', 'score', 'DESC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Double Outs', 'doubleOuts', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', NULL, NULL),
 (42, 'SingleHit', 2, 3, '== Ranking =====\nIndicator Score \n1st Tiebreaker: Lowest total-times-hit \n2nd Tiebreaker: Lowest doubles\n\n== Indicator Score ====\nPoints For / (Points Against + Doubles) ', NULL, NULL, 'IF((pointsAgainst + doubles) != 0, pointsFor / (pointsAgainst + doubles), 9001)', 'score', 'DESC', 'pointsAgainst + doubles', 'ASC', 'doubles', 'ASC', NULL, NULL, 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score', NULL, NULL),
 (43, 'PHO Match Points', 2, 4, '(aka Purpleheart Match Points)\r\n\r\n== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n2nd Tiebreaker: Points Against\r\n3rd Tiebreaker: Points For\r\n\r\n*absolute value of points awarded without afterblow deductions\r\n\r\n== Indicator Score ==== \r\n(9 * wins) + (6 * ties) + (3 * losses) - [Doubles Penalty]\r\n\r\nDoubles Penalty: 1 point for every double hit in a match after the first (first double of a match does not impact score).\r\nThe number of doubles on the standings page is NOT the doubles penalty, it is the total number. Some of these are not factored into the Match Points.\r\n\r\n', NULL, NULL, '#PhoMatchPoints', 'score', 'DESC', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'DESC', 'Wins', 'wins', 'Ties', 'ties', 'Losses', 'losses', 'Doubles', 'doubles', 'Match Points', 'score'),
 (44, 'Schnegel Score', 2, 2, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n2nd Tiebreaker: Points For\r\n\r\n== Indicator Score ====\r\nIf WIN: Score +10\r\nIf TIE: Score +pointsAwarded\r\n\r\n', NULL, NULL, '#Schnegel', 'score', 'DESC', 'wins', 'DESC', 'pointsFor', 'DESC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Score', 'score', NULL, NULL),
 (45, 'AG Internal', 2, 0, '== Ranking ====\r\n1) Indicator Score\r\n1st Tiebreaker: Least times hit\r\n2nd Tiebreaker: Most hits landed\r\n\r\n== Indicator Score ====\r\n+1 for every deep target hit\r\n-1 for every time hit (on any target)\r\n\r\n', NULL, NULL, 'pointsFor - hitsFor - hitsAgainst', 'score', 'DESC', 'hitsAgainst', 'ASC', 'hitsFor', 'DESC', NULL, NULL, 'Deep Target Hits', 'pointsFor - hitsFor', 'Times Hit', 'hitsAgainst', 'Score', 'score', NULL, NULL, NULL, NULL),
-(46, 'Franklin 2014.3', 2, 46, '== Ranking ====\r\n1) Indicator Score\r\n2) Wins\r\n3) Doubles\r\n4) Hits Against\r\n\r\n== Indicator Score ====\r\n +[Points For]\r\n +(3 * [Wins])\r\n -[Points Against]\r\n -(Doubles Penalty)\r\n\r\nDoubles Penalty\r\n1 Double -> 0 = 0\r\n2 Doubles -> 0+1 = 1\r\n3 Doubles -> 0+1+2 = 3 etc...', NULL, NULL, '(3*wins) + pointsFor - pointsAgainst - ((doubles * (doubles-1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
-(47, 'Wins - Hits Against', 2, 9, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points Against\r\n2nd Tiebreaker: Points For\r\n\r\n*absolute value of points before afterblow deduction is applied.', NULL, NULL, 'wins', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'desc', NULL, NULL, 'Wins', 'wins', 'Points Against', 'AbsPointsAgainst', 'Points For', 'AbsPointsFor', NULL, NULL, NULL, NULL),
+(46, 'Franklin 2014.3', 2, 51, '== Ranking ====\r\n1) Indicator Score\r\n2) Wins\r\n3) Doubles\r\n4) Hits Against\r\n\r\n== Indicator Score ====\r\n +[Points For]\r\n +(3 * [Wins])\r\n -[Points Against]\r\n -(Doubles Penalty)\r\n\r\nDoubles Penalty\r\n1 Double -> 0 = 0\r\n2 Doubles -> 0+1 = 1\r\n3 Doubles -> 0+1+2 = 3 etc...', NULL, NULL, '(3*wins) + pointsFor - pointsAgainst - ((doubles * (doubles-1))/2)', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', 'Score', 'score'),
+(47, 'Wins - Hits Against', 2, 13, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points Against\r\n2nd Tiebreaker: Points For\r\n\r\n*absolute value of points before afterblow deduction is applied.', NULL, NULL, 'wins', 'wins', 'DESC', 'AbsPointsAgainst', 'ASC', 'AbsPointsFor', 'desc', NULL, NULL, 'Wins', 'wins', 'Points Against', 'AbsPointsAgainst', 'Points For', 'AbsPointsFor', NULL, NULL, NULL, NULL),
 (48, 'Dutch Match Points', 2, 2, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: # of times hit\r\n2nd Tiebreaker: # hits delivered\r\n3rd Tiebreaker: # of penalties\r\n\r\n== Indicator Score ==== \r\n(9 * wins) + (6 * ties) + (3 * losses) - [Doubles Penalty]\r\n\r\nDoubles Penalty: 1 point for every double hit in a match after the first (first double of a match does not impact score).\r\nThe number of doubles on the standings page is NOT the doubles penalty, it is the total number. Some of these are not factored into the Match Points.\r\n\r\n', NULL, NULL, '#PhoMatchPoints', 'score', 'DESC', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'numPenalties', 'ASC', 'Wins', 'wins', 'Ties', 'ties', 'Losses', 'losses', 'Doubles', 'doubles', 'Match Points', 'score'),
-(49, 'Sofia', 2, 3, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Indicator Score\r\n2nd Tiebreaker: Doubles\r\n\r\n== Indicator Score ====\r\npointsFor - pointsAgainst', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'score', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', '+/-', 'score', 'Doubles', 'doubles'),
-(50, 'Plus/Minus | Wins', 2, 12, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n\r\n== Indicator Score ====\r\npointsFor - pointsAgainst\r\n\r\n', NULL, NULL, 'pointsFor - pointsAgainst', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score', 'Doubles', 'doubles'),
+(49, 'Sofia', 2, 6, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Indicator Score\r\n2nd Tiebreaker: Doubles\r\n\r\n== Indicator Score ====\r\npointsFor - pointsAgainst', NULL, NULL, 'pointsFor - pointsAgainst', 'wins', 'DESC', 'score', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', '+/-', 'score', 'Doubles', 'doubles'),
+(50, 'Plus/Minus | Wins', 2, 23, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n\r\n== Indicator Score ====\r\npointsFor - pointsAgainst\r\n\r\n', NULL, NULL, 'pointsFor - pointsAgainst', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score', 'Doubles', 'doubles'),
 (51, 'Wessex League Standings', 4, 12, '== Ranking ====\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nGain points based on every tournament placing.\r\n1st = 22 pts\r\n2nd = 18 pts\r\n3rd = 14 pts\r\n4th = 10 pts\r\n5th-8th = 6 pts\r\n9th-16th = 3 pts\r\n17th+ = 1 pts\r\n\r\n', NULL, NULL, '#WessexLeagueStandings', 'score', 'DESC', NULL, NULL, NULL, NULL, NULL, NULL, 'Events Attended', 'pointsFor', 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL),
 (52, 'Midwinter', 2, 3, 'Midwinter ====\nIndicator Score\n1st Tiebreaker: Doubles\n2nd Tiebreaker: Hits For\n3rd Tiebreaker: Hits Against\n\n== Indicator Score ====\n+ 2 * Wins\n+ # of matches w/ First Hit\n+ # of matches blanking opponent\n- # of matches w/ Doubles', NULL, NULL, '#MidWinter', 'score', 'DESC', 'doubles', 'ASC', 'hitsFor', 'DESC', 'hitsAgainst', 'ASC', 'Wins', 'wins', 'Losses', 'losses', 'Hits For', 'hitsFor', 'Doubles', 'doubles', 'Score', 'score'),
 (53, 'AAA (Don\'t Get Hit!)', 2, 6, 'Ranking:\r\nFewest Points Against\r\n\r\n1st Tiebreaker: Points Scored\r\n2nd Tiebreaker: Wins', NULL, NULL, 'pointsAgainst', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'wins', 'DESC', NULL, NULL, 'Points Against', 'pointsAgainst', 'Points For', 'pointsFor', 'Wins', 'wins', NULL, NULL, NULL, NULL),
@@ -1902,9 +2218,10 @@ INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `number
 (55, 'Schnegel Score 2', 2, 2, '== Pool Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Least Doubles\r\n\r\n\r\n== Indicator Score ====\r\n0.01 * pointsFor * hitsFor', NULL, NULL, '#Schnegel2', 'score', 'DESC', 'doubles', 'ASC', NULL, NULL, NULL, NULL, 'Hits For', 'ROUND((100 * score)/(AbsPointsFor - penaltiesAgainst),1)', 'Points For', 'AbsPointsFor - penaltiesAgainst', 'Doubles', 'doubles', 'Score', 'score', NULL, NULL),
 (56, 'Total Points Scored v2', 2, 7, 'Ranking\r\nNet Points For, after removing deductions due to afterblows.\r\n1st Tiebreaker: Wins\r\n2nd Tiebreaker: Doubles\r\n', NULL, NULL, 'pointsFor', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points Scored', 'score', NULL, NULL, NULL, NULL),
 (57, 'Health Remaining', 2, 4, '== Ranking ====\nWins [Highest]\n1st Tiebreaker: Indicator Score\n\n==Indicator Score ====\n(Match Starting Points * Num Matches) - Points Hit By', NULL, NULL, '(matches * basePointValue) - AbsPointsAgainst - penaltiesAgainst', 'wins', 'DESC', 'score', 'DESC', NULL, NULL, NULL, NULL, 'Wins', 'wins', 'Starting Points', '(matches * basePointValue)', 'Points Lost', 'AbsPointsAgainst + penaltiesAgainst', 'Score', 'score', NULL, NULL),
-(58, 'Spring Steel', 2, 2, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n1st Tiebreaker: Points For\r\n\r\n==Indicator Score ====\r\n(2 * wins) + pointsFor -  pointsAgainst - doubles + basePointValue', NULL, NULL, '(2 * wins) + pointsFor -  pointsAgainst - doubles + basePointValue', 'score', 'DESC', 'wins', 'DESC', 'pointsFor', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Score', 'score'),
-(59, 'Get Points', 2, 2, '== Ranking ====\r\nPoints For\r\n1st Tiebreaker: Doubles\r\n2nd Tiebreaker: Points Against', NULL, NULL, 'pointsFor', 'pointsFor', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', NULL, NULL),
-(60, 'FEDER', 2, 1, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Indicator Score\r\n2nd Tiebreaker: Lest Red Cards\r\n3red Tiebreaker: Lest Yellow Cards\r\n\r\n==Indicator Score ====\r\npointsFor - (pointsAgainst + doubles)', NULL, NULL, 'pointsFor - (pointsAgainst + doubles)', 'wins', 'DESC', 'score', 'DESC', 'numRedCards', 'ASC', 'numYellowCards', 'ASC', 'Wins', 'wins', 'Points +/-', 'pointsFor', 'Points Againts', 'pointsAgainst', 'Doubles', 'doubles', 'Num Penalty Cards', 'numYellowCards + numRedCards');
+(58, 'Spring Steel', 2, 4, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Wins\r\n1st Tiebreaker: Points For\r\n\r\n==Indicator Score ====\r\n(2 * wins) + pointsFor -  pointsAgainst - doubles + basePointValue', NULL, NULL, '(2 * wins) + pointsFor -  pointsAgainst - doubles + basePointValue', 'score', 'DESC', 'wins', 'DESC', 'pointsFor', 'DESC', NULL, NULL, 'Wins', 'wins', 'Doubles', 'doubles', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Score', 'score'),
+(59, 'Get Points', 2, 6, '== Ranking ====\r\nPoints For\r\n1st Tiebreaker: Doubles\r\n2nd Tiebreaker: Points Against', NULL, NULL, 'pointsFor', 'pointsFor', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', NULL, NULL),
+(60, 'FEDER', 2, 5, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Indicator Score\r\n2nd Tiebreaker: Lest Red Cards\r\n3red Tiebreaker: Lest Yellow Cards\r\n\r\n==Indicator Score ====\r\npointsFor - (pointsAgainst + doubles)', NULL, NULL, 'pointsFor - (pointsAgainst + doubles)', 'wins', 'DESC', 'score', 'DESC', 'numRedCards', 'ASC', 'numYellowCards', 'ASC', 'Wins', 'wins', 'Points +/-', 'pointsFor', 'Points Againts', 'pointsAgainst', 'Doubles', 'doubles', 'Num Penalty Cards', 'numYellowCards + numRedCards'),
+(61, 'FAL_v1', 2, 1, '== Ranking ========\r\nIndicator Score\r\n\r\n1st Tiebreaker: Most Wins\r\n2nd Tiebreaker: Least Doubles\r\n\r\n== Indicator Score ======\r\n[Target Point + 3 * Wins]/[Total Times Hit + Double Hit Penalty ]\r\n\r\nDouble Hit Penalty = ((n-1)*n)/2', NULL, NULL, 'case \n	when (hitsAgainst + afterblowsAgainst + doubles) > 0 then\n		((AbsPointsFor + (3 * Wins)) / (hitsAgainst + afterblowsAgainst + (((doubles-1)*doubles)/2)))\n	else\n		(AbsPointsFor + (3 * Wins))\nend', 'score', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Score', 'wins', 'Points For', 'AbsPointsFor', 'Hit Against', '(hitsAgainst + afterblowsAgainst)', 'Doubles', 'doubles', 'Score', 'score');
 
 -- --------------------------------------------------------
 
@@ -1995,15 +2312,15 @@ CREATE TABLE `systemTournaments` (
 --
 
 INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tournamentType`, `Pool_Bracket`, `Pool_Sets`, `Scored_Event`, `numberOfInstances`, `description`, `functionName`) VALUES
-(1, 'weapon', 'Longsword', 1, 1, 1, 444, NULL, NULL),
-(2, 'weapon', 'Messer', 1, 1, 1, 16, NULL, NULL),
-(3, 'weapon', 'Sword and Buckler', 1, 1, 1, 97, NULL, NULL),
-(5, 'weapon', 'Singlestick', 1, 1, 1, 43, NULL, NULL),
-(6, 'weapon', 'Dagger', 1, 1, 1, 23, NULL, NULL),
-(7, 'weapon', 'Saber', 1, 1, 1, 111, NULL, NULL),
-(8, 'weapon', 'Smallsword', 1, 1, 1, 23, NULL, NULL),
+(1, 'weapon', 'Longsword', 1, 1, 1, 463, NULL, NULL),
+(2, 'weapon', 'Messer', 1, 1, 1, 18, NULL, NULL),
+(3, 'weapon', 'Sword and Buckler', 1, 1, 1, 100, NULL, NULL),
+(5, 'weapon', 'Singlestick', 1, 1, 1, 45, NULL, NULL),
+(6, 'weapon', 'Dagger', 1, 1, 1, 26, NULL, NULL),
+(7, 'weapon', 'Saber', 1, 1, 1, 116, NULL, NULL),
+(8, 'weapon', 'Smallsword', 1, 1, 1, 26, NULL, NULL),
 (9, 'weapon', 'Grappling', 1, 1, 1, 1, NULL, NULL),
-(10, 'weapon', 'Multiple Weapon', 1, 1, 1, 37, NULL, NULL),
+(10, 'weapon', 'Multiple Weapon', 1, 1, 1, 38, NULL, NULL),
 (11, 'prefix', NULL, 1, 1, 1, 0, NULL, NULL),
 (12, 'prefix', 'Advanced', 1, 1, 1, 0, NULL, NULL),
 (13, 'prefix', 'Intermediate', 1, 1, 1, 0, NULL, NULL),
@@ -2025,7 +2342,7 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (29, 'ranking', '2 Pool Winners', 1, 0, 0, 0, NULL, NULL),
 (30, 'ranking', 'Total Points Scored', 1, 0, 0, 0, NULL, NULL),
 (31, 'ranking', 'CC Invitation 2016', 1, 0, 0, 0, NULL, NULL),
-(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 44, NULL, NULL),
+(32, 'weapon', 'Longsword Cutting', 1, 1, 1, 45, NULL, NULL),
 (33, 'ranking', 'Results Only', 0, 0, 0, 0, NULL, NULL),
 (34, 'weapon', 'Glima', 1, 1, 1, 7, NULL, NULL),
 (35, 'weapon', 'Rotella', 1, 1, 1, 2, NULL, NULL),
@@ -2041,11 +2358,11 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (49, 'weapon', 'Mixed Knife', 1, 1, 1, 1, NULL, NULL),
 (50, 'ranking', 'Deduction Based', 0, 0, 1, NULL, NULL, 'DeductionBased'),
 (51, 'weapon', 'Backsword', 1, 1, 1, 1, NULL, NULL),
-(52, 'weapon', 'Broadsword', 1, 1, 1, 4, NULL, NULL),
+(52, 'weapon', 'Broadsword', 1, 1, 1, 5, NULL, NULL),
 (53, 'weapon', 'Single Handed Cutting', 1, 1, 1, 5, NULL, NULL),
 (54, 'weapon', 'Dane Axe', 1, 1, 1, 2, NULL, NULL),
-(55, 'weapon', 'Bowie Knife', 1, 1, 1, 2, NULL, NULL),
-(56, 'weapon', 'Sidesword', 1, 1, 1, 28, NULL, NULL),
+(55, 'weapon', 'Bowie Knife', 1, 1, 1, 3, NULL, NULL),
+(56, 'weapon', 'Sidesword', 1, 1, 1, 31, NULL, NULL),
 (57, 'material', 'Gekkenschwert', 1, 1, 1, NULL, NULL, NULL),
 (58, 'weapon', 'Two Handed Sword', 1, 1, 1, 2, NULL, NULL),
 (59, 'weapon', 'Single Sword', 1, 1, 1, 11, NULL, NULL),
@@ -2057,7 +2374,7 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (65, 'prefix', 'DO NOT TOUCH', 1, 1, 1, NULL, NULL, NULL),
 (66, 'material', 'DO NOT TOUCH', 1, 1, 1, NULL, NULL, NULL),
 (67, 'weapon', 'Spear', 1, 1, 1, 7, NULL, NULL),
-(68, 'weapon', 'Armored', 1, 1, 1, 9, NULL, NULL),
+(68, 'weapon', 'Armored', 1, 1, 1, 10, NULL, NULL),
 (69, 'weapon', 'Passage At Arms', 1, 1, 1, 1, NULL, NULL),
 (70, 'weapon', 'Ringen', 1, 1, 1, 11, NULL, NULL),
 (71, 'weapon', 'Longsword Triathlon', 1, 1, 1, 1, NULL, NULL),
@@ -2070,7 +2387,7 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (78, 'prefix', 'Light-Heavyweight', 1, 1, 1, NULL, NULL, NULL),
 (79, 'prefix', 'Openweight', 1, 1, 1, NULL, NULL, NULL),
 (80, 'prefix', 'Tier 2', 1, 1, 1, NULL, NULL, NULL),
-(81, 'weapon', 'Rapier & Dagger', 1, 1, 1, 60, NULL, NULL),
+(81, 'weapon', 'Rapier & Dagger', 1, 1, 1, 59, NULL, NULL),
 (82, 'prefix', 'U35', 1, 1, 1, NULL, NULL, NULL),
 (83, 'prefix', 'Staff Training', 1, 1, 1, NULL, NULL, NULL),
 (84, 'weapon', 'Tetrathlon', 1, 1, 1, 1, NULL, NULL),
@@ -2080,10 +2397,10 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (88, 'weapon', 'Sidesword & Rotella', 1, 1, 1, 2, NULL, NULL),
 (89, 'material', 'Padded', 1, 1, 1, NULL, NULL, NULL),
 (90, 'weapon', 'Courtsword', 1, 1, 1, 1, NULL, NULL),
-(91, 'weapon', 'Rapier (Single)', 1, 1, 1, 49, NULL, NULL),
+(91, 'weapon', 'Rapier (Single)', 1, 1, 1, 53, NULL, NULL),
 (92, 'weapon', 'Rapier (Optional Dagger)', 1, 1, 1, 15, NULL, NULL),
 (93, 'weapon', 'Rapier (Hybrid Offhand)', 1, 1, 1, 13, NULL, NULL),
-(94, 'weapon', 'Rapier (Offhand Unknown)', 1, 1, 1, 11, NULL, NULL),
+(94, 'weapon', 'Rapier (Offhand Unknown)', 1, 1, 1, 12, NULL, NULL),
 (95, 'prefix', 'Tier A', 1, 1, 1, NULL, NULL, NULL),
 (96, 'prefix', 'Tier B', 1, 1, 1, NULL, NULL, NULL),
 (97, 'weapon', '1-H Medieval Sword', 1, 1, 1, 4, NULL, NULL),
@@ -2105,14 +2422,15 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (113, 'weapon', 'Relay', 1, 1, 1, NULL, NULL, NULL),
 (114, 'prefix', 'Team Relay', 1, 1, 1, NULL, NULL, NULL),
 (115, 'weapon', 'Arming Sword Cutting', 1, 1, 1, 2, NULL, NULL),
-(116, 'weapon', 'Mixed Weapon', 1, 1, 1, 4, NULL, NULL),
+(116, 'weapon', 'Mixed Weapon', 1, 1, 1, 6, NULL, NULL),
 (117, 'prefix', 'Relay', 1, 1, 1, NULL, NULL, NULL),
 (118, 'prefix', 'Tier D', 1, 1, 1, NULL, NULL, NULL),
 (119, 'prefix', 'Unrated', 1, 1, 1, NULL, NULL, NULL),
 (120, 'prefix', 'Blingless', 1, 1, 1, NULL, NULL, NULL),
 (121, 'prefix', 'Veteran\'s (40+)', 1, 1, 1, NULL, NULL, NULL),
 (122, 'prefix', 'Valkyrie', 1, 1, 1, NULL, NULL, NULL),
-(123, 'prefix', 'Experienced', 1, 1, 1, NULL, NULL, NULL);
+(123, 'prefix', 'Experienced', 1, 1, 1, NULL, NULL, NULL),
+(124, 'weapon', 'Ringen am Schwert', 1, 1, 1, 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -2722,12 +3040,12 @@ ALTER TABLE `systemUsers`
 -- AUTO_INCREMENT for table `eventAttacks`
 --
 ALTER TABLE `eventAttacks`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9391;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9648;
 --
 -- AUTO_INCREMENT for table `eventAttributes`
 --
 ALTER TABLE `eventAttributes`
-  MODIFY `attributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3037;
+  MODIFY `attributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3199;
 --
 -- AUTO_INCREMENT for table `eventBurgeeComponents`
 --
@@ -2752,17 +3070,17 @@ ALTER TABLE `eventCutStandards`
 -- AUTO_INCREMENT for table `eventDefaults`
 --
 ALTER TABLE `eventDefaults`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=702;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=728;
 --
 -- AUTO_INCREMENT for table `eventDescriptions`
 --
 ALTER TABLE `eventDescriptions`
-  MODIFY `eventDescriptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `eventDescriptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 --
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=478797;
+  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=509744;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
@@ -2772,77 +3090,77 @@ ALTER TABLE `eventGroupRankings`
 -- AUTO_INCREMENT for table `eventGroupRoster`
 --
 ALTER TABLE `eventGroupRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48876;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52007;
 --
 -- AUTO_INCREMENT for table `eventGroups`
 --
 ALTER TABLE `eventGroups`
-  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13541;
+  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14347;
 --
 -- AUTO_INCREMENT for table `eventHemaRatingsInfo`
 --
 ALTER TABLE `eventHemaRatingsInfo`
-  MODIFY `hemaRatingInfoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `hemaRatingInfoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 --
 -- AUTO_INCREMENT for table `eventIgnores`
 --
 ALTER TABLE `eventIgnores`
-  MODIFY `ignoreID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=481;
+  MODIFY `ignoreID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=505;
 --
 -- AUTO_INCREMENT for table `eventMatches`
 --
 ALTER TABLE `eventMatches`
-  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132766;
+  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140523;
 --
 -- AUTO_INCREMENT for table `eventMatchOptions`
 --
 ALTER TABLE `eventMatchOptions`
-  MODIFY `matchOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=578;
+  MODIFY `matchOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=670;
 --
 -- AUTO_INCREMENT for table `eventPlacings`
 --
 ALTER TABLE `eventPlacings`
-  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25063;
+  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26320;
 --
 -- AUTO_INCREMENT for table `eventPublication`
 --
 ALTER TABLE `eventPublication`
-  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=170;
+  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=196;
 --
 -- AUTO_INCREMENT for table `eventRatings`
 --
 ALTER TABLE `eventRatings`
-  MODIFY `ratingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19176;
+  MODIFY `ratingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19903;
 --
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16670;
+  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17796;
 --
 -- AUTO_INCREMENT for table `eventRosterAdditional`
 --
 ALTER TABLE `eventRosterAdditional`
-  MODIFY `additionalRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `additionalRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=136;
 --
 -- AUTO_INCREMENT for table `eventRules`
 --
 ALTER TABLE `eventRules`
-  MODIFY `rulesID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
+  MODIFY `rulesID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=167;
 --
 -- AUTO_INCREMENT for table `eventRulesLinks`
 --
 ALTER TABLE `eventRulesLinks`
-  MODIFY `rulesLinkID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
+  MODIFY `rulesLinkID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=437;
 --
 -- AUTO_INCREMENT for table `eventScoresheets`
 --
 ALTER TABLE `eventScoresheets`
-  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35813;
+  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40304;
 --
 -- AUTO_INCREMENT for table `eventSettings`
 --
 ALTER TABLE `eventSettings`
-  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=391;
+  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=417;
 --
 -- AUTO_INCREMENT for table `eventSponsors`
 --
@@ -2852,12 +3170,12 @@ ALTER TABLE `eventSponsors`
 -- AUTO_INCREMENT for table `eventStandings`
 --
 ALTER TABLE `eventStandings`
-  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148644;
+  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=150516;
 --
 -- AUTO_INCREMENT for table `eventTeamRoster`
 --
 ALTER TABLE `eventTeamRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=980;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1018;
 --
 -- AUTO_INCREMENT for table `eventTournamentCompGroupItems`
 --
@@ -2877,7 +3195,7 @@ ALTER TABLE `eventTournamentComponents`
 -- AUTO_INCREMENT for table `eventTournamentOptions`
 --
 ALTER TABLE `eventTournamentOptions`
-  MODIFY `tournamentOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=910;
+  MODIFY `tournamentOptionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=948;
 --
 -- AUTO_INCREMENT for table `eventTournamentOrder`
 --
@@ -2887,52 +3205,52 @@ ALTER TABLE `eventTournamentOrder`
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tournamentRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32283;
+  MODIFY `tournamentRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34486;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1570;
+  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1637;
 --
 -- AUTO_INCREMENT for table `eventVideo`
 --
 ALTER TABLE `eventVideo`
-  MODIFY `videoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1351;
+  MODIFY `videoID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1357;
 --
 -- AUTO_INCREMENT for table `eventVideoStreams`
 --
 ALTER TABLE `eventVideoStreams`
-  MODIFY `streamID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `streamID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 --
 -- AUTO_INCREMENT for table `logisticsAnnouncements`
 --
 ALTER TABLE `logisticsAnnouncements`
-  MODIFY `announcementID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `announcementID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 --
 -- AUTO_INCREMENT for table `logisticsBlockAttributes`
 --
 ALTER TABLE `logisticsBlockAttributes`
-  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=340;
+  MODIFY `blockAttributeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=345;
 --
 -- AUTO_INCREMENT for table `logisticsInstructors`
 --
 ALTER TABLE `logisticsInstructors`
-  MODIFY `instructorID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `instructorID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 --
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
 ALTER TABLE `logisticsLocations`
-  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=575;
+  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=607;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
 ALTER TABLE `logisticsLocationsBlocks`
-  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4946;
+  MODIFY `blockLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5153;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsMatches`
 --
 ALTER TABLE `logisticsLocationsMatches`
-  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16983;
+  MODIFY `matchLocationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18237;
 --
 -- AUTO_INCREMENT for table `logisticsRoleCompetency`
 --
@@ -2942,17 +3260,17 @@ ALTER TABLE `logisticsRoleCompetency`
 -- AUTO_INCREMENT for table `logisticsScheduleBlocks`
 --
 ALTER TABLE `logisticsScheduleBlocks`
-  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2356;
+  MODIFY `blockID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2444;
 --
 -- AUTO_INCREMENT for table `logisticsScheduleShifts`
 --
 ALTER TABLE `logisticsScheduleShifts`
-  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2798;
+  MODIFY `shiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2944;
 --
 -- AUTO_INCREMENT for table `logisticsStaffCompetency`
 --
 ALTER TABLE `logisticsStaffCompetency`
-  MODIFY `staffCompetencyID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3227;
+  MODIFY `staffCompetencyID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3440;
 --
 -- AUTO_INCREMENT for table `logisticsStaffMatches`
 --
@@ -2967,7 +3285,7 @@ ALTER TABLE `logisticsStaffMatchMultipliers`
 -- AUTO_INCREMENT for table `logisticsStaffShifts`
 --
 ALTER TABLE `logisticsStaffShifts`
-  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5037;
+  MODIFY `staffShiftID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5329;
 --
 -- AUTO_INCREMENT for table `logisticsStaffTemplates`
 --
@@ -3012,7 +3330,7 @@ ALTER TABLE `systemDoubleTypes`
 -- AUTO_INCREMENT for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
+  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=387;
 --
 -- AUTO_INCREMENT for table `systemFormats`
 --
@@ -3027,7 +3345,7 @@ ALTER TABLE `systemLogisticsRoles`
 -- AUTO_INCREMENT for table `systemMatchOrder`
 --
 ALTER TABLE `systemMatchOrder`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=365;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=681;
 --
 -- AUTO_INCREMENT for table `systemOptionsList`
 --
@@ -3037,12 +3355,12 @@ ALTER TABLE `systemOptionsList`
 -- AUTO_INCREMENT for table `systemRankings`
 --
 ALTER TABLE `systemRankings`
-  MODIFY `tournamentRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `tournamentRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 --
 -- AUTO_INCREMENT for table `systemRoster`
 --
 ALTER TABLE `systemRoster`
-  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6649;
+  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6978;
 --
 -- AUTO_INCREMENT for table `systemRosterNotDuplicate`
 --
@@ -3052,7 +3370,7 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- AUTO_INCREMENT for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=981;
+  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1013;
 --
 -- AUTO_INCREMENT for table `systemSponsors`
 --
@@ -3062,7 +3380,7 @@ ALTER TABLE `systemSponsors`
 -- AUTO_INCREMENT for table `systemTournaments`
 --
 ALTER TABLE `systemTournaments`
-  MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
+  MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
 --
 -- AUTO_INCREMENT for table `systemUserEvents`
 --
