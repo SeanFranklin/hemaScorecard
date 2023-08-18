@@ -135,6 +135,11 @@ function HemaRatingExportOptions($tournamentList){
 
 	<legend><h4><a onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4></legend>
 
+	<div class='callout warning'>
+		Please submit these results to HEMA Ratings using the
+		<a href='https://submit.hemaratings.com/' target="_blank">Ratings Submission Tool</a>.
+	</div>
+
 	<form method='POST'>
 
 		<div class='grid-x grid-margin-x'>
