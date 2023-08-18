@@ -1034,7 +1034,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 
 			?>
 
-			<div class='medium-shrink small-6 cell opacity-toggle <?=$class?>' id='divFor<?=$rosterID?>'>
+			<div class='medium-shrink small-6 cell opacity-toggle' id='divFor<?=$rosterID?>'>
 
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 				<input type='checkbox' id=<?=$rosterID?>
