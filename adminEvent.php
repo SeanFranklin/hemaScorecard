@@ -335,15 +335,11 @@ function eventDescriptionBox($canChangeSettings){
 	<fieldset class='fieldset large-12 cell' <?=$formDiabled?> >
 	<legend><h4>Event Description</h4></legend>
 
-		<i class='blue-text'>
-			Sorry, this kind of sucks at the moment and won't display formatted unless you manually enter HTML tags. If you are having trouble bother me and I can format it for you (and also gives me another kick to try to figure out the proper solution.)
-		</i>
-
 		<form method='POST'>
 		<div class='grid-x grid-margin-x'>
 
 			<div class='large-12 cell'>
-				<textarea name='eventDescription' required rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
+				<textarea name='eventDescription' class='tiny-mce'  rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
 			</div>
 
 

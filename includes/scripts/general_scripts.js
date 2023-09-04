@@ -15,6 +15,31 @@ const TIE_BOTTOM  = '↲';
 const TIE_NO      = '&nbsp;';
 
 /******************************************************************************/
+    tinymce.init({
+        selector: 'textarea.tiny-mce',
+        plugins: 'lists link anchor',
+        toolbar_location: 'top',
+        font_size_formats:'',
+        line_height_formats: '',
+        color_map: [],
+        style_formats: [],
+        menubar: '',
+        link_context_toolbar: true,
+        link_title: false,
+        link_target_list: [
+            { title: 'Same page', value: '_self' },
+            { title: 'New page', value: '_blank' }
+          ],
+        content_style: 'h1{font-size: 2.3em;border-bottom:  1px solid black;margin-top: 1.0em;margin-bottom: 0.5em;} '+
+            'h2{ font-size: 1.9em; color: #1779ba; margin-top: 1.0em; margin-bottom: 0.0em;} '+
+            'h3{ font-size: 1.4em; color: #F08A24; margin-top: 1.0em; margin-bottom: 0.0em;} '+
+            'h4{ font-size: 1.2em; margin-top: 0.7em; margin-bottom: 0.2em;} '+
+            'p + ul { margin-top: -10px;} '+
+            'p + ol { margin-top: -10px;} '+
+            'p, h1, h2, h3, h4, h5 {font-weight:normal; font-family: "Chivo", sans-serif;} ',
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | numlist bullist | anchor link | hr indent outdent | removeformat ',
+    });
+/******************************************************************************/
 
 function toggle(divName, divName2 = null) {
 
