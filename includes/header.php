@@ -55,6 +55,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 	<script>google.charts.load('current', {'packages':['corechart']});</script>
+	<script src="https://cdn.tiny.cloud/1/ctrvec03t4hztqmygiaf7d6mtiod1qat9px92nlsxdq2mat3/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 	<link rel='icon' href='includes\images\favicon.png'>
 
