@@ -1706,7 +1706,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		$numToElims = 0;
 	}
 
-	$sql1 = "SELECT eS.rank, rosterID, groupID {$selectStr} ";
+	$sql1 = "SELECT eS.rank, rosterID, groupID, schoolID {$selectStr} ";
 	$sql2 =	"FROM eventStandings AS eS
 			INNER JOIN eventRoster USING(rosterID)
 			LEFT JOIN eventGroups USING(groupID)
@@ -1735,6 +1735,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		echo "<tr>";
 		echo "<th>Rank</th>";
 		echo "<th>Name</th>";
+		echo "<th class='hidden school-name'>School</th>";
 		for($i = 1; $i <= $maxNumFields; $i++){
 			$index = "displayTitle".$i;
 			$name = $displayMeta[$index];
@@ -1808,10 +1809,12 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		} else {
 			$name = getCombatantName($fighter['rosterID']);
 		}
+		$school = getSchoolName($fighter['schoolID']);
 
 		echo "<tr class='text-center {$class}'>";
 		echo "<td>".$fighter['rank']."</td>";
 		echo "<td  class='text-left'>{$name}</td>";
+		echo "<td class='hidden school-name text-left'>{$school}</td>";
 		for($i = 1; $i <= $maxNumFields; $i++){
 			$index = $displayMeta["displayField".$i];
 			$value = round($fighter[$index],1) + 0;
