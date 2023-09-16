@@ -1046,11 +1046,15 @@ function implode2int($array){
 
 /******************************************************************************/
 
-function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
+function shouldMatchConcludeByPoints($matchInfo){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.
 
-	if($matchInfo['matchComplete'] == 1
+	$maximumPoints = (int)$matchInfo['maximumPoints'];
+
+	show($matchInfo);
+
+	if(    $matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
 	){
 		return false;
@@ -1076,9 +1080,9 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 		case REVERSE_SCORE_GOLF:
 		default:
 
-			if(    ($maxPoints != 0)
-				&& (   $matchInfo['fighter1score'] >= $maxPoints
-					|| $matchInfo['fighter2score'] >= $maxPoints)
+			if(    ($maximumPoints != 0)
+				&& (   $matchInfo['fighter1score'] >= $maximumPoints
+					|| $matchInfo['fighter2score'] >= $maximumPoints)
 			  ){
 
 				$shouldConclude = true;
@@ -1096,9 +1100,11 @@ function shouldMatchConcludeByPoints($matchInfo, $maxPoints){
 
 /******************************************************************************/
 
-function shouldMatchConcludeBySpread($matchInfo,$maxSpread){
+function shouldMatchConcludeBySpread($matchInfo){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.
+
+	$maxSpread = (int)$matchInfo['maxPointSpread'];
 
 	if($matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
@@ -1126,6 +1132,8 @@ function shouldMatchConcludeByTime($matchInfo){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.
 
+	$timeLimit = (int)$matchInfo['timeLimit'];
+
 	if(    $matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
 		|| $matchInfo['timeLimit'] == 0)
@@ -1143,19 +1151,21 @@ function shouldMatchConcludeByTime($matchInfo){
 
 /******************************************************************************/
 
-function shouldMatchConcludeByExchanges($matchInfo, $maxExchanges){
+function shouldMatchConcludeByExchanges($matchInfo){
 // Returns true if the software should auto-conclude a match because it has reached
 // the maximum number of scoring exchanges.
 
+	$maximumExchanges = (int)$matchInfo['maximumExchanges'];
+
 	if(		$matchInfo['matchComplete'] == 1
 		 || $matchInfo['ignoreMatch'] == 1
-		 || $maxExchanges == 0){
+		 || $maximumExchanges == 0){
 		return false;
 	}
 
 	$numExchanges = getNumMatchScoringExchanges($matchInfo['matchID']);
 
-	if($numExchanges >= $maxExchanges){
+	if($numExchanges >= $maximumExchanges){
 		setAlert(USER_ALERT,"Exchange count reached.");
 		return true;
 	} else {

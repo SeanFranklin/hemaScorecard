@@ -552,6 +552,8 @@ function poolSetBox($tournamentID){
 	$currentNum = getNumGroupSets($tournamentID);
 	$attributes = getSetAttributes($tournamentID);
 	$tNorm = getNormalization($tournamentID);
+	$defaultLimits = getTournamentMatchCaps($tournamentID);
+
 	if($tNorm < 2){
 		$tNorm = 'Auto';
 	}
@@ -566,7 +568,7 @@ function poolSetBox($tournamentID){
 	<fieldset <?=LOCK_TOURNAMENT?>>
 
 <!-- Number of Pool Sets -->
-	<div class='grid-x'>
+	<div class='grid-x grid-margin-x'>
 	<div class='cell input-group shrink'>
 		<span class='input-group-label'>Number of Pool Sets:</span>
 
@@ -596,20 +598,22 @@ function poolSetBox($tournamentID){
 		?>
 
 	<!-- Name -->
-		<div class='grid-x grid-margin-x align-middle' style='margin-bottom: 15px;'>
-			<div class='small-2 cell text-center'>
-				<h5>Set <?=$setNumber?></h5>
-			</div>
-			<div class='small-10 cell'>
-		<div class='grid-x'>
-		<div class='input-group no-bottom'>
+	<div class='grid-x align-middle grid-margin-x' style='margin-bottom: 15px;'>
+		<div class='small-1 cell text-center'>
+			<h5>Set <?=$setNumber?></h5>
+		</div>
+
+		<div class='small-11 cell'>
+		<div class='grid-x grid-margin-x'>
+
+		<div class='input-group large-8 medium-12 no-bottom cell'>
 			<span class='input-group-label'>Name:</span>
 			<input type='text' class='input-group-field' value='<?=$setName?>'
 				 name='renameSet[<?=$setNumber?>]' placeholder='Pool Set <?=$setNumber?>'>
 		</div>
 
 	<!-- Is cumulative -->
-		<div class='input-group medium-6 small-12 no-bottom'>
+		<div class='input-group large-3 medium-7 small-12 cell no-bottom'>
 			<span class='input-group-label'>
 				Is Cumulative &nbsp;
 				<?php tooltip("A cumulative pool will combine the stats of all prior cumulative pools, and the first non-cumulative pool preceding a block of cumulative pools")?>:
@@ -624,7 +628,7 @@ function poolSetBox($tournamentID){
 		</div>
 
 	<!-- Normalization size -->
-		<div class='input-group medium-6 small-12 no-bottom'>
+		<div class='input-group large-5 medium-9 small-12 cell no-bottom'>
 			<span class='input-group-label'>
 				Normalization Size &nbsp;
 				<?php tooltip("Regardless of the option selected, cumulative pools will all have the same normalization as the first pool that they combine results from.")?>:
@@ -641,6 +645,40 @@ function poolSetBox($tournamentID){
 				</select>
 
 		</div>
+
+	<!-- Match Length -->
+		<div class='input-group large-5 medium-7 small-8 cell no-bottom'>
+			<span class='input-group-label'>
+				Match Length [sec] &nbsp;
+				<?php tooltip("0 means no limit")?>:
+			</span>
+			<input type='number' class='input-group-field' name='timeLimit[<?=$setNumber?>]'
+					value = '<?=@$setData['timeLimit']?>'
+					placeholder = '<?=$defaultLimits['timeLimit']?>' >
+		</div>
+
+	<!-- Exchange Cap -->
+		<div class='input-group large-4 medium-5 small-8 cell no-bottom'>
+			<span class='input-group-label'>
+				Exchange Cap &nbsp;
+				<?php tooltip("0 means no limit")?>:
+			</span>
+			<input type='number' class='input-group-field' name='maximumExchanges[<?=$setNumber?>]'
+					value = '<?=@$setData['maximumExchanges']?>'
+					placeholder = '<?=$defaultLimits['maximumExchanges']?>' >
+		</div>
+
+	<!-- Point Cap -->
+		<div class='input-group large-4 medium-5 small-8 cell no-bottom'>
+			<span class='input-group-label'>
+				Point Cap &nbsp;
+				<?php tooltip("0 means no limit")?>:
+			</span>
+			<input type='number' class='input-group-field' name='maximumPoints[<?=$setNumber?>]'
+					value = '<?=@$setData['maximumPoints']?>'
+					placeholder = '<?=$defaultLimits['maximumPoints']?>' >
+		</div>
+
 		</div>
 
 		</div>
