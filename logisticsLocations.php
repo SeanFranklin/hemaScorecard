@@ -89,17 +89,84 @@ if($_SESSION['eventID'] == null){
 	<?=confirmFormBox()?>
 
 </fieldset>
-
-
-
 </form>
 
+	<?=floorplanControl()?>
 
 <?php }
 include('includes/footer.php');
 
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function floorplanControl(){
+
+	$fullPath = logistics_getFloorplanFilePath($_SESSION['eventID']);
+
+	if($fullPath != null){
+		$imgHtml = "<img class='image-box' src='{$fullPath}'>";
+	} else {
+		$imgHtml = "";
+	}
+
+?>
+
+	<div class='callout'>
+
+		<h4>Event Floorplan Image</h4>
+
+		<p><?=$imgHtml?></p>
+
+		<i>Valid file types: .png, .jpg, .jpeg</i>
+		<form method="POST" enctype="multipart/form-data">
+
+			<div class='input-group'>
+				<span class='input-group-label'>File To Upload:</span>
+
+				<input class='input-group-field' type="file"
+					name="floorplanImageFile" id="fileToUpload" required>
+
+				<div class=' input-group-button'>
+					<button class='button success no-bottom'
+						value="uploadFloorplan" name="formName">
+						Upload New Image
+					</button>
+				</div>
+			</div>
+		</form>
+
+
+		<?php if($imgHtml != null): ?>
+			<HR>
+			<a class='button alert no-bottom delete-floorplan hollow'
+				onclick="$('.delete-floorplan').toggle()">
+				Delete Floorplan
+			</a>
+
+			<form method="POST" class='delete-floorplan hidden'>
+				<div  class="grid-x grid-margin-x align-right">
+					<a class='button secondary no-bottom cell shrink'
+						onclick="$('.delete-floorplan').toggle()">
+						Nah, keep it.
+					</a>
+					<button class='button alert no-bottom align-right cell shrink'
+						value="deleteFloorplan" name="formName">
+						Delete Image (for sure)
+					</button>
+
+				</div>
+			</form>
+		<?php endif ?>
+
+
+	</div>
+
+<?php
+}
+
 /******************************************************************************/
 
 function confirmFormBox(){
