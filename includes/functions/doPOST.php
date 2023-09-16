@@ -1182,24 +1182,23 @@ function addNewExchange(){
 
 	if($_POST['lastExchange'] != 'clearLastExchange'){
 
-		$matchCap = getMatchCaps($tournamentID);
-		$matchInfo = getMatchInfo($matchID);
 
-		$matchConcluded = false;
+		$matchInf		= getMatchInfo($matchID);
+		$matchConcluded	= false;
 
 		// Exchange Cap
 		if($matchConcluded == false){
-			$matchConcluded = shouldMatchConcludeByExchanges($matchInfo, $matchCap['exchanges']);
+			$matchConcluded = shouldMatchConcludeByExchanges($matchInfo);
 		}
 
 		// Point Cap
 		if($matchConcluded == false){
-			$matchConcluded = shouldMatchConcludeByPoints($matchInfo, $matchCap['points']);
+			$matchConcluded = shouldMatchConcludeByPoints($matchInfo);
 		}
 
 		// Point Spread
 		if($matchConcluded == false){
-			$matchConcluded = shouldMatchConcludeBySpread($matchInfo, $matchCap['spread']);
+			$matchConcluded = shouldMatchConcludeBySpread($matchInfo);
 		}
 
 		// Time Limit

@@ -7558,6 +7558,72 @@ function updatePoolSets(){
 		$_SESSION['updatePoolStandings'][$tournamentID] = ALL_GROUP_SETS;
 	}
 
+// Time Limit
+	$sql = "DELETE FROM eventAttributes
+			WHERE tournamentID = {$tournamentID}
+			AND attributeType = 'timeLimit'";
+	mysqlQuery($sql, SEND);
+
+	foreach((array)$_POST['timeLimit'] as $groupSet => $timeLimit){
+
+		$groupSet = (int)$groupSet;
+
+		$timeLimit = (int)$timeLimit;
+		if($timeLimit == 0){ continue; }
+		if($groupSet > $numGroupSets){break;}
+
+		$sql = "INSERT INTO eventAttributes
+				(tournamentID, attributeType, attributeGroupSet, attributeValue)
+				VALUES
+				({$tournamentID}, 'timeLimit', {$groupSet}, {$timeLimit})";
+		mysqlQuery($sql, SEND);
+
+	}
+
+// Maximum Points
+	$sql = "DELETE FROM eventAttributes
+			WHERE tournamentID = {$tournamentID}
+			AND attributeType = 'maximumPoints'";
+	mysqlQuery($sql, SEND);
+
+	foreach((array)$_POST['maximumPoints'] as $groupSet => $maximumPoints){
+
+		$groupSet = (int)$groupSet;
+
+		$maximumPoints = (int)$maximumPoints;
+		if($maximumPoints == 0){ continue; }
+		if($groupSet > $numGroupSets){break;}
+
+		$sql = "INSERT INTO eventAttributes
+				(tournamentID, attributeType, attributeGroupSet, attributeValue)
+				VALUES
+				({$tournamentID}, 'maximumPoints', {$groupSet}, {$maximumPoints})";
+		mysqlQuery($sql, SEND);
+
+	}
+
+// Exchange Cap
+	$sql = "DELETE FROM eventAttributes
+			WHERE tournamentID = {$tournamentID}
+			AND attributeType = 'maximumExchanges'";
+	mysqlQuery($sql, SEND);
+
+	foreach((array)$_POST['maximumExchanges'] as $groupSet => $maximumExchanges){
+
+		$groupSet = (int)$groupSet;
+
+		$maximumExchanges = (int)$maximumExchanges;
+		if($maximumExchanges == 0){ continue; }
+		if($groupSet > $numGroupSets){break;}
+
+		$sql = "INSERT INTO eventAttributes
+				(tournamentID, attributeType, attributeGroupSet, attributeValue)
+				VALUES
+				({$tournamentID}, 'maximumExchanges', {$groupSet}, {$maximumExchanges})";
+		mysqlQuery($sql, SEND);
+
+	}
+
 // Change number of pool sets
 	if(isset($_POST['numPoolSets'])){
 

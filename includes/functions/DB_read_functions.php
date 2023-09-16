@@ -3295,7 +3295,7 @@ function getNumMatchScoringExchanges($matchID){
 			FROM eventExchanges
 			WHERE matchID = {$matchID}
 			AND exchangeType IN {$validExchanges}";
-	$numExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
+	$numExchanges = (int)mysqlQuery($sql, SINGLE, 'numExchanges');
 
 	return $numExchanges;
 }
@@ -3370,7 +3370,10 @@ function getMatchInfo($matchID = 0){
 		}
 	}
 
-	$sql = "SELECT eventGroups.groupType, eventGroups.groupID, groupName, groupNumber, tournamentID
+
+
+	$sql = "SELECT eventGroups.groupType, eventGroups.groupID, groupName,
+				groupNumber, tournamentID, groupSet
 			FROM eventGroups, eventMatches
 			WHERE eventMatches.matchID = {$matchID}
 			AND eventMatches.groupID = eventGroups.groupID";
@@ -3380,14 +3383,47 @@ function getMatchInfo($matchID = 0){
 	$matchInfo['groupID'] = $result['groupID'];
 	$matchInfo['groupName'] = $result['groupName'];
 	$matchInfo['groupNumber'] = $result['groupNumber'];
-	$matchInfo['tournamentID'] = $result['tournamentID'];
+	$matchInfo['tournamentID'] = (int)$result['tournamentID'];
+	$matchInfo['groupSet'] = (int)$result['groupSet'];
 
-	$sql = "SELECT maxDoubleHits, timeLimit
+
+
+	$sql = "SELECT maxDoubleHits, timeLimit, maximumPoints, maximumExchanges, maxPointSpread
 			FROM eventTournaments
 			WHERE tournamentID = {$matchInfo['tournamentID']}";
 	$data = mysqlQuery($sql, SINGLE);
+
 	$matchInfo['maxDoubles'] = $data['maxDoubleHits'];
 	$matchInfo['timeLimit'] = $data['timeLimit'];
+	$matchInfo['maximumPoints'] = $data['maximumPoints'];
+	$matchInfo['maximumExchanges'] = $data['maximumExchanges'];
+	$matchInfo['maxPointSpread'] = $data['maxPointSpread'];
+
+
+
+	if($matchInfo['matchType'] == 'pool'){
+		$sql = "SELECT attributeType, attributeValue
+				FROM eventAttributes
+				WHERE tournamentID = {$matchInfo['tournamentID']}
+				AND attributeGroupSet = {$matchInfo['groupSet']}
+				AND attributeType IN ('timeLimit','maximumPoints','maximumExchanges','maxPointSpread') ";
+		$setInfo = (array)mysqlQuery($sql, KEY_SINGLES, 'attributeType', 'attributeValue');
+
+		if(isset($setInfo['timeLimit']) == true){
+			$matchInfo['timeLimit'] = $setInfo['timeLimit'];
+		}
+		if(isset($setInfo['maximumPoints']) == true){
+				$matchInfo['maximumPoints'] = $setInfo['maximumPoints'];
+		}
+		if(isset($setInfo['maximumExchanges']) == true){
+				$matchInfo['maximumExchanges'] = $setInfo['maximumExchanges'];
+		}
+		if(isset($setInfo['maxPointSpread']) == true){
+				$matchInfo['maxPointSpread'] = $setInfo['maxPointSpread'];
+		}
+	}
+
+
 
 
 	$sql = "SELECT MAX(exchangeID)
@@ -3404,6 +3440,8 @@ function getMatchInfo($matchID = 0){
 
 	$matchInfo['doubleType'] = $temp['doubleTypeID'];
 	$matchInfo['teamEntry'] = isMatchesByTeam($temp['tournamentID']);
+
+
 
 	$sql = "SELECT locationID
 			FROM logisticsLocationsMatches
@@ -3607,7 +3645,7 @@ function getItemsHiddenByFilters($tournamentID, $filters, $type = null){
 
 /******************************************************************************/
 
-function getMatchCaps($tournamentID){
+function getTournamentMatchCaps($tournamentID){
 
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){
@@ -3615,8 +3653,7 @@ function getMatchCaps($tournamentID){
 		return;
 	}
 
-	$sql = "SELECT maximumExchanges AS exchanges, maximumPoints AS points,
-			maxPointSpread AS spread, timeLimit
+	$sql = "SELECT maximumExchanges, maximumPoints, maxPointSpread, timeLimit
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	return ( mysqlQuery($sql, SINGLE) );
@@ -5799,9 +5836,8 @@ function getSetAttributes($tournamentID){
 	$sql = "SELECT attributeType, attributeGroupSet, attributeBool, attributeText, attributeValue
 			FROM eventAttributes
 			WHERE tournamentID = {$tournamentID}
-			AND (	attributeType = 'setName'
-					OR attributeType = 'cumulative'
-					OR attributeType = 'normalization')";
+			AND attributeType IN( 'setName','cumulative','normalization',
+				'timeLimit','maximumPoints','maximumExchanges')";
 
 	$result = mysqlQuery($sql, ASSOC);
 
@@ -5816,6 +5852,15 @@ function getSetAttributes($tournamentID){
 				break;
 			case 'normalization':
 				$attributes[$setNumber]['normalization'] = $data['attributeValue'];
+				break;
+			case 'timeLimit':
+				$attributes[$setNumber]['timeLimit'] = $data['attributeValue'];
+				break;
+			case 'maximumPoints':
+				$attributes[$setNumber]['maximumPoints'] = $data['attributeValue'];
+				break;
+			case 'maximumExchanges':
+				$attributes[$setNumber]['maximumExchanges'] = $data['attributeValue'];
 				break;
 			default:
 		}

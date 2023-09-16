@@ -633,7 +633,7 @@ function displayEventAnnouncements(){
 
 			$a['message'] = 'There are ties between the following fighters:<ul>';
 			foreach($tiedFighters as $fighter){
-				$a['message'] .= "<li>{$fighter}a</li>";
+				$a['message'] .= "<li>{$fighter}</li>";
 			}
 			$a['message'] .= "</ul>Scorecard has used all specified tiebreakers
 				and can not resolve the results. Place has been assigned randomly,
