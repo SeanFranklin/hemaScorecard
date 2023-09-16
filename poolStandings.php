@@ -123,6 +123,8 @@ if($tournamentID == null){
 	<?php endif ?>
 
 
+	<?=toggleSchoolNameForPoolStandings()?>
+
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 
 <?php
@@ -132,6 +134,14 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function toggleSchoolNameForPoolStandings(){
+?>
+	 <a class='button hollow no-bottom' onclick="$('.school-name').toggle()">Display School Names</a>
+<?php
+}
 
 /******************************************************************************/
 
