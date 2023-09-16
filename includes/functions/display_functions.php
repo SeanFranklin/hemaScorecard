@@ -3569,5 +3569,31 @@ function dataModeForm(){
 }
 
 /******************************************************************************/
+
+function displayFloorMapButton(){
+
+	$fullPath = logistics_getFloorplanFilePath($_SESSION['eventID']);
+
+	if($fullPath == null){
+		return;
+	}
+
+	$imgHtml = "<img class='image-box' src='{$fullPath}'>";
+?>
+
+	<a class='button tiny alert hollow' id='floor-map-toggle-button'
+		onclick="logistics_toggleFloormap()">
+		Event Map
+	</a>
+
+	<div class='hidden' id='floor-map'>
+		<?=$imgHtml?>
+	<BR><BR>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -153,43 +153,12 @@ function showHideScheduleBlocks(){
 		Staffing Locations
 	</a>
 
-	<?php $imgHtml = displayFloorMapButton() ?>
+	<?=displayFloorMapButton()?>
 
 </div>
-
-<div class='hidden' id='floor-map'>
-	<?=$imgHtml?>
-	<BR><BR>
-</div>
-
 
 
 <?php
-}
-
-/******************************************************************************/
-
-function displayFloorMapButton(){
-
-	$pathName = "includes/images/floormaps/{$_SESSION['eventID']}.jpg";
-
-	/* Don't display anything unless a floor map exists. */
-	if(file_exists($pathName) == false){
-		$imgHtml = "";
-	} else {
-		$imgHtml = "<img class='image-box' src='{$pathName}'>";
-	}
-
-?>
-
-	<a class='button tiny alert hollow' id='floor-map-toggle-button'
-		onclick="logistics_toggleFloormap()">
-		Event Map
-	</a>
-
-<?
-
-	return ($imgHtml);
 }
 
 /******************************************************************************/
@@ -213,8 +182,6 @@ function displayBlockDescriptionModal(){
 
 <?
 }
-
-/******************************************************************************/
 
 /******************************************************************************/
 

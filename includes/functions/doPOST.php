@@ -457,6 +457,12 @@ function processPostData(){
 			case 'deleteLocations':
 				logisticsDeleteLocations($_POST['locationsToDelete']);
 				break;
+			case 'uploadFloorplan':
+				logisticsUploadFloorplan();
+				break;
+			case 'deleteFloorplan':
+				logisticsdeleteEventFloorplan();
+				break;
 			case 'assignGroupsToRings':
 				logisticsAssignTournamentToRing($_POST['assignToLocations']);
 				break;
@@ -511,6 +517,7 @@ function processPostData(){
 			case 'instructorDelete':
 				InstructorDelete($_POST['instructorBio']);
 				break;
+
 
 	// Stats Cases
 			case 'hemaRatings_ExportCsv':

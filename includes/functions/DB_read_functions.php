@@ -5475,6 +5475,29 @@ function logistics_getEventLocations($eventID, $locationType = null){
 
 /******************************************************************************/
 
+function logistics_getFloorplanFilePath($eventID){
+
+	$eventID = (int)$eventID;
+
+	$basePath = "includes/images/floormaps/{$eventID}";
+
+	/* Don't display anything unless a floor map exists. */
+	if(file_exists($basePath.'.png') == true){
+		$fullPath = $basePath.'.png';
+	} elseif(file_exists($basePath.'.jpg') == true){
+		$fullPath = $basePath.'.jpg';
+	} elseif(file_exists($basePath.'.jpeg') == true){
+		$fullPath = $basePath.'.jpeg';
+	} else {
+		$fullPath = null;
+	}
+
+	return ($fullPath);
+
+}
+
+/******************************************************************************/
+
 function logistics_getRoles(){
 
 	$sql = "SELECT logisticsRoleID, roleName
