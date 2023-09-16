@@ -5961,18 +5961,28 @@ function getAttendanceFromSchools($eventID){
 
 	$eventID = (int)$eventID;
 
-	if($eventID != 0){
-		$whereClause = "WHERE eventID = {$eventID}";
-	} else {
-		$whereClause = "";
-	}
-
-	$sql = "SELECT schoolID, count(*) AS num
-			FROM eventRoster
-			{$whereClause}
-			GROUP BY schoolID
-			ORDER BY num DESC";
-	$clubTotals = (array)mysqlQuery($sql, KEY_SINGLES, "schoolID", "num");
+	$sql = "SELECT DISTINCT(schoolID),
+				(
+					SELECT COUNT(DISTINCT(rosterID)) AS num
+					FROM eventRoster as eR2
+					WHERE eR.schoolID = eR2.schoolID
+					AND eventID = {$eventID}
+					AND isTeam = 0
+				) AS numTotal,
+				(
+					SELECT COUNT(DISTINCT(rosterID)) AS numFighters
+					FROM eventTournamentRoster AS eTR3
+					INNER JOIN eventTournaments AS eT3 USING(tournamentID)
+					INNER JOIN eventRoster AS eR3 USING(rosterID)
+					WHERE eR.schoolID = eR3.schoolID
+					AND eT3.eventID = {$eventID}
+					AND isTeam = 0
+				) AS numFighters
+			FROM eventRoster AS eR
+			WHERE eventID = {$eventID}
+			AND schoolID IS NOT NULL
+			ORDER BY numTotal DESC, numFighters DESC";
+	$clubTotals = (array)mysqlQuery($sql, ASSOC);
 
 	return ($clubTotals);
 
@@ -7763,7 +7773,7 @@ function getNumEventRegistrations($eventID){
 			FROM eventRoster AS eTR
 			WHERE eventID = {$eventID}
 			AND isTeam = 0";
-	$numRegistrations = (int)mysqlQuery($sql,SINGLE,'numFighters');
+	$numRegistrations = (int)mysqlQuery($sql, SINGLE, 'numFighters');
 
 	return ($numRegistrations);
 

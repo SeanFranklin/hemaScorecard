@@ -83,23 +83,44 @@ if($_SESSION['eventID'] == null){
 <!-- School registrations summary -->
 
 	<table class='data_table'>
-		<caption>School Attendance</caption>
-		<?php foreach((array)$clubTotals as $schoolID => $num):
-			if($schoolID == 1){ continue;}
-			$name = getSchoolName($schoolID, 'full', 'Branch');
+			<tr>
+				<th>School</th>
+				<th>Participants</th>
+				<th>Fighters</th>
+			</tr>
+		<?php foreach((array)$clubTotals as $index => $school):
+			if($school['schoolID'] == 1){
+				$unknownIndex = $index;
+				continue;
+			}
+			if($school['schoolID'] == 2){
+				$unaffiliatedIndex = $index;
+				continue;
+			}
+			$name = getSchoolName($school['schoolID'], 'full', 'Branch');
 			?>
 
 			<tr>
 				<td><?=$name?></td>
-				<td class='text-center'><?=$num?></td>
+				<td class='text-center'><?=$school['numTotal']?></td>
+				<td class='text-center'><?=$school['numFighters']?></td>
 			</tr>
 
 		<?php endforeach ?>
 
-		<?php if(@$clubTotals[1] > 0): ?>
+		<?php if(isset($unaffiliatedIndex) == true): ?>
+			<tr>
+				<td><i>Unaffiliated</i></td>
+				<td class='text-center'><?=$clubTotals[$unaffiliatedIndex]['numTotal']?></td>
+				<td class='text-center'><?=$clubTotals[$unaffiliatedIndex]['numFighters']?></td>
+			</tr>
+		<?php endif ?>
+
+		<?php if(isset($unknownIndex) == true): ?>
 			<tr>
 				<td><i>Unknown</i></td>
-				<td class='text-center'><i><?=$clubTotals[1]?></i></td>
+				<td class='text-center'><?=$clubTotals[$unknownIndex]['numTotal']?></td>
+				<td class='text-center'><?=$clubTotals[$unknownIndex]['numFighters']?></td>
 			</tr>
 		<?php endif ?>
 
