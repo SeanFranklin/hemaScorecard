@@ -25,7 +25,7 @@ if((int)$_SESSION['eventID'] == 0){
 		$rulesInfo = getRulesInfo($_SESSION['rulesID']);
 	} else {
 		$rulesInfo['rulesName'] = "";
-		$rulesInfo['rulesText'] = "";
+		$rulesInfo['rulesText'] = " ";
 
 		// If we went to this page with no rules loaded, refresh page with the first one.
 		if($rulesIDs != [] && ALLOW['EVENT_MANAGEMENT'] == false){
