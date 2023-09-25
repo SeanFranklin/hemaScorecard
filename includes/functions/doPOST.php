@@ -1190,7 +1190,7 @@ function addNewExchange(){
 	if($_POST['lastExchange'] != 'clearLastExchange'){
 
 
-		$matchInf		= getMatchInfo($matchID);
+		$matchInfo		= getMatchInfo($matchID);
 		$matchConcluded	= false;
 
 		// Exchange Cap
