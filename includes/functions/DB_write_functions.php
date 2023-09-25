@@ -1017,8 +1017,12 @@ function logisticsUploadFloorplan(){
 		}
 
 	} else {
-		$sql = "DELETE FROM imageList WHERE imageID = {$imageID}";
+
 		setAlert(USER_ALERT, "Unknown error in file upload.");
+		if(ALLOW['SOFTWARE_ADMIN'] == TRUE){
+			setAlert(SYSTEM, "Not uploaded because of error #".$_FILES["file"]["error"]);
+		}
+
 		return;
 	}
 
@@ -2784,7 +2788,7 @@ function addTeamMembers($teamInfo, $tournamentID){
 
 	$teamID = (int)$teamInfo['teamID'];
 
-	foreach($teamInfo['order'] as $tableID => $teamOrder){
+	foreach((array)$teamInfo['order'] as $tableID => $teamOrder){
 
 		$tableID = (int)$tableID;
 		$teamOrder = (int)$teamOrder;

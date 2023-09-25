@@ -1052,8 +1052,6 @@ function shouldMatchConcludeByPoints($matchInfo){
 
 	$maximumPoints = (int)$matchInfo['maximumPoints'];
 
-	show($matchInfo);
-
 	if(    $matchInfo['matchComplete'] == 1
 		|| $matchInfo['ignoreMatch'] == 1
 	){
