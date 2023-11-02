@@ -1655,6 +1655,24 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function poolTableHeader($displayMeta, $maxNumFields){
+
+	echo "<tr>";
+	echo "<th>Rank</th>";
+	echo "<th>Name</th>";
+	echo "<th class='hidden school-name'>School</th>";
+	for($i = 1; $i <= $maxNumFields; $i++){
+		$index = "displayTitle".$i;
+		$name = $displayMeta[$index];
+
+		echo "<th>{$name}</th>";
+	}
+	echo "</tr>";
+
+}
+
+/******************************************************************************/
+
 function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 // Calls the appropriate function to display the fighters pool standings
 // given the tournament scoring algorithm
@@ -1730,25 +1748,13 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	}
 
 
-// Header row -----------------------------
-	function tableHeader($displayMeta, $maxNumFields){
-		echo "<tr>";
-		echo "<th>Rank</th>";
-		echo "<th>Name</th>";
-		echo "<th class='hidden school-name'>School</th>";
-		for($i = 1; $i <= $maxNumFields; $i++){
-			$index = "displayTitle".$i;
-			$name = $displayMeta[$index];
 
-			echo "<th>{$name}</th>";
-		}
-		echo "</tr>";
-	}
-// --------------------------------------------
+
+
 
 	if($displayByPool == false){
 		echo "<table>";
-		tableHeader($displayMeta, $maxNumFields);
+		poolTableHeader($displayMeta, $maxNumFields);
 	}
 
 
@@ -1774,7 +1780,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			echo "<h5>{$groupName}</h5>";
 			echo "</td></tr>";
 
-			tableHeader($displayMeta, $maxNumFields);
+			poolTableHeader($displayMeta, $maxNumFields);
 
 		}
 
