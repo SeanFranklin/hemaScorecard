@@ -141,7 +141,7 @@ function enableTournamentButton(tournamentID){
 
 	if(formatID == FORMAT_MATCH || formatID == FORMAT_SOLO || formatID == FORMAT_META){
 		rankingID = document.getElementById('rankingID_select'+tournamentID).value;
-		if(rankingID.length == 0){
+		if(rankingID.length == 0 || rankingID == 0){
 			warrningMessages.push('Please select Ranking Type');
 		}
 	}
@@ -222,12 +222,21 @@ function edit_formatType(tournamentID){
 
 	toggleTournamentEditingFields(tournamentID, formatID);
 
-
 	if(formatID == FORMAT_RESULTS){
-		document.getElementById('editTournamentButton'+tournamentID).disabled = false;
+
+		select = document.getElementById('rankingID_select'+tournamentID);
+		select.length = 0;
+
+		var option = document.createElement('option');
+		option.value = 3;
+		option.innerHTML = "Manual Placings";
+		option.selected = true;
+		select.appendChild(option);
+
+		enableTournamentButton(tournamentID);
+
 		return;
 	}
-
 
 	var query = "mode=getRankingTypes&formatID="+formatID;
 
@@ -246,16 +255,15 @@ function edit_formatType(tournamentID){
 				select.length = 0;
 
 				var option = document.createElement('option');
+				option.value = 0;
 				option.disabled = true;
 				option.selected = true;
 				select.appendChild(option);
-
 
 				if(rankingTypes['popular'].length != 0){
 
 					var option = document.createElement('option');
 					option.disabled = true;
-					option.selected = true;
 					option.innerHTML = "- Most Popular: ----------------";
 					select.appendChild(option);
 
@@ -268,7 +276,6 @@ function edit_formatType(tournamentID){
 
 					var option = document.createElement('option');
 					option.disabled = true;
-					option.selected = true;
 					option.innerHTML = "- By Name: ---------------------";
 					select.appendChild(option);
 				}

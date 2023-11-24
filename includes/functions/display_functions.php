@@ -2095,7 +2095,7 @@ function edit_tournamentMaxExchanges($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[doublesAreNotScoringExch]' class='shrink'
-						id='requireSignOff_<?=$tournamentID?>'>
+						id='doublesAreNotScoringExch_<?=$tournamentID?>'>
 						<option <?=optionValue(0,$doublesAreNotScoringExch)?> >No</option>
 						<option <?=optionValue(1,$doublesAreNotScoringExch)?> >Yes</option>
 				</select>

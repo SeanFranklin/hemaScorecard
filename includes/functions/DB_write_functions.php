@@ -5665,26 +5665,88 @@ function updatePasswords($passwordData){
 
 function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
-	if(ALLOW['EVENT_MANAGEMENT'] == false){
+	$eventID = (int)$_SESSION['eventID'];
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false || $eventID == 0){
 		return;
 	}
 
-	$eventID = (int)$_SESSION['eventID'];
-	if($eventID == 0){return;}
 
+// Format / Algo check before proceeding  --------------------------------------
+
+	switch((int)$formInfo['formatID']){
+		case FORMAT_RESULTS:
+		case FORMAT_MATCH:
+		case FORMAT_SOLO:
+		case FORMAT_META:
+			$settings['formatID'] = (int)$formInfo['formatID'];
+			break;
+		default:
+			setAlert(SYSTEM,"Invalid formatID in updateEventTournaments()");
+			return;
+			break;
+	}
+
+	$tournamentRankingID = @(int)$formInfo['tournamentRankingID']; // Not existing is zero value
+	$rankingInfo = getRankingInfo($tournamentRankingID);
+
+	if($tournamentRankingID != 0 && @(int)$rankingInfo['formatID'] == $settings['formatID']){
+		$settings['tournamentRankingID'] = $tournamentRankingID;
+	} else {
+
+		$formatName = getFormatName($settings['formatID']);
+		$rankingName = @$rankingInfo['name'];
+		if($rankingName == null){
+			$rankingName = "NULL";
+		}
+
+		setAlert(USER_ERROR, "Ranking Type <i>\"{$rankingName}\"</i> is not valid for Format <i>\"{$formatName}\"</i>.<BR><b>Tournament not updated.</b>");
+		return;
+
+	}
+
+
+// Load options w/o plausability checking --------------------------------------
+
+	// $settings['formatID'] is set above
+	// $settings['tournamentRankingID'] is set above
 	$settings['tournamentID'] = (int)$tournamentID;
-	$settings['eventID'] = (int)$eventID;
+	$settings['eventID'] = $eventID;
 	$settings['tournamentWeaponID'] = (int)$formInfo['tournamentWeaponID'];
 	$settings['tournamentPrefixID'] = (int)$formInfo['tournamentPrefixID'];
 	$settings['tournamentGenderID'] = (int)$formInfo['tournamentGenderID'];
 	$settings['tournamentMaterialID'] = (int)$formInfo['tournamentMaterialID'];
 	$settings['tournamentSuffixID'] = "NULL"; // This is set to a NULL value until the feature is implemented
 
-	if(isset($formInfo['tournamentRankingID']) == true){
-		$settings['tournamentRankingID'] = (int)$formInfo['tournamentRankingID'];
-	} else {
-		$settings['tournamentRankingID'] = 'NULL';
-	}
+	$settings['numGroupSets'] = (int)@$formInfo['numGroupSets']; // No value is considered as zero.
+	$settings['normalizePoolSize'] = (int)$formInfo['normalizePoolSize'];
+	$settings['color1ID'] = (int)$formInfo['color1ID'];
+	$settings['color2ID'] = (int)$formInfo['color2ID'];
+	$settings['maxPoolSize'] = (int)$formInfo['maxPoolSize'];
+	$settings['maxDoubleHits'] = (int)$formInfo['maxDoubleHits'];
+	$settings['maxPointSpread'] = (int)$formInfo['maxPointSpread'];
+	$settings['basePointValue'] = (int)$formInfo['basePointValue'];
+	$settings['timerCountdown'] = (int)$formInfo['timerCountdown'];
+
+	$settings['isCuttingQual'] = (int)$formInfo['isCuttingQual'];
+	$settings['isFinalized'] = @(int)$formInfo['isFinalized']; //This is a boolean, unset is the same as zero.
+	$settings['timeLimit'] = (int)$formInfo['timeLimit'];
+	$settings['isNotNetScore'] = @(int)$formInfo['isNotNetScore']; //This is a boolean, unset is the same as zero.
+	$settings['overrideDoubleType'] = (int)$formInfo['overrideDoubleType'];
+	$settings['isPrivate'] = (int)$formInfo['isPrivate'];
+
+	$settings['isTeams'] = (int)$formInfo['isTeams'];
+	$settings['poolWinnersFirst'] = (int)$formInfo['poolWinnersFirst'];
+	$settings['limitPoolMatches'] = (int)$formInfo['limitPoolMatches'];
+	$settings['checkInStaff'] = (int)$formInfo['checkInStaff'];
+	$settings['hideFinalResults'] = (int)$formInfo['hideFinalResults'];
+
+	$settings['numSubMatches'] = (int)$formInfo['numSubMatches'];
+	$settings['subMatchMode'] = (int)$formInfo['subMatchMode'];
+	$settings['requireSignOff'] = (int)$formInfo['requireSignOff'];
+
+
+// Double hit option plausability checks ---------------------------------------
 
 	switch(@(int)$formInfo['doubleTypeID']){
 		// If the value doesn't exist fall into the default case
@@ -5706,27 +5768,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		// Nothing to do.
 	}
 
-	switch((int)$formInfo['formatID']){
-		case FORMAT_RESULTS:
-		case FORMAT_MATCH:
-		case FORMAT_SOLO:
-		case FORMAT_META:
-			$settings['formatID'] = (int)$formInfo['formatID'];
-			break;
-		default:
-			setAlert(SYSTEM,"Invalid formatID in updateEventTournaments()");
-			return;
-			break;
-	}
 
-
-	$settings['numGroupSets'] = (int)@$formInfo['numGroupSets']; // No value is considered as zero.
-
-	$settings['normalizePoolSize'] = (int)$formInfo['normalizePoolSize'];
-	$settings['color1ID'] = (int)$formInfo['color1ID'];
-	$settings['color2ID'] = (int)$formInfo['color2ID'];
-	$settings['maxPoolSize'] = (int)$formInfo['maxPoolSize'];
-	$settings['maxDoubleHits'] = (int)$formInfo['maxDoubleHits'];
+// Plausability checks ---------------------------------------------------------
 
 	if(isset($formInfo['maximumExchanges']) == true){
 		$settings['maximumExchanges'] = (int)$formInfo['maximumExchanges'];
@@ -5740,16 +5783,6 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		$settings['maximumPoints'] = 'NULL';
 	}
 
-	$settings['maxPointSpread'] = (int)$formInfo['maxPointSpread'];
-	$settings['basePointValue'] = (int)$formInfo['basePointValue'];
-	$settings['timerCountdown'] = (int)$formInfo['timerCountdown'];
-	$settings['isCuttingQual'] = (int)$formInfo['isCuttingQual'];
-	$settings['isFinalized'] = @(int)$formInfo['isFinalized']; //This is a boolean, unset is the same as zero.
-	$settings['timeLimit'] = (int)$formInfo['timeLimit'];
-
-	$settings['isNotNetScore'] = @(int)$formInfo['isNotNetScore']; //This is a boolean, unset is the same as zero.
-
-
 	switch(@(int)$formInfo['isReverseScore']){
 		// If the value doesn't exist fall into the default case
 		case REVERSE_SCORE_GOLF: {$settings['isReverseScore'] = REVERSE_SCORE_GOLF; break;}
@@ -5757,10 +5790,6 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		case REVERSE_SCORE_NO:
 		default: {$settings['isReverseScore'] = REVERSE_SCORE_NO; break;}
 	}
-
-	$settings['overrideDoubleType'] = (int)$formInfo['overrideDoubleType'];
-	$settings['isPrivate'] = (int)$formInfo['isPrivate'];
-	$settings['isTeams'] = (int)$formInfo['isTeams'];
 
 	switch($formInfo['logicMode']){
 		// Extra quotes are added because this will be passed into the sql query as a raw value
@@ -5774,19 +5803,13 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			break;
 	}
 
-	$settings['poolWinnersFirst'] = (int)$formInfo['poolWinnersFirst'];
-	$settings['limitPoolMatches'] = (int)$formInfo['limitPoolMatches'];
-	$settings['checkInStaff'] = (int)$formInfo['checkInStaff'];
-	$settings['hideFinalResults'] = (int)$formInfo['hideFinalResults'];
-
-	$settings['numSubMatches'] = (int)$formInfo['numSubMatches'];
 	// Clean up sub match settings for things which shouldn't have sub matches
 	if($settings['formatID'] != FORMAT_MATCH || $settings['numSubMatches'] < 2){
 		$info['numSubMatches'] = 0;
 	}
 
-	$settings['subMatchMode'] = (int)$formInfo['subMatchMode'];
-	$settings['requireSignOff'] = (int)$formInfo['requireSignOff'];
+
+// Main update function --------------------------------------------------------
 
 	switch($updateType){
 		case 'add':
@@ -5799,6 +5822,9 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			// Not a valid mode. Do nothing.
 			break;
 	}
+
+
+// Teams Options ---------------------------------------------------------------
 
 	if(isTeams($tournamentID) == true){
 		$teamSwitchPoints = (int)$formInfo['teamSwitchPoints'];
@@ -5816,6 +5842,9 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', 0);
 		writeOption('T', $tournamentID, 'TEAM_SIZE', 0);
 	}
+
+
+// Cleanup possible hanging defaults -------------------------------------------
 
 	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['doublesAreNotScoringExch'] == 1){
 		writeOption('T', $tournamentID, 'DOUBLES_ARE_NOT_SCORING_EXCH', 1);
@@ -5837,7 +5866,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	writeOption('T', $tournamentID, 'MATCH_TIE_MODE', $allowTies);
 
-// Update total tournament counts across all events
+
+// Update total tournament counts across all events ----------------------------
 	$sql = "SELECT tournamentWeaponID
 			FROM eventTournaments";
 	$res = mysqlQuery($sql, ASSOC);
@@ -5858,7 +5888,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		mysqlQuery($sql, SEND);
 	}
 
-// Update number of instances for ranking algorithms
+
+// Update number of instances for ranking algorithms ---------------------------
 	$sql = "SELECT tournamentRankingID, COUNT(1) AS numInstances
 			FROM eventTournaments
 			GROUP BY tournamentRankingID";

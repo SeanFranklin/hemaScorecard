@@ -1033,6 +1033,11 @@ function findTiedFighters($tournamentID){
 			WHERE tournamentID = {$tournamentID}";
 
 	$meta = mysqlQuery($sql, SINGLE);
+
+	if($meta == null){
+		return;
+	}
+
 	$numWinners = (int)$meta['poolWinnersFirst'];
 	unset($meta['poolWinnersFist']);
 
@@ -7559,6 +7564,32 @@ function getTournamentFormat($tournamentID){
 			FROM eventTournaments
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE, 'formatID');
+
+}
+
+/******************************************************************************/
+
+function getFormatName($formatID){
+
+	$formatID = (int)$formatID;
+
+	$sql = "SELECT formatName
+			FROM systemFormats
+			WHERE formatID = {$formatID}";
+	return mysqlQuery($sql, SINGLE, 'formatName');
+
+}
+
+/******************************************************************************/
+
+function getRankingInfo($tournamentRankingID){
+
+	$tournamentRankingID = (int)$tournamentRankingID;
+
+	$sql = "SELECT name, formatID
+			FROM systemRankings
+			WHERE tournamentRankingID = {$tournamentRankingID}";
+	return mysqlQuery($sql, SINGLE);
 
 }
 
