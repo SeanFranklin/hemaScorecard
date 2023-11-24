@@ -1035,7 +1035,7 @@ function findTiedFighters($tournamentID){
 	$meta = mysqlQuery($sql, SINGLE);
 
 	if($meta == null){
-		return;
+		return [];
 	}
 
 	$numWinners = (int)$meta['poolWinnersFirst'];
