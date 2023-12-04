@@ -419,6 +419,9 @@ function processPostData(){
 			case 'updateEventSponsors':
 				updateEventSponsors($_POST['sponsorList']);
 				break;
+			case 'updateTournamentDivisions':
+				updateTournamentDivisions($_POST['divisionInfo']);
+				break;
 
 
 	// Admin Cases

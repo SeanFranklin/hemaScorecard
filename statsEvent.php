@@ -25,7 +25,7 @@ if($_SESSION['eventID'] == null){
 	$numFighters = getNumEventFighters($_SESSION['eventID']);
 	$totalTournamentEntries = getNumEventTournamentEntries($_SESSION['eventID']);
 
-	$tournamentList = getTournamentsFull($_SESSION['eventID']);
+
 	$clubTotals = getAttendanceFromSchools($_SESSION['eventID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -54,31 +54,8 @@ if($_SESSION['eventID'] == null){
 		</h5>
 	</div>
 
-	<table>
-	<caption>Participant Numbers</caption>
-
-
-	<?php foreach((array)$tournamentList as $tID => $data): ?>
-		<tr>
-			<td><?=getTournamentName($tID )?></td>
-			<td class='text-right'>
-				<?=$data['numFighters']?>
-				<?php if($data['isTeams'] != 0):?>
-				(<i><?=$data['numParticipants']?> teams</i>)
-			<?php endif ?>
-			</td>
-		</tr>
-	<?php endforeach ?>
-
-		<tr style='border-top:solid 1px'>
-			<th class='text-right'>
-				<em>Total:</em>
-			</th>
-			<th class='text-right'>
-				<em><?=$totalTournamentEntries?></em>
-			</th>
-		</tr>
-	</table>
+	<?=showEventReg()?>
+	<BR>
 
 <!-- School registrations summary -->
 
@@ -134,6 +111,98 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function showEventReg(){
+
+
+	$tData = (array)getTournamentsFull($_SESSION['eventID']);
+	$displayList = sortTournamentAndDivisions($_SESSION['eventID']);
+
+	foreach($displayList as $index => $t){
+		if(isset($t['divisionID']) == true){
+			$displayList[$index]['count'] = 0;
+			foreach($t['tournaments'] as $item){
+				$displayList[$index]['count'] += $tData[$item['tournamentID']]['numFighters'];
+			}
+		}
+	}
+
+?>
+
+	<table>
+	<caption>Participant Numbers</caption>
+
+	<?php foreach($displayList as $t): ?>
+
+
+		<?php if(isset($t['divisionID']) == false):?>
+			<?=showTournamentRow($t['name'], $tData[$t['tournamentID']])?>
+		<?php else: ?>
+			<tr>
+				<td>
+					<?=$t['name']?>
+					<a onclick="$('.item-for-<?=$t['divisionID']?>').toggleClass('hidden')">?</a>
+				</td>
+				<td  class='text-right'><?=$t['count']?></td>
+			</tr>
+		<?php endif ?>
+
+		<?php if(isset($t['divisionID']) == true):?>
+			<?php foreach($t['tournaments'] as $item):?>
+				<?=showTournamentRow($item['name'], $tData[$item['tournamentID']], $t['divisionID'])?>
+			<?php endforeach?>
+		<?php endif ?>
+
+
+	<?php endforeach ?>
+
+	</table>
+
+<?
+}
+
+/******************************************************************************/
+
+
+function showTournamentRow($name, $data, $divItemFor = 0){
+
+	if($divItemFor != 0){
+		$rowClass = "hidden item-for-{$divItemFor}";
+	} else {
+		$rowClass = "";
+	}
+
+	if($divItemFor != 0){
+		$divStyle = 'padding-left: 30px; font-style: italic';
+		$numberClass = "";
+	} else {
+		$divStyle = '';
+		$numberClass = "text-right";
+	}
+
+?>
+
+	<tr class='<?=$rowClass?>'>
+
+		<td style='<?=$divStyle?>'>
+			<?=$name?>
+		</td>
+
+		<td class='<?=$numberClass?>'>
+
+			<?=$data['numFighters']?>
+
+			<?php if($data['isTeams'] != 0): ?>
+				(<i><?=$data['numParticipants']?> teams</i>)
+			<?php endif ?>
+
+		</td>
+	</tr>
+
+<?php
+}
 
 /******************************************************************************/
 

@@ -2491,6 +2491,42 @@ function getEventTournaments($eventID = 0){
 
 /******************************************************************************/
 
+function getTournamentDivisions($eventID){
+
+	$eventID = (int)$eventID;
+
+
+	$sql = "SELECT divisionID, eventID, divisionName
+			FROM eventTournamentDivisions
+			WHERE eventID = {$eventID}";
+	$divisions = (array)mysqlQuery($sql, ASSOC);
+
+	return ($divisions);
+}
+
+/******************************************************************************/
+
+function getTournamentDivisionItems($divisionID){
+
+	$divisionID = (int)$divisionID;
+
+
+	$sql = "SELECT divisionID, tournamentID
+			FROM eventTournamentDivItems
+			WHERE divisionID = {$divisionID}";
+	$divisions = (array)mysqlQuery($sql, ASSOC);
+
+	$sortedDivs = [];
+
+	foreach($divisions as $div){
+		$sortedDivs['items'][$div['tournamentID']] = $div['tournamentID'];
+	}
+
+	return ($sortedDivs);
+}
+
+/******************************************************************************/
+
 function getSystemTournaments($eventID = 0){
 
 	$eventID = (int)$eventID;

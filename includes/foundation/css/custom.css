@@ -1,5 +1,10 @@
 /* Added By Sean **************************************************************/
 
+.sortable-item{
+  padding-top:2px;
+  padding-bottom:2px;
+  margin-bottom:10px;
+}
 
 div.clickable{
   cursor: pointer;
