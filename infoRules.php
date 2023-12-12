@@ -176,6 +176,12 @@ function editRules($rulesInfo){
 		$hideInput = "hidden";
 	}
 
+	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+		$wysisygClass = '';
+	} else {
+		$wysisygClass = 'tiny-mce';
+	}
+
 ?>
 
 	<HR>
@@ -225,7 +231,7 @@ function editRules($rulesInfo){
 		</div>
 		</div>
 
-		<textarea name='updateRules[rulesText]' class='tiny-mce' required rows='20'><?=$rulesInfo['rulesText']?></textarea>
+		<textarea name='updateRules[rulesText]' class='<?=$wysisygClass?>' required rows='20'><?=$rulesInfo['rulesText']?></textarea>
 
 		<input type='hidden' name='updateRules[rulesID]' value='<?=$_SESSION['rulesID']?>'>
 		<input type='hidden' name='updateRules[eventID]' value='<?=$_SESSION['eventID']?>'>

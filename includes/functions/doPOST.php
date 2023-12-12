@@ -452,6 +452,10 @@ function processPostData(){
 			case 'hemaRatings_UpdateFighterIDs':
 				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
+			case 'plaintextMode':
+				if (ALLOW['SOFTWARE_ADMIN'] == true && (int)$_POST['plaintextMode'] != 0){$_SESSION['forcePlainText'] = true;}
+					else {unset($_SESSION['forcePlainText']);}
+				break;
 
 	// Logistics Cases
 			case 'editLocations':

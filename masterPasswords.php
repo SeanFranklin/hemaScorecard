@@ -85,12 +85,43 @@ if(		$_SESSION['userName'] == null
 
 	</form>
 
+
+	<?=plaintextMode()?>
+
+
 <?php }
 
 include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+function plaintextMode(){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		return;
+	}
+
+	if(isset($_SESSION['forcePlainText']) == true){
+		$checked = 'checked';
+	} else {
+		$checked = '';
+	}
+?>
+
+	<form method="POST">
+
+		<input type='hidden' name='plaintextMode' value=0>
+		<input type='checkbox' name='plaintextMode' value=1 <?=$checked?>>
+		Plaintext Entry Mode
+
+		<button class='button tiny' name='formName' value='plaintextMode'>Update</button>
+	</form>
+
+<?php
+}
+
 
 /******************************************************************************/
 
