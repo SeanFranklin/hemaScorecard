@@ -327,7 +327,13 @@ function eventDescriptionBox($canChangeSettings){
 		$numTextLines = 3;
 	}
 
+	$_SESSION['forcePlainText'] = false;
 
+	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+		$wysisygClass = '';
+	} else {
+		$wysisygClass = 'tiny-mce';
+	}
 
 ?>
 
@@ -339,7 +345,7 @@ function eventDescriptionBox($canChangeSettings){
 		<div class='grid-x grid-margin-x'>
 
 			<div class='large-12 cell'>
-				<textarea name='eventDescription' class='tiny-mce'  rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
+				<textarea name='eventDescription' class='<?=$wysisygClass?>'  rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
 			</div>
 
 

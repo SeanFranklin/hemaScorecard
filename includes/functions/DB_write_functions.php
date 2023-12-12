@@ -5605,7 +5605,11 @@ function updateEventInformation($newEventInfo, $eventID){
 
 /******************************************************************************/
 
-function updateEventDescription($eventDescription,$eventID){
+function updateEventDescription($eventDescription, $eventID){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
 
 	$eventDescription = trim($eventDescription);
 	$eventID = (int)$eventID;
