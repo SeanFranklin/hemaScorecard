@@ -454,7 +454,7 @@ function displaySettingsBox($defaults, $canChangeSettings){
 			<div id='sort-tournament-order'>
 
 				<?php foreach($tournamentIDs as $index => $tournamentID): ?>
-					<div class='callout primary' value=<?=$tournamentID?>>
+					<div class='callout primary sortable-item' value=<?=$tournamentID?>>
 						<?=getTournamentName($tournamentID)?>
 					</div>
 				<?php endforeach ?>

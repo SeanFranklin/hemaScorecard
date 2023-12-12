@@ -1525,5 +1525,57 @@ function burgeeFightersByPercent($params, $burgeeFighters, $tournamentIDs){
 
 /******************************************************************************/
 
+function sortTournamentAndDivisions($eventID){
+// Returns a list that has all the tournaments, with the
+// tournaments nested into divisions if applicable.
+// Right now it doesn't respect tournament sorting for divisions, this is TODO.
+
+	$tournamentIDs 	= getEventTournaments($eventID);
+	$divisionsList	= getTournamentDivisions($eventID);
+
+	if($tournamentIDs == null){
+		return [];
+	}
+
+	$tournamentList = [];
+	$isInDivision = [];
+
+
+	foreach($divisionsList as $div){
+
+		$divInfo = [];
+		$divInfo['name'] = $div['divisionName'];
+		$divInfo['divisionID'] = $div['divisionID'];
+
+		$divItems = getTournamentDivisionItems($div['divisionID']);
+
+		foreach($divItems['items'] as $tournamentID){
+			$isInDivision[$tournamentID] = true;
+			$tmp['tournamentID'] = $tournamentID;
+			$tmp['name'] = getTournamentName($tournamentID);
+			$divInfo['tournaments'][] = $tmp;
+		}
+
+		$tournamentList[] = $divInfo;
+	}
+
+
+	foreach($tournamentIDs as $tournamentID){
+
+		if(isset($isInDivision[$tournamentID]) == true){
+			continue;
+		}
+
+		$tmp['tournamentID'] = $tournamentID;
+		$tmp['name'] = getTournamentName($tournamentID);
+		$tournamentList[] = $tmp;
+	}
+
+	return ($tournamentList);
+}
+
+
+/******************************************************************************/
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

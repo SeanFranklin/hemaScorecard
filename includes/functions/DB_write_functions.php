@@ -5351,9 +5351,93 @@ function updateDisplaySettings($displaySettings){
 
 
 	setAlert(USER_ALERT,"Display settings updated.");
+}
 
+/******************************************************************************/
 
+function updateTournamentDivisions($info){
 
+	$eventID = (int)$info['eventID'];
+
+	if(ALLOW['EVENT_MANAGEMENT'] == FALSE || $eventID != $_SESSION['eventID']){
+		return;
+	}
+
+	$divisionID = (int)$info['divisionID'];
+
+	$sql = "SELECT divisionID, eventID
+			FROM eventTournamentDivisions
+			WHERE divisionID = {$divisionID}";
+	$result = mysqlQuery($sql, SINGLE);
+
+	if($result == []){
+
+		$sql = "INSERT INTO eventTournamentDivisions
+				(eventID, divisionName)
+				VALUES
+				({$eventID}, ?)";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $info['divisionName']);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+		$divisionID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+	} elseif ($result['eventID'] != $eventID) {
+
+		setAlert(USER_ERROR,"Missmatch between event and tournament division.");
+		return;
+
+	} else {
+
+		// Division exists already.
+
+		$sql = "UPDATE eventTournamentDivisions
+				SET divisionName = ?
+				WHERE divisionID = {$divisionID}";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		// "s" means the database expects a string
+		$bind = mysqli_stmt_bind_param($stmt, "s", $info['divisionName']);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+
+	}
+
+	if(isset($info['tournamentIDs']) == false){
+		$info['tournamentIDs'] = [];
+	}
+
+	$tournamentIDs = implode2int($info['tournamentIDs']);
+
+	$sql = "DELETE FROM eventTournamentDivItems
+			WHERE divisionID = {$divisionID}
+			AND tournamentID NOT IN ({$tournamentIDs})";
+	mysqlQuery($sql, SEND);
+
+	foreach($info['tournamentIDs'] as $tournamentID){
+
+		$tournamentID = (int)$tournamentID;
+
+		$sql = "SELECT divisionItemID
+				FROM eventTournamentDivItems
+				WHERE tournamentID = {$tournamentID}
+				AND divisionID = {$divisionID}";
+		$divisionItemID = (int)mysqlQuery($sql, SINGLE, 'divisionItemID');
+
+		if($divisionItemID == 0){
+			$sql = "INSERT INTO eventTournamentDivItems
+					(divisionID, tournamentID)
+					VALUES
+					({$divisionID}, {$tournamentID})";
+			mysqlQuery($sql, SEND);
+		}
+
+	}
+
+	setAlert(USER_ALERT, "Tournament Divisions updated.");
 }
 
 /******************************************************************************/

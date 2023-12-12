@@ -369,6 +369,32 @@ function changeEventJs(eventID){
 
 /******************************************************************************/
 
+function changeTournamentJs(tournamentID, landingPage){
+
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    document.body.appendChild(form);
+
+    var tournamentIDField = document.createElement("input");
+    tournamentIDField.setAttribute("type", "hidden");
+    tournamentIDField.setAttribute("name", "newTournament");
+    tournamentIDField.setAttribute("value", tournamentID);
+    form.appendChild(tournamentIDField);
+
+    if(landingPage != ''){
+        var landingPageField = document.createElement("input");
+        landingPageField.setAttribute("type", "hidden");
+        landingPageField.setAttribute("name", "newPage");
+        landingPageField.setAttribute("value", landingPage);
+        form.appendChild(landingPageField);
+    }
+
+    submitForm(form, 'changeTournament', true);
+
+}
+
+/******************************************************************************/
+
 jQuery(".edit-staff-list").change(function(event){
 
     var formData = [];

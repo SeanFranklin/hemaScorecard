@@ -12,8 +12,8 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.5.7'; // Javascript Version
-$vC = '?=1.2.3'; // CSS Version
+$vJ = '?=1.5.8'; // Javascript Version
+$vC = '?=1.2.4'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -434,6 +434,7 @@ function menuEventOrgBefore(){
 		<ul class='menu vertical'>
 			<li><a href='adminEvent.php?t=0'><b>Event Settings</b></a></li>
 			<li><a href='adminNewTournaments.php?t=0'>Create New Tournament</a></li>
+			<li><a href='adminDivisions.php?t=0'>Tournament Divisions</a></li>
 		</ul>
 
 
@@ -780,114 +781,15 @@ function eventNameListSelectOptions($eventID){
 
 function tournamentListForHeader(){
 
-	$tournamentList = getEventTournaments($_SESSION['eventID']);
-
-	if($tournamentList == null){
-		return;
-	}
 
 	$currentTournamenID = $_SESSION['tournamentID'];
+
 	$currentTournamentName = '';
 	if($currentTournamenID != null){
-		$currentTournamentName = getTournamentName();
+		$currentTournamentName = getTournamentName($currentTournamenID);
 	}
 
-
-
-	$tournamentsToDisplay = [];
-	foreach($tournamentList as $tournamentID){
-		if($tournamentID == $currentTournamenID){
-			continue;
-		}
-
-		$t['ID'] = $tournamentID;
-		$t['name'] =  getTournamentName($tournamentID);
-		$t['isInProgress'] = isInProgress($tournamentID);
-
-		$linkClass = '';
-		if($t['isInProgress'] == true){
-			$linkClass .= 'bold';
-		}
-
-		$format = getTournamentFormat($tournamentID);
-
-		$isMeta = ($format == FORMAT_META);
-		$isStarted = isFightingStarted($tournamentID, $isMeta);
-
-
-		$t['landingPage'] = '';
-
-		// If we are already in a tournament and switching to a new one stay on
-		// the same page. But if we aren't in a tournament the landing page will
-		// be set to whatever makes the most sense based on the current state
-		// of the tournament and it's type.
-		if($_SESSION['tournamentID'] == null){
-
-			$t['landingPage'] = 'participantsTournament.php';
-
-			if(ALLOW['VIEW_MATCHES'] == false){
-				$format = FORMAT_NONE;
-			}
-
-			switch($format){
-				case FORMAT_SOLO:{
-
-					if($isStarted == true){
-						$t['landingPage'] = 'roundStandings.php';
-					} else {
-						$t['landingPage'] = 'roundRosters.php';
-					}
-
-					break;
-				}
-				case FORMAT_META:{
-
-					if($isStarted == true){
-						$t['landingPage'] = 'poolStandings.php';
-					} else {
-						$t['landingPage'] = 'participantsComponents.php';
-					}
-
-					break;
-				}
-				case FORMAT_MATCH:{
-
-					if (isBracketPopulated($tournamentID) == true){
-						$t['landingPage'] = 'finalsBracket.php';
-					} elseif ($isStarted == true){
-						$t['landingPage'] = 'poolMatches.php';
-					} elseif (isPools($tournamentID) == true){
-						$t['landingPage'] = 'poolRosters.php';
-					} else {
-						$t['landingPage'] = 'participantsTournament.php';
-					}
-
-					break;
-				}
-				case FORMAT_RESULTS:{
-
-					$t['landingPage'] = 'infoSummary.php';
-					break;
-
-				}
-				default: {
-
-					$t['landingPage'] = 'participantsTournament.php';
-					break;
-
-				}
-			}
-
-		}
-
-		$t['link'] = "<a class='{$linkClass}'
-						href='javascript:document.goToTournament{$t['ID']}.submit();'>";
-		$t['link'] .= $t['name'];
-		$t['link'] .= "</a>";
-
-		$tournamentsToDisplay[] = $t;
-	}
-
+	$tournamentsToDisplay = sortTournamentAndDivisions($_SESSION['eventID']);
 
 	?>
 
@@ -900,22 +802,31 @@ function tournamentListForHeader(){
 	<?php endif ?>
 
 	<?php if($tournamentsToDisplay != []):?>
-		<ul>
+
+		<form method='POST' name='goToTournamentForm' id='goToTournamentForm'>
+			<input type='hidden' name='formName' value='changeTournament'>
+		</form>
+
+		<ul class='menu vertical'>
+
 		<?php foreach($tournamentsToDisplay as $t):?>
 
-			<form method='POST' name='goToTournament<?=$t['ID']?>'>
-				<input type='hidden' name='formName' value='changeTournament'>
-				<input type='hidden' name='newTournament' value=<?=$t['ID']?>>
-
-				<?php if($t['landingPage']): ?>
-					<input type='hidden' name='newPage' value='<?=$t['landingPage']?>'>
+			<li>
+				<?php if(isset($t['divisionID']) == false):?>
+					<?=headerFormat($t)?>
+				<?php else: ?>
+					<a><i><?=$t['name']?></i></a>
+					<ul class='menu vertical'>
+						<?php foreach($t['tournaments'] as $item):?>
+							<li><?=headerFormat($item)?></li>
+						<?php endforeach?>
+					</ul>
 				<?php endif ?>
 
-				<?= $t['link']?>
-
-			</form>
+			</li>
 
 		<?php endforeach ?>
+
 		</ul>
 
 	<?php endif ?>
@@ -924,6 +835,98 @@ function tournamentListForHeader(){
 
 
 <?php }
+
+/******************************************************************************/
+
+function headerFormat($tournament){
+
+	$tournamentID = (int)$tournament['tournamentID'];
+	$tournamentName = $tournament['name'];
+
+	$t['isInProgress'] = isInProgress($tournamentID);
+
+	$linkClass = '';
+	if($t['isInProgress'] == true){
+		$linkClass .= 'bold';
+	}
+
+	$format = getTournamentFormat($tournamentID);
+
+	$isMeta = ($format == FORMAT_META);
+	$isStarted = isFightingStarted($tournamentID, $isMeta);
+
+
+	$t['landingPage'] = '';
+
+	// If we are already in a tournament and switching to a new one stay on
+	// the same page. But if we aren't in a tournament the landing page will
+	// be set to whatever makes the most sense based on the current state
+	// of the tournament and it's type.
+	if($_SESSION['tournamentID'] == null){
+
+		$t['landingPage'] = 'participantsTournament.php';
+
+		if(ALLOW['VIEW_MATCHES'] == false){
+			$format = FORMAT_NONE;
+		}
+
+		switch($format){
+			case FORMAT_SOLO:{
+
+				if($isStarted == true){
+					$t['landingPage'] = 'roundStandings.php';
+				} else {
+					$t['landingPage'] = 'roundRosters.php';
+				}
+
+				break;
+			}
+			case FORMAT_META:{
+
+				if($isStarted == true){
+					$t['landingPage'] = 'poolStandings.php';
+				} else {
+					$t['landingPage'] = 'participantsComponents.php';
+				}
+
+				break;
+			}
+			case FORMAT_MATCH:{
+
+				if (isBracketPopulated($tournamentID) == true){
+					$t['landingPage'] = 'finalsBracket.php';
+				} elseif ($isStarted == true){
+					$t['landingPage'] = 'poolMatches.php';
+				} elseif (isPools($tournamentID) == true){
+					$t['landingPage'] = 'poolRosters.php';
+				} else {
+					$t['landingPage'] = 'participantsTournament.php';
+				}
+
+				break;
+			}
+			case FORMAT_RESULTS:{
+
+				$t['landingPage'] = 'infoSummary.php';
+				break;
+
+			}
+			default: {
+
+				$t['landingPage'] = 'participantsTournament.php';
+				break;
+
+			}
+		}
+
+	}
+
+	$linkText = "<a class='{$linkClass}' onclick=\"changeTournamentJs({$tournamentID},'{$t['landingPage']}')\">";
+	$linkText .= $tournamentName;
+	$linkText .= "</a>";
+
+	return ($linkText);
+}
 
 /******************************************************************************/
 
