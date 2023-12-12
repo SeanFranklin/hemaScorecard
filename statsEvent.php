@@ -143,7 +143,7 @@ function showEventReg(){
 			<tr>
 				<td>
 					<?=$t['name']?>
-					<a onclick="$('.item-for-<?=$t['divisionID']?>').toggleClass('hidden')">?</a>
+					<a onclick="$('.item-for-<?=$t['divisionID']?>').toggleClass('hidden')">↓</a>
 				</td>
 				<td  class='text-right'><?=$t['count']?></td>
 			</tr>
