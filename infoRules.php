@@ -117,7 +117,7 @@ function reOrderRules($rulesIDs){
 
 		<div  id='sort-rules-order'>
 			<?php foreach($rulesIDs as $rulesID):?>
-				<div class='callout primary text-left' value=<?=$rulesID?>>
+				<div class='callout primary text-left sortable-item' value=<?=$rulesID?>>
 					<?=getRulesName($rulesID)?>
 				</div>
 			<?php endforeach ?>

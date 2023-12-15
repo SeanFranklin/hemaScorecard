@@ -422,6 +422,9 @@ function processPostData(){
 			case 'updateTournamentDivisions':
 				updateTournamentDivisions($_POST['divisionInfo']);
 				break;
+			case 'suppressDirectEntry':
+				updateSuppressDirectEntry($_POST['suppressDirectEntry']);
+				break;
 
 
 	// Admin Cases

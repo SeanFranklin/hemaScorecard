@@ -183,6 +183,7 @@
 	$options['T']['CONTROL_POINT_VALUE'] = 9;
 	$options['T']["TEAM_SIZE"] = 10;
 	$options['T']["DOUBLES_CARRY_FORWARD"] = 11;
+	$options['T']["SUPPRESS_DIRECT_ENTRY"] = 12;
 
 	define('OPTION',$options);
 

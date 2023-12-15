@@ -44,17 +44,45 @@ if($_SESSION['eventID'] == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<div class='grid-x grid-margin-x'>
-
-	<p class='cell'>Tournament divisions allow you to group tournaments together, such as creating on "Open Longsword" tournament with "Longsword Tier-A" and "Longsword Tier-B" grouped underneath. This doesn't affect how the tournaments are run, but makes it easier to keep track when you have long tournament lists that you want to keep organized.</p>
+<ul class="tabs" data-tabs id="admin-divisions-tabs">
 
 
+	<li class="tabs-title is-active">
+		<a data-tabs-target="panel-div-management">
+			Create/Manage Divisions
+		</a>
+	</li>
 
-	<?php foreach($tournamentDivisions as $div):?>
-		<?=tournamentDivisions($div, $tournamentIDs)?>
-	<?php endforeach ?>
 
-	<?=tournamentDivisions(null, $tournamentIDs)?>
+	<li class="tabs-title">
+		<a data-tabs-target="panel-div-registration">
+			Division Tournament Entries
+		</a>
+	</li>
+
+</ul>
+
+	<div class="tabs-content" data-tabs-content="admin-divisions-tabs">
+
+		<div class="tabs-panel is-active" id="panel-div-management">
+			<div class='grid-x grid-margin-x'>
+
+			<p class='cell'>Tournament divisions allow you to group tournaments together, such as creating on "Open Longsword" tournament with "Longsword Tier-A" and "Longsword Tier-B" grouped underneath. This doesn't affect how the tournaments are run, but makes it easier to keep track when you have long tournament lists that you want to keep organized.</p>
+
+
+
+			<?php foreach($tournamentDivisions as $div):?>
+				<?=tournamentDivisions($div, $tournamentIDs)?>
+			<?php endforeach ?>
+
+			<?=tournamentDivisions(null, $tournamentIDs)?>
+
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-div-registration">
+			<?=tournamentDivRegistrations($tournamentIDs)?>
+		</div>
 
 	</div>
 
@@ -64,6 +92,32 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function tournamentDivRegistrations($tournamentIDs){
+?>
+
+<p>Suppress direct entry into the following tournaments on the <b>Event Roster</b> page. You can still move people into these tournaments manually after entry into the event, this option is only to reduce the clutter of options on that page if your are registering them into a limited number of tournaments, and then seeding them later.</p>
+
+	<form method="POST">
+
+	<button class='button success' name='formName' value='suppressDirectEntry'>
+		Update List
+	</button>
+
+
+	<?php foreach($tournamentIDs as $tournamentID):?>
+		<BR>
+		<input type='hidden' class='radio no-bottom' name='suppressDirectEntry[tournamentIDs][<?=$tournamentID?>]' value=0>
+		<input type='checkbox' class='radio no-bottom' name='suppressDirectEntry[tournamentIDs][<?=$tournamentID?>]' value=1
+			<?=chk(readOption('T', $tournamentID, 'SUPPRESS_DIRECT_ENTRY'),1)?>>
+		<?=getTournamentName($tournamentID)?>
+
+	<?php endforeach ?>
+
+<?php
+}
 
 /******************************************************************************/
 
