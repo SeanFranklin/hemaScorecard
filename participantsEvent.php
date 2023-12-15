@@ -448,6 +448,15 @@ function addNewParticipantsBySchool($tournamentList,$schoolList){
 
 		$schoolRoster = getSchoolRosterNotInEvent($schoolID, $_SESSION['eventID']);
 		$tournamentNames = getTournamentsAlphabetical($_SESSION['eventID']);
+
+		// If certain tournaments have been configured to suppress direct entry they are not
+		// listed on this page as options for registration.
+		foreach((array)$tournamentNames as $tournamentID => $tName){
+			if(readOption('T', $tournamentID, 'SUPPRESS_DIRECT_ENTRY') != 0){
+				unset($tournamentNames[$tournamentID]);
+			}
+		}
+
 		$numInSchool = count($schoolRoster);
 		$numSpotsToDisplay = 6;
 		$i=1; 	//counter to make each list item unique

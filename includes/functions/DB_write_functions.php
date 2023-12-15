@@ -5442,6 +5442,22 @@ function updateTournamentDivisions($info){
 
 /******************************************************************************/
 
+function updateSuppressDirectEntry($info){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
+		return;
+	}
+
+	foreach($info['tournamentIDs'] as $tournamentID => $value){
+		writeOption('T', $tournamentID, 'SUPPRESS_DIRECT_ENTRY', (int)$value);
+	}
+
+	setAlert(USER_ALERT, "Registration suppressions updated.");
+
+}
+
+/******************************************************************************/
+
 function updateStaffRegistrationSettings($info){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
