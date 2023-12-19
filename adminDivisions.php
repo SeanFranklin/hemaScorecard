@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Tournament Divisions';
+$jsIncludes[] = "roster_management_scripts.js";
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -60,6 +61,12 @@ if($_SESSION['eventID'] == null){
 		</a>
 	</li>
 
+	<li class="tabs-title">
+		<a data-tabs-target="panel-div-split">
+			Sort Fighters in Divisions
+		</a>
+	</li>
+
 </ul>
 
 	<div class="tabs-content" data-tabs-content="admin-divisions-tabs">
@@ -84,6 +91,14 @@ if($_SESSION['eventID'] == null){
 			<?=tournamentDivRegistrations($tournamentIDs)?>
 		</div>
 
+		<div class="tabs-panel " id="panel-div-split">
+
+			<div class='grid-x grid-margin-x'>
+				<?=tournamentDivSplit($tournamentDivisions)?>
+			</div>
+
+		</div>
+
 	</div>
 
 
@@ -92,6 +107,93 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function tournamentDivSplit($tournamentDivisions){
+?>
+
+	<div class='cell large-12'>
+		<p>This tool exists to make seeding people into tiers easier. Instructions at bottom of page.</p>
+	</div>
+
+
+<!-- Division select ---------------------------------------->
+	<div class='medium-6 cell input-group'>
+		<span class='input-group-label'>
+			Division To Seed
+		</span>
+		<select class='input-group-field' onchange="divSeedingPickDiv()" id='split-div-id'>
+			<option></option>
+			<?php foreach($tournamentDivisions as $div): ?>
+				<option value='<?=$div['divisionID']?>'><?=$div['divisionName']?></option>
+			<?php endforeach ?>
+		</select>
+	</div>
+
+
+<!-- Donor tournament select ---------------------------------->
+	<div class='medium-6 cell input-group'>
+		<span class='input-group-label'>
+			Donor Tournament
+		</span>
+		<select class='input-group-field' onchange="divSeedingPickDonor(this)" id='split-donor-id'>
+			<option></option>
+		</select>
+	</div>
+
+
+	<div class='cell large-12'>
+	</div>
+
+
+<!-- Ratings entry ---------------------------------->
+	<div class='cell large-6'>
+
+		<div class='callout success' id='donor-info-div'></div>
+
+		<form method="POST">
+			<input class='hidden' name='divSeeding[donorID]' id='donor-id-form'>
+			<table >
+				<thead>
+					<tr>
+						<th>Tournament</th>
+						<th colspan=2>Fighters</th>
+						<th>Min Rating</th>
+					</tr>
+				</thead>
+				<tbody id='split-items-table'>
+				</tbody>
+			</table>
+			<div class='text-right'>
+				Remove fighters from donor tournament <br>(only works if donor hasn't started):
+				<input type='checkbox' class='ratings-form-submit' name='divSeeding[removeFromDonor]' value=1 disabled>
+			</div>
+			<button class='button submit success ratings-form-submit' name='formName' value='divSeedingByRating' disabled>
+				Submit
+			</button>
+		</form>
+	</div>
+
+
+<!-- Ratings plot ---------------------------------->
+	<div class='cell large-6'>
+		<div id="ratings-chart" style="height: 500px; border:black solid 1px"></div>
+	</div>
+
+
+<!-- Documentation ---------------------------------->
+	<div class='cell large-12'>
+		<h4>Instructions</h4>
+		<p>Select a division and a donor tournament to split into the other tournaments in the division. The ratings are based on what was entered into Tournament Information > Fighter Ratings.
+		The order the tournaments appear is Highest -> Lowest. To have this tool work please make sure you have manually sorted your tournaments in Event Organization > Event Settings. In the Tournament Order field of the Display Settings order the tournaments in each division from highest to lowest. (You can have them next to each other or spread out. They just have to be in the correct order with the highest tier at the top.)<BR>
+		<u>Note</u>: There is nothing preventing someone from being in multiple tiers in a division, and this tool only adds to tiers (not removes from). If you run it and someone is already in a tier it will just update the rating they have in the tier to match the donor. If you run it and they get seeded into a tier that is different from one they are already in they will be entered in both.</p>
+	</div>
+
+
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -115,6 +217,8 @@ function tournamentDivRegistrations($tournamentIDs){
 		<?=getTournamentName($tournamentID)?>
 
 	<?php endforeach ?>
+
+</form>
 
 <?php
 }
@@ -160,11 +264,17 @@ function tournamentDivisions($divInfo, $tournamentIDs){
 
 		<legend>
 			<div class='input-group no-bottom'>
+
 				<span class='input-group-label no-bottom'>Division Name:</span>
-				<input type='text' class='input-group-field no-bottom' name='divisionInfo[divisionName]' value='<?=$divisionName?>' placeholder='<?=$placeholder?>' required>
+
+				<input type='text' class='input-group-field no-bottom'
+					name='divisionInfo[divisionName]' value='<?=$divisionName?>'
+					placeholder='<?=$placeholder?>' required>
+
 				<span class='input-group-label no-bottom'>
 					<b><a onclick="$('#division-form-for-<?=$divisionID?>').toggleClass('hidden')">↓</a></b>
 				</span>
+
 			</div>
 		</legend>
 
@@ -173,47 +283,47 @@ function tournamentDivisions($divInfo, $tournamentIDs){
 
 		<div class='hidden' id='division-form-for-<?=$divisionID?>'>
 
-		<button class='button success' name='divisionInfo[divisionID]' value=<?=$divisionID?>>
-			Update Division
-		</button>
+			<button class='button success' name='divisionInfo[divisionID]' value=<?=$divisionID?>>
+				Update Division
+			</button>
 
-		<?php foreach($toDisplay as $t):?>
-			<BR>
-			<input type='checkbox' class='radio no-bottom' name='divisionInfo[tournamentIDs][<?=$t['ID']?>]' value=<?=$t['ID']?> <?=$t['check']?>>
-			<?=$t['name']?>
+			<?php foreach($toDisplay as $t):?>
+				<BR>
+				<input type='checkbox' class='radio no-bottom' value=<?=$t['ID']?><?=$t['check']?>
+					name='divisionInfo[tournamentIDs][<?=$t['ID']?>]' >
+				<?=$t['name']?>
 
-		<?php endforeach ?>
+			<?php endforeach ?>
+
+			<?php if($divisionID >= 0): ?>
+
+				<HR>
+				<a class='button alert hollow' onclick="$('#delete-division-<?=$divisionID?>').toggle('hidden')">
+					Delete Division
+				</a>
+			<?php endif ?>
 
 		</div>
 
 	</fieldset>
 	</form>
 
-<?php
-}
 
-/******************************************************************************/
+<!-- Delete button ------------------------------------>
+	<?php if($divisionID >= 0): ?>
 
-function tournamentDivisionsPaddle($subID, $baseID, $subTournamentBases){
+		<form method='POST' class='cell large-7'>
 
-	$id = "sub-{$subID}-base-{$baseID}" ;
-	$name = "tournamentDivs[baseID][{$subID}]";
+		<input class='hidden' name='formName' value='deleteTournamentDivision'>
 
-	if(isset($subTournamentBases[$subID]) == false && $subID == $baseID){
-		$isChecked = 'checked';
-	}
-	elseif(isset($subTournamentBases[$subID]) == true && $subTournamentBases[$subID] == $baseID){
-		$isChecked = 'checked';
-	} else {
-		$isChecked = '';
-	}
+		<div class='hidden text-right' id='delete-division-<?=$divisionID?>'>
+			<button class='button alert' name='divisionInfo[divisionID]' value=<?=$divisionID?>>
+				Yeah, I'm really sure I want to delete "<b><?=$divisionName?></b>"
+			</button>
+		</div>
 
-?>
-
-	<input class='no-bottom' type='radio' <?=$isChecked?>
-			id='<?=$id?>'
-			name='<?=$name?>' value='<?=$baseID?>'>
-
+		</form>
+	<?php endif ?>
 
 <?php
 }

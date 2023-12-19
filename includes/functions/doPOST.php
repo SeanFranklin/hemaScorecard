@@ -157,6 +157,9 @@ function processPostData(){
 					addTeamMembers($teamInfo, $_SESSION['tournamentID']);
 				}
 				break;
+			case 'divSeedingByRating':
+				divSeedingByRating($_POST['divSeeding']);
+				break;
 
 
 	// Pool Management Cases
@@ -421,6 +424,9 @@ function processPostData(){
 				break;
 			case 'updateTournamentDivisions':
 				updateTournamentDivisions($_POST['divisionInfo']);
+				break;
+			case 'deleteTournamentDivision':
+				deleteTournamentDivision($_POST['divisionInfo']);
 				break;
 			case 'suppressDirectEntry':
 				updateSuppressDirectEntry($_POST['suppressDirectEntry']);
