@@ -1977,10 +1977,9 @@ function pool_GeneratePools($specifications){
 			$ratingFix = false;
 			if($ratingData != null && (int)$ratingData['numRated'] != 0){
 
-				$minRating = ((int)$ratingData['maxRating'] - (int)$ratingData['minRating']);
-				$minRating /= (int)$ratingData['numRated'];
-				$minRating = (int)$ratingData['minRating'] - $minRating;
-				$minRating = round($minRating,0);
+				$minRating = calculateRatingForUnrated(	$ratingData['maxRating'],
+														$ratingData['minRating'],
+														$ratingData['numRated']);
 
 				if($minRating > 0) {
 					foreach($rankedList as $index => $fighter){
@@ -2237,6 +2236,7 @@ $a = false;
 
 			if(@$specifications['debug'] != false){
 				show_poolGeneration($fighter['rosterID'],
+									$fighter['rating'],
 									$poolPoints,
 									$sizePoints,
 									@$ratingPoints,

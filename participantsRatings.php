@@ -63,95 +63,111 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	<?=tooltip('Shows the ID from the HEMA Ratings database so you can look fighters up more easily. (Ability to import ratings directly is a work in progress.) No HEMA Ratings ID means that there is none saved in the HEMA Scorecard database.')?>
 
 
+
 	<form method='POST' id='tournamentRatingsForm'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
 
 	<div class='grid-x grid-padding-x'>
-	<div class='large-9 medium-12 cell'>
-	<input type='hidden' name='updateRatings[tournamentID]' value=<?= $tournamentID ?> >
+	<div class='large-7 medium-12 cell'>
 
-	<table>
+		<i>Enter 0 or leave blank for 'no rating'.</i>
+		<input type='hidden' name='updateRatings[tournamentID]' value=<?= $tournamentID ?> >
 
-<!-- Table headers -->
+		<table>
 
-	<tr>
-		<th  class='hidden hema-ratings-id'>
-			HR Id
-		</th>
+	<!-- Table headers -->
 
-		<th onclick="changeParticipantOrdering('ratingViewMode','name')">
-			<a>Name</a>
-		</th>
-
-		<th  class='hidden school-name-id'>
-			School
-		</th>
-
-		<th onclick="changeParticipantOrdering('ratingViewMode','rating')">
-			<a>Rating</a>
-			<?=tooltip("Ranked high to low.<BR><BR>
-						<em>aka</em>: High Score for good fighters, Low Score for un-good fighters.")?>
-		</th>
-		<th onclick="changeParticipantOrdering('ratingViewMode','subGroup')"><a>SubGroup</a>
-			<?=tooltip("This option is for keeping a number of people separate when pools are assigned.<BR>
-						Ask for directions if you are planning on using this feature.")?>
-		</th>
-		<!----
-		This feature is disabled for now
-			<td>
-				<a onclick="toggleClass('rating2')" class='rating2' style='white-space:nowrap;' >
-					Use Rating 2 &#8594;
-					<?=tooltip("DO NOT USE unless you know what this does already.")?>
-				</a>
-				<a onclick="toggleClass('rating2')" class='rating2 hidden'>Rating 2 &#8592;</a>
-			</td>
-		--->
-	</tr>
-
-	<tbody>
-
-	<?php foreach($tournamentRoster as $fighter):
-		$tRosterID = $fighter['tournamentRosterID'] ?>
 		<tr>
-			<td  class='hidden hema-ratings-id'>
-				<?=hemaRatings_getFighterIDfromRosterID($fighter['rosterID'])?>
-			</td>
+			<th  class='hidden hema-ratings-id'>
+				HR Id
+			</th>
 
-			<td  style='white-space:nowrap;'>
-				<?=getFighterName($fighter['rosterID'])?>
-				<input type='hidden' name='updateRatings[fighters][<?=$tRosterID?>][ratingID]]'
-					value = '<?=$fighter['ratingID']?>'>
-			</td>
+			<th onclick="changeParticipantOrdering('ratingViewMode','name')">
+				<a>Name</a>
+			</th>
 
-			<td  class='hidden school-name-id'>
-				<i><?=getSchoolName($fighter['schoolID'])?></i>
-			</td>
+			<th  class='hidden school-name-id'>
+				School
+			</th>
 
-			<td>
-				<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][rating]]'
-					value = '<?=$fighter['rating']?>'>
-			</td>
-
-			<td>
-				<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][subGroupNum]]'
-					value = '<?=$fighter['subGroupNum']?>'>
-			</td>
+			<th onclick="changeParticipantOrdering('ratingViewMode','rating')">
+				<a>Rating</a>
+				<?=tooltip("Ranked high to low.<BR><BR>
+							<em>aka</em>: High Score for good fighters, Low Score for un-good fighters.")?>
+			</th>
+			<th class='sub-group-input hidden'onclick="changeParticipantOrdering('ratingViewMode','subGroup')">
+				<a>SubGroup</a>
+				<?=tooltip("This option is for keeping a number of people separate when pools are assigned.<BR>
+							Ask for directions if you are planning on using this feature.")?>
+			</th>
 			<!----
 			This feature is disabled for now
-				<td class='rating2 hidden'>
-					<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][rating2]]'
-						value = '<?=$fighter['rating2']?>'>
+				<td>
+					<a onclick="toggleClass('rating2')" class='rating2' style='white-space:nowrap;' >
+						Use Rating 2 &#8594;
+						<?=tooltip("DO NOT USE unless you know what this does already.")?>
+					</a>
+					<a onclick="toggleClass('rating2')" class='rating2 hidden'>Rating 2 &#8592;</a>
 				</td>
-			---->
+			--->
 		</tr>
-	<?php endforeach ?>
 
-<!-- Page Structure -->
-	</tbody>
-	</table>
+		<tbody>
+
+		<?php foreach($tournamentRoster as $fighter):
+			$tRosterID = $fighter['tournamentRosterID'] ?>
+			<tr>
+				<td  class='hidden hema-ratings-id'>
+					<?=hemaRatings_getFighterIDfromRosterID($fighter['rosterID'])?>
+				</td>
+
+				<td  style='white-space:nowrap;'>
+					<?=getFighterName($fighter['rosterID'])?>
+					<input type='hidden' name='updateRatings[fighters][<?=$tRosterID?>][ratingID]'
+						value = '<?=$fighter['ratingID']?>'>
+				</td>
+
+				<td  class='hidden school-name-id'>
+					<i><?=getSchoolName($fighter['schoolID'])?></i>
+				</td>
+
+				<td>
+					<input type='number' class='no-bottom'
+						name='updateRatings[fighters][<?=$tRosterID?>][rating]'
+						value = '<?=$fighter['rating']?>'>
+				</td>
+
+				<td class='sub-group-input hidden'>
+					<input type='number' class='no-bottom'
+						name='updateRatings[fighters][<?=$tRosterID?>][subGroupNum]'
+						value = '<?=$fighter['subGroupNum']?>'>
+				</td>
+				<!----
+				This feature is disabled for now
+					<td class='rating2 hidden'>
+						<input type='number' name='updateRatings[fighters][<?=$tRosterID?>][rating2]]'
+							value = '<?=$fighter['rating2']?>'>
+					</td>
+				---->
+			</tr>
+		<?php endforeach ?>
+
+	<!-- Page Structure -->
+		</tbody>
+		</table>
+
+
+		<div class='text-right large-12'>
+			<a onclick="$('.sub-group-input').toggle()">
+				Use Sub-Group Feature
+			</a>
+			<?=tooltip("This option is for keeping a number of people separate when pools are assigned.<BR>
+							Ask for directions if you are planning on using this feature.")?>
+		</div>
 
 	</div>
 	</div>
+
 
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 <!-- Add / Delete Fighter Buttons -->

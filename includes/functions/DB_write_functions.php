@@ -1454,10 +1454,22 @@ function updateFighterRatings($ratingData){
 
 	$updateString = '';
 	foreach($ratingData['fighters'] as $id => $r){
+
 		$rating = (int)$r['rating'];
-		$subGroup = (int)$r['subGroupNum'];
+
+		if($rating == 0 && strlen($r['rating']) == 0){
+			$blankRating = true;
+		} else {
+			$blankRating = false;
+		}
+
+		$subGroup = @(int)$r['subGroupNum'];   // Treat blanks as zero
 		$tournamentRosterID = (int)$id;
-		$ratingID = (int)$r['ratingID'];
+
+		$sql = "SELECT ratingID
+				FROM eventRatings
+				WHERE tournamentRosterID = {$tournamentRosterID}";
+		$ratingID = (int)mysqlQuery($sql, SINGLE, 'ratingID');
 
 		$rating2isNull = true;
 		if(isset($r['rating2']) == false || $r['rating2'] == null){
@@ -1467,7 +1479,7 @@ function updateFighterRatings($ratingData){
 			$rating2isNull = false;
 		}
 
-		if($rating == 0 && $subGroup == 0 && $rating2isNull == true){
+		if($blankRating == true && $subGroup == 0 && $rating2isNull == true){
 
 			if($ratingID != 0){
 				$sql = "DELETE FROM eventRatings
@@ -1492,6 +1504,7 @@ function updateFighterRatings($ratingData){
 				mysqlQuery($sql, SEND);
 
 			}
+
 		}
 
 
@@ -1744,11 +1757,19 @@ function addFighterToTournaments($rosterID, $tournamentIDs){
 
 		} else {
 
-			$sql = "INSERT INTO eventTournamentRoster
-					(rosterID, tournamentID)
-					VALUES
-					({$rosterID}, {$tournamentID})";
-			mysqlQuery($sql, SEND);
+			$sql = "SELECT tournamentRosterID
+					FROM eventTournamentRoster
+					WHERE rosterID = {$rosterID}
+					AND tournamentID = {$tournamentID}";
+			$tournamentRosterID = (int)mysqlQuery($sql, SINGLE, 'tournamentRosterID');
+
+			if($tournamentRosterID == 0){
+				$sql = "INSERT INTO eventTournamentRoster
+						(rosterID, tournamentID)
+						VALUES
+						({$rosterID}, {$tournamentID})";
+				mysqlQuery($sql, SEND);
+			}
 
 		}
 	}
@@ -5442,6 +5463,24 @@ function updateTournamentDivisions($info){
 
 /******************************************************************************/
 
+function deleteTournamentDivision($info){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
+		return;
+	}
+
+	$divisionID = $info['divisionID'];
+	$eventID = $_SESSION['eventID'];
+
+	$sql = "DELETE FROM eventTournamentDivisions
+			WHERE divisionID = {$divisionID}
+			AND eventID = {$eventID}";
+	mysqlQuery($sql, SEND);
+
+}
+
+/******************************************************************************/
+
 function updateSuppressDirectEntry($info){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
@@ -5453,6 +5492,217 @@ function updateSuppressDirectEntry($info){
 	}
 
 	setAlert(USER_ALERT, "Registration suppressions updated.");
+
+}
+
+/******************************************************************************/
+
+function divSeedingByRating($post){
+
+
+// Permissions/plausability checking -------------------------------------------
+	if(ALLOW['EVENT_MANAGEMENT'] == false || (int)$post['donorID'] == 0){
+		return;
+	}
+
+	$donorID = (int)$post['donorID'];
+
+	$badEvent = false;
+	if(getTournamentEventID($post['donorID']) != $_SESSION['eventID']){
+		$badEvent = true;
+	}
+
+	foreach((array)$post['ratingForID'] as $tournamentID => $minRating){
+		if(getTournamentEventID($tournamentID) != $_SESSION['eventID']){
+			$badEvent = true;
+		}
+	}
+
+	if($badEvent == true){
+		setAlert(USER_ERROR, "tournamentID in divSeedingByRating() does not match eventID.");
+		return;
+	}
+
+
+// Determine if fighters should be removed from the donor tournament -----------
+
+	$donorName = getTournamentName($donorID);
+
+	if(isset($post['removeFromDonor']) == false || (int)$post['removeFromDonor'] == 0){
+
+		$removeFromDonor = false;
+
+	} elseif (isFinalized($donorID) == true){
+
+		setAlert(USER_ERROR, "<b>{$donorName}</b> is already finalized, could not remove fighters.");
+		$removeFromDonor = false;
+
+	} elseif (isFightingStarted($donorID) == true){
+
+		setAlert(USER_ERROR, "<b>{$donorName}</b> already has exchanges, could not remove fighters.");
+		$removeFromDonor = false;
+
+	} else {
+
+		$removeFromDonor = true;
+	}
+
+
+// Get ratings for all fighters, and use default if necessary ------------------
+
+	$fightersToSeed = (array)getTournamentFighters($donorID, 'rating');
+	$defaultRating = 1;
+
+	if(isset($fightersToSeed[2]) == true){
+		$minRating = $fightersToSeed[0]['rating'];
+		$maxRating = $fightersToSeed[0]['rating'];
+		$numRated = 0;
+
+		foreach($fightersToSeed as $i => $f){
+
+			$rating = (int)$f['rating'];
+
+			if($rating != 0){
+
+				$numRated++;
+
+				if($rating < $minRating){
+					$minRating = $rating;
+				}
+
+			} else {
+				$fightersToSeed[$i]['rating'] = calculateRatingForUnrated($maxRating, $minRating, $numRated);
+				$fightersToSeed[$i]['unrated'] = true;
+			}
+		}
+
+	}
+
+// Split fighters into tournaments by rating -----------------------------------
+
+	$tournamentsList = [];
+	$i = 0;
+	$fightersMoved = 0;
+
+	$txt = "Seeding Completed";
+
+	foreach((array)$post['ratingForID'] as $tournamentID => $minRating){
+
+		$tournamentsList[$i]['tournamentID'] = $tournamentID;
+		$tournamentsList[$i]['ratings']['floor'] = $minRating;
+		$tournamentsList[$i]['fighters'] = [];
+
+
+
+		foreach($fightersToSeed as $j => $f){
+
+			if($f['rating'] >= $minRating){
+				$tmp['rating'] = $f['rating'];
+				$tmp['rosterID'] = $f['rosterID'];
+
+				if(isset($f['unrated']) == true){
+
+					$tmp['unrated'] = true;
+
+				} else {
+					if(	   isset($tournamentsList[$i]['ratings']['max']) == false
+						|| $f['rating'] > $tournamentsList[$i]['ratings']['max']){
+
+						$tournamentsList[$i]['ratings']['max'] = $f['rating'];
+					}
+
+					if(	   isset($tournamentsList[$i]['ratings']['min']) == false
+						|| $f['rating'] < $tournamentsList[$i]['ratings']['min']){
+
+						$tournamentsList[$i]['ratings']['min'] = $f['rating'];
+					}
+				}
+				$tournamentsList[$i]['fighters'][] = $tmp;
+
+				$fightersMoved++;
+
+				unset($fightersToSeed[$j]);
+
+			} else {
+				break;
+			}
+		}
+
+		$txt .= "<BR><b>".sizeof($tournamentsList[$i]['fighters'])."</b> moved into <b>".getTournamentName($tournamentID)."</b>";
+		if(	   sizeof($tournamentsList[$i]['fighters']) != 0
+			&& isset($tournamentsList[$i]['ratings']['max']) == true
+			&& isset($tournamentsList[$i]['ratings']['min']) == true){
+			$txt .= " with ratings from {$tournamentsList[$i]['ratings']['max']} to {$tournamentsList[$i]['ratings']['min']}.";
+		}
+
+
+// Add fighters into the new tournament ----------------------------------------
+
+		$ratingData = [];
+		$ratingData['tournamentID'] = $tournamentID;
+		foreach($tournamentsList[$i]['fighters'] as $fighter){
+
+			addFighterToTournaments($fighter['rosterID'], [$tournamentID]);
+
+			if(isset($fighter['unrated']) == false){
+				$rating = (int)$fighter['rating'];
+			} else {
+				$rating = 0;
+			}
+
+			$rosterID = (int)$fighter['rosterID'];
+
+			$sql = "SELECT tournamentRosterID, ratingID
+					FROM eventTournamentRoster
+					LEFT JOIN eventRatings USING(tournamentRosterID)
+					WHERE tournamentID = {$tournamentID}
+					AND rosterID = {$rosterID}";
+			$ratingData = mysqlQuery($sql, SINGLE);
+
+
+		// Move the rating over
+			if(isset($ratingData['ratingID']) == true && (int)$ratingData['ratingID'] != 0){
+
+				$ratingID = (int)$ratingData['ratingID'];
+
+				$sql = "UPDATE eventRatings
+						SET rating = {$rating}, subGroupNum = 0
+						WHERE ratingID = {$ratingID}";
+				mysqlQuery($sql, SEND);
+
+			} elseif(isset($ratingData['tournamentRosterID']) == true
+				&& (int)$ratingData['tournamentRosterID'] != 0
+				&& isset($tournamentsList[$i]['fighters']['unrated']) == false) {
+
+				$tournamentRosterID = (int)$ratingData['tournamentRosterID'];
+
+				$sql = "INSERT INTO eventRatings
+						(tournamentRosterID, rating, subGroupNum)
+						VALUES
+						({$tournamentRosterID}, {$rating}, 0)";
+				mysqlQuery($sql, SEND);
+
+			}
+
+			if($removeFromDonor == true){
+				$sql = "DELETE FROM eventTournamentRoster
+						WHERE rosterID = {$rosterID}
+						AND tournamentID = {$donorID}";
+				mysqlQuery($sql, SEND);
+			}
+
+		}
+
+		$i++;
+
+
+	}
+
+	$txt .= "<BR><b>".sizeof($fightersToSeed)."</b> fighters remain unseeded.";
+
+	setAlert(USER_ALERT, $txt);
+
+	updateTournamentFighterCounts(null, $_SESSION['eventID']);
 
 }
 

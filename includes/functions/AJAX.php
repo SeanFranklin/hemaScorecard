@@ -760,7 +760,70 @@ case 'assignBracketMatchesToRings': {
 
 	echo json_encode(0);
 
-}
+} break;
+
+/******************************************************************************/
+
+case 'divisionSeedingInfo': {
+
+	$divisionID = (int)$_REQUEST['divisionID'];
+	$divisionItems = (array)getTournamentDivisionItems($divisionID);
+
+	$sql = "SELECT tournamentID, numParticipants AS sizeBefore
+			FROM eventTournamentDivItems
+			INNER JOIN eventTournaments USING(tournamentID)
+			LEFT JOIN eventTournamentOrder USING(tournamentID)
+			WHERE divisionID = {$divisionID}
+			ORDER BY sortOrder ASC";
+
+	$items = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($items as $i => $item){
+		$items[$i]['name'] = getTournamentName($item['tournamentID']);
+	}
+
+	echo json_encode($items);
+
+} break;
+
+/******************************************************************************/
+
+/******************************************************************************/
+
+case 'tournamentRatings': {
+
+	$tournamentID = (int)$_REQUEST['tournamentID'];
+	$retVal['fighters'] = (array)getTournamentFighters($tournamentID, 'rating');
+	$retVal['defaultRating'] = 1;
+
+	if(isset($retVal['fighters'][2]) == true){
+		$minRating = $retVal['fighters'][0]['rating'];
+		$maxRating = $retVal['fighters'][0]['rating'];
+		$numRated = 0;
+
+		foreach($retVal['fighters'] as $i => $f){
+
+			$rating = (int)$f['rating'];
+
+			if($rating != 0){
+
+				$numRated++;
+
+				if($rating < $minRating){
+					$minRating = $rating;
+				}
+
+			} else {
+				$retVal['defaultRating'] = calculateRatingForUnrated($maxRating, $minRating, $numRated);
+				break;
+			}
+		}
+
+	}
+
+	echo json_encode($retVal);
+
+} break;
 
 /******************************************************************************/
 }

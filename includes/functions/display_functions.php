@@ -2931,8 +2931,8 @@ function displayIncompleteMatches($incompleteMatches){
 
 /******************************************************************************/
 
-function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
-							$ratingPoints,$schoolPoints,$refightPoints){
+function show_poolGeneration($fighterID, $fighterRating, $poolPoints,$sizePoints,
+							$ratingPoints, $schoolPoints, $refightPoints){
 // This function is used to calibrate the pool auto-generation feature
 // It shows the progress of every step in the pool generation, and what the
 // weighted values are for each attribute to consider.
@@ -2940,7 +2940,7 @@ function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
 
 	$info = getFighterInfo($fighterID);
 	echo "<BR><BR><h4>Adding <strong class='red-text'>{$info['name']}</strong>
-		from <strong>{$info['schoolName']}</strong></h4>";
+		 ({$fighterRating}) from <strong>{$info['schoolName']}</strong></h4>";
 
 	echo "<BR><u>Algorithm Scoring</u>";
 	echo "<table>";
@@ -2951,10 +2951,10 @@ function show_poolGeneration($fighterID,$poolPoints,$sizePoints,
 		<th>Num Refights Score</th>
 		<th>TOTAL SCORE</th></tr>";
 	foreach($poolPoints as $poolNum => $numPoints){
-		$size = round($sizePoints[$poolNum],2);
-		$rating = round($ratingPoints[$poolNum],2);
-		$school = round($schoolPoints[$poolNum],2);
-		$refight = round($refightPoints[$poolNum],2);
+		$size = @round($sizePoints[$poolNum],2);
+		$rating = @round($ratingPoints[$poolNum],2);
+		$school = @round($schoolPoints[$poolNum],2);
+		$refight = @round($refightPoints[$poolNum],2);
 		$total = round($numPoints,2);
 
 		echo "<tr><th>Pool {$poolNum}</th>";

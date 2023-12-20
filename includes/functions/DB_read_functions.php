@@ -2513,7 +2513,9 @@ function getTournamentDivisionItems($divisionID){
 
 	$sql = "SELECT divisionID, tournamentID
 			FROM eventTournamentDivItems
-			WHERE divisionID = {$divisionID}";
+			LEFT JOIN eventTournamentOrder USING(tournamentID)
+			WHERE divisionID = {$divisionID}
+			ORDER BY sortOrder ASC";
 	$divisions = (array)mysqlQuery($sql, ASSOC);
 
 	$sortedDivs = [];

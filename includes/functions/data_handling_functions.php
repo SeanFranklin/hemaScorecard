@@ -1577,5 +1577,22 @@ function sortTournamentAndDivisions($eventID){
 
 /******************************************************************************/
 
+function calculateRatingForUnrated($tournamentMax, $tournamentMin, $numRated){
+// The intent is to be one person bellow the lowest rated perons.
+
+	if($numRated <= 1){
+		$defaultRating = 0;
+	} else {
+		$avgRatingGap = ((int)$tournamentMax - (int)$tournamentMin) /  (int)$numRated;
+
+		$defaultRating = (int)$tournamentMin - $avgRatingGap;
+		$defaultRating = round($defaultRating,0);
+	}
+
+	return($defaultRating);
+
+}
+
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
