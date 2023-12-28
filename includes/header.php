@@ -12,8 +12,8 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.6.0'; // Javascript Version
-$vC = '?=1.2.4'; // CSS Version
+$vJ = '?=1.6.1'; // Javascript Version
+$vC = '?=1.2.6'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -516,12 +516,31 @@ function menuAnalytics(){
 	<li>
 		<a href='#'>Stats/Analytics</a>
 		<ul class='menu vertical'>
-			<li><a href='statsMatchLength.php?t=0'>Match Timings</a></li>
-			<li><a href='statsScheduleAssistant.php?t=0'>Tournament Time Calculator</a></li>
-			<li><a href='participantsAttendance.php?t=0'>Attendance By Fighter</a></li>
+
 			<li><a href='statsResultsDump.php?t=0'>Export Results</a></li>
-			<li><a href='participantsSystem.php?t=0'>Full System Roster</a></li>
-			<li><a href='statsPlacings.php?t=0'>Placings By Country</a></li>
+
+			<li>
+				<a href='#'>Logistics/Schedule</a>
+					<ul class='menu vertical'>
+						<li><a href='statsMatchLength.php?t=0'>Match Timings</a></li>
+						<li><a href='statsScheduleAssistant.php?t=0'>Tournament Time Calculator</a></li>
+					</ul>
+			</li>
+			<li>
+				<a href='#'>Roster</a>
+					<ul class='menu vertical'>
+						<li><a href='participantsAttendance.php?t=0'>Attendance By Fighter</a></li>
+						<li><a href='participantsSystem.php?t=0'>Full System Roster</a></li>
+					</ul>
+			</li>
+			<li>
+				<a href='#'>Events/System</a>
+					<ul class='menu vertical'>
+						<li><a href='statsPlacings.php?t=0'>Placings By Country</a></li>
+						<li><a href='statsYear.php?t=0'>Annual Summary</a></li>
+					</ul>
+			</li>
+
 			<?php if(ALLOW['STATS_ALL'] == true):?>
 				<!-- These are ones that don't really work anymore -------->
 				<li>

@@ -147,3 +147,22 @@ function matchLengthEventSelect(index){
 
 /**********************************************************************/
 
+function listSlider(baseID){
+
+	var value = document.getElementById(baseID+'-slider').value;
+	document.getElementById(baseID+'-count').innerHTML = value;
+	
+	for(var i = 0; i < 100; i++){
+		if(i <= value){
+			$('#'+baseID+'-'+i).removeClass('hidden');
+		} else {
+			$('#'+baseID+'-'+i).addClass('hidden');
+		}
+		
+	}
+
+}
+
+/**********************************************************************/
+
+
