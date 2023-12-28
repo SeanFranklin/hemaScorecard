@@ -89,6 +89,104 @@ include('includes/footer.php');
 ////////////////////////////////////////////////////////////////////////////////
 /******************************************************************************/
 
+/******************************************************************************/
+
+function yearlySummaryCountries($eventListStr, $color){
+
+
+	$sql = "SELECT countryName, COUNT(*) AS numEvents
+			FROM systemEvents
+			INNER JOIN systemCountries USING(countryIso2)
+			WHERE {$eventListStr}
+			GROUP BY countryIso2
+			ORDER BY numEvents DESC, countryIso2 ASC";
+	$eventList = (array)mysqlQuery($sql, ASSOC);
+
+	$numCountries = sizeof($eventList);
+
+	$totalNumEvents = 0;
+	foreach($eventList as $e){
+		$totalNumEvents += $e['numEvents'];
+	}
+
+	$plotEventsByCountry = [];
+	foreach($eventList as $i => $f){
+		$plotEventsByCountry[$i]['value'] = $f['numEvents'];
+		$plotEventsByCountry[$i]['name'] = $f['countryName'];
+	}
+
+?>
+
+
+	<div class='medium-6 cell callout'>
+
+		<div class='yearly-summary-title'>-- Countries --</div>
+
+		<p class='yearly-summary-text'>
+			Total # of Events: <b><?=$totalNumEvents?></b><BR>
+			# Countries Using Scorecard: <b><?=$numCountries?></b>
+		</p>
+
+		<?=plotData($plotEventsByCountry, 'events-by-country','Number of Events', $color, 15)?>
+
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function yearlySummaryDates($eventListStr, $color){
+
+
+	$sql = "SELECT eventStartDate, eventEndDate
+			FROM systemEvents
+			WHERE {$eventListStr}
+			ORDER BY eventStartDate ASC";
+	$eventList = (array)mysqlQuery($sql, ASSOC);
+
+
+	$plotEventsByMonth = [];
+	$plotEventsByDays = [];
+
+	for($i = 1; $i <= 12; $i++){
+		$plotEventsByMonth[$i]['name'] = date('F',strtotime("2000-{$i}-01"));
+		$plotEventsByMonth[$i]['value'] = 0;
+
+		if($i <= 5){
+			$plotEventsByDays[$i]['name'] = $i." Day".plrl($i);
+			$plotEventsByDays[$i]['value'] = 0;
+		}
+	}
+
+	foreach($eventList as $e){
+		$month = (int)date('n',strtotime($e['eventStartDate']));
+		$plotEventsByMonth[$month]['value']++;
+
+		$start = strtotime($e['eventStartDate']);
+		$end = strtotime($e['eventEndDate']);
+		$datediff = 1 + (($end - $start) / (60 * 60 * 24));
+
+		
+		if(isset($plotEventsByDays[$datediff]) == true){
+			$plotEventsByDays[$datediff]['value']++;
+		}
+	}
+
+?>
+
+	<div class='cell callout medium-6'>
+
+		<div class='yearly-summary-title'>-- By Month --</div>
+
+		<?=plotData($plotEventsByMonth, 'events-by-month','Number of Events', $color, 12)?>
+
+		<?=plotData($plotEventsByDays, 'events-by-days','Event Length', $color)?>
+
+	</div>
+
+<?php
+}
 
 /******************************************************************************/
 
@@ -102,7 +200,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
 			WHERE {$eventListStr}";
-	$numExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
+	$totalSystemExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
 
 
 // By Fighter ------------------------------------------------------------------
@@ -227,7 +325,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 
 		<div class='yearly-summary-title'>-- Exchanges --</div>
 
-		<p class='yearly-summary-text'>Total # of Exchanges: <b><?=number_format($numExchanges)?></b></p>
+		<p class='yearly-summary-text'>Total # of Exchanges: <b><?=number_format($totalSystemExchanges)?></b></p>
 
 		<?=plotData($plotExchByFighter, 'exch-by-fighter', 'By Fighter', $color)?>
 
@@ -249,7 +347,7 @@ function yearlySummaryMatches($eventListStr, $color){
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
 			WHERE {$eventListStr}";
-	$numMatches = mysqlQuery($sql, SINGLE, 'numMatches');
+	$totalSystemMatches = mysqlQuery($sql, SINGLE, 'numMatches');
 
 
 // By Fighter ----------------------------------------------------------
@@ -368,7 +466,7 @@ function yearlySummaryMatches($eventListStr, $color){
 
 		<div class='yearly-summary-title'>-- Matches --</div>
 
-		<p class='yearly-summary-text'>Total # of Matches: <b><?=number_format($numMatches)?></b></p>
+		<p class='yearly-summary-text'>Total # of Matches: <b><?=number_format($totalSystemMatches)?></b></p>
 
 		<?=plotData($plotMatchByFighter, 'match-by-fighter', 'By Fighter', $color)?>
 		<?=plotData($plotMatchBySchool, 'match-by-school', 'By Club', $color)?>
@@ -379,158 +477,11 @@ function yearlySummaryMatches($eventListStr, $color){
 <?php
 }
 
-/******************************************************************************/
-
-function yearlySummaryClubs($eventListStr, $color){
-
-	$sql = "SELECT schoolID, COUNT(*) AS numReg
-			FROM eventRoster AS eR
-			WHERE {$eventListStr}
-			GROUP BY schoolID
-			ORDER BY numReg DESC
-			LIMIT 30";
-	$regBySchool = (array)mysqlQuery($sql, ASSOC);
-
-    $plotRegBySchool = [];
-	foreach($regBySchool as $i => $f){
-		$plotRegBySchool[$i]['value'] = $f['numReg'];
-		$plotRegBySchool[$i]['name'] = getSchoolName($f['schoolID']);
-	}
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-			INNER JOIN eventRoster AS eR ON eM.winnerID = eR.rosterID
-			WHERE {$eventListStr}
-			AND eR.schoolID IS NOT NULL
-			AND eR.schoolID != 1
-			AND eR.schoolID != 2
-			GROUP BY eR.schoolID
-			ORDER BY numMatches DESC
-			LIMIT 30";
-	$winsBySchool = (array)mysqlQuery($sql, ASSOC);
-
-    $plotWinsBySchool = [];
-	foreach($winsBySchool as $i => $f){
-		$plotWinsBySchool[$i]['value'] = $f['numMatches'];
-		$plotWinsBySchool[$i]['name'] = getSchoolName($f['schoolID']);
-	}
 
 
 
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- By Club --</div>
-
-		<?=plotData($plotWinsBySchool, 'reg-by-school', 'Event Registrations', $color, 10)?>
-
-		<?=plotData($plotWinsBySchool, 'wins-by-school', 'Wins', $color, 10)?>
-
-	</div>
-
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryDates($eventListStr, $color){
 
 
-	$sql = "SELECT eventStartDate, eventEndDate
-			FROM systemEvents
-			WHERE {$eventListStr}
-			ORDER BY eventStartDate ASC";
-	$eventList = (array)mysqlQuery($sql, ASSOC);
-
-
-	$plotEventsByMonth = [];
-	$plotEventsByDays = [];
-
-	for($i = 1; $i <= 12; $i++){
-		$plotEventsByMonth[$i]['name'] = date('F',strtotime("2000-{$i}-01"));
-		$plotEventsByMonth[$i]['value'] = 0;
-
-		if($i <= 5){
-			$plotEventsByDays[$i]['name'] = $i." Day".plrl($i);
-			$plotEventsByDays[$i]['value'] = 0;
-		}
-	}
-
-	foreach($eventList as $e){
-		$month = (int)date('n',strtotime($e['eventStartDate']));
-		$plotEventsByMonth[$month]['value']++;
-
-		$start = strtotime($e['eventStartDate']);
-		$end = strtotime($e['eventEndDate']);
-		$datediff = 1 + (($end - $start) / (60 * 60 * 24));
-
-		
-		if(isset($plotEventsByDays[$datediff]) == true){
-			$plotEventsByDays[$datediff]['value']++;
-		}
-	}
-
-?>
-
-	<div class='cell callout medium-6'>
-
-		<div class='yearly-summary-title'>-- By Month --</div>
-
-		<?=plotData($plotEventsByMonth, 'events-by-month','Number of Events', $color, 12)?>
-
-		<?=plotData($plotEventsByDays, 'events-by-days','Event Length', $color)?>
-
-	</div>
-
-<?php
-}
-
-
-/******************************************************************************/
-
-function yearlySummaryCountries($eventListStr, $color){
-
-
-	$sql = "SELECT countryName, COUNT(*) AS numEvents
-			FROM systemEvents
-			INNER JOIN systemCountries USING(countryIso2)
-			WHERE {$eventListStr}
-			GROUP BY countryIso2
-			ORDER BY numEvents DESC, countryIso2 ASC";
-	$eventList = (array)mysqlQuery($sql, ASSOC);
-
-	$numCountries = sizeof($eventList);
-
-	$totalNumEvents = 0;
-	foreach($eventList as $e){
-		$totalNumEvents += $e['numEvents'];
-	}
-
-	$plotEventsByCountry = [];
-	foreach($eventList as $i => $f){
-		$plotEventsByCountry[$i]['value'] = $f['numEvents'];
-		$plotEventsByCountry[$i]['name'] = $f['countryName'];
-	}
-
-?>
-
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- Countries --</div>
-
-		<p class='yearly-summary-text'>
-			Total # of Events: <b><?=$totalNumEvents?></b><BR>
-			# Countries Using Scorecard: <b><?=$numCountries?></b>
-		</p>
-
-		<?=plotData($plotEventsByCountry, 'events-by-country','Number of Events', $color, 15)?>
-
-	</div>
-
-<?php
-}
 
 /******************************************************************************/
 
@@ -572,6 +523,139 @@ function yearlySummaryTournaments($eventListStr, $color){
 
 		<?=plotData($plotTournamentsByWeapon, 'tournaments-by-weapon','By Weapon', $color, 10)?>
 		<?=plotData($plotTournamentsByEvent, 'tournaments-by-event','By Event', $color, 10)?>
+
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function yearlySummaryUrg($eventListStr, $color){
+
+	$sql = "SELECT tournamentType AS weaponName, eventName, numParticipants
+			FROM eventTournaments AS eT
+				INNER JOIN systemEvents USING(eventID)
+				INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
+			WHERE {$eventListStr}
+				AND tournamentGenderID IN (21,109,125)
+			ORDER BY numParticipants DESC, weaponName ASC";
+	$urgTournaments = (array)mysqlQuery($sql, ASSOC);
+
+	$numTournaments = 0;
+	$byWeapon = [];
+	$byEvent = [];
+	foreach($urgTournaments as $t){
+		$numTournaments++;
+
+		@$tournamentsByWeapon[$t['weaponName']]++;
+		@$regByWeapon[$t['weaponName']] += $t['numParticipants'];
+		@$regByEvent[$t['eventName']] += $t['numParticipants'];
+
+	}
+
+
+	$numEvents = sizeof($regByEvent);
+
+	arsort($tournamentsByWeapon);
+	arsort($regByWeapon);
+	arsort($regByEvent);
+
+	$plotTournamentsByWeapon = [];
+	$i = 0;
+	foreach($tournamentsByWeapon as $weaponName => $num){
+		$plotTournamentsByWeapon[$i]['name']  = $weaponName;
+		$plotTournamentsByWeapon[$i]['value'] = $num;
+		$i++;
+	}
+
+	$plotRegByWeapon = [];
+	$i = 0;
+	foreach($regByWeapon as $weaponName => $num){
+		$plotRegByWeapon[$i]['name']  = $weaponName;
+		$plotRegByWeapon[$i]['value'] = $num;
+		$i++;
+	}
+
+	$plotRegByEvent = [];
+	$i = 0;
+	foreach($regByEvent as $eventName => $num){
+		$plotRegByEvent[$i]['name']  = $eventName;
+		$plotRegByEvent[$i]['value'] = $num;
+		$i++;
+	}
+
+
+?>
+
+	<div class='medium-6 cell callout'>
+
+		<div class='yearly-summary-title'>-- URG/Women's --</div>
+
+		<p><i><u>Note</u>: This can only take into account tournaments which been set up with a URG/Women's designation.</i></p>
+
+		<p class='yearly-summary-text'>
+			Total # of Tournaments: <b><?=$numTournaments?></b><BR>
+			# of Events Offering: <b><?=$numEvents?></b>
+		</p>
+
+		<?=plotData($plotTournamentsByWeapon, 'tournament-by-weapon','# Tournaments', $color)?>
+		<?=plotData($plotRegByWeapon, 'reg-by-weapon','# Tournament Entries', $color)?>
+		<?=plotData($plotRegByEvent, 'reg-by-event','# Tournament Entries', $color, 8)?>
+
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function yearlySummaryClubs($eventListStr, $color){
+
+	$sql = "SELECT schoolID, COUNT(*) AS numReg
+			FROM eventRoster AS eR
+			WHERE {$eventListStr}
+				AND eR.schoolID IS NOT NULL
+				AND eR.schoolID != 1
+				AND eR.schoolID != 2
+			GROUP BY schoolID
+			ORDER BY numReg DESC
+			LIMIT 30";
+	$regBySchool = (array)mysqlQuery($sql, ASSOC);
+
+    $plotRegBySchool = [];
+	foreach($regBySchool as $i => $f){
+		$plotRegBySchool[$i]['value'] = $f['numReg'];
+		$plotRegBySchool[$i]['name'] = getSchoolName($f['schoolID']);
+	}
+
+	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
+			FROM eventMatches AS eM
+			INNER JOIN eventRoster AS eR ON eM.winnerID = eR.rosterID
+			WHERE {$eventListStr}
+			AND eR.schoolID IS NOT NULL
+			AND eR.schoolID != 1
+			AND eR.schoolID != 2
+			GROUP BY eR.schoolID
+			ORDER BY numMatches DESC
+			LIMIT 30";
+	$winsBySchool = (array)mysqlQuery($sql, ASSOC);
+
+    $plotWinsBySchool = [];
+	foreach($winsBySchool as $i => $f){
+		$plotWinsBySchool[$i]['value'] = $f['numMatches'];
+		$plotWinsBySchool[$i]['name'] = getSchoolName($f['schoolID']);
+	}
+
+?>
+
+	<div class='medium-6 cell callout'>
+
+		<div class='yearly-summary-title'>-- By Club --</div>
+
+		<?=plotData($plotRegBySchool, 'reg-by-school', 'Event Registrations', $color, 10)?>
+
+		<?=plotData($plotWinsBySchool, 'wins-by-school', 'Wins', $color, 10)?>
 
 	</div>
 
@@ -665,10 +749,6 @@ function yearlySummaryIndividual($eventListStr, $color){
 		$plotLongMatches[$i]['name'] = $txt;
 	}
 
-
-
-
-
 ?>
 
 	<div class='medium-6 cell callout'>
@@ -682,85 +762,6 @@ function yearlySummaryIndividual($eventListStr, $color){
 		<?=plotData($plotShutoutMatches, 'shutout-matches','Shutouts', $color)?>
 
 		<?=plotData($plotLongMatches, 'long-matches','# of Exchanges', $color)?>
-
-	</div>
-
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryUrg($eventListStr, $color){
-
-	$sql = "SELECT tournamentType AS weaponName, eventName, numParticipants
-			FROM eventTournaments AS eT
-				INNER JOIN systemEvents USING(eventID)
-				INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
-			WHERE {$eventListStr}
-				AND tournamentGenderID IN (21,109,125)
-			ORDER BY numParticipants DESC, weaponName ASC";
-	$urgTournaments = (array)mysqlQuery($sql, ASSOC);
-
-	$numTournaments = 0;
-	$byWeapon = [];
-	$byEvent = [];
-	foreach($urgTournaments as $t){
-		$numTournaments++;
-
-		@$tournamentsByWeapon[$t['weaponName']]++;
-		@$regByWeapon[$t['weaponName']] += $t['numParticipants'];
-		@$regByEvent[$t['eventName']] += $t['numParticipants'];
-
-	}
-
-
-	$numEvents = sizeof($byEvent);
-
-	arsort($tournamentsByWeapon);
-	arsort($regByWeapon);
-	arsort($regByEvent);
-
-	$plotTournamentsByWeapon = [];
-	$i = 0;
-	foreach($tournamentsByWeapon as $weaponName => $num){
-		$plotTournamentsByWeapon[$i]['name']  = $weaponName;
-		$plotTournamentsByWeapon[$i]['value'] = $num;
-		$i++;
-	}
-
-	$plotRegByWeapon = [];
-	$i = 0;
-	foreach($regByWeapon as $weaponName => $num){
-		$plotRegByWeapon[$i]['name']  = $weaponName;
-		$plotRegByWeapon[$i]['value'] = $num;
-		$i++;
-	}
-
-	$plotRegByEvent = [];
-	$i = 0;
-	foreach($regByEvent as $eventName => $num){
-		$plotRegByEvent[$i]['name']  = $eventName;
-		$plotRegByEvent[$i]['value'] = $num;
-		$i++;
-	}
-
-
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- URG/Women's --</div>
-
-		<p><i><u>Note</u>: This can only take into account tournaments which been set up with a URG/Women's designation.</i></p>
-
-		<p class='yearly-summary-text'>
-			Total # of Tournaments: <b><?=$numTournaments?></b><BR>
-			# of Events Offering: <b><?=$numEvents?></b>
-		</p>
-
-		<?=plotData($plotTournamentsByWeapon, 'tournament-by-weapon','# Tournaments', $color)?>
-		<?=plotData($plotRegByWeapon, 'reg-by-weapon','# Tournament Entries', $color)?>
-		<?=plotData($plotRegByEvent, 'reg-by-event','# Tournament Entries', $color, 8)?>
 
 	</div>
 
