@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 19, 2023 at 11:59 PM
+-- Generation Time: Dec 28, 2023 at 05:34 PM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -2221,7 +2221,7 @@ INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `number
 (32, 'Points Remaining', 2, 7, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Number of Doubles\r\n\r\n== Indicator Score ====\r\nSum of remaining points from each match (dependent on what the base point value is set at)', NULL, '', '(basePointValue * matches) - AbsPointsAgainst - penaltiesAgainst', 'score', 'DESC', 'pointsFor + penaltiesAgainst', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Points Remaining', 'score', 'Points For', 'pointsFor + penaltiesAgainst', 'Doubles', 'doubles', NULL, NULL, NULL, NULL),
 (33, 'Fairfax', 2, 1, '== Ranking ====\nPoints For\n1st Tiebreaker: Wins\n2nd Tiebreaker: Doubles\n3rd Tiebreaker: Points Against', NULL, NULL, '0', 'pointsFor', 'DESC', 'wins', 'DESC', 'doubles', 'ASC', 'pointsAgainst', 'ASC', 'Points For', 'pointsFor', 'Wins', 'wins', 'Doubles', 'doubles', 'Points Against', 'pointsAgainst', NULL, NULL),
 (34, 'FoB Dagger', 2, 1, '== Ranking ====\r\nWins [Highest] \r\n1st Tiebreaker: # Control Points [Highest]\r\n2nd Tiebreaker: Points Against [Lowest]\r\n3rd Tiebreaker: Points For [Highest]\r\n\r\n*this is points after the net points for afterblow is taken into account.', NULL, NULL, '#FobDagger', 'wins', 'DESC', 'score', 'DESC', 'pointsAgainst', 'ASC', 'pointsFor', 'DESC', 'Wins', 'wins', '# Control Points', 'score', 'Points Against', 'pointsAgainst', 'Points For', 'pointsFor', NULL, NULL),
-(35, 'Wins and Points', 2, 95, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Points Against\r\n3rd Tiebreaker: Doubles', NULL, NULL, '0', 'wins', 'DESC', 'pointsFor', 'DESC', 'pointsAgainst', 'DESC', 'doubles', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', NULL, NULL),
+(35, 'Wins and Points', 2, 96, '== Ranking ====\r\nWins\r\n1st Tiebreaker: Points For\r\n2nd Tiebreaker: Points Against\r\n3rd Tiebreaker: Doubles', NULL, NULL, '0', 'wins', 'DESC', 'pointsFor', 'DESC', 'pointsAgainst', 'DESC', 'doubles', 'ASC', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', 'doubles', NULL, NULL),
 (36, 'Placing Countdown', 4, 1, '== Ranking ==\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nGo through each component tournament and award points in descending order, starting from the specified Base Point Value.\r\n\r\nExample:\r\nBase Point Value = 20 points.\r\n1st Place: 20 pts\r\n2nd Place: 19 pts\r\n3rd Place: 18 pts\r\netc...', NULL, NULL, '#PlacingCountdown', 'score', 'DESC', 'pointsFor', 'DESC', NULL, NULL, NULL, NULL, '# of Tournaments', 'round((pointsFor/basePointValue),2)', 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL),
 (37, 'Placing Percentage', 4, 6, '== Ranking ====\r\nIndicator Score\r\n\r\n== Indicator Score ====\r\nScore = Sum([Tournament Scores])\r\n\r\nComponent Tournament Scores:\r\n[Tournament Score] = [Base Point Value] * ([Number of Entries] - (place -1))/[Number of Entries]\r\n\r\n', NULL, NULL, '#PlacingPercent', 'score', 'DESC', 'pointsFor', 'ASC', NULL, NULL, NULL, NULL, '# of Tournaments', 'pointsFor', 'Score', 'score', NULL, NULL, NULL, NULL, NULL, NULL),
 (38, 'Hit and Don\'t Double', 2, 19, '== Ranking ====\r\nMost Hits\r\n1st Tiebreaker: Doubles [Lowest]\r\n2nd Tiebreaker: Most Wins [Highest]\r\n3rd Tiebreaker: Hits Against [Lowest]', NULL, NULL, '0', 'hitsFor', 'DESC', 'doubles', 'ASC', 'wins', 'DESC', 'hitsAgainst', 'ASC', 'Hits For', 'hitsFor', 'Doubles', 'doubles', 'Wins', 'wins', 'Hits Against', 'hitsAgainst', NULL, NULL),
@@ -2339,7 +2339,7 @@ CREATE TABLE `systemTournaments` (
 --
 
 INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tournamentType`, `Pool_Bracket`, `Pool_Sets`, `Scored_Event`, `numberOfInstances`, `description`, `functionName`) VALUES
-(1, 'weapon', 'Longsword', 1, 1, 1, 538, NULL, NULL),
+(1, 'weapon', 'Longsword', 1, 1, 1, 539, NULL, NULL),
 (2, 'weapon', 'Messer', 1, 1, 1, 21, NULL, NULL),
 (3, 'weapon', 'Sword and Buckler', 1, 1, 1, 115, NULL, NULL),
 (5, 'weapon', 'Singlestick', 1, 1, 1, 52, NULL, NULL),
@@ -2461,6 +2461,33 @@ INSERT INTO `systemTournaments` (`tournamentTypeID`, `tournamentTypeMeta`, `tour
 (125, 'gender', 'URG', 1, 1, 1, NULL, NULL, NULL),
 (126, 'weapon', 'Cinquedea', 1, 1, 1, 1, NULL, NULL),
 (127, 'prefix', 'Entries', 1, 1, 1, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `systemUpdates`
+--
+
+CREATE TABLE `systemUpdates` (
+  `updateID` int(10) UNSIGNED NOT NULL,
+  `updateYear` int(11) NOT NULL,
+  `updateText` text
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `systemUpdates`
+--
+
+INSERT INTO `systemUpdates` (`updateID`, `updateYear`, `updateText`) VALUES
+(1, 2023, '<p><span style="text-decoration: underline;">December</span></p>\r\n<ul>\r\n<li>Added "divisions" feature to group tournament tiers together, and also allow the event organizer to auto-seed fighters into tiers based on their rating.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">September</span></p>\r\n<ul>\r\n<li>Added ability to upload an image of the event map/floorplan.</li>\r\n<li>Added school names to pool standings.</li>\r\n<li>Added participants/fighters distinction to Event Information &gt; Attendance/Schools page.</li>\r\n<li>Added ability to set separate match caps (points &amp; time) to pool matches.</li>\r\n<li style="font-weight: bold;"><strong>Added&nbsp;<em>(finally)</em> wysiwyg capabilities to the rules &amp; event information pages, so users no longer have to add their own html tags to have the view not suck.</strong></li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">August</span></p>\r\n<ul>\r\n<li>Expanded the export functionality to handle non-HEMA Ratings exports</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">June</span></p>\r\n<ul>\r\n<li>Added ability to use number of penalty cards in pool ranking algorithms.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">March</span></p>\r\n<ul>\r\n<li>Improvements to tournament/event check ins, allowing for bulk actions.</li>\r\n<li><strong>Add Instructors feature, letting people post their instructor bios.</strong></li>\r\n</ul>\r\n<p>February</p>\r\n<ul>\r\n<li>Added video to Help section for event participants.</li>\r\n<li>Match queue feature for elimination brackets, allowing the tournament manager to assign fighters to empty rings on the fly</li>\r\n<li>Added scheduled staff as information on schedule blocks (instead of needing to look it up on the staffing pages)</li>\r\n<li>Added stopwatch to match scoring page (under Match Options) that the table can use for anything they need to time. (Like break between back-to-back matches)</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">January</span></p>\r\n<ul>\r\n<li>Improved staff registration with new interface that auto updates on-click instead of needing to refresh the page.</li>\r\n<li>Reworked site navigation because there are so many new options.</li>\r\n<li style="font-weight: bold;"><strong>Added overall school points feature.</strong></li>\r\n<li style="font-weight: bold;"><strong>Added livestreams feature.</strong></li>\r\n<li>Improved participants filter\r\n<ul>\r\n<li>Now works with individuals</li>\r\n<li>Now works with multiple schools</li>\r\n</ul>\r\n</li>\r\n<li>Full system roster view now available&nbsp;\r\n<ul>\r\n<li>Fighter history across all events page added</li>\r\n</ul>\r\n</li>\r\n<li>Improved visibility of analytics page</li>\r\n<li>Rework to options that event organizers have available&nbsp; in the events settings page.</li>\r\n</ul>\r\n<p>&nbsp;</p>'),
+(2, 2022, '<p><span style="text-decoration: underline;">October</span></p>\r\n<ul>\r\n<li>New filter by school mode, where you can chose to have it only show you matches/results of a selected school.\r\n<ul>\r\n<li>Also a page to see all matches from a school on the same page. A \'coach view\' if you will.</li>\r\n</ul>\r\n</li>\r\n<li>Fighter history page</li>\r\n<li>Tournament navigation is no longer hidden on the schedule page.</li>\r\n<li>Support for RSS feeds on new event creation. (And integration with International HEMA Discord announcements.)</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">September</span></p>\r\n<ul>\r\n<li>Added list of total fighters (vs participants) on the event stats page</li>\r\n<li>Cleanup on the page with lists all the event video links.</li>\r\n<li>Hide sponsor images when scoring on a mobile device.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">August</span></p>\r\n<ul>\r\n<li>Complete rework of tournament options menu. Added new options for optional ties, forcing teams to switch fighters at a certain number of points, and not counting doubles towards the exchange cap.</li>\r\n<li>Added ability to track with fighter on which team is fighting.</li>\r\n<li>Improved interface for adding video links to matches.</li>\r\n<li>Integrated new logo</li>\r\n<li>Improved event list, because the old one wasn\'t working now that there are so many more events.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">March</span></p>\r\n<ul>\r\n<li>Changes to database structure to support giving data-dumps to people.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">February</span></p>\r\n<ul dir="auto">\r\n<li>Rework event lists</li>\r\n<li>Not kicking you out of your event when logging in</li>\r\n<li>Added event description feature, to show event info/registration links of the event\'s front page.</li>\r\n<li>Added location to schedule block info</li>\r\n<li>Fixed card display</li>\r\n<li>Quality of life improvements for event creation/management page</li>\r\n<li style="font-weight: bold;"><strong>Added Announcements feature.</strong></li>\r\n<li>Added tournament time calculator, which you can use to estimate how long your pools with take based on size and historical data.</li>\r\n<li><strong>Added match length stats mode,</strong> where you can look at a historical tournament and have it plot things like average match length, exchange time, number of exchanges, judging time per exchange, etc</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">January</span></p>\r\n<ul>\r\n<li style="font-weight: bold;"><strong>Added tournament rules feature.</strong></li>\r\n<li>Staffing improvements to track how many matches have been done.</li>\r\n<li><strong>Added grid entry mode for Deductive Afterblow score modes</strong>. Now table can just enter the action and target, and the software calculates points. (Provided that the point information has been entered.)</li>\r\n<li>Added sponsors feature, to show sponsor images at the bottom of the page. This is devel only, and not available&nbsp;on most events.</li>\r\n<li>Changed publication settings, so that the event visibility, roster, schedule, and matches can be published independently.</li>\r\n<li style="font-weight: bold;"><strong>Added permalinks to events/tournaments/matches.</strong></li>\r\n<li>Improvements to staffing and information fields on scheduling classes.</li>\r\n</ul>\r\n<p>&nbsp;</p>'),
+(3, 2021, '<p><span style="text-decoration: underline;">November</span></p>\r\n<ul>\r\n<li>Added workshop summary page, showing how many classes/instructors an event had.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">October</span></p>\r\n<ul>\r\n<li>Added match "scoresheets", which are un-deletable copies of match results which are \'printed\' every time a match is closed. For recovery if a user deletes something they didn\'t intend to.</li>\r\n</ul>\r\n<p>&nbsp;</p>\r\n<p>(2021 was a bad year for software work, due to wrist injury. <strong>Ë™â— Ë™</strong> )</p>'),
+(4, 2020, '<p><span style="text-decoration: underline;">February</span></p>\r\n<ul>\r\n<li>Added event map feature, for showing the floorplan on the schedule.</li>\r\n<li>Updates to support reverse score mode with deductive afterblow mode.</li>\r\n<li>Add non-participant registrations, which don\'t show up on the main page but the organizer might want to use for check-ins.</li>\r\n</ul>\r\n<p>January</p>\r\n<ul>\r\n<li><strong>Addition of meta-events.</strong> These are events which can aggregate the results of multiple tournaments across different events into a single tournament based on their results. (ie: Leagues)</li>\r\n<li><strong>Addition of penalty cards. </strong>Now all penalties are attached to a card, with an option to specify the specific infraction. The match display will show all match penalties and their reasons.</li>\r\n<li>Improved font contrast on the match display screen.<br>Exchange time is now always displayed, even if the time is not indicated.</li>\r\n</ul>\r\n<p>&nbsp;</p>\r\n<p>(2020 was a bad year for software work, due to wrist injury. <strong>Ë™â— Ë™</strong> )</p>'),
+(5, 2019, '<p><span style="text-decoration: underline;">December</span></p>\r\n<ul>\r\n<li>Added option for match timer count down or up. No longer make the match timer an option element on the scorekeeper screen.</li>\r\n<li>Added HEMA Ratings export feature &amp; HEMA Ratings event submission form.</li>\r\n<li>Reworked the ability to add match points to support different text qualifiers.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">September</span></p>\r\n<ul>\r\n<li>Made most stats-pages visible without logging in.</li>\r\n<li>Added pop-out window for displaying match on a separate monitor.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">July</span></p>\r\n<ul>\r\n<li>Added \'how are standings calculated\' to bottom of the pool scores.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">April</span></p>\r\n<ul>\r\n<li>Added sign-off required option for matches.</li>\r\n<li>Added point-spread as option for match auto-conclude.</li>\r\n<li>Tons of stuff around event staffing/scheduling.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">February</span></p>\r\n<ul>\r\n<li style="font-weight: bold;"><strong>Addition of Logistics feature, which includes event schedule, and staffing shifts.</strong></li>\r\n</ul>\r\n<p>&nbsp;</p>'),
+(6, 2018, '<p><span style="text-decoration: underline;">December</span></p>\r\n<ul>\r\n<li>Features are enabled/disabled by permissions, not by user type.&nbsp;Each user type has associated permissions.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">November</span></p>\r\n<ul>\r\n<li>Added page statsMultiEvent.php. This page has the overall tournament stats for all events displayed, according to a filter.</li>\r\n<li>Support for match scores based on functions rather than formulas.</li>\r\n<li>Active events over 6 days old are now displayed as past events to make it visually more intuitive for users.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">September</span></p>\r\n<ul>\r\n<li>If the timer is running when a score is entered, the time will continue to run when the page refreshes.</li>\r\n<li>New option when withdrawing a fighter, Solo Ignore. Does not affect any score calculation but does not rank the fighter or display their results.</li>\r\n<li>Number of pool winners to sort first is now a configurable option.</li>\r\n<li>Support for team based events added\r\n<ul>\r\n<li>Team vs Team - Teams exist as normal participants which can advance and place.</li>\r\n<li>Solo - Teams only exist to provide an aggregate scores of their individuals competing in the tournament.</li>\r\n<li>All vs All - Teams are entered in to pools against each other and matches are generated to have each of their members fight. Advancements are all by team.</li>\r\n</ul>\r\n</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">August</span></p>\r\n<ul>\r\n<li>Even Organizers can now only change the names of fighters who are only entered in their event. Fighters who are entered in multiple events can only have their names changed by a System Admin.&nbsp;</li>\r\n<li>Added ability to override&nbsp;the default doubles type for a tournament (and add doubles to a full afterblow tournament, etc)</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">July</span></p>\r\n<ul>\r\n<li>The software now reminds/informs the user they need to close pool matches if they leave more than 2 in a row unconcluded.</li>\r\n<li>Created an interface where the advancements for pool set are based on two parameters&nbsp;specified by the used (via POST).</li>\r\n<li>Should their be tiers of pools</li>\r\n<li>Should the software attempt to reduce the number of times people re-fight each other.</li>\r\n<li>Changes to scoring algorithm</li>\r\n<li>Added a new framework to handles scoring pools<br>\r\n<ul>\r\n<li>Changes to improve how cumulative events are calculated. Only re-calculates the scores for the current Group Set and every group set after.</li>\r\n<li>You can now have multiple sets of cumulative pools. Cumulative pools stop adding at (and including) the first non-cumulative pool they find.</li>\r\n<li>Pool set normalization for cumulative pools now normalizes all pools to the first pool in the cumulative group.</li>\r\n</ul>\r\n</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">June</span></p>\r\n<ul>\r\n<li>Reversed &nbsp;the display order for the log in screen, so the drop down menu displays newer events on top.</li>\r\n<li>If there is only one tournament in the event, it will select that tournament by default when adding new participants to the event.</li>\r\n<li>Update the promotional page with images of the software in action.</li>\r\n<li>participantsTournament.php now shows the number of fighters in the tournament</li>\r\n<li>Pool advancement option only shows up if an advancement function is selected.\r\n<ul>\r\n<li>Added a SimpleRankOrder advancement. Fighters are just slotted by order of rank.</li>\r\n</ul>\r\n</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">May</span></p>\r\n<ul>\r\n<li>Added support for "NonNet" Full Afterblow tournaments. These are tournaments where each fighter receives the full points for the exchange, without and subtractions based on the other fighter.\r\n<ul>\r\n<li>Fighter history for Full Afterblow tournaments no longer shows a fighter as having 0 points if both fighters \'tied\' and exchange.&nbsp;</li>\r\n<li>Added control point to Full Afterblow tournaments.</li>\r\n</ul>\r\n</li>\r\n<li>Added ability to edit old exchanges</li>\r\n<li>Changed how normalization works for pool sets. Now for a cumulative set all prior sets are normalized to the normalization size of the set for the score that is being calculated.</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">February</span></p>\r\n<ul>\r\n<li style="font-weight: bold;"><strong>Added ability to create exchange types with pre-defined point values.</strong></li>\r\n<li>Added support to import event roster from CSV. (This was removed very quickly, as it became apparent that users would upload unchecked csv\'s and fill the database with junk and duplicate fighters.)</li>\r\n</ul>\r\n<p><span style="text-decoration: underline;">January</span></p>\r\n<ul>\r\n<li>I don\'t remember, this was before I started using git!</li>\r\n</ul>\r\n<p>&nbsp;</p>'),
+(7, 2015, '<p>This was the first year of scorecard, back before it even had a name and was just hosted on my personal server.</p>\r\n<p>There was a proof-of-concept that was used in February, and then a final working version that was used in the summer.&nbsp;</p>\r\n<p>The software wasn\'t really optimized for anything, and just made to work for scoring. The event roster link was e-mailed out to participants to check their entries, and the interface was so bad most people didn\'t realize that they could also look at their pools &amp; results. This became a \'hidden feature\' for people who paid attention.</p>'),
+(8, 2016, '<p>Cutting tournaments were added in 2016. I think double elimination brackets as well. I don\'t remember much else, but I\'m sure there were a ton of roster management improvements.</p>'),
+(9, 2017, '<p>At the start of the year the "pool sets" was added to support FNY. Prior to this the software (which still didn\'t have a name) only supported a typical pools -&gt; elims format.</p>\r\n<p>In the fall the software got named HEMA Scorecard, and got a MAJOR graphical overhaul&nbsp;to stop looking like a 90s internet page.</p>\r\n<p>Near the end of the year Scorecard was picked up by the HEMA Alliance and moved to their server to host.</p>\r\n<p>(There were also tons of changes and development over the year, but I don\'t really remember what it was.)</p>');
 
 -- --------------------------------------------------------
 
@@ -3064,6 +3091,12 @@ ALTER TABLE `systemTournaments`
   ADD PRIMARY KEY (`tournamentTypeID`);
 
 --
+-- Indexes for table `systemUpdates`
+--
+ALTER TABLE `systemUpdates`
+  ADD PRIMARY KEY (`updateID`);
+
+--
 -- Indexes for table `systemUserEvents`
 --
 ALTER TABLE `systemUserEvents`
@@ -3115,7 +3148,7 @@ ALTER TABLE `eventCutStandards`
 -- AUTO_INCREMENT for table `eventDefaults`
 --
 ALTER TABLE `eventDefaults`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=793;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=796;
 --
 -- AUTO_INCREMENT for table `eventDescriptions`
 --
@@ -3125,7 +3158,7 @@ ALTER TABLE `eventDescriptions`
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=608560;
+  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=609312;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
@@ -3135,12 +3168,12 @@ ALTER TABLE `eventGroupRankings`
 -- AUTO_INCREMENT for table `eventGroupRoster`
 --
 ALTER TABLE `eventGroupRoster`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61012;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61026;
 --
 -- AUTO_INCREMENT for table `eventGroups`
 --
 ALTER TABLE `eventGroups`
-  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16617;
+  MODIFY `groupID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16623;
 --
 -- AUTO_INCREMENT for table `eventHemaRatingsInfo`
 --
@@ -3155,7 +3188,7 @@ ALTER TABLE `eventIgnores`
 -- AUTO_INCREMENT for table `eventMatches`
 --
 ALTER TABLE `eventMatches`
-  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166126;
+  MODIFY `matchID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166165;
 --
 -- AUTO_INCREMENT for table `eventMatchOptions`
 --
@@ -3165,22 +3198,22 @@ ALTER TABLE `eventMatchOptions`
 -- AUTO_INCREMENT for table `eventPlacings`
 --
 ALTER TABLE `eventPlacings`
-  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30697;
+  MODIFY `placeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30754;
 --
 -- AUTO_INCREMENT for table `eventPublication`
 --
 ALTER TABLE `eventPublication`
-  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=262;
+  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=265;
 --
 -- AUTO_INCREMENT for table `eventRatings`
 --
 ALTER TABLE `eventRatings`
-  MODIFY `ratingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20872;
+  MODIFY `ratingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21003;
 --
 -- AUTO_INCREMENT for table `eventRoster`
 --
 ALTER TABLE `eventRoster`
-  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20622;
+  MODIFY `rosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20646;
 --
 -- AUTO_INCREMENT for table `eventRosterAdditional`
 --
@@ -3200,12 +3233,12 @@ ALTER TABLE `eventRulesLinks`
 -- AUTO_INCREMENT for table `eventScoresheets`
 --
 ALTER TABLE `eventScoresheets`
-  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54051;
+  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54127;
 --
 -- AUTO_INCREMENT for table `eventSettings`
 --
 ALTER TABLE `eventSettings`
-  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=482;
+  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=485;
 --
 -- AUTO_INCREMENT for table `eventSponsors`
 --
@@ -3215,7 +3248,7 @@ ALTER TABLE `eventSponsors`
 -- AUTO_INCREMENT for table `eventStandings`
 --
 ALTER TABLE `eventStandings`
-  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156204;
+  MODIFY `standingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156227;
 --
 -- AUTO_INCREMENT for table `eventTeamRoster`
 --
@@ -3260,12 +3293,12 @@ ALTER TABLE `eventTournamentOrder`
 -- AUTO_INCREMENT for table `eventTournamentRoster`
 --
 ALTER TABLE `eventTournamentRoster`
-  MODIFY `tournamentRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39945;
+  MODIFY `tournamentRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39954;
 --
 -- AUTO_INCREMENT for table `eventTournaments`
 --
 ALTER TABLE `eventTournaments`
-  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1913;
+  MODIFY `tournamentID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1914;
 --
 -- AUTO_INCREMENT for table `eventVideo`
 --
@@ -3295,7 +3328,7 @@ ALTER TABLE `logisticsInstructors`
 -- AUTO_INCREMENT for table `logisticsLocations`
 --
 ALTER TABLE `logisticsLocations`
-  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=755;
+  MODIFY `locationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=758;
 --
 -- AUTO_INCREMENT for table `logisticsLocationsBlocks`
 --
@@ -3385,7 +3418,7 @@ ALTER TABLE `systemDoubleTypes`
 -- AUTO_INCREMENT for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=452;
+  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=455;
 --
 -- AUTO_INCREMENT for table `systemFormats`
 --
@@ -3415,7 +3448,7 @@ ALTER TABLE `systemRankings`
 -- AUTO_INCREMENT for table `systemRoster`
 --
 ALTER TABLE `systemRoster`
-  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7771;
+  MODIFY `systemRosterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7775;
 --
 -- AUTO_INCREMENT for table `systemRosterNotDuplicate`
 --
@@ -3425,7 +3458,7 @@ ALTER TABLE `systemRosterNotDuplicate`
 -- AUTO_INCREMENT for table `systemSchools`
 --
 ALTER TABLE `systemSchools`
-  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1117;
+  MODIFY `schoolID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1118;
 --
 -- AUTO_INCREMENT for table `systemSponsors`
 --
@@ -3436,6 +3469,11 @@ ALTER TABLE `systemSponsors`
 --
 ALTER TABLE `systemTournaments`
   MODIFY `tournamentTypeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+--
+-- AUTO_INCREMENT for table `systemUpdates`
+--
+ALTER TABLE `systemUpdates`
+  MODIFY `updateID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 --
 -- AUTO_INCREMENT for table `systemUserEvents`
 --

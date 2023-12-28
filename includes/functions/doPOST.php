@@ -568,6 +568,12 @@ function processPostData(){
 			case 'statsAttendanceFilters':
 				updateStatsAttendanceFilters($_POST['statsAttendanceFilters']);
 				break;
+			case 'statsYear':
+				$_SESSION['stats']['year'] = (int)$_POST['stats']['year'];
+				break;
+			case 'updateSoftwareUpdates':
+				updateSoftwareUpdates($_POST['updateSoftwareUpdates']);
+				break;
 
 	// Cutting Qualification Cases
 			case 'newCutQuals':

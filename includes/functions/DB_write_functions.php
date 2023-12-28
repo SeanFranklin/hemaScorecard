@@ -9377,5 +9377,37 @@ function updateEventSponsors($sponsorList){
 
 /******************************************************************************/
 
+function updateSoftwareUpdates($info){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){return;}
+
+	$year = (int)$info['updateYear'];
+
+	$sql = "SELECT updateID
+			FROM systemUpdates
+			WHERE updateYear = {$year}";
+	$updateID = (int)mySqlQuery($sql, SINGLE, 'updateID');
+
+	if($updateID == 0){
+		$sql = "INSERT INTO systemUpdates
+				(updateYear, updateText)
+				VALUES
+				({$year}, ?)";
+	} else {
+		$sql = "UPDATE systemUpdates
+				SET updateText = ?
+				WHERE updateID = {$updateID}";
+	}
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "s", $info['updateText']);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+}
+
+/******************************************************************************/
+
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
