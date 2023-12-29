@@ -2653,6 +2653,35 @@ function getEventPenalties($eventID, $fighterIDs = null){
 	return($penaltiesByFighter);
 }
 
+/******************************************************************************/
+
+function getEventPenaltyList($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT sR.firstName, sR.lastName, schoolFullName, sA1.attackText AS card, sA2.attackText as action,
+			scoreValue, groupName, sE.eventName, tournamentID, sR2.firstName AS first2, sR2.lastName AS last2, 
+			eR.rosterID, eE.refType
+		FROM eventExchanges AS eE
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN systemEvents AS sE USING(eventID)
+			INNER JOIN eventRoster AS eR ON eR.rosterID = eE.scoringID
+			INNER JOIN systemRoster AS sR USING(systemRosterID)
+			INNER JOIN eventRoster AS eR2 ON eR2.rosterID = eE.receivingID
+			INNER JOIN systemRoster AS sR2 ON eR2.systemRosterID = sR2.systemRosterID
+			INNER JOIN systemSchools AS sS ON eR.schoolID = sS.schoolID
+			LEFT JOIN systemAttacks as sA1 ON eE.refType = sA1.attackID
+			LEFT JOIN systemAttacks as sA2 ON eE.refTarget = sA2.attackID
+		WHERE exchangeType = 'penalty'
+			AND eT.eventID = {$eventID}
+		ORDER BY sR.lastName, sR.firstName, eventName ASC";
+
+	$eventPenalties = mysqlQuery($sql, ASSOC);
+
+	return ($eventPenalties);
+}
 
 /******************************************************************************/
 
@@ -6985,6 +7014,29 @@ function logistics_getEventStaffingMatches($eventID){
 
 /******************************************************************************/
 
+function logistics_getEventFullShiftList($eventID){
+
+	$sql = "SELECT firstName, lastName, roleName, dayNum, locationName,
+				(lSS.endTime - lSS.startTime) AS length, schoolFullName
+			FROM logisticsStaffShifts
+			INNER JOIN logisticsScheduleShifts AS lSS USING(shiftID)
+			INNER JOIN logisticsScheduleBlocks AS lSB USING(blockID)
+			INNER JOIN systemEvents AS sE ON sE.eventID = lSB.eventID
+			INNER JOIN eventRoster AS eR USING(rosterID)
+			INNER JOIN systemSchools AS sS ON eR.schoolID = sS.schoolID
+			INNER JOIN systemRoster USING(systemRosterID)
+			INNER JOIN logisticsLocations USING(locationID)
+			INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
+			WHERE lSB.eventID = {$eventID}
+			ORDER BY lastName ASC, firstName";
+
+	$shiftList = (array)mysqlQuery($sql, ASSOC);
+
+	return ($shiftList);
+}
+
+/******************************************************************************/
+
 function logistics_getGroupStaffExceptions($groupID){
 
 	$groupID = (int)$groupID;
@@ -8398,8 +8450,6 @@ function isInLosersBracket($matchID){
 	} else {
 		return false;
 	}
-
-
 
 }
 
