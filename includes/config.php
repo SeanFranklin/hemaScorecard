@@ -184,6 +184,7 @@
 	$options['T']["TEAM_SIZE"] = 10;
 	$options['T']["DOUBLES_CARRY_FORWARD"] = 11;
 	$options['T']["SUPPRESS_DIRECT_ENTRY"] = 12;
+	$options['E']["PENALTY_ACTION_IS_MANDATORY"] = 12;
 
 	define('OPTION',$options);
 

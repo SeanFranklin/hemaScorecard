@@ -375,7 +375,9 @@ function menuTournament(){
 				<li>
 					<a href='#'><b>Settings</b></a>
 					<ul class='menu vertical'>
-						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>
+						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>			
+						<li><a href='adminExchangeTypes.php'>Point Values (Optional)</a></li>
+						<li><div class="drop-down-separator"></div></li>
 						<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
 					</ul>
 				</li>
@@ -433,10 +435,11 @@ function menuEventOrgBefore(){
 		<a href='#'><b>Event Settings</b></a>
 		<ul class='menu vertical'>
 			<li><a href='adminEvent.php?t=0'><b>Event Settings</b></a></li>
-			<li><a href='adminNewTournaments.php?t=0'>Create New Tournament</a></li>
 			<li><a href='adminDivisions.php?t=0'>Tournament Divisions</a></li>
+			<li><a href='adminBurgees.php?t=0'>School Standings</a></li>
 		</ul>
 
+	<li><a href='adminNewTournaments.php?t=0'><b>Create New Tournament</b></a></li>
 
 	<li>
 		<a href='#'>Schedule</a>
@@ -444,9 +447,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsSchedule.php?t=0'>Edit Schedule</a></li>
 			<li><a href='logisticsLocations.php?t=0'>Edit Locations</a></li>
 		</ul>
-	</li>
-
-	<li><a href='adminBurgees.php?t=0'>School Standings</a></li>
+	</li>	
 
 	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
 		<li><a href='adminSponsors.php?t=0'>Sponsors</a></li>
@@ -499,13 +500,16 @@ function menuEventOrgDuring(){
 /******************************************************************************/
 
 function menuEventOrgAfter(){
+
+	return; // HEMA Ratings form Removed. No more content here
+
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
 	}
 ?>
 	<div class="drop-down-separator">After</div>
 
-	<li><a href='adminHemaRatings.php?t=0'>HEMA Ratings Submission Form</a></li>
+	<li><a href=''></a></li>
 <?php }
 
 

@@ -50,6 +50,7 @@ if($_SESSION['eventID'] == null){
 		<?=displaySettingsBox($defaults, $canChangeSettings)?>
 		<?=staffSettingsBox($defaults, $canChangeSettings)?>
 		<?=changePasswordBox($canChangeSettings)?>
+		<?=changePenaltiesBox($canChangeSettings)?>
 
 	</div>
 
@@ -59,6 +60,76 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
+
+function changePenaltiesBox($canChangeSettings){
+
+	$formDiabled = '';
+	if($canChangeSettings == false){
+		$formDiabled = 'disabled';
+	}
+
+	$penalties = getPenaltyActions($_SESSION['eventID']);
+	if((bool)readOption('E',$_SESSION['eventID'],'PENALTY_ACTION_IS_MANDATORY') == true){
+		$mandatoryChk = 'checked';
+	} else {
+		$mandatoryChk = '';
+	}
+
+?>
+	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
+
+	<legend>
+		<h4 class='no-bottom'>
+			Valid Penalty Types
+			<a onclick="$('.penalty-manage-table').toggleClass('hidden')"> ↓ </a>
+		</h4>
+	</legend>
+
+	<form method='POST' class='hidden penalty-manage-table'>
+
+		<i>These are the options available to the table when entering in a penalty. Uncheck the penalty type to remove it from the option list.<BR>(If you want something not in this list please ask for it to be added.)</i>
+
+		<table class='table-compact'>
+			<?php foreach($penalties as $p):?>
+				<tr>
+					<td style='width:0.1%' >
+						<input type='hidden' name='disablePenalties[attackID][<?=$p['attackID']?>]' value='0'>
+						<!--<input class='switch-input no-bottom' type='checkbox'
+							id='disablePenalties[attackID][<?=$p['attackID']?>]' <?=chk($p['enabled'],1)?>
+							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'>
+						<label class='switch-paddle no-bottom' for='disablePenalties[attackID][<?=$p['attackID']?>]'>
+						</label>-->
+						<input type='checkbox' class='no-bottom' 
+							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'  
+							<?=chk($p['enabled'],1)?> >
+					</td>
+					<td >
+						<?=$p['name']?>	
+					</td>
+				</tr>
+			<?php endforeach ?>
+		</table>
+
+		<div class='input-group'>
+			<input class='switch-input no-bottom input-group-field' type='checkbox'
+				id='disablePenalties[mandatory]' <?=$mandatoryChk?>
+				name='disablePenalties[mandatory]' value='1'>
+			<label class='switch-paddle no-bottom' for='disablePenalties[mandatory]'>
+			</label>
+			<span class='input-group-label'>Specifying penalty actions is mandatory</span>
+		</div>
+
+		
+		<button class='button success' name='formName' value='disablePenalties'>
+			Update
+		</button>
+
+	</form>
+	</fieldset>
+<?php
+}
+
 /******************************************************************************/
 
 function publicationsSettingsBox($canChangeSettings){

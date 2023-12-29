@@ -12,6 +12,12 @@ function readOption($type, $id, $optionEnum){
 	$id = (int)$id;
 
 	switch($type){
+		case 'e':
+		case 'E':
+			$table = 'eventEventOptions';
+			$column = 'eventID';
+			$optionID = (int)OPTION['E'][$optionEnum];
+			break;
 		case 't':
 		case 'T':
 			$table = 'eventTournamentOptions';
@@ -6373,13 +6379,39 @@ function getPenaltyColors(){
 
 /******************************************************************************/
 
-function getPenaltyActions(){
+function getPenaltyActions($eventID = null){
 
-	$sql = "SELECT attackID, attackText
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT attackID, attackText AS name
 			FROM systemAttacks
 			WHERE attackClass = 'illegalAction'
 			ORDER BY attackText ASC";
-	return mysqlQuery($sql, KEY_SINGLES, 'attackID', 'attackText');
+	$penaltyList = (array)mysqlQuery($sql, ASSOC);
+
+
+	// If the eventID was provided, then check to see if any penalties are disabled in this event.
+	if($eventID != 0){
+		$sql = "SELECT attackID, penaltyDisabledID
+				FROM eventPenaltyDisabled
+				WHERE eventID = {$eventID}";
+		$disabledPenalties = (array)mysqlQuery($sql, KEY_SINGLES, 'attackID', 'penaltyDisabledID');
+	} else {
+		$disabledPenalties = [];
+	}
+
+	foreach($penaltyList as $i => $p){
+		$attackID = $p['attackID'];
+		if(isset($disabledPenalties[$attackID ]) == true){
+			$penaltyList[$i]['enabled'] = false;
+		} else {
+			$penaltyList[$i]['enabled'] = true;
+		}
+	}
+	
+
+	return($penaltyList);
+
 }
 
 /******************************************************************************/

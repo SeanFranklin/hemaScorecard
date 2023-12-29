@@ -15,6 +15,12 @@ function writeOption($type, $id, $optionEnum, $optionValue){
 	$optionValue = (int)$optionValue;
 
 	switch($type){
+		case 'e':
+		case 'E':
+			$table = 'eventEventOptions';
+			$column = 'eventID';
+			$optionID = (int)OPTION['E'][$optionEnum];
+			break;
 		case 't':
 		case 'T':
 			$table = 'eventTournamentOptions';
@@ -5725,6 +5731,62 @@ function divSeedingByRating($post){
 	setAlert(USER_ALERT, $txt);
 
 	updateTournamentFighterCounts(null, $_SESSION['eventID']);
+
+}
+
+/******************************************************************************/
+
+function disableEventPenalties($post){
+
+	$eventID = (int)$_SESSION['eventID'];
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$penaltyList = (array)@$post['attackID']; // Could be empty
+	$penaltiesToSuppress = [];
+
+	foreach($penaltyList as $attackID => $enabled){
+
+		if((bool)$enabled == false){
+			$attackID = (int)$attackID;
+
+			$sql = "SELECT penaltyDisabledID
+					FROM eventPenaltyDisabled
+					WHERE attackID = {$attackID}
+					AND eventID = {$eventID}";
+			$penaltyDisabledID = (int)mysqlQuery($sql, SINGLE, 'penaltyDisabledID');
+
+			if($penaltyDisabledID == 0){
+				$sql = "INSERT INTO eventPenaltyDisabled
+						(eventID, attackID)
+						VALUES 
+						({$eventID}, {$attackID})";
+				$penaltyDisabledID = mysqlQuery($sql, INDEX);
+			} else {
+				// Since it is already in there no need to do anything.
+			}
+
+			$penaltiesToSuppress[] = $penaltyDisabledID;
+
+		}
+	}
+
+	$penaltiesToSuppress = implode2int($penaltiesToSuppress);
+
+	$sql = "DELETE FROM eventPenaltyDisabled
+			WHERE penaltyDisabledID NOT IN ($penaltiesToSuppress)";
+	mysqlQuery($sql, SEND);
+
+
+// Option to make the action for a penalty mandatory
+	if(isset($post['mandatory']) == true && (int)$post['mandatory'] != 0){
+		writeOption('E', $eventID, 'PENALTY_ACTION_IS_MANDATORY', 1);
+	} else {
+		writeOption('E', $eventID, 'PENALTY_ACTION_IS_MANDATORY', 0);
+	}
+
+	setAlert(USER_ALERT, "Suppressed Penalties list updated.");
 
 }
 
