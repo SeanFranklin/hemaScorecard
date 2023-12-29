@@ -1,5 +1,31 @@
 /* Added By Sean **************************************************************/
 
+.background-primary{
+  background-color: #1779ba;
+}
+
+.background-primary-light{
+  background-color: #D6E5FA;;
+}
+
+.background-secondary{
+  background-color: #767676;
+}
+
+.background-success{
+  background-color: #3adb76;
+}
+
+.background-warning{
+  background-color: #ffae00;
+}
+
+.background-alert{
+  background-color: #cc4b37;
+}
+
+
+
 .yearly-summary-text {
   font-size:1.25em;
 }

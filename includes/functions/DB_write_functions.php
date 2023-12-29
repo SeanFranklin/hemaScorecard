@@ -1173,51 +1173,73 @@ function logisticsCheckInMatchStaff($info){
 	}
 
 	$matchID = (int)$info['matchID'];
+	$eventID = (int)$_SESSION['eventID'];
+	$staffInMatch = [];
 	$anyErrors = false;
 
-	foreach($info['umsInfo'] as $matchStaffID => $member){
+	$sql = "SELECT rosterID
+			FROM eventRoster
+			WHERE eventID = {$eventID}";
+	$eventRoster = (array)mysqlQuery($sql, KEY_SINGLES, 'rosterID','rosterID');
 
-		$matchStaffID = (int)$matchStaffID;
-		$rosterID = (int)$member['rosterID'];
-		$logisticsRoleID = (int)$member['logisticsRoleID'];
+	foreach($info['staffList'] as $member){
 
-		if($matchStaffID < 0){
-			if($rosterID != 0 && $logisticsRoleID != 0){
+		$rosterID = @(int)$member['rosterID']; // Not existing is same as zero
+		$logisticsRoleID = @(int)$member['logisticsRoleID']; // Not existing is same as zero
 
-				$sql = "SELECT COUNT(*) AS numConflicts
-						FROM logisticsStaffMatches
-						WHERE matchID = {$matchID}
-						AND rosterID = {$rosterID}";
-				$isConflict = (bool)mysqlQuery($sql, SINGLE, 'numConflicts');
+		if($rosterID == 0){
+			continue;
+		}
 
-				if($isConflict){
-					$name = getFighterName($rosterID);
-					$role = logistics_getRoleName($logisticsRoleID);
-					setAlert(USER_ERROR,"You can not assign the same person to a match twice.<BR>
-						<strong>{$name}</strong> not added as <em>{$role}</em>.");
-					$anyErrors = true;
-					continue;
-				}
+		if($logisticsRoleID == 0 || isset($eventRoster[$rosterID]) == false){
+			$name = getFighterName($rosterID);
+			setAlert(USER_ERROR,"Invalid role or event registration for <strong>{$name}</strong> and they could not be added.");
+			$anyErrors = true;
+			continue;
+		}
 
-				$sql = "INSERT INTO logisticsStaffMatches
-						(matchID, rosterID, logisticsRoleID)
-						VALUES
-						({$matchID},{$rosterID},{$logisticsRoleID})";
-				mysqlQuery($sql, SEND);
-			}
+		if(isset($staffInMatch[$rosterID]) == true){
+			$name = getFighterName($rosterID);
+			$role = logistics_getRoleName($logisticsRoleID);
+			setAlert(USER_ERROR,"You can not assign the same person to a match twice.<BR>
+				<strong>{$name}</strong> not added as <em>{$role}</em>.");
+			$anyErrors = true;
+			continue;
+		}
+
+		$staffInMatch[$rosterID] = $rosterID;
+
+		$sql = "SELECT matchStaffID
+				FROM logisticsStaffMatches
+				WHERE rosterID = {$rosterID}
+				AND matchID = {$matchID}";
+
+		$matchStaffID = (int)mysqlQuery($sql, SINGLE, 'matchStaffID');
+	
+		if($matchStaffID == 0){
+			
+			$sql = "INSERT INTO logisticsStaffMatches
+					(matchID, rosterID, logisticsRoleID)
+					VALUES
+					({$matchID}, {$rosterID}, {$logisticsRoleID})";
+			mysqlQuery($sql, SEND);
+			
 		} else {
-			if($rosterID == 0 || $logisticsRoleID == 0){
-				$sql = "DELETE FROM logisticsStaffMatches
-						WHERE matchStaffID = {$matchStaffID}";
-				mysqlQuery($sql, SEND);
-			} else {
-				$sql = "UPDATE logisticsStaffMatches
-						SET rosterID = {$rosterID}, logisticsRoleID = {$logisticsRoleID}
-						WHERE matchStaffID = {$matchStaffID}";
-				mysqlQuery($sql, SEND);
-			}
+			
+			$sql = "UPDATE logisticsStaffMatches
+					SET rosterID = {$rosterID}, logisticsRoleID = {$logisticsRoleID}
+					WHERE matchStaffID = {$matchStaffID}";
+			mysqlQuery($sql, SEND);
+			
 		}
 	}
+
+	$validMatchStaff = implode2int($staffInMatch);
+
+	$sql = "DELETE FROM logisticsStaffMatches
+			WHERE matchID = {$matchID}
+			AND rosterID NOT IN ({$validMatchStaff})";
+	mysqlQuery($sql, SEND);
 
 	if($anyErrors == false){
 		setAlert(USER_ALERT,"Match staff updated.");
