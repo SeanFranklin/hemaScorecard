@@ -16,6 +16,7 @@ $jsIncludes[] = 'roster_management_scripts.js';
 // This is necessary for the custom table-sortability
 $createSortableDataTable[] = ['particiantsScheduleSummaryTable',100];
 $createSortableDataTable[] = ['particiantsScheduleMatchesTable',100];
+$createSortableDataTable[] = ['table-staff-shifts-full',100];
 
 include('includes/header.php');
 
@@ -58,6 +59,14 @@ if($_SESSION['eventID'] == null){
 			</a>
 		</li>
 
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true):?>
+			<li class="tabs-title">
+				<a data-tabs-target="panel-list-all" href="#panel-list-all">
+					Full List Of (Scheduled) Staff Shifts
+				</a>
+			</li>
+		<?php endif ?>
+
 	</ul>
 
 <!-- Tab Content -->
@@ -73,15 +82,58 @@ if($_SESSION['eventID'] == null){
 			<?php displayStaffingMatchesSummary();?>
 		</div>
 
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true):?>
+			<div class="tabs-panel" id="panel-list-all">
+				<?php displayStaffingFullList();?>
+			</div>
+		<?php endif ?>
+
 	</div>
-
-
 
 <?php }
 include('includes/footer.php');
 
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
+/******************************************************************************/
+
+function displayStaffingFullList(){
+
+	$shiftList = logistics_getEventFullShiftList($_SESSION['eventID']);
+
+?>
+
+	<table id='table-staff-shifts-full'>
+		<thead>
+			<tr>
+				<th>Last</th>
+				<th>First</th>
+				<th>School</th>
+				<th>Day</th>
+				<th>Location</th>
+				<th>Role</th>
+				<th>Minutes</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach($shiftList as $s): ?>
+				<tr>
+					<td><?=$s['lastName']?></td>
+					<td><?=$s['firstName']?></td>
+					<td><?=$s['schoolFullName']?></td>
+					<td>Day #<?=$s['dayNum']?></td>
+					<td><?=$s['locationName']?></td>
+					<td><?=$s['roleName']?></td>
+					<td><?=$s['length']?></td>
+				</tr>
+			<?php endforeach ?>
+		</tbody>
+	</table>
+
+
+<?php
+}
+
 /******************************************************************************/
 
 function displayStaffingMatchesSummary(){
