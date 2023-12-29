@@ -465,6 +465,10 @@ function processPostData(){
 				if (ALLOW['SOFTWARE_ADMIN'] == true && (int)$_POST['plaintextMode'] != 0){$_SESSION['forcePlainText'] = true;}
 					else {unset($_SESSION['forcePlainText']);}
 				break;
+			case 'disablePenalties':
+				disableEventPenalties($_POST['disablePenalties'], $_SESSION['eventID']);
+				break;
+
 
 	// Logistics Cases
 			case 'editLocations':

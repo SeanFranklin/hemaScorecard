@@ -1699,7 +1699,13 @@ function addPenaltyBox($matchInfo){
 
 	$maxPenalty = -30; // Arbitrary Number
 	$cards = getPenaltyColors();
-	$actions = getPenaltyActions();
+	$actions = getPenaltyActions($_SESSION['eventID']);
+
+	if((bool)readOption('E',$_SESSION['eventID'],'PENALTY_ACTION_IS_MANDATORY') == true){
+		$req = 'required';
+	} else {
+		$req = '';
+	}
 
 	?>
 
@@ -1753,11 +1759,12 @@ function addPenaltyBox($matchInfo){
 				<span class='input-group-label'>
 					Violation
 				</span>
-				<select class='input-group-field' name='score[penalty][action]'>
+				<select class='input-group-field' name='score[penalty][action]' <?=$req?>>
 					<option value=''>None</option>
-					<?php foreach($actions as $attackID => $name): ?>
-						<option value='<?=$attackID?>'>
-							<?=$name?>
+					<?php foreach($actions as $a): 
+						if($a['enabled'] == false){continue;}?>
+						<option value='<?=$a['attackID']?>'>
+							<?=$a['name']?>
 						</option>
 					<?php endforeach ?>
 				</select>
