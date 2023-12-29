@@ -158,6 +158,26 @@ function submitForm(formID, formName, directMode = false){
         form = formID;
     }
 
+    var classList = form.getElementsByClassName('input-datalist');
+
+    for(var i = 0; i < classList.length; i++){
+
+        var inputElement = classList[i];
+        var datalist = document.getElementById('staff-select-datalist').options;
+
+        for(var j = 0; j < datalist.length; j++){
+            
+            if(datalist[j].label === inputElement.value){
+                
+                var formNameInput = document.createElement('input');
+                formNameInput.type = 'hidden';
+                formNameInput.name = inputElement.dataset.name;
+                formNameInput.value = datalist[j].dataset.value;
+                form.appendChild(formNameInput);
+            }
+            
+        }
+    }
 
     var formNameInput = document.createElement('input');
     formNameInput.type = 'hidden';
@@ -466,3 +486,4 @@ function secondsToMinAndSec(time, displayNegative = false){
 }
 
 /******************************************************************************/
+

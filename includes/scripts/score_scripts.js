@@ -798,6 +798,65 @@ function selectActiveFighter(rosterID, num, buttonClicked){
 
 /******************************************************************************/
 
+function validateStaffSelection(baseID){
+
+	var inputElement = document.querySelectorAll("[data-id='"+baseID+"']")[0];
+	var datalist = document.getElementById('staff-select-datalist').options;
+
+	var valid = false;
+	
+
+	if(inputElement.value.trim() == ""){
+		inputElement.value = "";
+		valid = true;
+
+	} else {
+		for(var j = 0; j < datalist.length; j++){
+        
+	        if(datalist[j].label === inputElement.value){
+	            
+	            valid = true;
+	        }
+	        
+	    }
+	}
+
+    if(valid == true){
+
+    	staffSetPending(baseID);
+
+    } else {
+
+    	document.getElementById(baseID+'-status').innerHTML = "!!";
+    	$('.'+baseID+'-status').removeClass('background-primary-light');
+    	$('.'+baseID+'-status').addClass('background-warning');
+    }
+
+}
+
+/******************************************************************************/
+
+function clearDatalist(baseID){
+
+    //var a = document.getElementsByClassName('input-datalist').querySelectorAll('[data-id]');
+    var a = document.querySelectorAll("[data-id='"+baseID+"']");
+    a[0].value = "";
+    staffSetPending(baseID);
+
+}
+
+/******************************************************************************/
+
+function staffSetPending(baseID){
+
+	$('.'+baseID+'-status').removeClass('background-warning');
+	$('.'+baseID+'-status').addClass('background-primary-light');
+	document.getElementById(baseID+'-status').innerHTML = "?";
+	
+}
+
+/******************************************************************************/
+
 function rollForTeamOrder(){
 
 	var text = [];
@@ -868,5 +927,8 @@ function rollForOffhand(){
 	}
 
 }
+
+/******************************************************************************/
+
 
 /******************************************************************************/

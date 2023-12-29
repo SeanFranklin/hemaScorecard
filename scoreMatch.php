@@ -17,6 +17,9 @@ $jsIncludes[] = 'score_scripts.js';
 $jsIncludes[] = 'video_scripts.js';
 include('includes/header.php');
 
+define('STAFF_CHECK_IN_TO_SHOW', 7);
+define('STAFF_CHECK_IN_MAX',     12);
+
 $matchID = $_SESSION['matchID'];
 $tournamentID = $_SESSION['tournamentID'];
 $eventID = $_SESSION['eventID'];
@@ -79,9 +82,28 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		gridScoreBoxes($matchInfo);
 	}
 
+// Check to see if the match should be locked from ANY input because the staff check-in is mandatory.
+	$lockMatchForStaffCheckIn = false;
+	$matchName = "";
+	
+	$checkInLevel = logistics_getTournamentStaffCheckInLevel($matchInfo['tournamentID']);	
+	if($checkInLevel == STAFF_CHECK_IN_MANDATORY){
+	
+		$lockMatchForStaffCheckIn = !logistics_areMatchStaffCheckedIn($matchID);
+		$matchName = '<b>'.getFighterName($matchInfo['fighter1ID'])."</b> vs <b>".getFighterName($matchInfo['fighter2ID'])."</b><BR>";
+		
+		if($matchInfo['matchType'] == 'pool'){
+			$matchName .= "<i>".$matchInfo['groupName'].", Match ".$matchInfo['matchNumber']."</i>";
+		} else {
+			$matchName .= "<i>Bracket</i>";
+		}
+
+	}
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
+
 	<script>
 		var GRID_ENTRY_MODE = <?=$attackGrid?>
 	</script>
@@ -115,27 +137,57 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 			<?php switchFighersBox($matchInfo) ?>
 
 			<!-- Fighter scores -->
-			<div class='large-12 cell'>
-				<form method='POST'>
-				<fieldset <?=LOCK_MATCH?>>
-					<input type='hidden' name='formName' value='newExchange'>
-					<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
-					<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
-					<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
-					<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
-					<?php dataEntryBox($matchInfo);	?>
-				</fieldset>
-				</form>
 
-				<?php if(	ALLOW['EVENT_SCOREKEEP'] == true
-						 && $matchInfo['matchComplete'] == 1
-						 && isSignOffRequired($matchInfo['tournamentID'])
-						){
+			<?php if($lockMatchForStaffCheckIn == false): ?>
+				<div class='large-12 cell'>
+					
 
-						signOffForm($matchInfo);
-				}?>
+					<form method='POST'>
+					<fieldset <?=LOCK_MATCH?>>
+						<input type='hidden' name='formName' value='newExchange'>
+						<input type='hidden' name='lastExchangeID' value='<?=$matchInfo['lastExchange']?>'>
+						<input type='hidden' name='matchID' value='<?=$matchID?>' id='matchID'>
+						<input type='hidden' class='matchTime' name='matchTime' value='<?=$matchInfo['matchTime']?>'>
+						<input type='hidden' class='exchangeID' name='score[exchangeID]' id='exchangeID'>
+						<?php dataEntryBox($matchInfo);	?>
+					</fieldset>
+					</form>
 
-			</div>
+					<?php if(	ALLOW['EVENT_SCOREKEEP'] == true
+							 && $matchInfo['matchComplete'] == 1
+							 && isSignOffRequired($matchInfo['tournamentID'])
+							){
+
+							signOffForm($matchInfo);
+					}?>
+
+					
+				</div>
+			<?php else: ?>
+				<div class='grid-x grid-margin-x'>
+
+				<div class='cell' style='margin-top:30px;'>
+					<?=$matchName?>
+				</div>
+					
+
+				<div class='small-2 cell'></div>
+
+				<a data-open='matchStaffConfirmBox'>
+				<div class='small-8 cell callout alert text-center clickable' 
+					style='margin-top:50px;margin-bottom:100px;' >
+
+					<h3>
+						Match Staff must be confirmed<BR>
+						(click here)
+						
+					</h3>
+				</div>
+				</a>
+				</div>
+				<div class='small-2 cell'></div>
+			<?php endif?>
+		
 
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 				<BR>
@@ -338,103 +390,122 @@ function confirmStaffBox($matchInfo, $staffList = null){
 	$staffList = getEventRoster();
 	$matchStaffList = logistics_getMatchStaffSuggestion($matchInfo);
 	$hideRows = '';
-	$msIDcounter = -1;
 	$possibleStaffShifts = logistics_getMatchStaffShifts($matchInfo);
-	$totalRowsShowing = 0;
+	$rowCounter = 0;
 
 ?>
 
 	<div class='reveal' id='matchStaffConfirmBox' data-reveal>
 
-		<h4>Check In Staff</h4>
-		<form method='POST'>
+		<h4>Check In Staff
+
+<?php if($possibleStaffShifts != null): ?>
+			<a class='button hollow small no-bottom' data-open='matchStaffLoadShiftBox'>
+				Get Staff From Schedule
+			</a>
+			
+		<?php endif ?>
+		</h4>
+		<form method='POST' id='update-match-staff'>
 		<input type='hidden' name='updateMatchStaff[matchID]' value='<?=$matchInfo['matchID']?>'>
 
 	<!-- Top button bar -->
-		<?php if($possibleStaffShifts != null): ?>
-			<a class='button hollow no-bottom' data-open='matchStaffLoadShiftBox'>
-				Get Staff From Schedule
-			</a>
-			<BR>
-		<?php endif ?>
-
-		[<strong>&#x2714;</strong>]: Already Checked In <BR>
-		[<strong>?</strong>]: Guess based on last staff in this ring. <BR>
-
-
+		
+	<!-- Instructions ------>
 		<em>
-			<?=toggleClass('hiddenCheckStaffRow','(Show More Rows &#8595;)','(Show Less Rows &#8593;)')?>
+			<?=toggleClass('check-in-staff-instructions','(How Does This Work? &#8595;)','(Got It &#8593;)')?>
 		</em>
+
+		<div class='hidden check-in-staff-instructions callout'>
+			<li>Start typing in name and <n>use auto-complete to select staff</n>. <u>You can only add staff from the existing list</u>.</li>
+			<li>The red 'X' clears the text field. </li>
+			<li>Leaving a field empty will clear any staff that was in it.</li>
+			Status of the entry is shown on the left:<BR>
+			[&nbsp;&nbsp;&nbsp;] w/ white/grey background: <i>Already Checked In </i><BR>
+			[<strong>?</strong>] w/ blue background: <i>Pending Changes</i> <BR>
+			[<strong>!!</strong>] w/ orange background: <i>Invalid Name (use the drop down names only)</i> <BR>
+		</div>
+
+	<!-- Datalist -------------->
+		<datalist id="staff-select-datalist">
+			<?php foreach($staffList as $s): ?>
+				<option data-value='<?=$s['rosterID']?>'><?=getFighterName($s['rosterID'])?></option>
+			<?php endforeach ?>
+		</datalist>
 
 	<!-- Data entry fields -->
 		<table>
 			<?php foreach($matchStaffList as $member):
-				$msID = $member['matchStaffID'];
-				$totalRowsShowing++;
-				if($msID < 0){
-					$msID = $msIDcounter;
-					$msIDcounter--;
+
+				$rowCounter++;
+				$i = $rowCounter;
+				if($member['matchStaffID'] < 0){
 					$isAlreadySet = '?';
+					$isPending = 'background-primary-light';
 				} else {
 					$alreadySet[$member['rosterID']] = true;
-					$isAlreadySet = '&#x2714;';
+					$isAlreadySet = '&nbsp';
+					$isPending = '';
 				}
 				?>
 				<tr>
-					<th>
+					<th id='staff-select-<?=$i?>-status' class='staff-select-<?=$i?>-status <?=$isPending?>' style='font-size: 1.5em;'>
 						<?=$isAlreadySet?>
 					</th>
-					<td>
-						<select name='updateMatchStaff[umsInfo][<?=$msID?>][rosterID]'>
-							<option value='<?=$member['rosterID']?>'>
-								<?=getFighterName($member['rosterID'])?>
-							</option>
-							<option value='0'>
-								- Delete Staff Member -
-							</option>
-						</select>
+					<td  class='staff-select-<?=$i?>-status <?=$isPending?>'>
+
+						<input class='input-datalist' list="staff-select-datalist"
+
+							placeholder="- empty -"
+							data-name='updateMatchStaff[staffList][<?=$i?>][rosterID]' 
+							data-id='staff-select-<?=$i?>' 
+							value='<?=getFighterName($member['rosterID'])?>' 
+							onchange="validateStaffSelection('staff-select-<?=$i?>')">
+
+						<a class='button alert hollow no-bottom tiny' onclick="clearDatalist('staff-select-<?=$i?>')">x</a>
+
 					</td>
-					<td>
-						<select  name='updateMatchStaff[umsInfo][<?=$msID?>][logisticsRoleID]'>
+					<td  class='staff-select-<?=$i?>-status <?=$isPending?>'>
+
+						<select  name='updateMatchStaff[staffList][<?=$i?>][logisticsRoleID]'>
 							<?php foreach($rolesList as $role):?>
 								<option <?=optionValue($role['logisticsRoleID'],$member['logisticsRoleID'])?> >
 									<?=$role['roleName']?>
 								</option>
 							<?php endforeach ?>
 						</select>
+
 					</td>
 
 			<?php endforeach ?>
 
 
 		<!-- Add New Staff -->
-			<?php for($i=$msIDcounter;$i>=($msIDcounter-10);$i--): // Negative values for new staff
-				$totalRowsShowing++;
-				if($totalRowsShowing > 7){
+			<?php while($rowCounter < STAFF_CHECK_IN_MAX): // Negative values for new staff
+				$rowCounter++;
+				$i = $rowCounter;
+				if($i > STAFF_CHECK_IN_TO_SHOW){
 					$hideRows = "class='hiddenCheckStaffRow hidden'";
 				}
 				?>
 				<tr <?=$hideRows?> >
-					<td>
+					<th  id='staff-select-<?=$i?>-status'>
 						<!-- Always empty -->
-					</td>
+					</th>
+
 					<td>
-						<select name='updateMatchStaff[umsInfo][<?=$i?>][rosterID]'>
-							<option></option>
-							<?php foreach($staffList as $person):
-								if(isset($alreadySet[$person['rosterID']]) == true){
-									continue;
-								}?>
-
-								<option <?=optionValue($person['rosterID'],null)?> >
-									<?=getFighterName($person['rosterID'])?>
-								</option>
-
+						<input data-id="staff-select-<?=$i?>" list="staff-select-<?=$i?>-datalist"  class='input-datalist' data-name='updateMatchStaff[staffList][<?=$i?>][rosterID]' placeholder="- empty -" onchange="validateStaffSelection('staff-select-<?=$i?>')">
+							<datalist id="staff-select-<?=$i?>-datalist">
+							<?php foreach($staffList as $s): ?>
+								<option data-value='<?=$s['rosterID']?>'><?=getFighterName($s['rosterID'])?></option>
 							<?php endforeach ?>
-						</select>
+						</datalist>
+
+						<a class='button alert hollow no-bottom tiny' onclick="clearDatalist('staff-select-<?=$i?>')">x</a>
 					</td>
+
 					<td>
-						<select  name='updateMatchStaff[umsInfo][<?=$i?>][logisticsRoleID]'>
+						<select  name='updateMatchStaff[staffList][<?=$i?>][logisticsRoleID]'>
 							<?php foreach($rolesList as $role):?>
 								<option <?=optionValue($role['logisticsRoleID'],null)?> >
 									<?=$role['roleName']?>
@@ -443,11 +514,14 @@ function confirmStaffBox($matchInfo, $staffList = null){
 						</select>
 					</td>
 				</tr>
-			<?php endfor ?>
+			<?php endwhile ?>
 
 		</table>
 
-
+		<em>
+			<?=toggleClass('hiddenCheckStaffRow','(Show More Rows &#8595;)','(Show Less Rows &#8593;)')?>
+		</em>
+		<HR>
 
 
 	<!-- Submit buttons -->
@@ -461,10 +535,10 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 		<div class='grid-x grid-margin-x'>
 
-			<button class='button success small-6 cell <?=$bClass?>' name='formName'
-				value='updateMatchStaff'>
+			<a class='button success small-6 cell <?=$bClass?>' 
+				onclick="submitForm('update-match-staff', 'updateMatchStaff')">
 				<?=$bText?>
-			</button>
+			</a>	
 
 			<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
 				Cancel
@@ -1826,19 +1900,6 @@ function createSideBar($matchInfo){
 ///////////////////////////////////////////////// ?>
 
 
-<!-- Staff Confirmation Mandatory Request -->
-	<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $staffConfirmRequired == true): ?>
-		<div class='callout alert'>
-			<strong>
-				<a data-open='matchStaffConfirmBox'>
-					Match Staff must be confirmed
-				</a>
-			</strong>
-		</div>
-
-	<?php endif ?>
-
-
 <!-- Match winner management/display -->
 	<?php if($endText1 != null || $endText2 != null): ?>
 		<h4><?=$endText1?></h4>
@@ -1854,7 +1915,7 @@ function createSideBar($matchInfo){
 		<input type='hidden' class='matchTime' id='matchTime'
 			name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 		<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
-		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+		<?php if(ALLOW['EVENT_SCOREKEEP'] == true && $lockInputs == ''): ?>
 			<script>
 				window.onload = function(){
 
