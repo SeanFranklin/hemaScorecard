@@ -218,26 +218,46 @@ function match_LastName_School($fighter){
 
 function tournamentEntryTooltip($systemRosterID){
 
+
+	$sql = "SELECT eventID, rosterID
+			FROM eventRoster
+			INNER JOIN systemEvents USING(eventID)
+			WHERE systemRosterID = {$systemRosterID}
+			ORDER BY eventStartDate DESC";
+	$eventList = (array)mysqlQuery($sql, SINGLES, 'eventID');
+
+	$displayList = [];
+	foreach($eventList as $e){
+		$tmp = [];
+		$tmp['name'] = getEventName($e);
+		$tmp['tournaments'] = [];
+		$displayList[$e] = $tmp;
+	}
+
 	$sql = "SELECT tournamentID, eventID
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			WHERE systemRosterID = {$systemRosterID}
 			ORDER BY eventID DESC";
-	$allTournaments = mysqlQuery($sql, ASSOC);
+	$tournamentList = mysqlQuery($sql, ASSOC);
 
-	$oldEventID = null;
+	foreach($tournamentList as $t){
+		$displayList[$t['eventID']]['tournaments'][] = getTournamentName($t['tournamentID']);
+	}
+
 	$str = '';
 
-	foreach($allTournaments as $entry){
-		if($entry['eventID'] != $oldEventID){
-			if($oldEventID != null){ $str .= "</ul>";}
-			$oldEventID = $entry['eventID'];
-			$str .= "<ul><strong>".getEventName($oldEventID)."</strong><BR>";
-		}
-		$str .= "<li>".getTournamentName($entry['tournamentID'])."</li>";
-	}
-	$str .= "</ul>";
+	foreach($displayList as $e){
 
+		$str .= "<ul><strong>{$e['name']}</strong><BR>";
+
+		foreach($e['tournaments'] as $name){
+			$str .= "<li>{$name}</li>";
+		}
+
+		$str .= "</ul>";
+	}
+	
 	?>
 	<div class="tooltip">?
 		<span class="tooltiptext"><?=$str?></span>
