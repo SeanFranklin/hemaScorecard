@@ -16,12 +16,13 @@ define('FIRST_YEAR', 2015);
 
 {
 	// Show last year for the first 30 days of the new year.
-	$currentYear = (int)date("Y", strtotime("-30 day")); 
+	$defaultYear = (int)date("Y", strtotime("-30 day")); 
+	$currentYear = (int)date("Y"); 
 	
 	if(isset($_SESSION['stats']['year']) == true){
 		$year = (int)$_SESSION['stats']['year'];
 	} else {
-		$year = $currentYear;
+		$year = $defaultYear;
 	}
 
 	if($year != 0){
