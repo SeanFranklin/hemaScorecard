@@ -42,11 +42,6 @@ if($_SESSION['eventID'] == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-
-
-
-
-
 <?php }
 include('includes/footer.php');
 
@@ -61,6 +56,12 @@ function instructorForm($instructor, $avaliableStaff){
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		displayInstructorBio($instructor);
 		return;
+	}
+
+	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+		$wysisygClass = '';
+	} else {
+		$wysisygClass = 'tiny-mce';
 	}
 
 	if($instructor != null){
@@ -119,7 +120,7 @@ function instructorForm($instructor, $avaliableStaff){
 		<?php endif ?>
 
 		<div class='cell large-12'>
-			<textarea rows=12 name='instructorBio[instructorBio]' placeholder='Instructor Bio'><?=$bio?></textarea>
+			<textarea rows=12 name='instructorBio[instructorBio]' class='<?=$wysisygClass?>' placeholder='Instructor Bio'><?=$bio?></textarea>
 		</div>
 
 
@@ -176,7 +177,7 @@ function displayInstructorBio($instructor){
 	$classes = [];
 	foreach((array)@$personalSchedule['scheduled'] as $block){
 
-		if($block['logisticsRoleID'] == LOGISTICS_ROLE_INSTRUCTOR){
+		if(@$block['logisticsRoleID'] == LOGISTICS_ROLE_INSTRUCTOR){
 			$classes[] = logistics_getScheduleBlockInfo($block['blockID']);
 		}
 	}
