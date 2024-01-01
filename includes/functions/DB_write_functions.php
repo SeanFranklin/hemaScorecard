@@ -6754,6 +6754,53 @@ function updateExistingSchool(){
 
 /******************************************************************************/
 
+function deleteSchool($schoolID){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		return;
+	}
+
+	$schoolID = (int)$schoolID;
+	$schoolName = getSchoolName($schoolID, 'long', true);
+
+	if($schoolID == 1 || $schoolID == 2){
+		setAlert(USER_ERROR, "Can't delete Unknown or Unaffiliated.");
+		return;
+	}
+
+	$sql = "SELECT schoolID, (	SELECT COUNT(DISTINCT(systemRosterID)) AS num
+						FROM eventRoster AS eR2
+						WHERE eR2.schoolID = sS.schoolID
+					) AS numEventReg,
+					(	SELECT COUNT(*) AS num
+						FROM systemRoster AS sR3
+						WHERE sR3.schoolID = sS.schoolID
+					) AS numSysReg
+			FROM systemSchools AS sS
+			WHERE schoolID = {$schoolID}";
+	$schoolInfo = (array)mysqlQuery($sql, SINGLE);
+
+	if($schoolInfo == null){
+		return;
+	}
+
+	$numReg = (int)$schoolInfo['numEventReg'] + (int)$schoolInfo['numSysReg'];
+
+	if($numReg != 0){
+		setAlert(USER_ERROR, "<u>{$schoolName}</u> has fighters registered. Could not delete.");
+		return;
+	}
+
+	$sql = "DELETE FROM systemSchools
+			WHERE schoolID = {$schoolID}";
+	mysqlQuery($sql, SEND);
+
+	setAlert(USER_ALERT, "School <b>{$schoolName}</b> deleted.");
+
+}
+
+/******************************************************************************/
+
 function updateFinalsBracket(){
 	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
 	$tournamentID = $_SESSION['tournamentID'];

@@ -6011,11 +6011,19 @@ function getSchoolListLong(){
 
 	$sql = "SELECT schoolID, schoolFullName, schoolShortName, schoolBranch,
 				schoolAbbreviation, schoolCity, schoolProvince, countryIso2,
-				countryName
-			FROM systemSchools
+				countryName,
+					(	SELECT COUNT(DISTINCT(systemRosterID)) AS num
+						FROM eventRoster AS eR2
+						WHERE eR2.schoolID = sS.schoolID
+					) AS numEventReg,
+					(	SELECT COUNT(*) AS num
+						FROM systemRoster AS sR3
+						WHERE sR3.schoolID = sS.schoolID
+					) AS numSysReg
+			FROM systemSchools AS sS
 			INNER JOIN systemCountries USING(countryIso2)
 			ORDER BY schoolShortName, schoolBranch";
-	$allSchools = mysqlQuery($sql, ASSOC);
+	$allSchools = (array)mysqlQuery($sql, ASSOC);
 
 	return $allSchools;
 }

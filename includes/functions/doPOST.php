@@ -437,6 +437,9 @@ function processPostData(){
 			case 'editExistingSchool':
 				updateExistingSchool();
 				break;
+			case 'deleteSchool':
+				deleteSchool($_POST['schoolID']);
+				break;
 			case 'addNewEvent':
 				addNewEvent($_POST['eventInfo']);
 				break;
