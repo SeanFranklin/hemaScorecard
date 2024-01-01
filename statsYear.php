@@ -15,7 +15,9 @@ include('includes/header.php');
 define('FIRST_YEAR', 2015);
 
 {
-	$currentYear = (int)date("Y");
+	// Show last year for the first 30 days of the new year.
+	$currentYear = (int)date("Y", strtotime("-30 day")); 
+	
 	if(isset($_SESSION['stats']['year']) == true){
 		$year = (int)$_SESSION['stats']['year'];
 	} else {
@@ -30,10 +32,12 @@ define('FIRST_YEAR', 2015);
 				AND eventName NOT LIKE '%=%'";
 		$eventList = (array)mysqlQuery($sql, SINGLES);
 		$eventListStr = "eventID IN (".implode2int($eventList).")";
-		$eventListStrRaw = implode2int($eventList);
+
 	} else {
 		$eventListStr = "eventID IS NOT NULL";
 	}
+
+	$eventListStr .= " AND eventStartDate <= NOW() ";
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -48,7 +52,7 @@ define('FIRST_YEAR', 2015);
 		<h3 class='text-center red-text'>Warning!</h3>
 		This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
 	</div>
-	
+
 	<?=yearlySummaryCountries(	$eventListStr,'teal')?>
 	<?=yearlySummaryDates(		$eventListStr,'crimson')?>
 	<?=yearlySummaryExchanges(	$eventListStr,'gray')?>
@@ -199,6 +203,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 				INNER JOIN eventMatches USING(matchID)
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}";
 	$totalSystemExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
 
@@ -209,6 +214,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 			FROM eventExchanges
 				INNER JOIN eventMatches AS eM USING(matchID)
 				INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND systemRosterID IS NOT NULL
 				AND exchangeType IN ($validExchanges)
@@ -221,6 +227,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 			FROM eventExchanges
 				INNER JOIN eventMatches AS eM USING(matchID)
 				INNER JOIN eventRoster AS eR1 ON eM.fighter2ID = eR1.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND systemRosterID IS NOT NULL
 				AND exchangeType IN ($validExchanges)
@@ -258,6 +265,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 			FROM eventExchanges
 				INNER JOIN eventMatches AS eM USING(matchID)
 				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND eR.schoolID IS NOT NULL
 				AND eR.schoolID != 1
@@ -272,6 +280,7 @@ function yearlySummaryExchanges($eventListStr, $color){
 			FROM eventExchanges
 				INNER JOIN eventMatches AS eM USING(matchID)
 				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND eR.schoolID IS NOT NULL
 				AND eR.schoolID != 1
@@ -346,6 +355,7 @@ function yearlySummaryMatches($eventListStr, $color){
 			FROM eventMatches
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}";
 	$totalSystemMatches = mysqlQuery($sql, SINGLE, 'numMatches');
 
@@ -355,6 +365,7 @@ function yearlySummaryMatches($eventListStr, $color){
 	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND systemRosterID IS NOT NULL
 			GROUP BY systemRosterID
@@ -365,6 +376,7 @@ function yearlySummaryMatches($eventListStr, $color){
 	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND systemRosterID IS NOT NULL
 			GROUP BY systemRosterID
@@ -401,6 +413,7 @@ function yearlySummaryMatches($eventListStr, $color){
 	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND eR.schoolID IS NOT NULL
 				AND eR.schoolID != 1
@@ -413,6 +426,7 @@ function yearlySummaryMatches($eventListStr, $color){
 	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND eR.schoolID IS NOT NULL
 				AND eR.schoolID != 1
@@ -491,6 +505,7 @@ function yearlySummaryTournaments($eventListStr, $color){
 	$sql = "SELECT tournamentType AS name, COUNT(*) AS value
 			FROM eventTournaments AS eT
 			INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 			GROUP BY tournamentType
 			ORDER BY value DESC, tournamentType ASC";
@@ -543,8 +558,10 @@ function yearlySummaryUrg($eventListStr, $color){
 	$urgTournaments = (array)mysqlQuery($sql, ASSOC);
 
 	$numTournaments = 0;
-	$byWeapon = [];
-	$byEvent = [];
+	$tournamentsByWeapon = [];
+	$regByWeapon = [];
+	$regByEvent = [];
+
 	foreach($urgTournaments as $t){
 		$numTournaments++;
 
@@ -553,7 +570,6 @@ function yearlySummaryUrg($eventListStr, $color){
 		@$regByEvent[$t['eventName']] += $t['numParticipants'];
 
 	}
-
 
 	$numEvents = sizeof($regByEvent);
 
@@ -614,6 +630,7 @@ function yearlySummaryClubs($eventListStr, $color){
 
 	$sql = "SELECT schoolID, COUNT(*) AS numReg
 			FROM eventRoster AS eR
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND eR.schoolID IS NOT NULL
 				AND eR.schoolID != 1
@@ -631,7 +648,8 @@ function yearlySummaryClubs($eventListStr, $color){
 
 	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
-			INNER JOIN eventRoster AS eR ON eM.winnerID = eR.rosterID
+				INNER JOIN eventRoster AS eR ON eM.winnerID = eR.rosterID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 			AND eR.schoolID IS NOT NULL
 			AND eR.schoolID != 1
@@ -671,6 +689,7 @@ function yearlySummaryIndividual($eventListStr, $color){
 	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eR.rosterID = eM.winnerID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND ABS(fighter1Score - fighter2Score) = 1
 				AND fighter1Score > 3
@@ -690,6 +709,7 @@ function yearlySummaryIndividual($eventListStr, $color){
 	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
 			FROM eventMatches AS eM
 				INNER JOIN eventRoster AS eR ON eR.rosterID = eM.winnerID
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND ((fighter1Score = 0 && fighter2Score >= 4)
 					OR (fighter2Score = 0 && fighter1Score >= 4))
@@ -710,6 +730,7 @@ function yearlySummaryIndividual($eventListStr, $color){
 				INNER JOIN eventMatches USING(matchID)
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND exchangeType IN ({$validExchanges})
 				AND formatID = 2
