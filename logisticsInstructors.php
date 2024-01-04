@@ -25,12 +25,17 @@ if($_SESSION['eventID'] == null){
 	$avaliableStaff = [];
 	foreach($eventRoster as $roster){
 		if(NAME_MODE == 'firstName'){
-			$avaliableStaff[$roster['rosterID']] = $roster['firstName']." ".$roster['lastName'];
+			$avaliableStaff[$roster['rosterID']]['name'] = $roster['firstName']." ".$roster['lastName'];
 		} else {
-			$avaliableStaff[$roster['rosterID']] = $roster['lastName'].", ".$roster['firstName'];
+			$avaliableStaff[$roster['rosterID']]['name'] = $roster['lastName'].", ".$roster['firstName'];
 		}
-
+		$avaliableStaff[$roster['rosterID']]['disabled'] = '';
 	}
+
+	foreach($instructorList as $i){
+		$avaliableStaff[$i['rosterID']]['disabled'] = 'disabled';
+	}
+
 
 	instructorForm(0, $avaliableStaff);
 
@@ -99,13 +104,19 @@ function instructorForm($instructor, $avaliableStaff){
 
 		<?php if($rosterID == null): ?>
 
-			<div class='cell large-8 medium-6'>
+
+
+			<div class='cell large-4 medium-6'>
 				<select name='instructorBio[rosterID]' required>
 					<option selected disabled value=0>- select name -</option>
-					<?php foreach($avaliableStaff as $rosterID => $name):?>
-						<option value=<?=$rosterID?>><?=$name?></option>
+					<?php foreach($avaliableStaff as $rosterID => $r):?>
+						<option value=<?=$rosterID?> <?=$r['disabled']?> ><?=$r['name']?></option>
 					<?php endforeach ?>
 				</select>
+			</div>
+
+			<div class='cell large-3 medium-12 text-center'>
+				<i>Greyed out names are alread instructors. (Scroll down!)</i>
 			</div>
 		<?php else: ?>
 			<input type="hidden" name="instructorBio[rosterID]" value=<?=$rosterID?>>
@@ -136,10 +147,12 @@ function instructorForm($instructor, $avaliableStaff){
 	</div>
 	</form>
 
-	<a onclick="$('#bio-for-<?=$rosterID?>').toggle()">Show Bio ↓</a>
-	<div class='hidden' id='bio-for-<?=$rosterID?>'>
-		<?=displayInstructorBio($instructor)?>
-	</div>
+	<?php if($instructor != 0): ?>
+		<a onclick="$('#bio-for-<?=$rosterID?>').toggle()">Show Bio ↓</a>
+		<div class='hidden' id='bio-for-<?=$rosterID?>'>
+			<?=displayInstructorBio($instructor)?>
+		</div>
+	<?php endif ?>
 
 
 <?php
