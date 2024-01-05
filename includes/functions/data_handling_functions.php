@@ -1593,6 +1593,186 @@ function calculateRatingForUnrated($tournamentMax, $tournamentMin, $numRated){
 
 }
 
+/******************************************************************************/
+
+
+function importEventRatingCSV(){
+
+	$fileExtension = strtolower(pathinfo(basename($_FILES["eventRatingCSV"]["name"]),PATHINFO_EXTENSION));
+
+
+	$originalName = basename($_FILES["eventRatingCSV"]["name"]);
+
+	// Check if image file is a actual image or fake image
+
+	$fileSizeKb = round($_FILES["eventRatingCSV"]["size"]/1000,0);
+	$maxSizeKb = 1000;
+
+	if ($fileSizeKb > $maxSizeKb) {
+		setAlert(USER_ERROR, "File Size Exceeds Limit. {$fileSizeKb}/{$maxSizeKb} KB.");
+		return;
+	}
+
+	switch($fileExtension){
+		case 'txt':
+		case 'csv':
+			break;
+		default:
+			setAlert(USER_ERROR, "Only <b>txt</b>, and <b>csv</b>, files are supported.");
+			return;
+			break;
+	}
+
+	$csvFilePath = "exports/";
+	$csvFileName = $csvFilePath.date("YmdHis");  // Temporary name
+	$csvFileFull = $csvFileName.".".$fileExtension;
+
+	$uploadSuccess = move_uploaded_file($_FILES["eventRatingCSV"]["tmp_name"], $csvFileFull);
+
+	if ($uploadSuccess == true) {
+
+		$eventList = [];
+		$file = fopen($csvFileFull, 'r');
+
+		$a = fgetcsv($file, 1000, ',');
+
+
+		while (($data = fgetcsv($file, 1000, ',')) !== FALSE) {
+
+
+
+			$eventID = (int)$data[0];
+
+			if($eventID == 0){
+				continue;
+			}
+
+			$eventName = $data[1];
+			$fighterRating = max((int)$data[2],EVENT_RATING_MIN_RATING);
+
+			if(isset($eventList[$eventID]) == false){
+				$eventList[$eventID]['name'] = $eventName;
+			}
+
+			$eventList[$eventID]['ratings'][] = $fighterRating;
+
+		}
+
+		$_SESSION['eventRating']['cvsData'] = $eventList;
+
+		fclose($file);
+
+		setAlert(USER_ALERT, "The file <b>{$originalName}</b> has been parsed succesfully.");
+
+
+	} else {
+
+
+		unset($_SESSION['eventRating']['cvsData']);
+		setAlert(USER_ALERT, "Unknown error in file upload.");
+		if(ALLOW['SOFTWARE_ADMIN'] == TRUE){
+			setAlert(SYSTEM, "Not uploaded because of error #".$_FILES["file"]["error"]);
+		}
+
+		return;
+	}
+
+	unlink($csvFileFull);
+
+}
+
+/******************************************************************************/
+
+function calculateWinPercent($rating1, $rating2){
+
+	$dev1 = ESTIMATE_DEVIATION_M * $rating1 + ESTIMATE_DEVIATION_B;
+	$dev2 = ESTIMATE_DEVIATION_M * $rating2 + ESTIMATE_DEVIATION_B;
+
+	$score1 = $rating1 + 2 * $dev1;
+	$score2 = $rating2 + 2 * $dev2;
+
+	$scoreDelta = $score1 - $score2;
+
+	$deviationRMS = sqrt(pow($dev1/GLICKO_CONSTANT,2) + pow($dev2/GLICKO_CONSTANT,2));
+	$deviationFactor = 1 / sqrt(1 + (3 * pow($deviationRMS,2)) / pow(pi(),2));
+	$winProbability = 1 / (1 + exp(-$deviationFactor * $scoreDelta/GLICKO_CONSTANT));
+
+	return ($winProbability);
+}
+
+
+/******************************************************************************/
+
+function calculateEventRating($ratingsList){
+
+	$numFighters = sizeof($ratingsList);
+	$numStages = ceil(log($numFighters,2));
+	$matchTableSize = 2^$numStages;
+
+	$fightersInStage = [];
+	$fightersInStage[2][0] = 1;
+	$fightersInStage[2][1] = 4;
+
+	for($stageNum = 3;$stageNum <= $numStages; $stageNum++){
+
+		$fightersInStage[$stageNum][0] = pow(2,$stageNum-1)+1;
+		$fightersInStage[$stageNum][1] = pow(2,$stageNum);
+	}
+
+
+	$highestRatingToTest = (int)(max($ratingsList) * 1.3);
+	
+
+	if($numFighters >= 8){
+		$lowestRatingToTest = $ratingsList[7];
+	} else {
+		$lowestRatingToTest = $ratingsList[$numFighters - 1];
+	}
+
+	for($testRating = $lowestRatingToTest; $testRating <= $highestRatingToTest; $testRating += RATING_STEP){
+
+		$testWinProb = 1;
+
+		for($stageNum = 2; $stageNum <= $numStages; $stageNum++){
+
+			$integral = 0;
+			$samples = 0;
+
+			for($i = $fightersInStage[$stageNum][0]; $i <= $fightersInStage[$stageNum][1]; $i++){
+
+				if($i > $numFighters){
+					$matchWinPercent = 1;
+				} else {
+					$matchWinPercent = calculateWinPercent($testRating, $ratingsList[$i-1]);
+				}
+
+
+				$integral += $matchWinPercent;
+				$samples++;
+
+				$dispProb = round($matchWinPercent * 100,0);
+				////echo "<BR>Fighter: {$i} | Win %: {$dispProb}";
+			}
+
+			$stageProbability = $integral / $samples;
+			$testWinProb *= $stageProbability;
+		}
+
+		if($testWinProb >= PROBABILITY_THRESHOLD){
+			break;
+		}
+	}
+
+	$eventRating = $testRating;
+
+	return ($eventRating);
+
+
+}
+
+/******************************************************************************/
+
+
 
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
