@@ -575,6 +575,12 @@ function processPostData(){
 			case 'statsAttendanceFilters':
 				updateStatsAttendanceFilters($_POST['statsAttendanceFilters']);
 				break;
+			case 'eventRating':
+				$_SESSION['eventRating']['textInput'] = $_POST['eventRating']['textInput'];
+				break;
+			case 'importEventRatingCSV':
+				importEventRatingCSV();
+				break;
 			case 'statsYear':
 				$_SESSION['stats']['year'] = (int)$_POST['stats']['year'];
 				break;

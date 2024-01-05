@@ -161,6 +161,18 @@
 	define("VIDEO_STREAM_VIRTUAL",3);
 
 
+// Event Overal Rating
+
+	define('EVENT_RATING_MIN_RATING',800);
+
+	define('GLICKO_CONSTANT', 173.7178);
+	define('ESTIMATE_DEVIATION_M', -.1278);
+	define('ESTIMATE_DEVIATION_B', 294);
+
+	define('PROBABILITY_THRESHOLD',0.25);
+	define('RATING_STEP',1);
+
+
 // Options Defines
 
 	// Match Options
