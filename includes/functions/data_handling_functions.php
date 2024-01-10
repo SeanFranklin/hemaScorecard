@@ -1670,7 +1670,7 @@ function importEventRatingCSV(){
 				} else {
 					$eventList[$eventID]['year'] = '??';
 				}
-				
+
 				$eventList[$eventID]['name'] = $eventName;
 			}
 
@@ -1741,7 +1741,7 @@ function calculateEventRating($ratingsList){
 
 
 	$highestRatingToTest = (int)(max($ratingsList) * 1.3);
-	
+
 
 	if($numFighters >= 8){
 		$lowestRatingToTest = $ratingsList[7];
