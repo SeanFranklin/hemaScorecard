@@ -72,11 +72,13 @@ if($typeSelect == null){
 			<label id='logInEventListDiv' class='<?=$eventListVisibility?>'>
 				<span>Event</span>
 				<select id='logInEventID' name='logInData[eventID]'  onchange="logInEventToggle('logInEventID')">
-					<option selected disabled></option>
+					<option selected disabled>- Active ------------------------</option>
 					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
+					<option disabled>- Upcoming ----------------------</option>
 					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
+					<option disabled>- Unpublished -------------------</option>
 					<?php populateEventSelectFields($hiddenEvents, $defaultEventID); ?>
-					<option disabled>-------------------------------</option>
+					<option disabled>- Leagues -----------------------</option>
 					<?php populateEventSelectFields($metaEvents, $defaultEventID); ?>
 				</select>
 			</label>

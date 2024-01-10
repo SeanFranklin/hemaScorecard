@@ -2607,6 +2607,10 @@ function getEventPenalties($eventID, $fighterIDs = null){
 	if($fighterIDs != null)
 	{
 		$idClause = "AND scoringID IN (".implode2int($fighterIDs).")";
+
+		if(readOption('E', $eventID, 'HIDE_WHITE_CARD_PENALTIES') == true){
+			$idClause .= " AND eE.refType IS NOT NULL";
+		}
 	}
 
 	$sql = "SELECT scoringID, tournamentID, groupID, receivingID, scoreValue,
@@ -2666,7 +2670,7 @@ function getEventPenaltyList($eventID){
 	$eventID = (int)$eventID;
 
 	$sql = "SELECT sR.firstName, sR.lastName, schoolFullName, sA1.attackText AS card, sA2.attackText as action,
-			scoreValue, groupName, sE.eventName, tournamentID, sR2.firstName AS first2, sR2.lastName AS last2, 
+			scoreValue, groupName, sE.eventName, tournamentID, sR2.firstName AS first2, sR2.lastName AS last2,
 			eR.rosterID, eE.refType
 		FROM eventExchanges AS eE
 			INNER JOIN eventMatches USING(matchID)
@@ -6416,7 +6420,7 @@ function getPenaltyActions($eventID = null){
 			$penaltyList[$i]['enabled'] = true;
 		}
 	}
-	
+
 
 	return($penaltyList);
 

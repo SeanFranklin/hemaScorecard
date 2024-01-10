@@ -1647,10 +1647,30 @@ function importEventRatingCSV(){
 				continue;
 			}
 
-			$eventName = $data[1];
+			$eventName = trim($data[1]);
+
 			$fighterRating = max((int)$data[2],EVENT_RATING_MIN_RATING);
 
 			if(isset($eventList[$eventID]) == false){
+
+				$year = (int)substr($eventName, -4);
+
+				if($year > 2000 && $year < 2030){
+					$eventName = trim(substr($eventName,0,-4));
+					$eventList[$eventID]['year'] = $year;
+				} else if(isset($data[3]) == true) {
+
+					$date = date_parse($data[3]);
+					if(isset($date['year']) == true && (int)$date['year'] > 2000 && (int)$date['year'] < 2030){
+						$eventList[$eventID]['year'] = $date['year'];
+					} else {
+						$eventList[$eventID]['year'] = "??";
+					}
+
+				} else {
+					$eventList[$eventID]['year'] = '??';
+				}
+
 				$eventList[$eventID]['name'] = $eventName;
 			}
 
@@ -1721,7 +1741,7 @@ function calculateEventRating($ratingsList){
 
 
 	$highestRatingToTest = (int)(max($ratingsList) * 1.3);
-	
+
 
 	if($numFighters >= 8){
 		$lowestRatingToTest = $ratingsList[7];

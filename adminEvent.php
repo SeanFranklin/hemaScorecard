@@ -100,12 +100,12 @@ function changePenaltiesBox($canChangeSettings){
 							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'>
 						<label class='switch-paddle no-bottom' for='disablePenalties[attackID][<?=$p['attackID']?>]'>
 						</label>-->
-						<input type='checkbox' class='no-bottom' 
-							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'  
+						<input type='checkbox' class='no-bottom'
+							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'
 							<?=chk($p['enabled'],1)?> >
 					</td>
 					<td >
-						<?=$p['name']?>	
+						<?=$p['name']?>
 					</td>
 				</tr>
 			<?php endforeach ?>
@@ -120,7 +120,7 @@ function changePenaltiesBox($canChangeSettings){
 			<span class='input-group-label'>Specifying penalty actions is mandatory</span>
 		</div>
 
-		
+
 		<button class='button success' name='formName' value='disablePenalties'>
 			Update
 		</button>
@@ -671,6 +671,27 @@ function staffSettingsBox($defaults, $canChangeSettings){
 					</option>
 					<option <?=optionValue(STAFF_CONFLICTS_HARD,$defaults['limitStaffConflicts'])?> >
 						Hard Limit
+					</option>
+
+				</select>
+			</div>
+		</div>
+
+	<!-- Hide White Cards -->
+		<div class='large-12 cell'>
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Hide White Cards
+					<?=tooltip("If a fighter has penalties in prior matches the table will get an indication. Use this to only consider penalties with color cards.")?>
+				</span>
+				<select class='input-group-field'
+					name='eventSettings[staffRegistration][hideWhiteCards]'>
+
+					<option <?=optionValue(0, readOption('E', $_SESSION['eventID'], 'HIDE_WHITE_CARD_PENALTIES'))?> >
+						Show All
+					</option>
+					<option <?=optionValue(1, readOption('E', $_SESSION['eventID'], 'HIDE_WHITE_CARD_PENALTIES'))?> >
+						Show Only Colored Cards
 					</option>
 
 				</select>
