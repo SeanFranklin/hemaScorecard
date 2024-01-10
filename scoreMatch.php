@@ -49,6 +49,10 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 		$matchInfo['restartTimer'] = false;
 	}
 
+// If there are prior penalties then let the table know.
+	$isPriorPenalties = (bool)priorPenaltiesDisplayBox($matchInfo);
+	define("IS_PRIOR_PENALTIES", $isPriorPenalties);
+
 // If it is the last match in the tournament the staff is asked to finalize the event
 	askForFinalization($matchInfo);
 
@@ -85,13 +89,13 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 // Check to see if the match should be locked from ANY input because the staff check-in is mandatory.
 	$lockMatchForStaffCheckIn = false;
 	$matchName = "";
-	
-	$checkInLevel = logistics_getTournamentStaffCheckInLevel($matchInfo['tournamentID']);	
-	if($checkInLevel == STAFF_CHECK_IN_MANDATORY){
-	
+
+	$checkInLevel = logistics_getTournamentStaffCheckInLevel($matchInfo['tournamentID']);
+	if($checkInLevel == STAFF_CHECK_IN_MANDATORY && ALLOW['EVENT_SCOREKEEP'] == true){
+
 		$lockMatchForStaffCheckIn = !logistics_areMatchStaffCheckedIn($matchID);
 		$matchName = '<b>'.getFighterName($matchInfo['fighter1ID'])."</b> vs <b>".getFighterName($matchInfo['fighter2ID'])."</b><BR>";
-		
+
 		if($matchInfo['matchType'] == 'pool'){
 			$matchName .= "<i>".$matchInfo['groupName'].", Match ".$matchInfo['matchNumber']."</i>";
 		} else {
@@ -140,7 +144,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 
 			<?php if($lockMatchForStaffCheckIn == false): ?>
 				<div class='large-12 cell'>
-					
+
 
 					<form method='POST'>
 					<fieldset <?=LOCK_MATCH?>>
@@ -161,7 +165,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 							signOffForm($matchInfo);
 					}?>
 
-					
+
 				</div>
 			<?php else: ?>
 				<div class='grid-x grid-margin-x'>
@@ -169,25 +173,25 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 				<div class='cell' style='margin-top:30px;'>
 					<?=$matchName?>
 				</div>
-					
+
 
 				<div class='small-2 cell'></div>
 
 				<a data-open='matchStaffConfirmBox'>
-				<div class='small-8 cell callout alert text-center clickable' 
+				<div class='small-8 cell callout alert text-center clickable'
 					style='margin-top:50px;margin-bottom:100px;' >
 
 					<h3>
 						Match Staff must be confirmed<BR>
 						(click here)
-						
+
 					</h3>
 				</div>
 				</a>
 				</div>
 				<div class='small-2 cell'></div>
 			<?php endif?>
-		
+
 
 			<?php if(ALLOW['EVENT_SCOREKEEP'] == false): ?>
 				<BR>
@@ -380,7 +384,7 @@ function subMatchBox($matchInfo){
 
 /******************************************************************************/
 
-function confirmStaffBox($matchInfo, $staffList = null){
+function confirmStaffBox($matchInfo){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
 		return;
@@ -399,18 +403,29 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 		<h4>Check In Staff
 
-<?php if($possibleStaffShifts != null): ?>
-			<a class='button hollow small no-bottom' data-open='matchStaffLoadShiftBox'>
-				Get Staff From Schedule
-			</a>
-			
-		<?php endif ?>
+			<?php if($possibleStaffShifts != null): ?>
+				<a class='button hollow small no-bottom' data-open='matchStaffLoadShiftBox'>
+					Get Staff From Schedule
+				</a>
+
+			<?php endif ?>
+
 		</h4>
+
+		<?php if(IS_PRIOR_PENALTIES == true):?>
+			<BR>
+			<a class='button no-bottom hollow alert expanded' data-open='veiwPenaltiesBox'>
+				! One Or More Fighters Have Prior Penalties !
+			</a>
+			<BR>
+		<?php endif ?>
+
 		<form method='POST' id='update-match-staff'>
 		<input type='hidden' name='updateMatchStaff[matchID]' value='<?=$matchInfo['matchID']?>'>
 
+
 	<!-- Top button bar -->
-		
+
 	<!-- Instructions ------>
 		<em>
 			<?=toggleClass('check-in-staff-instructions','(How Does This Work? &#8595;)','(Got It &#8593;)')?>
@@ -457,9 +472,9 @@ function confirmStaffBox($matchInfo, $staffList = null){
 						<input class='input-datalist' list="staff-select-datalist"
 
 							placeholder="- empty -"
-							data-name='updateMatchStaff[staffList][<?=$i?>][rosterID]' 
-							data-id='staff-select-<?=$i?>' 
-							value='<?=getFighterName($member['rosterID'])?>' 
+							data-name='updateMatchStaff[staffList][<?=$i?>][rosterID]'
+							data-id='staff-select-<?=$i?>'
+							value='<?=getFighterName($member['rosterID'])?>'
 							onchange="validateStaffSelection('staff-select-<?=$i?>')">
 
 						<a class='button alert hollow no-bottom tiny' onclick="clearDatalist('staff-select-<?=$i?>')">x</a>
@@ -535,10 +550,10 @@ function confirmStaffBox($matchInfo, $staffList = null){
 
 		<div class='grid-x grid-margin-x'>
 
-			<a class='button success small-6 cell <?=$bClass?>' 
+			<a class='button success small-6 cell <?=$bClass?>'
 				onclick="submitForm('update-match-staff', 'updateMatchStaff')">
 				<?=$bText?>
-			</a>	
+			</a>
 
 			<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
 				Cancel
@@ -809,7 +824,11 @@ function backToListButton($matchInfo){
 			<?=tooltip("Opens a display window to put onto a projector. This window will <u>not</u> update itself when you switch to a different match. You will need to click the <strong>Display Window</strong> button to have the display window update to your currently active match.")?>
 		</a>
 
-		<?=priorPenaltiesWarning($matchInfo);?>
+		<?php if(IS_PRIOR_PENALTIES == true):?>
+			<a class='button no-bottom hollow alert' data-open='veiwPenaltiesBox'>
+				! Prior Penalties !
+			</a>
+		<?php endif ?>
 
 	<?php endif ?>
 
@@ -1761,7 +1780,7 @@ function addPenaltyBox($matchInfo){
 				</span>
 				<select class='input-group-field' name='score[penalty][action]' <?=$req?>>
 					<option value=''>None</option>
-					<?php foreach($actions as $a): 
+					<?php foreach($actions as $a):
 						if($a['enabled'] == false){continue;}?>
 						<option value='<?=$a['attackID']?>'>
 							<?=$a['name']?>
@@ -2674,32 +2693,27 @@ function showFighterPenalties($num){
 
 /******************************************************************************/
 
-function priorPenaltiesWarning($matchInfo){
+function priorPenaltiesDisplayBox($matchInfo){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
-		return;
+		return (false);
 	}
 
-	$fightersWithPenalties = (array)getEventPenalties($_SESSION['eventID'],
+	$penaltyWarnings['fighter'] = (array)getEventPenalties($_SESSION['eventID'],
 													  [$matchInfo['fighter1ID'],
 													  $matchInfo['fighter2ID']]);
 
 	if($matchInfo['matchType'] == 'elim'){
-		$priorDoubles = (array)getBracketPriorDoubles($matchInfo);
+		$penaltyWarnings['doubles'] = (array)getBracketPriorDoubles($matchInfo);
 	} else {
-		$priorDoubles = [];
+		$penaltyWarnings['doubles'] = [];
 	}
 
-	if($fightersWithPenalties == [] && $priorDoubles == []){
-		return;
+	if($penaltyWarnings['fighter'] == [] && $penaltyWarnings['doubles'] == []){
+		return (false);
 	}
 
 ?>
-
-	<a class='button no-bottom hollow alert' data-open='veiwPenaltiesBox'>
-		! Prior Penalties !
-	</a>
-
 
 <!-- Box for penalty info display -->
 	<div class='reveal medium' id='veiwPenaltiesBox' data-reveal>
@@ -2709,7 +2723,7 @@ function priorPenaltiesWarning($matchInfo){
 		<i>Use, or don't use, this information as event procedure dictates.</i>
 
 		<?php
-			foreach($priorDoubles as $match){
+			foreach($penaltyWarnings['doubles'] as $match){
 
 					echo "<hr><b>";
 					echo getFighterName($match['fighterID']);
@@ -2718,7 +2732,7 @@ function priorPenaltiesWarning($matchInfo){
 					echo ")</i>";
 			}
 
-			foreach($fightersWithPenalties as $fighter){
+			foreach($penaltyWarnings['fighter'] as $fighter){
 
 					echo "<HR><h5>".getFighterName($fighter['fighterID']);
 					echo " [".$fighter['numPenalties']." Penalties]</h5>";
@@ -2736,7 +2750,10 @@ function priorPenaltiesWarning($matchInfo){
 		</button>
 	</div>
 
-<?php }
+<?php
+
+	return (true);
+}
 
 /******************************************************************************/
 

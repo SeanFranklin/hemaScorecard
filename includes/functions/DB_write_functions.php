@@ -1221,22 +1221,22 @@ function logisticsCheckInMatchStaff($info){
 				AND matchID = {$matchID}";
 
 		$matchStaffID = (int)mysqlQuery($sql, SINGLE, 'matchStaffID');
-	
+
 		if($matchStaffID == 0){
-			
+
 			$sql = "INSERT INTO logisticsStaffMatches
 					(matchID, rosterID, logisticsRoleID)
 					VALUES
 					({$matchID}, {$rosterID}, {$logisticsRoleID})";
 			mysqlQuery($sql, SEND);
-			
+
 		} else {
-			
+
 			$sql = "UPDATE logisticsStaffMatches
 					SET rosterID = {$rosterID}, logisticsRoleID = {$logisticsRoleID}
 					WHERE matchStaffID = {$matchStaffID}";
 			mysqlQuery($sql, SEND);
-			
+
 		}
 	}
 
@@ -5760,7 +5760,7 @@ function disableEventPenalties($post){
 			if($penaltyDisabledID == 0){
 				$sql = "INSERT INTO eventPenaltyDisabled
 						(eventID, attackID)
-						VALUES 
+						VALUES
 						({$eventID}, {$attackID})";
 				$penaltyDisabledID = mysqlQuery($sql, INDEX);
 			} else {
@@ -5844,6 +5844,7 @@ function updateStaffRegistrationSettings($info){
 
 	}
 
+
 	foreach($info['matchMultipliers'] as $roleID => $multiplier){
 
 		$logisticsRoleID = (int)$roleID;
@@ -5881,6 +5882,10 @@ function updateStaffRegistrationSettings($info){
 		}
 
 	}
+
+
+	$hideWhiteCards = (int)$info['hideWhiteCards'];
+	writeOption('E', $eventID, 'HIDE_WHITE_CARD_PENALTIES', $hideWhiteCards);
 
 }
 

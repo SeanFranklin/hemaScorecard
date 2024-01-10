@@ -176,27 +176,30 @@
 // Options Defines
 
 	// Match Options
-	$options['M']['NUM_SUB_MATCHES'] = 2;
-	$options['M']['SWAP_FIGHTERS'] = 3;
+	$options['M']['NUM_SUB_MATCHES'] 	= 2;
+	$options['M']['SWAP_FIGHTERS'] 		= 3;
 
 	// Tournament Options
-	$options['T']["META_ROSTER_MODE"] = 1;
+	$options['T']["META_ROSTER_MODE"]				= 1;
 		define("META_ROSTER_MODE_INCLUSIVE",0);
 		define("META_ROSTER_MODE_EXCLUSIVE",1);
 		define("META_ROSTER_MODE_EXTENDED",2);
-	$options['T']['ATTACK_DISPLAY_MODE'] = 4;
-	$options['T']['AFTERBLOW_POINT_VALUE'] = 5;
-	$options['T']['MATCH_TIE_MODE'] = 6;
+	$options['T']['ATTACK_DISPLAY_MODE'] 			= 4;
+	$options['T']['AFTERBLOW_POINT_VALUE'] 			= 5;
+	$options['T']['MATCH_TIE_MODE'] 				= 6;
 		define("MATCH_TIE_MODE_NONE",0);
 		define("MATCH_TIE_MODE_EQUAL",1);
 		define("MATCH_TIE_MODE_UNEQUAL",2);
-	$options['T']['TEAM_SWITCH_POINTS'] = 7;
-	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] = 8;
-	$options['T']['CONTROL_POINT_VALUE'] = 9;
-	$options['T']["TEAM_SIZE"] = 10;
-	$options['T']["DOUBLES_CARRY_FORWARD"] = 11;
-	$options['T']["SUPPRESS_DIRECT_ENTRY"] = 12;
-	$options['E']["PENALTY_ACTION_IS_MANDATORY"] = 12;
+	$options['T']['TEAM_SWITCH_POINTS'] 			= 7;
+	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] 	= 8;
+	$options['T']['CONTROL_POINT_VALUE'] 	      	= 9;
+	$options['T']["TEAM_SIZE"] 						= 10;
+	$options['T']["DOUBLES_CARRY_FORWARD"] 			= 11;
+	$options['T']["SUPPRESS_DIRECT_ENTRY"] 			= 12;
+
+	// Event Options
+	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;
+	$options['E']["HIDE_WHITE_CARD_PENALTIES"] 		= 14;
 
 	define('OPTION',$options);
 

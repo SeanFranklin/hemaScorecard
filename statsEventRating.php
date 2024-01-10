@@ -26,6 +26,7 @@ include('includes/header.php');
 			rsort($ratingsRaw);
 
 			$tmp['name'] = $data['name'];
+			$tmp['year'] = $data['year'];
 			$tmp['ratings'] = $ratingsRaw;
 
 			$ratingsList[] = $tmp;
@@ -37,7 +38,9 @@ include('includes/header.php');
 	} elseif (isset($_SESSION['eventRating']['textInput']) == true){
 
 		$ratingsList[0]['ratings'] = parseRatings($_SESSION['eventRating']['textInput']);
+
 		$ratingsList[0]['name'] = "Unknown Event";
+		$ratingsList[0]['year'] = '??';
 
 		unset($_SESSION['eventRating']['textInput']);
 
@@ -87,6 +90,7 @@ include('includes/header.php');
 			<li><u>Column 1</u>, <i>Event ID</i>: This is any arbitrary number unique to each event, so that the software has an index to tell them appart with.</li>
 			<li><u>Column 2</u>, <i>Event Name</i>: Exactly what it sounds like. Whatever name you want it to spit out next to the result.</li>
 			<li><u>Column 3</u>, <i>Rating</i>: A fighters rating. The script will convert any decimal numbers into integers, and limit them to a lower bound of <?=EVENT_RATING_MIN_RATING?>.</li>
+			<li><u>Column 4</u>, <i>Date (Optional)</i>: The date of the event. This is only used to parse out the year if it is not part of the Event Name.</li>
 			</ul>
 
 			<u>Example</u>:
@@ -94,9 +98,9 @@ include('includes/header.php');
 EventId,EventName,Rating
 1,StatsFecht 2021,1500
 1,StatsFecht 2021,734
-2,StatsFecht 2022,1234
-2,StatsFecht 2022,1622
-2,StatsFecht 2022,987
+2,StatsFecht,1234,2022-01-01
+2,StatsFecht,1622,2022-01-01
+2,StatsFecht,987,2022-01-01
 			</pre>
 
 			<form method="POST" enctype="multipart/form-data">
@@ -146,6 +150,7 @@ function showEventRating($ratingsList, $tableMode = false){
 		echo "<table>
 		<tr>
 		<th>Event</th>
+		<th>Year</th>
 		<th># Fighters</th>
 		<th>Rating</th>
 		</tr>";
@@ -211,6 +216,7 @@ function showEventRatingTable($eventInfo){
 
 	<tr>
 		<td><?=$eventInfo['name']?></td>
+		<td><?=$eventInfo['year']?></td>
 		<td><?=$eventInfo['numFighters']?></td>
 		<td><?=$eventInfo['eventRating']?></td>
 	</tr>
