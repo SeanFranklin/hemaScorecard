@@ -1426,9 +1426,6 @@ function edit_tournamentTies($tournamentID = 0){
 /******************************************************************************/
 
 function edit_tournamentPriorityNotice($tournamentID = 0){
-// Select menu for whether or not the tournament allows ties
-// Calls to java-script on change to alter the form based on it's selection
-// Appears as a checkbox to create a new tournament if no parameter is passed
 
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
