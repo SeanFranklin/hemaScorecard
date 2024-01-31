@@ -1425,6 +1425,45 @@ function edit_tournamentTies($tournamentID = 0){
 
 /******************************************************************************/
 
+function edit_tournamentPriorityNotice($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+	$formatID = FORMAT_MATCH;
+	$allowTies = 0;
+
+	if($tournamentID !=  0){
+		$formatID = getTournamentFormat($tournamentID);
+		$priorityNotice = readOption('T',$tournamentID,'PRIORITY_NOTICE_ON_NON_SCORING');
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Priority Notice
+				<?=tooltip("If a zero-point exchange is entered there will be a 'PRIORITY' notification to the table for the next exchange. This does nothing other than add a reminder.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[priorityNotice]' id='priorityNotice_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$priorityNotice)?>>No (normal)</option>
+				<option <?=optionValue(1,$priorityNotice)?>>Yes</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentTimerCountdown($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection

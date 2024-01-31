@@ -1477,6 +1477,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$rType = null;
 	$afterblowPrefix = null;
 
+	$fighter1Hit = false;
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
 
@@ -1484,6 +1485,9 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		$score2 = (int)$scoring[$id2]['hit'];
 
 	} elseif ($_POST['scoreLookupMode'] == 'ID'){
+		if((int)$scoring[$id1]['hit'] != 0 && (int)$scoring[$id2]['hit'] == 0){
+			$fighter1Hit = true;
+		}
 
 		$at1 = getAttackAttributes($scoring[$id1]['hit']);
 		$score1 = @$at1['attackPoints'];
@@ -1513,7 +1517,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 
 	//checks if only one fighter hit
 	if(xorWithZero($score1,$score2)){//only one hitter
-		if($score1){
+		if($score1 || $fighter1Hit == true){
 			$rosterID = $id1;
 			$otherID = $id2;
 		} else {

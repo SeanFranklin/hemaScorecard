@@ -1100,6 +1100,12 @@ function fighterDataEntryBox($matchInfo,$num){
 
 	$attackGrid = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
 
+	if(readOption('T',$matchInfo['tournamentID'],'PRIORITY_NOTICE_ON_NON_SCORING') != 0 && isLastExchZeroPointClean($matchInfo, $num) == true){
+		$priorityText = " <span class='priority-text-notice'>Priority</span>";
+	} else {
+		$priorityText = "";
+	}
+
 	?>
 
 <!-- Begin display -->
@@ -1115,12 +1121,24 @@ function fighterDataEntryBox($matchInfo,$num){
 				<span style='font-size:20px;'> <?=$fighterName?></span>
 			</div>
 			<div class='align-self-bottom cell'>
-				<span style='font-size:15px;'><?=$fighterSchool?></span><BR>
+
+				<span style='font-size:15px;'>
+					<?=$fighterSchool?>
+				</span><BR>
+
 				<?php if(isTeamLogic($tournamentID)): ?>
-					<span style='font-size:15px;'>(<?=$teamName?>)</span><BR>
+					<span style='font-size:15px;'>
+						(<?=$teamName?>)
+					</span><BR>
 				<?php endif ?>
-				<span style='font-size:30px;'><?=$colorName?></span><BR>
-				<span style='font-size:60px;'><?=$score?></span><BR>
+
+				<span style='font-size:30px;'>
+					<?=$colorName?>  <?=$priorityText?>
+				</span><BR>
+
+				<span style='font-size:60px;'>
+					<?=$score?>
+				</span><BR>
 
 				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false || $attackGrid == true): ?>
 					</div>

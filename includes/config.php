@@ -196,6 +196,7 @@
 	$options['T']["TEAM_SIZE"] 						= 10;
 	$options['T']["DOUBLES_CARRY_FORWARD"] 			= 11;
 	$options['T']["SUPPRESS_DIRECT_ENTRY"] 			= 12;
+	$options['T']["PRIORITY_NOTICE_ON_NON_SCORING"] = 15;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

@@ -6301,6 +6301,11 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		writeOption('T', $tournamentID, 'DOUBLES_CARRY_FORWARD', 0);
 	}
 
+	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['priorityNotice'] == 1){
+		writeOption('T', $tournamentID, 'PRIORITY_NOTICE_ON_NON_SCORING', 1);
+	} else {
+		writeOption('T', $tournamentID, 'PRIORITY_NOTICE_ON_NON_SCORING', 0);
+	}
 
 	$allowTies = (int)$formInfo['allowTies'];
 	if($allowTies < MATCH_TIE_MODE_NONE || $allowTies > MATCH_TIE_MODE_UNEQUAL){
