@@ -1605,8 +1605,8 @@ function importEventRatingCSV(){
 
 	// Check if image file is a actual image or fake image
 
-	$fileSizeKb = round($_FILES["eventRatingCSV"]["size"]/1000,0);
-	$maxSizeKb = 1000;
+	$fileSizeKb = round($_FILES["eventRatingCSV"]["size"]/1024,0);
+	$maxSizeKb = 1500;
 
 	if ($fileSizeKb > $maxSizeKb) {
 		setAlert(USER_ERROR, "File Size Exceeds Limit. {$fileSizeKb}/{$maxSizeKb} KB.");

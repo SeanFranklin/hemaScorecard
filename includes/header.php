@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $vJ = '?=1.6.2'; // Javascript Version
-$vC = '?=1.2.7'; // CSS Version
+$vC = '?=1.2.8'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -375,7 +375,7 @@ function menuTournament(){
 				<li>
 					<a href='#'><b>Settings</b></a>
 					<ul class='menu vertical'>
-						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>			
+						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>
 						<li><a href='adminExchangeTypes.php'>Point Values (Optional)</a></li>
 						<li><div class="drop-down-separator"></div></li>
 						<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
@@ -447,7 +447,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsSchedule.php?t=0'>Edit Schedule</a></li>
 			<li><a href='logisticsLocations.php?t=0'>Edit Locations</a></li>
 		</ul>
-	</li>	
+	</li>
 
 	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
 		<li><a href='adminSponsors.php?t=0'>Sponsors</a></li>

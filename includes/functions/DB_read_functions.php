@@ -9533,6 +9533,37 @@ function getTournamentExchangeTimeData($tournamentID){
 
 /******************************************************************************/
 
+function isLastExchZeroPointClean($matchInfo, $num){
+
+	$matchID = (int)$matchInfo['matchID'];
+
+	$sql = "SELECT exchangeType, scoreValue, scoringID
+			FROM eventExchanges
+			WHERE matchID = {$matchID}
+			AND exchangeType IN ('clean','double','afterblow')
+			ORDER BY exchangeNumber DESC";
+	$lastScoring = mysqlQuery($sql, SINGLE);
+
+	if($lastScoring == null){
+		return false;
+	}
+
+	// Check if the last exchange is a valid exchange of the type we are looking for.
+	if($lastScoring['exchangeType'] != 'clean' || (int)$lastScoring['scoreValue'] != 0){
+		return false;
+	}
+
+	if($num == 1 && $lastScoring['scoringID'] == $matchInfo['fighter1ID']){
+		return true;
+	} else if($num == 2 && $lastScoring['scoringID'] == $matchInfo['fighter2ID']){
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+/******************************************************************************/
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
