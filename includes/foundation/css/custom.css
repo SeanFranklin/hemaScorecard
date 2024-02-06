@@ -1,6 +1,26 @@
 /* Added By Sean **************************************************************/
 
 
+div.quiz{
+  border: black solid 1px;
+  box-shadow: 4px 4px 5px 1px #666;
+  margin-right: 8px;
+  padding: 8px;
+  margin-bottom: 20px;
+}
+
+ol.quiz{
+  list-style-type: lower-alpha;
+}
+
+li.quiz-answer{
+  font-weight: bold;
+}
+
+p.quiz-answer{
+  display:none;
+}
+
 .priority-text-notice{
   background-color: #FFF;
   border: black solid 1px;

@@ -6307,6 +6307,13 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		writeOption('T', $tournamentID, 'PRIORITY_NOTICE_ON_NON_SCORING', 0);
 	}
 
+	if($formInfo['otherNotice'] == 1){
+		writeOption('T', $tournamentID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK', 1);
+	} else {
+		writeOption('T', $tournamentID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK', 0);
+	}
+
+
 	$allowTies = (int)$formInfo['allowTies'];
 	if($allowTies < MATCH_TIE_MODE_NONE || $allowTies > MATCH_TIE_MODE_UNEQUAL){
 		$allowTies = MATCH_TIE_MODE_NONE;
@@ -7263,9 +7270,17 @@ function checkInFighter($checkIn){
 			$checkin 		= (int)$checkIn['checkIn'];
 			$rosterID 		= (int)$checkIn['rosterID'];
 
+			if(isset($checkIn['other']) == true){
+				$other = (int)$checkIn['other'];
+				$otherStr = ", tournamentOtherCheck = {$other}";
+			} else {
+				$otherStr = "";
+			}
+
 			$sql = "UPDATE eventTournamentRoster
 					SET tournamentGearCheck = {$gearcheck},
 						tournamentCheckIn = {$checkin}
+						{$otherStr}
 					WHERE tournamentID = {$tournamentID}
 					AND rosterID = {$rosterID}";
 			mysqlQuery($sql, SEND);

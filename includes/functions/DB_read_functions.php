@@ -7368,7 +7368,7 @@ function getTournamentFighters($tournamentID, $sortType = null, $excluded = null
 	}
 
 	$sql = "SELECT rosterID, eventRoster.schoolID, NULL AS teamID,
-				tournamentRosterID, ratingID, rating, subGroupNum, rating2, tournamentCheckIn, tournamentGearCheck
+				tournamentRosterID, ratingID, rating, subGroupNum, rating2, tournamentCheckIn, tournamentGearCheck, tournamentOtherCheck
 			FROM eventTournamentRoster
 			INNER JOIN eventRoster USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)

@@ -197,6 +197,7 @@
 	$options['T']["DOUBLES_CARRY_FORWARD"] 			= 11;
 	$options['T']["SUPPRESS_DIRECT_ENTRY"] 			= 12;
 	$options['T']["PRIORITY_NOTICE_ON_NON_SCORING"] = 15;
+	$options['T']["DENOTE_FIGHTERS_WITH_OPTION_CHECK"] = 16;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

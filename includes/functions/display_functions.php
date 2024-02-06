@@ -1429,7 +1429,6 @@ function edit_tournamentPriorityNotice($tournamentID = 0){
 
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
-	$allowTies = 0;
 
 	if($tournamentID !=  0){
 		$formatID = getTournamentFormat($tournamentID);
@@ -1455,6 +1454,42 @@ function edit_tournamentPriorityNotice($tournamentID = 0){
 			<select name='updateTournament[priorityNotice]' id='priorityNotice_select<?=$tournamentID?>' class='shrink '>
 				<option <?=optionValue(0,$priorityNotice)?>>No (normal)</option>
 				<option <?=optionValue(1,$priorityNotice)?>>Yes</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentDenoteOtherCheck($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID !=  0){
+		$otherNotice = readOption('T',$tournamentID,'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Denote 'Other' check-in
+				<?=tooltip("Denotes fighters which have been checked off using the 'other' column with an asterix on the tournament and pool rosters page. (Only if logged in as staff.)");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[otherNotice]' id='otherNotice_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$otherNotice)?>>No (normal)</option>
+				<option <?=optionValue(1,$otherNotice)?>>Yes</option>
 			</select>
 			</div>
 		</td>

@@ -668,6 +668,7 @@ function checkInFighterJs(mode){
             formData['tournamentID'] = parseInt($("#tournamentID").val());
             formData['checkIn'] = $(str+"-checkIn").data("checked");
             formData['gearcheck']  = $(str+"-gearcheck").data("gearcheck");
+            formData['other']  = $(str+"-other").data("other");
 
             break;
         }
@@ -683,9 +684,13 @@ function checkInFighterJs(mode){
     if(mode == 'checkIn'){
         formData['checkIn'] = (formData['checkIn'] == 1 ? 0 : 1);
     }
-
+    
     if(mode == 'gearcheck'){
         formData['gearcheck'] = (formData['gearcheck'] == 1 ? 0 : 1);
+    }
+
+    if(mode == 'other'){
+        formData['other'] = (formData['other'] == 1 ? 0 : 1);
     }
 
     postForm(formData);
@@ -782,6 +787,7 @@ function updateTournamentCheckInList(regData, idName){
 
     $(idName+"-checkIn").data("checked",regData['tournamentCheckIn']);
     $(idName+"-gearcheck" ).data("gearcheck", regData['tournamentGearCheck']);
+    $(idName+"-other" ).data("other", regData['tournamentOtherCheck']);
 
     if(regData['tournamentCheckIn'] == 1){
         $(idName+"-checkIn").removeClass("hollow");
@@ -803,6 +809,15 @@ function updateTournamentCheckInList(regData, idName){
         $(idName+"-gearcheck").html('no');
     }
 
+    if(regData['tournamentOtherCheck'] == 1){
+        $(idName+"-other").removeClass("hollow");
+        $(idName+"-other").addClass("success");
+        $(idName+"-other").html('yes');
+    } else {
+        $(idName+"-other").addClass("hollow");
+        $(idName+"-other").removeClass("success");
+        $(idName+"-other").html('no');
+    }
 }
 
 /******************************************************************************/
