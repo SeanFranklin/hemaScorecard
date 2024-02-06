@@ -125,6 +125,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentNormalization($tournamentID);
 				edit_tournamentLimitPoolMatches($tournamentID);
 				edit_tournamentPriorityNotice($tournamentID);
+				edit_tournamentDenoteOtherCheck($tournamentID);
 
 			?>
 	</table>

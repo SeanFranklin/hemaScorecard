@@ -43,18 +43,28 @@ if($tournamentID == null){
 	){
 		define("ALLOW_EDITING", false);
 		define("ALLOW_CHECKIN", false);
+		define("ALLOW_OTHER", false);
 	} else {
 		define("ALLOW_CHECKIN", true);
 		if(ALLOW['EVENT_MANAGEMENT'] == true){
 			define("ALLOW_EDITING", true);
+			define("ALLOW_OTHER", true);
 		} else {
 			define("ALLOW_EDITING", false);
+			define("ALLOW_OTHER", false);
 		}
 	}
 
+
+
 	$tournamentRoster = (array)getTournamentFighters($tournamentID, $sortString);
+	$showOtherNotice = readOption('T',$tournamentID,'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
+
 	$namesEntered = [];
-	$numFighters = count($tournamentRoster);
+	$totals['numFighters'] = count($tournamentRoster);
+	$totals['numToCheckIn'] = $totals['numFighters'];
+	$totals['numToGearCheck'] = $totals['numFighters'];
+	$totals['numOther'] = 0;
 
 	importRosterBox();
 
@@ -68,6 +78,7 @@ if($tournamentID == null){
 		$tmp['checkInID'] = "check-in-tournament-".$fighter['rosterID']."-checkIn";
 		$tmp['tournamentCheckIn'] = $fighter['tournamentCheckIn'];
 		if($fighter['tournamentCheckIn'] != 0){
+			$totals['numToCheckIn']--;
 			$tmp['checkInText'] = 'done';
 		} else {
 			$tmp['checkInText'] = 'no';
@@ -76,9 +87,28 @@ if($tournamentID == null){
 		$tmp['gearID'] = "check-in-tournament-".$fighter['rosterID']."-gearcheck";
 		$tmp['tournamentGearCheck'] = $fighter['tournamentGearCheck'];
 		if($tmp['tournamentGearCheck'] != 0){
+			$totals['numToGearCheck']--;
 			$tmp['gearText'] = 'done';
 		} else {
 			$tmp['gearText'] = 'no';
+		}
+
+		$tmp['otherID'] = "check-in-tournament-".$fighter['rosterID']."-other";
+		$tmp['tournamentOtherCheck'] = $fighter[
+			'tournamentOtherCheck'];
+		$tmp['otherNotice'] = "";
+		if($tmp['tournamentOtherCheck'] != 0){
+
+			$tmp['otherText'] = 'yes';
+			$totals['numOther']++;
+
+			if($showOtherNotice == true && ALLOW['EVENT_SCOREKEEP'] == true){
+				$tmp['name'] = $tmp['name']."*";
+			}
+
+		} else {
+			$tmp['otherText'] = 'no';
+
 		}
 
 		$rosterToDisplay[$fighter['rosterID']] = $tmp;
@@ -165,7 +195,7 @@ if($tournamentID == null){
 
 	<div class='grid-x grid-padding-x'>
 	<div class='large-8 medium-10 cell'>
-	<h4>Number of Fighters: <?=$numFighters?></h4>
+	<h4>Number of Fighters: <?=$totals['numFighters']?></h4>
 	<input type='hidden' name='tournamentID' value=<?= $tournamentID ?> id='tournamentID'>
 
 	<table id="tournamentCheckInTable" class="display">
@@ -185,6 +215,10 @@ if($tournamentID == null){
 		<?php if(ALLOW_CHECKIN == true):?>
 			<th style='width:0.1%;white-space: nowrap;'>Check-In</th>
 			<th style='width:0.1%;white-space: nowrap;'>Gear Check</th>
+		<?php endif ?>
+
+		<?php if(ALLOW_OTHER == true):?>
+			<th style='width:0.1%;white-space: nowrap;'>Other</th>
 		<?php endif ?>
 	</tr>
 	</thead>
@@ -232,16 +266,46 @@ if($tournamentID == null){
 				</td>
 
 			<?php endif ?>
+
+			<?php if(ALLOW_OTHER == true): ?>
+
+				<td class='text-center'>
+
+					<a class='button no-bottom tiny' onclick="checkInFighterJs('other')"
+						id='<?=$f['otherID']?>'
+						data-checkInType='tournament'
+						data-rosterID=<?=$rosterID?>
+						data-other=<?=$f['tournamentOtherCheck']?>>
+						<?=$f['otherText']?>
+					</a>
+
+				</td>
+
+			<?php endif ?>
 		</tr>
 	<?php endforeach ?>
 	</tbody>
 	</table>
 
-	</div>
+	<?php if(ALLOW['EVENT_SCOREKEEP'] == true):?>
+
+		<p>
+			<?=$totals['numToCheckIn']?> / <?=$totals['numFighters']?> left To Check-In <BR>
+			<?=$totals['numToGearCheck']?> / <?=$totals['numFighters']?> left To Gear Check <BR>
+			<?=$totals['numOther']?> / <?=$totals['numFighters']?> left marked 'Other'<BR>
+			<i>(You need to refresh the page for these numbers to update.)</i>
+		</p>
+
+	<?php endif ?>
+
 	</div>
 
 <!-- Add / Delete Fighter Buttons -->
+	<div class='cell'>
 	<?=tournamentRosterManagement($eventRoster, $namesEntered)?>
+	</div>
+
+	</div>
 
 	</fieldset>
 	</form>

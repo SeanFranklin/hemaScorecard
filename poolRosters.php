@@ -48,6 +48,12 @@ if($tournamentID == 0){
 	$numPools = count($pools);
 	$ringsInfo = (array)logistics_getEventLocations($_SESSION['eventID'],'ring');
 
+	if(ALLOW['EVENT_SCOREKEEP'] == true && readOption('T',$tournamentID,'DENOTE_FIGHTERS_WITH_OPTION_CHECK') == true){
+		define("SHOW_OTHER_NOTICE", true);
+	} else {
+		define("SHOW_OTHER_NOTICE", false);
+	}
+
 //fetch information from tables
 	$poolRosters = (array)getPoolRosters($tournamentID, $_SESSION['groupSet']);
 	if(isEntriesByTeam($tournamentID) == false){
@@ -73,23 +79,63 @@ if($tournamentID == 0){
 		}
 	}
 
-//gets list of fighters already in a pool
-	$arePoolsEmpty = true;
-	foreach($poolRosters as $poolEntry){
-		foreach($poolEntry as $assignedFighter){
-			$assignedFighters[] = $assignedFighter['rosterID'];
-			$arePoolsEmpty = false;
+	$showOtherNotice = [];
+	if(SHOW_OTHER_NOTICE == true){
+
+		foreach($tournamentRoster as $fighter){
+			if($fighter['tournamentOtherCheck'] == true){
+				$showOtherNotice[$fighter['rosterID']] = true;
+			}
 		}
+
 	}
 
+//gets list of fighters already in a pool
+	$arePoolsEmpty = true;
+	foreach($poolRosters as $i => $poolEntry){
+		foreach($poolEntry as $j => $assignedFighter){
+			$assignedFighters[] = $assignedFighter['rosterID'];
+			$arePoolsEmpty = false;
+
+			if($isTeams == false){
+				$name = getFighterName($assignedFighter['rosterID']);
+				if(isset($showOtherNotice[$assignedFighter['rosterID']]) == true){
+					$name .= "*";
+				}
+				$name .= " <em>(".getSchoolName($assignedFighter['schoolID'],'abbreviation').")</em>";
+			} else {
+				$name = getTeamName($assignedFighter['rosterID']);
+			}
+
+			$poolRosters[$i][$j]['name'] = $name;
+
+		}
+	}
 
 
 //gets a list of fighters not already in a pool
 	$freeFighters = [];
 	foreach($tournamentRoster as $fighter){
+
 		$rosterID = $fighter['rosterID'];
+
 		if (!in_array($rosterID, $assignedFighters)){
-			$freeFighters[] = $fighter;
+
+			$tmp = $fighter;
+			if($isTeams == false){
+				$tmp['name'] = getFighterName($tmp['rosterID']);
+
+				if(SHOW_OTHER_NOTICE && (int)$fighter['tournamentOtherCheck'] == true ){
+					$tmp['name'] .= "*";
+				}
+
+				$tmp['name'] .= " (".getSchoolName($tmp['schoolID'],'abbreviation').")";
+			} else {
+				$tmp['name'] = getTeamName($tmp['rosterID']);
+			}
+
+			$freeFighters[] = $tmp;
+
 		}
 	}
 
@@ -1040,16 +1086,10 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 							$seedID = false;
 						}
 						$selected = isSelected($seedID,$entry['rosterID']);
-						if($isTeams == false){
-							$name = getFighterName($entry['rosterID'])." ";
-							$name .= "(".getSchoolName($entry['schoolID'],'abbreviation').")";
-						} else {
-							$name = getTeamName($entry['rosterID']);
-						}
 						?>
 
 						<option value='<?=$entry['rosterID']?>' <?=$selected?>>
-							<?=$name?>
+							<?=$entry['name']?>
 						</option>
 					<?php endforeach ?>
 				</select>
@@ -1059,12 +1099,6 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 		<!-- Fighter Already entered in position -->
 		<?php else:?>
 			<?php $rosterID = $poolRoster[$i]['rosterID'];
-				if($isTeams == false){
-					$name = getFighterName($rosterID)." ";
-					$name .= "<em>(".getSchoolName($poolRoster[$i]['schoolID'],'abbreviation').")</em>";
-				} else {
-					$name = getTeamName($rosterID);
-				}
 
 				if(isset($hide['school'][$poolRoster[$i]['schoolID']]) == true){
 					continue;
@@ -1079,7 +1113,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 					onchange="checkIfFought(this)" class='pool-fighter-checkbox'
 					name='deleteFromGroup[<?=$groupID?>][<?=$rosterID?>]'>
 			<?php endif ?>
-			<?=$name?>
+			<?=$poolRoster[$i]['name']?>
 			</div>
 		<?php endif ?>
 
