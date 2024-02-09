@@ -10,6 +10,7 @@
 $pageName = 'Logistics Locations';
 $includeTournamentName = false;
 $jsIncludes[] = 'logistics_management_scripts.js';
+$jsIncludes[] = "sortable_scripts.js";
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -91,6 +92,8 @@ if($_SESSION['eventID'] == null){
 </fieldset>
 </form>
 
+	<?=reOrderLocations($locationInfo)?>
+
 	<?=floorplanControl()?>
 
 <?php }
@@ -99,6 +102,64 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function reOrderLocations($locations){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($locations as $i => $location){
+		if($location['hasMatches'] == false && $location['hasClasses'] == false){
+			$color = SCHEDULE_COLOR_STAFFING;
+		} elseif ($location['hasMatches'] == false && $location['hasClasses'] == true) {
+			$color = SCHEDULE_COLOR_WORKSHOP;
+		} elseif ($location['hasMatches'] == true && $location['hasClasses'] == false){
+			$color = SCHEDULE_COLOR_TOURNAMENT;
+		} else {
+			$color = SCHEDULE_COLOR_MISC;
+		}
+
+		$locations[$i]['color'] = $color;
+	}
+
+?>
+	<div class='grid-x grid-margin-x'>
+	<div class='large-12 cell'>
+		<a class='re-order-locations' onclick="$('.re-order-locations').toggle()">Re-Order Locations ↓</a>
+		<h5 class='re-order-locations hidden'><BR><a  onclick="$('.re-order-locations').toggle()">Re-Order Locations ↑</a></h5>
+	</div>
+
+	<div class='large-6 cell re-order-locations hidden callout text-right'>
+	<form method="POST">
+
+		<div  id='sort-locations-order'>
+			<?php foreach($locations as $l): ?>
+				<div class='callout primary text-left sortable-item' value=<?=$l['locationID']?> style='background-color: <?=$l['color']?>;'>
+					<?=$l['locationName']?>
+				</div>
+			<?php endforeach ?>
+		</div>
+
+		<?php foreach($locations as $index => $l): ?>
+			<input class='hidden' name='orderLocations[locationIDs][<?=$l['locationID']?>]'
+				id='locations-order-for-<?=$l['locationID']?>' value=<?=$index?>>
+		<?php endforeach ?>
+
+		<button class='button success no-bottom' name='formName' value='orderLocations'>
+			Update Location Order
+		</button>
+
+	</form>
+	</div>
+	</div>
+
+	<BR><BR>
+
+<?php
+}
 
 /******************************************************************************/
 

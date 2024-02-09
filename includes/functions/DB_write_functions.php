@@ -869,6 +869,32 @@ function logisticsDeleteLocations($locationsToDelete){
 
 /******************************************************************************/
 
+function logisticsOrderLocations($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = (int)$_SESSION['eventID'];
+
+	if(isset($postData['locationIDs']) == false){
+		return;
+	}
+
+	foreach($postData['locationIDs'] as $locationID => $locationOrder){
+		$locationOrder = (int)$locationOrder;
+		$locationID = (int)$locationID;
+
+		$sql = "UPDATE logisticsLocations
+				SET locationOrder = {$locationOrder}
+				WHERE eventID = {$eventID}
+				AND locationID = {$locationID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function logisticsEditLocations($locationInformation){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
