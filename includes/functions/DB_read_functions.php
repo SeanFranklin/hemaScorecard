@@ -5551,7 +5551,7 @@ function logistics_getEventLocations($eventID, $locationType = null){
 			FROM logisticsLocations
 			WHERE eventID = {$eventID}
 			{$whereClause}
-			ORDER BY hasMatches DESC, hasClasses DESC, locationName ASC";
+			ORDER BY locationOrder ASC, hasMatches DESC, hasClasses DESC, locationName ASC";
 	return mysqlQuery($sql, ASSOC);
 }
 
