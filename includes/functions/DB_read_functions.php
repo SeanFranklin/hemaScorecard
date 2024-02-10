@@ -9302,6 +9302,18 @@ function getEventRules($eventID){
 
 /******************************************************************************/
 
+function getEventFaq($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT faqID, faqQuestion, faqAnswer
+			FROM logisticsFaq
+			WHERE eventID = {$eventID}
+			ORDER BY faqOrder ASC";
+	return (array)mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
 function getTournamentRules($tournamentID){
 
 	$tournamentID = (int)$tournamentID;

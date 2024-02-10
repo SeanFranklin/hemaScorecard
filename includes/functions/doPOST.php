@@ -419,6 +419,12 @@ function processPostData(){
 			case 'orderRules':
 				orderRules($_POST['orderRules']);
 				break;
+			case 'updateFaq':
+				updateFaq($_POST['updateFaq']);
+				break;
+			case 'orderFaq':
+				orderFaq($_POST['orderFaq']);
+				break;
 			case 'updateEventSponsors':
 				updateEventSponsors($_POST['sponsorList']);
 				break;

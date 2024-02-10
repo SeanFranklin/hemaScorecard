@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.6.4'; // Javascript Version
+$vJ = '?=1.6.5'; // Javascript Version
 $vC = '?=1.2.8'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
@@ -311,6 +311,7 @@ function menuEvent(){
 	}
 
 	$isInstructors = logistics_isEventInstructors($_SESSION['eventID']);
+	$faq = getEventFaq($_SESSION['eventID']);
 
 ?>
 	<li>
@@ -342,6 +343,10 @@ function menuEvent(){
 
 			<?php if($isInstructors == true): ?>
 				<li><a href='logisticsInstructors.php?t=0'>Event Instructors</a></li>
+			<?php endif ?>
+
+			<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ($faq != [] && ALLOW['VIEW_RULES'] == true)): ?>
+				<li><a href='infoFaq.php?t=0'><b>Event FAQ</b></a></li>
 			<?php endif ?>
 
 		</ul>

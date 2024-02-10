@@ -9500,6 +9500,106 @@ function orderRules($orderRules){
 
 /******************************************************************************/
 
+function updateFaq($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$eventID = $_SESSION['eventID'];
+	$faqID = (int)$postData['faqID'];
+
+	$faqQuestion = trim($postData['faqQuestion']);
+	$faqAnswer = trim($postData['faqAnswer']);
+
+	$deleteQuestion = false;
+	if(strlen($faqQuestion) == 0 && strlen($faqAnswer) == 0){
+
+		$sql = "DELETE FROM logisticsFaq
+				WHERE faqID = {$faqID}
+				AND eventID = {$eventID}";
+		mysqlQuery($sql, SEND);
+
+		if($faqID != 0){
+			setAlert(USER_ALERT, "Question Deleted");
+		} else {
+			setAlert(USER_ALERT, "That was a blank form, not a question....");
+		}
+
+		return;
+
+
+	} else if(strlen($faqQuestion) == 0 || strlen($faqAnswer) == 0){
+
+		setAlert(USER_ERROR, "You must provide a question and answer.");
+		return;
+
+	}
+
+	if($faqID != 0){
+		$sql = "SELECT faqID
+				FROM logisticsFaq
+				WHERE faqID = {$faqID}
+				AND eventID = {$eventID}";
+		$faqlID = (int)mysqlQuery($sql, SINGLE, 'faqID');
+
+	}
+
+	if($faqID == 0){
+		$sql = "SELECT MAX(faqOrder) AS faqOrder
+				FROM logisticsFaq
+				WHERE eventID = {$eventID}";
+		$faqOrder = (int)mysqlQuery($sql, SINGLE, 'faqOrder');
+		$faqOrder++;
+
+
+
+		$sql = "INSERT INTO logisticsFaq
+				(eventID, faqOrder)
+				VALUES
+				({$eventID}, {$faqOrder})";
+
+		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+		$exec = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+		$faqID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+	}
+
+	$sql = "UPDATE logisticsFaq
+			SET faqQuestion = ?, faqAnswer = ?
+			WHERE faqID = {$faqID}";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "ss", $faqQuestion, $faqAnswer);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+}
+
+/******************************************************************************/
+
+function orderFaq($postData){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach((array)$postData['faq'] as $faqID => $order){
+		$faqID = (int)$faqID;
+		$faqOrder = (int)$order;
+
+		$sql = "UPDATE logisticsFaq
+				SET faqOrder = {$faqOrder}
+				WHERE faqID = {$faqID}";
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT,"FAQ order updated");
+}
+
+/******************************************************************************/
+
 function updateEventSponsors($sponsorList){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
