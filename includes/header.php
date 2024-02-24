@@ -547,8 +547,11 @@ function menuAnalytics(){
 			<li>
 				<a href='#'>Events/System</a>
 					<ul class='menu vertical'>
-						<li><a href='statsPlacings.php?t=0'>Placings By Country</a></li>
+
+
 						<li><a href='statsYear.php?t=0'>Annual Summary</a></li>
+						<li><a href='statsTournamentTypes.php?t=0'>All Tournaments By Type</a></li>
+						<li><a href='statsPlacings.php?t=0'>Placings By Country</a></li>
 					</ul>
 			</li>
 
