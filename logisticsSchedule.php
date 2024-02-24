@@ -138,6 +138,8 @@ function showHideScheduleBlocks(){
 <div>
 	Showing:
 
+	<?=displayFloorMapButton()?>
+
 	<a class='button tiny' id='sdt-tournament-toggle-button'
 		onclick="logistics_sdtToggle('sdt-tournament')">
 		Tournament Rings
@@ -153,7 +155,7 @@ function showHideScheduleBlocks(){
 		Staffing Locations
 	</a>
 
-	<?=displayFloorMapButton()?>
+
 
 </div>
 

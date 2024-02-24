@@ -472,6 +472,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsParticipantHours.php?t=0'>Hours</a></li>
 			<li><a href='logisticsStaffConflicts.php?t=0'>Conflicts</a></li>
 			<li><a href='logisticsStaffGrid.php?t=0'>Full Grid</a></li>
+			<li><a href='logisticsStaffList.php'>Full Staff List</a></li>
 
 		</ul>
 	</li>
@@ -498,6 +499,7 @@ function menuEventOrgDuring(){
 		<ul class='menu vertical'>
 			<li><a href='infoRingAssignments.php'>Fighter Pool Assignment</a></li>
 			<li><a href='infoLocationMatchQueue.php'>Match Queue by Location</a></li>
+			<li><a href='logisticsStaffList.php'>Full Staff List</a></li>
 		</ul>
 	</li>
 <?php }
