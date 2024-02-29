@@ -530,7 +530,7 @@ function startTimer(){
 		timeDiv.classList.remove('running');
 		$('#manualTimerToggle').show();
 		clearInterval(timerClock);
-		$("#restartTimerInput").val(0);
+		$(".restart-timer-input").val(0);
 
 	} else {
 
@@ -538,7 +538,7 @@ function startTimer(){
 		$('#manualTimerToggle').hide();
 		$('#manualSetDiv').hide();
 		timerClock = setInterval(increaseTime,1000);
-		$("#restartTimerInput").val(1);
+		$(".restart-timer-input").val(1);
 
 	}
 

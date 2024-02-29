@@ -370,7 +370,7 @@ function matchInfoDisplay($matchInfo){
 			<input type='hidden' class='matchTime' id='matchTime'
 				name='matchTime' value='<?=$matchInfo['matchTime']?>'>
 			<input type='hidden' id='timeLimit' value='<?=$matchInfo['timeLimit']?>'>
-			<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
+			<input type='hidden' name='restartTimer' class='restart-timer-input' value='0'>
 			<input type='hidden' name='hideNegativeTime' value='1' id='hideNegativeTime'>
 			<input type='hidden' id='timerCountdown' value='<?=isTimerCountdown($matchInfo['tournamentID'])?>'>
 

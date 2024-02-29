@@ -14,8 +14,8 @@ $createSortableDataTable[] = ['all-tournament-list',100];
 include('includes/header.php');
 {
 
-	$sql = "SELECT tournamentID, eventName, eventYear, eventStartDate, tournamentWeaponID AS weaponID,
-				tournamentPrefixID AS prefixID, tournamentGenderID AS genderID, 
+	$sql = "SELECT tournamentID, eventID, eventName, eventYear, eventStartDate, tournamentWeaponID AS weaponID,
+				tournamentPrefixID AS prefixID, tournamentGenderID AS genderID,
 				tournamentMaterialID AS materialID
 			FROM eventTournaments
 			INNER JOIN systemEvents USING(eventID)
@@ -26,7 +26,7 @@ include('includes/header.php');
 	$allEvents = (array)mysqlQuery($sql, ASSOC);
 
 	$sql = "SELECT tournamentTypeID, tournamentType
-		FROM systemTournaments";
+			FROM systemTournaments";
 	$types = (array)mysqlQuery($sql, KEY_SINGLES, 'tournamentTypeID', 'tournamentType');
 
 	$display = [];
@@ -39,7 +39,8 @@ include('includes/header.php');
 	foreach($allEvents as $e){
 		$tmp = [];
 		$tmp['date'] = $e['eventStartDate'];
-		$tmp['name'] = $e['eventName']." ".$e['eventYear'];
+		$tmp['eventID'] = (int)$e['eventID'];
+		$tmp['eventName'] = $e['eventName']." ".$e['eventYear'];
 		$tmp['prefix'] = $types[$e['prefixID']];
 		$tmp['gender'] = $types[$e['genderID']];
 		$tmp['material'] = $types[$e['materialID']];
@@ -104,7 +105,7 @@ include('includes/header.php');
 				<?php foreach($display as $t): ?>
 					<tr>
 						<td style='white-space: nowrap;'><?=$t['date']?></td>
-						<td><?=$t['name']?></td>
+						<td><a href="infoSummary.php?e=<?=$t['eventID']?>"><?=$t['eventName']?></td>
 						<td><?=$t['weapon']?></td>
 						<td><?=$t['prefix']?></td>
 						<td><?=$t['gender']?></td>
@@ -122,16 +123,13 @@ include('includes/header.php');
 				<?=listTournamentTypes($typeList['gender'], $types, 'Gender')?>
 				<?=listTournamentTypes($typeList['prefix'], $types, 'Divisioin')?>
 				<?=listTournamentTypes($typeList['weapon'], $types, 'Weapon')?>
-				
+
 			</div>
 
-			
+
 		</div>
 
 	</div>
-
-
-
 
 
 
