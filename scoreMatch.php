@@ -1031,7 +1031,7 @@ function dataEntryBox($matchInfo){
 
 	<!-- Hidden button to be selected if a score is entered from the dropdowns -->
 	<input type='radio' name='mod' value='hit' class='hidden' id='NA_Radio'>
-	<input type='hidden' name='restartTimer' value='0' id='restartTimerInput'>
+	<input type='hidden' name='restartTimer' value='0' class='restart-timer-input'>
 
 	</div>
 
@@ -1265,6 +1265,7 @@ function gridScoreBox($matchInfo, $num){
 
 
 		<?=scoreSelectGrid($matchInfo, $num, $rosterID, $otherID)?>
+		<input type='hidden' class='restart-timer-input' name='restartTimer' value='0'>
 
 	</form>
 	<!-- Reveal close button -->
