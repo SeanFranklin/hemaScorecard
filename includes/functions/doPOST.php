@@ -467,6 +467,9 @@ function processPostData(){
 			case 'duplicateNameSearchType':
 				$_SESSION['duplicateNameSearchType'] = 	$_POST['searchType'];
 				break;
+			case 'duplicateNameSearchParams':
+				$_SESSION['duplicateNameSearchParams'] = $_POST['duplicateNameSearchParams'];
+				break;
 			case 'hemaRatings_UpdateFighterIDs':
 				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
@@ -592,6 +595,9 @@ function processPostData(){
 				break;
 			case 'statsYear':
 				$_SESSION['stats']['year'] = (int)$_POST['stats']['year'];
+				break;
+			case 'statsFutureView':
+				$_SESSION['stats']['futureView'] = (int)$_POST['stats']['futureView'];
 				break;
 			case 'updateSoftwareUpdates':
 				updateSoftwareUpdates($_POST['updateSoftwareUpdates']);

@@ -3139,14 +3139,17 @@ function getFighterNameSystem($systemRosterID, $nameMode = null){
 
 	$systemRosterID = (int)$systemRosterID;
 	if($systemRosterID == 0){
-		setAlert(SYSTEM,"No rosterID in getFighterName()");
-		return;
+		return "";
 	}
 
 	$sql = "SELECT firstName, lastName
 			FROM systemRoster
 			WHERE systemRosterID = {$systemRosterID}";
 	$result = mysqlQuery($sql, SINGLE);
+
+	if($result == []){
+		return "";
+	}
 
 	if($nameMode == null){
 		$nameMode = NAME_MODE;
