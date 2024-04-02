@@ -21,57 +21,68 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 } else {
 
 	$allDuplicates = [];
+	$systemRosterID1 = 0;
+	$systemRosterID2 = 0;
 
 	if(isset($_SESSION['duplicateNameSearchType'])){
 
-		$sql = "SELECT systemRosterID, firstName, lastName, schoolID
-				FROM systemRoster";
-		$systemRoster = mysqlQuery($sql, ASSOC);
+		switch($_SESSION['duplicateNameSearchType']){
+			case 'lastName_school':
+				$allDuplicates = search_LastName_School();
+				break;
+			case 'manualMatch':
 
-		foreach($systemRoster as $fighter){
-			$newDuplicates = [];
-			switch($_SESSION['duplicateNameSearchType']){
-				case 'lastName_school':
-					$newDuplicates = (array)match_LastName_School($fighter);
-					break;
-				default:
-					$newDuplicates = [];
-					break;
-			}
-
-			if(count($newDuplicates) == 0){
-				continue;
-			}
-
-			$duplicateToAdd = [];
-			$duplicateToAdd[0] = $fighter;
-			foreach($newDuplicates as $data){
-				$duplicateToAdd[] = $data;
-			}
-
-
-			$allDuplicates[] = $duplicateToAdd;
-
-
+				$systemRosterID1 = (int)@$_SESSION['duplicateNameSearchParams']['systemRosterID1'];
+				$systemRosterID2 = (int)@$_SESSION['duplicateNameSearchParams']['systemRosterID2'];
+				$allDuplicates = search_manualMatch($systemRosterID1, $systemRosterID2);
+				$name1 = getFighterNameSystem($systemRosterID1);
+				$name2 = getFighterNameSystem($systemRosterID2);
+				break;
+			default:
+				$allDuplicates = [];
+				break;
 		}
-	}
 
+	} else {
+		$_SESSION['duplicateNameSearchType'] = null;
+	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<!-- Select search type -->
+<!-- Select search type ------------------------------------------------------>
 	<form method="POST">
 		<input type='hidden' name='formName' value='duplicateNameSearchType'>
 		<?php
 		changeSearchButton("No Search", "");
 		changeSearchButton("Match: Last Name & School", "lastName_school");
+		changeSearchButton("Manual", "manualMatch");
 		?>
 	</form>
 	<hr>
 
-<!-- Display search results -->
+	<?php if($_SESSION['duplicateNameSearchType'] == 'manualMatch'): ?>
+		<form method="POST">
+			<input type='hidden' >
+			<div class="grid-x grid-margin-x">
+
+				<div class='cell large-2' >
+					<input type='number' class='no-bottom' value='<?=$systemRosterID1?>'
+						name='duplicateNameSearchParams[systemRosterID1]' >
+						<?=$name1?>
+				</div>
+				<div class='cell large-2' >
+					<input type='number' class='no-bottom' value='<?=$systemRosterID2?>'
+						name='duplicateNameSearchParams[systemRosterID2]' >
+					<?=$name2?>
+				</div>
+				<button class='cell large-3 button success' name='formName'
+					value='duplicateNameSearchParams'>Check SystemRosterIDs</button>
+		</form>
+	<?php endif ?>
+
+<!-- Display search results ---------------------------------------------------->
 	<table>
 
 		<tr>
@@ -90,13 +101,9 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 		displayAlert("No Duplicates Found");
 	}
 
-
-
 // Step through duplicates
 	foreach((array)$allDuplicates as $setNum => $set):
 		$numInSet = count($set);
-
-
 		$setInfo = [];
 
 	// Display the duplicate fighters in a set
@@ -141,6 +148,70 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function search_manualMatch($systemRosterID1, $systemRosterID2){
+	$allDuplicates = [];
+
+	$systemRosterID1 = (int)$systemRosterID1;
+	$systemRosterID2 = (int)$systemRosterID2;
+
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolID
+			FROM systemRoster
+			WHERE systemRosterID = {$systemRosterID1}";
+	$record1 = (array)mysqlQuery($sql, SINGLE);
+
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolID
+			FROM systemRoster
+			WHERE systemRosterID = {$systemRosterID2}";
+	$record2 = (array)mysqlQuery($sql, SINGLE);
+
+	if($record1 != [] && $record2 != []){
+		$allDuplicates[0][0] = $record1;
+		$allDuplicates[0][1] = $record2;
+	}
+
+
+
+	return($allDuplicates);
+}
+
+/******************************************************************************/
+
+function search_LastName_School(){
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolID
+			FROM systemRoster";
+	$systemRoster = mysqlQuery($sql, ASSOC);
+
+	$allDuplicates = [];
+
+	foreach($systemRoster as $fighter){
+		$newDuplicates = [];
+		switch($_SESSION['duplicateNameSearchType']){
+			case 'lastName_school':
+				$newDuplicates = (array)match_LastName_School($fighter);
+				break;
+			default:
+				$newDuplicates = [];
+				break;
+		}
+
+		if(count($newDuplicates) == 0){
+			continue;
+		}
+
+		$duplicateToAdd = [];
+		$duplicateToAdd[0] = $fighter;
+		foreach($newDuplicates as $data){
+			$duplicateToAdd[] = $data;
+		}
+
+		$allDuplicates[] = $duplicateToAdd;
+	}
+
+	return $allDuplicates;
+}
 
 /******************************************************************************/
 
@@ -257,7 +328,7 @@ function tournamentEntryTooltip($systemRosterID){
 
 		$str .= "</ul>";
 	}
-	
+
 	?>
 	<div class="tooltip">?
 		<span class="tooltiptext"><?=$str?></span>

@@ -3411,21 +3411,33 @@ function changeRosterFilterDropdown(){
 
 	$roster = getSystemRosterInfo();
 
+	$filterName = getFighterNameSystem($_SESSION['filterForSystemRosterID'], 'array');
+
 ?>
 
-	<form method='POST' class=''>
+	<form method='POST' class='' id='update-roster-filter'>
 		<input type='hidden' name='formName' value='filterForSystemRosterID'>
 		<div class='input-group'>
 			<span class='input-group-label'>Filter By Fighter</span>
-			<select  class='input-group-field' name='systemRosterID'>
-				<option <?=optionValue(0,$_SESSION['filterForSystemRosterID'])?>>- not set -</option>
+
+
+			<input class='input-datalist' list="staff-select-datalist"
+				placeholder="- empty -"
+				data-name='systemRosterID'
+				data-id='full-roster-select'
+				value='<?=$filterName['lastName']?>, <?=$filterName['firstName']?>'
+			>
+
+
+			<datalist id="staff-select-datalist">
 				<?php foreach($roster as $r): ?>
-					<option <?=optionValue($r['systemRosterID'],$_SESSION['filterForSystemRosterID'])?>>
+					<option data-value='<?=$r['systemRosterID']?>'>
 						<?=$r['lastName']?>, <?=$r['firstName']?>
 					</option>
 				<?php endforeach ?>
-			</select>
-			<button class='input-group-button button'>Go</button>
+			</datalist>
+
+			<a class='input-group-button button' onclick="submitForm('update-roster-filter', 'filterForSystemRosterID')">Go</a>
 		</div>
 	</form>
 

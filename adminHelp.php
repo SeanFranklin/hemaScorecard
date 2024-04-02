@@ -89,7 +89,7 @@ function helpDisplayPerticipant(){
 
 <div class='documentation-div'>
 
-<p>Thank you for checking out HEMA Scorecord. You’ve found your way to the Participant User Guide. Here you will get a how-to on how to navigate through the most important features of HEMA Scorecard. If you are an event organizer looking for help, please click on the "Event Organizers" tab above this paragraph.</p>
+<p>Thank you for checking out HEMA Scorecard. You've found your way to the Participant User Guide. Here you will get a how-to on how to navigate through the most important features of HEMA Scorecard. If you are an event organizer looking for help, please click on the "Event Organizers" tab above this paragraph.</p>
 
 
 
@@ -99,7 +99,7 @@ function helpDisplayPerticipant(){
 
 <img src="includes/images/help_01.png">
 
-<p>The landing page shows recently-completed, active, and upcoming events in chronological order <b class='red-text'>(1)</b>. If an upcoming or active event doesn’t appear here, it is either hidden by the event organizer or is not being hosted by HEMA Scorecard. If the event you are interested in has already occurred, you may need to navigate to “All Events” <b class='red-text'>(2)</b>, which is sorted by event name as a default.</p>
+<p>The landing page shows recently-completed, active, and upcoming events in chronological order <b class='red-text'>(1)</b>. If an upcoming or active event doesn't appear here, it is either hidden by the event organizer or is not being hosted by HEMA Scorecard. If the event you are interested in has already occurred, you may need to navigate to “All Events” <b class='red-text'>(2)</b>, which is sorted by event name as a default.</p>
 
 <h3>Event Information</h3>
 
@@ -125,7 +125,7 @@ function helpDisplayPerticipant(){
 
 <img src="includes/images/help_06.png">
 
-<p>If the Schedule is populated, you can also view Individual Schedules <b class='red-text'>(9)</b>. These will show you all commitments you have made for a tournament– tournament entry, judging, instructor roles, etc– in chronological order. You can select your name from a dropdown list of event participants <b class='red-text'>(10)</b> to view your schedule.</p>
+<p>If the Schedule is populated, you can also view Individual Schedules <b class='red-text'>(9)</b>. These will show you all commitments you have made for a tournament– tournament entry, judging, instructor roles, etc– in chronological order. You can select your name from a drop-down list of event participants <b class='red-text'>(10)</b> to view your schedule.</p>
 
 <a href='#topOfPage'>Back to Top</a>
 
@@ -135,7 +135,7 @@ function helpDisplayPerticipant(){
 
 <img src="includes/images/help_07.png">
 
-<p>You may view an event’s tournaments by either clicking on them on the landing page <b class='red-text'>(3)</b> or by navigating to them underneath the “Select Tournament” menu <b class='red-text'>(11)</b>.</p>
+<p>You may view an event's tournaments by either clicking on them on the landing page <b class='red-text'>(3)</b> or by navigating to them underneath the “Select Tournament” menu <b class='red-text'>(11)</b>.</p>
 
 <img src="includes/images/help_08.png">
 
@@ -313,14 +313,16 @@ function helpDisplayOrganizer(){
 
 <li>
 	<em>Does this work with HEMA Ratings?</em>
-	Yes! Just let them know you have run your tournament using HEMA Scorecard and they
-	are able to grab all the results. You don't have to worry about anything.
+	Yes! <BR>
+	If you go to <b><a href='statsResultsDump.php' target='_blank'>Stats/Analytics > Export Results</a></b> you will be able to
+	download your event information in a format that matches the
+	<a href='https://submit.hemaratings.com/' target='_blank'>HEMA Ratings Submission Tool</a>. (You don't even have to be logged in to export your results.)
 </li>
 
 <li>
 	<em>Can I use a different type of ranking?</em>
 	Probably. All ranking algorithms need to be coded into the system prior to the
-	start of the event. It is best to give the HEMA Scorecard team as much notice as posisble
+	start of the event. It is best to give the HEMA Scorecard team as much notice as possible
 	about the specific details of how you wish to score your event.
 </li>
 
@@ -640,7 +642,7 @@ but not affect the scoring of previous sets.
 If a fighter has completed all of their pool matches but can not participate in the elimination bracket
 (such as being injured in another tournament) use the <strong>Remove From Finals</strong> toggle.
 This will keep all pool matches, and standings, unaffected. The fighter will simply be removed from
-the list of fighters in the bracket menu, and the seedings of the other fighters will be ajusted to reflect this.
+the list of fighters in the bracket menu, and the seedings of the other fighters will be adjusted to reflect this.
 
 <BR><BR><a href='#topOfPage'>Back to Top</a>
 </fieldset>

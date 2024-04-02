@@ -16,9 +16,9 @@ define('FIRST_YEAR', 2015);
 
 {
 	// Show last year for the first 30 days of the new year.
-	$defaultYear = (int)date("Y", strtotime("-30 day")); 
-	$currentYear = (int)date("Y"); 
-	
+	$defaultYear = (int)date("Y", strtotime("-30 day"));
+	$currentYear = (int)date("Y");
+
 	if(isset($_SESSION['stats']['year']) == true){
 		$year = (int)$_SESSION['stats']['year'];
 	} else {
@@ -38,21 +38,29 @@ define('FIRST_YEAR', 2015);
 		$eventListStr = "eventID IS NOT NULL";
 	}
 
-	$eventListStr .= " AND eventStartDate <= NOW() ";
+	if(ALLOW['SOFTWARE_ADMIN'] == true && @$_SESSION['stats']['futureView'] == true){ // not existing is logical false
+		// Show future events
+	} else {
+		$eventListStr .= " AND eventStartDate <= NOW() ";
+	}
 
+	$invertFutureView = !(@$_SESSION['stats']['futureView']);
+	$invertFutureView = (int)$invertFutureView;
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-?>	
+?>
 
 	<div class='grid-x grid-margin-x'>
 
 	<div class='cell callout text-center success'><h3><?=$year?> - Year In Review</h3></div>
 
-	<div class='cell callout alert'>
-		<h3 class='text-center red-text'>Warning!</h3>
-		This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
-	</div>
+	<?php if(ALLOW['SOFTWARE_ADMIN'] == false): ?>
+		<div class='cell callout alert'>
+			<h3 class='text-center red-text'>Warning!</h3>
+			This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
+		</div>
+	<?php endif ?>
 
 	<?=yearlySummaryCountries(	$eventListStr,'teal')?>
 	<?=yearlySummaryDates(		$eventListStr,'crimson')?>
@@ -62,10 +70,10 @@ define('FIRST_YEAR', 2015);
 	<?=yearlySummaryUrg(		$eventListStr,'Khaki')?>
 	<?=yearlySummaryClubs(		$eventListStr,'deepskyblue')?>
 	<?=yearlySummaryIndividual(	$eventListStr,'violet')?>
-	
+
 	<?=yearlySummarySoftware($year)?>
 
-	
+
 	<div class="cell"><HR></div>
 	<div class="cell medium-6">
 		<form method="POST">
@@ -85,7 +93,17 @@ define('FIRST_YEAR', 2015);
 		</form>
 	</div>
 
-	</div>
+	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+		<div class='cell medium-4'>
+			<form method="POST">
+				<input class='hidden' name='formName' value='statsFutureView'>
+				<button class='button hollow' name='stats[futureView]' value='<?=$invertFutureView?>'>
+					Set futureView == <?=$invertFutureView?>
+				</button>
+			</form>
+		</div>
+	<?php endif ?>
+
 <?php
 }
 include('includes/footer.php');
@@ -172,7 +190,7 @@ function yearlySummaryDates($eventListStr, $color){
 		$end = strtotime($e['eventEndDate']);
 		$datediff = 1 + (($end - $start) / (60 * 60 * 24));
 
-		
+
 		if(isset($plotEventsByDays[$datediff]) == true){
 			$plotEventsByDays[$datediff]['value']++;
 		}
@@ -475,7 +493,7 @@ function yearlySummaryMatches($eventListStr, $color){
 
 ?>
 
-	
+
 
 	<div class='medium-6 cell callout'>
 
@@ -715,6 +733,10 @@ function yearlySummaryIndividual($eventListStr, $color){
 				AND ((fighter1Score = 0 && fighter2Score >= 4)
 					OR (fighter2Score = 0 && fighter1Score >= 4))
 				AND systemRosterID IS NOT NULL
+				AND (	SELECT COUNT(*)
+						FROM eventExchanges AS eE2
+						WHERE eE2.matchID = eM.matchID
+						AND scoreValue != 0) >= 3
 			GROUP BY systemRosterID
 			ORDER BY numMatches DESC
 			LIMIT 30";
@@ -750,11 +772,11 @@ function yearlySummaryIndividual($eventListStr, $color){
 		$sql = "SELECT eventName,
 					(	SELECT systemRosterID
 						FROM eventRoster AS eR2
-						WHERE eR2.rosterID = eM.fighter1ID	
+						WHERE eR2.rosterID = eM.fighter1ID
 					) AS sysID1,
 					(	SELECT systemRosterID
 						FROM eventRoster AS eR3
-						WHERE eR3.rosterID = eM.fighter2ID	
+						WHERE eR3.rosterID = eM.fighter2ID
 					) AS sysID2
 				FROM eventMatches AS eM
 					INNER JOIN eventGroups USING(groupID)
