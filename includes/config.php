@@ -198,6 +198,7 @@
 	$options['T']["SUPPRESS_DIRECT_ENTRY"] 			= 12;
 	$options['T']["PRIORITY_NOTICE_ON_NON_SCORING"] = 15;
 	$options['T']["DENOTE_FIGHTERS_WITH_OPTION_CHECK"] = 16;
+	$options['T']["MATCH_SOFT_CLOCK_TIME"] 		= 17;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

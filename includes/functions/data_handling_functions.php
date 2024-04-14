@@ -1139,9 +1139,66 @@ function shouldMatchConcludeByTime($matchInfo){
 		return false;
 	}
 
+	$softClock = (int)readOption('T', $matchInfo['tournamentID'], 'MATCH_SOFT_CLOCK_TIME');
+
+
 	if($matchInfo['matchTime'] >= $matchInfo['timeLimit']){
+
 		setAlert(USER_ALERT,"Time limit reached.");
 		return true;
+
+	} else if($softClock != 0 && $matchInfo['matchTime'] >= $softClock){
+
+		$matchID = (int)$matchInfo['matchID'];
+
+		$sql = "SELECT scoringID, exchangeType
+				FROM eventExchanges
+				WHERE matchID = {$matchID}
+				ORDER BY exchangeNumber DESC
+				LIMIT 1";
+		$exch = (array)mysqlQuery($sql, SINGLE);
+
+		if($exch == []){
+			return (false);
+		}
+
+		$alertString = "Soft time limit reached.";
+
+
+		if($matchInfo['fighter1score'] > $matchInfo['fighter2score']){
+			$winning = 1;
+		} else if ($matchInfo['fighter2score'] > $matchInfo['fighter1score']) {
+			$winning = 2;
+		} else {
+			$winning = 0;
+		}
+
+		$validExchange = false;
+		if($exch['exchangeType'] == 'clean' || $exch['exchangeType'] == 'afterblow'){
+			$validExchange = true;
+		}
+
+
+		if($winning == 0){
+
+			$shouldConclude = false;
+			$alertString .= "<BR>Tie match. One fighter must score to win.";
+
+		} else if($validExchange == true && $exch['scoringID'] == $matchInfo["fighter{$winning}ID"]) {
+
+			$shouldConclude = true;
+
+		} else {
+
+			$shouldConclude = false;
+			$alertString .= "<BR><b>Fighter {$winning}</b> must score to end the match.";
+
+		}
+
+		setAlert(USER_ALERT, $alertString);
+
+		return ($shouldConclude);
+
 	} else {
 		return false;
 	}

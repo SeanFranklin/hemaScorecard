@@ -6225,14 +6225,25 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		default: {$settings['doubleTypeID'] = "NULL"; break;}
 	}
 
+
 	if($settings['doubleTypeID'] == FULL_AFTERBLOW){
+
+		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
+
 		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != 0){
 			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', 0);
 			setAlert(USER_ALERT,"Grid Score Display is not supported for Full Afterblow (yet).<BR>Display changed back to normal.");
 		}
-		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
+
 	} elseif($settings['doubleTypeID'] == NO_AFTERBLOW){
+
 		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
+
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != 0){
+			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', 0);
+			setAlert(USER_ALERT,"Grid Score Display is not supported for No Afterblow (yet).<BR>Display changed back to normal.");
+		}
+
 	} else {
 		// Nothing to do.
 	}
@@ -6338,6 +6349,9 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	} else {
 		writeOption('T', $tournamentID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK', 0);
 	}
+
+	writeOption('T', $tournamentID, 'MATCH_SOFT_CLOCK_TIME', (int)$formInfo['softClock']);
+
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -6657,9 +6671,15 @@ function importTournamentSettings($config){
 	}
 
 // Import options from target (these can't be read from the eventTournaments table)
+	$sourceSettings['allowTies'] = readOption('T', $sourceID, 'MATCH_TIE_MODE');
 	$sourceSettings['teamSwitchPoints'] = readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
 	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
-	$sourceSettings['allowTies'] = readOption('T', $sourceID, 'MATCH_TIE_MODE');
+	$sourceSettings['teamSize'] = readOption('T', $sourceID, 'TEAM_SIZE');
+	$sourceSettings['doublesCarryForward'] = readOption('T', $sourceID, 'DOUBLES_CARRY_FORWARD');
+	$sourceSettings['priorityNotice'] = readOption('T', $sourceID, 'PRIORITY_NOTICE_ON_NON_SCORING');
+	$sourceSettings['otherNotice'] = readOption('T', $sourceID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
+	$sourceSettings['softClock'] = readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');
+
 
 // Name is saved from the current tournament
 	$sql = "SELECT tournamentWeaponID, tournamentPrefixID, tournamentGenderID, tournamentMaterialID
