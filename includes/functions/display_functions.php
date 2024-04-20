@@ -1499,6 +1499,44 @@ function edit_tournamentDenoteOtherCheck($tournamentID = 0){
 
 /******************************************************************************/
 
+function edit_tournamentSoftClock($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID !=  0){
+		$softClock = readOption('T', $tournamentID, 'MATCH_SOFT_CLOCK_TIME');
+	} else {
+		$softClock = null;
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Soft Clock
+				<?=tooltip("If the winning fighter scores after the soft clock time they win the match. Otherwise the match keeps going and the losing fighter has as many exchanges as they want to catch up and win. (Until someone hits the point cap or the hard clock.)");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+
+				<input type='number' name='updateTournament[softClock]' value='<?=$softClock?>'
+						placeholder='Unlimited' min=0 max=300 class='text-center'>
+
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentTimerCountdown($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection
