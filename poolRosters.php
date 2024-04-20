@@ -83,7 +83,7 @@ if($tournamentID == 0){
 	if(SHOW_OTHER_NOTICE == true){
 
 		foreach($tournamentRoster as $fighter){
-			if($fighter['tournamentOtherCheck'] == true){
+			if(@$fighter['tournamentOtherCheck'] == true){
 				$showOtherNotice[$fighter['rosterID']] = true;
 			}
 		}
