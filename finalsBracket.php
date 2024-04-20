@@ -51,7 +51,7 @@ if($tournamentID == null){
 		$finalists = getTournamentStandings($tournamentID, null, 'pool', 'advancements');
 	} else {
 		if(isEntriesByTeam($tournamentID) == false){
-			$finalists = getTournamentFighters($tournamentID);
+			$finalists = getTournamentFighters($tournamentID, 'rating');
 		} else {
 			$finalists = getTournamentTeams($tournamentID);
 		}
