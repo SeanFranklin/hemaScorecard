@@ -28,12 +28,6 @@ if($tournamentID == null){
 	$addableFighters = (array)getUngroupedRoster($tournamentID, $teamRostersRaw);
 
 	$teamSize = (int)readOption('T',$tournamentID,'TEAM_SIZE');
-	if($teamSize != 0){
-		$numBlankEntries = min($teamSize, count($addableFighters));
-	} else {
-		$numBlankEntries = -1;
-	}
-
 
 	$teamRostersSorted = [];
 	foreach($teamsList as $team){
@@ -59,7 +53,7 @@ if($tournamentID == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<?php createNewTeamInterface($addableFighters, $numBlankEntries) ?>
+	<?php createNewTeamInterface($addableFighters, $teamSize) ?>
 
 	<?php if(count($teamRostersSorted) == 0): ?>
 		<?=displayAlert("No Teams Created")?>
@@ -84,7 +78,7 @@ if($tournamentID == null){
 
 		</tr>
 		<?php foreach($teamRostersSorted as $teamID => $team): ?>
-			<?=displayTeam($team, $teamID, $addableFighters, $numBlankEntries)?>
+			<?=displayTeam($team, $teamID, $addableFighters, $teamSize)?>
 		<?php endforeach ?>
 	</table>
 
@@ -113,7 +107,7 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
+function displayTeam($team, $teamID, $addableFighters, $teamSize){
 
 	$numInTeam = 0;
 	$teamMembers = [];
@@ -127,10 +121,11 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 		$teamMembers[] = $m;
 	}
 
-	if($numBlankEntries >= 0){
-		$numBlankEntries -= $numInTeam;
-	} else {
-		$numBlankEntries = 2;
+
+	$emptySpots = $teamSize - $numInTeam;
+
+	if(count($addableFighters) < $emptySpots){
+		$emptySpots = count($addableFighters);
 	}
 
 ?>
@@ -174,7 +169,7 @@ function displayTeam($team, $teamID, $addableFighters, $numBlankEntries){
 			<?php endforeach ?>
 
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-				<?php for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
+				<?php for ($k = 1 ; $k <= $emptySpots; $k++): ?>
 					<div class='input-group'>
 
 						<span class='input-group-label'>
@@ -228,12 +223,17 @@ function teamName($teamID){
 
 /******************************************************************************/
 
-function createNewTeamInterface($addableFighters, $numBlankEntries){
+function createNewTeamInterface($addableFighters, $teamSize){
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
 	}
 
 	$numUnassigned = count($addableFighters);
+	if($numUnassigned < $teamSize){
+		$emptySpots = $numUnassigned;
+	} else {
+		$emptySpots = $teamSize;
+	}
 
 ?>
 <!-- Visibility Button -->
@@ -293,7 +293,7 @@ function createNewTeamInterface($addableFighters, $numBlankEntries){
 
 
 			<?php
-				for ($k = 1 ; $k <= $numBlankEntries; $k++): ?>
+				for ($k = 1 ; $k <= $emptySpots; $k++): ?>
 					<div class='input-group'>
 					<span class='input-group-label'>
 						Member #:<?=$k?>

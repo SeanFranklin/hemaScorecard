@@ -2929,6 +2929,8 @@ function addTeamMembers($teamInfo, $tournamentID){
 
 	updateTeamSchools($tournamentID);
 
+	$_SESSION['checkEvent'][$tournamentID]['all'] = true;
+
 }
 
 /******************************************************************************/
@@ -2958,6 +2960,8 @@ function deleteTeams($deleteInfo){
 			mysqlQuery($sql, SEND);
 		}
 	}
+
+	$_SESSION['checkEvent'][$_SESSION['tournamentID']]['all'] = true;
 }
 
 /******************************************************************************/
