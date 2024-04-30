@@ -206,15 +206,46 @@ function makePoolMatchOrderTeamVsTeam ($groupRoster, $ignores = [], $groupSet = 
 				continue;
 			}
 
-			foreach($team1Roster as $rosterID1){
+			$team1RosterIndexed = [];
+			$team1size = 0;
+			foreach($team1Roster as $rosterID){
+				$team1RosterIndexed[] = $rosterID;
+				$team1size++;
+			}
 
-				// Skip if fighter 1 can't continue
-				if( @(int)$ignores[$rosterID1]['stopAtSet'] < (int)$groupSet    // If unset treat it as zero
-					&& @(int)$ignores[$rosterID1]['stopAtSet'] > 0){
-					continue;
-				}
 
-				foreach($team2Roster as $rosterID2){
+			$team2RosterIndexed = [];
+			$team2size = 0;
+			foreach($team2Roster as $rosterID){
+				$team2RosterIndexed[] = $rosterID;
+				$team2size++;
+			}
+
+			$maxTeamSize = max($team1size, $team2size);
+
+			for($loopNum = 0; $loopNum < $maxTeamSize; $loopNum++){
+
+				for($i = 0; $i < $team1size; $i++){
+
+					$rosterID1 = $team1RosterIndexed[$i];
+
+					// Skip if fighter 1 can't continue
+					if( @(int)$ignores[$rosterID1]['stopAtSet'] < (int)$groupSet    // If unset treat it as zero
+						&& @(int)$ignores[$rosterID1]['stopAtSet'] > 0){
+						continue;
+					}
+
+					$index2 = $i + $loopNum;
+
+					if($index2 >= $maxTeamSize){
+						$index2 -= $maxTeamSize;
+					}
+
+					if($index2 >= $team2size){
+						continue;
+					}
+
+					$rosterID2 = $team2RosterIndexed[$index2];
 
 					// Skip if fighter 2 can't continue
 					if( @(int)$ignores[$rosterID2]['stopAtSet'] < (int)$groupSet    // If unset treat it as zero
@@ -225,8 +256,11 @@ function makePoolMatchOrderTeamVsTeam ($groupRoster, $ignores = [], $groupSet = 
 					$matchOrder[$matchNumber]['fighter1ID'] = $rosterID1;
 					$matchOrder[$matchNumber]['fighter2ID'] = $rosterID2;
 					$matchNumber++;
+
 				}
+
 			}
+
 		}
 	}
 

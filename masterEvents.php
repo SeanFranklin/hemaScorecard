@@ -101,8 +101,6 @@ function displayAdminEventList($eventList){
 				$str .= "<span class='black-text'>|</span>";
 				$str .= isSetMark(areMatchesStarted($eventID));
 				$str .= isSetMark(areAllTournamentsFinalized($eventID));
-				$str .= isSetMark(hemaRatings_isEventInfoComplete($eventID));
-
 
 				$eventList[$eventID]['Setup'] = $str;
 
@@ -151,7 +149,7 @@ function displayAdminEventList($eventList){
 					if($fieldName == 'Setup'){
 						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
 							----------
-							<BR>4) Matches Fought<BR>5) Tournaments Finalized<BR>6) HEMA Ratings Info");
+							<BR>4) Matches Fought<BR>5) Tournaments Finalized");
 					}
 
 
