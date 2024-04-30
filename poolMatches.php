@@ -116,8 +116,8 @@ if($tournamentID == null){
 			foreach ($pool as $matchID => $match){
 
 				if(gettype($match) == 'array' && isset($hide['match'][$matchID]) == false){
-					$matchNum++;
-					displayMatch($matchID, $match, $matchScores, $matchNum, $schoolIDs);
+
+					displayMatch($matchID, $match, $matchScores, $schoolIDs);
 				}
 			} ?>
 		</div>
@@ -232,7 +232,7 @@ function checkFightersIn($groupID){
 
 /******************************************************************************/
 
-function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolIDs){
+function displayMatch($matchID,$match, $matchScores, $schoolIDs){
 // displays the fighters and score of a match. Also button to go to the match
 
 	if(NAME_MODE == 'lastName'){
@@ -320,7 +320,7 @@ function displayMatch($matchID,$match, $matchScores, $matchNum = null, $schoolID
 			<input type='hidden' name='formName' value='goToMatch'>
 			<input type='hidden' name='matchID' value='<?=$matchID?>'>
 			<a href='javascript:document.goToMatch<?=$matchID?>.submit();'>
-				Match <?=$matchNum?>
+				Match <?=$match['matchNumber']?>
 			</a>
 		</form>
 
