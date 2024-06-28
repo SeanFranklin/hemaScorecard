@@ -2863,7 +2863,8 @@ function addTeamMembers($teamInfo, $tournamentID){
 
 	$teamID = (int)$teamInfo['teamID'];
 
-	foreach((array)$teamInfo['order'] as $tableID => $teamOrder){
+
+	foreach((array)@$teamInfo['order'] as $tableID => $teamOrder){
 
 		$tableID = (int)$tableID;
 		$teamOrder = (int)$teamOrder;
@@ -7468,6 +7469,11 @@ function videoStreamSetLocations($locationInfo){
 
 		$videoID = (int)@$streamExisting['videoID'];
 		$streamID = (int)@$streamExisting['streamID'];
+
+		$sql = "SELECT videoID
+				FROM eventVideo
+				WHERE videoID = {$videoID}";
+		$videoID = (int)mysqlQuery($sql, SINGLE, 'videoID');
 
 	// Update video
 		if($videoID == 0) {

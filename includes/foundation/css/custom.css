@@ -267,6 +267,10 @@ table tr.match-queue{
   color: #FFFFFF;
 }
 
+.penalty-card-white{
+  background-color: #F8F8F8;
+}
+
 .easter-egg:hover {
     color: red !important;
 }

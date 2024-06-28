@@ -189,7 +189,7 @@ console
 	streamMatchInfo.lastExch  = -1;
 	streamMatchInfo.matchTime =  0;
 
-	window.open('videoWatchWindow.php','streamWindow','toolbar=0,location=0,menubar=0');
+	window.open('videoWatchWindow.php?l='+locationID,'streamWindow','toolbar=0,location=0,menubar=0');
 }
 
 /******************************************************************************/

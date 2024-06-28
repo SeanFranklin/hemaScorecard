@@ -1349,6 +1349,10 @@ function isFinalsMatch($matchID){
 			WHERE matchID = {$matchID}";
 	$res = mysqlQuery($sql, SINGLE);
 
+	if($res == null){
+		return false;
+	}
+
 	if($res['placeholderMatchID'] != null){
 		$placeholderMatchID = (int)$res['placeholderMatchID'];
 		$sql = "SELECT bracketLevel, placeholderMatchID
@@ -5653,6 +5657,19 @@ function logistics_getLocationName($locationID, $short = false){
 
 	return ($name);
 
+}
+
+/******************************************************************************/
+
+function logistics_getEventOfLoacation($locationID){
+	$locationID = (int)$locationID;
+
+	$sql = "SELECT eventID
+			FROM logisticsLocations
+			WHERE locationID = {$locationID}";
+	$eventID = (int)mysqlQuery($sql, SINGLE, 'eventID');
+
+	return ($eventID);
 }
 
 /******************************************************************************/
