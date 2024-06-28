@@ -547,8 +547,18 @@ function poolStandingsSetBox($tournamentID, $allPools){
 
 /******************************************************************************/
 
-function addPoolsBox(){
+function addPoolsBox($tournamentID){
 	$maxPoolsToAdd = 40;	// Arbitrary
+
+	$numEntries = getNumTournamentEntries($tournamentID);
+	$maxPoolSize =  maxPoolSize($tournamentID);
+
+	if($maxPoolSize > 0){
+		$numPools = ceil($numEntries / $maxPoolSize);
+	} else {
+		$numPools = 'infinite';
+	}
+
 	?>
 
 	<div class='reveal tiny' id='addPoolsBox' data-reveal>
@@ -576,6 +586,10 @@ function addPoolsBox(){
 				Cancel
 			</button>
 		</div>
+
+		<i>(FYI, <u><?=$numEntries?> fighters</u> divided by
+		 <u><?=$maxPoolSize?> per pool</u>
+		= <b><?=$numPools?> pools</b>)</i>
 
 		</fieldset>
 		</form>

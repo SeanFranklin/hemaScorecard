@@ -187,6 +187,13 @@ function displayTeam($team, $teamID, $addableFighters, $teamSize){
 
 					</div>
 				<?php endfor ?>
+
+				<?php if($teamSize == 0): ?>
+					<div class='callout warning text-center'>
+						Max Team Size is currently set to zero, and you can not add fighters.<BR>Please use the Tournament Settings to specify your team size.
+					</div>
+				<?php endif ?>
+
 			<?php endif ?>
 
 		</td>
@@ -308,6 +315,12 @@ function createNewTeamInterface($addableFighters, $teamSize){
 					</select>
 					</div>
 				<?php endfor ?>
+
+				<?php if($teamSize == 0): ?>
+					<div class='callout warning text-center'>
+						Max Team Size is currently set to zero, and you can not add fighters.<BR>Please use the Tournament Settings to specify your team size.
+					</div>
+				<?php endif ?>
 
 
 		<!-- Sumbit Buttons -->

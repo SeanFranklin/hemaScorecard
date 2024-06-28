@@ -15,7 +15,7 @@ $jsIncludes[] = 'score_scripts.js';
 $jsIncludes[] = 'video_scripts.js';
 include_once('includes/config.php');
 
-$vJ = '?=1.0.8'; // Javascript Version
+$vJ = '?=1.0.9'; // Javascript Version
 $vC = '?=1.0.6'; // CSS Version
 
 
@@ -29,6 +29,8 @@ if(ALLOW['SOFTWARE_ADMIN'] == true){
 $locationID = (int)@$_SESSION['stream']['locationID'];
 $matchID = (int)@$_SESSION['stream']['matchID'];
 $streamInfo['streamMode'] = (int)@$_SESSION['stream']['mode'];
+
+$locationID = updateLocationFromUrlParams($locationID);
 
 if($streamInfo['streamMode'] == VIDEO_STREAM_LOCATION){
 
@@ -45,14 +47,22 @@ if($streamInfo['streamMode'] == VIDEO_STREAM_LOCATION){
 	$streamInfo['opacity'] = 65;
 }
 
-$streamInfo['sourceType'] = getVideoSourceType($streamInfo['sourceLink']);
-$streamInfo = parseYoutubeLink($streamInfo);
 
-if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
+if(isset($streamInfo['sourceLink']) == true){
+	$streamInfo['sourceType'] = getVideoSourceType(@$streamInfo['sourceLink']);
+}
+
+
+
+if($streamInfo == []){
+	echo "<br><b>Invalid stream information</b></div>";
+} else if($streamInfo['sourceType'] == VIDEO_SOURCE_UNKNOWN){
 	echo "<h3>!! Error !!!!!</h3>
 		Link provided <b>'{$streamInfo['sourceLink']}'</b> is not of playable format.
 		<BR>(If this is a software error please try closing this view window, reloading the main scorecard page, and re-opening the livestream link. If it is a bad link then nothing can save you.)";
 } else {
+
+	$streamInfo = parseYoutubeLink($streamInfo);
 
 	$backgroundColor = 'black';
 	if(ALLOW['SOFTWARE_ADMIN'] == true || $streamInfo['sourceType'] == VIDEO_SOURCE_NONE){
@@ -140,6 +150,29 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
+
+function updateLocationFromUrlParams($locationID){
+
+	$urlComponents = parse_url(basename($_SERVER['REQUEST_URI']));
+
+	if(isset($urlComponents['query']) == true) {
+
+		parse_str($urlComponents['query'], $urlParams);
+
+		if(isset($urlParams['l']) == true && (int)$urlParams['l'] != 0 && $urlParams['l'] != $locationID){
+
+			$urlEventID = logistics_getEventOfLoacation($urlParams['l']);
+			if($urlEventID == $_SESSION['eventID']){
+				$locationID = $urlParams['l'];
+			}
+		}
+
+	}
+
+	return ($locationID);
+}
+
 /******************************************************************************/
 
 function virtualStreamControl($streamInfo){

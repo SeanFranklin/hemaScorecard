@@ -2571,6 +2571,14 @@ function matchHistoryBar($matchInfo){
 
 				if($exchange['refType'] != null || $exchange['refTarget'] != null){
 					$penalties[$i] = getPenaltyInfo($exchange['exchangeID']);
+				} else {
+					$penalties[$i]['action'] = null;
+					$penalties[$i]['rosterID'] = $matchInfo["fighter".$index1."ID"];
+				}
+
+				if(isset($penalties[$i]['card']) == false){
+					$penalties[$i]['name'] = "White Card";
+					$penalties[$i]['card'] = "whiteCard";
 				}
 
 				break;
@@ -2791,6 +2799,9 @@ function matchHistoryBar($matchInfo){
 				case 'blackCard':
 					$penaltyColor = 'penalty-card-black';
 					break;
+				case 'whiteCard':
+					$penaltyColor = 'penalty-card-white';
+					break;
 				default:
 					$penaltyColor = null;
 					break;
@@ -2817,6 +2828,9 @@ function matchHistoryBar($matchInfo){
 					break;
 				case 'blackCard':
 					$penaltyColor = 'penalty-card-black';
+					break;
+				case 'whiteCard':
+					$penaltyColor = 'penalty-card-white';
 					break;
 				default:
 					$penaltyColor = null;

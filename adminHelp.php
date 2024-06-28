@@ -24,6 +24,7 @@ include('includes/header.php');
 	<li class="tabs-title"><a data-tabs-target="panel-video" href="#panel-video">Video Guides</a></li>
 	<li class="tabs-title is-active"><a href="#panel-user" aria-selected="true">Software Users</a></li>
 	<li class="tabs-title"><a data-tabs-target="panel-organizer" href="#panel-user">Event Organizers</a></li>
+	<li class="tabs-title"><a data-tabs-target="panel-advanced" href="#panel-advanced">Advanced Organizers</a></li>
 </ul>
 
 
@@ -37,6 +38,9 @@ include('includes/header.php');
 	</div>
 	<div class="tabs-panel" id="panel-organizer">
 		<?=helpDisplayOrganizer()?>
+	</div>
+	<div class="tabs-panel" id="panel-advanced">
+		<?=helpDisplayLogistics()?>
 	</div>
 </div>
 
@@ -798,6 +802,96 @@ the selection options to be added to the next round, sorted by score.
 <?php
 }
 
+/******************************************************************************/
+
+function helpDisplayLogistics(){
+?>
+
+
+<div class='grid-x  secondary callout'>
+<div class='large-3 cell align-self-middle' style='margin-bottom: 15px;'>
+	<div class='grid-x'>
+		<div class='large-12 medium-6 small-12'>
+			<h4>Table of Contents:</h4><BR>
+			(under development)
+		</div>
+		<div class='large-12 medium-6 small-12'>
+			<li><a href='#divisions'>Tournament Divisions</a></li>
+		</div>
+	</div>
+
+</div>
+
+</div>
+
+
+
+
+
+<!-- Divisions ------------------------------------------------------------>
+<a name='divisions'></a>
+
+<div class='documentation-div'>
+<h1>Tournament Divisions</h1>
+
+
+<p>The Tournament Divisions feature can be used when you have multiple tournaments in
+Scorecard that represent splitting the participants from a single higher level "container".<BR>
+<i>For example "Longsword - Tier A" and "Longsword - Tier B" might be the results of separating
+"Longsword" into two tournaments based on participant skill.</i></p>
+<p>You can manage the Divisions by going to <b>Event Organization > Event Settings > Tournament Divisions</b>.</p>
+
+<p><b>Make sure you have created all your tournaments <u>before</u> trying to set up the divisions.</b></p>
+
+
+<h2>Create/Manage Divisions</h2>
+
+<p>The first tab allows you to create your Divisions. To add a new divisions look for the blank entry with
+"Add new division" as the placeholder text. Enter the division name ("Longsword" in our example). Then click
+the down arrow to the right of the name to open a list of tournaments that exist in the event, and check the
+tournaments which will be part of the division.<BR>
+<i>The tournaments will show up in the order you have specified based on the Event Settings page. There is currently no way to custom order the divisions. (work in progress, harass me if it becomes important and I haven't done it yet. )</i></p>
+
+<p><u>Note</u> that the Division itself is only a way to group tournaments together, and can not hold entries of it's own.</p>
+
+
+
+<h2>Division Tournament Entries</h2>
+
+<p>The Division Entries allows you to clean up your <b>Event Registrations</b> interface if you have a lot of tournaments, and are using divisional placeholder tournaments.</p>
+
+<p><i>"What is a divisional placeholder tournament?"</i><BR>
+If you are doing skill divisions in your tournament, but aren't dividing the participants until closer to the event date, you can create a dummy tournament to take all the entries. So in addition to the "Longsword - Tier A" and "Longsword - Tier B" there would be a "Longsword - Entries" tournament created. The whole function of the "Longsword - Entries" would be to hold the registrations for the longsword division until you decide to split the entries into the two tiers. (At which point the Entries tournament may be deleted.)
+</p>
+
+<p><i>"What is a divisional placeholder tournament?"</i><BR>
+If you are only entering people directly into "Longsword - Entries" and never Tier A/B you can check off Tier A/B and they won't show up on the list of tournaments to enter people into when you add them to the event. You can still, of course, add them to the tournament through that tournament's registration page. The Division Entries only exists to help clean up the lest on the Event Registrations page by removing tournament you will never be adding entries to there.
+</p>
+
+
+<h2>Sort Fighters in Divisions</h2>
+
+<p>The Sort Fighters feature is only usable if you are taking the entries from one tournament in a Division (the donor tournament), and splitting the field into the other tournaments in the divisions. You also need to enter ratings for all your fighters in the donor tournament so that the software knows how to split them.<BR>
+For our example "Longsword - Entries" is the donor tournament.</p>
+
+<p><i>In order to enter fighter ratings navigate into the donor tournament and go to <b>Tournament Information > Fighter Ratings</b> to enter the numerical rating, with higher being better. You can use any type of numerical rating. HEMA Ratings will be the most common way, but you could also give everyone a number from 1-5.</i></p>
+
+<p>Once you have a donor tournament then select your Division to Seed and Donor Tournament from the drop down. This will populate information about the entries in the donor tournament, and give you boxes to specify the rating cutoff for each of the tournaments in the division. As you enter numbers the graph will change to show you the distribution of the fighters in each tournament. When you are satisfied click <b>Submit</b> to move the fighters over.<BR>
+<i>There is no Undo on this operation. Naturally you can move them all back individually as you would normally add/remove people from a tournament.</i></p>
+
+<p><u>Note</u> there is an option to remove all fighters from the donor tournament when you do this operation, or to leave them in. If you want to clear out all the 'sorted' fighters check the box directly below where you entered the ratings.</p>
+
+<p><i>"Does this work for sorting people into sub-tournaments <u>after</u> they fight, based on standings."</i><BR>No, not at the moment. Harass me if this is a priority for you.</p>
+
+
+
+
+<a href='#topOfPage'>Back to Top</a>
+</div>
+
+
+<?php
+}
 
 /******************************************************************************/
 
