@@ -1834,14 +1834,21 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 
 /******************************************************************************/
 
-function getEventListFull(){
+function getEventListFull($includeArchived = true){
 // returns an unsorted array of all events in the software
 // indexed by eventID
+
+	if($includeArchived == false){
+		$whereClause = "WHERE isArchived = 0";
+	} else {
+		$whereClause = "";
+	}
 
 	$sql = "SELECT systemEvents.*, countryName, organizerEmail, isArchived, termsOfUseAccepted
 			FROM systemEvents
 			INNER JOIN systemCountries USING(countryIso2)
 			LEFT JOIN eventSettings USING(eventID)
+			{$whereClause}
 			ORDER BY eventStartDate DESC";
 	return mysqlQuery($sql, KEY, 'eventID');
 
@@ -8528,6 +8535,20 @@ function isEventArchived($eventID){
 			WHERE eventID = {$eventID}";
 
 	return (bool)mysqlQuery($sql, SINGLE,'isArchived');
+
+}
+
+/******************************************************************************/
+
+function getLatestArchivedEvent(){
+
+	$sql = "SELECT eventStartDate
+			FROM systemEvents
+			WHERE isArchived = 1
+			ORDER BY eventStartDate DESC
+			LIMIT 1";
+
+	return mysqlQuery($sql, SINGLE,'eventStartDate');
 
 }
 

@@ -99,7 +99,7 @@ function chk($value, $compare = null){
 // For use in setting checkboxes to true/false
 // It is OK to suppress errors on inputs, non-existant values are acceptable inputs.
 
-	if(isset($value) == false){
+	if(isset($value) == false || $value === false){
 		return '';
 	} elseif($compare == null && $value != false){
 		return 'checked';

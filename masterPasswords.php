@@ -103,17 +103,13 @@ function plaintextMode(){
 		return;
 	}
 
-	if(isset($_SESSION['forcePlainText']) == true){
-		$checked = 'checked';
-	} else {
-		$checked = '';
-	}
 ?>
 
 	<form method="POST">
 
 		<input type='hidden' name='plaintextMode' value=0>
-		<input type='checkbox' name='plaintextMode' value=1 <?=$checked?>>
+		<input type='checkbox' name='plaintextMode' value=1 <?=chk(isAdminOptionSet('forcePlainText'))?>>
+
 		Plaintext Entry Mode
 
 		<button class='button tiny' name='formName' value='plaintextMode'>Update</button>

@@ -816,7 +816,7 @@ function yearlySummaryIndividual($eventListStr, $color){
 
 function yearlySummarySoftware($year){
 
-	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+	if(isAdminOptionSet('forcePlainText') == true){
 		$wysisygClass = '';
 	} else {
 		$wysisygClass = 'tiny-mce';

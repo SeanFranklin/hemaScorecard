@@ -176,7 +176,7 @@ function editRules($rulesInfo){
 		$hideInput = "hidden";
 	}
 
-	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+	if(isAdminOptionSet('forcePlainText') == true){
 		$wysisygClass = '';
 	} else {
 		$wysisygClass = 'tiny-mce';

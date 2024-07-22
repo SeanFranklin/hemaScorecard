@@ -63,7 +63,7 @@ function instructorForm($instructor, $avaliableStaff){
 		return;
 	}
 
-	if(ALLOW['SOFTWARE_ADMIN'] == true && isset($_SESSION['forcePlainText']) == true){
+	if(isAdminOptionSet('forcePlainText') == true){
 		$wysisygClass = '';
 	} else {
 		$wysisygClass = 'tiny-mce';
@@ -133,9 +133,6 @@ function instructorForm($instructor, $avaliableStaff){
 		<div class='cell large-12'>
 			<textarea rows=12 name='instructorBio[instructorBio]' class='<?=$wysisygClass?>' placeholder='Instructor Bio'><?=$bio?></textarea>
 		</div>
-
-
-
 
 
 		<div class='cell large-12 text-right hidden' id='delete-instructor-button-<?=$rosterID?>'>

@@ -13,13 +13,15 @@
 $pageName = "Manage System Events";
 $forcePageTitle = true;
 $jsIncludes[] = 'misc_scripts.js';
+$createSortableDataTable[] = ['adminEventList',100];
 include('includes/header.php');
 
 if(ALLOW['SOFTWARE_ASSIST'] == false){
 	pageError('user');
 } else {
 
-	$eventList = getEventListFull();
+	$showArchived = isAdminOptionSet('loadArchivedEvents');
+	$eventList = getEventListFull($showArchived);
 
 	echo "<div class='grid-x'>";
 
@@ -32,15 +34,20 @@ if(ALLOW['SOFTWARE_ASSIST'] == false){
 		addNewEventMenu();
 	}
 
-?>
+	toggleArchivedEvents();
 
-	<button class='button hollow secondary' onclick="$('.archived-event').toggle()">
-		Toggle Archived Events
-	</button>
+	$fieldsToDisplay[] = 'date';
+	$fieldsToDisplay[] = 'go';
+	$fieldsToDisplay[] = 'ed';
+	$fieldsToDisplay[] = 'eventName';
+	$fieldsToDisplay[] = 'countryName';
+	$fieldsToDisplay[] = 'organizerEmail';
+	$fieldsToDisplay[] = 'Publish';
+	$fieldsToDisplay[] = 'Setup';
 
-<?php
+	$eventList = processEventList($eventList);
 
-	displayAdminEventList($eventList);
+	displayAdminEventList($eventList, $fieldsToDisplay);
 
 	echo "</div>";
 
@@ -52,82 +59,127 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-function displayAdminEventList($eventList){
+/*****************************************************************************/
+
+function toggleArchivedEvents(){
+
+	if(isAdminOptionSet('loadArchivedEvents') == false){
+		$class = 'secondary';
+		$text = 'Load Archived Events';
+	} else {
+		$class = 'warning';
+		$text = 'Hide Archived Events';
+	}
+
+?>
+
+	<form method='POST'>
+	<button class='button hollow <?=$class?>' name='formName' value='loadArchivedEvents'>
+		<?=$text?>
+	</button>
+	</form>
+
+<?php
+}
+
+/*****************************************************************************/
+
+function processEventList($eventList){
 
 	// These are the fields displayed
-	$fieldsToDisplay = ['eventName',
-						'eventStartDate',
-						'countryName'];
-	if(ALLOW['VIEW_EMAIL'] == true){
-		$fieldsToDisplay[] = 'organizerEmail';
-		$fieldsToDisplay[] = 'Publish';
-		$fieldsToDisplay[] = 'Setup';
 
-		foreach($eventList as $eventID => $data){
+	foreach($eventList as $eventID => $data){
 
-			$isTournaments = true;
-			$isParticipants = true;
-			$eventID = (int)$eventID;
-			if($eventList[$eventID]['isArchived'] == 0){
+		$isTournaments = true;
+		$isParticipants = true;
+		$eventID = (int)$eventID;
+
+		$eventList[$eventID]['date'] = $eventList[$eventID]['eventStartDate'];
 
 
-			// Flags for publication settings
-				$str = '';
-				$str = isSetMark(isDescriptionPublished($eventID));
-				$str .= isSetMark(isRulesPublished($eventID));
-				$str .= isSetMark(isSchedulePublished($eventID));
-				$str .= isSetMark(isRosterPublished($eventID));
-				$str .= "<span class='black-text'>|</span>";
-				$str .= isSetMark(isMatchesPublished($eventID));
+		$eventList[$eventID]['go'] = "<a
+						onclick=\"changeEventJs({$eventID})\">
+					Go
+				</a>";
+		if($eventList[$eventID]['isArchived'] == 0 || ALLOW['SOFTWARE_ADMIN'] == true){
+			$eventList[$eventID]['ed'] = "					<button
+							name='eventInfo[eventToEdit]'
+							value='{$eventID}'>
 
-				$eventList[$eventID]['Publish'] = $str;
+						<a>Edit #{$eventID}</a>
 
-			// Flags for event setup/progression
-				$sql = "SELECT COUNT(*) as numTournaments
-						FROM eventTournaments
-						WHERE eventID = {$eventID}";
-				$isTournaments = (bool)mysqlQuery($sql, SINGLE, 'numTournaments');
-
-				$sql = "SELECT COUNT(*) as numParticipants
-						FROM eventRoster
-						WHERE eventID = {$eventID}";
-				$isParticipants = (bool)mysqlQuery($sql, SINGLE, 'numParticipants');
+					</button>";
+		} else {
+			$eventList[$eventID]['ed'] = "";
+		}
 
 
-				$str = '';
-				$str = notSetMark($eventList[$eventID]['termsOfUseAccepted'])." ";
-				$str .= notSetMark($isTournaments)." ";
-				$str .= notSetMark($isParticipants)." ";
-				$str .= "<span class='black-text'>|</span>";
-				$str .= isSetMark(areMatchesStarted($eventID));
-				$str .= isSetMark(areAllTournamentsFinalized($eventID));
+		if($eventList[$eventID]['isArchived'] == 0){
 
-				$eventList[$eventID]['Setup'] = $str;
 
-			} elseif(compareDates($data['eventEndDate']) < 365) {
+		// Flags for publication settings
+			$str = '';
+			$str = isSetMark(isDescriptionPublished($eventID));
+			$str .= isSetMark(isRulesPublished($eventID));
+			$str .= isSetMark(isSchedulePublished($eventID));
+			$str .= isSetMark(isRosterPublished($eventID));
+			$str .= "<span class='black-text'>|</span>";
+			$str .= isSetMark(isMatchesPublished($eventID));
 
-				$eventList[$eventID]['Publish'] = "";
-				$eventList[$eventID]['Setup'] = "";
+			$eventList[$eventID]['Publish'] = $str;
 
-				if(areMatchesStarted($eventID) == false){
-					$eventList[$eventID]['Publish'] = "NO MATCHES";
-				} elseif(hemaRatings_isEventInfoComplete($eventID) == true){
-					$eventList[$eventID]['Setup'] = "HR Form";
-				} elseif(areAllTournamentsFinalized($eventID)){
-					$eventList[$eventID]['Publish'] = "not finalized";
-				} else {
+		// Flags for event setup/progression
+			$sql = "SELECT COUNT(*) as numTournaments
+					FROM eventTournaments
+					WHERE eventID = {$eventID}";
+			$isTournaments = (bool)mysqlQuery($sql, SINGLE, 'numTournaments');
 
-				}
+			$sql = "SELECT COUNT(*) as numParticipants
+					FROM eventRoster
+					WHERE eventID = {$eventID}";
+			$isParticipants = (bool)mysqlQuery($sql, SINGLE, 'numParticipants');
 
+
+			$str = '';
+			$str = notSetMark($eventList[$eventID]['termsOfUseAccepted'])." ";
+			$str .= notSetMark($isTournaments)." ";
+			$str .= notSetMark($isParticipants)." ";
+			$str .= "<span class='black-text'>|</span>";
+			$str .= isSetMark(areMatchesStarted($eventID));
+			$str .= isSetMark(areAllTournamentsFinalized($eventID));
+
+			$eventList[$eventID]['Setup'] = $str;
+
+		} elseif(compareDates($data['eventEndDate']) < 365) {
+
+			$eventList[$eventID]['Publish'] = "";
+			$eventList[$eventID]['Setup'] = "";
+
+			if(areMatchesStarted($eventID) == false){
+				$eventList[$eventID]['Publish'] = "NO MATCHES";
+			} elseif(hemaRatings_isEventInfoComplete($eventID) == true){
+				$eventList[$eventID]['Setup'] = "HR Form";
+			} elseif(areAllTournamentsFinalized($eventID)){
+				$eventList[$eventID]['Publish'] = "not finalized";
 			} else {
-				$eventList[$eventID]['Publish'] = "";
-				$eventList[$eventID]['Setup'] = "";
+
 			}
 
+		} else {
+			$eventList[$eventID]['Publish'] = "";
+			$eventList[$eventID]['Setup'] = "";
 		}
 
 	}
-	$archivedReached = false;
+
+	return ($eventList);
+}
+
+/*****************************************************************************/
+
+function displayAdminEventList($eventList, $fieldsToDisplay){
+
+	$latestArchivedEventDate = getLatestArchivedEvent();
 
 	?>
 
@@ -135,17 +187,18 @@ function displayAdminEventList($eventList){
 
 	<form method='POST'>
 	<input type='hidden' name='formName' value='editEvent'>
-	<table class='stack'>
 
+
+	<table class='display stack' id="adminEventList">
+	<thead>
 
 <!-- Headers ------------------------------------------------------->
 	<tr class='hide-for-small-only'>
-		<th></th>
-		<th></th>
 		<?php foreach($fieldsToDisplay as $fieldName): ?>
 			<th>
 				<?=$fieldName?>
 				<?php
+
 					if($fieldName == 'Setup'){
 						tooltip("1) Terms of Use<BR>2) Tournaments Created<BR>3) People Added<BR>
 							----------
@@ -159,29 +212,31 @@ function displayAdminEventList($eventList){
 							3) Schedule<BR>
 							4) Roster<BR>
 							----------<BR>
-							5) Matches<BR>
-							6) Archived");
+							5) Matches");
 					}
 
 				?>
 			</th>
 		<?php endforeach ?>
 	</tr>
+	<thead>
 
+	<tbody>
 
 <!-- Events -------------------------------------------------------------->
-	<?php foreach($eventList as $eventID => $info):
+	<?php
+
+	$archivedReached = false;
+
+	foreach($eventList as $eventID => $info):
 
 		$topBorder = '';
 
 		if($info['isArchived'] == 1){
-			$trClass = 'success-text hidden archived-event';
-			if($archivedReached == false){
-				$topBorder = ' table-top-border';
-			}
+			$trClass = 'success-text archived-event';
 			$archivedReached = true;
 		} elseif(isEventPublished($eventID) == true){
-			if($archivedReached == true){
+			if($info['date'] < $latestArchivedEventDate){
 				$trClass = 'alert-text';
 			} else {
 				$trClass = 'warning-text';
@@ -199,29 +254,10 @@ function displayAdminEventList($eventList){
 
 	<!-- Row Display -------------------------------------------------->
 		<tr class='<?=$trClass?>'>
-			<td>
-				<?php if(ALLOW['SOFTWARE_ADMIN'] == true || $info['isArchived'] == false): ?>
-					<button class='button tiny hollow no-bottom expanded warning'
-							name='eventInfo[eventToEdit]'
-							value='<?=$eventID?>'>
-
-						Edit #<?=$eventID?>
-
-					</button>
-				<?php endif ?>
-			</td>
-			<td>
-
-				<a class='button tiny hollow no-bottom expanded'
-						onclick="changeEventJs(<?=$eventID?>)">
-					Go
-				</a>
-
-			</td>
 
 			<?php foreach($fieldsToDisplay as $fieldName):
 
-				if($fieldName == 'Setup' || $fieldName == 'Publish'){
+				if($fieldName == 'Setup' || $fieldName == 'Publish' || $fieldName == 'date' || $fieldName =='ed'){
 					$noWrap = "style='white-space: nowrap;'";
 				} else {
 					$noWrap = '';
@@ -229,14 +265,14 @@ function displayAdminEventList($eventList){
 
 				?>
 
-					<td class='<?=$topBorder?>' <?=$noWrap?> >
+					<td <?=$noWrap?> >
 						<?=$info[$fieldName]?>
 					</td>
 			<?php endforeach ?>
 		</tr>
 	<?php endforeach ?>
 
-
+	</tbody>
 	</table>
 	</form>
 	</div>
