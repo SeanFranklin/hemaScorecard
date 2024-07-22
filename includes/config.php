@@ -468,6 +468,10 @@ function setPermissions(){
 
 	define("ALLOW",$permissionsArray);
 
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		unset($_SESSION['adminOptions']);
+	}
+
 /*
 EVENT_VIDEO
 	- Can add video links to fights

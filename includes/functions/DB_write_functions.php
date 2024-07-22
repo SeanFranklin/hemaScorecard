@@ -2171,9 +2171,11 @@ function addNewEvent($eventInfo){
 	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
 
 	$eventYear = substr($eventInfo['eventStartDate'],0,4);
-	$num = mt_rand(100,999);
-	$password = "temp{$num}";
+
+	$num = (string)bin2hex(random_bytes(5));
+	$password = "temp_{$num}";
 	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
 	$isMetaEvent = (int)((BOOLEAN)$eventInfo['isMetaEvent']);
 
 	$sql = "INSERT INTO systemEvents
@@ -3464,8 +3466,6 @@ function editEvent($eventInfo){
 	$isArchived = (int)$eventInfo['isArchived'];
 
 	if((bool)$isArchived == true && $wasArchiced == false){
-
-		setAlert(SYSTEM,"Remember to let HEMA Ratings know!");
 
 		$sql = "DELETE FROM eventPublication
 				WHERE eventID = {$eventID}";

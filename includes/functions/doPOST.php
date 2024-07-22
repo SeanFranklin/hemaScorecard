@@ -473,14 +473,13 @@ function processPostData(){
 			case 'hemaRatings_UpdateFighterIDs':
 				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
-			case 'plaintextMode':
-				if (ALLOW['SOFTWARE_ADMIN'] == true && (int)$_POST['plaintextMode'] != 0){$_SESSION['forcePlainText'] = true;}
-					else {unset($_SESSION['forcePlainText']);}
-				break;
+
 			case 'disablePenalties':
 				disableEventPenalties($_POST['disablePenalties'], $_SESSION['eventID']);
 				break;
 
+			case 'plaintextMode':		toggleAdminOption('forcePlainText');		break;
+			case 'loadArchivedEvents':	toggleAdminOption('loadArchivedEvents');	break;
 
 	// Logistics Cases
 			case 'editLocations':
@@ -793,6 +792,34 @@ function checkEvent(){
 	updateTournamentFighterCounts(null, $_SESSION['eventID']);
 
 	unset($_SESSION['checkEvent']);
+
+}
+
+/******************************************************************************/
+
+function toggleAdminOption($optionName){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		unset($_SESSION['adminOptions']);
+	} else if (isset($_SESSION['adminOptions'][$optionName]) == false) {
+		$_SESSION['adminOptions'][$optionName] = true;
+	} else {
+		unset($_SESSION['adminOptions'][$optionName]);
+	}
+
+}
+
+/******************************************************************************/
+
+function isAdminOptionSet($optionName){
+
+	if(ALLOW['SOFTWARE_ADMIN'] == false){
+		return (false);
+	} else if (isset($_SESSION['adminOptions'][$optionName]) == true) {
+		return (true);
+	} else {
+		return (false);
+	}
 
 }
 
