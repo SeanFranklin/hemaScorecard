@@ -45,6 +45,13 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 
 	$tournamentRoster = getTournamentFighters($tournamentID,$sortString);
 
+	$ratingsNumbers = [];
+	foreach($tournamentRoster as $fighter){
+		$ratingsNumbers[] = (int)$fighter['rating'];
+	}
+
+	arsort($ratingsNumbers);
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -157,7 +164,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 		</table>
 
 
-		<div class='text-right large-12'>
+		<div class='text-right large-12 hidden'>
 			<a onclick="$('.sub-group-input').toggle()">
 				Use Sub-Group Feature
 			</a>
@@ -201,6 +208,19 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 			</tr>
 		<?php endforeach ?>
 	</table>
+
+	<BR><BR>
+	<a onclick="$('#rating-list-number').toggle()">Show raw numbers ↓</a>
+	<div id='rating-list-number' class='hidden'>
+
+		<?php foreach($ratingsNumbers as $r):?>
+
+
+			<?=$r?>,
+
+
+		<?php endforeach ?>
+	</div>
 
 <!-- Navigate pool sets -->
 

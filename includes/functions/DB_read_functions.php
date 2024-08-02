@@ -9142,7 +9142,7 @@ function getScoringFunctionName($tournamentID){
 /******************************************************************************/
 
 function getRankingTypeDescriptions(){
-	$sql = "SELECT tournamentRankingID, name, description
+	$sql = "SELECT *
 			FROM systemRankings
 			ORDER BY name ASC";
 	return mysqlQuery($sql, ASSOC);

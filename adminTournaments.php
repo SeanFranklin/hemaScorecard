@@ -13,6 +13,7 @@
 
 $pageName = 'Manage Tournaments';
 $jsIncludes[] = 'tournament_management_scripts.js';
+$createSortableDataTable[] = ['rankingAlgoList',100];
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -36,6 +37,9 @@ if($_SESSION['eventID'] == null){
 	if(isFinalized($tournamentID)){
 		$isLocked = 'disabled';
 	}
+
+	rankingTypeDescriptions();
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

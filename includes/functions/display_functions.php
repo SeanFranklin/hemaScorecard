@@ -721,7 +721,6 @@ function edit_tournamentRankingType($tournamentID = 0){
 // Select menu for the tournament ranking alogrithm
 
 	$nullOptionSelected = "selected";
-	$rankingTypeDescriptions = getRankingTypeDescriptions();
 	$rankingTypes = [];
 	$current = null;
 
@@ -804,55 +803,125 @@ function edit_tournamentRankingType($tournamentID = 0){
 		</td>
 	</tr>
 
-<!----- Ranking types reveal -->
+
+<?php }
+
+/******************************************************************************/
+
+
+function getAscDescArrow($text){
+	if($text == 'DESC'){
+		return("⇧");
+	} elseif($text == 'ASC'){
+		return("⇩");
+	} else {
+		return("");
+	}
+
+}
+
+/******************************************************************************/
+
+function rankingTypeDescriptions(){
+
+	$rankingTypeDescriptions = getRankingTypeDescriptions();
+
+
+
+?>
+
 
 	<div class='reveal large' id='rankingTypesReveal' data-reveal>
 
 		<h4 class='text-center'>- Ranking Types -</h4>
 
 		<div class='grid-x grid-padding-x'>
-			<div class='large-3 callout cell'>
-				<ul class='menu medium-vertical show-for-medium'>
-				<?php foreach($rankingTypeDescriptions as $type): ?>
-					<li onclick="rankingDescriptionToggle('<?=$type['tournamentRankingID']?>')">
-						<a><?=$type['name']?></a>
-					</li>
-				<?php endforeach ?>
-				</ul>
+
+			<div class='callout success text-center large-12'>
+				<h5>If you would like a Ranking Algorithm not listed here, let the HEMA Scorecard Team know!</h5>
+			</div>
+
+			<div class='large-12'>
+			<i><a onclick="$('#rank-algo-help').toggle()">Can you explain this?</a></i><BR>
+			<div id='rank-algo-help' class='hidden' style="border: solid black 1px; margin: 5px; padding: 5px;">
 
 
-				<ul class='dropdown menu tourney-menu-mobile
-					show-for-small-only align-center' data-dropdown-menu>
-					<li>
-						<a href='#'>Ranking Algorithms</a>
-						<ul class='menu'>
-							<?php foreach($rankingTypeDescriptions as $type): ?>
-									<li onclick="rankingDescriptionToggle('<?=$type['tournamentRankingID']?>')">
-										<a><?=$type['name']?></a>
-									</li>
-							<?php endforeach ?>
-						</ul>
-					</li>
-				</ul>
+				<b>How The Numbers Are Calculated</b>
+				<table>
+				<tr><td><u>Normalization</u></td><td> The number of matches fought will be automatically normalized for all participants regardless of the algorithm used.</td></tr>
+				<tr><td><u>Afterblows</u></td><td> If two people have scores the software must designate a "initial" and "afterblow" in the database. In a fully weighted afterblow the higher score will be saved as the initial, however if they are equal then it is random. As such, don't make algorithms that are based on afterblow values if you are using full afterblow scoring.</td></tr>
+				<tr><td><u>Complicated Formulas</u></td><td> If an event uses a method that can't be calculated using this table it may have a custom function for the Score Function. These are prefixed with the pound sign, eg #MyScoreAlgo. They were custom made for each event, and the meanings aren't clearly communicated in this table.</td></tr>
+				</table>
 
+				<b>What Do The Names Mean?</b>
+				<table>
+				<tr><td><b>⇧</b></td><td>Higher is better.</td></tr>
+				<tr><td><b>⇩</b></td><td> Lower is better.</td></tr>
+				<tr><td><u>score</u></td><td> The number calculated by the score formula.</td></tr>
+				<tr><td><u>wins</u></td><td> Number of matches recorded as a win.</td></tr>
+				<tr><td><u>losses</u></td><td> Number of matches recorded as a loss.</td></tr>
+				<tr><td><u>ties</u></td><td> Number of matches recorded as a tie.</td></tr>
+				<tr><td><u>pointsFor</u></td><td> Number of <u>net</u> points awarded in a fighters favor. If you want the total points in their favor use AbsPointsFor.</td></tr>
+				<tr><td><u>pointsAgainst</u></td><td> Number of <u>net</u> points awarded against a fighter. If you want the total points against use AbsPointsAgainst.</td></tr>
+				<tr><td><u>doubles</u></td><td> Number of exchanges that were entered into the software as a Double. This does not include exchanges where both entered an equal score.</td></tr>
+				<tr><td><u>AbsPointsFor</u></td><td> Total number of points awarded without subtracting hits or afterblows against. This value also includes points assigned to the fighter as afterblows.</td></tr>
+				<tr><td><u>AbsPointsAgainst</u></td><td> Total number of points awarded against the fighter without any mitigation from the other fighter's afterblows. This value also includes points assigned to the fighter as afterblows.</td></tr>
+				<tr><td><u>AbsPointsAwarded</u></td><td> Number of points that awarded without subtracting hits or afterblows against. This does NOT include points awarded through the fighter's own afterblows.</td></tr>
+				<tr><td><u>noExchanges</u></td><td> Number of exchanges that were entered into the software as a No Exchange.</td></tr>
+				<tr><td><u>hitsFor</u></td><td> Number of exchanges in which they struck their opponent, including doubles and afterblows.</td></tr>
+				<tr><td><u>histAgainst</u></td><td> Number of exchanges in which they were struck by their opponent, including doubles and afterblows.</td></tr>
+				<tr><td><u>afterblowsFor</u></td><td> Number of exchanges in which they landed the afterblow. DO NOT use this in fully weighted afterblow rulesets, as the software has to randomly assign fighters to the initial/afterblow spots in the database.</td></tr>
+				<tr><td><u>afterblowsAgainst</u></td><td> Number of exchanges in which they were hit by the afterblow. DO NOT use this in fully weighted afterblow rulesets, as the software has to randomly assign fighters to the initial/afterblow spots in the database.</td></tr>
+				<tr><td><u>numPenalties</u></td><td> Number of penalties issued. Note that this includes ALL score deductions.</td></tr>
+				<tr><td><u>numYellowCards</u></td><td> Number of penalties issued that were classified as Yellow Cards.</td></tr>
+				<tr><td><u>numRedCards</u></td><td> Number of penalties issued that were classified as Yellow Cards.</td></tr>
+				<tr><td><u>penaltiesAgainst</u></td><td> Number of points deducted as a result of penalties.</td></tr>
+				<tr><td><u>penaltiesAgainstOpponents</u></td><td> Number of points deducted from any of your opponents as a result of penalties.
+				<tr><td><u>doubleOuts</u>:</td><td> Number of matches in which a fighter has a Double Out match conclusion.</td></tr>
+				</table>
 
 			</div>
-			<div class='large-9 cell' id='rankingDescriptionContainer'>
-				<div class='rankingDescription'>
-					<BR><BR><BR>
-					<div class='callout success text-center'>
-						<h5>If you would like a Ranking Algorithm not listed here, let the HEMA Scorecard Team know!</h5>
-						<i>(It's super easy to add them)</i>
-					</div>
-				</div>
-				<?php foreach($rankingTypeDescriptions as $type): ?>
-					<div id='rankingID<?=$type['tournamentRankingID']?>' class='hidden rankingDescription'>
-						<h5><?=$type['name']?></h5>
-						<div style="white-space: pre-wrap;"><?=$type['description']?>
-						</div>
-					</div>
-				<?php endforeach ?>
 			</div>
+
+
+			<table id='rankingAlgoList'  class="display">
+			<thead>
+				<th>Name <?=tooltip('Did you really need a tooltip for this? :)')?></th>
+				<th>Indicator <?=tooltip('The primary criteria to rank the fighters by.')?></th>
+				<th>Tie #1 <?=tooltip('How the fighters will be ranked if they have the same indicator.')?></th>
+				<th>Tie #2 <?=tooltip('How the fighters will be ranked if Tiebreaker #1 is also tied.')?></th>
+				<th>Tie #3 <?=tooltip('How the fighters will be ranked if Tiebreaker #2 is also tied.')?></th>
+				<th>Score Formula <?=tooltip('The formula for the Score. This is only relevant if Score is used as an Indicator or Tiebreaker.')?></th>
+				<th># <?=tooltip('Number of tournaments using this algorithm.')?></th>
+				<th>Type<?=tooltip('S2 = Sparring Tournaments<BR>C3 = Solo (aka Cutting) Tournaments<BR>M4 = Meta Tournaments')?></th>
+			</thead>
+			<tbody>
+
+
+			<?php foreach($rankingTypeDescriptions as $r):
+				switch($r['formatID']){
+					case 2: $format = "S2"; break;
+					case 3: $format = "C3"; break;
+					case 4: $format = "M4"; break;
+					default: $format = ""; break;
+				}
+				?>
+				<tr>
+					<td><?=$r['name']?></td>
+					<td><?=$r['orderByField1']?> <b><?=getAscDescArrow($r['orderBySort1'])?></b></td>
+					<td><?=$r['orderByField2']?> <b><?=getAscDescArrow($r['orderBySort2'])?></b></td>
+					<td><?=$r['orderByField3']?> <b><?=getAscDescArrow($r['orderBySort3'])?></b></td>
+					<td><?=$r['orderByField4']?> <b><?=getAscDescArrow($r['orderBySort4'])?></b></td>
+					<td><?=$r['scoreFormula']?></td>
+					<td><?=$r['numberOfInstances']?></td>
+					<td><?=$format?></td>
+				</tr>
+
+			<?php endforeach ?>
+			</tbody>
+			</table>
+
+
 
 
 		</div>
@@ -862,9 +931,11 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 	</div>
 
-<?php }
+<?php
+}
 
 /******************************************************************************/
+
 
 function closeRevealButton(){
 	?>
@@ -3465,6 +3536,12 @@ function changeRosterFilterDropdown(){
 
 	$filterName = getFighterNameSystem($_SESSION['filterForSystemRosterID'], 'array');
 
+	if($filterName != null){
+		$name = $filterName['lastName'].", ".$filterName['firstName'];
+	} else {
+		$name = "";
+	}
+
 ?>
 
 	<form method='POST' class='' id='update-roster-filter'>
@@ -3477,7 +3554,7 @@ function changeRosterFilterDropdown(){
 				placeholder="- empty -"
 				data-name='systemRosterID'
 				data-id='full-roster-select'
-				value='<?=$filterName['lastName']?>, <?=$filterName['firstName']?>'
+				value='<?=$name?>'
 			>
 
 
