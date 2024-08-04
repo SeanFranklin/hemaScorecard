@@ -7543,6 +7543,99 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 
 /******************************************************************************/
 
+function getTournamentFightersWithExchangeTargets($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+	$controlID = (int)ATTACK_CONTROL_DB;
+
+	$sql = "SELECT rosterID, tournamentRosterID
+			FROM eventTournamentRoster
+			WHERE tournamentID = {$tournamentID}";
+	$tRoster = mysqlQuery($sql, KEY, 'rosterID');
+
+	$sql = "SELECT scoringID, receivingID, exchangeType, attackText AS target, scoreValue, scoreDeduction
+			FROM eventExchanges AS eE
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			LEFT JOIN systemAttacks AS sA ON  eE.refTarget = sA.attackID
+			WHERE tournamentID = {$tournamentID}
+			AND exchangeType IN('clean','afterblow')";
+	$exchanges = mysqlQuery($sql, ASSOC);
+
+	$systemExchangeTypes = [];
+	$systemScoringTypes = [];
+
+	foreach($exchanges as $exchange){
+		$exchangeType = $exchange['exchangeType'];
+
+		if($exchangeType == 'double'){
+
+			@$fighterExchanges[$exchange['scoringID']]['Doubles']++;	// Might not be set
+			@$fighterExchanges[$exchange['receivingID']]['Doubles']++;	// Might not be set
+			$systemExchangeTypes['Doubles'] = true;
+
+		} elseif ($exchangeType == 'noQuality'){
+
+			@$fighterExchanges[$exchange['scoringID']]['No Quality']++;	// Might not be set
+			$systemExchangeTypes['No Quality'] = true;
+
+		} else{
+
+			if(    $exchangeType == 'clean'
+				|| $exchangeType == 'afterblow')
+			{
+
+				if($exchange['target'] != null){
+					$target = $exchange['target'];
+				} else {
+					$target = 'unknown';
+				}
+				$forStr = "✓ (".$target;
+				$againstStr = "✗ (".$target;
+
+				/*if($exchangeType == 'afterblow'){
+					$forStr .= "-".$exchange['scoreDeduction'];
+					$againstStr .= "-".$exchange['scoreDeduction'];
+				}*/
+
+				$forStr .= ")";
+				$againstStr .= ")";
+
+				@$fighterExchanges[$exchange['scoringID']][$forStr]++;		 // Might not be set
+				@$fighterExchanges[$exchange['receivingID']][$againstStr]++; // Might not be set
+
+				$systemScoringTypes[$forStr] = true;
+				$systemScoringTypes[$againstStr] = true;
+			}
+
+		}
+	}
+
+	ksort($systemExchangeTypes);
+	ksort($systemScoringTypes);
+
+	foreach($tRoster as $rosterID => $data){
+		$tRoster[$rosterID]['exchanges'] = [];
+		$tRoster[$rosterID]['points'] = [];
+
+		foreach((array)$systemExchangeTypes as $type => $dummy){
+			// The $fighterExchanges might not exist. This is the same as zero.
+			$tRoster[$rosterID]['exchanges'][$type] = (int)@$fighterExchanges[$rosterID][$type];
+		}
+
+		foreach((array)$systemScoringTypes as $type => $dummy){
+			// The $fighterExchanges might not exist. This is the same as zero.
+			$tRoster[$rosterID]['points'][$type] = (int)@$fighterExchanges[$rosterID][$type];
+		}
+
+	}
+
+	return $tRoster;
+
+}
+
+/******************************************************************************/
+
 function getNumTournamentEntries($tournamentID){
 
 	$tournamentID = (int)$tournamentID;

@@ -12,7 +12,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Fighter Information';
-$createSortableDataTable[] = ["fighterInfoTable",300];
+$createSortableDataTable[] = ["fighter-info-point-table",300];
+$createSortableDataTable[] = ["fighter-info-target-table",300];
 include('includes/header.php');
 
 $tournamentID = $_SESSION['tournamentID'];
@@ -25,10 +26,9 @@ if(ALLOW['VIEW_MATCHES'] == false){
 	displayAlert('This data can only be displayed for <em>Sparring Matches</em> type tournaments.');
 } else {
 
-	$rawData = getTournamentFightersWithExchangeNumbers($tournamentID);
+	$pointData = getTournamentFightersWithExchangeNumbers($tournamentID);
+	$targetData = getTournamentFightersWithExchangeTargets($tournamentID);
 
-	reset($rawData);
-	$first_key = key($rawData);
 	$tournamentName = getTournamentName($_SESSION['tournamentID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -37,27 +37,81 @@ if(ALLOW['VIEW_MATCHES'] == false){
 
 <!-- Navigate pool sets -->
 
-	<a onclick="$('#pageExplanation').toggle()"><em>What is this?</em></a>
+	<!-- Page content --------------------------------------------------->
 
-	<div id='pageExplanation' class='callout success hidden'>
+	<ul class="tabs" data-tabs id="stats-fighter-summary-tabs">
 
-		This page is to show summaries of the number of certain types of exchanges each fighter has
-		been involved in over the course of [<strong><?=$tournamentName?></strong>].
-		<BR>
-		<strong>✓</strong> indicates the fighter delivered the intial hit (Deductive AB), or higher valued hit* (Full AB).
-		<BR>
-		<strong>✗</strong> indicates the fighter recieved the intial hit (Deductive AB), or landed the lower valued hit (Full AB).
-		<BR><em>
-			&#8195;* in Full Afterblow an exchange worth equal points (eg: 1-1) it is randomly assigned which fighter had the 'initial' hit.
-		</em>
+		<li class="tabs-title is-active">
+			<a data-tabs-target="panel-points" href="#change-points">
+				Data by Points
+			</a>
+		</li>
+
+		<li class="tabs-title">
+			<a data-tabs-target="panel-target" href="#change-target">
+				Data by Target
+			</a>
+		</li>
+
+		<li class="tabs-title">
+			<a data-tabs-target="panel-explain" href="#change-explain">
+				What is this?
+			</a>
+		</li>
+
+	</ul>
+
+	<div class="tabs-content" data-tabs-content="stats-fighter-summary-tabs">
+		<div class="tabs-panel is-active" id="panel-points">
+			<?=displayData($pointData, "fighter-info-point-table")?>
+		</div>
+
+		<div class="tabs-panel" id="panel-target">
+			<?=displayData($targetData, "fighter-info-target-table")?>
+		</div>
+
+		<div class="tabs-panel" id="panel-explain">
+				<div class='callout success'>
+
+				This page is to show summaries of the number of certain types of exchanges each fighter has
+				been involved in over the course of [<strong><?=$tournamentName?></strong>].
+				<BR>
+				<strong>✓</strong> indicates the fighter delivered the intial hit (Deductive AB), or higher valued hit* (Full AB).
+				<BR>
+				<strong>✗</strong> indicates the fighter recieved the intial hit (Deductive AB), or landed the lower valued hit (Full AB).
+				<BR><em>
+					&#8195;* in Full Afterblow an exchange worth equal points (eg: 1-1) it is randomly assigned which fighter had the 'initial' hit.
+				</em>
+			</div>
+		</div>
 	</div>
 
 
+
+
+
+
+
+<?php }
+include('includes/footer.php');
+
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function displayData($rawData, $tableID){
+
+	reset($rawData);
+	$first_key = key($rawData);
+
+?>
 	<?php if($rawData != null): ?>
 		<div class='grid-x grid-margin-x'>
 		<div class='large-7 medium-10 cell'>
 
-		<table id="fighterInfoTable" class="display" >
+		<table id="<?=$tableID?>" class="display" >
 			<thead>
 				<tr>
 					<th>
@@ -112,17 +166,9 @@ if(ALLOW['VIEW_MATCHES'] == false){
 
 	<?php endif ?>
 
+<?php
 
-
-
-<?php }
-include('includes/footer.php');
-
-
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-/******************************************************************************/
+}
 
 
 /******************************************************************************/
