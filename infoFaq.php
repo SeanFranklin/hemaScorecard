@@ -24,7 +24,7 @@ if($_SESSION['eventID'] == null){
 	if(isAdminOptionSet('forcePlainText') == true){
 		$wysisygClass = '';
 	} else {
-		$wysisygClass = 'tiny-mce';
+		$wysisygClass = ''; ////'tiny-mce';
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ if($_SESSION['eventID'] == null){
 		<?=faqDisplay($question, $wysisygClass)?>
 	<?php endforeach ?>
 
-	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		<?=reOrderFaq($faq)?>
 		<?=faqDisplay([], $wysisygClass)?>
 	<?php endif ?>
