@@ -898,6 +898,14 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		$score = $matchInfo['fighter'.$fighterNum.'Score'];
 		$style = '';
 
+		$teamFighters = "";
+		if($teamEntry == true){
+			$roster = getTeamRoster($matchInfo['fighter'.$fighterNum.'ID']);
+			foreach($roster as $rosterID){
+				$teamFighters .= "<li>".getFighterName($rosterID)."</li>";
+			}
+		}
+
 		// If is match winner
 		if ($matchInfo['fighter'.$fighterNum.'ID'] == $matchInfo['winnerID']){
 			$style .= "font-weight: bold; ";
@@ -915,6 +923,9 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 
 		<div class='<?=$class?>' style='<?=$style?> padding-left: 3px;'>
 			<?=$score?> <?=$name?>
+			<?php if($teamFighters != ""){
+				tooltip($teamFighters);
+			}?>
 		</div>
 
 	<?php endif ?>

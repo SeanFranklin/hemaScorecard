@@ -572,7 +572,7 @@ function yearlySummaryUrg($eventListStr, $color){
 				INNER JOIN systemEvents USING(eventID)
 				INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
 			WHERE {$eventListStr}
-				AND tournamentGenderID IN (21,109,125)
+				AND tournamentGenderID IN (21,109,125, 132)
 			ORDER BY numParticipants DESC, weaponName ASC";
 	$urgTournaments = (array)mysqlQuery($sql, ASSOC);
 
