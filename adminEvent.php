@@ -69,6 +69,7 @@ function changePenaltiesBox($canChangeSettings){
 		$formDiabled = 'disabled';
 	}
 
+
 	$penalties = getPenaltyActions($_SESSION['eventID']);
 	if((bool)readOption('E',$_SESSION['eventID'],'PENALTY_ACTION_IS_MANDATORY') == true){
 		$mandatoryChk = 'checked';
@@ -91,21 +92,32 @@ function changePenaltiesBox($canChangeSettings){
 		<i>These are the options available to the table when entering in a penalty. Uncheck the penalty type to remove it from the option list.<BR>(If you want something not in this list please ask for it to be added.)</i>
 
 		<table class='table-compact'>
-			<?php foreach($penalties as $p):?>
+			<?php foreach($penalties as $p):
+				if($p['isDisabled'] == false){
+					$isDisabled = 'checked';
+				} else {
+					$isDisabled = '';
+				}
+
+				?>
 				<tr>
-					<td style='width:0.1%' >
-						<input type='hidden' name='disablePenalties[attackID][<?=$p['attackID']?>]' value='0'>
-						<!--<input class='switch-input no-bottom' type='checkbox'
-							id='disablePenalties[attackID][<?=$p['attackID']?>]' <?=chk($p['enabled'],1)?>
-							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'>
-						<label class='switch-paddle no-bottom' for='disablePenalties[attackID][<?=$p['attackID']?>]'>
-						</label>-->
-						<input type='checkbox' class='no-bottom'
-							name='disablePenalties[attackID][<?=$p['attackID']?>]' value='1'
-							<?=chk($p['enabled'],1)?> >
-					</td>
+
 					<td >
 						<?=$p['name']?>
+					</td>
+
+					<td style='width:0.1%' >
+						<input type='hidden' name='penaltyCustomize[attackID][<?=$p['attackID']?>][isDisabled]' value='1'>
+						<input type='checkbox' class='no-bottom'
+							name='penaltyCustomize[attackID][<?=$p['attackID']?>][isDisabled]' value='0'
+							<?=$isDisabled?> >
+					</td>
+
+					<td>
+						<input type='hidden' name='penaltyCustomize[attackID][<?=$p['attackID']?>][isNonSafety]' value='0'>
+						<input type='checkbox' class='no-bottom'
+							name='penaltyCustomize[attackID][<?=$p['attackID']?>][isNonSafety]' value='1'
+							<?=chk($p['isNonSafety'], true)?> >
 					</td>
 				</tr>
 			<?php endforeach ?>
@@ -113,15 +125,15 @@ function changePenaltiesBox($canChangeSettings){
 
 		<div class='input-group'>
 			<input class='switch-input no-bottom input-group-field' type='checkbox'
-				id='disablePenalties[mandatory]' <?=$mandatoryChk?>
-				name='disablePenalties[mandatory]' value='1'>
-			<label class='switch-paddle no-bottom' for='disablePenalties[mandatory]'>
+				id='penaltyCustomize[mandatory]' <?=$mandatoryChk?>
+				name='penaltyCustomize[mandatory]' value='1'>
+			<label class='switch-paddle no-bottom' for='penaltyCustomize[mandatory]'>
 			</label>
 			<span class='input-group-label'>Specifying penalty actions is mandatory</span>
 		</div>
 
 
-		<button class='button success' name='formName' value='disablePenalties'>
+		<button class='button success' name='formName' value='penaltyCustomize'>
 			Update
 		</button>
 

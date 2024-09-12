@@ -334,10 +334,10 @@ function displayPenalty($penalty, $showPoints = false){
 	<div class='<?=$class?> penalty-card-display'>
 
 		<strong><?=$penalty['cardName']?>: </strong>
-		<i><?=$penalty['action']?></i> (<?=$penalty['scoreValue']?>)
+		<i><?=$penalty['action']?></i> [<?=$penalty['scoreValue']?> pt(s)]
 		<BR>
 		<strong><?=getTournamentName($penalty['tournamentID'])?>: </strong>
-		 <?=getGroupName($penalty['groupID'])?> (vs <?=getFighterName($penalty['receivingID'])?>)
+		 <?=getGroupName($penalty['groupID'])?> [vs <?=getCombatantName($penalty['receivingID'])?>]
 	</div>
 
 
@@ -1982,6 +1982,46 @@ function edit_tournamentDoublesCarryForward($tournamentID = 0){
 						id='doublesCarryForward_select<?=$tournamentID?>'>
 					<option <?=optionValue(0,$isEnabled)?>>No</option>
 					<option <?=optionValue(1,$isEnabled)?>>Yes</option>
+				</select>
+			</div>
+		</td>
+	</tr>
+
+<?php
+
+}
+
+/*****************************************************************************/
+
+function edit_tournamentPenaltyEscalationMode($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID != 0){
+		$escalationMode = readOption('T',$tournamentID,'PENALTY_ESCALATION_MODE');
+	} else {
+		$escalationMode = 0;
+	}
+
+	$hide = "hidden";
+
+?>
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Prenalty Escalation  <?=tooltip("
+					<b>Under Development</b><BR>
+					How penalties escalate through card colors. All the different possible ways, and how to manage them, have not yet been implemented.")?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+				<select name='updateTournament[penaltyEscalation]' class='shrink'
+						id='penaltyEscalation_select<?=$tournamentID?>'>
+					<option <?=optionValue(PENALTY_ESCALATION_MODE_NONE, $escalationMode)?>>Not Pre Defined</option>
+					<option <?=optionValue(PENALTY_ESCALATION_MODE_THREE_STRIKES,$escalationMode)?>>Three Strikes</option>
 				</select>
 			</div>
 		</td>

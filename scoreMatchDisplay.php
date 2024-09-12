@@ -25,6 +25,15 @@ if(ALLOW['EVENT_SCOREKEEP'] == false || $matchID == null || $tournamentID == nul
 
 	$matchInfo = getMatchInfo($matchID, $tournamentID);
 
+
+	if($matchInfo['matchType'] == 'pool'){
+		// If it is a pool we shrink the div and add a match que
+		$mainDivSize = 'large-10';
+	} else {
+		$mainDivSize = 'large-12';
+	}
+
+
 // FAKE HEADER /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +75,6 @@ $vC = '?=1.0.6'; // CSS Version
 
 
 </head>
-
 
 
 	<style>
@@ -117,60 +125,66 @@ $vC = '?=1.0.6'; // CSS Version
 		}
 	</script>
 
+	<div class='grid-x'>
+	<div class='<?=$mainDivSize?>'>
 
-	<div class='grid-y medium-grid-frame'
-		style='height: 100vh; font-size:0;'>
+		<div class='grid-y medium-grid-frame'
+			style='height: 100vh; font-size:0;'>
 
-		<div class='cell shrink'>
+			<div class='cell shrink'>
 
-		<div class='cell shrink text-center align-middle'style='background:black; vertical-align: middle;'>
+				<div class='cell shrink text-center align-middle'style='background:black; vertical-align: middle;'>
 
+					<span style='display:inline-block; height:100%; padding-right: 20px;vertical-align: top;'>
+						<img src="includes/images/favicon2.png" style='height:7vh; '>
+					</span>
 
+					<span class='white-text' style='font-size:5vh'>HEMA Scorecard</span>
 
-			<span style='display:inline-block; height:100%; padding-right: 20px;vertical-align: top;'>
-				<img src="includes/images/favicon2.png" style='height:7vh; '>
-			</span>
+					<span style='display:inline-block; height:100%; vertical-align: top; padding-left: 20px'>
+						<img src="includes/images/favicon2.png" style='height:7vh'>
+					</span>
+				</div>
 
-			<span class='white-text' style='font-size:5vh'>HEMA Scorecard</span>
+				<div class='cell shrink medium-cell-block-container'>
+					<div class='grid-x grid-padding-x'>
+						<?=fighterNameDisplay($matchInfo,$leftFighter,'left')?>
+						<?=fighterNameDisplay($matchInfo,$rightFighter,'right')?>
+					</div>
+				</div>
 
-			<span style='display:inline-block; height:100%; vertical-align: top; padding-left: 20px'>
-				<img src="includes/images/favicon2.png" style='height:7vh'>
-			</span>
-		</div>
+				<div class='cell shrink '>
+					<div class='grid-x grid-padding-x'>
+						<?=fighterSchoolDisplay($matchInfo,$leftFighter,'left')?>
+						<?=fighterSchoolDisplay($matchInfo,$rightFighter,'right')?>
+					</div>
+				</div>
 
-		<div class='cell shrink medium-cell-block-container'>
-			<div class='grid-x grid-padding-x'>
-				<?=fighterNameDisplay($matchInfo,$leftFighter,'left')?>
-				<?=fighterNameDisplay($matchInfo,$rightFighter,'right')?>
-			</div>
-		</div>
+				<div class='cell auto'>
+					<div class='grid-x grid-padding-x'>
+						<?=fighterScoreDisplay($matchInfo,$leftFighter,'left')?>
 
-		<div class='cell shrink '>
-			<div class='grid-x grid-padding-x'>
-				<?=fighterSchoolDisplay($matchInfo,$leftFighter,'left')?>
-				<?=fighterSchoolDisplay($matchInfo,$rightFighter,'right')?>
-			</div>
-		</div>
+						<?=matchInfoDisplay($matchInfo)?>
 
-		<div class='cell auto'>
-			<div class='grid-x grid-padding-x'>
-				<?=fighterScoreDisplay($matchInfo,$leftFighter,'left')?>
+						<?=fighterScoreDisplay($matchInfo,$rightFighter,'right')?>
+					</div>
+				</div>
 
-				<?=matchInfoDisplay($matchInfo)?>
+				<div class='cell auto'>
+					<div class='grid-x grid-padding-x'>
+						<?=displayFighterPenalties($matchInfo,1)?>
+						<?=displayFighterPenalties($matchInfo,2)?>
+					</div>
+				</div>
 
-				<?=fighterScoreDisplay($matchInfo,$rightFighter,'right')?>
-			</div>
-		</div>
-
-		<div class='cell auto'>
-			<div class='grid-x grid-padding-x'>
-				<?=displayFighterPenalties($matchInfo,1)?>
-				<?=displayFighterPenalties($matchInfo,2)?>
 			</div>
 		</div>
 
 	</div>
 
+		<?=poolMatchQueue($matchInfo)?>
+
+	</div>
 
 
 <?php }
@@ -180,6 +194,84 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function poolMatchQueue($matchInfo){
+
+
+	if($matchInfo['matchType'] != 'pool'){
+		return;
+	}
+
+	$remainingMatches = [];
+	$matches = getRemainingPoolMatches($matchInfo);
+	$matchesShown = 0;
+	$matchesHidden = 0;
+
+	foreach($matches as $m){
+
+		if($matchesShown < 3){
+			$tmp = [];
+			$tmp['name'][1] = getFighterName($m['fighter1ID']);
+			$tmp['name'][2] = getFighterName($m['fighter2ID']);
+			$remainingMatches[] = $tmp;
+			$matchesShown++;
+		} else {
+			$matchesHidden++;
+		}
+	}
+
+	if($matchesHidden > 0){
+		$moreMatchesText = "<i>And {$matchesHidden} more ...</i>";
+	} else {
+		//$moreMatchesText = "- End of Pool ----";
+		$moreMatchesText = "--------------------<BR> End of Pool";
+	}
+
+?>
+
+	<div class='show-for-large large-2' style='border-left: 4px solid black; background-image: linear-gradient(to right, #777, #333)'>
+
+
+
+		<div style='padding: 10px; height: 7.5vh; background-color: black; color:white; text-align: right;'>
+			<h3>On Deck</h3>
+		</div>
+
+		<?php foreach($remainingMatches as $m): ?>
+
+			<div style='margin: 10px'>
+				<table>
+					<tr>
+						<td rowspan=2 style='background-color:darkblue; color: white'>
+							<i>vs</i>
+						</td>
+						<td style='font-size:2em' class='f1-BG f1-text'>
+							<?=$m['name'][1]?>
+						</td>
+					</tr>
+					<tr>
+						<td style='font-size:2em' class='f2-BG f2-text'>
+							<?=$m['name'][2]?>
+						</td>
+					</tr>
+
+				</table>
+
+			</div>
+		<?php endforeach ?>
+
+		<div style='margin: 10px; color: white; font-size:2em;'>
+			<?=$moreMatchesText?>
+		</div>
+
+
+	</div>
+
+<?php
+}
+
 /******************************************************************************/
 
 function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
@@ -206,6 +298,7 @@ function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 	} else {
 		$class .= ' text-right';
 	}
+
 ?>
 
 	<div class='small-6 cell medium-cell-block-y <?=$class?>'
@@ -227,16 +320,21 @@ function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 function fighterSchoolDisplay($matchInfo, $fighterNum, $pageSide){
 	$class = '';
 
+	$class1 = 'f1-BG f1-text';
+	$class2 = 'f2-BG f2-text';
+
 	if($fighterNum == 1){
 		$schoolName = $matchInfo['fighter1School'];
-		$class .= 'f1-BG f1-text';
+		$class .= $class1;
+		$classOpposite .= $class2;
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$class .= ' bold';
 		}
 	} else {
 		$schoolName = $matchInfo['fighter2School'];
-		$class .= 'f2-BG f2-text';
+		$class .= $class2;
+		$classOpposite .= $class1;
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
 			$class .= ' bold';
@@ -249,12 +347,20 @@ function fighterSchoolDisplay($matchInfo, $fighterNum, $pageSide){
 		$class .= ' text-right';
 	}
 
+	if(readOption('T',$matchInfo['tournamentID'],'PRIORITY_NOTICE_ON_NON_SCORING') != 0 && isLastExchZeroPointClean($matchInfo, $fighterNum) == true){
+		$priorityText = "Priority";
+	} else {
+		$priorityText = "";
+	}
+
 ?>
 
 	<div class='small-6 cell medium-cell-block-y <?=$class?>'
 		style='border-<?=$border?>: 2px solid black;'>
 		<i>
-			<?php if(isTeamLogic($matchInfo['tournamentID']) == false): ?>
+			<?php if($priorityText != ''): ?>
+				<span style='font-size:65px;' class='priority-text-notice <?=$classOpposite?>'> <?=$priorityText?></span>
+			<?php elseif(isTeamLogic($matchInfo['tournamentID']) == false): ?>
 				<span style='font-size:65px;'> <?=$schoolName?></span>
 			<?php else: ?>
 				<span style='font-size:65px;'>(<?=$teamName?>)</span>
@@ -447,7 +553,7 @@ function doublesTextDisplay($matchInfo){
 	}
 
 	$class = ifSet($doubleOut,"class='red-text'");
-	$string = "{$doubles} Double Hit".ifSet($doubles != 1, "s");
+	$string = "{$doubles} Double".ifSet($doubles != 1, "s");
 
 	switch ($doubles){
 	case 0:

@@ -458,6 +458,9 @@ function processPostData(){
 			case 'addTournamentType':
 				addTournamentType();
 				break;
+			case 'addAttackType':
+				addAttackType();
+				break;
 			case 'addNewDuplicateException':
 				addNewDuplicateException();
 				break;
@@ -474,8 +477,8 @@ function processPostData(){
 				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
 
-			case 'disablePenalties':
-				disableEventPenalties($_POST['disablePenalties'], $_SESSION['eventID']);
+			case 'penaltyCustomize':
+				customizeEventPenalties($_POST['penaltyCustomize'], $_SESSION['eventID']);
 				break;
 
 			case 'plaintextMode':		toggleAdminOption('forcePlainText');		break;

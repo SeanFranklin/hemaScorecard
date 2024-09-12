@@ -1,5 +1,14 @@
 /* Added By Sean **************************************************************/
 
+div.attack-box{
+  padding: 5px;
+  margin: 7px;
+}
+
+div.attack-box-on{
+  background-color: #96CDF2;
+}
+
 
 div.quiz{
   border: black solid 1px;
@@ -81,6 +90,7 @@ div.clickable{
   border: 1px solid black ;
   box-shadow: 4px 4px 5px 1px #666;
   margin-top: 4 px;
+  margin-bottom: 12 px;
 }
 
 div.clickable:active:hover {

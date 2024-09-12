@@ -2624,7 +2624,7 @@ function getEventPenalties($eventID, $fighterIDs = null){
 		}
 	}
 
-	$sql = "SELECT scoringID, tournamentID, groupID, receivingID, scoreValue,
+	$sql = "SELECT scoringID, tournamentID, groupID, receivingID, scoreValue, exchangeID, matchID,
 			(SELECT attackCode
 				FROM systemAttacks sA2
 				WHERE sA2.attackID = eE.refType) AS card,
@@ -2651,6 +2651,22 @@ function getEventPenalties($eventID, $fighterIDs = null){
 
 		$fighterID = $penalty['scoringID'];
 
+		if(isTeams($penalty['tournamentID']) == true && getTournamentLogic($penalty['tournamentID']) == null){
+
+			$activeRosterID = (int)getActiveTeamMembersAtExchange($penalty['matchID'], $fighterID, $penalty['exchangeID']);
+
+			$name = getTeamName($fighterID);
+
+			if($activeRosterID != 0){
+				$fighterID = $activeRosterID;
+				$name = getFighterName($fighterID)." <i>(".$name.")</i>";
+			}
+
+		} else {
+			$name = getFighterName($fighterID);
+		}
+
+
 		if(isset($penaltiesByFighter[$fighterID]) == false){
 			$penaltiesByFighter[$fighterID]['numPenalties'] = 1;
 			$penaltiesByFighter[$fighterID]['fighterID'] = $fighterID;
@@ -2658,6 +2674,7 @@ function getEventPenalties($eventID, $fighterIDs = null){
 			$penaltiesByFighter[$fighterID]['numPenalties']++;
 		}
 
+		$penaltiesByFighter[$fighterID]['name'] = $name;
 		$penaltiesByFighter[$fighterID]['list'][] = $penalty;
 	}
 
@@ -3845,6 +3862,40 @@ function getNextPoolMatch($matchInfo){
 	} else {
 		return getMatchInfo($matchID);
 	}
+
+}
+
+/******************************************************************************/
+
+function getRemainingPoolMatches($matchInfo, $skipIgnored = true){
+// Gets the next match in a group, skipping matches which are set to be ignored
+
+	if($matchInfo == null){
+		setAlert(SYSTEM,"No matchInfo in getNextPoolMatch()");
+		return;
+	}
+
+	if((int)$matchInfo['matchNumber']<= 0){
+		return null;
+	}
+
+	// If it is the scorekeeper then skip the next match if it has been ignored.
+	if($skipIgnored == true){
+		$ignoreClause = "AND ignoreMatch = 0";
+	} else {
+		$ignoreClause = '';
+	}
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID
+			FROM eventMatches
+			WHERE groupID = {$matchInfo['groupID']}
+			AND matchNumber > {$matchInfo['matchNumber']}
+			AND placeholderMatchID IS NULL
+			{$ignoreClause}
+			ORDER BY matchNumber ASC";
+	$matches = (array)mysqlQuery($sql, ASSOC);
+
+	return ($matches);
 
 }
 
@@ -6301,7 +6352,7 @@ function getNumNoWinners($groupID){
 
 /******************************************************************************/
 
-function getTournamentAttacks($tournamentID){
+function getTournamentAttacks($tournamentID, $shortPoints = false){
 // Get the unique attacks attributed to a tournament
 
 	$tournamentID = (int)$tournamentID;
@@ -6358,7 +6409,9 @@ function getTournamentAttacks($tournamentID){
 		}
 
 		$text .= $attack['attackPoints'];
-		if($attack['attackPoints'] == 1){
+		if($shortPoints == true){
+			$text .= "p";
+		} else if($attack['attackPoints'] == 1){
 			$text .= " Point";
 		} else {
 			$text .= " Points";
@@ -6431,20 +6484,32 @@ function getPenaltyActions($eventID = null){
 
 	// If the eventID was provided, then check to see if any penalties are disabled in this event.
 	if($eventID != 0){
-		$sql = "SELECT attackID, penaltyDisabledID
+		$sql = "SELECT attackID, penaltyDisabledID, isDisabled, isNonSafety
 				FROM eventPenaltyDisabled
 				WHERE eventID = {$eventID}";
-		$disabledPenalties = (array)mysqlQuery($sql, KEY_SINGLES, 'attackID', 'penaltyDisabledID');
+		$customizedPenalties = (array)mysqlQuery($sql, KEY, 'attackID');
 	} else {
-		$disabledPenalties = [];
+		$customizedPenalties = [];
 	}
 
 	foreach($penaltyList as $i => $p){
 		$attackID = $p['attackID'];
-		if(isset($disabledPenalties[$attackID ]) == true){
-			$penaltyList[$i]['enabled'] = false;
+
+
+		if(isset($customizedPenalties[$attackID ]['isDisabled']) == false){
+			$penaltyList[$i]['isDisabled'] = false;
+		} else if($customizedPenalties[$attackID ]['isDisabled'] == 1){
+			$penaltyList[$i]['isDisabled'] = true;
 		} else {
-			$penaltyList[$i]['enabled'] = true;
+			$penaltyList[$i]['isDisabled'] = false;
+		}
+
+		if(isset($customizedPenalties[$attackID ]['isNonSafety']) == false){
+			$penaltyList[$i]['isNonSafety'] = false;
+		} else if($customizedPenalties[$attackID ]['isNonSafety'] == 1){
+			$penaltyList[$i]['isNonSafety'] = true;
+		} else {
+			$penaltyList[$i]['isNonSafety'] = false;
 		}
 	}
 
@@ -8431,6 +8496,48 @@ function getTeamMemberPosition($teamID, $teamMemberRosterID){
 	}
 
 	return $position;
+}
+
+/******************************************************************************/
+
+function getActiveTeamMembersAtExchange($matchID, $teamID, $exchangeID = 0){
+
+	$matchID = (int)$matchID;
+	$teamID = (int)$teamID;
+
+	if($matchID == 0 || $teamID == 0){
+		return (0);
+	}
+
+
+	$exchangeID = (int)$exchangeID;
+
+	if($exchangeID != 0){
+
+
+		$sql = "SELECT exchangeNumber
+				FROM eventExchanges
+				WHERE exchangeID = {$exchangeID}";
+		$exchangeNumber = (int)mysqlQuery($sql, SINGLE, 'exchangeNumber');
+
+		$exchClause = "AND exchangeNumber <= {$exchangeNumber}";
+	} else {
+		$exchClause = "";
+	}
+
+
+	$sql = "SELECT receivingID
+			FROM eventExchanges
+			WHERE matchID = {$matchID}
+			AND exchangeType = 'switchFighter'
+			AND scoringID = {$teamID}
+			{$exchClause}
+			ORDER BY exchangeNumber DESC
+			LIMIT 1";
+	$rosterID = (int)mysqlQuery($sql, SINGLE, 'receivingID');
+
+	return ($rosterID);
+
 }
 
 /******************************************************************************/

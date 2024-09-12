@@ -183,12 +183,15 @@
 	$options['T']["META_ROSTER_MODE"]				= 1;
 		define("META_ROSTER_MODE_INCLUSIVE",0);
 		define("META_ROSTER_MODE_EXCLUSIVE",1);
-		define("META_ROSTER_MODE_EXTENDED",2);
+		define("META_ROSTER_MODE_EXTENDED",	2);
 	$options['T']['ATTACK_DISPLAY_MODE'] 			= 4;
+		define("ATTACK_DISPLAY_MODE_NORMAL",0);
+		define("ATTACK_DISPLAY_MODE_GRID",	1);
+		define("ATTACK_DISPLAY_MODE_CHECK",	2);
 	$options['T']['AFTERBLOW_POINT_VALUE'] 			= 5;
 	$options['T']['MATCH_TIE_MODE'] 				= 6;
-		define("MATCH_TIE_MODE_NONE",0);
-		define("MATCH_TIE_MODE_EQUAL",1);
+		define("MATCH_TIE_MODE_NONE",	0);
+		define("MATCH_TIE_MODE_EQUAL",	1);
 		define("MATCH_TIE_MODE_UNEQUAL",2);
 	$options['T']['TEAM_SWITCH_POINTS'] 			= 7;
 	$options['T']['DOUBLES_ARE_NOT_SCORING_EXCH'] 	= 8;
@@ -198,7 +201,10 @@
 	$options['T']["SUPPRESS_DIRECT_ENTRY"] 			= 12;
 	$options['T']["PRIORITY_NOTICE_ON_NON_SCORING"] = 15;
 	$options['T']["DENOTE_FIGHTERS_WITH_OPTION_CHECK"] = 16;
-	$options['T']["MATCH_SOFT_CLOCK_TIME"] 		= 17;
+	$options['T']["MATCH_SOFT_CLOCK_TIME"] 		    = 17;
+	$options['T']["PENALTY_ESCALATION_MODE"] 		= 18;
+		define("PENALTY_ESCALATION_MODE_NONE",			0);
+		define("PENALTY_ESCALATION_MODE_THREE_STRIKES",	1);
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

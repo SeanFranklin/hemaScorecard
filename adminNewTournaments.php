@@ -97,6 +97,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
 				edit_tournamentCuttingQual(0);
 				edit_tournamentDoublesCarryForward(0);
+				edit_tournamentPenaltyEscalationMode(0);
 				edit_tournamentHideFinalResults(0);
 				edit_tournamentKeepPrivate(0);
 				edit_tournamentRequireSignOff(0);

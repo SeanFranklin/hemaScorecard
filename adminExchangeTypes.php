@@ -33,28 +33,6 @@ if($_SESSION['eventID'] == null){
 	importAttacksForm($_SESSION['tournamentID']);
 
 
-	$useGrid = readOption('T',$_SESSION['tournamentID'],'ATTACK_DISPLAY_MODE');
-
-
-	if($formLock == '' && isFullAfterblow($_SESSION['tournamentID']) == false){
-		$showGridButton = true;
-	} else {
-		$showGridButton = false;
-	}
-
-	if($useGrid == false){
-		$nextMode = 'Grid';
-		$individualIsHollow = '';
-	} else {
-		$nextMode = 'Individual';
-		$individualIsHollow = '';
-	}
-
-	$afterblowPointValue = getAfterblowPointValue($_SESSION['tournamentID']);
-	$maxAfterblowValue = 9;
-	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
-	$maxControlValue = 9;
-
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -65,12 +43,6 @@ if($_SESSION['eventID'] == null){
 	<a class='button hollow' href='adminTournaments.php'>
 		Back to Tournament Settings
 	</a>
-	<?php if($showGridButton == true):?>
-		<button class='button' name='attackDefinitionMode' value='<?=$nextMode?>'>
-			Switch to <?=$nextMode?> Mode
-		</button>
-		<input class='hidden' name='formName' value='switchAttackDefinitionMode'>
-	<?php endif?>
 </form>
 
 
@@ -83,18 +55,105 @@ if($_SESSION['eventID'] == null){
 
 <?php else: ?>
 
-	<?=tournamentTitle($_SESSION['tournamentID'],$useGrid,$formLock)?>
+	<h4>
+		Attacks for <strong><?=getTournamentName($tournamentID);?></strong>
+	</h4>
+
+	<ul class="tabs" data-tabs id="exchange-type-tabs">
+		<li class="tabs-title is-active">
+			<a data-tabs-target="panel-attack" href="#panel-attack2">Attack Definitions</a>
+		</li>
+		<li class="tabs-title">
+			<a data-tabs-target="panel-mod" href="#panel-mod2">Attack Modifiers</a>
+		</li>
+		<li class="tabs-title">
+			<a data-tabs-target="panel-entry" href="#panel-entry2">Data Entry Mode</a>
+		</li>
+	</ul>
+
+
+
+	<div class="tabs-content" data-tabs-content="exchange-type-tabs">
+		<div class="tabs-panel  is-active" id="panel-attack">
+			<?=exchangeTypeAttacks($formLock)?>
+		</div>
+		<div class="tabs-panel" id="panel-mod">
+			<?=exchangeTypeModifiers($formLock)?>
+		</div>
+		<div class="tabs-panel" id="panel-entry">
+			<?=exchangeTypeDataEntryMode($formLock)?>
+		</div>
+	</div>
+
+
 
 <!-- Afterblow/Control Points ---------------------------------------->
 
-	<fieldset <?=$formLock?>  >
-	<form method='POST'>
-		<div class='grid-x grid-margin-x'>
 
-			<?php if(isDeductiveAfterblow($_SESSION['tournamentID']) == true): ?>
+
+
+	<HR>
+
+<!-- Point Values ---------------------------------------------------------------->
+
+
+
+<?php endif ?>
+<?php }
+include('includes/footer.php');
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function exchangeTypeAttacks($formLock){
+?>
+	<fieldset <?=$formLock?> >
+		<form method='POST'>
+		<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
+			Submit
+		</button>
+		<a class='button warning' onclick="$('#import-attacks').toggle()" <?=$formLock?> >
+			Import/Copy
+		</a>
+		<i>
+			Leave the points field blank to delete an entry
+		</i>
+
+		<?php displayModeIndividual($formLock)?>
+
+		<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
+			Submit
+		</button>
+
+		</form>
+	</fieldset>
+
+<?
+}
+
+/******************************************************************************/
+
+function exchangeTypeModifiers($formLock){
+
+	$afterblowPointValue = getAfterblowPointValue($_SESSION['tournamentID']);
+	$maxAfterblowValue = 9;
+	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
+	$maxControlValue = 9;
+?>
+
+	<fieldset <?=$formLock?> >
+
+	<form method='POST'>
+		<div class='cell grid-x grid-margin-x no-bottom'>
+
+
 				<div class='input-group shrink cell no-bottom'>
+					<?php if(isDeductiveAfterblow($_SESSION['tournamentID']) == true): ?>
 					<span class='input-group-label no-bottom'>
 						Afterblow
+						 <?=tooltip('')?>
 
 					</span>
 					<select class='input-group-field no-bottom' name='tournamentAttackModifiers[afterblow]'>
@@ -103,8 +162,13 @@ if($_SESSION['eventID'] == null){
 							<option <?=optionValue($p, $afterblowPointValue)?>>-<?=$p?></option>
 						<?php endfor?>
 					</select>
+					<?php else: ?>
+						<span class='input-group-label no-bottom'><i>Pre-Specifying an afterblow value is only valid <BR>in deductive afterblow scoring.</i>
+						</span>
+					<?php endif ?>
+
 				</div>
-			<?php endif ?>
+
 
 				<div class='input-group shrink cell no-bottom'>
 					<span class='input-group-label no-bottom'>Controlling Action</span>
@@ -117,64 +181,84 @@ if($_SESSION['eventID'] == null){
 				</div>
 
 				<button class='shrink cell no-bottom button success' name='formName' value='tournamentAttackModifiers'>
-					Update Modifiers
+					Update
 				</button>
 		</div>
-	</form>
-	</fieldset>
-	<HR>
-
-<!-- Point Values ---------------------------------------------------------------->
-
-	<fieldset <?=$formLock?> >
-	<form method='POST'>
-	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
-		Submit
-	</button>
-	<a class='button warning' onclick="$('#import-attacks').toggle()" <?=$formLock?> >
-		Import/Copy
-	</a>
-	<i>
-		Leave the points field blank to delete an entry
-	</i>
-
-	<?php
-		if($useGrid == false){
-			displayModeIndividual($formLock);
-		} else {
-			displayModeIndividual($formLock);
-		}
-	?>
-
-
-	<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
-		Submit
-	</button>
 
 	</form>
 	</fieldset>
 
-<?php endif ?>
-<?php }
-include('includes/footer.php');
 
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+
+<?
+}
 
 /******************************************************************************/
 
-function displayModeGrid($formLock){
-	$targets = getAllAttackTargets();
-	$types = getAllAttackTypes();
-	$prefixes = getAllAttackPrefixes();
-	$existingAttacks = getTournamentAttacks($_SESSION['tournamentID']);
-	$i = 0;
+function exchangeTypeDataEntryMode($formLock){
 
-	$sql = "SELECT refTarget, refType";
 
+
+	$attackDisplayMode = readOption('T',$_SESSION['tournamentID'],'ATTACK_DISPLAY_MODE');
+
+
+	if(isFullAfterblow($_SESSION['tournamentID']) == true){
+		$errorMsg = "<div class='callout warning'>Your tournament is currently configured as Full Afterblow mode. <BR>Using anything other than Normal data entry mode is unpredictable and not recommended.</div>";
+	} else {
+		$errorMsg = '';
+	}
+
+/*
+		<button class='button' name='attackDefinitionMode' value='<?=$nextMode?>'>
+			Switch to <?=$nextMode?> Mode
+		</button>
+		<input class='hidden' name='formName' value='switchAttackDefinitionMode'>*/
 
 ?>
-<HR><HR>
+
+
+
+	<fieldset <?=$formLock?>>
+		<legend></legend>
+		<form method='POST'>
+			<div class='cell grid-x grid-margin-x'>
+
+				<div class='cell'>
+					<?=$errorMsg?>
+				</div>
+
+			<div class=' cell input-group no-bottom shrink'>
+
+				<span class='input-group-label'>
+					Input Mode
+				</span>
+
+				<select class='input-group-field' name='attackDefinitionMode' >
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_NORMAL, $attackDisplayMode)?>>Normal</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_GRID, $attackDisplayMode)?>>Grid</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_CHECK, $attackDisplayMode)?>>Check-Box</option>
+				</select>
+
+				<div class='input-group-button'>
+					<button class='button success' name='formName' value='switchAttackDefinitionMode'>
+						Update
+					</button>
+				</div>
+
+			</div>
+
+			<div class='cell'>
+				<li><b>Normal</b>: Drop down menus for point and afterblow value.</li>
+	            <li><b>Grid</b>: Organizer pre-specifies the point values for all actions/targets and the table clicks the targets, and the software assigns points.</li>
+	            <li><b>Check-Box</b>: Organizer pre-specifies the point values for all actions/targets and these appear as checkboxes for the table.</li>
+        	</div>
+
+			</div>
+		</from>
+	</fieldset>
+
+
+
 <?
 }
 
@@ -376,16 +460,6 @@ function importAttacksForm($tournamentID){
 
 	</form>
 	</div>
-<?php
-}
-
-/******************************************************************************/
-
-function tournamentTitle($tournamentID){
-?>
-	<h4>
-		Attacks for <strong><?=getTournamentName($tournamentID);?></strong>
-	</h4>
 <?php
 }
 
