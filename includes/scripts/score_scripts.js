@@ -8,17 +8,27 @@ const DOUBLE_TYPE = $('#doubleType').val();
 
 const ATTACK_CONTROL_DB = 9;
 
+const ATTACK_DISPLAY_MODE_NORMAL = 0;
+const ATTACK_DISPLAY_MODE_GRID   = 1
+const ATTACK_DISPLAY_MODE_CHECK  = 2;
+
+const WHITE_CARD  = 0;
+const YELLOW_CARD = 34;
+const RED_CARD    = 35;
+const BLACK_CARD  = 38;
+
+
 /************************************************************************************/
 
 function isValidExchange(){
 
-	if(GRID_ENTRY_MODE == true){
+
+	if(DATA_ENTRY_MODE != ATTACK_DISPLAY_MODE_NORMAL){
 		// This function is designed to check for conflicts between the dropdowns
 		// of each fighter and the exchange types that apply to both.
 		// In grid entry mode you can not have conflicting information, therefore this is not needed.
 		return;
 	}
-
 
 	var exchButton = document.getElementById('New_Exchange_Button');
 
@@ -36,6 +46,7 @@ function isValidExchange(){
 
 	var invalidText = "Invalid Exchange";
 
+
 // Two scores are selected
 	if(DOUBLE_TYPE != FULL_AFTERBLOW)
 	{
@@ -48,16 +59,35 @@ function isValidExchange(){
 		isValid = false;
 	}
 
+
 // An afterblow is selected with no score
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
-		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
-		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
+		var fighter1Afterblow = document.getElementById('fighter1_afterblow_input');
+		var fighter2Afterblow = document.getElementById('fighter2_afterblow_input');
 
-		if( (fighter1Score.value == "" && fighter1Afterblow.value != "")
-			|| (fighter2Score.value == "" && fighter2Afterblow.value != "")){
+		var Ab1Value = 0;
+		var Ab2Value = 0;
+
+		if(fighter1Afterblow.tagName == 'SELECT'){
+			Ab1Value = fighter1Afterblow.value;
+			Ab2Value = fighter2Afterblow.value;
+		} else if(fighter1Afterblow.tagName == 'INPUT'){
+			if(fighter1Afterblow.checked == true){
+				Ab1Value = fighter1Afterblow.value;
+			}
+			if(fighter2Afterblow.checked == true){
+				Ab2Value = fighter2Afterblow.value;
+			}
+		} else {
+			// wtf?
+		}
+
+		if(    (fighter1Score.value == "" && Ab1Value != 0)
+			|| (fighter2Score.value == "" && Ab2Value != 0)){
 			isValid = false;
 		}
 	}
+
 
 
 // A radio button and a score is checked
@@ -92,49 +122,130 @@ function isValidExchange(){
 function scoreDropdownChange(selectID){
 
 	var exchButton = document.getElementById('New_Exchange_Button');
-	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter2Score = document.getElementById('fighter2_score_dropdown');
 	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-
 	document.getElementById('NA_Radio').checked = 'checked';
 
+	var fighter1Score = "";
+	var fighter2Score = "";
+
+	if(DATA_ENTRY_MODE != ATTACK_DISPLAY_MODE_CHECK){
+
+		var fighter1scoreInput = document.getElementById('fighter1_score_dropdown');
+		var fighter2scoreInput = document.getElementById('fighter2_score_dropdown');
+
+		if(fighter1scoreInput.tagName == 'SELECT'){
+			fighter1Score = fighter1scoreInput.value;
+			fighter2Score = fighter2scoreInput.value;
+		} else if(fighter1scoreInput.tagName == 'INPUT'){
+			if(fighter1scoreInput.checked == true){
+				fighter1Score = fighter1scoreInput.value;
+			}
+			if(fighter2Afterblow.checked == true){
+				fighter2Score = fighter2scoreInput.value;
+			}
+		} else {
+			// wtf?
+		}
+
+	} else {
+
+		var radioButtonName = document.getElementById('radio-button-name-1');
+		var radioButtons = document.getElementsByName(radioButtonName.value);
+
+		for( i = 0; i < radioButtons.length; i++ ) {
+	        if( radioButtons[i].checked ) {
+	            fighter1Score =  radioButtons[i].value;
+
+	        }
+	    }
+
+	    radioButtonName = document.getElementById('radio-button-name-2');
+		radioButtons = document.getElementsByName(radioButtonName.value);
+
+		for( i = 0; i < radioButtons.length; i++ ) {
+	        if( radioButtons[i].checked ) {
+	            fighter2Score =  radioButtons[i].value;
+
+	        }
+	    }
+
+	}
+
+	var afterblowDropDown = true;
+	var Ab1Value = 0;
+	var Ab2Value = 0;
+
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
-		var fighter1Afterblow = document.getElementById('fighter1_afterblow_dropdown');
-		var fighter2Afterblow = document.getElementById('fighter2_afterblow_dropdown');
+
+		var fighter1Afterblow = document.getElementById('fighter1_afterblow_input');
+		var fighter2Afterblow = document.getElementById('fighter2_afterblow_input');
+
+
+		if(fighter1Afterblow.tagName == 'INPUT'){
+			// The afterblow input is a checkbox
+			afterblowDropDown = false;
+		}
+
+		if(afterblowDropDown == true){
+			Ab1Value = fighter1Afterblow.value;
+			Ab2Value = fighter2Afterblow.value;
+		} else {
+			if(fighter1Afterblow.checked == true){
+				Ab1Value = fighter1Afterblow.value;
+			}
+			if(fighter2Afterblow.checked == true){
+				Ab2Value = fighter2Afterblow.value;
+			}
+		}
+
 
 		// Disable Afterblow if there is no initial hit for a fighter
-		if(fighter1Score.value == "" || fighter1Score.value == "noQuality"){
-			fighter1Afterblow.selectedIndex=0;
+		if(fighter1Score == "" || fighter1Score == "noQuality"){
+			if(afterblowDropDown == true){
+				fighter1Afterblow.selectedIndex = 0;
+			} else {
+				fighter1Afterblow.checked = false;
+			}
 			fighter1Afterblow.disabled = "disabled";
-		} else {fighter1Afterblow.disabled = null;}
+		} else {
+			fighter1Afterblow.disabled = null;
+		}
 
-		if(fighter2Score.value == "" || fighter2Score.value == "noQuality"){
-			fighter2Afterblow.selectedIndex=0;
+
+		if(fighter2Score == "" || fighter2Score == "noQuality"){
+
+			if(afterblowDropDown == true){
+				fighter2Afterblow.selectedIndex = 0;
+			} else {
+				fighter2Afterblow.checked = false;
+			}
 			fighter2Afterblow.disabled = "disabled";
 		} else {
 			fighter2Afterblow.disabled = null;
 		}
+
 	}
 
 // Toggle Control Point Button
 	fighter1Control = document.getElementById('fighter1_control_check');
 	fighter2Control = document.getElementById('fighter2_control_check');
+
 	if(fighter1Control != null && fighter2Control != null){
-		if(fighter1Score.value != ""){
+		if(fighter1Score != ""){
 			$(fighter2Control).prop('checked', false);
 			$(fighter2Control).prop('disabled', true);
 			$(fighter1Control).prop('disabled', false);
 		}
-		if(fighter2Score.value != ""){
+		if(fighter2Score != ""){
 			$(fighter1Control).prop('checked', false);
 			$(fighter1Control).prop('disabled', true);
 			$(fighter2Control).prop('disabled', false);
 		}
-		if(fighter1Score.value != "" && fighter2Score.value != ""){
+		if(fighter1Score != "" && fighter2Score != ""){
 			$(fighter1Control).prop('disabled', true);
 			$(fighter2Control).prop('disabled', true);
 		}
-		if(fighter1Score.value == "" && fighter2Score.value == ""){
+		if(fighter1Score == "" && fighter2Score == ""){
 			$(fighter1Control).prop('checked', false);
 			$(fighter2Control).prop('checked', false);
 			$(fighter1Control).prop('disabled', false);
@@ -145,22 +256,22 @@ function scoreDropdownChange(selectID){
 
 
 // Select no exchange if no scores are selected
-	if(fighter1Score.value === "" && fighter2Score.value == ""){
+	if(fighter1Score === "" && fighter2Score == ""){
 		document.getElementById('No_Exchange_Radio').checked = 'checked';
 		exchButton.value = "noExchange";
 		exchButton.innerHTML = "Add: No Exchange";
 		setExchButtonClasses("");
 	} else if(DOUBLE_TYPE == FULL_AFTERBLOW) {
 
-		if(		(fighter1Score.value == "noQuality" && fighter2Score.value == "")
-			||  (fighter1Score.value == "" && fighter2Score.value == "noQuality"))
+		if(		(fighter1Score == "noQuality" && fighter2Score == "")
+			||  (fighter1Score == "" && fighter2Score == "noQuality"))
 		{
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
 			setExchButtonClasses("hollow");
 		} else {
 			exchButton.value = "scoringHit";
-			if(fighter1Score.value !== "" && fighter2Score.value !== ""){
+			if(fighter1Score !== "" && fighter2Score !== ""){
 				setExchButtonClasses("alert");
 				exchButton.innerHTML = "Add: Bilateral Hit";
 			} else {
@@ -170,7 +281,7 @@ function scoreDropdownChange(selectID){
 		}
 
 	} else {
-		if(fighter1Score.value == "noQuality" || fighter2Score.value == "noQuality"){
+		if(fighter1Score == "noQuality" || fighter2Score == "noQuality"){
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
 
@@ -181,7 +292,7 @@ function scoreDropdownChange(selectID){
 
 			setExchButtonClasses("success");
 			if( DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
-				if(fighter1Afterblow.value != "" || fighter2Afterblow.value != ""){
+				if(Ab1Value != 0 || Ab2Value != 0){
 					exchButton.innerHTML = "Add: Afterblow";
 				} else {
 					exchButton.innerHTML = "Add: Clean Hit";
@@ -196,6 +307,25 @@ function scoreDropdownChange(selectID){
 	}
 
 	isValidExchange();
+
+}
+
+/************************************************************************************/
+
+function scoreCheckboxChange(divID, radioButtonID, fighterNum){
+
+	var radioButton = document.getElementById(radioButtonID);
+	radioButton.checked = 'checked';
+
+	attackBoxDivs = document.getElementsByClassName("attack-box-"+fighterNum);
+
+	for( i = 0; i < attackBoxDivs.length; i++ ) {
+        attackBoxDivs[i].classList.remove('attack-box-on');
+    }
+
+    divID.classList.add('attack-box-on');
+
+	scoreDropdownChange(this)
 
 }
 
@@ -930,5 +1060,95 @@ function rollForOffhand(){
 
 /******************************************************************************/
 
+function calculatePenaltyEscalation(isUsed, matchID){
+
+	if(isUsed == 0){
+		return;
+	}
+
+	var outputText = "";
+
+	var fighterNum = 0;
+	if(document.getElementById('penalty-fighter-1').checked == true){
+		fighterNum = 1;
+	} else if(document.getElementById('penalty-fighter-2').checked == true) {
+		fighterNum = 2;
+	}
+
+
+	var isSafety = false;
+	var infractionID = document.getElementById('penalty-infraction').value;
+	if(infractionID == ""){
+		document.getElementById('penalty-escalation-notice').innerHTML = "";
+		document.getElementById('penalty-escalation-warning').innerHTML = "";
+		return;
+	}
+
+	var query = {};
+	var query = "mode=penaltyEscalation";
+	query = query + "&infractionID=" + infractionID.toString();
+	query = query + "&fighterNum=" + fighterNum.toString();
+	query = query + "&matchID=" + matchID.toString();
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xhr.send();
+
+	xhr.onreadystatechange = function (){
+
+		if(this.readyState == 4 && this.status == 200){
+			if(this.responseText.length >= 1){
+
+				//console.log(this.responseText);
+				recievedData = JSON.parse(this.responseText);
+				//console.log(recievedData);
+
+				var selectedColor = document.getElementById('penalty-color').value;
+				if(selectedColor == ""){
+					selectedColor = 0;
+				}
+
+
+				var colorText = "";
+				switch(recievedData['colorID']){
+					case (YELLOW_CARD): { colorText = "YELLOW"; 	break;	}
+					case (RED_CARD):    { colorText = "RED"; 		break;	}
+					case (BLACK_CARD):  { colorText = "BLACK"; 		break;	}
+				    case (WHITE_CARD):  { colorText = "-none-"; 	break;	}
+				}
+
+				var isNonSafety = recievedData['isNonSafety'];
+				var properColor = recievedData['colorID'];
+
+
+				// Let the user know what the proper color should be.
+				priorsTextText = "";
+
+				if(isNonSafety == false){
+					priorsTextText = recievedData['numPrior'] + " prior penalties in this " + recievedData['mode'] + ".<BR> ";
+					priorsTextText = priorsTextText + "The correct card color is <b>" + colorText + "</b>";
+				} else {
+					priorsTextText = "This is a non-safety penalty.<BR>The correct card color is <b>NONE</b>.";
+				}
+
+				document.getElementById('penalty-escalation-notice').innerHTML = priorsTextText;
+
+
+				// Bitch at the user if they didn't pick the proper color.
+				warningText = "";
+				if(selectedColor != properColor){
+					warningText = "<div class='callout alert text-center'>";
+					warningText = warningText + "<b>WARNING</b><BR>";
+					warningText = warningText + "You have not selected the correct penalty color based on the prior penalties.";
+					warningText = warningText + "</div>";
+				}
+				document.getElementById('penalty-escalation-warning').innerHTML = warningText;
+
+			}
+		}
+	};
+
+}
 
 /******************************************************************************/

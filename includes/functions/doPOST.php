@@ -250,6 +250,9 @@ function processPostData(){
 			case 'flipMatchSides':
 				$_SESSION['flipMatchSides'] = !(@(bool)$_SESSION['flipMatchSides']); //If it doesn't exist it is logically the same as false
 				break;
+			case 'mirrorMatchDisplay':
+				$_SESSION['doNotMirrorMatchDisplay'] = !(@(bool)$_SESSION['doNotMirrorMatchDisplay']); //If it doesn't exist it is logically the same as false
+				break;
 
 
 	// Finals
@@ -458,6 +461,9 @@ function processPostData(){
 			case 'addTournamentType':
 				addTournamentType();
 				break;
+			case 'addAttackType':
+				addAttackType();
+				break;
 			case 'addNewDuplicateException':
 				addNewDuplicateException();
 				break;
@@ -474,8 +480,8 @@ function processPostData(){
 				hemaRatings_UpdateFighterIDs(@$_POST['hemaRatings']); // may be empty, that's ok.
 				break;
 
-			case 'disablePenalties':
-				disableEventPenalties($_POST['disablePenalties'], $_SESSION['eventID']);
+			case 'penaltyCustomize':
+				customizeEventPenalties($_POST['penaltyCustomize'], $_SESSION['eventID']);
 				break;
 
 			case 'plaintextMode':		toggleAdminOption('forcePlainText');		break;

@@ -826,6 +826,119 @@ case 'tournamentRatings': {
 } break;
 
 /******************************************************************************/
+
+case 'penaltyEscalation': {
+
+	$infractionID = (int)$_REQUEST['infractionID'];
+	$fighterNum = (int)$_REQUEST['fighterNum'];
+	$matchID = (int)$_REQUEST['matchID'];
+
+	$matchInfo = getMatchInfo($matchID);
+	$tournamentID = (int)$matchInfo['tournamentID'];
+	$eventID = (int)getTournamentEventID($tournamentID);
+
+
+	$sql = "SELECT isNonSafety
+			FROM eventPenaltyDisabled
+			WHERE eventID = {$eventID}
+			AND attackID = {$infractionID}";
+	$isNonSafety = (bool)mysqlQuery($sql, SINGLE, 'isNonSafety');
+
+
+	if($isNonSafety == false){
+
+		if($fighterNum == 1){
+			$rosterID = $matchInfo['fighter1ID'];
+		} else if($fighterNum == 2) {
+			$rosterID = $matchInfo['fighter2ID'];
+		} else {
+			$rosterID = 0;
+		}
+
+		if(isTeams($tournamentID) == true && getTournamentLogic($tournamentID) == null){
+			$teamMemberID = (int)getActiveTeamMembersAtExchange($matchID, $rosterID, 0);
+		} else {
+			$teamMemberID = 0;
+		}
+
+
+		$sql = "SELECT matchID, refTarget AS infractionID, exchangeID
+				FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE refType IS NOT NULL
+				AND scoringID = {$rosterID}
+				AND (tournamentID = {$tournamentID})
+				AND (	matchID = {$matchID}
+						OR
+						refTarget = {$infractionID})";
+
+		$penaltiesInTournament = (array)mysqlQuery($sql, ASSOC);
+
+		$numInTournament = 0;
+		$numInMatch = 0;
+
+
+		foreach($penaltiesInTournament as $p){
+
+			if($teamMemberID != 0){
+				$teamMemberIDAtPenalty = (int)getActiveTeamMembersAtExchange($p['matchID'], $rosterID, $p['exchangeID']);
+
+				if($teamMemberID != $teamMemberIDAtPenalty){
+					continue;
+				}
+			}
+
+
+			if($p['matchID'] == $matchID){
+				$numInMatch++;
+			}
+
+			if($p['infractionID'] == $infractionID){
+				$numInTournament++;
+			}
+		}
+
+		if($numInMatch == 0 && $numInTournament == 0){
+			$mode = 'tournament';
+			$numPrior = 0;
+		} else if($numInMatch >= $numInTournament){
+			$mode = 'match';
+			$numPrior = $numInMatch;
+		} else {
+			$mode = 'tournament';
+			$numPrior = $numInTournament;
+		}
+
+
+		if($numPrior >= 2) {
+			$colorID = PENALTY_CARD_BLACK;
+		} else if($numPrior != 0) {
+			$colorID = PENALTY_CARD_RED;
+		} else {
+			$colorID = PENALTY_CARD_YELLOW;
+		}
+
+	} else {
+
+		$numPrior = 0;
+		$colorID = (int)PENALTY_CARD_NONE;
+		$mode = "";
+
+	}
+
+
+	$retVal['mode'] = $mode;
+	$retVal['colorID'] = $colorID;
+	$retVal['numPrior'] = $numPrior;
+	$retVal['isNonSafety'] = $isNonSafety;
+	$retVal['infractionID'] = $infractionID;
+
+	echo json_encode($retVal);
+
+} break;
+
+/******************************************************************************/
 }
 
 

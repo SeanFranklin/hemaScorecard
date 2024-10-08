@@ -198,14 +198,7 @@ function switchAttackDefinitionMode($attackDefinitionMode,$tournamentID){
 		return;
 	}
 
-	$tournamentID = (int)$tournamentID;
-	if(strcasecmp($attackDefinitionMode,'Grid') == 0){
-		$optionValue = 1;
-	} else {
-		$optionValue = 0;
-	}
-
-	writeOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE', $optionValue);
+	writeOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE', $attackDefinitionMode);
 
 }
 
@@ -2517,6 +2510,52 @@ function addTournamentType(){
 	mysqli_stmt_close($stmt);
 
 	setAlert(USER_ALERT,"<b>{$type}</b> added as <i>{$meta}</i> type.");
+
+}
+
+/******************************************************************************/
+
+function addAttackType(){
+
+	if(ALLOW['SOFTWARE_ASSIST'] == false){return;}
+
+	$class = $_POST['attackClass'];
+	$code = $_POST['attackCode'];
+	$text = $_POST['attackText'];
+
+	if($class == null || $text == null || $code == null){
+		setAlert(USER_ERROR,"No Values in addAttackType()");
+		return;
+	}
+
+	$sql = "SELECT attackID FROM systemAttacks
+			WHERE attackClass = ?
+			AND attackText = ?";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "ss", $meclassta, $text);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_bind_result($stmt, $attackID);
+	$alreadyExists = (bool)mysqli_stmt_fetch($stmt);
+
+	if($alreadyExists == true){
+		setAlert(USER_ERROR,"Type already exists in addAttackType()");
+		return;
+	}
+
+	$sql = "INSERT INTO systemAttacks
+			(attackClass, attackCode, attackText)
+			VALUES
+			(?,?,?)";
+
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	// "s" means the database expects a string
+	$bind = mysqli_stmt_bind_param($stmt, "sss", $class, $code, $text);
+	$exec = mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+
+	setAlert(USER_ALERT,"<b>{$text}</b> added as <i>{$class}</i> type.");
 
 }
 
@@ -5767,7 +5806,7 @@ function divSeedingByRating($post){
 
 /******************************************************************************/
 
-function disableEventPenalties($post){
+function customizeEventPenalties($post){
 
 	$eventID = (int)$_SESSION['eventID'];
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
@@ -5777,30 +5816,41 @@ function disableEventPenalties($post){
 	$penaltyList = (array)@$post['attackID']; // Could be empty
 	$penaltiesToSuppress = [];
 
-	foreach($penaltyList as $attackID => $enabled){
+	foreach($penaltyList as $attackID => $p){
 
-		if((bool)$enabled == false){
-			$attackID = (int)$attackID;
+		$isDisabled  = (int)$p['isDisabled'];
+		$isNonSafety = (int)$p['isNonSafety'];
 
-			$sql = "SELECT penaltyDisabledID
-					FROM eventPenaltyDisabled
-					WHERE attackID = {$attackID}
-					AND eventID = {$eventID}";
-			$penaltyDisabledID = (int)mysqlQuery($sql, SINGLE, 'penaltyDisabledID');
 
-			if($penaltyDisabledID == 0){
-				$sql = "INSERT INTO eventPenaltyDisabled
-						(eventID, attackID)
-						VALUES
-						({$eventID}, {$attackID})";
-				$penaltyDisabledID = mysqlQuery($sql, INDEX);
-			} else {
-				// Since it is already in there no need to do anything.
-			}
-
-			$penaltiesToSuppress[] = $penaltyDisabledID;
-
+		if($isDisabled == 0 && $isNonSafety == 0){
+			continue;
 		}
+
+		$attackID = (int)$attackID;
+
+		$sql = "SELECT penaltyDisabledID
+				FROM eventPenaltyDisabled
+				WHERE attackID = {$attackID}
+				AND eventID = {$eventID}";
+		$penaltyDisabledID = (int)mysqlQuery($sql, SINGLE, 'penaltyDisabledID');
+
+
+		if($penaltyDisabledID == 0){
+			$sql = "INSERT INTO eventPenaltyDisabled
+					(eventID, attackID, isDisabled, isNonSafety)
+					VALUES
+					({$eventID}, {$attackID}, {$isDisabled}, {$isNonSafety})";
+			$penaltyDisabledID = mysqlQuery($sql, INDEX);
+		} else {
+			$sql = "UPDATE eventPenaltyDisabled
+					SET isDisabled = {$isDisabled}, isNonSafety = {$isNonSafety}
+					WHERE penaltyDisabledID = {$penaltyDisabledID}";
+			mysqlQuery($sql, SEND);
+		}
+
+
+		$penaltiesToSuppress[] = $penaltyDisabledID;
+
 	}
 
 	$penaltiesToSuppress = implode2int($penaltiesToSuppress);
@@ -6235,8 +6285,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
 
-		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != 0){
-			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', 0);
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') == ATTACK_DISPLAY_MODE_GRID){
+			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
 			setAlert(USER_ALERT,"Grid Score Display is not supported for Full Afterblow (yet).<BR>Display changed back to normal.");
 		}
 
@@ -6244,12 +6294,17 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
 
-		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != 0){
-			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', 0);
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != ATTACK_DISPLAY_MODE_GRID){
+			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
 			setAlert(USER_ALERT,"Grid Score Display is not supported for No Afterblow (yet).<BR>Display changed back to normal.");
 		}
 
 	} else {
+
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') == ATTACK_DISPLAY_MODE_CHECK){
+			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
+			setAlert(USER_ALERT,"Checkbox Score Display is not supported for Deductive Afterblow (yet).<BR>Display changed back to normal.");
+		}
 		// Nothing to do.
 	}
 
@@ -6341,6 +6396,12 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		writeOption('T', $tournamentID, 'DOUBLES_CARRY_FORWARD', 1);
 	} else {
 		writeOption('T', $tournamentID, 'DOUBLES_CARRY_FORWARD', 0);
+	}
+
+	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['penaltyEscalation'] != 0){
+		writeOption('T', $tournamentID, 'PENALTY_ESCALATION_MODE', (int)$formInfo['penaltyEscalation']);
+	} else {
+		writeOption('T', $tournamentID, 'PENALTY_ESCALATION_MODE', PENALTY_ESCALATION_MODE_NONE);
 	}
 
 	if($settings['formatID'] == FORMAT_MATCH && (int)$formInfo['priorityNotice'] == 1){
@@ -6681,6 +6742,7 @@ function importTournamentSettings($config){
 	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
 	$sourceSettings['teamSize'] = readOption('T', $sourceID, 'TEAM_SIZE');
 	$sourceSettings['doublesCarryForward'] = readOption('T', $sourceID, 'DOUBLES_CARRY_FORWARD');
+	$sourceSettings['penaltyEscalation'] = readOption('T', $sourceID, 'PENALTY_ESCALATION_MODE');
 	$sourceSettings['priorityNotice'] = readOption('T', $sourceID, 'PRIORITY_NOTICE_ON_NON_SCORING');
 	$sourceSettings['otherNotice'] = readOption('T', $sourceID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
 	$sourceSettings['softClock'] = readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');

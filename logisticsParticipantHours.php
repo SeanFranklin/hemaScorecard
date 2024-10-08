@@ -16,6 +16,7 @@ $jsIncludes[] = 'roster_management_scripts.js';
 // This is necessary for the custom table-sortability
 $createSortableDataTable[] = ['particiantsScheduleSummaryTable',100];
 $createSortableDataTable[] = ['particiantsScheduleMatchesTable',100];
+$createSortableDataTable[] = ['particiantsTournamentsMatchesTable',100];
 $createSortableDataTable[] = ['table-staff-shifts-full',100];
 
 include('includes/header.php');
@@ -55,7 +56,13 @@ if($_SESSION['eventID'] == null){
 
 		<li class="tabs-title <?=$matchesActive?>">
 			<a data-tabs-target="panel-byMatch" href="#panel-byMatch">
-				Show by Confirmed Matches
+				Confirmed Matches by Role
+			</a>
+		</li>
+
+		<li class="tabs-title">
+			<a data-tabs-target="panel-byTournament" href="#panel-byTournament">
+				Confirmed Matches by Tournament
 			</a>
 		</li>
 
@@ -80,6 +87,10 @@ if($_SESSION['eventID'] == null){
 
 		<div class="tabs-panel <?=$matchesActive?>" id="panel-byMatch">
 			<?php displayStaffingMatchesSummary();?>
+		</div>
+
+		<div class="tabs-panel" id="panel-byTournament">
+			<?php displayStaffingMatchTournamentSummary();?>
 		</div>
 
 		<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true):?>
@@ -210,6 +221,98 @@ function displayStaffingMatchesSummary(){
 		<?php endforeach ?>
 
 	</table>
+
+<?php
+}
+
+/******************************************************************************/
+
+function displayStaffingMatchTournamentSummary(){
+
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+
+
+	$staffList = [];
+	$tournamentMatches = [];
+	$tournamentNotEmpty = [];
+	$headings = [];
+
+
+	foreach($tournamentIDs as $id){
+		$headings[$id] = getTournamentName($id);
+	}
+	$headings[0] = "TOTAL";
+
+
+	$matches = logistics_getEventStaffingMatchesByTournament($tournamentIDs);
+
+	foreach($matches as $m){
+		$rosterID = $m['rosterID'];
+		if(isset($staffList[$rosterID]['name']) == false){
+			$staffList[$rosterID]['name'] = getFighterName($rosterID);
+		}
+
+		$tournamentID = $m['tournamentID'];
+		if(isset($tournamentMatches[$rosterID][$tournamentID]) == false){
+			$tournamentMatches[$rosterID][$tournamentID] = 1;
+		} else {
+			$tournamentMatches[$rosterID][$tournamentID]++;
+		}
+		@$tournamentMatches[$rosterID][0]++;
+
+		$tournamentNotEmpty[$tournamentID] = true;
+
+	}
+
+
+	// Don't display anything if there is no staff data entered.
+	if($tournamentNotEmpty == []){
+		displayAlert("No Data Recorded.");
+		return;
+	}
+
+
+	// Don't display tournaments that didn't have any staff registered.
+	foreach($headings as $tournamentID => $data){
+
+		if(isset($tournamentNotEmpty[$tournamentID]) == false && $tournamentID != 0){
+			unset($headings[$tournamentID]);
+		}
+
+	}
+
+?>
+
+	<i>This table displays data from all roles equally (table, judge, director, etc.)</i>
+
+	<table id="particiantsTournamentsMatchesTable" class="display" >
+		<thead>
+			<tr>
+				<th style='font-size:0.7em'>Staff Name</th>
+				<?php foreach($headings as $tName):?>
+					<th style='font-size:0.7em'><?=$tName?></th>
+				<?php endforeach ?>
+			</tr>
+		</thead>
+
+		<tbody>
+			<?php foreach($staffList as $rosterID => $s):?>
+				<tr>
+					<td><?=$s['name']?></td>
+					<?php foreach($headings as $tID => $tName){
+						echo "<td>";
+						if(isset($tournamentMatches[$rosterID][$tID])){
+							echo $tournamentMatches[$rosterID][$tID];
+						}
+						echo "</td>";
+					}?>
+
+				</tr>
+			<?php endforeach ?>
+		</tbody>
+
+	</table>
+
 
 <?php
 }

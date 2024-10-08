@@ -80,9 +80,9 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 	}
 
 
-	$attackGrid = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
+	$attackDisplayMode = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
 
-	if($attackGrid == true){
+	if($attackDisplayMode == ATTACK_DISPLAY_MODE_GRID){
 		gridScoreBoxes($matchInfo);
 	}
 
@@ -109,7 +109,7 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 ?>
 
 	<script>
-		var GRID_ENTRY_MODE = <?=$attackGrid?>
+		var DATA_ENTRY_MODE = <?=$attackDisplayMode?>;
 	</script>
 
 	<!-- Set the timer mode -->
@@ -1084,13 +1084,12 @@ function fighterDataEntryBox($matchInfo,$num){
 		$score = "/";
 	}
 
+	$boxClass = "";
 
-	$doubleTypes = getDoubleTypes($tournamentID);
 	$maxPoints = 8;
-	if($doubleTypes['afterblowType'] != 'deductive'){
-		$hideAfterblow = "class='hidden'";
-	}
 
+
+	// Teams Logic ----------------------------------------------------
 	if(isTeamLogic($tournamentID)){
 		$teamID = getFighterTeam($id, $tournamentID);
 		$teamName = getTeamName($teamID);
@@ -1098,8 +1097,21 @@ function fighterDataEntryBox($matchInfo,$num){
 		$teamName = "";
 	}
 
-	$attackGrid = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
 
+	// Attack Grid -----------------------------------------------------
+	$attackDisplayMode = readOption('T',$matchInfo['tournamentID'],'ATTACK_DISPLAY_MODE');
+
+	$hideInputs = false;
+	if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false){
+		$hideInputs = true;
+	}
+
+	if($attackDisplayMode == ATTACK_DISPLAY_MODE_GRID && $hideInputs == false){
+		$boxClass .= " clickable";
+	}
+
+
+	// Priority Text ----------------------------------------------------
 	if(readOption('T',$matchInfo['tournamentID'],'PRIORITY_NOTICE_ON_NON_SCORING') != 0 && isLastExchZeroPointClean($matchInfo, $num) == true){
 		$priorityText = " <span class='priority-text-notice'>Priority</span>";
 	} else {
@@ -1110,89 +1122,74 @@ function fighterDataEntryBox($matchInfo,$num){
 
 <!-- Begin display -->
 
-	<div class='small-6 cell fighter-score-box' style='background-color: <?=$colorCode?>;'
+	<div class='small-6 cell fighter-score-box <?=$boxClass?>' style='background-color: <?=$colorCode?>; margin-bottom: 20px;'
 		data-open='attack-grid-box-<?=$num?>'>
 
 
 		<div class='grid-x' style='height: 100%'>
 
 			<!-- Fighter information -->
+
+
+
 			<div class='align-self-top cell'>
+				<b style='font-size:20px;'>
+					<?=$colorName?>:
+				</b>
+
 				<span style='font-size:20px;'> <?=$fighterName?></span>
+
+				<?php if(ALLOW['EVENT_SCOREKEEP'] == false):?>
+					<div>
+						<span style='font-size:15px;'>
+						<?=$fighterSchool?>
+					</span>
+					</div>
+				<?php endif ?>
+
+
 			</div>
 			<div class='align-self-bottom cell'>
 
-				<span style='font-size:15px;'>
-					<?=$fighterSchool?>
-				</span><BR>
+
 
 				<?php if(isTeamLogic($tournamentID)): ?>
+					<div>
 					<span style='font-size:15px;'>
 						(<?=$teamName?>)
-					</span><BR>
+					</span>
+					</div>
 				<?php endif ?>
 
 				<span style='font-size:30px;'>
-					<?=$colorName?>  <?=$priorityText?>
-				</span><BR>
-
+					<?=$priorityText?>
+				</span>
+				<div>
 				<span style='font-size:60px;'>
 					<?=$score?>
-				</span><BR>
-
-				<?php if($isFinished || ALLOW['EVENT_SCOREKEEP'] == false || $attackGrid == true): ?>
-					</div>
-					</div>
-					</div>
-					<?php return; ?>
-				<?php endif ?>
-
-
-
-			<!-- Hit score select -->
-				<div class='input-group grid-x'>
-					<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
-					<?php scoreSelectDropDown($id, $pre, isReverseScore($tournamentID)); ?>
+				</span>
 
 				</div>
 
-			<!-- Afterblow score select -->
-				<?php if($doubleTypes['afterblowType'] == 'deductive'): ?>
+			<!-- Input Fields -->
+				<?php
 
-					<div class='input-group grid-x'>
-						<span class='input-group-label large-4 medium-6 small-12'>
-							Afterblow
-						</span>
 
-						<select class='input-group-field' disabled
-							name='score[<?=$id?>][afterblow]'
-							id='<?=$pre?>_afterblow_dropdown'
-							onchange="scoreDropdownChange(this)">
-							<option value=''></option>
-							<option value='1'>1 Point</option>
-							<?php for($i = 2; $i<=$maxPoints;$i++): ?>
-								<option value='<?=$i?>'><?=$i?> Points</option>
-							<?php endfor ?>
-						</select>
-					</div>
+					if($hideInputs == true){
+						// Show nothing
+					} else if($attackDisplayMode == ATTACK_DISPLAY_MODE_NORMAL){
+						scoreSelectDropDown($id, $pre, isReverseScore($tournamentID));
+						scoreAfterblowInput($id, $pre, $tournamentID, $maxPoints);
+						scoreControlPointInput($id, $pre, $tournamentID);
+					} else if($attackDisplayMode == ATTACK_DISPLAY_MODE_CHECK){
+						scoreSelectCheckBox($id, $pre);
+					} else { // $attackDisplayMode == ATTACK_DISPLAY_MODE_GRID
+						// Don't show inputs for grid.
+					}
 
-				<?php endif ?>
 
-			<!-- Control point select -->
-				<?php $cVal = getControlPointValue($_SESSION['tournamentID']);
-					if($cVal != 0): ?>
-					<div class='input-group'>
-						<span class='input-group-label large-4 medium-6 small-12'>
-							Control <BR class='show-for-small-only'>(+<?=$cVal?> Point):
-						</span>
-						<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
-							<input class='switch-input' type='checkbox' name='attackModifier'
-							value=9 id='<?=$pre?>_control_check' onclick="scoreDropdownChange()">
-							<label class='switch-paddle' for='<?=$pre?>_control_check'>
-							</label>
-						</div>
-					</div>
-				<?php endif ?>
+				?>
+
 
 			</div>
 
@@ -1530,9 +1527,94 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 
 /******************************************************************************/
 
+function scoreAfterblowInput($id, $pre, $tournamentID, $maxPoints){
+
+	$doubleTypes = getDoubleTypes($tournamentID);
+
+	if($doubleTypes['afterblowType'] != 'deductive'){
+		return;
+	}
+
+	$afterblowPointValue = readOption('T',$tournamentID,'AFTERBLOW_POINT_VALUE');
+
+	if($afterblowPointValue != 0){
+		$minAfterblow = $afterblowPointValue;
+		$maxAfterblow = $afterblowPointValue;
+	} else {
+		$minAfterblow = 1;
+		$maxAfterblow = $maxPoints;
+	}
+
+?>
+
+	<div class='input-group grid-x'>
+		<span class='input-group-label large-4 medium-6 small-12'>
+			Afterblow
+		</span>
+
+		<?php if($afterblowPointValue == 0): ?>
+
+			<select class='input-group-field' disabled name='score[<?=$id?>][afterblow]'
+				id='<?=$pre?>_afterblow_input' onchange="scoreDropdownChange(this)">
+
+					<option value=''></option>
+					<?php for($i = $minAfterblow; $i<=$maxAfterblow;$i++): ?>
+						<option value='<?=$i?>'><?=$i?> Points</option>
+					<?php endfor ?>
+
+			</select>
+
+		<?php else: ?>
+
+			<div class='switch text-center no-bottom'>
+
+				<input type='hidden' name='score[<?=$id?>][afterblow]' value='0' >
+
+				<input class='switch-input' type='checkbox'
+					id='<?=$pre?>_afterblow_input' onchange="scoreDropdownChange(this)"
+					name='score[<?=$id?>][afterblow]' value='<?=$afterblowPointValue?>'>
+
+				<label class='switch-paddle' for='<?=$pre?>_afterblow_input'>
+				</label>
+			</div>
+
+		<?php endif ?>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function scoreControlPointInput($id, $pre, $tournamentID){
+
+	$cVal = getControlPointValue($tournamentID);
+
+	if($cVal == 0){
+		return;
+	}
+?>
+
+	<div class='input-group'>
+		<span class='input-group-label large-4 medium-6 small-12'>
+			Control <BR class='show-for-small-only'>(+<?=$cVal?> Point):
+		</span>
+		<div class='switch no-bottom' id='<?=$pre?>_control_div' style='display:inline'>
+			<input class='switch-input' type='checkbox' name='attackModifier'
+			value=9 id='<?=$pre?>_control_check' onclick="scoreDropdownChange()">
+			<label class='switch-paddle' for='<?=$pre?>_control_check'>
+			</label>
+		</div>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
 function scoreSelectDropDown($id, $pre, $isReverseScore){
 
-	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
+	$attacks = getTournamentAttacks($_SESSION['tournamentID'], true);
 
 	if($attacks == null){
 		$minPoints = 1;
@@ -1557,16 +1639,117 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 
 ?>
 
-	<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
-	<select class='input-group-field ' name='score[<?=$id?>][hit]'
-		id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
-		<option value=''></option>
-		<option value='noQuality'>No Quality</option>
-		<?php foreach((array)$attacks as $a):
-			 ?>
-			<option value='<?=$a['tableID']?>'><?=$a['attackText']?></option>
-		<?php endforeach ?>
-	</select>
+	<div class='input-group grid-x'>
+
+		<span class='input-group-label large-4 medium-6 small-12'>Hit</span>
+
+		<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
+
+		<select class='input-group-field ' name='score[<?=$id?>][hit]'
+			id='<?=$pre?>_score_dropdown' onchange="scoreDropdownChange(this)">
+			<option value=''></option>
+			<option value='noQuality'>No Quality</option>
+			<?php foreach((array)$attacks as $a):
+				 ?>
+				<option value='<?=$a['tableID']?>'><?=$a['attackText']?></option>
+			<?php endforeach ?>
+		</select>
+
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function scoreSelectCheckBox($id, $pre){
+	$attacks = getTournamentAttacks($_SESSION['tournamentID'], true);
+
+	if($attacks == null){
+
+		$minPoints = 1;
+		$maxPoints = 10;
+
+		if($isReverseScore == REVERSE_SCORE_INJURY){
+			$dir = 1;
+			$textPrefix = '-';
+		} else {
+			$dir = 1;
+			$textPrefix = '';
+		}
+
+		for($i = $minPoints * $dir; abs($i)<=abs($maxPoints); $i += $dir){
+			$attacks[$i]['tableID'] = $i;
+			$attacks[$i]['attackText'] = $textPrefix.$i." Point".plrl($i);
+		}
+		$scoreMode = 'rawPoints';
+
+	} else {
+
+		$scoreMode = 'ID';
+
+	}
+
+	if($pre == 'fighter1'){
+		$num = 1;
+	} else {
+		$num = 2;
+
+	}
+
+	$divClass = 'medium-6 small-12';
+
+?>
+
+	<div class='input-group grid-x grid-margin-x'>
+
+		<input hidden name='scoreLookupMode' value='<?=$scoreMode?>'>
+		<input hidden id='radio-button-name-<?=$num?>' value='score[<?=$id?>][hit]'>
+
+
+			<div class='cell shrink clickable attack-box-<?=$num?> attack-box attack-box-on <?=$divClass?>'
+				onclick="scoreCheckboxChange(this, 'attack-box-<?=$id?>-value-none', <?=$num?>)">
+
+				<input type='radio' name='score[<?=$id?>][hit]' value=''
+					id='attack-box-<?=$id?>-value-none'    hidden
+					checked onchange="scoreDropdownChange(this)">
+				n/a
+
+			</div>
+
+<!--
+			<div class='cell shrink clickable  attack-box-<?=$num?> attack-box <?=$divClass?>'
+				onclick="scoreCheckboxChange(this, 'attack-box-<?=$id?>-value-noQuality', <?=$num?>)">
+
+				<input type='radio' name='score[<?=$id?>][hit]' value='noQuality' class='attack-box-<?=$num?>'
+					id='attack-box-<?=$id?>-value-noQuality'    hidden
+					onchange="scoreDropdownChange(this)">
+
+				No Quality
+
+			</div>
+		-->
+
+			<div class='large-12'></div>
+
+
+			<?php foreach((array)$attacks as $a): ?>
+
+				 <div class='cell shrink clickable attack-box-<?=$num?> attack-box <?=$divClass?>'
+				 	onclick="scoreCheckboxChange(this, 'attack-box-<?=$id?>-value-<?=$a['tableID']?>', <?=$num?>)">
+
+				 	<input type='radio' name='score[<?=$id?>][hit]' value='<?=$a['tableID']?>' class=''
+				 		id='attack-box-<?=$id?>-value-<?=$a['tableID']?>'    hidden
+				 		onchange="scoreDropdownChange(this)">
+
+				 	<?=$a['attackText']?>
+
+				 </div>
+
+			<?php endforeach ?>
+
+
+	</div>
 
 <?php
 }
@@ -1605,11 +1788,17 @@ function switchFighersBox($matchInfo){
 		$GLOBALS['showSwitchFightersBox'] = true;
 	}
 
+	if($matchInfo['lastExchange'] == 0 || ($activeFighter1ID == 0)){
+		$cancelText = "";
+	} else {
+		$cancelText = "";
+	}
+
 ?>
 
 	<div class='reveal medium open' id='switchFightersBox' data-reveal style="visibility: visible;">
 
-	<h3>Select Active Fighters</h3>
+	<h5>Select Active Fighters</h5>
 
 	<form method='POST'>
 
@@ -1627,8 +1816,9 @@ function switchFighersBox($matchInfo){
 			<h4><?=$colorName2?> Should Switch Fighter</h4>
 		</div>
 	<?php endif ?>
-
+    <i>Click on the active fighter for each team.</i>
 	<div class='grid-x grid-padding-x grid-margin-x'>
+		<div class='cell large-12'></div>
 		<?=switchFighersBoxTeam($matchInfo, 1, $activeFighter1ID)?>
 		<?=switchFighersBoxTeam($matchInfo, 2, $activeFighter2ID)?>
 	</div>
@@ -1637,7 +1827,7 @@ function switchFighersBox($matchInfo){
 
 	<!-- Submit buttons -->
 		<div class='grid-x grid-margin-x'>
-			<button class='button large-6 cell' name='formName' <?=$formDisabled?>
+			<button class='button large-6 cell' name='formName' <?=$formDisabled?> disabled
 				value='switchActiveFighters' id='switch-active-fighters-submit'>
 				Update
 			</button>
@@ -1685,7 +1875,7 @@ function switchFighersBoxTeam($matchInfo, $num, $activeFighterID){
 ?>
 
 	<div class='large-6 text-center cell'
-		style='border-right: 1px solid black; border-left: 1px solid black; margin-top: 2.5em' >
+		style='border-right: 1px solid black; border-left: 1px solid black; margin-top: 0.5em' >
 
 		<div class='grid-x grid-padding-x grid-margin-x'>
 			<div class='large-12 text-center cell' style='background-color: <?=$colorCode?>; border: 1px solid black'>
@@ -1738,6 +1928,9 @@ function addPenaltyBox($matchInfo){
 	$maxPenalty = -30; // Arbitrary Number
 	$cards = getPenaltyColors();
 	$actions = getPenaltyActions($_SESSION['eventID']);
+	$escalation = readOption('T',$matchInfo['tournamentID'],'PENALTY_ESCALATION_MODE');
+	$matchID = $matchInfo['matchID'];
+
 
 	if((bool)readOption('E',$_SESSION['eventID'],'PENALTY_ACTION_IS_MANDATORY') == true){
 		$req = 'required';
@@ -1758,12 +1951,16 @@ function addPenaltyBox($matchInfo){
 
 		<!-- Select colors -->
 			<strong>[<?=COLOR_NAME_1?>]</strong>
-			<input type='radio' name='score[penalty][rosterID]' required
-				value='<?=$matchInfo['fighter1ID']?>' ><BR>
+			<input type='radio' name='score[penalty][rosterID]' id='penalty-fighter-1' required
+				value='<?=$matchInfo['fighter1ID']?>'
+				onchange="calculatePenaltyEscalation(<?=$escalation?>, <?=$matchID?>)" >
+
+			<BR>
 
 			<strong>[<?=COLOR_NAME_2?>]</strong>
-			<input type='radio' name='score[penalty][rosterID]'
-				value='<?=$matchInfo['fighter2ID']?>'>
+			<input type='radio' name='score[penalty][rosterID]' id='penalty-fighter-2'
+				value='<?=$matchInfo['fighter2ID']?>'
+				onchange="calculatePenaltyEscalation(<?=$escalation?>, <?=$matchID?>)">
 
 		<!-- Point deduction -->
 			<div class='input-group'>
@@ -1777,37 +1974,52 @@ function addPenaltyBox($matchInfo){
 				</select>
 			</div>
 
+		<!-- Infraction selection -->
+			<div class='input-group'>
+				<span class='input-group-label'>
+					Violation
+				</span>
+				<select class='input-group-field' name='score[penalty][action]' <?=$req?>
+					onchange="calculatePenaltyEscalation(<?=$escalation?>, <?=$matchID?>)"
+					id='penalty-infraction'>
+
+					<option value=''>None</option>
+					<?php foreach($actions as $a):
+						if($a['isDisabled'] == true){continue;}?>
+						<option value='<?=$a['attackID']?>'>
+							<?=$a['name']?>
+						</option>
+					<?php endforeach ?>
+
+				</select>
+			</div>
+
+			<div class='callout secondary' id='penalty-escalation-notice'>
+
+			</div>
+
 		<!-- Color/card selection -->
 			<div class='input-group'>
+
 				<span class='input-group-label'>
 					Color
 				</span>
-				<select class='input-group-field' name='score[penalty][card]'>
+
+				<select class='input-group-field' name='score[penalty][card]'  id='penalty-color'
+					onchange="calculatePenaltyEscalation(<?=$escalation?>, <?=$matchID?>)">
+
 					<option value=''>None</option>
 					<?php foreach($cards as $attackID => $name): ?>
 						<option value='<?=$attackID?>'>
 							<?=$name?>
 						</option>
 					<?php endforeach ?>
+
 				</select>
 			</div>
 
-		<!-- Infraction selection -->
-			<div class='input-group'>
-				<span class='input-group-label'>
-					Violation
-				</span>
-				<select class='input-group-field' name='score[penalty][action]' <?=$req?>>
-					<option value=''>None</option>
-					<?php foreach($actions as $a):
-						if($a['enabled'] == false){continue;}?>
-						<option value='<?=$a['attackID']?>'>
-							<?=$a['name']?>
-						</option>
-					<?php endforeach ?>
-				</select>
-			</div>
 
+			<span id='penalty-escalation-warning'></span>
 
 		<!-- Submit buttons -->
 			<div class='grid-x grid-margin-x'>
@@ -2332,13 +2544,20 @@ function matchOptionsBox($matchInfo){
 		<HR>
 		<form method='POST'>
 			<input type='hidden' name='swapMatchFighters[matchID]' value='<?=$_SESSION['matchID']?>'>
-			<button class='button warning no-bottom' name='formName' value='swapMatchFighters'>
+			<button class='button warning' name='formName' value='swapMatchFighters'>
 				Switch Fighter Colors
 			</button>
+			<BR>
 
 			<button class='button no-bottom warning hollow' name='formName' value='flipMatchSides'>
 				Swap Fighter Sides
-				<?=tooltip("Swap fighters right/left on the Display Window, while keeping colors the same.<BR><BR>
+				<?=tooltip("Swap fighters right/left on the Display Window AND this screen, while keeping colors the same.<BR><BR>
+						You will need to press the <strong>Display Window</strong> button again to refresh the window.")?>
+			</button>
+
+			<button class='button no-bottom warning hollow' name='formName' value='mirrorMatchDisplay'>
+				Flip Match Display
+				<?=tooltip("Swap fighters right/left on the Display Window but NOT on this screen, while keeping colors the same.<BR><BR>
 						You will need to press the <strong>Display Window</strong> button again to refresh the window.")?>
 			</button>
 
@@ -2680,6 +2899,9 @@ function doublesText($doubles, $matchInfo){
 /******************************************************************************/
 
 function showFighterPenalties($num){
+
+	return; // This is kind of unecessary given the Prior Penalties and Match History
+
 	$penaltyList = getFighterMatchPenalties($_SESSION['matchID'], $num);
 ?>
 
@@ -2753,7 +2975,7 @@ function priorPenaltiesDisplayBox($matchInfo){
 
 			foreach($penaltyWarnings['fighter'] as $fighter){
 
-					echo "<HR><h5>".getFighterName($fighter['fighterID']);
+					echo "<HR><h5>".$fighter['name'];
 					echo " [".$fighter['numPenalties']." Penalties]</h5>";
 
 				foreach($fighter['list'] as $penalty){

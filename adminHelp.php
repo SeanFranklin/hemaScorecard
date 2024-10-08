@@ -13,6 +13,7 @@
 $pageName = 'Help';
 include('includes/header.php');
 
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -55,7 +56,6 @@ include('includes/header.php');
 /******************************************************************************/
 
 function helpDisplayVideo(){
-	$url = "https://www.youtube.com/embed/2UFdMTLd9LU";
 ?>
 
 <style>
@@ -73,9 +73,28 @@ function helpDisplayVideo(){
 	}
 </style>
 
+<h4>Navigating Scorecard</h4>
+<p>This video explains how to navigate and find information in Scorecard, from match results to event schedules.</p>
+
 <div class='video-container'>
 	<iframe width="100%" height="100%"
-		src="<?=$url?>"
+		src="https://www.youtube.com/embed/2UFdMTLd9LU"
+		title="YouTube video player" frameborder="0"
+		allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+			gyroscope; picture-in-picture; web-share"
+		allowfullscreen>
+	</iframe>
+</div>
+
+<BR><BR><HT><BR>
+
+
+<h4>Match Scoring</h4>
+<p>This is an example match with fencing footage and the table operations, captured in preparation for Queen of the Hill 2024.</p>
+
+<div class='video-container'>
+	<iframe width="100%" height="100%"
+		src="https://www.youtube.com/embed/9RyjobDv7xA?si=M6uATGrCWV6ygzZ1"
 		title="YouTube video player" frameborder="0"
 		allow="accelerometer; autoplay; clipboard-write; encrypted-media;
 			gyroscope; picture-in-picture; web-share"

@@ -122,6 +122,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
 				edit_tournamentCuttingQual($tournamentID);
 				edit_tournamentDoublesCarryForward($tournamentID);
+				edit_tournamentPenaltyEscalationMode($tournamentID);
 				edit_tournamentHideFinalResults($tournamentID);
 				edit_tournamentKeepPrivate($tournamentID);
 				edit_tournamentRequireSignOff($tournamentID);
@@ -131,7 +132,6 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentPriorityNotice($tournamentID);
 				edit_tournamentDenoteOtherCheck($tournamentID);
 				edit_tournamentSoftClock($tournamentID);
-
 			?>
 	</table>
 	</div>

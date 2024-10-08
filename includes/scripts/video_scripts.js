@@ -203,7 +203,7 @@ function updateStreamSession(mode, matchID, locationID){
     query = query + "&streamLocationID="+locationID.toString();
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);console.log(query);
+    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send();
 
@@ -211,7 +211,7 @@ function updateStreamSession(mode, matchID, locationID){
         if(this.readyState == 4 && this.status == 200){
 
             if(this.responseText.length > 1){
-            	console.log(this.responseText);
+                //console.log(this.responseText);
                 // Could read the success/failure message here.
             }
         }
