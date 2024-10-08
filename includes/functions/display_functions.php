@@ -539,9 +539,9 @@ function edit_tournamentName($tournamentID){
 			<select name='updateTournament[tournamentWeaponID]' class='shrink'
 					id='weaponID_div<?=$tournamentID?>'>
 
-					<?php if($tournamenID == 0):?>
+					<?php if($tournamentID == 0):?>
 						<option disabled selected> </option>
-					<?php endif?>
+					<?php endif ?>
 
 					<option disabled>
 						- Most Popular: ----------------

@@ -2544,13 +2544,20 @@ function matchOptionsBox($matchInfo){
 		<HR>
 		<form method='POST'>
 			<input type='hidden' name='swapMatchFighters[matchID]' value='<?=$_SESSION['matchID']?>'>
-			<button class='button warning no-bottom' name='formName' value='swapMatchFighters'>
+			<button class='button warning' name='formName' value='swapMatchFighters'>
 				Switch Fighter Colors
 			</button>
+			<BR>
 
 			<button class='button no-bottom warning hollow' name='formName' value='flipMatchSides'>
 				Swap Fighter Sides
-				<?=tooltip("Swap fighters right/left on the Display Window, while keeping colors the same.<BR><BR>
+				<?=tooltip("Swap fighters right/left on the Display Window AND this screen, while keeping colors the same.<BR><BR>
+						You will need to press the <strong>Display Window</strong> button again to refresh the window.")?>
+			</button>
+
+			<button class='button no-bottom warning hollow' name='formName' value='mirrorMatchDisplay'>
+				Flip Match Display
+				<?=tooltip("Swap fighters right/left on the Display Window but NOT on this screen, while keeping colors the same.<BR><BR>
 						You will need to press the <strong>Display Window</strong> button again to refresh the window.")?>
 			</button>
 

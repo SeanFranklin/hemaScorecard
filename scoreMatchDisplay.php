@@ -102,13 +102,23 @@ $vC = '?=1.0.6'; // CSS Version
 
 <?php
 
-	if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true)
+	$normalSides = false; // By default we mirror the display
+
+	if(isset($_SESSION['flipMatchSides']) && $_SESSION['flipMatchSides'] == true){
+		$normalSides = !$normalSides;
+	}
+
+	if(@(bool)$_SESSION['doNotMirrorMatchDisplay'] == true){
+		$normalSides = !$normalSides;
+	}
+
+	if($normalSides == true)
 	{
-		$leftFighter = 2;
-		$rightFighter = 1;
-	} else {
 		$leftFighter = 1;
 		$rightFighter = 2;
+	} else {
+		$leftFighter = 2;
+		$rightFighter = 1;
 	}
 
 

@@ -250,6 +250,9 @@ function processPostData(){
 			case 'flipMatchSides':
 				$_SESSION['flipMatchSides'] = !(@(bool)$_SESSION['flipMatchSides']); //If it doesn't exist it is logically the same as false
 				break;
+			case 'mirrorMatchDisplay':
+				$_SESSION['doNotMirrorMatchDisplay'] = !(@(bool)$_SESSION['doNotMirrorMatchDisplay']); //If it doesn't exist it is logically the same as false
+				break;
 
 
 	// Finals
