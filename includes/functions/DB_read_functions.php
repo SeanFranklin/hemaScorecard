@@ -7150,6 +7150,25 @@ function logistics_getEventStaffingMatches($eventID){
 
 /******************************************************************************/
 
+function logistics_getEventStaffingMatchesByTournament($tournamentIDs){
+
+
+	$tournamentIDsStr = implode2int($tournamentIDs);
+
+	$sql = "SELECT rosterID, tournamentID
+			FROM logisticsStaffMatches
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID IN ({$tournamentIDsStr})
+			ORDER BY rosterID ASC, tournamentID ASC";
+	$matches = mysqlQuery($sql, ASSOC);
+
+	return ($matches);
+
+}
+
+/******************************************************************************/
+
 function logistics_getEventFullShiftList($eventID){
 
 	$sql = "SELECT firstName, lastName, roleName, dayNum, locationName,
