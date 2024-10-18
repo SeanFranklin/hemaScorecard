@@ -1264,6 +1264,29 @@ function shouldMatchConcludeByExchanges($matchInfo){
 
 /******************************************************************************/
 
+function shouldMatchConcludeByDoubles($matchInfo){
+// Returns true if the software should auto-conclude a match because it has reached
+// the maximum number of double hits.
+
+	$maximumDoubles = (int)$matchInfo['maxDoubles'];
+
+	if(	   $matchInfo['matchType'] != 'pool'
+		|| $maximumDoubles == 0){
+		return false;
+	}
+
+	$numDoubles = getMatchDoubles($matchInfo['matchID']);
+
+	if($numDoubles >= $maximumDoubles){
+		setAlert(USER_ALERT,"Double hit limit count reached.");
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/******************************************************************************/
+
 function autoConcludeMatch($matchInfo){
 
 
@@ -1276,8 +1299,9 @@ function autoConcludeMatch($matchInfo){
 	$_POST['matchID'] = $matchInfo['matchID'];
 	$_POST['lastExchangeID'] = $matchInfo['lastExchange'];
 
-	if($matchInfo['maxDoubles'] != 0
-		&& getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']){
+	if(    $matchInfo['maxDoubles'] != 0
+		&& getMatchDoubles($matchInfo['matchID']) >= $matchInfo['maxDoubles']
+	    && $matchInfo['matchType'] == 'pool'){
 
 		$_POST['matchWinnerID'] = 'doubleOut';
 

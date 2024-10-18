@@ -201,18 +201,37 @@ function exchangeTypeDataEntryMode($formLock){
 
 	$attackDisplayMode = readOption('T',$_SESSION['tournamentID'],'ATTACK_DISPLAY_MODE');
 
+	$gridValid = '';
+	$checkValid = '';
+	$gridText = '';
+	$checkText = '';
 
-	if(isFullAfterblow($_SESSION['tournamentID']) == true){
-		$errorMsg = "<div class='callout warning'>Your tournament is currently configured as Full Afterblow mode. <BR>Using anything other than Normal data entry mode is unpredictable and not recommended.</div>";
+	if(isDeductiveAfterblow($_SESSION['tournamentID']) == true){
+		$txt = "Deductive";
+		$gridValid = '';
+		$checkValid = 'disabled';
+	} else if(isFullAfterblow($_SESSION['tournamentID']) == true) {
+		$txt = "Full";
+		$gridValid = 'disabled';
+		$checkValid = '';
 	} else {
-		$errorMsg = '';
+		$txt = "No";
+		$gridValid = 'disabled';
+		$checkValid = 'disabled';
 	}
 
-/*
-		<button class='button' name='attackDefinitionMode' value='<?=$nextMode?>'>
-			Switch to <?=$nextMode?> Mode
-		</button>
-		<input class='hidden' name='formName' value='switchAttackDefinitionMode'>*/
+	if($gridValid != ''){
+		$gridText = '<BR> - Grid mode is not (yet) supported.';
+	}
+
+	if($checkValid != ''){
+		$checkText = '<BR> - Check-Box mode is not (yet) supported.';
+	}
+
+	$warnMsg = "<div class='callout warning'>Your tournament is currently configured as <b>{$txt} Afterblow </b> mode.";
+	$warnMsg .= $gridText;
+	$warnMsg .= $checkText;
+	$warnMsg .= "</div>";
 
 ?>
 
@@ -224,7 +243,7 @@ function exchangeTypeDataEntryMode($formLock){
 			<div class='cell grid-x grid-margin-x'>
 
 				<div class='cell'>
-					<?=$errorMsg?>
+					<?=$warnMsg?>
 				</div>
 
 			<div class=' cell input-group no-bottom shrink'>
@@ -234,9 +253,9 @@ function exchangeTypeDataEntryMode($formLock){
 				</span>
 
 				<select class='input-group-field' name='attackDefinitionMode' >
-					<option <?=optionValue(ATTACK_DISPLAY_MODE_NORMAL, $attackDisplayMode)?>>Normal</option>
-					<option <?=optionValue(ATTACK_DISPLAY_MODE_GRID, $attackDisplayMode)?>>Grid</option>
-					<option <?=optionValue(ATTACK_DISPLAY_MODE_CHECK, $attackDisplayMode)?>>Check-Box</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_NORMAL, $attackDisplayMode)?> >Normal</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_GRID, $attackDisplayMode)?> <?=$gridValid?>>Grid</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_CHECK, $attackDisplayMode)?> <?=$checkValid?>>Check-Box</option>
 				</select>
 
 				<div class='input-group-button'>

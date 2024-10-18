@@ -182,8 +182,8 @@ $vC = '?=1.0.6'; // CSS Version
 
 				<div class='cell auto'>
 					<div class='grid-x grid-padding-x'>
-						<?=displayFighterPenalties($matchInfo,1)?>
-						<?=displayFighterPenalties($matchInfo,2)?>
+						<?=displayFighterPenalties($matchInfo, $leftFighter, 'left')?>
+						<?=displayFighterPenalties($matchInfo, $rightFighter, 'right')?>
 					</div>
 				</div>
 
@@ -443,15 +443,15 @@ function matchInfoDisplay($matchInfo){
 			break;
 		case 'tie':
 			$endText1 = '';
-			$endText2 = '<HR>- Draw -<HR>';
+			$endText2 = '<HR>DRAW<HR>';
 			break;
 		case 'ignore':
-			$endText1 = '';
-			$endText2 = 'Match Incomplete';
+			$endText1 = "<span class='red-text'>Incomplete</span>";
+			$endText2 = "<HR><span style='font-size:0.9em'>No Winner</span><HR>";
 			break;
 		case 'doubleOut':
 			$endText1 = "<span class='red-text'>DOUBLE OUT</span>";
-			$endText2 = "<HR>No Winner<HR>";
+			$endText2 = "<HR><span style='font-size:0.9em'>No Winner</span><HR>";
 			break;
 		default:
 			$endText1 = '';
@@ -469,7 +469,7 @@ function matchInfoDisplay($matchInfo){
 
 			<span style='font-size:4vw'><?=$endText1?></span>
 			<div class='match-winner-name black-text  <?=$class?> '>
-				<span style='font-size:5.5vw;'>
+				<span style='font-size:5.5vw; color:white'>
 					<?=$endText2?>
 
 					</span>
@@ -590,14 +590,16 @@ function doublesTextDisplay($matchInfo){
 
 /******************************************************************************/
 
-function displayFighterPenalties($matchInfo, $num){
+function displayFighterPenalties($matchInfo, $num, $pageSide){
+
 	$penaltyList = getFighterMatchPenalties($matchInfo['matchID'], $num);
 
-	if($num == 2){
-		$class = 'text-right';
+	if($pageSide == 'left'){
+		$class .= ' text-left';
 	} else {
-		$class = '';
+		$class .= ' text-right';
 	}
+
 ?>
 
 	<div class='cell small-6 <?=$class?>'>

@@ -1296,6 +1296,12 @@ function addNewExchange(){
 			$matchConcluded = shouldMatchConcludeByTime($matchInfo);
 		}
 
+		// Double Hits
+		if($matchConcluded == false){
+			$matchConcluded = shouldMatchConcludeByDoubles($matchInfo);
+		}
+
+
 		if($matchConcluded == true){
 			autoConcludeMatch($matchInfo);
 			updateMatch($matchInfo);
