@@ -25,7 +25,24 @@ define('FIRST_YEAR', 2015);
 		$year = $defaultYear;
 	}
 
+	if(ALLOW['SOFTWARE_ADMIN'] == true && $_SESSION['eventID'] == 0){
+		$_SESSION['stats']['futureView'] = true;
+		$_SESSION['adminOptions']['forcePlainText'] = true;
+	}
+
+	$futureView = (boolean)(@$_SESSION['stats']['futureView']);
+	$invertFutureView = (int)!$futureView;
+
+	if($futureView == true){
+		$scopeText = ' [FULL YEAR]';
+	} elseif (ALLOW['SOFTWARE_ADMIN'] == true) {
+		$scopeText = ' [YTD]';
+	} else {
+		$scopeText = "";
+	}
+
 	if($year != 0){
+
 		$sql = "SELECT eventID
 				FROM systemEvents
 				WHERE eventYear = {$year}
@@ -38,14 +55,15 @@ define('FIRST_YEAR', 2015);
 		$eventListStr = "eventID IS NOT NULL";
 	}
 
-	if(ALLOW['SOFTWARE_ADMIN'] == true && @$_SESSION['stats']['futureView'] == true){ // not existing is logical false
+
+	if(ALLOW['SOFTWARE_ADMIN'] == true && $futureView == true){ // not existing is logical false
 		// Show future events
 	} else {
 		$eventListStr .= " AND eventStartDate <= NOW() ";
 	}
 
-	$invertFutureView = !(@$_SESSION['stats']['futureView']);
-	$invertFutureView = (int)$invertFutureView;
+
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +71,7 @@ define('FIRST_YEAR', 2015);
 
 	<div class='grid-x grid-margin-x'>
 
-	<div class='cell callout text-center success'><h3><?=$year?> - Year In Review</h3></div>
+	<div class='cell callout text-center success'><h3><?=$year?> - Year In Review <?=$scopeText?></h3></div>
 
 	<?php if(ALLOW['SOFTWARE_ADMIN'] == false): ?>
 		<div class='cell callout alert'>
