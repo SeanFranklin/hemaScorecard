@@ -1253,6 +1253,86 @@ function _MidWinter_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Coornhert_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	$sql = "SELECT matchID, COUNT(*) AS numDoubles
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE exchangeType = 'double'
+			AND tournamentID = {$tournamentID}
+			AND groupType = 'pool'
+			AND groupSet = {$groupSet}
+			AND ignoreMatch = 0
+			AND matchComplete = 1
+			GROUP BY matchID";
+	//$numDoublesInMatch = (array)mysqlQuery($sql, KEY_SINGLES, 'matchID', 'numDoubles');
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+		$score = 0;
+
+		$sql = "SELECT matchID, winnerID,
+					(
+						SELECT SUM(scoreValue) AS cleanPoints
+						FROM eventExchanges AS eE3
+						WHERE eE3.matchID = eM.matchID
+						AND exchangeType = 'clean'
+						AND scoringID = {$rosterID}
+					) AS cleanPoints
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+		foreach($matches as $match){
+			$matchID = (int)$match['matchID'];
+
+			$numMatches++;
+
+			$score = $match['cleanPoints'];
+
+		}
+
+		if($numMatches != 0){
+			$score *= $normalizedMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 
 	$scoreData['score'] = 0;
