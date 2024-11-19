@@ -205,6 +205,9 @@
 	$options['T']["PENALTY_ESCALATION_MODE"] 		= 18;
 		define("PENALTY_ESCALATION_MODE_NONE",			0);
 		define("PENALTY_ESCALATION_MODE_THREE_STRIKES",	1);
+	$options['T']["TEAM_SWITCH_MODE"] 				= 19;
+		define("TEAM_SWITCH_MODE_RELAY",	0);
+		define("TEAM_SWITCH_MODE_MOF",		1);
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

@@ -288,14 +288,14 @@ function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 	$class = '';
 	if($fighterNum == 1){
 
-		$fighterName = getFighterName($matchInfo['fighter1ID']);
+		$fighterName = getCombatantName($matchInfo['fighter1ID']);
 		$class = 'f1-BG f1-text';
 		$border = 'right';
 		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
 			$class .= ' bold';
 		}
 	} else {
-		$fighterName = getFighterName($matchInfo['fighter2ID']);
+		$fighterName = getCombatantName($matchInfo['fighter2ID']);
 		$class = 'f2-BG f2-text';
 		$border = 'left';
 		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
