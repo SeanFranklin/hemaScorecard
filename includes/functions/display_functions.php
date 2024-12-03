@@ -2131,6 +2131,7 @@ function edit_tournamentTeams($tournamentID = 0){
 	$mode = '';
 	$teamSwitchPoints = 0;
 	$teamSize = 0;
+	$teamSwitchMode = 0;
 
 	if($tournamentID != 0){
 
@@ -2143,6 +2144,7 @@ function edit_tournamentTeams($tournamentID = 0){
 			$mode = getTournamentLogic($tournamentID);
 		}
 		$teamSwitchPoints = readOption('T',$tournamentID,'TEAM_SWITCH_POINTS');
+		$teamSwitchMode = readOption('T',$tournamentID,'TEAM_SWITCH_MODE');
 		$teamSize = readOption('T',$tournamentID,'TEAM_SIZE');
 
 	}
@@ -2243,6 +2245,28 @@ function edit_tournamentTeams($tournamentID = 0){
 				name='updateTournament[teamSwitchPoints]' value='<?=$teamSwitchPoints?>'
 				id='teamSwitchPoints_select<?=$tournamentID?>' min=0 max=99>
 			</div>
+		</td>
+	</tr>
+
+<!-- Switch Fighters Mode -->
+
+	<tr class='option-teams <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Team Switch Mode
+				<?=tooltip("How the Team Switch Points should be interpreted. <BR>
+					<u>Relay</u>: Switch to the next fighter in order.<BR>
+					<u>MOF</u>: Cycle through fighters in MOF style.<BR>")?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[teamSwitchMode]'  class='shrink'
+				id='teamSwitchMode_select<?=$tournamentID?>'>
+				<option <?=optionValue(TEAM_SWITCH_MODE_RELAY,$teamSwitchMode)?> >Relay</option>
+				<option <?=optionValue(TEAM_SWITCH_MODE_MOF,$teamSwitchMode)?> >MOF</option>
+			</select>
 		</td>
 	</tr>
 

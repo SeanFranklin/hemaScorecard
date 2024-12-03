@@ -1329,29 +1329,59 @@ function shouldTeamsSwitch($matchInfo, $previousScores){
 		return;
 	}
 
+	$teamSwitchMode = (int)readOption('T',$matchInfo['tournamentID'],'TEAM_SWITCH_MODE');
+
 	$updateSession = false;
 	$shouldSwitch = [1 => false, 2 => false];
+
+	for($i = 1; $i <= 2; $i++){
+
+		$multiplePrev[$i] = (int)floor((int)$previousScores[$i] / $teamSwitchPoints);
+
+		if($i == 1){
+			$multipleNow[$i] = (int)floor((int)$matchInfo['fighter1score'] / $teamSwitchPoints);
+		} else {
+			$multipleNow[$i] = (int)floor((int)$matchInfo['fighter2score'] / $teamSwitchPoints);
+		}
+
+
+		if($multiplePrev[$i] != $multipleNow[$i]){
+			$newCrossing[$i] = true;
+		} else {
+			$newCrossing[$i] = false;
+		}
+	}
 
 	if((int)$matchInfo['lastExchange'] == 0){
 		$shouldSwitch = [1 => true, 2 => true];
 		$updateSession = true;
 	}
 
-	$prev = (int)floor((int)$previousScores[1] / $teamSwitchPoints);
-	$now = (int)floor((int)$matchInfo['fighter1score'] / $teamSwitchPoints);
 
-	if($prev != $now){
-		$shouldSwitch[2] = true;
-		$updateSession = true;
+	if($teamSwitchMode == TEAM_SWITCH_MODE_MOF){
+
+		$maxPtsPrev = max($multiplePrev[1],$multiplePrev[2]);
+
+		if($multipleNow[1] > $maxPtsPrev || $multipleNow[2] > $maxPtsPrev){
+			$shouldSwitch = [1 => true, 2 => true];
+			$updateSession = true;
+		}
+
+	} else { // Default case, also TEAM_SWITCH_MODE_RELAY
+
+
+		if($multiplePrev[1] != $multipleNow[1]){
+			$shouldSwitch[2] = true;
+			$updateSession = true;
+		}
+
+		if($multiplePrev[2] != $multipleNow[2]){
+			$shouldSwitch[1] = true;
+			$updateSession = true;
+		}
+
 	}
 
-	$prev = (int)floor((int)$previousScores[2] / $teamSwitchPoints);
-	$now = (int)floor((int)$matchInfo['fighter2score'] / $teamSwitchPoints);
-
-	if($prev != $now){
-		$shouldSwitch[1] = true;
-		$updateSession = true;
-	}
 
 	if($updateSession == true){
 		$_SESSION['shouldSwitchFighters'] = $shouldSwitch;

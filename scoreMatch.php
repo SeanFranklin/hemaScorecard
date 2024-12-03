@@ -1770,6 +1770,12 @@ function switchFighersBox($matchInfo){
 	if($matchInfo['teamEntry'] != true || isTeamLogic($matchInfo['tournamentID']) != false){
 		return;
 	}
+
+
+	if($shouldSwitch[1] == true || $shouldSwitch[2] == true){
+		$GLOBALS['showSwitchFightersBox'] = true;
+	}
+
 	$colorCode1 = COLOR_CODE_1;
 	$colorName1 = COLOR_NAME_1;
 	$colorCode2 = COLOR_CODE_2;
@@ -1778,15 +1784,47 @@ function switchFighersBox($matchInfo){
 	$activeFighter1ID = (int)getActiveFighterOnTeam($matchInfo['matchID'], $matchInfo['fighter1ID']);
 	$activeFighter2ID = (int)getActiveFighterOnTeam($matchInfo['matchID'], $matchInfo['fighter2ID']);
 
+
+	$teamSize = readOption('T', $matchInfo['tournamentID'], 'TEAM_SIZE');
+	$teamSwitchPoints = readOption('T', $matchInfo['tournamentID'], 'TEAM_SWITCH_POINTS');
+	$teamSwitchMode = readOption('T', $matchInfo['tournamentID'], 'TEAM_SWITCH_MODE');
+
+	$nextPair = null;
+
+	if($teamSize == 3 && $teamSwitchMode == TEAM_SWITCH_MODE_MOF && $teamSwitchPoints != 0){
+		$isMofOrder = true;
+		$highestScore = max($matchInfo['fighter1score'], $matchInfo['fighter2score']);
+		$matchNum = (int)($highestScore / $teamSwitchPoints) + 1;
+
+		$mofOrder[1] = [3,3];
+		$mofOrder[2] = [1,2];
+		$mofOrder[3] = [2,1];
+		$mofOrder[4] = [1,3];
+		$mofOrder[5] = [3,1];
+		$mofOrder[6] = [2,2];
+		$mofOrder[7] = [1,1];
+		$mofOrder[8] = [2,3];
+		$mofOrder[9] = [3,2];
+
+		$shouldSwitch = [1 => false, 2 => false];
+
+
+		if($matchNum < sizeof($mofOrder))
+		{
+			$nextPair = $mofOrder[$matchNum];
+
+		}
+
+	}
+
+
 	if($activeFighter2ID == 0 || $activeFighter2ID == 0){
 		$formDisabled = 'disable';
 	} else {
 		$formDisabled = '';
 	}
 
-	if($shouldSwitch[1] == true || $shouldSwitch[2] == true){
-		$GLOBALS['showSwitchFightersBox'] = true;
-	}
+
 
 	if($matchInfo['lastExchange'] == 0 || ($activeFighter1ID == 0)){
 		$cancelText = "";
@@ -1805,6 +1843,7 @@ function switchFighersBox($matchInfo){
 	<input type='hidden' name='activeFighters[matchID]' value='<?=$matchInfo['matchID']?>'>
 	<input type='hidden' name='activeFighters[lastExchangeID]' value='<?=$matchInfo['lastExchange']?>'>
 
+
 	<?php if($shouldSwitch[1] == true):?>
 		<div class='callout' style='background-color: <?=$colorCode1?>; border: 1px solid black'>
 			<h4><?=$colorName1?> Should Switch Fighter</h4>
@@ -1816,12 +1855,21 @@ function switchFighersBox($matchInfo){
 			<h4><?=$colorName2?> Should Switch Fighter</h4>
 		</div>
 	<?php endif ?>
+
+	<?php if($nextPair != null):?>
+		<div class='callout success' style='border: 1px solid black'>
+			<h4>Next match should be: <b><?=$nextPair[0]?></b> vs <b><?=$nextPair[1]?></b></h4>
+		</div>
+	<?php endif ?>
+
+
     <i>Click on the active fighter for each team.</i>
 	<div class='grid-x grid-padding-x grid-margin-x'>
 		<div class='cell large-12'></div>
 		<?=switchFighersBoxTeam($matchInfo, 1, $activeFighter1ID)?>
 		<?=switchFighersBoxTeam($matchInfo, 2, $activeFighter2ID)?>
 	</div>
+
 
 	<HR>
 
@@ -1843,7 +1891,7 @@ function switchFighersBox($matchInfo){
 
 	</form>
 
-<BR><BR><BR><BR>
+	<BR><BR><BR><BR>
 
 	</div>
 

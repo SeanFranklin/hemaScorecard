@@ -6373,6 +6373,12 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 		}
 		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', $teamSwitchPoints);
 
+		$teamSwitchMode = (int)$formInfo['teamSwitchMode'];
+		if($teamSwitchMode < TEAM_SWITCH_MODE_RELAY || $teamSwitchMode > TEAM_SWITCH_MODE_MOF){
+			$teamSwitchMode = TEAM_SWITCH_MODE_RELAY;
+		}
+		writeOption('T', $tournamentID, 'TEAM_SWITCH_MODE', $teamSwitchMode);
+
 		$teamSize = (int)$formInfo['teamSize'];
 		if($teamSize < 0 || $teamSize > 10){
 			$teamSize = 0;
@@ -6381,6 +6387,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	} else {
 		writeOption('T', $tournamentID, 'TEAM_SWITCH_POINTS', 0);
 		writeOption('T', $tournamentID, 'TEAM_SIZE', 0);
+		writeOption('T', $tournamentID, 'TEAM_SWITCH_MODE', 0);
 	}
 
 
@@ -6739,6 +6746,7 @@ function importTournamentSettings($config){
 // Import options from target (these can't be read from the eventTournaments table)
 	$sourceSettings['allowTies'] = readOption('T', $sourceID, 'MATCH_TIE_MODE');
 	$sourceSettings['teamSwitchPoints'] = readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
+	$sourceSettings['teamSwitchMode'] = readOption('T', $sourceID, 'TEAM_SWITCH_MODE');
 	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
 	$sourceSettings['teamSize'] = readOption('T', $sourceID, 'TEAM_SIZE');
 	$sourceSettings['doublesCarryForward'] = readOption('T', $sourceID, 'DOUBLES_CARRY_FORWARD');
