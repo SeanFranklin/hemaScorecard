@@ -9485,6 +9485,25 @@ function getEventEndDate($eventID){
 
 /******************************************************************************/
 
+function isUserAdmin($userName){
+
+	$sql = "SELECT SOFTWARE_ADMIN
+			FROM systemUsers
+			WHERE userName = ?";
+
+	$stmt = $GLOBALS["___mysqli_ston"]->prepare($sql);
+	$stmt->bind_param("s",$userName);
+	$stmt->execute();
+	$stmt->store_result();
+	$stmt->bind_result($isAdmin);
+	$stmt->fetch();
+
+	return((boolean)$isAdmin);
+
+}
+
+/******************************************************************************/
+
 function doesUserHavePermission($systemUserID, $eventID, $permission){
 // This function checks if a user EITHER:
 // - Has the specified permissions globally

@@ -3191,18 +3191,41 @@ function createSecondaryBracket($tournamentID, $numFighters, $extendBracketBy = 
 // Double Elim
 	} else {
 
-		$matchesToSkip = getNumEntriesAtLevel_consolation($bracketLevels,'fighters') - $numFighters;
+		$allBracketInfo = getBracketInformation($tournamentID);
+		$winnerBracketDepth = $allBracketInfo[BRACKET_PRIMARY]['bracketLevels'];
+		$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
 
-		for($bracketLevel=$bracketLevels;$bracketLevel>0;$bracketLevel--){
+		for($bracketLevel = $bracketLevels; $bracketLevel > 0; $bracketLevel--){
+
 			$matchesInLevel = getNumEntriesAtLevel_consolation($bracketLevel,'matches');
 
-			$bracketPosition = 0;
-			for($currentMatch=1;$currentMatch<=$matchesInLevel;$currentMatch++){
+			if($bracketLevel % 2 == 0){
+				$shouldPull = true;
+			} else {
+				$shouldPull = false;
+			}
 
-				if($bracketLevel==$bracketLevels AND $currentMatch <= $matchesToSkip){
-					continue;}
 
-				$bracketPosition = getBracketPositionByRank($currentMatch,$matchesInLevel);
+			for($bracketPosition = 1; $bracketPosition <= $matchesInLevel; $bracketPosition++){
+
+				if($bracketLevel == $bracketLevels){
+
+					// Determine if either of the matches that feed into this match exist
+					// in the primary bracket
+					$pos1 = $bracketPosition*2;
+					$one = isset($winnerBracketMatches[$winnerBracketDepth][$pos1]);
+					$pos2 = ($bracketPosition*2)-1;
+					$two = isset($winnerBracketMatches[$winnerBracketDepth][$pos2]);
+
+					// Conditions for skipping a match are different for even and odd bracket levels.
+					if($shouldPull == true && ($one == false && $two == false)){
+						continue;
+					}
+					if($shouldPull == false && ($one == false || $two == false)){
+						continue;
+					}
+
+				}
 
 				createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
 
@@ -3212,6 +3235,7 @@ function createSecondaryBracket($tournamentID, $numFighters, $extendBracketBy = 
 						createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
 					}
 				}
+
 			}
 		}
 

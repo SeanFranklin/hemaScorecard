@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.7.2'; // Javascript Version
+$vJ = '?=1.8.1'; // Javascript Version
 $vC = '?=1.2.9'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
@@ -850,7 +850,7 @@ function tournamentListForHeader(){
 				<?php else: ?>
 					<a><i><?=$t['name']?></i></a>
 					<ul class='menu vertical'>
-						<?php foreach($t['tournaments'] as $item):?>
+						<?php foreach(@(array)$t['tournaments'] as $item):?>
 							<li><?=headerFormat($item)?></li>
 						<?php endforeach?>
 					</ul>

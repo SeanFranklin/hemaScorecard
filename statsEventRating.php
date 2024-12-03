@@ -9,7 +9,6 @@
 
 $pageName = 'Event Rating';
 include('includes/header.php');
-
 {
 
 	$textInput = @$_SESSION['eventRating']['textInput'];
@@ -152,8 +151,14 @@ function showEventRating($ratingsList, $tableMode = false){
 		<th>Event</th>
 		<th>Year</th>
 		<th># Fighters</th>
-		<th>Rating</th>
-		</tr>";
+		<th>Rating</th>";
+
+		for($i = 2100; $i >= 800; $i -= 100){
+			$num = $i/1000;
+			echo "<th>≤{$num}</th>";
+		}
+
+		echo "</tr>";
 	}
 
 	foreach($ratingsList as $eventData){
@@ -163,7 +168,7 @@ function showEventRating($ratingsList, $tableMode = false){
 			continue;
 		}
 
-		$eventData['eventRating'] = calculateEventRating($eventData['ratings']);
+		$eventData = calculateEventRating($eventData);
 
 		if($tableMode == true){
 			showEventRatingTable($eventData);
@@ -219,6 +224,9 @@ function showEventRatingTable($eventInfo){
 		<td><?=$eventInfo['year']?></td>
 		<td><?=$eventInfo['numFighters']?></td>
 		<td><?=$eventInfo['eventRating']?></td>
+		<?php foreach($eventInfo['histogram'] as $rating => $count):?>
+			<td><?=$count?></td>
+		<?php endforeach ?>
 	</tr>
 
 <?php

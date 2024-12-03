@@ -487,3 +487,77 @@ function secondsToMinAndSec(time, displayNegative = false){
 
 /******************************************************************************/
 
+function wysiwygInit(textareaID){
+
+    if(textareaID.length == 0){
+        return;
+    }
+
+    var textAreaElement = document.getElementById(textareaID);
+
+    if(textAreaElement.classList.contains('tiny-mce')){
+        // has already been inited. Return.
+        return;
+    }
+
+    textAreaElement.classList.add("tiny-mce");
+
+    var selectorText = 'textarea#' + textareaID;
+
+    tinymce.init({
+        selector: selectorText,
+        plugins: 'lists link anchor',
+        toolbar_location: 'top',
+        font_size_formats:'',
+        line_height_formats: '',
+        color_map: [],
+        style_formats: [],
+        menubar: '',
+        link_context_toolbar: true,
+        link_title: false,
+        link_target_list: [
+            { title: 'Same page', value: '_self' },
+            { title: 'New page', value: '_blank' }
+          ],
+        content_style: 'h1{font-size: 2.3em;border-bottom:  1px solid black;margin-top: 1.0em;margin-bottom: 0.5em;} '+
+            'h2{ font-size: 1.9em; color: #1779ba; margin-top: 1.0em; margin-bottom: 0.0em;} '+
+            'h3{ font-size: 1.4em; color: #F08A24; margin-top: 1.0em; margin-bottom: 0.0em;} '+
+            'h4{ font-size: 1.2em; margin-top: 0.7em; margin-bottom: 0.2em;} '+
+            'p + ul { margin-top: -10px;} '+
+            'p + ol { margin-top: -10px;} '+
+            'p, h1, h2, h3, h4, h5 {font-weight:normal; font-family: "Chivo", sans-serif;} ',
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | numlist bullist | anchor link | hr indent outdent | removeformat ',
+    });
+}
+
+
+
+/******************************************************************************/
+
+
+function number_format (number, decimals, dec_point, thousands_sep) {
+    // Strip all characters but numerical ones.
+    number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+    var n = !isFinite(+number) ? 0 : +number,
+        prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+        sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+        dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+        s = '',
+        toFixedFix = function (n, prec) {
+            var k = Math.pow(10, prec);
+            return '' + Math.round(n * k) / k;
+        };
+    // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+    s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+    if (s[0].length > 3) {
+        s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+    }
+    if ((s[1] || '').length < prec) {
+        s[1] = s[1] || '';
+        s[1] += new Array(prec - s[1].length + 1).join('0');
+    }
+    return s.join(dec);
+}
+
+
+

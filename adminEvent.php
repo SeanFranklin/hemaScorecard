@@ -35,22 +35,77 @@ if($_SESSION['eventID'] == null){
 		$canChangeSettings = false;
 	}
 
+	if(isAdminOptionSet('forcePlainText') == true){
+		$wysisyg_eventDescription = '';
+	} else {
+		$wysisyg_eventDescription = 'event-description';
+	}
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
+	<ul class="accordion" data-accordion data-allow-all-closed="true">
+
+		<li class="accordion-item" data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Publication Settings</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=publicationsSettingsBox($canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Event Information</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=eventInfoBox($canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title" onclick="wysiwygInit('<?=$wysisyg_eventDescription?>')"><h3>Event Description</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=eventDescriptionBox($canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Display Settings</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=displaySettingsBox($defaults, $canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Staff Settings</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=staffSettingsBox($defaults, $canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Change Passwords</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=changePasswordBox($canChangeSettings)?>
+			</div>
+		</li>
+
+		<li class="accordion-item " data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Hide Penalty Types</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=changePenaltiesBox($canChangeSettings)?>
+			</div>
+		</li>
+
+	</ul>
+
 	<div class='grid-x grid-margin-x'>
 
-		<?=publicationsSettingsBox($canChangeSettings)?>
-		<?=eventInfoBox($canChangeSettings)?>
 
-		<?=eventDescriptionBox($canChangeSettings)?>
-		<?=displaySettingsBox($defaults, $canChangeSettings)?>
-		<?=staffSettingsBox($defaults, $canChangeSettings)?>
-		<?=changePasswordBox($canChangeSettings)?>
-		<?=changePenaltiesBox($canChangeSettings)?>
+
+
+
+
 
 	</div>
 
@@ -78,20 +133,28 @@ function changePenaltiesBox($canChangeSettings){
 	}
 
 ?>
-	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
+	<fieldset class='cell large-6' <?=$formDiabled?> >
 
-	<legend>
-		<h4 class='no-bottom'>
-			Valid Penalty Types
-			<a onclick="$('.penalty-manage-table').toggleClass('hidden')"> ↓ </a>
-		</h4>
-	</legend>
-
-	<form method='POST' class='hidden penalty-manage-table'>
+	<form method='POST' class='penalty-manage-table'>
 
 		<i>These are the options available to the table when entering in a penalty. Uncheck the penalty type to remove it from the option list.<BR>(If you want something not in this list please ask for it to be added.)</i>
 
 		<table class='table-compact'>
+			<tr>
+				<th>Penalty</th>
+				<th style='white-space: nowrap;'>
+					<span class='hide-for-small-only'>Disabled</span>
+					<?=tooltip('<b>Disabled</b><BR>This will not appear in the penalty list for the scorekeeper.')?>
+					&nbsp;&nbsp;&nbsp;
+				</th>
+				<th  style='white-space: nowrap;'>
+					<span class='hide-for-small-only'>Non-Safety</span>
+					<?=tooltip('<b>Non-Safety</b><BR>Specified as non-safety, if there is escalation logic configured.')?>
+				</th>
+
+			</tr>
+
+
 			<?php foreach($penalties as $p):
 				if($p['isDisabled'] == false){
 					$isDisabled = 'checked';
@@ -183,8 +246,7 @@ function publicationsSettingsBox($canChangeSettings){
 
 ?>
 
-	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
-	<legend><h4 class='no-bottom'>Event Publication</h4></legend>
+	<fieldset class='cell large-6' <?=$formDiabled?> >
 	<form method='POST'>
 		No one will be able to see your awesome event until you check these boxes. <b>Once you are ready be sure to publish the event.</b><BR>
 		<i>Your event will not appear on the event list until you publish at least some information.</i>
@@ -305,8 +367,7 @@ function eventInfoBox($canChangeSettings){
 
 ?>
 
-	<fieldset class='fieldset cell large-6' <?=$formDiabled?> >
-	<legend><h4>Event Information</h4></legend>
+	<fieldset class='cell large-6' <?=$formDiabled?> >
 
 	<!-- Event Information -->
 	<form method='POST'>
@@ -398,36 +459,27 @@ function eventDescriptionBox($canChangeSettings){
 	$eventDescription = getEventDescription($_SESSION['eventID']);
 
 	if($eventDescription != ''){
-		$numTextLines = 15;
+		$hight = 500;
 	} else {
-		$numTextLines = 10;
+		$hight = 350;
 	}
 
 
 	$formDiabled = '';
 	if($canChangeSettings == false){
 		$formDiabled = 'disabled';
-		$numTextLines = 3;
-	}
-
-
-	if(isAdminOptionSet('forcePlainText') == true){
-		$wysisygClass = '';
-	} else {
-		$wysisygClass = 'tiny-mce';
 	}
 
 ?>
 
 	<!--  Event Description -------------------------------->
-	<fieldset class='fieldset large-12 cell' <?=$formDiabled?> >
-	<legend><h4>Event Description</h4></legend>
+	<fieldset class='large-12 cell' <?=$formDiabled?> >
 
 		<form method='POST'>
 		<div class='grid-x grid-margin-x'>
 
 			<div class='large-12 cell'>
-				<textarea name='eventDescription' class='<?=$wysisygClass?>'  rows='<?$numTextLines?>'><?=$eventDescription ?></textarea>
+				<textarea name='eventDescription' style='height:<?=$hight?>px' id='event-description'><?=$eventDescription ?></textarea>
 			</div>
 
 
@@ -589,8 +641,7 @@ function staffSettingsBox($defaults, $canChangeSettings){
 	}
 ?>
 
-	<fieldset class='fieldset cell large-6' <?=$formDiabled?>>
-	<legend><h4>Staff Settings</h4></legend>
+	<fieldset class='cell large-6' <?=$formDiabled?>>
 	<form method='POST'>
 	<input type='hidden' name="eventSettings[staffRegistration][eventID]"
 		value="<?=$_SESSION['eventID']?>">
@@ -840,8 +891,9 @@ function changePasswordBox($canChangeSettings){
 	}
 ?>
 
-	<fieldset class='fieldset cell large-12' <?=$formDiabled?> >
-	<legend><h4>Change Password - Event Staff</h4></legend>
+	<BR>
+
+	<fieldset class='cell large-12' <?=$formDiabled?> >
 	<form method='POST'>
 
 
@@ -872,9 +924,10 @@ function changePasswordBox($canChangeSettings){
 	</form>
 	</fieldset>
 
+	<BR><HR><BR>
+
 <!-- Change Admin Password ----------------------------------->
-	<fieldset class='fieldset cell large-12' <?=$formDiabled?> >
-	<legend><h4>Change Password - Event Organizer</h4></legend>
+	<fieldset class='cell large-12' <?=$formDiabled?> >
 
 	<form method='POST'>
 

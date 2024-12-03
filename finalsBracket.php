@@ -115,23 +115,6 @@ function bracketControl($allBracketInfo, $ringsInfo){
 		return;
 	}
 
-	// Warns the user that the bracket helper is not defined for consolation
-	// brackets that are not for a number of fighters equal to a power of 2
-	if(	   $_SESSION['bracketView'] == BRACKET_SECONDARY
-		&& $_SESSION['bracketHelper'] == 'on'
-		&& $allBracketInfo[BRACKET_SECONDARY]['numFighters'] > 0){
-
-		$s = $allBracketInfo[BRACKET_SECONDARY]['numFighters'] + 2;
-
-		if(($s & ($s - 1)) != 0){ // is not a power of 2
-
-			$_SESSION['bracketWarnings']['loser'] = "<u>Warning:</u>
-			Bracket Helper not configured for this size bracket.<BR>
-			Seeding results may be unpredictable.";
-		}
-	}
-
-
 ?>
 
 	<div class='callout grid-x grid-margin-x small'>
