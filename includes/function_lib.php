@@ -15,4 +15,5 @@
 	require_once(BASE_URL.'includes/functions/doPOST.php');
 	require_once(BASE_URL.'includes/functions/scoring_functions.php');
 	require_once(BASE_URL.'includes/functions/cuttingQualification_functions.php');
+	require_once(BASE_URL.'includes/functions/stats_functions.php');
 

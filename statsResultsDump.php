@@ -66,6 +66,9 @@ include('includes/footer.php');
 /******************************************************************************/
 
 function FerrotasRatingExportOptions($tournamentList){
+
+	return; // This functionality is disabled until M2 gets up and running for full release.
+
 ?>
 	<h4><a class="ferrotas-export" onclick="$('.ferrotas-export').toggle()">Ferrotas Ratings Format</a></h4>
 
@@ -128,10 +131,14 @@ function FerrotasRatingExportOptions($tournamentList){
 /******************************************************************************/
 
 function HemaRatingExportOptions($tournamentList){
-?>
-	<h4><a class="hema-ratings-export" onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4>
 
-	<fieldset class='fieldset hema-ratings-export hidden'>
+	$baseUrl = "http://$_SERVER[HTTP_HOST]";
+	$linkPath = $baseUrl."/infoSummary.php?e=".$_SESSION['eventID'];
+
+?>
+	<h4><a class="hema-ratings-export hidden" onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4>
+
+	<fieldset class='fieldset hema-ratings-export'>
 
 	<legend><h4><a onclick="$('.hema-ratings-export').toggle()">HEMA Ratings Format</a></h4></legend>
 
@@ -147,10 +154,17 @@ function HemaRatingExportOptions($tournamentList){
 
 	<!-- Export roster -->
 
-		<div class='large-3 medium-5 cell'>
+
+
+		<div class='large-3 medium-4 cell'>
 		<button class='button expanded' name='HemaRatingsExport' value='roster'>
 			Export Roster
 		</button>
+		</div>
+
+		<div class='callout success large-7 medium-8 cell'>
+			You will be asked for a link to the event in the HEMA Ratings Form:<BR>
+			<b><a href="<?=$linkPath?>"><?=$linkPath?></a></b>
 		</div>
 
 

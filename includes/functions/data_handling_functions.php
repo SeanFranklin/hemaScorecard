@@ -691,89 +691,111 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 	$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
 	$changeOverBracket = false;
 
-
 	$matchPositions = [];
 	$numExtraMatchesAtEnd = 0;
+
+	// Loop through an array of all the matches in the lower bracket by level first, then by match.
 	foreach((array)$bracketMatches as $bracketLevel => $levelMatches){
 
-		if($bracketLevel % 2 == 0 AND $bracketLevel != $bracketLevels){
-			// Crosses fighters over to the other side of the bracket every second time they are added
-			$changeOverBracket = !$changeOverBracket;
+		$matchesAtLevel = getNumEntriesAtLevel_consolation($bracketLevel,'matches');
+		$matchesAtPrev = getNumEntriesAtLevel_consolation($bracketLevel + 1,'matches');
+
+		// Size change means we aren't pulling anyone in from the upper bracket this level,
+		// and the fights are just from taking prior lower bracket winners and having them fight.
+		if($matchesAtLevel != $matchesAtPrev){
+			$sizeChange = true;
+		} else {
+			$sizeChange = false;
 		}
 
-		$matchesInLevel = count($levelMatches);
-
+		// Loop through all the matches in the current level.
 		foreach($levelMatches as $bracketPosition => $matchInfo){
-			$pos = $bracketPosition;
 
+
+			if($bracketLevel == 1 && $bracketPosition > 1){
+				// Special handling for true double elimination brackets, as the last match of the lower
+				// bracket is special.
+				if((isset($winnerBracketMatches[1][1]['loserID']) == true) && ($winnerBracketMatches[1][1]['loserID'] != 0)){
+					$matchPositions[$bracketLevel][$bracketPosition][1]['rosterID'] = $winnerBracketMatches[1][1]['loserID'];
+				}
+
+				if((isset($bracketMatches[1][1]['winnerID']) == true) && ($bracketMatches[1][1]['winnerID'] != 0)){
+					$matchPositions[$bracketLevel][$bracketPosition][2]['rosterID'] = $bracketMatches[1][1]['winnerID'];
+				}
+
+				continue;
+			}
+
+
+			// Determine which of the fighters in this match should come from prior
+			// lower bracket matches, and which from the upper bracket.
 			if($bracketLevel == $bracketLevels){
-				// First column in the bracket, import all from primary
-				$method = "allPrimary";
-			} elseif(($bracketLevel + $numExtraMatchesAtEnd) % 2 == 0){
-				$method = "mixed";
+
+				// On the lowest level of the bracket we must always pull from the upper bracket.
+				$pullFromPrimary[1] = true;
+				$pullFromPrimary[2] = true;
+
+			} else if($sizeChange == false){
+
+				// A match where one fighter comes from the prior lower bracket match,
+				// and is against one person coming from the upper bracket.
+				$pullFromPrimary[1] = true;
+
+				// Check to see if there is a prior match to pull from in the secondary.
+				// If not we have to pull from the primary.
+				if(isset($bracketMatches[$bracketLevel+1][$bracketPosition]) == true){
+					$pullFromPrimary[2] = false;
+				} else {
+					$pullFromPrimary[2] = true;
+				}
+
 			} else {
-				$method = "allSecondary";
+
+				// The match should have two lower bracket fighters who won their previous matches.
+				$feederMatchPosition = ($bracketPosition * 2) - 1;
+
+				// If the prior match doesn't exist to pull from, because we are at
+				// the bottom of the bracket, then we need to grab from the upper bracket.
+				if(isset($bracketMatches[$bracketLevel+1][$feederMatchPosition]) == true){
+					$pullFromPrimary[1] = false;
+				} else {
+					$pullFromPrimary[1] = true;
+				}
+
+				if(isset($bracketMatches[$bracketLevel+1][$feederMatchPosition+1]) == true){
+					$pullFromPrimary[2] = false;
+				} else {
+					$pullFromPrimary[2] = true;
+				}
 			}
 
-			if($bracketLevel == 1){
-				$numExtraMatchesAtEnd++;
-			}
 
-			switch($method){
-				case 'allPrimary':
-					$winBLevel = (($bracketLevel+1)/2) + 1;
-					$winPos = ($pos*2) -1;
-					if(isset($winnerBracketMatches[$winBLevel][$winPos]['loserID'])){
-						$matchPositions[$bracketLevel][$pos][1]['rosterID'] =
-							$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
+			foreach($pullFromPrimary as $fighterNum => $primary){
+
+				if($primary == true){
+
+					$fighterID = getSecondarySeedFromPrimary( $bracketMatches,
+															  $winnerBracketMatches,
+															  $bracketLevel,
+															  $bracketPosition,
+															  $fighterNum,
+															  $sizeChange);
+
+					if($fighterID != 0){
+						$matchPositions[$bracketLevel][$bracketPosition][$fighterNum]['rosterID'] = $fighterID;
 					}
 
-					if(isset($winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'])){
-						$matchPositions[$bracketLevel][$pos][2]['rosterID'] =
-							$winnerBracketMatches[$winBLevel][$winPos + 1]['loserID'];
+				} else {
+
+					$fighterID = getSecondarySeedFromSecondary($bracketMatches,
+															    $bracketLevel,
+															    $bracketPosition,
+															    $fighterNum);
+
+					if($fighterID != 0){
+						$matchPositions[$bracketLevel][$bracketPosition][$fighterNum]['rosterID'] = $fighterID;
 					}
-					break;
-
-				case 'allSecondary':
-					$oldPos = ($pos*2) - 1;
-
-					// winnerID could not exist
-					$matchPositions[$bracketLevel][$pos][1]['rosterID'] =
-						@$bracketMatches[$bracketLevel+1][$oldPos]['winnerID'];
-
-					$matchPositions[$bracketLevel][$pos][2]['rosterID'] =
-						@$bracketMatches[$bracketLevel+1][$oldPos+1]['winnerID'];
-					break;
-
-				case 'mixed':
-					$winBLevel = floor($bracketLevel/2) + 1;
-					$winPos = $pos;
-					$fetchBracketLevel = $bracketLevel + 1;
-					$fetchPos = $pos;
-
-					if($numExtraMatchesAtEnd != 0){
-						$newPos = $numExtraMatchesAtEnd;
-						$winPos = $numExtraMatchesAtEnd - 1;
-						$fetchBracketLevel = 1;
-						$fetchPos = $pos - 1;
-					} elseif($changeOverBracket){
-						$newPos = $matchesInLevel - $pos + 1;
-					} else {
-						$newPos = $pos;
-					}
-
-					// Might not exist. Treat as null.
-					$fighter1 = @$winnerBracketMatches[$winBLevel][$winPos]['loserID'];
-					$fighter2 = @$bracketMatches[$fetchBracketLevel][$fetchPos]['winnerID'];
-
-					$matchPositions[$bracketLevel][$pos][1]['rosterID'] = $fighter1;
-					$matchPositions[$bracketLevel][$pos][2]['rosterID'] = $fighter2;
-
-
-					break;
-
-				default:
-					break;
+				}
 
 			}
 
@@ -784,6 +806,141 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 	return $matchPositions;
 
 }
+
+/******************************************************************************/
+
+function getSecondarySeedFromPrimary($bracketMatches, $winnerBracketMatches, $bracketLevel, $bracketPosition, $fighterNum, $sizeChange){
+
+	$bracketLevelSpots = getNumEntriesAtLevel_consolation($bracketLevel,'matches');
+	$bracketLevelSize = sizeof($bracketMatches[$bracketLevel]);
+	$numBracketLevels = sizeof($bracketMatches);
+
+	// Every second time we have a mixed bracket level (one person from lower, one from upper)
+	// we change the order we pull from the upper bracket to avoid refights.
+	$lastCrossOverLevel = 0;
+	for($level = $numBracketLevels; $level >= $bracketLevel; $level--){
+
+		if(($level % 2) != 0){
+			continue; // only even levels can be crossover levels
+		}
+
+		$spots = getNumEntriesAtLevel_consolation($level,'matches');
+		$size = sizeof($bracketMatches[$level]);
+
+		if($size != $spots){
+			continue; // if it is not a full level we have special logic and can't do normal crossover.
+		}
+
+		if(($lastCrossOverLevel == 0) || ($lastCrossOverLevel - $level >= 4)){
+			$lastCrossOverLevel = $level;
+		}
+
+	}
+
+
+	if($bracketLevel == $lastCrossOverLevel){
+		$isCrossOver = true;
+	} else {
+		$isCrossOver = false;
+	}
+
+
+	if($sizeChange == true){
+
+		// the only reason we would be pulling from the upper bracket on a size change level
+		// is if it's an odd size bracket. Special logic.
+
+		$winBracketLevel = (($bracketLevel+1)/2) + 1;
+		$winBracketPosition = ($bracketPosition*2);
+
+		if($fighterNum == 1){
+			$winBracketPosition--;
+		}
+
+	} elseif($fighterNum == 1) {
+
+		// Normal use case.
+
+		$winBracketLevel = floor((($bracketLevel+1)/2) + 1);
+
+		if($isCrossOver == true){
+			// Cross-over level. Read from the primary bottom to top.
+			$matchesInWinLevel = pow(2, ($winBracketLevel-1));
+			$winBracketPosition = $matchesInWinLevel - $bracketPosition + 1;
+		} else {
+			$winBracketPosition = $bracketPosition;
+		}
+
+	} else {
+
+		// This is the position which would normally be advanced from the previous
+		// level, but since it is the start of an odd size bracket we need to
+		// pull someone from the upper bracket. The order is reversed or else
+		// it would end up as a direct rematch of the people who had just fought.
+		// Shuffle the match one row down.
+
+		$bracketPosToUse = $bracketPosition;
+
+		// If there is only a single match we can't shuffle down, and cross-over matches eliminate
+		// the need for shuffling.
+		if($bracketLevelSize != 1 && $isCrossOver == false){
+
+			for($i = 1; $i <= $bracketLevelSpots; $i++){
+
+				$posTest = $i + $bracketPosition;
+
+				if($posTest > $bracketLevelSpots){
+					$posTest -= $bracketLevelSpots; // Wrap around back to the start if we go over the end.
+				}
+
+				$matchExists = isset($bracketMatches[$bracketLevel][$posTest]);
+
+				if($matchExists == true){
+					// If we never get here then bracketPosToUse retains the initialized value of bracketPosition
+					$bracketPosToUse = $posTest;
+					break;
+				}
+
+			}
+
+			$bracketPosition = $bracketPosToUse;
+
+		}
+
+		$winBracketLevel = floor((($bracketLevel+1)/2) + 1) + 1;
+
+		$winBracketPosition = (2 * $bracketPosition) + ($bracketPosition % 2) - 1;
+
+	}
+
+	// If it doesn't exist then it will return zero.
+	$fighterID = (int)@$winnerBracketMatches[$winBracketLevel][$winBracketPosition]['loserID'];
+
+	return ($fighterID);
+
+}
+
+/******************************************************************************/
+
+function getSecondarySeedFromSecondary($bracketMatches, $bracketLevel, $bracketPosition, $fighterNum){
+
+	$prevBracketLevel = $bracketLevel+1;
+
+	// Look for the next match down if we are filling the spot for fighter #2.
+	if($bracketLevel % 2 == 0){
+		$previousPosition = $bracketPosition;
+	} else {
+		$previousPosition = ($bracketPosition*2) - 1;
+		$previousPosition += ($fighterNum - 1);
+	}
+
+	// If it doesn't exist then it will return zero.
+	$fighterID =	(int)@$bracketMatches[$prevBracketLevel][$previousPosition]['winnerID'];
+
+	return ($fighterID);
+
+}
+
 
 /******************************************************************************/
 
@@ -1664,7 +1821,7 @@ function sortTournamentAndDivisions($eventID){
 
 		$divItems = getTournamentDivisionItems($div['divisionID']);
 
-		foreach($divItems['items'] as $tournamentID){
+		foreach(@(array)$divItems['items'] as $tournamentID){
 			$isInDivision[$tournamentID] = true;
 			$tmp['tournamentID'] = $tournamentID;
 			$tmp['name'] = getTournamentName($tournamentID);
@@ -1754,8 +1911,6 @@ function importEventRatingCSV(){
 
 		while (($data = fgetcsv($file, 1000, ',')) !== FALSE) {
 
-
-
 			$eventID = (int)$data[0];
 
 			if($eventID == 0){
@@ -1817,97 +1972,6 @@ function importEventRatingCSV(){
 }
 
 /******************************************************************************/
-
-function calculateWinPercent($rating1, $rating2){
-
-	$dev1 = ESTIMATE_DEVIATION_M * $rating1 + ESTIMATE_DEVIATION_B;
-	$dev2 = ESTIMATE_DEVIATION_M * $rating2 + ESTIMATE_DEVIATION_B;
-
-	$score1 = $rating1 + 2 * $dev1;
-	$score2 = $rating2 + 2 * $dev2;
-
-	$scoreDelta = $score1 - $score2;
-
-	$deviationRMS = sqrt(pow($dev1/GLICKO_CONSTANT,2) + pow($dev2/GLICKO_CONSTANT,2));
-	$deviationFactor = 1 / sqrt(1 + (3 * pow($deviationRMS,2)) / pow(pi(),2));
-	$winProbability = 1 / (1 + exp(-$deviationFactor * $scoreDelta/GLICKO_CONSTANT));
-
-	return ($winProbability);
-}
-
-
-/******************************************************************************/
-
-function calculateEventRating($ratingsList){
-
-	$numFighters = sizeof($ratingsList);
-	$numStages = ceil(log($numFighters,2));
-	$matchTableSize = 2^$numStages;
-
-	$fightersInStage = [];
-	$fightersInStage[2][0] = 1;
-	$fightersInStage[2][1] = 4;
-
-	for($stageNum = 3;$stageNum <= $numStages; $stageNum++){
-
-		$fightersInStage[$stageNum][0] = pow(2,$stageNum-1)+1;
-		$fightersInStage[$stageNum][1] = pow(2,$stageNum);
-	}
-
-
-	$highestRatingToTest = (int)(max($ratingsList) * 1.3);
-
-
-	if($numFighters >= 8){
-		$lowestRatingToTest = $ratingsList[7];
-	} else {
-		$lowestRatingToTest = $ratingsList[$numFighters - 1];
-	}
-
-	for($testRating = $lowestRatingToTest; $testRating <= $highestRatingToTest; $testRating += RATING_STEP){
-
-		$testWinProb = 1;
-
-		for($stageNum = 2; $stageNum <= $numStages; $stageNum++){
-
-			$integral = 0;
-			$samples = 0;
-
-			for($i = $fightersInStage[$stageNum][0]; $i <= $fightersInStage[$stageNum][1]; $i++){
-
-				if($i > $numFighters){
-					$matchWinPercent = 1;
-				} else {
-					$matchWinPercent = calculateWinPercent($testRating, $ratingsList[$i-1]);
-				}
-
-
-				$integral += $matchWinPercent;
-				$samples++;
-
-				$dispProb = round($matchWinPercent * 100,0);
-				////echo "<BR>Fighter: {$i} | Win %: {$dispProb}";
-			}
-
-			$stageProbability = $integral / $samples;
-			$testWinProb *= $stageProbability;
-		}
-
-		if($testWinProb >= PROBABILITY_THRESHOLD){
-			break;
-		}
-	}
-
-	$eventRating = $testRating;
-
-	return ($eventRating);
-
-
-}
-
-/******************************************************************************/
-
-
 
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

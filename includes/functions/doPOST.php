@@ -1949,8 +1949,16 @@ function logUserIn($logInData){
 
 		unset($_SESSION['clearOnLogOut']);
 		$_SESSION['userName'] = $userName;
+
+		if(isUserAdmin($userName) == true){
+			// Because toggling it manually is every time is a pain.
+			$_SESSION['adminOptions']['forcePlainText'] = true;
+		}
+
 		changeEvent($eventID, true);
+
 	} else {
+
 		if($type == 'logInUser'){
 			setAlert(USER_ERROR,"Invalid Username/Password combination<BR>
 									<strong>Failed to Log In.</strong>");
@@ -1958,6 +1966,7 @@ function logUserIn($logInData){
 			setAlert(USER_ERROR,"Incorrect Password<BR>
 								<strong>Failed to Log In</strong>");
 		}
+
 		$_SESSION['failedLogIn']['type'] = $type;
 		$_SESSION['failedLogIn']['eventID'] = $eventID;
 	}
