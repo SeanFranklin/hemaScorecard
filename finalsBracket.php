@@ -418,7 +418,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 
 <!-- Create Bracket Box ------------------------------------------------------->
 
-	<?php $maxBracketSize = 128; ?>
+	<?php $maxBracketSize = 512; ?>
 	<div class='reveal tiny grid-x grid-margin-x' id='createBracket' data-reveal>
 	<form method='POST'>
 	<fieldset <?=LOCK_TOURNAMENT?>>
@@ -427,50 +427,34 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		<form method='POST'>
 		<input class='hidden' name='createBracket[tournamentID]' value='<?=$_SESSION['tournamentID']?>'>
 
+
 		<div class='input-group'>
-			<span class='input-group-label'>Number of Fighters:</span>
+			<span class='input-group-label'>Bracket Size:</span>
 			<input class='input-group-field' type='number' name='createBracket[sizePrimary]'
 				min=2 max=<?=$maxBracketSize?> required >
 		</div>
 
-		<h5>
-			Elimination Type
 
-		</h5>
-
-		<table class='stack'><tr>
-		<tr><td>
-			<input type='radio' name='createBracket[elimType]' checked
-				value='<?=ELIM_TYPE_SINGLE?>' id='doubleElim-no' class='no-bottom'>
-				<label for='doubleElim-no'>Single Elim</label>
-		</tr></td>
-		<tr><td>
-			<input type='radio' name='createBracket[elimType]'class='no-bottom'
-				value='<?=ELIM_TYPE_CONSOLATION?>' id='doubleElim-consolation'>
-				<label for='doubleElim-consolation'>Consolation (Normal Double Elim)</label>
-			<?=tooltip("If you lose once the best you can do is bronze.<BR>
-				This is the 'normal' type of double-elim.")?>
-
-		</tr></td>
-		<tr><td>
-		<input type='radio' name='createBracket[elimType]' class='no-bottom'
-				value='<?=ELIM_TYPE_LOWER_BRACKET?>' id='doubleElim-double'>
-			<label for='doubleElim-double'>True Double Elim</label>
-			<?=tooltip("If you lose once you can fight back to gold medal match.")?>
-		</tr></td>
-		</table>
+		<div class='input-group'>
+			<span class='input-group-label'>
+				Lower Bracket Size:&nbsp;
+				<?=tooltip("Leave blank/zero for single elimination")?>
+			</span>
+			<input class='input-group-field' type='number' name='createBracket[sizeSecondary]'
+				max=<?=$maxBracketSize?> placeholder='Single Elim'>
+		</div>
 
 
 		<div class='input-group'>
 			<span class='input-group-label'>
-				Limit Secondary:
-				<?=tooltip("<em><u>Example</u></em>: Set brackets size to 16 and limit secondary to 8 in order to make the people who lose in the first round eliminated, but double elim for everyone else.<BR><BR>
-					<em>Mode only supported for Consolation type double-elim</em>")?>
+				Double Elim Type:&nbsp;
+				<?=tooltip("<b>IGNORE IF USING SINGLE ELIM</b><BR><u>Consolation</u>: If you lose once you go the the lower bracket to try to win bronze.<BR>
+							<u>True</u>: The winner of the lower bracket can win gold if they defeat the upper bracket winner twice in a row.")?>
 			</span>
-			<input class='input-group-field' type='number' min=4
-				name='createBracket[sizeSecondary]'
-				placeholder='Leave blank for single elim'
-				min=2 max=<?=$maxBracketSize?>>
+			<select class='input-group-field' name='createBracket[secondaryType]'>
+				<option value='<?=ELIM_TYPE_CONSOLATION?>'>Consolation Bracket</option>
+				<option value='<?=ELIM_TYPE_LOWER_BRACKET?>'>True Double Elim</option>
+			</select>
 		</div>
 
 
@@ -485,6 +469,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 				Cancel
 			</button>
 		</div>
+
 		</fieldset>
 		</form>
 

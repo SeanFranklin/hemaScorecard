@@ -3117,8 +3117,8 @@ function createPrimaryBracket($tournamentID, $numFighters, $extendBracketBy = 0)
 	$numFighters = (int)$numFighters;
 
 	$bracketLevels = (int)ceil(log($numFighters,2));
-	$matchesToSkip = (int)pow(2,$bracketLevels) - $numFighters;
 	$numSubMatches = (int)getNumSubMatches($tournamentID);
+
 
 	// Create The Group
 	$sql = "DELETE FROM eventGroups
@@ -3134,34 +3134,16 @@ function createPrimaryBracket($tournamentID, $numFighters, $extendBracketBy = 0)
 
 	$groupID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 
-	// Create By Matches
 
-	for($bracketLevel=$bracketLevels;$bracketLevel>0;$bracketLevel--){
-		$matchesInLevel = pow(2,$bracketLevel-1);
+	// Make the matches
+	$bracketMatches = generatePrimaryBracket($numFighters, $extendBracketBy);
 
-		for($currentMatch=1;$currentMatch<=$matchesInLevel;$currentMatch++){
-			if($bracketLevel==$bracketLevels AND $currentMatch <= $matchesToSkip){
-				continue;
-			}
-
-			$bracketPosition = getBracketPositionByRank($currentMatch,$matchesInLevel);
-
-
+	foreach($bracketMatches as $bracketLevel => $levelPositions){
+		foreach($levelPositions as $bracketPosition => $exists){
 			createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
-
-
-			// In a true double elim there are extra matches at the highest bracket level.
-			if($bracketLevel == 1 & $extendBracketBy != 0){
-				for($i=1;$i<=$extendBracketBy;$i++){
-					$bracketPosition = $i + 1;
-
-					createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
-
-				}
-			}
-
 		}
 	}
+
 }
 
 /******************************************************************************/
@@ -3192,8 +3174,9 @@ function createSecondaryBracket($tournamentID, $numFighters, $extendBracketBy = 
 	} else {
 
 		$allBracketInfo = getBracketInformation($tournamentID);
-		$winnerBracketDepth = $allBracketInfo[BRACKET_PRIMARY]['bracketLevels'];
-		$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
+
+		$winnerBracketMatches = generatePrimaryBracket($numFighters+2);
+		$winnerBracketDepth = sizeof($winnerBracketMatches);
 
 		for($bracketLevel = $bracketLevels; $bracketLevel > 0; $bracketLevel--){
 
