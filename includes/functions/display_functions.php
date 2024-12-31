@@ -537,7 +537,7 @@ function edit_tournamentName($tournamentID){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[tournamentWeaponID]' class='shrink'
-					id='weaponID_div<?=$tournamentID?>'>
+					id='weaponID_div<?=$tournamentID?>' required>
 
 					<?php if($tournamentID == 0):?>
 						<option disabled selected> </option>
@@ -1501,6 +1501,7 @@ function edit_tournamentPriorityNotice($tournamentID = 0){
 	$tournamentID = (int)$tournamentID;
 	$formatID = FORMAT_MATCH;
 
+	$priorityNotice  = 0;
 	if($tournamentID !=  0){
 		$formatID = getTournamentFormat($tournamentID);
 		$priorityNotice = readOption('T',$tournamentID,'PRIORITY_NOTICE_ON_NON_SCORING');
@@ -1538,6 +1539,7 @@ function edit_tournamentDenoteOtherCheck($tournamentID = 0){
 
 	$tournamentID = (int)$tournamentID;
 
+	$otherNotice = 0;
 	if($tournamentID !=  0){
 		$otherNotice = readOption('T',$tournamentID,'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
 	}
@@ -1600,6 +1602,77 @@ function edit_tournamentSoftClock($tournamentID = 0){
 				<input type='number' name='updateTournament[softClock]' value='<?=$softClock?>'
 						placeholder='Unlimited' min=0 max=300 class='text-center'>
 
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentMatchOrderMode($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+
+	if($tournamentID !=  0){
+		$matchOrderMode = readOption('T',$tournamentID,'MATCH_ORDER_MODE');
+	} else {
+		$matchOrderMode = MATCH_ORDER_MODE_DEFAULT;
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Match Order
+				<?=tooltip("Use classic if you want the pre-2025 match order for some reason, otherwise use default.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[matchOrder]' id='matchOrder_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(MATCH_ORDER_MODE_DEFAULT,$matchOrderMode)?>>Default</option>
+				<option <?=optionValue(MATCH_ORDER_MODE_ORIGINAL,$matchOrderMode)?>>Classic</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentLimitScoreOvershoot($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+	$limitScoreOvershoot = (int)readOption('T',$tournamentID,'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Limit Score Overshoot
+				<?=tooltip("This will overide the scoreckeeper's input if the point value would have overshot the match cap. <BR>eg: In a 10 point match, if a fighter is at 8 points and the table enters 3pt , the software will correct it to 2 pts.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[limitOvershoot]' id='limitOvershoot_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$limitScoreOvershoot)?>>No (normal)</option>
+				<option <?=optionValue(1,$limitScoreOvershoot)?>>Yes</option>
+			</select>
 			</div>
 		</td>
 	</tr>
@@ -2515,6 +2588,106 @@ function edit_tournamentTimeLimit($tournamentID = 0){
 		</td>
 	</tr>
 
+
+<?php }
+
+/****************************************************(*************************/
+
+function edit_tournamentBracketPointCap($tournamentID = 0){
+// Select menu for whether or not the tournament allows ties
+
+	$tournamentID = (int)$tournamentID;
+	$formatID = FORMAT_MATCH;
+
+
+	$maximumPoints = (int)readOption('T',$tournamentID,'BRACKET_POINT_CAP');
+
+	if($tournamentID != 0){
+		$sql = "SELECT formatID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$formatID = (int)mysqlQuery($sql, SINGLE,'formatID');
+	}
+
+	if($formatID != FORMAT_MATCH){
+		$hide = 'hidden';
+	} else {
+		$hide = '';
+	}
+
+	if($maximumPoints == 0){
+		$maximumPoints = '';
+	}
+
+?>
+
+<!-- Start display -->
+	<tr class='option-auto-conclude <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Bracket Point Cap
+		<?php tooltip("Special point cap for the bracket matches. <BR>
+			<strong>Leave blank to use the same settings as all other matches.</strong>"); ?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<input type='number' name='updateTournament[bracketPointCap]' value='<?=$maximumPoints?>'
+					placeholder='n/a' min=0 max=100 class='text-center'>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/****************************************************(*************************/
+
+function edit_tournamentFinalsPointCap($tournamentID = 0){
+// Select menu for whether or not the tournament allows ties
+
+	$tournamentID = (int)$tournamentID;
+	$formatID = FORMAT_MATCH;
+
+
+	$maximumPoints = (int)readOption('T',$tournamentID,'FINALS_POINT_CAP');
+
+	if($tournamentID != 0){
+		$sql = "SELECT formatID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$formatID = (int)mysqlQuery($sql, SINGLE,'formatID');
+	}
+
+	if($formatID != FORMAT_MATCH){
+		$hide = 'hidden';
+	} else {
+		$hide = '';
+	}
+
+	if($maximumPoints == 0){
+		$maximumPoints = '';
+	}
+
+?>
+
+<!-- Start display -->
+	<tr class='option-auto-conclude <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Finals Point Cap
+		<?php tooltip("Special point cap for the medal matches. <BR>
+			<strong>Leave blank to use the same settings as all other matches.</strong>"); ?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<input type='number' name='updateTournament[finalsPointCap]' value='<?=$maximumPoints?>'
+					placeholder='n/a' min=0 max=100 class='text-center'>
+			</div>
+		</td>
+	</tr>
 
 <?php }
 

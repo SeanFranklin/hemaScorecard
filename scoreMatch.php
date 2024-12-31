@@ -1182,7 +1182,7 @@ function fighterDataEntryBox($matchInfo,$num){
 						scoreAfterblowInput($id, $pre, $tournamentID, $maxPoints);
 						scoreControlPointInput($id, $pre, $tournamentID);
 					} else if($attackDisplayMode == ATTACK_DISPLAY_MODE_CHECK){
-						scoreSelectCheckBox($id, $pre);
+						scoreSelectCheckBox($id, $pre, isReverseScore($tournamentID));
 					} else { // $attackDisplayMode == ATTACK_DISPLAY_MODE_GRID
 						// Don't show inputs for grid.
 					}
@@ -1662,7 +1662,7 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 
 /******************************************************************************/
 
-function scoreSelectCheckBox($id, $pre){
+function scoreSelectCheckBox($id, $pre, $isReverseScore){
 	$attacks = getTournamentAttacks($_SESSION['tournamentID'], true);
 
 	if($attacks == null){

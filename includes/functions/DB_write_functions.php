@@ -1393,6 +1393,56 @@ function logisticsAssignTournamentToRing($assignInfo, $overidePlaceID = null){
 
 /******************************************************************************/
 
+function logisticsAutoAssignRings($post){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+
+	$tournamentID = (int)$post['tournamentID'];
+	$groupSet = (int)$post['groupSet'];
+
+
+	$locationIDs = [];
+	foreach($post['locationIDs'] as $locationID => $isOn){
+		if((boolean)$isOn == true){
+			$locationIDs[] = $locationID;
+		}
+	}
+
+	$numLocations = sizeof($locationIDs);
+	if($numLocations == 0){
+		setAlert(USER_WARNING, "You didn't pick any Locations!");
+		return;
+	}
+
+
+	$pools = getPools($tournamentID, $groupSet );
+
+
+	$i = 0;
+	$assignInfo = [];
+	foreach($pools as $pool)
+	{
+		if((int)$pool['locationID'] == 0){
+			$assignInfo['groupIDs'][$pool['groupID']] = $locationIDs[$i];
+		}
+
+		$i++;
+		// If we reach the end of the ring list we need to loop
+		// back around to the start of the array.
+		if($i == $numLocations){
+			$i = 0;
+		}
+	}
+
+	logisticsAssignTournamentToRing($assignInfo);
+
+}
+
+/******************************************************************************/
+
 function InstructorBioUpdate($bioInfo){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
@@ -2112,6 +2162,68 @@ function addMatchWinner(){
 
 	saveMatchScoresheet($matchInfo);
 	$_SESSION['updatePoolStandings'][$tournamentID] = getGroupSetOfMatch($matchID);
+
+}
+
+/******************************************************************************/
+
+function limitFighterScore($fighterNum, $matchInfo){
+// Retroactively change the last exchange if the fighter has exceeded the score cap.
+
+	$max = (int)$matchInfo['maximumPoints'];
+	$matchID = (int)$matchInfo['matchID'];
+
+	if($fighterNum == 1){
+		$fighterID = (int)$matchInfo['fighter1ID'];
+		$score = $matchInfo['fighter1score'];
+	} elseif ($fighterNum == 2) {
+		$fighterID = (int)$matchInfo['fighter2ID'];
+		$score = $matchInfo['fighter2score'];
+	} else {
+		setAlert(SYSTEM, "Illegal fNum in limitFighterScore()");
+		return;
+	}
+
+	$overshoot = $score - $max;
+
+	if($overshoot > 0){
+
+		$exchangeID = (int)$matchInfo['lastExchange'];
+
+		$sql = "SELECT exchangeType, scoringID, receivingID, scoreValue, scoreDeduction
+				FROM eventExchanges
+				WHERE exchangeID = {$exchangeID}";
+		$exchInfo = (array)mysqlQuery($sql, SINGLE);
+
+		if($exchInfo['scoringID'] == $fighterID){
+			$oldScore = $exchInfo['scoreValue'];
+			$newScore = $oldScore - $overshoot;
+
+			if($newScore < 0){
+				$newScore = 0;
+			}
+
+			$sql = "UPDATE eventExchanges
+					SET scoreValue = {$newScore}
+					WHERE exchangeID = {$exchangeID}";
+			mysqlQuery($sql, SEND);
+
+		} else if ($exchInfo['receivingID'] == $fighterID) {
+
+			$oldScore = $exchInfo['scoreDeduction'];
+			$newScore = $oldScore - $overshoot;
+
+			if($newScore < 0){
+				$newScore = 0;
+			}
+
+			$sql = "UPDATE eventExchanges
+					SET scoreDeduction = {$newScore}
+					WHERE exchangeID = {$exchangeID}";
+			mysqlQuery($sql, SEND);
+		}
+
+	}
 
 }
 
@@ -6431,7 +6543,10 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	}
 
 	writeOption('T', $tournamentID, 'MATCH_SOFT_CLOCK_TIME', (int)$formInfo['softClock']);
-
+	writeOption('T', $tournamentID, 'MATCH_ORDER_MODE', (int)$formInfo['matchOrder']);
+	writeOption('T', $tournamentID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT', (int)$formInfo['limitOvershoot']);
+	writeOption('T', $tournamentID, 'BRACKET_POINT_CAP', (int)$formInfo['bracketPointCap']);
+	writeOption('T', $tournamentID, 'FINALS_POINT_CAP', (int)$formInfo['finalsPointCap']);
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -6761,6 +6876,10 @@ function importTournamentSettings($config){
 	$sourceSettings['priorityNotice'] = readOption('T', $sourceID, 'PRIORITY_NOTICE_ON_NON_SCORING');
 	$sourceSettings['otherNotice'] = readOption('T', $sourceID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
 	$sourceSettings['softClock'] = readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');
+	$sourceSettings['matchOrder'] = readOption('T', $sourceID, 'MATCH_ORDER_MODE');
+	$sourceSettings['limitScoreOvershoot'] = readOption('T', $sourceID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+	$formInfo['bracketPointCap'] = readOption('T', $sourceID, 'BRACKET_POINT_CAP');
+	$formInfo['finalsPointCap'] = readOption('T', $sourceID, 'FINALS_POINT_CAP');
 
 
 // Name is saved from the current tournament

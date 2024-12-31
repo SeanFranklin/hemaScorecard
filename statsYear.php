@@ -64,6 +64,18 @@ define('FIRST_YEAR', 2015);
 
 
 
+	$sql = "SELECT eR1.systemRosterID AS systemRosterID1, eR2.systemRosterID AS systemRosterID2
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
+			INNER JOIN eventRoster AS eR2 ON eM.fighter2ID = eR2.rosterID
+			WHERE tournamentID = 1977
+			ORDER BY matchNumber ASC";
+
+	$matches = mySqlQuery($sql, ASSOC);
+
+
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,28 +83,201 @@ define('FIRST_YEAR', 2015);
 
 	<div class='grid-x grid-margin-x'>
 
-	<div class='cell callout text-center success'><h3><?=$year?> - Year In Review <?=$scopeText?></h3></div>
-
-	<?php if(ALLOW['SOFTWARE_ADMIN'] == false): ?>
-		<div class='cell callout alert'>
-			<h3 class='text-center red-text'>Warning!</h3>
-			This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
+		<div class='cell callout text-center success'>
+			<h3><?=$year?> - Year In Review <?=$scopeText?></h3>
 		</div>
-	<?php endif ?>
 
-	<?=yearlySummaryCountries(	$eventListStr,'teal')?>
-	<?=yearlySummaryDates(		$eventListStr,'crimson')?>
-	<?=yearlySummaryExchanges(	$eventListStr,'gray')?>
-	<?=yearlySummaryMatches(	$eventListStr,'aqua')?>
-	<?=yearlySummaryTournaments($eventListStr,'salmon')?>
-	<?=yearlySummaryUrg(		$eventListStr,'Khaki')?>
-	<?=yearlySummaryClubs(		$eventListStr,'deepskyblue')?>
-	<?=yearlySummaryIndividual(	$eventListStr,'violet')?>
-
-	<?=yearlySummarySoftware($year)?>
+	</div>
 
 
-	<?=pickYearToView($year, $futureView)?>
+	<ul class="tabs" data-tabs id="yearly-summary-tabs">
+
+		<li class="tabs-title is-active"><a
+			data-tabs-target="panel-intro"
+			href            ="#panel-intro">
+				            Intro
+		</a></li>
+
+
+		<li class="tabs-title"><a
+			href            ="#panel-country"
+			onclick="getDataForYear(<?=$year?>, 'events-by-country', 'teal',0)">
+				            Country
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-date"
+			onclick="getDataForYearType(<?=$year?>, ['events-by-month','events-by-days'], 'crimson', [12,5], true)">
+				            Date
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-event"
+			href            ="#change-event"
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-event','matches-by-event','tournaments-by-event','womens-by-event'], 'deepskyblue', 10)">
+				            Events
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-club"
+			href            ="#change-club"
+			onclick="getDataForYearType(<?=$year?>, ['entries-by-club','matches-by-club','exchanges-by-club','wins-by-club'], 'Aquamarine', 10)">
+				            Clubs
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-weapon"
+			href            ="#change-weapon"
+			onclick="getDataForYearType(<?=$year?>, ['tournaments-by-weapon','exchanges-by-weapon','wtournaments-by-weapon','womens-by-weapon'], 'gray', 10)">
+				            Weapons
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-fighter"
+			href            ="#change-fighter"
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-fighter','close-by-fighter','entries-by-fighter','events-by-fighter','shutouts-by-fighter','matches-by-fighter'], 'salmon', 10)">
+				            Fighters
+		</a></li>
+
+		<li class="tabs-title"><a
+			data-tabs-target="panel-match"
+			href            ="#change-match"
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-match', 'rematches-by-fighter', 'comebacks-by-match'], 'violet', 10)">
+				            Matches
+		</a></li>
+
+		<li class="tabs-title">
+			<a data-tabs-target="panel-software" href="#change-software">
+				Software Improvements
+			</a>
+		</li>
+
+	</ul>
+
+
+	<div class="tabs-content" data-tabs-content="yearly-summary-tabs">
+
+		<div class="tabs-panel is-active" id="panel-intro">
+			<?=yearlySummaryIntro($year, $futureView)?>
+		</div>
+
+		<div class="tabs-panel" id="panel-country">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-12 cell'>
+					<?=yearlySummaryItem('events-by-country', $year)?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-date">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-month', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-days', $year)?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-event">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-event', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('matches-by-event', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('tournaments-by-event', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('womens-by-event', $year, ['unit'=>'Entries','txt'=>"Entries into tournaments which have been set up with a URG/Women's/WNBT designation."])?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-club">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('entries-by-club', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('matches-by-club', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-club', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('wins-by-club', $year)?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-weapon">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('tournaments-by-weapon', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-weapon', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('wtournaments-by-weapon', $year, ['unit'=>'Tournaments','txt'=>"Tournaments which have been set up with a URG/Women's/WNBT designation."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('womens-by-weapon', $year, ['unit'=>'Exchanges','txt'=>"Exchanges in tournaments which have been set up with a URG/Women's/WNBT designation."])?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-fighter">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-fighter', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('close-by-fighter', $year, ['unit'=>'Close Matches','txt'=>"Close matches are matches where a fighter won by only a single point, and the lowest score was higher than 3 points."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('entries-by-fighter', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-fighter', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('shutouts-by-fighter', $year, ['unit'=>'Shutouts','txt'=>"Shutout matches are matches where a fighter scored 4 or more points, and their opponent scored none."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('matches-by-fighter', $year)?>
+				</div>
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-match">
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-match', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('comebacks-by-match', $year, ['unit'=>'Points Behind','txt'=>"The biggest point deficit a fighter has come back from and won."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('rematches-by-fighter', $year, ['unit'=>'Matches Fought','txt'=>"Number of times two fighters have met in 1v1 matches, across all weapons."])?>
+				</div>
+
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-software">
+			<div class='grid-x grid-margin-x'>
+				<?=yearlySummarySoftware($year)?>
+			</div>
+		</div>
+
+	</div>
+
+
 
 
 <?php
@@ -105,700 +290,61 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function yearlySummaryCountries($eventListStr, $color){
 
 
-	$sql = "SELECT countryName, COUNT(*) AS numEvents
-			FROM systemEvents
-			INNER JOIN systemCountries USING(countryIso2)
-			WHERE {$eventListStr}
-			GROUP BY countryIso2
-			ORDER BY numEvents DESC, countryIso2 ASC";
-	$eventList = (array)mysqlQuery($sql, ASSOC);
 
-	$numCountries = sizeof($eventList);
+/******************************************************************************/
 
-	$totalNumEvents = 0;
-	foreach($eventList as $e){
-		$totalNumEvents += $e['numEvents'];
-	}
+function yearlySummaryItem($id, $year, $labels = []){
 
-	$plotEventsByCountry = [];
-	foreach($eventList as $i => $f){
-		$plotEventsByCountry[$i]['value'] = $f['numEvents'];
-		$plotEventsByCountry[$i]['name'] = $f['countryName'];
+	if($labels == []){
+		$tmp = explode('-',$id);
+		$unit = ucfirst($tmp[0]);
+		$txt = '';
+	} else {
+		$unit = $labels['unit'];
+		$txt = $labels['txt']."<BR>";
 	}
 
 ?>
-
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- Countries --</div>
-
-		<p class='yearly-summary-text'>
-			Total # of Events: <b><?=$totalNumEvents?></b><BR>
-			# Countries Using Scorecard: <b><?=$numCountries?></b>
-		</p>
-
-		<?=plotData($plotEventsByCountry, 'events-by-country','Number of Events', $color, 15)?>
-
+	<div class='cell callout'>
+		<i><?=$txt?></i>
+		<span style='font-size:1.3em'>By # of <?=$unit?></span>
+		<?=dataSliderPlot($id)?>
 	</div>
-
 <?php
 }
 
 /******************************************************************************/
 
-function yearlySummaryDates($eventListStr, $color){
-
-
-	$sql = "SELECT eventStartDate, eventEndDate
-			FROM systemEvents
-			WHERE {$eventListStr}
-			ORDER BY eventStartDate ASC";
-	$eventList = (array)mysqlQuery($sql, ASSOC);
-
-
-	$plotEventsByMonth = [];
-	$plotEventsByDays = [];
-
-	for($i = 1; $i <= 12; $i++){
-		$plotEventsByMonth[$i]['name'] = date('F',strtotime("2000-{$i}-01"));
-		$plotEventsByMonth[$i]['value'] = 0;
-
-		if($i <= 5){
-			$plotEventsByDays[$i]['name'] = $i." Day".plrl($i);
-			$plotEventsByDays[$i]['value'] = 0;
-		}
-	}
-
-	foreach($eventList as $e){
-		$month = (int)date('n',strtotime($e['eventStartDate']));
-		$plotEventsByMonth[$month]['value']++;
-
-		$start = strtotime($e['eventStartDate']);
-		$end = strtotime($e['eventEndDate']);
-		$datediff = 1 + (($end - $start) / (60 * 60 * 24));
-
-
-		if(isset($plotEventsByDays[$datediff]) == true){
-			$plotEventsByDays[$datediff]['value']++;
-		}
-	}
-
+function dataSliderPlot($id){
 ?>
+    <input type="range" min="1" id="<?=$id?>-slider" onchange="listSlider('<?=$id?>')">
+    (Showing <span id='<?=$id?>-count'>x</span> / <span id='<?=$id?>-total'>x</span>)
 
-	<div class='cell callout medium-6'>
-
-		<div class='yearly-summary-title'>-- By Month --</div>
-
-		<?=plotData($plotEventsByMonth, 'events-by-month','Number of Events', $color, 12)?>
-
-		<?=plotData($plotEventsByDays, 'events-by-days','Event Length', $color)?>
-
-	</div>
-
+	<table id='<?=$id?>-table' class='table-compact'>
+	</table>
 <?php
 }
 
 /******************************************************************************/
 
-function yearlySummaryExchanges($eventListStr, $color){
-
-	$validExchanges = "'clean','afterblow','double','noExchange','scored'";
-
-	$sql = "SELECT COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches USING(matchID)
-				INNER JOIN eventGroups USING(groupID)
-				INNER JOIN eventTournaments USING(tournamentID)
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}";
-	$totalSystemExchanges = mysqlQuery($sql, SINGLE, 'numExchanges');
-
-
-// By Fighter ------------------------------------------------------------------
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches AS eM USING(matchID)
-				INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND systemRosterID IS NOT NULL
-				AND exchangeType IN ($validExchanges)
-			GROUP BY systemRosterID
-			ORDER BY numExchanges DESC
-			LIMIT 60";
-	$exchByFighter1 = (array)mysqlQuery($sql, ASSOC);
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches AS eM USING(matchID)
-				INNER JOIN eventRoster AS eR1 ON eM.fighter2ID = eR1.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND systemRosterID IS NOT NULL
-				AND exchangeType IN ($validExchanges)
-			GROUP BY systemRosterID
-			ORDER BY numExchanges DESC
-			LIMIT 60";
-	$exchByFighter2 = (array)mysqlQuery($sql, ASSOC);
-
-	$exchByFighter = [];
-	foreach($exchByFighter1 as $e){
-		$exchByFighter[$e['systemRosterID']] = $e['numExchanges'];
-	}
-
-	foreach($exchByFighter2 as $e){
-		@$exchByFighter[$e['systemRosterID']] += $e['numExchanges'];
-	}
-
-	arsort($exchByFighter);
-
-	$plotExchByFighter = [];
-	$i = 0;
-	foreach($exchByFighter as $systemRosterID => $numExchanges){
-		$plotExchByFighter[$i]['value'] = $numExchanges;
-		$plotExchByFighter[$i]['name'] = getFighterNameSystem($systemRosterID);
-		$i++;
-		if($i >= 30){
-			break;
-		}
-	}
-
-
-// By School ------------------------------------------------------------------
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches AS eM USING(matchID)
-				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND eR.schoolID IS NOT NULL
-				AND eR.schoolID != 1
-				AND eR.schoolID != 2
-				AND exchangeType IN ($validExchanges)
-			GROUP BY eR.schoolID
-			ORDER BY numExchanges DESC
-			LIMIT 60";
-	$exchBySchool1 = (array)mysqlQuery($sql, ASSOC);
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches AS eM USING(matchID)
-				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND eR.schoolID IS NOT NULL
-				AND eR.schoolID != 1
-				AND eR.schoolID != 2
-				AND exchangeType IN ($validExchanges)
-			GROUP BY eR.schoolID
-			ORDER BY numExchanges DESC
-			LIMIT 60";
-	$exchBySchool2 = (array)mysqlQuery($sql, ASSOC);
-
-	$exchBySchool = [];
-	foreach($exchBySchool1 as $e){
-		$exchBySchool[$e['schoolID']] = $e['numExchanges'];
-	}
-
-	foreach($exchBySchool2 as $e){
-		@$exchBySchool[$e['schoolID']] += $e['numExchanges'];
-	}
-
-	arsort($exchBySchool);
-
-	$plotExchBySchool = [];
-	$i = 0;
-	foreach($exchBySchool as $schoolID => $numExchanges){
-		$plotExchBySchool[$i]['value'] = $numExchanges;
-		$plotExchBySchool[$i]['name'] = getSchoolName($schoolID);
-		$i++;
-		if($i >= 30){
-			break;
-		}
-	}
-
-
-// By Event ------------------------------------------------------------------
-
-	$sql = "SELECT eventName as name, COUNT(*) AS value
-			FROM eventExchanges
-				INNER JOIN eventMatches USING(matchID)
-				INNER JOIN eventGroups USING(groupID)
-				INNER JOIN eventTournaments USING(tournamentID)
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND exchangeType IN ($validExchanges)
-			GROUP BY eventName
-			ORDER BY value DESC";
-	$plotExchByEvent = (array)mysqlQuery($sql, ASSOC);
-
+function yearlySummaryIntro($year, $futureView){
 ?>
 
-	<div class='medium-6 cell callout'>
+	<div class='grid-x grid-margin-x'>
 
-		<div class='yearly-summary-title'>-- Exchanges --</div>
+	<div class='cell callout alert large-6'>
+		<h3 class='text-center red-text'>Warning!</h3>
+		This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
+	</div>
 
-		<p class='yearly-summary-text'>Total # of Exchanges: <b><?=number_format($totalSystemExchanges)?></b></p>
-
-		<?=plotData($plotExchByFighter, 'exch-by-fighter', 'By Fighter', $color)?>
-
-		<?=plotData($plotExchBySchool, 'exch-by-school', 'By Club', $color)?>
-
-		<?=plotData($plotExchByEvent, 'exch-by-event', 'By Event', $color, 10)?>
+	<div class='cell large-6'>
+		<?=pickYearToView($year, $futureView)?>
+	</div>
 
 	</div>
 
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryMatches($eventListStr, $color){
-
-	$sql = "SELECT COUNT(*) AS numMatches
-			FROM eventMatches
-				INNER JOIN eventGroups USING(groupID)
-				INNER JOIN eventTournaments USING(tournamentID)
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}";
-	$totalSystemMatches = mysqlQuery($sql, SINGLE, 'numMatches');
-
-
-// By Fighter ----------------------------------------------------------
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND systemRosterID IS NOT NULL
-			GROUP BY systemRosterID
-			ORDER BY numMatches DESC
-			LIMIT 60";
-	$matchByFighter1 = (array)mysqlQuery($sql, ASSOC);
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND systemRosterID IS NOT NULL
-			GROUP BY systemRosterID
-			ORDER BY numMatches DESC
-			LIMIT 60";
-	$matchByFighter2 = (array)mysqlQuery($sql, ASSOC);
-
-
-	$matchByFighter = [];
-	foreach($matchByFighter1 as $e){
-		$matchByFighter[$e['systemRosterID']] = $e['numMatches'];
-	}
-
-	foreach($matchByFighter2 as $e){
-		@$matchByFighter[$e['systemRosterID']] += $e['numMatches'];
-	}
-
-	arsort($matchByFighter);
-
-	$plotMatchByFighter = [];
-	$i = 0;
-	foreach($matchByFighter as $systemRosterID => $numMatches){
-		$plotMatchByFighter[$i]['value'] = $numMatches;
-		$plotMatchByFighter[$i]['name'] = getFighterNameSystem($systemRosterID);
-		$i++;
-		if($i >= 30){
-			break;
-		}
-	}
-
-
-// By School ----------------------------
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eM.fighter1ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND eR.schoolID IS NOT NULL
-				AND eR.schoolID != 1
-				AND eR.schoolID != 2
-			GROUP BY eR.schoolID
-			ORDER BY numMatches DESC
-			LIMIT 60";
-	$matchBySchool1 = (array)mysqlQuery($sql, ASSOC);
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eM.fighter2ID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND eR.schoolID IS NOT NULL
-				AND eR.schoolID != 1
-				AND eR.schoolID != 2
-			GROUP BY eR.schoolID
-			ORDER BY numMatches DESC
-			LIMIT 60";
-	$matchBySchool2 = (array)mysqlQuery($sql, ASSOC);
-
-
-	$matchBySchool = [];
-	foreach($matchBySchool1 as $e){
-		$matchBySchool[$e['schoolID']] = $e['numMatches'];
-	}
-
-	foreach($matchBySchool2 as $e){
-		@$matchBySchool[$e['schoolID']] += $e['numMatches'];
-	}
-
-	arsort($matchBySchool);
-
-	$plotMatchBySchool = [];
-	$i = 0;
-	foreach($matchBySchool as $schoolID => $numMatches){
-		$plotMatchBySchool[$i]['value'] = $numMatches;
-		$plotMatchBySchool[$i]['name'] = getSchoolName($schoolID);
-		$i++;
-		if($i >= 30){
-			break;
-		}
-	}
-
-
-// By Event ----------------------------------------
-
-	$sql = "SELECT eventName AS name, COUNT(*) AS value
-			FROM eventMatches AS eM
-			INNER JOIN eventGroups USING(groupID)
-			INNER JOIN eventTournaments USING(tournamentID)
-			INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-			GROUP BY name
-			ORDER BY value DESC, name ASC";
-	$plotMatchByEvent = (array)mysqlQuery($sql, ASSOC);
-
-?>
-
-
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- Matches --</div>
-
-		<p class='yearly-summary-text'>Total # of Matches: <b><?=number_format($totalSystemMatches)?></b></p>
-
-		<?=plotData($plotMatchByFighter, 'match-by-fighter', 'By Fighter', $color)?>
-		<?=plotData($plotMatchBySchool, 'match-by-school', 'By Club', $color)?>
-		<?=plotData($plotMatchByEvent, 'match-by-event', 'By Event', $color, 10)?>
-
-	</div>
-
-<?php
-}
-
-
-
-
-
-
-
-/******************************************************************************/
-
-function yearlySummaryTournaments($eventListStr, $color){
-
-
-	$sql = "SELECT tournamentType AS name, COUNT(*) AS value
-			FROM eventTournaments AS eT
-			INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-			GROUP BY tournamentType
-			ORDER BY value DESC, tournamentType ASC";
-	$plotTournamentsByWeapon = (array)mysqlQuery($sql, ASSOC);
-
-	$numTournaments = 0;
-	foreach($plotTournamentsByWeapon as $w){
-		$numTournaments += $w['value'];
-	}
-
-	$sql = "SELECT eventName AS name, COUNT(*) AS value
-			FROM eventTournaments AS eT
-			INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-			GROUP BY eventName
-			ORDER BY value DESC, eventName ASC
-			LIMIT 30";
-	$plotTournamentsByEvent = (array)mysqlQuery($sql, ASSOC);
-
-
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- Tournaments --</div>
-
-		<p class='yearly-summary-text'>
-			Total # of Tournaments: <b><?=$numTournaments?></b>
-		</p>
-
-		<?=plotData($plotTournamentsByWeapon, 'tournaments-by-weapon','By Weapon', $color, 10)?>
-		<?=plotData($plotTournamentsByEvent, 'tournaments-by-event','By Event', $color, 10)?>
-
-	</div>
-
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryUrg($eventListStr, $color){
-
-	$sql = "SELECT tournamentType AS weaponName, eventName, numParticipants
-			FROM eventTournaments AS eT
-				INNER JOIN systemEvents USING(eventID)
-				INNER JOIN systemTournaments AS sT ON eT.tournamentWeaponID = sT.tournamentTypeID
-			WHERE {$eventListStr}
-				AND tournamentGenderID IN (21,109,125, 132)
-			ORDER BY numParticipants DESC, weaponName ASC";
-	$urgTournaments = (array)mysqlQuery($sql, ASSOC);
-
-	$numTournaments = 0;
-	$tournamentsByWeapon = [];
-	$regByWeapon = [];
-	$regByEvent = [];
-
-	foreach($urgTournaments as $t){
-		$numTournaments++;
-
-		@$tournamentsByWeapon[$t['weaponName']]++;
-		@$regByWeapon[$t['weaponName']] += $t['numParticipants'];
-		@$regByEvent[$t['eventName']] += $t['numParticipants'];
-
-	}
-
-	$numEvents = sizeof($regByEvent);
-
-	arsort($tournamentsByWeapon);
-	arsort($regByWeapon);
-	arsort($regByEvent);
-
-	$plotTournamentsByWeapon = [];
-	$i = 0;
-	foreach($tournamentsByWeapon as $weaponName => $num){
-		$plotTournamentsByWeapon[$i]['name']  = $weaponName;
-		$plotTournamentsByWeapon[$i]['value'] = $num;
-		$i++;
-	}
-
-	$plotRegByWeapon = [];
-	$i = 0;
-	foreach($regByWeapon as $weaponName => $num){
-		$plotRegByWeapon[$i]['name']  = $weaponName;
-		$plotRegByWeapon[$i]['value'] = $num;
-		$i++;
-	}
-
-	$plotRegByEvent = [];
-	$i = 0;
-	foreach($regByEvent as $eventName => $num){
-		$plotRegByEvent[$i]['name']  = $eventName;
-		$plotRegByEvent[$i]['value'] = $num;
-		$i++;
-	}
-
-
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- URG/Women's --</div>
-
-		<p><i><u>Note</u>: This can only take into account tournaments which been set up with a URG/Women's designation.</i></p>
-
-		<p class='yearly-summary-text'>
-			Total # of Tournaments: <b><?=$numTournaments?></b><BR>
-			# of Events Offering: <b><?=$numEvents?></b>
-		</p>
-
-		<?=plotData($plotTournamentsByWeapon, 'tournament-by-weapon','# Tournaments', $color)?>
-		<?=plotData($plotRegByWeapon, 'reg-by-weapon','# Tournament Entries', $color)?>
-		<?=plotData($plotRegByEvent, 'reg-by-event','# Tournament Entries', $color, 8)?>
-
-	</div>
-
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryClubs($eventListStr, $color){
-
-	$sql = "SELECT schoolID, COUNT(*) AS numReg
-			FROM eventRoster AS eR
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND eR.schoolID IS NOT NULL
-				AND eR.schoolID != 1
-				AND eR.schoolID != 2
-			GROUP BY schoolID
-			ORDER BY numReg DESC
-			LIMIT 30";
-	$regBySchool = (array)mysqlQuery($sql, ASSOC);
-
-    $plotRegBySchool = [];
-	foreach($regBySchool as $i => $f){
-		$plotRegBySchool[$i]['value'] = $f['numReg'];
-		$plotRegBySchool[$i]['name'] = getSchoolName($f['schoolID']);
-	}
-
-	$sql = "SELECT eR.schoolID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eM.winnerID = eR.rosterID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-			AND eR.schoolID IS NOT NULL
-			AND eR.schoolID != 1
-			AND eR.schoolID != 2
-			GROUP BY eR.schoolID
-			ORDER BY numMatches DESC
-			LIMIT 30";
-	$winsBySchool = (array)mysqlQuery($sql, ASSOC);
-
-    $plotWinsBySchool = [];
-	foreach($winsBySchool as $i => $f){
-		$plotWinsBySchool[$i]['value'] = $f['numMatches'];
-		$plotWinsBySchool[$i]['name'] = getSchoolName($f['schoolID']);
-	}
-
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- By Club --</div>
-
-		<?=plotData($plotRegBySchool, 'reg-by-school', 'Event Registrations', $color, 10)?>
-
-		<?=plotData($plotWinsBySchool, 'wins-by-school', 'Wins', $color, 10)?>
-
-	</div>
-
-<?php
-}
-
-/******************************************************************************/
-
-function yearlySummaryIndividual($eventListStr, $color){
-
-	$validExchanges = "'clean','afterblow','double','noExchange','scored'";
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eR.rosterID = eM.winnerID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND ABS(fighter1Score - fighter2Score) = 1
-				AND fighter1Score > 3
-				AND fighter2Score > 3
-				AND systemRosterID IS NOT NULL
-			GROUP BY systemRosterID
-			ORDER BY numMatches DESC
-			LIMIT 30";
-	$closeMatches = (array)mysqlQuery($sql, ASSOC);
-
-	$plotCloseMatches = [];
-	foreach($closeMatches as $i => $w){
-		$plotCloseMatches[$i]['value'] = $w['numMatches'];
-		$plotCloseMatches[$i]['name'] = getFighterNameSystem($w['systemRosterID']);
-	}
-
-	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
-			FROM eventMatches AS eM
-				INNER JOIN eventRoster AS eR ON eR.rosterID = eM.winnerID
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND ((fighter1Score = 0 && fighter2Score >= 4)
-					OR (fighter2Score = 0 && fighter1Score >= 4))
-				AND systemRosterID IS NOT NULL
-				AND (	SELECT COUNT(*)
-						FROM eventExchanges AS eE2
-						WHERE eE2.matchID = eM.matchID
-						AND scoreValue != 0) >= 3
-			GROUP BY systemRosterID
-			ORDER BY numMatches DESC
-			LIMIT 30";
-	$shutdoutMatches = (array)mysqlQuery($sql, ASSOC);
-
-	$plotShutoutMatches = [];
-	foreach($shutdoutMatches as $i => $w){
-		$plotShutoutMatches[$i]['value'] = $w['numMatches'];
-		$plotShutoutMatches[$i]['name'] = getFighterNameSystem($w['systemRosterID']);
-	}
-
-	$sql = "SELECT matchID, COUNT(*) AS numExchanges
-			FROM eventExchanges
-				INNER JOIN eventMatches USING(matchID)
-				INNER JOIN eventGroups USING(groupID)
-				INNER JOIN eventTournaments USING(tournamentID)
-				INNER JOIN systemEvents USING(eventID)
-			WHERE {$eventListStr}
-				AND exchangeType IN ({$validExchanges})
-				AND formatID = 2
-				AND isTeams = 0
-			GROUP BY matchID
-			ORDER BY numExchanges DESC
-			LIMIT 30";
-	$longMatches = (array)mysqlQuery($sql, ASSOC);
-
-	$plotLongMatches = [];
-	foreach($longMatches as $i => $m){
-
-		$plotLongMatches[$i]['value'] = $m['numExchanges'];
-		$matchID = (int)$m['matchID'];
-
-		$sql = "SELECT eventName,
-					(	SELECT systemRosterID
-						FROM eventRoster AS eR2
-						WHERE eR2.rosterID = eM.fighter1ID
-					) AS sysID1,
-					(	SELECT systemRosterID
-						FROM eventRoster AS eR3
-						WHERE eR3.rosterID = eM.fighter2ID
-					) AS sysID2
-				FROM eventMatches AS eM
-					INNER JOIN eventGroups USING(groupID)
-					INNER JOIN eventTournaments USING(tournamentID)
-					INNER JOIN systemEvents USING(eventID)
-				WHERE matchID = {$matchID}";
-		$matchData = mysqlQuery($sql, SINGLE);
-
-		$txt = getFighterNameSystem($matchData['sysID1']);
-		$txt .= " vs ";
-		$txt .= getFighterNameSystem($matchData['sysID2'])."";
-		$txt .= "<i style='font-size:0.8em;'><BR>(".$matchData['eventName'].")</i></span>";
-
-		$plotLongMatches[$i]['name'] = $txt;
-	}
-
-?>
-
-	<div class='medium-6 cell callout'>
-
-		<div class='yearly-summary-title'>-- Individuals --</div>
-
-		<i>Close matches are matches where a fighter won by only a single point, and the lowest score was higher than 3 points.</i><BR>
-		<?=plotData($plotCloseMatches, 'close-matches','Close Matches', $color)?>
-
-		<i>Shoutout matches are matches where a fighter scored 4 or more points, and their opponent scored none.</i><BR>
-		<?=plotData($plotShutoutMatches, 'shutout-matches','Shutouts', $color)?>
-
-		<?=plotData($plotLongMatches, 'long-matches','# of Exchanges', $color)?>
-
-	</div>
 
 <?php
 }
@@ -816,15 +362,33 @@ function yearlySummarySoftware($year){
 	$defaultText = "asdf";
 
 	$year = (int)$year;
+	$index = '';
 
-	if($year == 0){
-		return;
+	if($year != 0){
+		$sql = "SELECT updateText
+				FROM systemUpdates
+				WHERE updateYear = {$year}";
+		$updateText = mysqlQuery($sql, SINGLE, 'updateText');
+
+	} else {
+		$sql = "SELECT updateText, updateYear
+				FROM systemUpdates
+				ORDER BY updateYear ASC";
+		$textList = (array)mysqlQuery($sql, ASSOC);
+
+		$updateText = "";
+		foreach($textList as $text){
+			$updateText .= "<a name='year_{$text['updateYear']}'></a><HR><h4>{$text['updateYear']}</h4>";
+			$updateText .= "<p>{$text['updateText']}</p>";
+			$index .= "<BR><a href='#year_{$text['updateYear']}'>Goto {$text['updateYear']}</a>";
+		}
+
+
+
+
 	}
 
-	$sql = "SELECT updateText
-			FROM systemUpdates
-			WHERE updateYear = {$year}";
-	$updateText = mysqlQuery($sql, SINGLE, 'updateText');
+
 
 ?>
 
@@ -847,6 +411,7 @@ function yearlySummarySoftware($year){
 
 		<?php else: ?>
 
+			<?=$index?>
 			<p><?=$updateText?></p>
 
 		<?php endif ?>
@@ -942,7 +507,7 @@ function pickYearToView($yearSelected, $futureView){
 		<form method="POST">
 			<div class='input-group'>
 				<input class='hidden' name='formName' value='statsYear'>
-				<span class='input-group-label'>Select Year</span>
+				<span class='input-group-label'>Viewing Year:</span>
 				<select class='input-group-field' name='stats[year]'>
 					<?php for($i = $displayYear; $i >=  FIRST_YEAR; $i--):?>
 						<option <?=optionValue($i, $yearSelected)?>><?=$i?></option>

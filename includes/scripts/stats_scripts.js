@@ -108,6 +108,49 @@ function numFightsPerPool(size){
 
 /**********************************************************************/
 
+function calculateCuttingMats(){
+
+	var groupIDs = document.getElementsByClassName('groupID');
+	var tournamentID_old = 0;
+	var matsInTournament = 0;
+	var matsTotal = 0;
+
+	for(var i = 0; i < groupIDs.length; i++){
+
+		var groupID = groupIDs[i].value;
+
+		var tournamentID = document.getElementById('tournamentID-for-'+groupID).value;
+
+		if(tournamentID != tournamentID_old){
+			if(tournamentID_old != 0){
+				document.getElementById('num-mats-tournament-'+tournamentID_old).innerHTML = matsInTournament;
+			}
+
+			tournamentID_old = tournamentID;
+			matsInTournament = 0;
+		}
+
+
+		var matsPer = document.getElementById('mats-per-'+groupID).value;
+		var groupSize = document.getElementById('group-size-'+groupID).value;
+		var numMats = matsPer * groupSize;
+		document.getElementById('num-mats-'+groupID).innerHTML = numMats;
+
+		matsInTournament += numMats;
+		matsTotal += numMats;
+
+	}
+
+	if(tournamentID_old != 0){
+		document.getElementById('num-mats-tournament-'+tournamentID_old).innerHTML = matsInTournament;
+	}
+
+	document.getElementById('num-mats-total-'+tournamentID_old).innerHTML = matsTotal;
+
+}
+
+/**********************************************************************/
+
 function matchLengthEventSelect(index){
 
 	eventID = document.getElementById('match-length-event-'+index).value;
@@ -152,7 +195,7 @@ function listSlider(baseID){
 	var value = document.getElementById(baseID+'-slider').value;
 	document.getElementById(baseID+'-count').innerHTML = value;
 	
-	for(var i = 0; i < 100; i++){
+	for(var i = 0; i <= 300; i++){
 		if(i <= value){
 			$('#'+baseID+'-'+i).removeClass('hidden');
 		} else {
@@ -162,6 +205,156 @@ function listSlider(baseID){
 	}
 
 }
+
+/**********************************************************************/
+
+function getDataForYearType(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing = false){
+
+
+	if(typeof(id) == 'string'){
+		getDataForYear(year, id, color, numToShow, hidePlacing);
+	} else {
+
+		for(var i = 0; i < id.length; i++){
+
+			if(typeof(numToShow) == 'number'){
+				var toShow = numToShow;
+			} else {
+				var toShow = numToShow[i];
+			}
+
+			getDataForYear(year, id[i], color, toShow, hidePlacing);
+		}
+
+	}
+
+
+}
+
+/**********************************************************************/
+
+function getDataForYear(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing = false){
+
+    $i = 0;
+
+    var query = "mode=getDataForYear&year="+year;
+    query = query + "&dataType=" + id;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            if(this.responseText.length > 1){
+
+            	//console.log(this.responseText);
+                data = JSON.parse(this.responseText);
+
+
+                var maxValue = 1;
+
+                if(numToShow > data.length || numToShow == 0){
+                    numToShow = data.length;
+                }
+
+
+                for(var i = 0; i < data.length; i++){
+
+                    if(parseInt(data[i]['value']) > maxValue){
+                        maxValue = data[i]['value'];
+                    }
+
+                    if(typeof data[i]['nameShort'] === 'undefined'){
+                        data[i]['nameShort'] = data[i]['name'];
+                    }
+
+                }
+
+                var table = document.getElementById(id+"-table");
+                table.innerHTML = "";
+
+                for(var i = 0; i < data.length; i++){
+
+                	var col = 0;
+                    var row = table.insertRow(i);
+                    row.id = id + "-" + (i+1);
+
+                    if(i >= numToShow){
+                        row.classList.add("hidden");
+                    }
+
+                // Column for the rank
+                    if(hidePlacing == false){
+                    	var tdPlace = row.insertCell(col++);
+	                    tdPlace.style.fontSize = "0.75em";
+	                    tdPlace.style.width = "1px";
+                    	tdPlace.innerHTML = (i+1);
+                    }
+
+                // Column for the name
+                    var tdNameSmall = row.insertCell(col++);
+                    tdNameSmall.innerHTML = data[i]['nameShort'];
+                    tdNameSmall.classList.add("hide-for-small-only");
+
+                    if(data[i]['nameShort'].length > 40){
+                        tdNameSmall.style.maxWidth = "500px";
+                        tdNameSmall.style.minWidth = "250px";
+                    } else {
+                        tdNameSmall.style.width = "0.1%";
+                        tdNameSmall.style.whiteSpace = "nowrap";
+                    }
+
+                    var tdNameBig = row.insertCell(col++);
+                    tdNameBig.innerHTML = data[i]['nameShort'];
+                    tdNameBig.classList.add("show-for-small-only");
+
+                // Column for the count
+                    var tdValue = row.insertCell(col++);
+                    tdValue.innerHTML = number_format(data[i]['value']);
+                    tdValue.classList.add("text-right");
+                    tdValue.style.width = "0.1%";
+                    tdValue.style.whiteSpace = "nowrap";
+                    tdValue.style.borderRight = "solid 1px black";
+
+                // Column for the bar
+                    var tdBar = row.insertCell(col);
+                    var barWidth = 100 * (data[i]['value'] / maxValue);
+                    tdBar.style.minWidth = '100px';
+                    tdBar.style.padding = '0px';
+                    tdBar.style.height = '1px';
+
+                    var bar = document.createElement("div");
+                    bar.style.width = barWidth + "%";
+                    bar.style.display = 'inline-block';
+                    bar.style.margin = '0px';
+                    bar.style.padding = '0px';
+                    bar.style.height = '100%';
+                    bar.style.backgroundImage = 'linear-gradient(to right, white, ' + color + ')';
+                    bar.innerHTML = "&nbsp;";
+                    tdBar.appendChild(bar);
+
+                    var slider = document.getElementById(id+"-slider");
+                    slider.max = data.length;
+                    slider.value = numToShow;
+
+                    document.getElementById(id+"-count").innerHTML = numToShow;
+                    document.getElementById(id+"-total").innerHTML = data.length;
+
+                }
+
+
+
+            }
+        }
+    }
+
+}
+
+/**********************************************************************/
+
+
 
 /**********************************************************************/
 

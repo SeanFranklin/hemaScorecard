@@ -3508,10 +3508,26 @@ function getMatchInfo($matchID = 0){
 
 	$matchInfo['maxDoubles'] = $data['maxDoubleHits'];
 	$matchInfo['timeLimit'] = $data['timeLimit'];
-	$matchInfo['maximumPoints'] = $data['maximumPoints'];
+
 	$matchInfo['maximumExchanges'] = $data['maximumExchanges'];
 	$matchInfo['maxPointSpread'] = $data['maxPointSpread'];
 
+	// Check if there are any special point caps for the brackets.
+	$matchInfo['maximumPoints'] = $data['maximumPoints'];
+	if($matchInfo['matchType'] == 'elim'){
+
+		$bracketPointCap = readOption('T', $matchInfo['tournamentID'], 'BRACKET_POINT_CAP');
+		if($bracketPointCap != 0){
+			$matchInfo['maximumPoints'] = $bracketPointCap;
+		}
+	}
+
+	if($matchInfo['matchType'] == 'elim' && $matchInfo['bracketLevel'] == 1){
+		$finalsPointCap = readOption('T', $matchInfo['tournamentID'], 'FINALS_POINT_CAP');
+		if($finalsPointCap != 0){
+			$matchInfo['maximumPoints'] = $finalsPointCap;
+		}
+	}
 
 
 	if($matchInfo['matchType'] == 'pool'){
@@ -4231,10 +4247,26 @@ function getPoolMatchOrder($groupID, $groupRoster){
 
 	$numFighters = count($groupRoster);
 
-	$sql = "SELECT matchNumber, fighter1, fighter2
-			FROM systemMatchOrder
-			WHERE numberOfFighters = {$numFighters}";
-	$result = mysqlQuery($sql, ASSOC);
+	$tournamentID = getGroupTournamentID($groupID);
+	$matchOrderMode = readOption('T',$tournamentID,'MATCH_ORDER_MODE');
+
+	if($matchOrderMode == MATCH_ORDER_MODE_ORIGINAL){
+
+		$sql = "SELECT matchNumber, fighter1, fighter2
+				FROM systemMatchOrder
+				WHERE numberOfFighters = {$numFighters}";
+		$result = (array)mysqlQuery($sql, ASSOC);
+
+	} else {
+		$result = lookupPoolMatchOrder($numFighters);
+	}
+
+	if($result == []){
+		// Calculate is only used if the pool is so big there isn't a pre-defined
+		// match list. (The algorithm is only passible, not good.)
+		$result = calculatePoolMatchOrder($numFighters);
+	}
+
 
 	$matchOrder = [];
 	foreach($result as $entry){

@@ -506,6 +506,9 @@ function processPostData(){
 			case 'assignGroupsToRings':
 				logisticsAssignTournamentToRing($_POST['assignToLocations']);
 				break;
+			case 'autoAssignRings':
+				logisticsAutoAssignRings($_POST['autoAssignRings']);
+				break;
 			case 'assignMatchesToLocations':
 				logisticsAssignTournamentToRing($_POST['selectedBracketMatches'],$_POST['locationID']);
 				break;
