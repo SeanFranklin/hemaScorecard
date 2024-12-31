@@ -17,7 +17,7 @@ define('FIRST_YEAR', 2015);
 {
 	// Show last year for the first 30 days of the new year.
 	$defaultYear = (int)date("Y", strtotime("-30 day"));
-	$currentYear = (int)date("Y");
+
 
 	if(isset($_SESSION['stats']['year']) == true){
 		$year = (int)$_SESSION['stats']['year'];
@@ -31,7 +31,7 @@ define('FIRST_YEAR', 2015);
 	}
 
 	$futureView = (boolean)(@$_SESSION['stats']['futureView']);
-	$invertFutureView = (int)!$futureView;
+
 
 	if($futureView == true){
 		$scopeText = ' [FULL YEAR]';
@@ -92,35 +92,8 @@ define('FIRST_YEAR', 2015);
 	<?=yearlySummarySoftware($year)?>
 
 
-	<div class="cell"><HR></div>
-	<div class="cell medium-6">
-		<form method="POST">
-			<div class='input-group'>
-				<input class='hidden' name='formName' value='statsYear'>
-				<span class='input-group-label'>Select Year</span>
-				<select class='input-group-field' name='stats[year]'>
-					<?php for($i = $currentYear; $i >=  FIRST_YEAR; $i--):?>
-						<option <?=optionValue($i, $year)?>><?=$i?></option>
-					<?php endfor?>
-					<option <?=optionValue(0, $year)?>>Everything (very slow to load)</option>
-				</select>
-				<div class="input-group-button">
-					<input type="submit" class="button" value="Change Year">
-				</div>
-			</div>
-		</form>
-	</div>
+	<?=pickYearToView($year, $futureView)?>
 
-	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
-		<div class='cell medium-4'>
-			<form method="POST">
-				<input class='hidden' name='formName' value='statsFutureView'>
-				<button class='button hollow' name='stats[futureView]' value='<?=$invertFutureView?>'>
-					Set futureView == <?=$invertFutureView?>
-				</button>
-			</form>
-		</div>
-	<?php endif ?>
 
 <?php
 }
@@ -947,6 +920,53 @@ function plotData($data, $id, $title = null, $color = '#D6E5FA', $numToShow = 5)
 			</tr>
 		<?php endforeach ?>
 	</table>
+<?php
+}
+
+/******************************************************************************/
+
+function pickYearToView($yearSelected, $futureView){
+
+	$invertFutureView = (int)!$futureView;
+	$currentYear = (int)date("Y");
+
+	if(ALLOW['SOFTWARE_ADMIN'] == true){
+		$displayYear = $currentYear + 1;
+	} else {
+		$displayYear = $currentYear;
+	}
+
+?>
+	<div class="cell"><HR></div>
+	<div class="cell medium-6">
+		<form method="POST">
+			<div class='input-group'>
+				<input class='hidden' name='formName' value='statsYear'>
+				<span class='input-group-label'>Select Year</span>
+				<select class='input-group-field' name='stats[year]'>
+					<?php for($i = $displayYear; $i >=  FIRST_YEAR; $i--):?>
+						<option <?=optionValue($i, $yearSelected)?>><?=$i?></option>
+					<?php endfor?>
+					<option <?=optionValue(0, $yearSelected)?>>Everything (very slow to load)</option>
+				</select>
+				<div class="input-group-button">
+					<input type="submit" class="button" value="Change Year">
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<?php if(ALLOW['SOFTWARE_ADMIN'] == true): ?>
+		<div class='cell medium-4'>
+			<form method="POST">
+				<input class='hidden' name='formName' value='statsFutureView'>
+				<button class='button hollow' name='stats[futureView]' value='<?=$invertFutureView?>'>
+					Set futureView == <?=$invertFutureView?>
+				</button>
+			</form>
+		</div>
+	<?php endif ?>
+
 <?php
 }
 

@@ -1118,7 +1118,7 @@ function createTournamentBrackets($bracketSpecs){
 	$tournamentID 	= (int)$bracketSpecs['tournamentID'];
 	$sizePrimary 	= (int)$bracketSpecs['sizePrimary'];
 	$sizeSecondary 	= (int)$bracketSpecs['sizeSecondary'];
-	$elimType	= (int)$bracketSpecs['elimType'];
+	$elimType	    = (int)$bracketSpecs['secondaryType'];
 	$extraPrimary = 0;
 	$extraSecondary = 0;
 
@@ -1131,27 +1131,29 @@ function createTournamentBrackets($bracketSpecs){
 		setAlert(USER_ERROR,"Can not create a bracket with less than 2 people!");
 		return;
 	}
-	if($sizeSecondary > $sizePrimary){
-		setAlert(USER_ERROR,"Secondary Bracket can no be bigger than the primary bracket.<BR>
-							Secondary Bracket size has been adjusted to
-							<strong>Top {$sizePrimary}</strong> fighters.");
-		$sizeSecondary = $sizePrimary;
-		return;
-	}
 
-	if($elimType != ELIM_TYPE_SINGLE && $sizeSecondary == 0){
-		$sizeSecondary = $sizePrimary;
-	}
+	if($sizeSecondary < 2){
+		$elimType = ELIM_TYPE_SINGLE;
 
+		if($sizeSecondary > 0){
+
+			setAlert(USER_ERROR,"You can't have a secondary bracket that has a single person in it with nobody to fight. <BR> <i>Don't try to break my software.</i>");
+			return;
+		}
+		$sizeSecondary = 0;
+	}
 
 	if($elimType == ELIM_TYPE_SINGLE){
+
 		if($sizePrimary >= 4){
 			$sizeSecondary = 2;
 		} else {
-			$sizeSeocndary = 0;
+			$sizeSecondary = 0;
 		}
+
 	} elseif($elimType == ELIM_TYPE_CONSOLATION){
-		$sizeSecondary -= 2; // Remove the top two from the winners bracket
+
+		$sizeSecondary -= 2; // Remove gold medal match from lower bracket size
 
 		if($sizeSecondary == 2){
 			setAlert(USER_ALERT,"<strong>Note:</strong> A double elim bracket for Top 4 is the
@@ -1159,14 +1161,10 @@ function createTournamentBrackets($bracketSpecs){
 		}
 
 	} else {
-		if($sizeSecondary != $sizePrimary){
-			$sizeSecondary = $sizePrimary;
-			setAlert(USER_ERROR,"For a True Double Elim bracket the size of the Secondary Bracket must
-								be the same as the size of the Primary Bracket.
-								<BR>This has been automatically corrected for you.");
-		}
-		$sizeSecondary -= 2;
+
+		$sizeSecondary -= 2; // Remove gold medal match from lower bracket size
 		$extraSecondary = 1;
+
 		if($elimType == ELIM_TYPE_LOWER_BRACKET){
 			$extraPrimary = 1;
 		} else {
@@ -1175,14 +1173,6 @@ function createTournamentBrackets($bracketSpecs){
 
 	}
 
-
-	if($sizeSecondary != 0 && $sizeSecondary < 2){
-		setAlert(USER_ERROR,"You can not create a Double Elimination Bracket for less than the
-							Top 4 fighters.<BR>
-							A <u>single elimination</u> bracket has been created.");
-		$sizeSecondary = 0;
-		$elimType = ELIM_TYPE_SINGLE;
-	}
 
 	// Create brackets
 	createPrimaryBracket($tournamentID, $sizePrimary, $extraPrimary);

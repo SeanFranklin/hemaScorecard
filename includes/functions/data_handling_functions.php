@@ -573,6 +573,43 @@ function autoRefreshTime($poolsInProgress){
 
 /******************************************************************************/
 
+function generatePrimaryBracket($numFighters, $extendBracketBy = 0){
+
+	$bracketLevels = (int)ceil(log($numFighters,2));
+	$matchesToSkip = (int)pow(2,$bracketLevels) - $numFighters;
+
+
+	for($bracketLevel=$bracketLevels;$bracketLevel>0;$bracketLevel--){
+
+		$matchesInLevel = pow(2,$bracketLevel-1);
+
+		for($currentMatch=1;$currentMatch<=$matchesInLevel;$currentMatch++){
+			if($bracketLevel==$bracketLevels AND $currentMatch <= $matchesToSkip){
+				continue;
+			}
+
+			$bracketPosition = getBracketPositionByRank($currentMatch,$matchesInLevel);
+
+			$bracketMatches[$bracketLevel][$bracketPosition] = true;
+
+			// In a true double elim there are extra matches at the highest bracket level.
+			if($bracketLevel == 1 & $extendBracketBy != 0){
+
+				for($i=1;$i<=$extendBracketBy;$i++){
+					$bracketPosition = $i + 1;
+					$bracketMatches[$bracketLevel][$bracketPosition] = true;
+				}
+
+			}
+
+		}
+	}
+
+	return ($bracketMatches);
+}
+
+/******************************************************************************/
+
 function getPrimaryBracketAdvancements($allBracketInfo, $finalists, $isTrueDoubleElim = false){
 // Determines which fighters should be advanced into which spots in the bracket
 
@@ -687,8 +724,71 @@ function getSecondaryBracketAdvancements($allBracketInfo, $finalists){
 	$bracketID = $allBracketInfo[BRACKET_SECONDARY]['groupID'];
 	$bracketLevels = $allBracketInfo[BRACKET_SECONDARY]['bracketLevels'];
 
+	$numFighters = $allBracketInfo[BRACKET_SECONDARY]['numFighters'] + 2;
+	$numFightersWinner = (int)$allBracketInfo[BRACKET_PRIMARY]['numFighters'];
+
 	$bracketMatches = getBracketMatchesByPosition($bracketID);
-	$winnerBracketMatches = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
+	$winnerBracketMatchesReal = getBracketMatchesByPosition($allBracketInfo[BRACKET_PRIMARY]['groupID']);
+	$winnerBracketMatchesTheory = generatePrimaryBracket($numFighters, $extendBracketBy = 0);
+
+
+	// If the secondary bracket is bigger than the primary bracket, we need to pull matches from
+	// the seed list in addition to the primary bracket.
+	if($numFightersWinner >= $numFighters){
+		$winnerBracketMatches = $winnerBracketMatchesReal;
+	} else {
+
+		// Loop through all the matches in the primary bracket that would exist in theory if the
+		// primary bracket was as big as the secondary bracket. These phantom matches are used
+		// to determine which seed would be expected to lose the primary bracket match if it had
+		// existed, and thus which seed should be selected from the seed list for the secondary.
+		foreach($winnerBracketMatchesTheory as $bLevel => $positionsInLevel){
+
+			$numInNextLevel = $maxFightersAtLevel = pow(2, ($bLevel - 1));
+			$numInLevel = $maxFightersAtLevel = pow(2,$bLevel);
+
+			// Loop through all the ranks at the lavel and figure out where in the bracketLevel
+			// the ranked seed would exist.
+			for($rank = $numInLevel; $rank > 0; $rank--){
+
+				// This is position measured in number of fighters from the top, which
+				// needs to be divided by 2 to get the bracketPosition (of the match)
+				$position = getBracketPositionByRank($rank, $numInLevel);
+				$bPosition = ceil($position/2);
+				$fighterNumber = 2 - ($position % 2);
+
+				$bPositionSeeds[$bPosition][$fighterNumber] = $rank;
+
+			}
+
+
+			foreach($positionsInLevel as $bPosition => $exists){
+
+				// If there is a real match it is use, otherwise make a fake match
+				// with the loserID being the lower seed of the match if it were real.
+				if(isset($winnerBracketMatchesReal[$bLevel][$bPosition]) == true){
+					$tmp = $winnerBracketMatchesReal[$bLevel][$bPosition];
+				} else {
+					$tmp = [];
+					$tmp['seeds'] = $bPositionSeeds[$bPosition];
+
+
+					$tmp['loserSeed'] = max($bPositionSeeds[$bPosition]);
+
+
+					if(isset($finalists[$tmp['loserSeed']-1]['rosterID']))
+					{
+						$tmp['loserID'] =  $finalists[$tmp['loserSeed']-1]['rosterID'];
+					}
+
+				}
+
+				$winnerBracketMatches[$bLevel][$bPosition] = $tmp;
+			}
+		}
+	}
+
+
 	$changeOverBracket = false;
 
 	$matchPositions = [];
