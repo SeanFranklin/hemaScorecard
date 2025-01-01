@@ -157,6 +157,16 @@ table tr.match-queue{
   .button-extra-pad-small {
     font-size: 600%;} }
 
+.data-table td{
+  padding-top: 4px;
+  padding-bottom: 4px;
+  text-align: right
+}
+
+.data-table tr:nth-child(even) {
+    background-color: #EAF3FB;
+}
+
 .options-table table{
   border:  0px;
 }
