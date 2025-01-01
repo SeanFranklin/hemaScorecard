@@ -141,7 +141,6 @@ function displaySponsors(){
 		return;
 	}
 
-
 	$pageName = basename($_SERVER['PHP_SELF']);
 	if(ALLOW['EVENT_SCOREKEEP'] == true && ($pageName == 'scoreMatch.php' || $pageName == 'scorePiece.php' )){
 		$hideForSmall = 'hide-for-small-only';
@@ -149,15 +148,16 @@ function displaySponsors(){
 		$hideForSmall = '';
 	}
 
+
 ?>
 	<div class="large-12 cell align-top <?=$hideForSmall?>" style='border-top: 1px solid black; margin-top: 20px;'>
 
 		<div class='grid-x grid-margin-x align-center align-top' id='sponsor-large'>
 
 
-				<?php foreach($eventSponsors as $sponsorID => $sponsor): ?>
+				<?php foreach($eventSponsors as $sponsor): ?>
 					<div class='shrink cell'>
-					<img class='align-self-top' src="includes/images/sponsors/<?=$sponsorID?>.png" style='display: inline-block'
+					<img class='align-self-top' src="<?=$sponsor['imagePathAndFile']?>" style='display: inline-block'
 						width="<?=($sponsor['eventSponsorPercent'] * $imageSize)?>" title="<?=$sponsor['sponsorName']?>">
 					</div>
 				<?php endforeach ?>

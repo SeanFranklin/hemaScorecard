@@ -588,5 +588,28 @@ function compareDates($compareDate, $currentDate = null){
 }
 
 /******************************************************************************/
+
+function getImagePathAndFile($basePath, $fileName){
+// The basePath should include the backslash.
+
+	$path = "{$basePath}{$fileName}";
+
+	/* Don't display anything unless an image exists */
+	if(file_exists($path.'.png') == true){
+		$fullPath = $path.'.png';
+	} elseif(file_exists($path.'.jpg') == true){
+		$fullPath = $path.'.jpg';
+	} elseif(file_exists($path.'.jpeg') == true){
+		$fullPath = $path.'.jpeg';
+	} else {
+		$fullPath = null;
+	}
+
+	return ($fullPath);
+
+}
+
+
+/******************************************************************************/
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -76,7 +76,7 @@
 	define("DEFAULT_COLOR_CODE_2",'#66F');
 
 	define("DEFAULT_MAX_DOUBLES",3);
-	define("POOL_SIZE_LIMIT",16);	// If you raise this you also need to add the match order to the table.
+	define("POOL_SIZE_LIMIT",30);	// If you raise this you also need to add the match order to the table.
 	define("STAFF_COMPETENCY_MAX",9);
 
 	define("PENALTY_CARD_NONE",		null);
@@ -208,6 +208,12 @@
 	$options['T']["TEAM_SWITCH_MODE"] 				= 19;
 		define("TEAM_SWITCH_MODE_RELAY",	0);
 		define("TEAM_SWITCH_MODE_MOF",		1);
+	$options['T']["MATCH_ORDER_MODE"] 				= 20;
+		define("MATCH_ORDER_MODE_DEFAULT",  0);
+		define("MATCH_ORDER_MODE_ORIGINAL",	1);
+	$options['T']["SUPPRESS_MATCH_SCORE_OVERSHOOT"] = 21;
+	$options['T']["BRACKET_POINT_CAP"]              = 22;
+	$options['T']["FINALS_POINT_CAP"]               = 23;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

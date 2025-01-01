@@ -164,21 +164,16 @@ function displayInstructorBio($instructor){
 	}
 
 // Find out if there is a saved image for the instructor
-	$filePath = "./includes/images/instructors/".$instructor['systemRosterID'];
+	$imagePath = "includes/images/instructors/";
+	$imagePathAndName = getImagePathAndFile($imagePath, $instructor['systemRosterID']);
+	$filePath = "./includes/images/instructors/";
 
-	if(file_exists($filePath.".png") == true){
-		$image = "<img src='{$filePath}.png'>";
-		$bioSize = "medium-9";
-	} elseif(file_exists($filePath.".jpg") == true){
-		$image = "<img src='{$filePath}.jpg'>";
-		$bioSize = "medium-9";
-	} elseif(file_exists($filePath.".jpeg") == true){
-		$image = "<img src='{$filePath}.jpeg'>";
-		$bioSize = "medium-9";
-	} else {
-		$image = null;
+	if($imagePathAndName == null){
 		$bioSize = "large-12";
+	} else {
+		$bioSize = "medium-9";
 	}
+
 
 // Show their classes
 	$personalSchedule = (array)logistics_getParticipantSchedule($instructor['rosterID'], $_SESSION['eventID']);
@@ -201,9 +196,9 @@ function displayInstructorBio($instructor){
 		<h3><?=($instructor['name'])?></h3>
 	</div>
 
-	<?php if($image != null): ?>
+	<?php if($imagePathAndName != null): ?>
 		<div class='cell medium-3'>
-			<?=$image?>
+			<img src="<?=$imagePathAndName?>">
 		</div>
 	<?php endif ?>
 

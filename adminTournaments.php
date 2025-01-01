@@ -106,6 +106,8 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentMaxPoints($tournamentID);
 				edit_tournamentMaxPointSpread($tournamentID);
 				edit_tournamentMaxExchanges($tournamentID);
+				edit_tournamentBracketPointCap($tournamentID);
+				edit_tournamentFinalsPointCap($tournamentID);
 
 			// Sub Matches --------------------------
 				edit_tournamentOptionsRow("Sub-Match Info","option-sub-match",
@@ -132,6 +134,8 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentPriorityNotice($tournamentID);
 				edit_tournamentDenoteOtherCheck($tournamentID);
 				edit_tournamentSoftClock($tournamentID);
+				edit_tournamentMatchOrderMode($tournamentID);
+				edit_tournamentLimitScoreOvershoot($tournamentID);
 			?>
 	</table>
 	</div>

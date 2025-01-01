@@ -154,6 +154,7 @@ if($tournamentID == 0){
 		</div>
 		<div class='auto cell'>
 			<?php autoPopluateButton($numPools, $arePoolsEmpty); ?>
+			<?php autoAssignRingsButton($pools, $ringsInfo); ?>
 		</div>
 	</div>
 
@@ -1012,6 +1013,120 @@ function autoPopluateButton($numPools, $enabled){
 
 <?php }
 
+
+/******************************************************************************/
+
+function autoAssignRingsButton($pools, $ringsInfo){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	if(sizeof((array)$ringsInfo) == 0){
+		$isLocations = false;
+	} else {
+		$isLocations = true;
+	}
+
+	$isUnasignedPools = false;
+	foreach($pools as $pool){
+		if((int)$pool['locationID'] == 0){
+			$isUnasignedPools = true;
+		}
+	}
+
+
+	if($isUnasignedPools == true && $isLocations == true){
+		$canAutoAssign = true;
+	} else {
+		$canAutoAssign = false;
+	}
+
+
+	$tournamentID = (int)$_SESSION['tournamentID'];
+
+?>
+
+	<?php if($isLocations == false): ?>
+
+		<a class='button hollow disabled' data-tooltip aria-haspopup='true' class='has-tip'
+				data-disable-hover='false' tabindex='2' data-position='bottom' data-allow-html='true'
+				title="Locations have not been created for this event." >
+
+			Auto Assign Rings
+		</a>
+		<?php return ?>
+
+	<?php elseif($canAutoAssign == false): ?>
+
+		<a class='button hollow disabled' data-tooltip aria-haspopup='true' class='has-tip'
+				data-disable-hover='false' tabindex='2' data-position='bottom' data-allow-html='true'
+				title="All pools have rings assigned." >
+
+			Auto Assign Rings
+		</a>
+		<?php return ?>
+
+	<?php else: ?>
+
+		<button class='button hollow' data-open='autoAssignBox' <?=LOCK_TOURNAMENT?>>
+			Auto Assign Rings
+		</button>
+
+	<?php endif ?>
+
+
+	<div class='reveal tiny' id='autoAssignBox' data-reveal>
+
+		<h5>Auto-Assign Rings Pools</h5>
+		<em>This will automatically assign all <b>un-assigned</b> pools to a ring, with Pool 1 going into the first ring, Pool 2 to the second, etc.</em>
+
+		<hr>
+
+		<p>Check the rings you want to assign pools between:</p>
+
+		<form method='POST'>
+
+			<input type='hidden' name='autoAssignRings[tournamentID]' value='<?=$tournamentID?>'>
+			<input type='hidden' name='autoAssignRings[groupSet]' value='<?= $_SESSION['groupSet']?>'>
+
+			<table>
+				<?php foreach($ringsInfo as $ring): ?>
+					<tr>
+						<td>
+							<?=checkboxPaddle("autoAssignRings[locationIDs][{$ring['locationID']}]",1)?>
+						</td>
+						<td>
+					 		<?=logistics_getLocationName($ring['locationID'])?>
+						</td>
+					</tr>
+				<?php endforeach ?>
+			</table>
+
+			<HR>
+
+		<!-- Submit buttons -->
+
+			<div class='grid-x grid-margin-x'>
+				<button class='success button small-6 cell' name='formName' value='autoAssignRings'>
+					Auto-Assign
+				</button>
+				<button class='secondary button small-6 cell'
+					data-close aria-label='Close modal' type='button'>
+					Cancel
+				</button>
+			</div>
+
+		</form>
+
+		<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+<?php }
 
 /******************************************************************************/
 

@@ -373,6 +373,133 @@ function generate_PoolSizePoints($numInPools,$maxPoolSize){
 
 }
 
+/******************************************************************************/
+
+function lookupPoolMatchOrder($size){
+
+	$size = (int)$size;
+
+	$matchOrderTable[1] = [];
+	$matchOrderTable[2] = [	[1,2]];
+	$matchOrderTable[3] = [	[1,2],[3,2],[3,1]];
+	$matchOrderTable[4] = [	[1,4],[1,3],[2,3],[2,4],[3,4],[1,2]];
+	$matchOrderTable[5] = [	[2,4],[5,3],[1,4],[5,2],[1,3],[5,4],[2,3],[5,1],[4,3],[2,1]];
+	$matchOrderTable[6] = [	[6,2],[3,4],[5,1],[3,6],[4,2],[1,6],[5,3],[1,4],[2,5],[6,4],
+							[3,1],[5,6],[2,3],[4,5],[1,2]];
+	$matchOrderTable[7] = [	[1,4],[2,5],[3,6],[7,1],[5,4],[2,3],[6,7],[5,1],[4,3],[6,2],
+							[5,7],[3,1],[4,6],[7,2],[3,5],[1,6],[2,4],[7,3],[6,5],[1,2],
+							[4,7]];
+	$matchOrderTable[8] = [	[1,3],[7,2],[8,5],[4,6],[1,7],[3,5],[2,6],[4,8],[3,7],[6,1],
+							[5,4],[2,8],[3,6],[7,5],[8,1],[4,2],[6,7],[8,3],[5,2],[4,1],
+							[8,7],[5,6],[3,4],[1,2],[6,8],[7,4],[1,5],[2,3]];
+
+	if($size < 1 || $size > sizeof($matchOrderTable)){
+		return [];
+	}
+
+	$matchList = [];
+	$matchNumber = 0;
+	foreach($matchOrderTable[$size] as $match){
+		$matchNumber++;
+		$matchList[$matchNumber]['fighter1'] = $match[0];
+		$matchList[$matchNumber]['fighter2'] = $match[1];
+		$matchList[$matchNumber]['matchNumber'] = $matchNumber;
+	}
+
+	return $matchList;
+
+}
+
+
+/******************************************************************************/
+
+function calculatePoolMatchOrder($size){
+
+	$size = (int)$size;
+
+	if($size % 2 == 0){
+		$startIndex = 1;
+	} else {
+		// If it is odd we use an extra placeholder fighter.
+		$startIndex = 0;
+	}
+
+	$order = [];
+	for($i = $startIndex; $i <= $size; $i++){
+		$order[] = $i;
+	}
+
+	// Working size rounds up to an even number.
+	$workingSize = sizeof($order);
+
+	$numMatches = ($size * ($size - 1)) / 2;
+	$matchesPerFrame = ceil($size / 2);
+	$matchesPerFrameReal = floor($size / 2);
+
+	$numFrames = $numMatches / $matchesPerFrameReal;
+
+	$matchList = [];
+
+
+	$matchNumber = 0;
+	for($frame = 0; $frame < $numFrames; $frame++){
+
+		$frameMatches = [];
+		$frameIndex = -1;
+
+		/* Determine the matches in the frame */
+		for($match = 0; $match < $matchesPerFrame; $match++){
+
+			$index1 = $match;
+			$fighter1 = $order[$index1];
+			$index2 = ($workingSize - 1) - $index1;
+
+
+			$fighter2 = $order[$index2];
+
+			if($fighter1 == 0 || $fighter2 == 0){
+				continue;
+			}
+
+			$frameIndex++;
+			$frameMatches[$frameIndex] = [$fighter1, $fighter2];
+
+		}
+
+		// Loop through the matches in the frame and assign them to the match list.
+		// This is done in a separate loop so there is freedom to go through the frame
+		// forward or backwards.
+		for($i = 0; $i <= $frameIndex; $i++){
+
+			if($frame % 2 == 0){
+				$index = $i;
+			} else {
+				$index = $i; $frameIndex - $i;
+			}
+
+			$matchNumber++;
+			$match = [];
+			$match['matchNumber'] = $matchNumber;
+			$match['fighter1'] = $frameMatches[$index][0];
+			$match['fighter2'] = $frameMatches[$index][1];
+
+			$matchList[] = $match;
+
+		}
+
+
+		$first = $order[1];
+		// We deliberatly start at one and not zero so that the first spot does not rotate.
+		for($i = 1; $i < ($workingSize - 1); $i++){
+			$order[$i] = $order[$i+1];
+		}
+		$order[$workingSize-1] = $first;
+
+	}
+
+	return ($matchList);
+
+}
 
 
 /******************************************************************************/
@@ -1592,6 +1719,14 @@ function autoConcludeMatch($matchInfo){
 		return;
 
 	}
+
+	$limitOvershoot = (boolean)readOption('T',$matchInfo['tournamentID'],'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+
+	if($limitOvershoot == true){
+		limitFighterScore(1, $matchInfo);
+		limitFighterScore(2, $matchInfo);
+	}
+
 
 	addMatchWinner();
 }

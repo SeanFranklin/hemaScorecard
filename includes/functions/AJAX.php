@@ -939,6 +939,44 @@ case 'penaltyEscalation': {
 } break;
 
 /******************************************************************************/
+
+case 'getDataForYear': {
+
+	$year = (int)$_REQUEST['year'];
+	$futureView = (boolean)(@$_SESSION['stats']['futureView']);
+
+	switch($_REQUEST['dataType']){
+		case 'events-by-country':	{$retVal = getAnnualEventsByCountry($year, $futureView); break;}
+		case 'events-by-month':		{$retVal = getAnnualEventsByMonth($year, $futureView); break;}
+		case 'events-by-days':		{$retVal = getAnnualEventsByDays($year, $futureView); break;}
+		case 'exchanges-by-event':	{$retVal = getAnnualExchangesByEvent($year, $futureView); break;}
+		case 'matches-by-event':	{$retVal = getAnnualMatchesByEvent($year, $futureView); break;}
+		case 'tournaments-by-event':{$retVal = getAnnualTournamentsByEvent($year, $futureView); break;}
+		case 'womens-by-event':		{$retVal = getAnnualWomensByEvent($year, $futureView); break;}
+		case 'entries-by-club':		{$retVal = getAnnualEntriesByClub($year, $futureView); break;}
+		case 'matches-by-club':		{$retVal = getAnnualMatchesByClub($year, $futureView); break;}
+		case 'exchanges-by-club':	{$retVal = getAnnualExchangesByClub($year, $futureView); break;}
+		case 'wins-by-club':		{$retVal = getAnnualWinsByClub($year, $futureView); break;}
+		case 'tournaments-by-weapon':{$retVal = getAnnualTournamentsByWeapon($year, $futureView); break;}
+		case 'exchanges-by-weapon':	{$retVal = getAnnualExchangesByWeapon($year, $futureView); break;}
+		case 'wtournaments-by-weapon':{$retVal = getAnnualWTournamentsByWeapon($year, $futureView); break;}
+		case 'womens-by-weapon':	{$retVal = getAnnualWomensByWeapon($year, $futureView); break;}
+		case 'exchanges-by-fighter':{$retVal = getAnnualExchangesByFighter($year, $futureView); break;}
+		case 'close-by-fighter':	{$retVal = getAnnualCloseByFighter($year, $futureView); break;}
+		case 'entries-by-fighter':	{$retVal = getAnnualEntriesByFighter($year, $futureView); break;}
+		case 'events-by-fighter':	{$retVal = getAnnualEventsByFighter($year, $futureView); break;}
+		case 'shutouts-by-fighter':	{$retVal = getAnnualShutoutsByFighter($year, $futureView); break;}
+		case 'matches-by-fighter':	{$retVal = getAnnualMatchesByFighter($year, $futureView); break;}
+		case 'exchanges-by-match':	{$retVal = getAnnualExchangesByMatch($year, $futureView); break;}
+		case 'comebacks-by-match':	{$retVal = getAnnualComebacksByMatch($year, $futureView); break;}
+		case 'rematches-by-fighter':{$retVal = getAnnualRematchesByFighter($year, $futureView); break;}
+	}
+
+	echo json_encode($retVal);
+
+} break;
+
+/******************************************************************************/
 }
 
 
