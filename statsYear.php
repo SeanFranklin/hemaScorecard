@@ -330,18 +330,38 @@ function dataSliderPlot($id){
 /******************************************************************************/
 
 function yearlySummaryIntro($year, $futureView){
+
+	$counts = getYearlySummaryCounts($year, $futureView);
+
 ?>
 
 	<div class='grid-x grid-margin-x'>
 
-	<div class='cell callout alert large-6'>
-		<h3 class='text-center red-text'>Warning!</h3>
-		This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
+	<div class='cell large-1'></div>
+
+	<div class='cell large-4 medium-6'>
+		<table class='data-table'>
+		<?php foreach($counts as $item): ?>
+			<tr>
+				<td></td>
+				<td width='1px' class='no-wrap'><?=$item['name']?>:</td>
+				<td width='1px' > <b><?=number_format($item['data'])?></b></td>
+				<td></td>
+			</tr>
+		<?php endforeach ?>
+	</table>
 	</div>
 
-	<div class='cell large-6'>
+
+	<div class='cell medium-6'>
 		<?=pickYearToView($year, $futureView)?>
+		<div class=' callout alert'>
+			<h3 class='text-center red-text'>Warning!</h3>
+			This information is what event organizers & match table staff have entered into the database. It's accuracy/reliability will reflect their commitment to data integrity. Tournament registrations may be slightly inflated for some events if the organizer did not remove fighters dropping prior to the tournament, etc.
+		</div>
 	</div>
+
+	<div class='cell large-1'></div>
 
 	</div>
 
@@ -383,12 +403,7 @@ function yearlySummarySoftware($year){
 			$index .= "<BR><a href='#year_{$text['updateYear']}'>Goto {$text['updateYear']}</a>";
 		}
 
-
-
-
 	}
-
-
 
 ?>
 
@@ -422,74 +437,6 @@ function yearlySummarySoftware($year){
 
 /******************************************************************************/
 
-function plotData($data, $id, $title = null, $color = '#D6E5FA', $numToShow = 5){
-
-	$max = 1;
-	$numDataPoints = sizeof($data);
-
-	if($numToShow > $numDataPoints){
-		$numToShow = $numDataPoints;
-	}
-	foreach($data as $i => $m){
-
-		if($m['value'] > $max){
-			$max = $m['value'];
-		}
-
-		if(isset($m['nameShort']) == false){
-			$data[$i]['nameShort'] = $m['name'];
-		}
-	}
-
-	$i = 0;
-
-?>
-	<span style='font-size:1.3em'><?=$title?></span>
-	<input type="range" min="1" max="<?=$numDataPoints?>" value="<?=$numToShow?>" id="<?=$id?>-slider" onchange="listSlider('<?=$id?>')">
-	(Showing <span id='<?=$id?>-count'><?=$numToShow?></span> / <?=$numDataPoints?>)
-
-	<table class='table-compact'>
-		<?php foreach($data as $m):
-			$width = 100 * ($m['value'] / $max);
-			$i++;
-
-			$class = "";
-			if($i > $numToShow){
-				$class .= ' hidden';
-			}
-
-			$class2 = "";
-			if(strlen($m['name']) > 40){
-				$class2 .= 'max-width:500px;min-width:250px;';
-			} else {
-				$class2 .= 'width:0.1%;white-space: nowrap;';
-			}
-
-			?>
-			<tr id='<?=$id?>-<?=$i?>' class='<?=$class?>'>
-				<td class='hide-for-small-only' style='<?=$class2?>'><?=$m['name']?></td>
-				<td class='show-for-small-only' ><?=$m['name']?></td>
-				<td style='width:0.1%;white-space: nowrap; border-right: solid 1px black' class='text-right'><?=number_format($m['value'])?></td>
-
-				<td style='min-width: 100px; padding:0px'>
-					<div style='
-							width:<?=$width?>%;
-							display:inline-block;
-							margin:0px;
-							padding:0px;
-							background-image: linear-gradient(to right, white, <?=$color?>);'
-					>
-						&nbsp;
-					</div>
-				</td>
-			</tr>
-		<?php endforeach ?>
-	</table>
-<?php
-}
-
-/******************************************************************************/
-
 function pickYearToView($yearSelected, $futureView){
 
 	$invertFutureView = (int)!$futureView;
@@ -502,7 +449,6 @@ function pickYearToView($yearSelected, $futureView){
 	}
 
 ?>
-	<div class="cell"><HR></div>
 	<div class="cell medium-6">
 		<form method="POST">
 			<div class='input-group'>

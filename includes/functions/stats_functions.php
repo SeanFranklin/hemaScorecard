@@ -45,6 +45,73 @@ function makeEventListStr($year, $futureView = false){
 
 /******************************************************************************/
 
+function getYearlySummaryCounts($year, $futureView){
+
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT COUNT(*) as num
+			FROM systemEvents
+			WHERE {$eventListStr}";
+	$counts['events']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['events']['name'] = "Number of Events ";
+
+	$counts['countries']['data'] = sizeof(getAnnualEventsByCountry($year, $futureView));
+	$counts['countries']['name'] = "Countries Represented ";
+
+	$sql = "SELECT COUNT(*) as num
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE {$eventListStr}";
+	$counts['exchanges']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['exchanges']['name'] = "Exchanges Recorded";
+
+
+	$sql = "SELECT COUNT(*) as num
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE {$eventListStr}";
+	$counts['matches']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['matches']['name'] = "Matches Fought";
+
+	$sql = "SELECT COUNT(*) as num
+			FROM eventTournaments
+			WHERE {$eventListStr}";
+	$counts['tournaments']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['tournaments']['name'] = "Tournaments Created";
+
+	$sql = "SELECT COUNT(*) as num
+			FROM eventTournamentRoster
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE {$eventListStr}";
+	$counts['entries_tournament']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['entries_tournament']['name'] = "Tournament Entries";
+
+	$sql = "SELECT COUNT(*) as num
+			FROM eventRoster
+			WHERE {$eventListStr}";
+	$counts['entries_event']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['entries_event']['name'] = "Event Registrations";
+
+	$sql = "SELECT COUNT(DISTINCT(systemRosterID)) as num
+			FROM eventRoster
+			WHERE {$eventListStr}";
+	$counts['entries_event_unique']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['entries_event_unique']['name'] = "Unique Participants";
+
+	$sql = "SELECT COUNT(DISTINCT(schoolID)) as num
+			FROM eventRoster
+			WHERE {$eventListStr}";
+	$counts['schools_unique']['data'] = (int)mysqlQuery($sql, SINGLE, 'num');
+	$counts['schools_unique']['name'] = "Clubs Represented";
+
+	return ($counts);
+}
+
+/******************************************************************************/
+
 function getAnnualEventsByCountry($year, $futureView){
 
 	$eventListStr = makeEventListStr($year, $futureView);
