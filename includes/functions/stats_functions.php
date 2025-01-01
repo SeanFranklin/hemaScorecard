@@ -852,13 +852,10 @@ function getAnnualComebacksByMatch($year, $futureView){
 
 	$eventListStr = makeEventListStr($year, $futureView);
 
-	if($eventListStr != "eventID IS NOT NULL"){
-		$minScore = 3;
-	} else {
-		$minScore = 6;
-	}
+	$minScore = 6;
 
-	$sql = "SELECT matchID, fighter1ID, fighter2ID, winnerID, fighter1Score, fighter2Score, eventName, tournamentID, eventYear
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, winnerID,
+				fighter1Score, fighter2Score, eventName, tournamentID, eventYear
 			FROM eventMatches
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
@@ -1020,7 +1017,7 @@ function getAnnualRematchesByFighter($year, $futureView){
     }
 
 
-    return ($plotRematches);
+	return ($plotRematches);
 }
 
 
