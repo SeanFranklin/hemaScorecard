@@ -5657,21 +5657,11 @@ function logistics_getEventLocations($eventID, $locationType = null){
 function logistics_getFloorplanFilePath($eventID){
 
 	$eventID = (int)$eventID;
+	$filePath = "includes/images/floormaps/";
 
-	$basePath = "includes/images/floormaps/{$eventID}";
+	$imagePathAndName = getImagePathAndFile($filePath, $eventID);
 
-	/* Don't display anything unless a floor map exists. */
-	if(file_exists($basePath.'.png') == true){
-		$fullPath = $basePath.'.png';
-	} elseif(file_exists($basePath.'.jpg') == true){
-		$fullPath = $basePath.'.jpg';
-	} elseif(file_exists($basePath.'.jpeg') == true){
-		$fullPath = $basePath.'.jpeg';
-	} else {
-		$fullPath = null;
-	}
-
-	return ($fullPath);
+	return ($imagePathAndName);
 
 }
 
@@ -9712,6 +9702,7 @@ function getSponsorListLocal($type = null){
 function getEventSponsors($eventID, $ignoreTiers = false){
 
 	$eventID = (int)$eventID;
+	$filePath = "includes/images/sponsors/";
 
 	if($ignoreTiers == false){
 		$sortTier = "eventSponsorPercent DESC,";
@@ -9732,6 +9723,10 @@ function getEventSponsors($eventID, $ignoreTiers = false){
 		$eventSponsors[$sponsor['sponsorID']]['eventSponsorID'] = (int)$sponsor['eventSponsorID'];
 		$eventSponsors[$sponsor['sponsorID']]['eventSponsorPercent'] = (int)$sponsor['eventSponsorPercent'];
 		$eventSponsors[$sponsor['sponsorID']]['sponsorName'] = $sponsor['sponsorName'];
+
+		$pathAndFile = getImagePathAndFile($filePath, $sponsor['sponsorID']);
+		$eventSponsors[$sponsor['sponsorID']]['imagePathAndFile'] = $pathAndFile;
+
 	}
 
 	return $eventSponsors;
