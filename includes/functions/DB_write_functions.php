@@ -3770,6 +3770,11 @@ function updateEventPublication($publicationSettings, $eventID){
 
 	}
 
+
+	$publishRatings = (int)(bool)$publicationSettings['publishRatings'];
+	writeOption('E',$eventID,'SHOW_FIGHTER_RATINGS', $publishRatings);
+
+
 	$_SESSION['alertMessages']['userAlerts'][] = "Publication Settings Updated".$confirmationMsg;
 
 }

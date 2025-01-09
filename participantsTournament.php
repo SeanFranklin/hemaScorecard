@@ -59,6 +59,8 @@ if($tournamentID == null){
 
 	$tournamentRoster = (array)getTournamentFighters($tournamentID, $sortString);
 	$showOtherNotice = readOption('T',$tournamentID,'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
+	$showRating = (bool)readOption('E',$_SESSION['eventID'],'SHOW_FIGHTER_RATINGS');
+	$maxRatingDigits = 1;
 
 	$namesEntered = [];
 	$totals['numFighters'] = count($tournamentRoster);
@@ -74,6 +76,18 @@ if($tournamentID == null){
 		$tmp = [];
 		$tmp['name']   = getFighterName($fighter['rosterID']);
 		$tmp['school'] = getSchoolName($fighter['schoolID']);
+
+		if((int)$fighter['rating'] == 0 || $showRating == false){
+			$tmp['rating'] = "";
+		} else {
+			$tmp['rating'] = $fighter['rating'];
+
+
+			if(strlen($fighter['rating']) > $maxRatingDigits){
+				$maxRatingDigits = strlen($fighter['rating']);
+			}
+
+		}
 
 		$tmp['checkInID'] = "check-in-tournament-".$fighter['rosterID']."-checkIn";
 		$tmp['tournamentCheckIn'] = $fighter['tournamentCheckIn'];
@@ -116,6 +130,19 @@ if($tournamentID == null){
 		$namesEntered[$fighter['rosterID']] = 'entered';
 
 	}
+
+
+	if($showRating == true && $maxRatingDigits != 1){
+
+		$spec = "%0{$maxRatingDigits}d";
+
+		foreach($rosterToDisplay as $index => $fighter){
+			if($fighter['rating'] != ""){
+				$rosterToDisplay[$index]['rating'] = sprintf($spec, $fighter['rating']);
+			}
+		}
+	}
+
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,11 +217,12 @@ if($tournamentID == null){
 	</div>
 	<?php endif ?>
 
+
 	<form method='POST' id='tournamentRosterForm'>
 	<fieldset>
 
 	<div class='grid-x grid-padding-x'>
-	<div class='large-8 medium-10 cell'>
+	<div class='large-9 medium-10 cell'>
 	<h4>Number of Fighters: <?=$totals['numFighters']?></h4>
 	<input type='hidden' name='tournamentID' value=<?= $tournamentID ?> id='tournamentID'>
 
@@ -210,6 +238,14 @@ if($tournamentID == null){
 
 		<th>Name</th>
 		<th>School</th>
+		<?php if($showRating == true): ?>
+			<th>
+				Rating <?=tooltip("This is <u>what the event organizer has entered into Scorecard for seeding purposes</u> .
+				It <i>may</i> be HEMA Ratings, or it may be some other rating metric.
+				(Especially if there isn't good HR data for the tournament in question.)
+				<BR> [Blank] means no data, either because it wasn't entered yet or it can't be found.")?>
+			</th>
+		<?php endif ?>
 
 
 		<?php if(ALLOW_CHECKIN == true):?>
@@ -238,6 +274,10 @@ if($tournamentID == null){
 			<td><?=$f['name']?></td>
 
 			<td><?=$f['school']?></td>
+
+			<?php if($showRating == true): ?>
+				<td><?=$f['rating']?></td>
+			<?php endif ?>
 
 			<?php if(ALLOW_CHECKIN == true): ?>
 

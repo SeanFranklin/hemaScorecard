@@ -239,6 +239,12 @@ function publicationsSettingsBox($canChangeSettings){
 		$publishMatchesChecked = '';
 	}
 
+	if(readOption('E',$_SESSION['eventID'],'SHOW_FIGHTER_RATINGS') == 1){
+		$publishRatingsChecked = 'checked';
+	} else {
+		$publishRatingsChecked = '';
+	}
+
 	$formDiabled = '';
 	if($canChangeSettings == false){
 		$formDiabled = 'disabled';
@@ -321,7 +327,7 @@ function publicationsSettingsBox($canChangeSettings){
 				<tr>
 					<td>
 						Matches
-						<?=tooltip("Make everything visible, so everyone can see you pools and matches.")?>
+						<?=tooltip("Make everything except ratings visible, so everyone can see you pools and matches.")?>
 					</td>
 					<td>
 						<input type='hidden' name='publicationSettings[publishMatches]' value='0'>
@@ -329,6 +335,21 @@ function publicationsSettingsBox($canChangeSettings){
 						id='publicationSettings[publishMatches]'
 						name='publicationSettings[publishMatches]' value='1'>
 					<label class='switch-paddle' for='publicationSettings[publishMatches]'>
+					</label>
+					</td>
+				</tr>
+
+				<tr>
+					<td>
+						Ratings
+						<?=tooltip("Show the ratings data you have entered for fighters in each tournament. (If you have entered any.)")?>
+					</td>
+					<td>
+						<input type='hidden' name='publicationSettings[publishRatings]' value='0'>
+					<input class='switch-input' type='checkbox' <?=$publishRatingsChecked?>
+						id='publicationSettings[publishRatings]'
+						name='publicationSettings[publishRatings]' value='1'>
+					<label class='switch-paddle' for='publicationSettings[publishRatings]'>
 					</label>
 					</td>
 				</tr>

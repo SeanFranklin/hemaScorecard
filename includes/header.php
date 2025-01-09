@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.9.0'; // Javascript Version
+$vJ = '?=1.9.1'; // Javascript Version
 $vC = '?=1.2.10'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
@@ -451,6 +451,7 @@ function menuEventOrgBefore(){
 		<ul class='menu vertical'>
 			<li><a href='logisticsSchedule.php?t=0'>Edit Schedule</a></li>
 			<li><a href='logisticsLocations.php?t=0'>Edit Locations</a></li>
+			<li><a href='logisticsScheduleOverlap.php?t=0'>Tournament Overlap Checker</a></li>
 		</ul>
 	</li>
 

@@ -4950,8 +4950,11 @@ function logistics_getBlockInstructors($blockID){
 	$blockID = (int)$blockID;
 
 	$logisticsRoleID = (int)LOGISTICS_ROLE_INSTRUCTOR;
-	$sql = "SELECT rosterID
-			FROM logisticsStaffShifts
+	$sql = "SELECT rosterID,
+				(SELECT instructorBio
+				FROM logisticsInstructors AS lI2
+				WHERE lI2.rosterID = lSS.rosterID) AS instructorBio
+			FROM logisticsStaffShifts AS lSS
 			INNER JOIN logisticsScheduleShifts USING(shiftID)
 			INNER JOIN logisticsScheduleBlocks USING(blockID)
 			WHERE blockID = {$blockID}
@@ -7750,6 +7753,64 @@ function getNumTournamentEntries($tournamentID){
 			FROM eventTournamentRoster
 			WHERE tournamentID = {$tournamentID}";
 	return (int)mysqlQuery($sql, SINGLE, 'numParticipants');
+}
+
+/******************************************************************************/
+
+function getTournamentOverlaps($tournamentIDs){
+
+	$numTournaments = sizeof($tournamentIDs);
+
+	if($numTournaments < 2){
+		return [];
+	}
+
+	sort($tournamentIDs); // convert to zero indexed
+
+
+
+
+	if(NAME_MODE == 'lastName'){
+		$orderClause = "ORDER BY lastName ASC, firstName ASC";
+	} else {
+		$orderClause = "ORDER BY firstName ASC, lastName ASC";
+	}
+
+
+	$rosterIDs = [];
+	for($i = 0; $i < ($numTournaments-1); $i++){
+
+		$t1ID = (int)$tournamentIDs[$i];
+
+		for($j = ($i+1); $j < $numTournaments; $j++){
+			$t2ID = (int)$tournamentIDs[$j];
+
+
+			$sql = "SELECT rosterID
+					FROM eventRoster AS eR
+					INNER JOIN systemRoster USING(systemRosterID)
+					WHERE (SELECT COUNT(*)
+							FROM eventTournamentRoster AS eTR1
+							WHERE eTR1.tournamentID = {$t1ID}
+							AND eTR1.rosterID = eR.rosterID
+						) != 0
+					AND (SELECT COUNT(*)
+						FROM eventTournamentRoster AS eTR2
+						WHERE eTR2.tournamentID = {$t2ID}
+						AND eTR2.rosterID = eR.rosterID
+						) != 0
+					{$orderClause}";
+			$tmp['rosterIDs'] = mysqlQuery($sql, SINGLES);
+			$tmp['t1ID'] = $t1ID;
+			$tmp['t2ID'] = $t2ID;
+			$returnData[] = $tmp;
+		}
+
+
+	}
+
+	return ($returnData);
+
 }
 
 /******************************************************************************/
