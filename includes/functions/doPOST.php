@@ -548,6 +548,9 @@ function processPostData(){
 			case 'setFighterQueueColumns':
 				$_SESSION['fighterQueueColumns'] = $_POST['setFighterQueueColumns'];
 				break;
+			case 'checkTournamentOverlaps':
+				$_SESSION['checkTournamentOverlapIDs'] = @$_POST['checkTournamentOverlaps']['tournamentIDs'];
+				break;
 			case 'updateAnnouncement':
 				logisticsUpdateAnnouncement($_POST['announcement']);
 				break;

@@ -407,6 +407,7 @@ function logistics_populateBlockDescription(blockID){
                 }
 
                 $("#sbd-instructors").html("");
+                $("#sbd-instructor-bio").html(" ");
 
                 if (data['instructors'] !== undefined && data['instructors'].length > 0) {
 
@@ -415,15 +416,24 @@ function logistics_populateBlockDescription(blockID){
                         text = text + "s";
                     }
 
-                     $("#sbd-instructors").html(`<u>${text}</u>: `);
+                    $("#sbd-instructors").html(`<u>${text}</u>: `);
 
                     var instructNum = 0;
                     data['instructors'].forEach(function(instructor){
+
                         instructNum++;
                         if(instructNum > 1){
                              $("#sbd-instructors").append(', ');
                         }
                         $("#sbd-instructors").append(instructor['name']);
+
+                        if(instructor['instructorBio'] !== null){
+                            $("#sbd-instructor-bio").append("<hr>");
+
+                            $("#sbd-instructor-bio").append("<p><b>"+instructor['name']+":</b></p>");
+                            $("#sbd-instructor-bio").append(instructor['instructorBio']);
+                        }
+
                     });
                 }
 
