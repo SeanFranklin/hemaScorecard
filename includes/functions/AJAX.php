@@ -1123,8 +1123,82 @@ case 'updateExchange': {
 
 } break;
 
+/******************************************************************************/
+
+case 'updateFighterRating': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$retVal = [];
+
+	$tournamentRosterID = (int)$_REQUEST['tournamentRosterID'];
+	$rating = $_REQUEST['rating'];
+
+	if(strlen($rating) == 0){
+
+		$sql = "DELETE FROM eventRatings
+				WHERE tournamentRosterID = {$tournamentRosterID}";
+		mySqlQuery($sql, SEND);
+
+		$rating = "";
+
+	} else {
+
+		$rating = round($rating);
+		$rating = min( max(0,$rating), 9001);
+
+		$sql = "SELECT ratingID
+				FROM eventRatings
+				WHERE tournamentRosterID = {$tournamentRosterID}";
+		$ratingIDs = mySqlQuery($sql, SINGLES, 'ratingID');
+
+
+		if(sizeof($ratingIDs) > 1){
+
+			// This is a redundancy clean up branch, in case somehow the database
+			// gets fucked and there is more than one entry for the same tournamentRosterID
+			$sql = "DELETE FROM eventRatings
+					WHERE tournamentRosterID = {$tournamentRosterID}";
+			mySqlQuery($sql, SEND);
+
+			$ratingID = 0;
+
+		} else {
+			$ratingID = (int)@$ratingIDs[0]; // not existing is the same as zero
+		}
+
+
+		if($ratingID == 0){
+
+			$sql = "INSERT INTO eventRatings
+					(tournamentRosterID, rating)
+					VALUES
+					({$tournamentRosterID}, {$rating})";
+			mySqlQuery($sql, SEND);
+
+		} else {
+
+			$sql = "UPDATE eventRatings
+					SET rating = {$rating}
+					WHERE ratingID = {$ratingID}";
+			mySqlQuery($sql, SEND);
+
+		}
+
+	}
+
+	$retVal['tournamentRosterID'] = $tournamentRosterID;
+	$retVal['rating'] = $rating;
+
+
+	echo json_encode($retVal );
+
+} break;
 
 /******************************************************************************/
+
 }
 
 

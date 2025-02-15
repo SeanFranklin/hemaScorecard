@@ -490,3 +490,35 @@ function divSeedingUpdateChart(){
 }
 
 /******************************************************************************/
+
+function updateFighterRating(tournamentRosterID){
+
+
+    var rating = document.getElementById('rating-input-'+tournamentRosterID).value;
+
+    var query = "mode=updateFighterRating";
+    query = query + "&tournamentRosterID="+tournamentRosterID;
+    query = query + "&rating="+rating;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            if(this.responseText.length > 1){
+
+                //console.log(this.responseText);
+                var data = JSON.parse(this.responseText);
+                //console.log(data);
+                
+                var tournamentRosterID = data['tournamentRosterID'];
+                document.getElementById('rating-output-'+tournamentRosterID).innerHTML = data['rating'];
+            }
+        }
+    };
+
+}
+
+/******************************************************************************/
