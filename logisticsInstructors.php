@@ -166,7 +166,6 @@ function displayInstructorBio($instructor){
 // Find out if there is a saved image for the instructor
 	$imagePath = "includes/images/instructors/";
 	$imagePathAndName = getImagePathAndFile($imagePath, $instructor['systemRosterID']);
-	$filePath = "./includes/images/instructors/";
 
 	if($imagePathAndName == null){
 		$bioSize = "large-12";

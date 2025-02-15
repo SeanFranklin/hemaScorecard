@@ -31,6 +31,7 @@ if($_SESSION['eventID'] == null){
 
 	// Ability to import attacks from other tournaments
 	importAttacksForm($_SESSION['tournamentID']);
+	$formatID = getTournamentFormat($_SESSION['tournamentID']);
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -39,11 +40,9 @@ if($_SESSION['eventID'] == null){
 
 <!-- Top Bar w/ Back and Grid Buttons ---------------------------------------->
 
-<form method='POST'>
-	<a class='button hollow' href='adminTournaments.php'>
-		Back to Tournament Settings
-	</a>
-</form>
+
+
+
 
 
 <?php if(isFinalized($_SESSION['tournamentID']) == true && ALLOW['SOFTWARE_ADMIN'] == FALSE): ?>
@@ -53,16 +52,33 @@ if($_SESSION['eventID'] == null){
 		<a href='infoSummary.php'>Remove final results</a> to edit.
 	</div>
 
+	<a class='button hollow' href='adminTournaments.php'>
+		Back to Tournament Settings
+	</a>
+
 <?php else: ?>
 
 	<h4>
 		Attacks for <strong><?=getTournamentName($tournamentID);?></strong>
+		<a class='button hollow' href='adminTournaments.php'>
+			Back to Tournament Settings
+		</a>
 	</h4>
 
 	<ul class="tabs" data-tabs id="exchange-type-tabs">
+
+
 		<li class="tabs-title is-active">
-			<a data-tabs-target="panel-attack" href="#panel-attack2">Attack Definitions</a>
+
+			<a data-tabs-target="panel-attack" href="#panel-attack2">
+				<?php if($formatID != FORMAT_SOLO): ?>
+					Attack Definitions
+				<?php else: ?>
+					Deductions
+				<?php endif ?>
+			</a>
 		</li>
+
 		<li class="tabs-title">
 			<a data-tabs-target="panel-mod" href="#panel-mod2">Attack Modifiers</a>
 		</li>
@@ -75,7 +91,11 @@ if($_SESSION['eventID'] == null){
 
 	<div class="tabs-content" data-tabs-content="exchange-type-tabs">
 		<div class="tabs-panel  is-active" id="panel-attack">
-			<?=exchangeTypeAttacks($formLock)?>
+			<?php if($formatID != FORMAT_SOLO): ?>
+				<?=exchangeTypeAttacks($formLock)?>
+			<?php else: ?>
+				<?=exchangeTypeDeductions($formLock)?>
+			<?php endif ?>
 		</div>
 		<div class="tabs-panel" id="panel-mod">
 			<?=exchangeTypeModifiers($formLock)?>
@@ -107,6 +127,139 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
+function exchangeTypeDeductions($formLock){
+
+	$deductionList = getDeductionList();
+	$existingDeductions = getTournamentDeductions($_SESSION['tournamentID']);
+	$comboMode = readOption('T',$_SESSION['tournamentID'],'DEDUCTION_ADDITION_MODE');
+
+?>
+
+
+	<fieldset <?=$formLock?>>
+
+	<div class='grid-x grid-margin-x'>
+	<div class='large-6 medium-8 cell'>
+		<form method='POST'>
+
+			<input type='hidden' name='deductionAdditionMode[tournamentID]' value=<?=$_SESSION['tournamentID']?>>
+			<input type='hidden' name='formName' value='deductionAdditionMode'>
+
+			<div class='input-group'>
+
+				<span class='input-group-label'>
+					Deduction Combination Mode&nbsp;
+					<?=tooltip("<u>Add</u>: Add the deductions togather.<BR>
+								<u>Max</u>: Take the highest deduction.<BR>
+								<u>RMS</u>: v(d1<sup>2</sup> + d2<sup>2</sup> + d3<sup>2</sup>)")?>
+				</span>
+
+				<select class='input-group-field' name='deductionAdditionMode[mode]'>
+					<option <?=optionValue(DEDUCTION_ADDITION_MODE_ADD, $comboMode)?>>Add</option>
+					<option <?=optionValue(DEDUCTION_ADDITION_MODE_MAX, $comboMode)?>>Max</option>
+					<option <?=optionValue(DEDUCTION_ADDITION_MODE_RMS, $comboMode)?>>RMS</option>
+				</select>
+
+				<input type='submit' class='input-group-button button success' value='Update Mode'>
+			</div>
+		</form>
+	</div>
+	</div>
+
+	<HR>
+
+
+	<form method='POST'>
+
+		<input class='hidden' name='deductions[tournamentID]' value=<?=$_SESSION['tournamentID']?>>
+
+		<table class='stack'>
+			<tr>
+				<th>Deduction</th>
+				<th>Points 1<?php tooltip("Use positive values"); ?></th>
+				<th>Points 2<?php tooltip("Use positive values"); ?></th>
+				<th>Points 3<?php tooltip("Use positive values"); ?></th>
+			</tr>
+
+		<!-- Old Attacks -->
+			<?php foreach($deductionList as $i => $deduction): ?>
+				<?=deductionRow($deduction, $existingDeductions)?>
+			<?php endforeach ?>
+
+		</table>
+
+		<button class='button success' name='formName' value='editTournamentDeductions' <?=$formLock?>>
+			Update Deduction Values
+		</button>
+		<BR><i>If you would like another type of deduction please contact the HEMA Scorecard team.</i>
+
+	</form>
+	</fieldset>
+
+<?
+}
+
+/******************************************************************************/
+
+function deductionRow($deduction, $existing){
+
+	$attackID = $deduction['attackID'];
+	$prefix = "deductions[{$attackID}]";
+
+	$points1 = "";
+	$points2 = "";
+	$points3 = "";
+
+	if(isset($existing[1][$attackID ]) == true){
+		$points1 = (int)$existing[1][$attackID ]['points'];
+	}
+
+	if(isset($existing[2][$attackID ]) == true){
+		$points2 = (int)$existing[2][$attackID ]['points'];
+	}
+
+	if(isset($existing[3][$attackID ]) == true){
+		$points3 = (int)$existing[3][$attackID ]['points'];
+	}
+
+?>
+
+	<tr>
+
+	<!-- Deduction -->
+		<td>
+			<?=$deduction['attackText']?>
+		</td>
+
+
+	<!-- Points 1 -->
+		<td>
+			<input type='number' name='deductions[groupPointValues][1][<?=$attackID?>]'
+				value='<?=$points1?>' step=0.1 min=0 max=100
+				class='no-bottom' placeholder='unused' >
+		</td>
+
+	<!-- Points 2 -->
+		<td>
+			<input type='number' name='deductions[groupPointValues][2][<?=$attackID?>]'
+				value='<?=$points2?>' step=0.1 min=0 max=100
+				class='no-bottom' placeholder='unused' >
+		</td>
+
+	<!-- Points 3 -->
+		<td>
+			<input type='number' name='deductions[groupPointValues][3][<?=$attackID?>]'
+				value='<?=$points3?>' step=0.1 min=0 max=100
+				class='no-bottom' placeholder='unused' >
+		</td>
+
+	</tr>
+
+<?php
+}
+
+/******************************************************************************/
+
 function exchangeTypeAttacks($formLock){
 ?>
 	<fieldset <?=$formLock?> >
@@ -121,7 +274,7 @@ function exchangeTypeAttacks($formLock){
 			Leave the points field blank to delete an entry
 		</i>
 
-		<?php displayModeIndividual($formLock)?>
+		<?php displayAttacksForTournament($formLock)?>
 
 		<button class='button success' name='formName' value='addAttackTypes' <?=$formLock?>>
 			Submit
@@ -283,7 +436,7 @@ function exchangeTypeDataEntryMode($formLock){
 
 /******************************************************************************/
 
-function displayModeIndividual($formLock){
+function displayAttacksForTournament($formLock){
 
 	$targets = getAllAttackTargets();
 	$types = getAllAttackTypes();

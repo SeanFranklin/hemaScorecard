@@ -219,6 +219,9 @@ function processPostData(){
 			case 'stageOptions':
 				updateStageOptions();
 				break;
+			case 'deductionAdditionMode':
+				updateDeductionAdditionMode($_POST['deductionAdditionMode']);
+				break;
 
 
 	// Match Scoring
@@ -382,6 +385,9 @@ function processPostData(){
 				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
+				break;
+			case 'editTournamentDeductions':
+				editTournamentDeductions($_POST['deductions']);
 				break;
 			case 'tournamentAttackModifiers':
 				tournamentAttackModifiers($_POST['tournamentAttackModifiers'],$_SESSION['tournamentID']);

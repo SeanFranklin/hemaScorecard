@@ -1,5 +1,18 @@
 /* Added By Sean **************************************************************/
 
+
+.cut-list-heading{
+  padding-right: 1em;
+  background-color: black;
+  color:white; text-align:
+  right; font-size:2em;
+}
+
+.pending-exchange{
+  background-color: #88C6F0  !important;
+}
+
+
 div.attack-box{
   padding: 5px;
   margin: 7px;
@@ -317,6 +330,10 @@ table tr.match-queue{
 
 .bold{
   font-weight: bold;
+}
+
+.italic{
+  font-style: italic;
 }
 
 .no-wrap{

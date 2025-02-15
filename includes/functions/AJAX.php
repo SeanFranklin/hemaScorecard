@@ -977,6 +977,154 @@ case 'getDataForYear': {
 } break;
 
 /******************************************************************************/
+
+case 'updateExchange': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$exchangeID = (int)$_REQUEST['exchangeID'];
+	$field = @$_REQUEST['field'];
+	$value = (float)@$_REQUEST['value'];
+
+	$retVal = [];
+	$retVal['error'] = "";
+
+	$sql = "SELECT matchID, tournamentID
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			WHERE exchangeID = {$exchangeID}";
+	$ids = mysqlQuery($sql, SINGLE);
+
+	if($ids == null){
+		$retVal['error'] = "noData";
+		echo json_encode($retVal );
+		return;
+	}
+
+	$deductionList = getTournamentDeductions( $tournamentID);
+	$deductionAdditionMode = readOption('T',$tournamentID,'DEDUCTION_ADDITION_MODE');
+
+	$deductions = [];
+	if($field == 'refPrefix' || $field == 'refTarget' || $field == 'refType'){
+		if($value == 0){
+			$value = "NULL";
+		}
+	} elseif($field == 'scoreValue' || $field == 'scoreDeduction') {
+		// Don't make a deductions list
+	} else {
+		return;
+	}
+
+
+// Update the data submitted
+
+	$sql = "UPDATE eventExchanges
+			SET {$field} = {$value}, exchangeType = 'scored'
+			WHERE exchangeID = {$exchangeID}";
+	mysqlQuery($sql, SEND);
+
+	$matchID = (int)$ids['matchID'];
+
+	$sql = "SELECT exchangeID, exchangeType, scoreValue, scoreDeduction, refPrefix, refTarget, refType
+			FROM eventExchanges
+			WHERE matchID = {$matchID}";
+	$allExchangesInMatch = (array)mysqlQuery($sql, ASSOC);
+
+
+// Update the match data
+
+	$matchScore = 0;
+	$exchToReturn = [];
+	$i = 0;
+	foreach($allExchangesInMatch as $e){
+
+		if($e['exchangeType'] == 'pending'){
+			continue;
+		}
+
+
+		$eID = (int)$e['exchangeID'];
+		$exchToReturn[$i] = $e;
+
+		$exchToReturn[$i]['refPrefix'] = (int)$exchToReturn[$i]['refPrefix'];
+		$exchToReturn[$i]['refTarget'] = (int)$exchToReturn[$i]['refTarget'];
+		$exchToReturn[$i]['refType'] = (int)$exchToReturn[$i]['refType'];
+
+
+		if($deductionList != []){
+
+			$scoreDeduction = (float)0;
+
+			switch($deductionAdditionMode){
+				case DEDUCTION_ADDITION_MODE_RMS:
+				{
+					$scoreDeduction += pow((float)@$deductionList[1][$e['refPrefix']]['points'],2);
+					$scoreDeduction += pow((float)@$deductionList[2][$e['refTarget']]['points'],2);
+					$scoreDeduction += pow((float)@$deductionList[3][$e['refType']]['points'],2);
+					$scoreDeduction = sqrt($scoreDeduction);
+					$retVal['mode2'] = 2;
+					break;
+				}
+				case DEDUCTION_ADDITION_MODE_MAX:
+				{
+					$scoreDeduction = max($scoreDeduction, (float)@$deductionList[1][$e['refPrefix']]['points']);
+					$scoreDeduction = max($scoreDeduction, (float)@$deductionList[2][$e['refTarget']]['points']);
+					$scoreDeduction = max($scoreDeduction, (float)@$deductionList[3][$e['refType']]['points']);
+					$retVal['mode2'] = 1;
+					break;
+				}
+				case DEDUCTION_ADDITION_MODE_ADD:
+				default:
+				{
+					$scoreDeduction += (float)@$deductionList[1][$e['refPrefix']]['points'];
+					$scoreDeduction += (float)@$deductionList[2][$e['refTarget']]['points'];
+					$scoreDeduction += (float)@$deductionList[3][$e['refType']]['points'];
+					$retVal['mode2'] = 0;
+					break;
+				}
+
+			}
+
+			$scoreDeduction = round($scoreDeduction,1);
+
+			if($scoreDeduction != $e['scoreDeduction']){
+				$sql = "UPDATE eventExchanges
+						SET scoreDeduction = {$scoreDeduction}
+						WHERE exchangeID = {$eID}";
+				mysqlQuery($sql, SEND);
+
+				$exchToReturn[$i]['scoreDeduction'] = $scoreDeduction;
+			}
+
+		} else {
+			$scoreDeduction = $e['scoreDeduction'];
+		}
+
+
+		$matchScore += $e['scoreValue'] - $scoreDeduction;
+		$i++;
+	}
+
+	$matchScore = round($matchScore,1);
+
+	$sql = "UPDATE eventMatches
+			SET fighter1score = $matchScore
+			WHERE matchID = {$matchID}";
+	mysqlQuery($sql, SEND);
+
+
+	$retVal['matchScore'] = $matchScore;
+	$retVal['exchanges'] = $exchToReturn;
+
+	echo json_encode($retVal );
+
+} break;
+
+
+/******************************************************************************/
 }
 
 
