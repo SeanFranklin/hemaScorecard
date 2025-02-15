@@ -204,6 +204,7 @@ function displayBlockDescription(){
 	<div id='sbd-rules'></div>
 	<div id='sbd-attribute-hr'></div>
 	<div id='sbd-description' style='white-space: pre-wrap'></div>
+	<div id='sbd-instructor-bio-title'></div>
 	<div id='sbd-instructor-bio'></div>
 	<div>
 		<a id='sbd-link' target="_blank"><span id='sbd-linkDescription'></span></a>

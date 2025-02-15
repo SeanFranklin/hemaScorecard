@@ -2208,5 +2208,28 @@ function importEventRatingCSV(){
 
 /******************************************************************************/
 
+function deductionGroup2ref($groupNum, $type = 'attack'){
+
+	// There are only two acceptable values for $type.
+	if($type == 'ref'){
+		$column = "ref";
+	} else {
+		$column = "attack";
+	}
+
+
+	switch($groupNum){
+		case 1: 	{$column .= "Prefix";	break;}
+		case 2: 	{$column .= "Target";	break;}
+		case 3: 	{$column .= "Type";		break;}
+		default: 	{$column = null;}
+	}
+
+	return ($column);
+
+}
+
+/******************************************************************************/
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

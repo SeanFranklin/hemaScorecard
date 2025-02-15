@@ -836,6 +836,7 @@ function helpDisplayLogistics(){
 		</div>
 		<div class='large-12 medium-6 small-12'>
 			<li><a href='#divisions'>Tournament Divisions</a></li>
+			<li><a href='#cut-deduct'>Cutting Deductions</a></li>
 		</div>
 	</div>
 
@@ -902,12 +903,57 @@ For our example "Longsword - Entries" is the donor tournament.</p>
 
 <p><i>"Does this work for sorting people into sub-tournaments <u>after</u> they fight, based on standings."</i><BR>No, not at the moment. Harass me if this is a priority for you.</p>
 
+<a href='#topOfPage'>Back to Top</a>
+</div>
 
+
+
+<!-- Cutting Deductions ------------------------------------------------------------>
+<a name='cut-deduct'></a>
+
+<div class='documentation-div'>
+
+<h1>Cutting Deductions</h1>
+
+<p>To use the Deductions Feature for cutting tournaments, go to the Point Values page. You can do this through either <b>Tournament Information > Settings > Point Values</b>, or through the blue <b>Change Point Values</b> button at the bottom of the <b>Tournament Settings</b> page.</p>
+
+<p>This will let you set up the point values for deductions on each cut, so that you only need to enter in the offense and the software will know how many points to subtract. This will also let competitors see what deduction(s) they had when they look at their results.</p>
+
+
+<h2>Deduction Combination Mode</h2>
+
+<p>The combination mode is how the software handles having multiple deductions on the same cut.</p>
+
+<ul><li><u>Add</u>: All deductions entered are added together for the final deduction.</li>
+<li><u>Max</u>: The highest deduction entered is the final deduction.</li>
+<li><u>RMS</u>: A formula is used to combine the deduction values. Final Deduction = √(d1<sup>2</sup> + d2<sup>2</sup> + d3<sup>2</sup>)</li></ul>
+
+
+<h2>Deduction Point Values</h2>
+
+<p>You will find a big chart with all deduction “offenses” on the left, and three columns of values on the right. Enter in the point values for which deductions to include in your tournament, and any deduction left blank will not show up in the list when you are scoring the round. </p>
+
+<p>If you are only ever using one type of deduction then you can simply use the first column, and you will only have a single deduction to pick for every cut. If you want to keep track of two type of deductions per cut, say Cut and Form, you should have all the Cut offenses have points in the first column and all the Form offenses have points in the second column. (And not use the third column).</p>
+
+<p>Update these values when done.</p>
+
+
+<h2>Scoring Using Deductions</h2>
+
+<p>You will notice the score page looks slightly different if you have pre-defined your deductions. After you add exchanges, you will see that they have the Score Value pre-set to whatever you configured the Base Point Value to be (as with normal scoring) but the deduction input will be replaced with 1-3 drop downs, depending on how many types of deductions you entered.</p>
+
+<p>When you add new exchanges, you will see them displayed in blue. This means they are pending and not considered in the scoring calculation. So you can pre-add all your exchanges before the competitor starts cutting. When a deduction is specified (including ‘Clean’) the exchange will become live and contribute to the score.</p>
+
+<p>The deductions update the exchanges in real time; however, the updates are not synchronized if using two computers. Everything will work fine as long as there is a division of labor and only one person is updating one type of deduction. To make sure everything is completely synched you can always reload the page.</p>
+
+
+<h2>Display Window</h2>
+
+<p>If you click on Display Window a pop-out will appear that shows the current score, and the scores and deduction for each cut. This display window does not update automatically (yet), and to update the content to the current score or to a new competitor click the Display Window button again.</p>
 
 
 <a href='#topOfPage'>Back to Top</a>
 </div>
-
 
 <?php
 }

@@ -174,6 +174,73 @@ function addAttacksToTournament($tournamentID = null){
 		mysqlQuery($sql, SEND);
 	}
 
+}
+
+/******************************************************************************/
+
+function editTournamentDeductions($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ return; }
+
+	$tournamentID = (int)$postData['tournamentID'];
+	$existing = getTournamentDeductions($_SESSION['tournamentID']);
+
+	$attackNumberMax = 0;
+	$tableIDsToSave = [];
+
+	foreach(@$postData['groupPointValues'] as $groupNum => $group){
+
+		foreach($group as $attackID => $points){
+
+			$attackID = (int)$attackID;
+			$groupNum = (int)$groupNum;
+
+			if(strlen($points) == 0 || $attackID == 0){
+				continue;
+			} else {
+				$points = (int)$points;
+			}
+
+
+			if(isset($existing[$groupNum][$attackID]) == true){
+
+				$tableID = (int)$existing[$groupNum][$attackID]['tableID'];
+
+				if($existing[$groupNum][$attackID]['points'] == $points){
+					// No need to update, the form data matches the database.
+				} else {
+
+					$sql = "UPDATE eventAttacks
+							SET attackPoints = {$points}
+							WHERE tableID = {$tableID}";
+					mysqlQuery($sql, SEND);
+				}
+
+			} else {
+
+				$column = deductionGroup2ref($groupNum);
+
+				$sql = "INSERT INTO eventAttacks
+						(tournamentID, {$column}, attackPoints)
+						VALUES
+						({$tournamentID}, {$attackID}, {$points})";
+				mysqlQuery($sql, SEND);
+
+				$tableID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+			}
+
+			$tableIDsToSave[] = $tableID;
+		}
+
+	}
+
+	$tableIDs = implode2int($tableIDsToSave);
+
+	$sql = "DELETE FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			AND tableID NOT IN ({$tableIDs})";
+	mysqlQuery($sql, SEND);
 
 }
 
@@ -2335,11 +2402,13 @@ function addNewEvent($eventInfo){
 
 	<ul>
 	<u>A few notes</u>:
+	<li>Scorecard is <b>NOT</b> for internal school tournaments. If you want to practice for your event you can create your main event ahead of time, and then run test matches before you chose to publish the full event. </li>
+	<li><i>\"Why can't I see my event?\":</i>  Nothing is public until you go into Event Organization > Event Settings and publish the event. (You log into the event in the upper right corner.)</li>
 	<li>When testing things out please only use real fighters. The roster is shared with all events, so I try to avoid a whole lot of people named 'Test Fighter' cluttering it up. Same thing goes for entering new schools, please make sure that the information is accurate.</li>
 	<li>When it comes to tournament algorithms/weapons you need to contact me for anything that isn't already in there. If you know what you want I can create a tournament ranking for you that calculates the score & tie-breakers to your specifications, and displays whatever fighter stats you care about.</li>
 	</ul>
 
-	<p>Let me know if you have any questions! That aren't in the help. ;)<ul>
+	<p>Please check out the Help page for information on how to set up tournaments, and let me know if you have any questions.<ul>
 	 Sean Franklin<BR>
 	 <i>HEMA Scorecard</i></ul></p></div>";
 
@@ -7785,6 +7854,7 @@ function updateMatch($matchInfo){
 			AND (scoreValue != 0 OR exchangeType = 'scored' OR exchangeType = 'noQuality' OR exchangeType = 'noExchange' OR exchangeType = 'double')";
 	$result = mysqlQuery($sql, ASSOC);
 
+
 	if(count($result) == 0){
 		$fighter1Score = "NULL";
 		$fighter2Score = "NULL";
@@ -7798,8 +7868,11 @@ function updateMatch($matchInfo){
 			if($exchange['scoringID'] == $matchInfo['fighter1ID']){
 
 				$fighter1Score += $exchange['scoreValue'];
-				if(    $doubleTypes['isNotNetScore'] == 1
-					&& $doubleTypes['afterblowType'] == 'full') {
+
+				if($exchange['exchangeType'] == 'scored'){
+					$fighter1Score -= $exchange['scoreDeduction'];
+				} elseif(    $doubleTypes['isNotNetScore'] == 1
+					      && $doubleTypes['afterblowType'] == 'full') {
 					$fighter2Score += $exchange['scoreDeduction'];
 				} else {
 					$fighter1Score -= $exchange['scoreDeduction'];
@@ -7818,8 +7891,12 @@ function updateMatch($matchInfo){
 			} else if($exchange['scoringID'] == $matchInfo['fighter2ID']){
 
 				$fighter2Score += $exchange['scoreValue'];
-				if(    $doubleTypes['isNotNetScore'] == 1
-					&& $doubleTypes['afterblowType'] == 'full') {
+
+
+				if($exchange['exchangeType'] == 'scored'){
+					$fighter1Score -= $exchange['scoreDeduction'];
+				} elseif(    $doubleTypes['isNotNetScore'] == 1
+					      && $doubleTypes['afterblowType'] == 'full') {
 
 					$fighter1Score += $exchange['scoreDeduction'];
 				} else {
@@ -8620,6 +8697,18 @@ function updateStageOptions(){
 				({$tournamentID}, 'basePointValue', {$groupSet}, {$basePointValue})";
 		mysqlQuery($sql, SEND);
 	}
+
+}
+
+/******************************************************************************/
+
+function updateDeductionAdditionMode($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	writeOption('T', $postData['tournamentID'], 'DEDUCTION_ADDITION_MODE', $postData['mode']);
 
 }
 

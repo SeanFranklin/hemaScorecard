@@ -1152,3 +1152,121 @@ function calculatePenaltyEscalation(isUsed, matchID){
 }
 
 /******************************************************************************/
+
+function updatePieceExchange(element, exchangeID){
+
+	var attackID = element.value;
+
+	var query = {};
+	var query = "mode=updateExchange";
+	query = query + "&exchangeID=" + exchangeID;
+	query = query + "&field=" + element.dataset.deductiontype;
+	query = query + "&value=" + attackID;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xhr.send();
+
+	xhr.onreadystatechange = function (){
+
+		if(this.readyState == 4 && this.status == 200){
+			if(this.responseText.length >= 1){
+
+				//console.log(this.responseText);
+				matchData = JSON.parse(this.responseText);
+				//console.log(matchData);
+
+				if(matchData['error'] != ""){
+					error = matchData['error'];
+				} else {
+					//console.log(matchData['exchanges']);
+
+					document.getElementById('match-score').innerHTML = "Score: <b>"+matchData['matchScore']+"</b>";
+
+					var error = null;
+
+					for(var i = 0; i < matchData['exchanges'].length; i++){
+
+						var exchangeID = matchData['exchanges'][i].exchangeID
+
+						if(document.getElementById('tr-exchange-'+exchangeID) != null){
+							updateScoredExchange(matchData['exchanges'][i]);
+						} else {
+							// There were extra exchanges returned which aren't in the PHP.
+							// Alert the user to refresh the page.
+							error = 'extraExchanges';
+						}
+					}
+				}
+
+				if(error == null){
+
+					document.getElementById('reload-page-button').classList.remove("alert");
+					document.getElementById('reload-page-button').classList.add("hollow");
+					document.getElementById('warning-message-div').innerHTML = "";
+
+				} else {
+
+					document.getElementById('reload-page-button').classList.add("warning");
+					document.getElementById('reload-page-button').classList.remove("hollow");
+
+					var text = "<div class='callout warning'>";
+
+					switch(error){
+						case 'extraExchanges':
+							text = text + "Another table has added extra exchanges. Please reload the page.</div>";
+							break;
+						case 'noData':
+							text = text + "Working on an invalid exchange (maybe another table deleted it?). Please reload the page.</div>";
+							break;
+					}
+
+					text = text + "</div>";
+
+					document.getElementById('warning-message-div').innerHTML = text;
+
+				}
+
+			}
+		}
+	};
+}
+
+
+/******************************************************************************/
+
+function updateScoredExchange(data){
+
+	var exchangeID = data.exchangeID;
+
+	var scoreDeduction = data.scoreDeduction;
+	document.getElementById('scoreDeduction-'+exchangeID).innerHTML = (-scoreDeduction);
+
+	var scoreValue = data.scoreValue;
+	document.getElementById('scoreValue-'+exchangeID).value = scoreValue;
+
+	if(document.getElementById('refPrefix-'+exchangeID) != null){
+		// Adding 0 is a ghetto way to convert a possible NULL to a number
+		document.getElementById('refPrefix-'+exchangeID).value = (data.refPrefix + 0);
+	}
+
+	if(document.getElementById('refTarget-'+exchangeID) != null){
+		// Adding 0 is a ghetto way to convert a possible NULL to a number
+		document.getElementById('refTarget-'+exchangeID).value = (data.refTarget + 0);
+	}
+
+	if(document.getElementById('refType-'+exchangeID) != null){
+		// Adding 0 is a ghetto way to convert a possible NULL to a number
+		document.getElementById('refType-'+exchangeID).value = (data.refType + 0);
+	}
+
+	var scoreFinal = scoreValue - scoreDeduction;
+	document.getElementById('scoreFinal-'+exchangeID).innerHTML = Math.round(scoreFinal * 10) / 10 ;
+
+	if(data.exchangeType = 'scored'){
+		document.getElementById('tr-exchange-'+exchangeID).classList.remove("pending-exchange");
+	}
+}
+
+/******************************************************************************/

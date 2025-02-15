@@ -1333,6 +1333,73 @@ function _Coornhert_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Crossing_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+		$score = 0;
+
+		$controlPointID = (int)ATTACK_CONTROL_DB;
+
+		$sql = "SELECT matchID,
+					(
+						SELECT COUNT(*)
+						FROM eventExchanges AS eE3
+						WHERE eE3.matchID = eM.matchID
+						AND refPrefix = {$controlPointID}
+						AND scoringID = {$rosterID}
+					) AS numControlPoints
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$score = 0;
+		$numMatches = 0;
+		foreach($matches as $match){
+			$numMatches++;
+			$score += $match['numControlPoints'];
+
+		}
+
+		if($numMatches != 0){
+			$score *= $normalizedMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 
 	$scoreData['score'] = 0;
@@ -2084,8 +2151,8 @@ function pool_GeneratePools($specifications){
 			break;
 
 		case 'poolStanding':
-			$sql = "SELECT rosterID, rank, schoolID, 0 AS subGroupNum
-					FROM eventStandings as eS
+			$sql = "SELECT rosterID, `rank`, schoolID, 0 AS subGroupNum
+					FROM eventStandings AS eS
 					INNER JOIN eventRoster USING(rosterID)
 					INNER JOIN eventTournamentRoster AS eTR USING(rosterID)
 					WHERE eS.tournamentID = {$tournamentID}
@@ -2097,11 +2164,11 @@ function pool_GeneratePools($specifications){
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
-					ORDER BY {$subGroupOrder} rank ASC";
+					ORDER BY {$subGroupOrder} `rank` ASC";
 			$rankedList = mysqlQuery($sql, ASSOC);
 			$useRatings = true;
 
-			$sql = "SELECT MAX(rank) AS maxRank, MAX(rank) AS maxRank
+			$sql = "SELECT MAX(`rank`) AS maxRank
 					FROM eventStandings as eS
 					INNER JOIN eventRoster USING(rosterID)
 					WHERE tournamentID = {$tournamentID}
@@ -2112,7 +2179,7 @@ function pool_GeneratePools($specifications){
 							AND eI.tournamentID = {$tournamentID}
 							AND stopAtSet >= {$lastGroupSet}
 						) = 0
-					ORDER BY {$subGroupOrder} rank ASC";
+					ORDER BY {$subGroupOrder} `rank` ASC";
 			$maxRank = mysqlQuery($sql, SINGLE, 'maxRank');
 
 			foreach($rankedList as $index => $fighter){
@@ -2992,7 +3059,10 @@ function scored_UpdateExchanges($tournamentID = null){
 		$sql = "UPDATE eventExchanges
 				SET scoreValue = {$scoreValue},
 				scoreDeduction = {$scoreDeduction},
-				exchangeType = 'scored'
+				exchangeType = 'scored',
+				refPrefix = NULL,
+				refTarget = NULL,
+				refType   = NULL
 				WHERE exchangeID = {$exchangeID}";
 		mysqlQuery($sql, SEND);
 	}

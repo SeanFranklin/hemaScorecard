@@ -4950,20 +4950,25 @@ function logistics_getBlockInstructors($blockID){
 	$blockID = (int)$blockID;
 
 	$logisticsRoleID = (int)LOGISTICS_ROLE_INSTRUCTOR;
-	$sql = "SELECT rosterID,
+	$sql = "SELECT rosterID, systemRosterID,
 				(SELECT instructorBio
 				FROM logisticsInstructors AS lI2
 				WHERE lI2.rosterID = lSS.rosterID) AS instructorBio
 			FROM logisticsStaffShifts AS lSS
 			INNER JOIN logisticsScheduleShifts USING(shiftID)
 			INNER JOIN logisticsScheduleBlocks USING(blockID)
+			INNER JOIN eventRoster USING(rosterID)
 			WHERE blockID = {$blockID}
 			AND logisticsRoleID = {$logisticsRoleID}";
-	$instructorList = mysqlQuery($sql, ASSOC);
+	$instructorList = (array)mysqlQuery($sql, ASSOC);
 
 	if($instructorList != null){
 		foreach($instructorList as $index => $instructor){
 			$instructorList[$index]['name'] = getFighterName($instructor['rosterID']);
+
+			$imagePath = "includes/images/instructors/";
+			$instructorList[$index]['image'] = getImagePathAndFile($imagePath, $instructor['systemRosterID'], TRUE);
+
 		}
 	}
 
@@ -6447,6 +6452,67 @@ function getTournamentAttacks($tournamentID, $shortPoints = false){
 
 	return $data;
 
+}
+
+/******************************************************************************/
+
+function getTournamentDeductions($tournamentID){
+// Get the unique attacks attributed to a tournament
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in getTournamentAttacks()");
+		return;
+	}
+
+	$sql = "SELECT attackPrefix, attackTarget, attackType, attackPoints, tableID
+			FROM eventAttacks
+			WHERE tournamentID = {$tournamentID}
+			ORDER BY attackPrefix ASC, attackTarget ASC, attackType ASC";
+
+	$list = mysqlQuery($sql, ASSOC);
+
+	$retData = [];
+
+	foreach((array)$list as $deduction){
+		$tmp = [];
+
+		$tmp['tableID'] = $deduction['tableID'];
+		$tmp['points'] = $deduction['attackPoints'];
+
+		if((int)$deduction['attackPrefix'] != 0){
+			$group = 1;
+			$tmp['attackID'] = (int)$deduction['attackPrefix'];
+		} else if((int)$deduction['attackTarget'] != 0) {
+			$group = 2;
+			$tmp['attackID'] = (int)$deduction['attackTarget'];
+		} else if((int)$deduction['attackType'] != 0) {
+			$group = 3;
+			$tmp['attackID'] = (int)$deduction['attackType'];
+		} else {
+			continue;
+		}
+
+		$tmp['name'] = getAttackName($tmp['attackID']);
+
+		$retData[$group][$tmp['attackID']] = $tmp;
+
+	}
+
+	return $retData;
+
+}
+
+/******************************************************************************/
+
+function getDeductionList(){
+	$sql = "SELECT attackID, attackText
+			FROM systemAttacks
+			WHERE attackClass = 'deduction'
+			ORDER BY attackText ASC";
+	$deductionList = (array)mysqlQuery($sql, ASSOC);
+
+	return ($deductionList);
 }
 
 /******************************************************************************/
@@ -9462,17 +9528,6 @@ function getRankingDescriptionByTournament($tournamentID){
 
 	return mysqlQuery($sql, SINGLE);
 
-}
-
-/******************************************************************************/
-
-function getTournamentRankingTypeID($tournamentID){
-	$tournamentID = (int)$tournamentID;
-
-	$sql = "SELECT formatID
-			FROM eventTournaments
-			WHERE tournamentID = {$tournamentID}";
-	return (int)mysqlQuery($sql, SINGLE, 'formatID');
 }
 
 /******************************************************************************/

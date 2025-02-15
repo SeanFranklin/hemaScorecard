@@ -105,6 +105,11 @@
 	define("SUB_MATCH_ANALOG",0);
 	define("SUB_MATCH_DIGITAL",1);
 
+	$num2atk[1] = 'refPrefix';
+	$num2atk[2] = 'refTarget';
+	$num2atk[3] = 'refType';
+	define("NUM_2_ATK", $num2atk);
+
 // Bracket Constants
 
 	define("BRACKET_PRIMARY",1);
@@ -214,6 +219,10 @@
 	$options['T']["SUPPRESS_MATCH_SCORE_OVERSHOOT"] = 21;
 	$options['T']["BRACKET_POINT_CAP"]              = 22;
 	$options['T']["FINALS_POINT_CAP"]               = 23;
+	$options['T']["DEDUCTION_ADDITION_MODE"]        = 25;
+		define("DEDUCTION_ADDITION_MODE_ADD",0);
+		define("DEDUCTION_ADDITION_MODE_MAX",1);
+		define("DEDUCTION_ADDITION_MODE_RMS",2);
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

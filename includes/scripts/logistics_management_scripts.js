@@ -39,6 +39,8 @@ function logistics_esbPopulateForm(){
         $("#esb-tournamentID").attr("disabled",false);
         $("#esb-blockTypeID").attr("disabled", false);
 
+        logistics_clearBlockDescription();
+
         var query = "mode=getSessionDayNum";
         var xhr2 = new XMLHttpRequest();
         xhr2.open("POST", AJAX_LOCATION+"?"+query, true);
@@ -319,6 +321,27 @@ function logistics_displayBlockDescription(blockID){
 
 /******************************************************************************/
 
+function logistics_clearBlockDescription(){
+
+    $("#sbd-title").html('');
+    $("#sbd-subtitle").html('');
+    $("#sbd-description").html('');
+    $("#sbd-link").attr("href", '');
+    $("#sbd-linkDescription").html('');
+    $("#sbd-time").html('');
+    $("#sbd-location").html("");
+    $("#sbd-experience").html("");
+    $("#sbd-equipment").html("");
+    $("#sbd-attribute-hr").html("");
+    $("#sbd-rules").html("");
+    $("#sbd-instructors").html("");
+    $("#sbd-instructor-bio").html(" ");
+    $("#sbd-staffing").html("");
+
+}
+
+/******************************************************************************/
+
 function logistics_populateBlockDescription(blockID){
 
 
@@ -419,6 +442,7 @@ function logistics_populateBlockDescription(blockID){
                     $("#sbd-instructors").html(`<u>${text}</u>: `);
 
                     var instructNum = 0;
+
                     data['instructors'].forEach(function(instructor){
 
                         instructNum++;
@@ -427,14 +451,28 @@ function logistics_populateBlockDescription(blockID){
                         }
                         $("#sbd-instructors").append(instructor['name']);
 
-                        if(instructor['instructorBio'] !== null){
-                            $("#sbd-instructor-bio").append("<hr>");
 
-                            $("#sbd-instructor-bio").append("<p><b>"+instructor['name']+":</b></p>");
-                            $("#sbd-instructor-bio").append(instructor['instructorBio']);
+
+                        if(instructor['instructorBio'] !== null){
+
+                            var text = "";
+                            var size = "12";
+
+                            text = text + "<BR><div class='grid-x grid-margin-x callout primary align-top image-box'>";
+
+                            if(instructor['image'] != null){
+                                text = text + "<div class='cell large-3'><img class='image-box'  style='margin-bottom: 1em' src='"+instructor['image']+"'></div>";
+                                size = "9";
+                            }
+
+                            text = text + "<div class='cell large-"+size+"'>"+instructor['instructorBio']+"</div>";
+                            text = text + "</div>";
+
+                            $("#sbd-instructor-bio").append(text);
                         }
 
                     });
+
                 }
 
 
