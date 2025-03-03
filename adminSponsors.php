@@ -82,7 +82,7 @@ function displaySponsorList($sponsorList, $eventSponsors){
 					</div>
 				</td>
 				<td>
-					<input type='number' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorPercent]'
+					<input type='number' style='height:30px' class='no-bottom' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorPercent]'
 						value='<?=@$eventSponsors[$sponsor['sponsorID']]['eventSponsorPercent']?>' placeholder='100%'>
 				</td>
 				<input type='hidden' name='sponsorList[sponsors][<?=$sponsor['sponsorID']?>][eventSponsorID]'

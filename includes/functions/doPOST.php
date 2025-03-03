@@ -352,7 +352,6 @@ function processPostData(){
 				break;
 			case 'editTournamentPlacings':
 				$_SESSION['manualPlacing']['tournamentID'] = $_POST['tournamentID'];
-				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'finalizeTournament':
 			case 'autoFinalizeTournament':
@@ -370,14 +369,11 @@ function processPostData(){
 					}
 					generateTournamentPlacings($tID, $specs);
 				}
-				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'finalizeTournament-no':
-				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'removeTournamentPlacings':
 				removeTournamentPlacings($_POST['tournamentID']);
-				$_SESSION['jumpTo'] = "anchor{$_POST['tournamentID']}";
 				break;
 			case 'goToPointsPage':
 				changeTournament($_POST['modifyTournamentID']);

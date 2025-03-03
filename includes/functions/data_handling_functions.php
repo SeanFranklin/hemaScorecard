@@ -646,7 +646,7 @@ function base60($num, $leadingZero = false){
 
 /******************************************************************************/
 
-function min2hr($num, $AmPm = true){
+function min2hr($num, $AmPm = true, $force24hr = false){
 // Returns the number in base 60 format, divided by a colon.
 // Would make sec -> min:sec or min -> hour:min
 
@@ -657,7 +657,7 @@ function min2hr($num, $AmPm = true){
 		$b = "0".$b;
 	}
 
-	if($_SESSION['viewMode']['time24hr'] == true){
+	if($_SESSION['viewMode']['time24hr'] == true || $force24hr == true){
 		$type = "";
 	} else {
 		if($a == 0 || $a == 24){
@@ -2052,7 +2052,9 @@ function sortTournamentAndDivisions($eventID){
 
 		$divInfo = [];
 		$divInfo['name'] = $div['divisionName'];
-		$divInfo['divisionID'] = $div['divisionID'];
+		$divInfo['divisionID'] = (int)$div['divisionID'];
+		$divInfo['groupBy'] = $div['groupBy'];
+		$tournamentType = 'tournament'.ucfirst($divInfo['groupBy']);
 
 		$divItems = getTournamentDivisionItems($div['divisionID']);
 
@@ -2060,6 +2062,16 @@ function sortTournamentAndDivisions($eventID){
 			$isInDivision[$tournamentID] = true;
 			$tmp['tournamentID'] = $tournamentID;
 			$tmp['name'] = getTournamentName($tournamentID);
+
+			$attributes = getTournamentAttribute($tournamentID, $tournamentType);
+
+			if(isset($attributes['attributeName']) == true && $attributes['attributeName'] != ""){
+				$tmp['shortName'] = $attributes['attributeName'];
+			} else {
+				$tmp['shortName'] = $tmp['name'];
+			}
+
+
 			$divInfo['tournaments'][] = $tmp;
 		}
 
@@ -2075,6 +2087,7 @@ function sortTournamentAndDivisions($eventID){
 
 		$tmp['tournamentID'] = $tournamentID;
 		$tmp['name'] = getTournamentName($tournamentID);
+		$tmp['shortName'] = $tmp['name'];
 		$tournamentList[] = $tmp;
 	}
 

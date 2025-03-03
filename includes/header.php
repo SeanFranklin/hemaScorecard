@@ -12,8 +12,8 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.9.3'; // Javascript Version
-$vC = '?=1.2.11'; // CSS Version
+$vJ = '?=1.9.4'; // Javascript Version
+$vC = '?=1.3.0'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -109,7 +109,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<!-- Full Navigation -->
 	<div class="top-bar" id="tourney-animated-menu" data-animate="hinge-in-from-top hinge-out-from-top" style='display:none'>
 		<div class="top-bar-left">
-			<ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu>
+			<ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu style='z-index: 4;'>
 
 				<?php tournamentListForHeader(); ?>
 				<?=menuEvent()?>
@@ -876,7 +876,8 @@ function tournamentListForHeader(){
 function headerFormat($tournament){
 
 	$tournamentID = (int)$tournament['tournamentID'];
-	$tournamentName = $tournament['name'];
+
+	$tournamentName = $tournament['shortName'];
 
 	$t['isInProgress'] = isInProgress($tournamentID);
 

@@ -39,8 +39,6 @@ if($_SESSION['eventID'] == null){
 	$tournamentDivisions = getTournamentDivisions($_SESSION['eventID']);
 
 
-
-
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -230,14 +228,17 @@ function tournamentDivisions($divInfo, $tournamentIDs){
 	if($divInfo == null){
 		$divisionID = -1;
 		$divisionName = '';
+		$groupBy = 'prefixID';
 		$placeholder = 'Add new division';
 	} else {
 		$divisionID = $divInfo['divisionID'];
 		$divisionName = $divInfo['divisionName'];
+		$groupBy = $divInfo['groupBy'];
 		$placeholder = '';
 	}
 
 	$divisionItems = (array)getTournamentDivisionItems($divisionID);
+
 
 	$toDisplay = [];
 	foreach($tournamentIDs as $tournamentID){
@@ -283,25 +284,49 @@ function tournamentDivisions($divInfo, $tournamentIDs){
 
 		<div class='hidden' id='division-form-for-<?=$divisionID?>'>
 
-			<button class='button success' name='divisionInfo[divisionID]' value=<?=$divisionID?>>
-				Update Division
-			</button>
+			<div class='input-group'>
+
+				<span class='input-group-label'>
+					Group By &nbsp;<a data-open="division-label-explain" >(?)</a>
+				</span>
+
+				<select name='divisionInfo[groupBy]'>
+					<option <?=optionValue('', $groupBy)?>>- None -</option>
+					<option <?=optionValue('prefixID', $groupBy)?>>Prefix</option>
+					<option <?=optionValue('weaponID', $groupBy)?>>Weapon</option>
+					<option <?=optionValue('materialID', $groupBy)?>>Material</option>
+					<option <?=optionValue('genderID', $groupBy)?>>Gender</option>
+				</select>
+
+			</div>
 
 			<?php foreach($toDisplay as $t):?>
-				<BR>
-				<input type='checkbox' class='radio no-bottom' value=<?=$t['ID']?><?=$t['check']?>
+
+				<input type='checkbox' class='radio no-bottom' value=<?=$t['ID']?> <?=$t['check']?>
 					name='divisionInfo[tournamentIDs][<?=$t['ID']?>]' >
 				<?=$t['name']?>
-
+				<BR>
 			<?php endforeach ?>
+
+			<HR>
+
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+
+					<button class='button success' name='divisionInfo[divisionID]' value=<?=$divisionID?>>
+						Update Division
+					</button>
+				</div>
 
 			<?php if($divisionID >= 0): ?>
 
-				<HR>
-				<a class='button alert hollow' onclick="$('#delete-division-<?=$divisionID?>').toggle('hidden')">
-					Delete Division
-				</a>
+				<div class='medium-6 cell text-right'>
+					<a class='button alert hollow' onclick="$('#delete-division-<?=$divisionID?>').toggle('hidden')">
+						Delete Division
+					</a>
+				</div>
 			<?php endif ?>
+			</div>
 
 		</div>
 
@@ -324,6 +349,46 @@ function tournamentDivisions($divInfo, $tournamentIDs){
 
 		</form>
 	<?php endif ?>
+
+<!-- Reveal to explain what the division groupBy is ------------------------------------>
+		<div class='reveal medium' id='division-label-explain' data-reveal>
+
+		<h4>Division Grouping</h4>
+
+		<p>
+		Select which tournament field should be used as a shorthand to differentiate the tournaments.
+		</p><p>
+		For example if you are have a division <b>Open Longsword</b> with tournaments <b>Open Longsword Tier-A</b> and <b>Open Longsword Tier-B</b> and you set the Group By to 'Prefix' you will see that in the Select Tournament menu (the one in the upper left) you will have <b>Open Longsword > Tier-A</b> instead of <b>Open Longsword > Open Longsword Tier-A</b>.
+		</p><p>
+		<table class='stack'>
+			<tr>
+				<td>
+					<u>Without grouping</u>
+					<BR>
+					<ul class='no-bottom'>
+						<b>Open Longsword</b>
+						<li>Open Longsword Tier-A</li>
+						<li>Open Longsword Tier-B</li>
+					</ul>
+				</td>
+				<td>
+					<u>Group By Prefix</u>
+					<BR>
+					<ul class='no-bottom'>
+						<b>Open Longsword</b>
+						<li>Tier-A</li>
+						<li>Tier-B</li>
+					</ul>
+				</td>
+			</tr>
+		</table>
+		</p>
+
+		<!-- Reveal close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+	</div>
 
 <?php
 }

@@ -1338,8 +1338,6 @@ function _Crossing_calculateScore($tournamentID, $groupSet = 1){
 	$tournamentID = (int)$tournamentID;
 	$groupSet = (int)$groupSet;
 
-	// Calculate the normalized size
-	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
 
 	$sql = "SELECT standingID, rosterID
 			FROM eventStandings
@@ -1350,6 +1348,23 @@ function _Crossing_calculateScore($tournamentID, $groupSet = 1){
 	if($standingsToScore == null){
 		return;
 	}
+
+
+	// Loop through to figure out how many groupSets we are using in the
+	// case of cumulative pool scores.
+	$normalizedMatches = 0;
+	$groupSets = [];
+	for($i = $groupSet; $i >= 1; $i--){
+		$groupSets[] = $i;
+		$normalizedMatches += (getNormalization($tournamentID, $i) - 1);
+
+		if(isCumulative($i, $tournamentID) == false){
+			break;
+		}
+	}
+
+	$groupSetsStr = implode2int($groupSets);
+
 
 	foreach($standingsToScore as $standing){
 
@@ -1372,7 +1387,7 @@ function _Crossing_calculateScore($tournamentID, $groupSet = 1){
 				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
 				AND tournamentID = {$tournamentID}
 				AND groupType = 'pool'
-				AND groupSet = {$groupSet}
+				AND groupSet IN ({$groupSetsStr})
 				AND ignoreMatch = 0
 				AND matchComplete = 1";
 		$matches = mysqlQuery($sql, ASSOC);
@@ -1382,7 +1397,6 @@ function _Crossing_calculateScore($tournamentID, $groupSet = 1){
 		foreach($matches as $match){
 			$numMatches++;
 			$score += $match['numControlPoints'];
-
 		}
 
 		if($numMatches != 0){

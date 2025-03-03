@@ -39,6 +39,7 @@ if($_SESSION['eventID'] == null){
 		$schedule = null;
 	}
 
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -55,7 +56,14 @@ if($_SESSION['eventID'] == null){
 
 		displayIndividualSchedule($schedule, $eventDays);
 
+	} else if($_SESSION['rosterID'] == -1) {
+
+		displayFullScheduleDump();
+
+	} else {
+		/* Wait for input */
 	}
+
 	?>
 
 <?php }
@@ -65,6 +73,65 @@ include('includes/footer.php');
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 /******************************************************************************/
 
+/******************************************************************************/
+
+function displayFullScheduleDump(){
+
+	$dayNames = getEventDays($_SESSION['eventID'], true);
+	$roster = getEventRoster();
+
+	foreach($roster as $r){
+		$rosterID = $r['rosterID'];
+		$rawSchedule = logistics_getParticipantSchedule($rosterID, $_SESSION['eventID']);
+		$personalSchedule = [];
+
+		if(isset($rawSchedule['scheduled']) == true){
+
+			$previousEnded = -1;
+			$i = 0;
+			foreach($rawSchedule['scheduled'] as $s){
+
+				if((int)$s['suppressConflicts'] != 0){
+					continue;
+				}
+
+				if(	   ($i > 0)
+					&& ($s['startTime'] <= $personalSchedule[$i-1]['endTime'])
+					&& ($s['dayNum'] == $personalSchedule[$i-1]['dayNum'])
+				){
+					$personalSchedule[$i-1]['endTime'] = $s['endTime'];
+				} else {
+					$personalSchedule[$i] = $s;
+					$i++;
+				}
+
+				$previousEnded = $s['endTime'];
+
+				$previousEnded;
+			}
+
+			$participantList[$rosterID] = $personalSchedule;
+		} else {
+			$participantList[$rosterID] = [];
+		}
+	}
+
+
+?>
+
+	<table>
+	<?php foreach($participantList as $rosterID => $participant):?>
+		<tr>
+			<td><?=getFighterName($rosterID)?></td>
+			<?php foreach($participant as $s):?>
+				<td><?=$dayNames[$s['dayNum']]?>
+				<?=min2hr($s['startTime'], false, true)?> - <?=min2hr($s['endTime'], false, true)?></td>
+			<?php endforeach ?>
+		</tr>
+	<?php endforeach?>
+	</table>
+<?
+}
 
 /******************************************************************************/
 
@@ -277,6 +344,11 @@ function changeRosterID($eventRoster){
 				<?=getFighterName($person['rosterID'])?>
 			</option>
 		<?php endforeach ?>
+
+		<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true ): ?>
+			<option <?=optionValue(-1, $currentRosterID)?>>== Everyone ==</option>
+		<?php endif ?>
+
 	</select>
 
 	<?php if($currentRosterID != null): ?>

@@ -1,6 +1,103 @@
 /* Added By Sean **************************************************************/
 
 
+/* __ Placings for infoSummary ______________________________________________*/
+
+
+.results-table{
+  border:2px solid black;
+  border-collapse: collapse;
+
+  td.results-table-header{
+    background-color: #000;
+    color:white;
+    text-align: left;
+  }
+
+  td.results-table-info{
+    background-color: #EEE;
+  }
+
+}
+
+td.border-top{
+  border-top:1px black solid;
+}
+
+
+/* __ Tabs for infoSummary ______________________________________________*/
+
+.folder-tab {
+  height: 30px; /* tabs-height */
+  // width: 150px;
+  position: relative;
+  top: 11px;
+  background-color: #259EE8; /* tabs-color */
+  left: 14px;
+  display: inline-block;
+  z-index: 2;
+  margin-right:10px;
+  color: #FFF;
+  cursor: pointer;
+  &.selected, &:hover{
+    z-index: 3;
+    color: #FFF;
+    background-color: #000; /* selected-color */
+    &:before,&:after{
+      background-color: #000; /* selected-color */
+    }
+  }
+
+  &:before {
+    // opacity:1;
+    height: 30px; /* tabs-height */
+    width: 20px;
+    border-radius: 3px 3px 0px 0px;
+    background-color: #259EE8;  /* tabs-color */
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 0px;
+    -webkit-transform: skewX(-20deg);
+    transform: skewX(-20deg);
+    z-index: -1;
+  }
+  &:after {
+    height: 30px; /* tabs-height */
+    width: 20px;
+    border-radius: 3px 3px 0px 0px;
+    background-color: #259EE8;  /* tabs-color */
+    content: "";
+    position: absolute;
+    right: -7px;
+    top: 0px;
+    -webkit-transform: skewX(20deg);
+    transform: skewX(20deg);
+    z-index: -1;
+  }
+  span {
+    display: inline-block;
+    margin-left: 8px;
+    margin-right: 8px;
+    height: 30px; /* tabs-height */
+    line-height: 34px; /* tabs-height + 4 */
+    z-index: 3;
+
+  }
+}
+
+.tabs-body {
+  background-color: white;
+  height: calc(~"100vh - 120px");
+  width: calc(~"100vw - 61px");
+  position: relative;
+  top: 10px;
+  left: 1px;
+  padding: 0px;
+}
+
+/* __ End tabs info ______________________________________________*/
+
 .cut-list-heading{
   padding-right: 1em;
   background-color: black;
