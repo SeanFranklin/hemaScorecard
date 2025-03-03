@@ -559,5 +559,27 @@ function number_format (number, decimals, dec_point, thousands_sep) {
     return s.join(dec);
 }
 
+/******************************************************************************/
 
+function switchActiveTab(tabNum, groupClass){
+
+    var tabs = document.getElementsByClassName(groupClass+"-tab");
+
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove("selected");
+    }
+
+    document.getElementById(groupClass+"-tab-"+tabNum).classList.add("selected");
+
+    var bodies = document.getElementsByClassName(groupClass+"-body");
+
+    for (let i = 0; i < bodies.length; i++) {
+        bodies[i].classList.add("hidden");
+    }
+
+    document.getElementById(groupClass+"-body-"+tabNum).classList.remove("hidden");
+
+}
+
+/******************************************************************************/
 

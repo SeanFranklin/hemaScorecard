@@ -28,11 +28,15 @@ if($_SESSION['eventID'] == null){
 
 	rankingExplainReveal($rankingIDs);
 
+	echo "<ul class='accordion' data-accordion data-allow-all-closed='true'>";
+
 	foreach($burgeeIDs as $burgeeID){
 		burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees);
 	}
 
 	burgeeInput(0, $tournamentIDs, $rankingIDs, $numBurgees);
+
+	echo "</ul>";
 
 }
 include('includes/footer.php');
@@ -95,6 +99,7 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 	} else {
 		$info['burgeeName'] = '';
 		$info['burgeeRankingID'] = 0;
+		$info['hideBurgee'] = 0;
 		$title = "** Add New **";
 		$buttonText = "Add";
 		if($numBurgees == 0){
@@ -106,105 +111,120 @@ function burgeeInput($burgeeID, $tournamentIDs, $rankingIDs, $numBurgees){
 
 ?>
 
-	<fieldset class='fieldset'>
-	<legend>
-		<h3 class='no-bottom'><a onclick="$('.burgee-input-for-<?=$burgeeID?>').toggle()">
-			<?=$title?> ↓
-		</a></h3>
-	</legend>
+	<li class="accordion-item" data-accordion-item>
 
-	<div class='<?=$hiddenClass?> burgee-input-for-<?=$burgeeID?>'>
-	<form method="POST">
+		<a href="#" class="accordion-title">
+			<h4 >
+				<?=$title?>
+				<?php if((int)$info['hideBurgee'] == 1): ?>
+					<i style='font-size:0.6em'>(hidden)</i>
+				<?php endif ?>
+			</h4>
 
+		</a>
 
+		<div class="accordion-content" data-tab-content>
+		<form method="POST">
 		<div class='grid-x grid-margin-x'>
 
-		<input class='hidden' name='<?=$nameStart?>[eventID]' value=<?=$_SESSION['eventID']?>>
-		<input class='hidden' name='<?=$nameStart?>[burgeeID]' value=<?=$burgeeID?>>
+			<input class='hidden' name='<?=$nameStart?>[eventID]' value=<?=$_SESSION['eventID']?>>
+			<input class='hidden' name='<?=$nameStart?>[burgeeID]' value=<?=$burgeeID?>>
 
-		<div class='large-6 cell'>
-			Name:
-			<input type='text' name='<?=$nameStart?>[burgeeName]' required
-				value='<?=$info['burgeeName']?>'
-				placeholder="eg: 'Overall School Points'">
-		</div>
-
-		<div class='large-6 cell'>
-
-			Ranking:
-			<a data-open="burgee-ranking-explain-box" >
-				(?)
-			</a>
-
-			<select name='<?=$nameStart?>[burgeeRankingID]' required>
-				<option disabled selected></option>
-				<?php foreach($rankingIDs as $ranking):?>
-					<option <?=optionValue($ranking['burgeeRankingID'],$info['burgeeRankingID'])?>>
-						<?=$ranking['rankingName']?>
-					</option>
-				<?php endforeach ?>
-			</select>
-		</div>
-
-		<div class='large-12 cell'>
-			Tournaments Included In Calculation:
-		</div>
-		<?php foreach($tournamentIDs as $tID):
-			if(isset($info['components'][$tID]) == true){
-				$set = 1;
-			} else {
-				$set = 0;
-			}
-			$paddleName = "{$nameStart}[components][{$tID}]";
-
-			?>
-			<div class='large-3 medium-4 cell text-center'>
-				<BR>
-				<?=getTournamentName($tID)?>
-				<?=checkboxPaddle($paddleName,1,$set,0)?>
+			<div class='large-5 cell'>
+				Name:
+				<input type='text' name='<?=$nameStart?>[burgeeName]' required
+					value='<?=$info['burgeeName']?>'
+					placeholder="eg: 'Overall School Points'">
 			</div>
-		<?php endforeach ?>
 
-		<div class='large-12 cell'>
-			<HR>
-		</div>
+			<div class='large-4 cell'>
 
-		<div class='large-3 medium-6 cell'>
-			<button class='button success expanded' name='formName' value='burgeeInfo'>
-				<?=$buttonText?>
-			</button>
-		</div >
+				Ranking:
+				<a data-open="burgee-ranking-explain-box" >
+					(?)
+				</a>
 
-		<?php if($burgeeID != 0):?>
+				<select name='<?=$nameStart?>[burgeeRankingID]' required>
+					<option disabled selected></option>
+					<?php foreach($rankingIDs as $ranking):?>
+						<option <?=optionValue($ranking['burgeeRankingID'],$info['burgeeRankingID'])?>>
+							<?=$ranking['rankingName']?>
+						</option>
+					<?php endforeach ?>
+				</select>
+			</div>
+
+			<div class='large-3 cell'>
+				Name:
+				<div class='input-group'>
+					<span class='input-group-label'>
+						Visibility <?=tooltip("Your participants will not be able to see this if you chose to hide it.")?>
+					</span>
+					<select name='<?=$nameStart?>[hideBurgee]' class='input-group-field'>
+						<option <?=optionValue(0, $info['hideBurgee'])?>>Public</option>
+						<option <?=optionValue(1, $info['hideBurgee'])?>>Hidden</option>
+					</select>
+				</div>
+			</div>
+
+			<div class='large-12 cell'>
+				Tournaments Included In Calculation:
+			</div>
+			<?php foreach($tournamentIDs as $tID):
+				if(isset($info['components'][$tID]) == true){
+					$set = 1;
+				} else {
+					$set = 0;
+				}
+				$paddleName = "{$nameStart}[components][{$tID}]";
+
+				?>
+				<div class='large-3 medium-4 cell text-center'>
+					<BR>
+					<?=getTournamentName($tID)?>
+					<?=checkboxPaddle($paddleName,1,$set,0)?>
+				</div>
+			<?php endforeach ?>
+
+			<div class='large-12 cell'>
+				<HR>
+			</div>
+
 			<div class='large-3 medium-6 cell'>
-				<a class='button alert no-bottom expanded' data-open="delete-burgee-<?=$burgeeID?>-box">
-					Delete
-				</a>
+				<button class='button success expanded' name='formName' value='burgeeInfo'>
+					<?=$buttonText?>
+				</button>
 			</div >
 
-			<div class='large-2 medium-6 cell'>
-			</div>
+			<?php if($burgeeID != 0):?>
+				<div class='large-3 medium-6 cell'>
+					<a class='button alert no-bottom expanded' data-open="delete-burgee-<?=$burgeeID?>-box">
+						Delete
+					</a>
+				</div >
 
-			<div class='large-4 medium-6 cell'>
-				<a class='button hollow no-bottom expanded' onclick="$('.extra-burgee-<?=$burgeeID?>').toggle()">
-					Show Me The Current Standings ↓
-				</a>
-			</div >
-		<?php endif ?>
+				<div class='large-2 medium-6 cell'>
+				</div>
+
+				<div class='large-4 medium-6 cell'>
+					<a class='button hollow no-bottom expanded' onclick="$('.extra-burgee-<?=$burgeeID?>').toggle()">
+						Show Me The Current Standings ↓
+					</a>
+				</div >
+			<?php endif ?>
 
 		</div>
-	</form>
+		</form>
 
 
-	<div class='hidden extra-burgee-<?=$burgeeID?>'>
-	<?=burgeeDisplay($burgeeID)?>
-	</div>
+		<div class='hidden extra-burgee-<?=$burgeeID?>'>
+			<?=burgeeDisplay($burgeeID)?>
+		</div>
 
-	</div>
+		</div>
 
+	</li>
 
-	</fieldset>
-	<BR><BR><BR>
 
 	<?=deleteBurgeeRevealBox($burgeeID, $title)?>
 

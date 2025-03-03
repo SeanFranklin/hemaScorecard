@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = "Tournament Teams";
+$createSortableDataTable[] = ['fightersWithoutTeam',25];
 include('includes/header.php');
 $tournamentID = $_SESSION['tournamentID'];
 
@@ -54,6 +55,7 @@ if($tournamentID == null){
 ?>
 
 	<?php createNewTeamInterface($addableFighters, $teamSize) ?>
+	<?php showUnAssignedFighters($addableFighters)?>
 
 	<?php if(count($teamRostersSorted) == 0): ?>
 		<?=displayAlert("No Teams Created")?>
@@ -247,32 +249,7 @@ function createNewTeamInterface($addableFighters, $teamSize){
 	<button class='button' id='createTeamButton' onclick="$(this).hide();$(createTeamForm).show();">
 		Create New Team
 	</button>
-	<button class='button hollow' id='soloFightersButton' onclick="$(this).hide();$(soloFightersDisplay).show();">
-		See Un-Assigned Fighters (<?=$numUnassigned?>)
-	</button>
 
-<!-- Creation Form -->
-
-	<fieldset class='fieldset hidden' id='soloFightersDisplay'>
-		<legend><h4>
-			Un-Assigned Fighters (<?=$numUnassigned?>) &nbsp;
-			<a class='button secondary no-bottom hollow small'
-				id='createTeamShow' style='float:right'
-				onclick="$(soloFightersButton).show();$(soloFightersDisplay).hide();">
-				Close
-			</a>
-		</h4></legend>
-
-		<table>
-			<?php foreach($addableFighters as $f): ?>
-				<tr>
-					<td><?=$f['name']?></td>
-					<td><?=$f['school']?></td>
-				</tr>
-			<?php endforeach ?>
-		</table>
-
-	</fieldset>
 
 
 <!-- Creation Form -->
@@ -335,6 +312,48 @@ function createNewTeamInterface($addableFighters, $teamSize){
 			</a>
 
 		</form>
+
+	</fieldset>
+<?php
+}
+
+/******************************************************************************/
+
+function showUnAssignedFighters($addableFighters){
+
+	$numUnassigned = count($addableFighters);
+
+?>
+
+	<button class='button hollow' id='soloFightersButton' onclick="$(this).hide();$(soloFightersDisplay).show();">
+		See Un-Assigned Fighters (<?=$numUnassigned?>)
+	</button>
+
+	<fieldset class='fieldset hidden' id='soloFightersDisplay'>
+		<legend><h4>
+			Un-Assigned Fighters (<?=$numUnassigned?>) &nbsp;
+			<a class='button secondary no-bottom hollow small'
+				id='createTeamShow' style='float:right'
+				onclick="$(soloFightersButton).show();$(soloFightersDisplay).hide();">
+				Close
+			</a>
+		</h4></legend>
+
+		<table id="fightersWithoutTeam" class="display">
+
+			<thead><tr>
+				<th>Name</th>
+				<th>School</th>
+			</tr></thead>
+			<tbody>
+			<?php foreach($addableFighters as $f): ?>
+				<tr>
+					<td><?=$f['name']?></td>
+					<td><?=$f['school']?></td>
+				</tr>
+			<?php endforeach ?>
+			</tbody>
+		</table>
 
 	</fieldset>
 <?php

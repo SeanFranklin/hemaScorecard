@@ -33,6 +33,54 @@ if($_SESSION['eventID'] == null){
 		define('ALLOW_EDITING',false);
 	}
 
+	$tournamentsToDisplay = sortTournamentAndDivisions($_SESSION['eventID']);
+
+	foreach((array)$tournamentList as $tournamentID => $data){
+		$tournamentList[$tournamentID]['name'] = getTournamentName($tournamentID);
+		$tournamentList[$tournamentID]['link'] = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
+					style='cursor: pointer;'";
+	}
+
+	foreach($tournamentsToDisplay as $j => $t){
+
+		if(isset($t['divisionID']) == true){
+
+			if(isset($t['tournaments']) == false){
+				unset($tournamentsToDisplay[$j]);
+				continue;
+			}
+
+
+			$initialized = false;
+
+			foreach((array)$t['tournaments'] as $i => $item){
+
+				$tID = $item['tournamentID'];
+
+				$numChars = strlen($t['tournaments'][$i]['shortName']);
+
+				$size = 1 - 0.02 * ($numChars - 10);
+
+				$size = min(1, $size);
+				$size = max($size, 0.6);
+				$tournamentsToDisplay[$j]['tournaments'][$i]['tabTextSize'] = $size;
+
+				if($initialized == false){
+					$tournamentList[$tID]['tabClass'] = " selected";
+					$tournamentList[$tID]['bodyClass'] = " ";
+					$initialized = true;
+				} else {
+					$tournamentList[$tID]['tabClass'] = " ";
+					$tournamentList[$tID]['bodyClass'] = " hidden";
+				}
+
+			}
+
+		}
+	}
+
+
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -40,55 +88,14 @@ if($_SESSION['eventID'] == null){
 		showEventDescription();
 	}?>
 
+	<div class='grid-x grid-margin-x'>
 
+		<?=manualTournamentPlacing((int)@$_SESSION['manualPlacing']['tournamentID'])?>
 
+		<?=showEventBurgees()?>
 
-	<div class='grid-x'>
+		<?=showTournamentPlacings($tournamentsToDisplay,  $tournamentList)?>
 
-	<?=showEventBurgees()?>
-
-
-	<?php foreach((array)$tournamentList as $tournamentID => $data):
-
-		$isTeams = isTeams($tournamentID);
-		$name = getTournamentName($tournamentID);
-		$link = "onclick='javascript:document.goToTournamentAlt{$tournamentID}.submit();'
-					style='cursor: pointer;'";
-
-		$fieldsetLink = '';
-		if(!ALLOW_EDITING && !isFinalized($tournamentID)){
-			$fieldsetLink = $link;
-		}
-
-		?>
-
-
-		<fieldset class='large-7 medium-10 small-12 fieldset' <?=$fieldsetLink?>>
-
-			<a name='anchor<?=$tournamentID?>'></a>
-			<legend><h4><a <?=$link?>><?= $name ?></a></h4></legend>
-
-			<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
-			<input type='hidden' name='formName' value='changeTournament'>
-			<input type='hidden' name='newPage' value='participantsTournament.php'>
-			<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
-			</form>
-
-
-			<?php if(ALLOW_EDITING && @$_SESSION['manualPlacing']['tournamentID'] == $tournamentID): ?>
-
-				<?= manualTournamentPlacing($tournamentID, $isTeams); ?>
-
-			<?php else: ?>
-
-				<?= displayTournamentPlacings($tournamentID, $data, $isTeams) ?>
-				<?= manageTournamentPlacings($tournamentID)?>
-
-			<?php endif ?>
-
-		</fieldset>
-
-	<?php endforeach ?>
 	</div>
 
 	<?php if($anyFinalized == true){
@@ -106,13 +113,70 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
+function showTournamentPlacings($tournamentsToDisplay,  $tournamentList){
+?>
+
+	<?php foreach($tournamentsToDisplay as $j => $t):
+		$groupClass = "tab-group-{$j}";
+
+		?>
+		<div class='large-6 medium-10 small-12 cell' style='padding-bottom: 1em;'>
+
+			<?php if(isset($t['divisionID']) == false):?>
+
+				<?= displayTournamentPlacings($t['tournamentID'], $tournamentList[$t['tournamentID']]) ?>
+
+			<?php else: ?>
+
+				<nav>
+					<?php foreach(@(array)$t['tournaments'] as $i => $item):?>
+						<div class="folder-tab  <?=$groupClass?>-tab <?=$tournamentList[$item['tournamentID']]['tabClass']?>" id='<?=$groupClass?>-tab-<?=$i?>'
+							onclick="switchActiveTab(<?=$i?>, '<?=$groupClass?>')">
+							<span style='font-size: <?=$item['tabTextSize']?>em;line-height: 1.0em;'>
+								<?=$item['shortName']?>
+							</span>
+						</div>
+					<?php endforeach?>
+				</nav>
+
+				<div class="tabs-body">
+					<?php foreach(@(array)$t['tournaments'] as $i => $item):?>
+						<div class='<?=$groupClass?>-body <?=$tournamentList[$item['tournamentID']]['bodyClass']?>' id='<?=$groupClass?>-body-<?=$i?>'>
+							<?= displayTournamentPlacings($item['tournamentID'], $tournamentList[$item['tournamentID']]) ?>
+						</div>
+					<?php endforeach?>
+				</div>
+
+			<?php endif ?>
+
+		</div>
+
+	<?php endforeach ?>
+<?php
+}
+
+/******************************************************************************/
+
 function showEventBurgees(){
 
 	$burgeeIDs = getEventBurgees($_SESSION['eventID']);
 
-	foreach($burgeeIDs as $burgeeID){
-		burgeeDisplay($burgeeID);
+	$numBurgees = count($burgeeIDs );
+	if($numBurgees > 1){
+		$size = 6;
+	} else {
+		$size = 8;
 	}
+
+	foreach($burgeeIDs as $burgeeID){
+		burgeeDisplay($burgeeID, true, $size);
+		$isBurgees = true;
+	}
+
+	if($numBurgees != 0){
+		echo "<div class='cell'><HR></div>";
+	}
+
 }
 
 /******************************************************************************/
@@ -176,13 +240,11 @@ function sortTournamentsForPlacings($tournamentList){
 
 /******************************************************************************/
 
-function displayTournamentPlacings($tournamentID, $data, $isTeams){
+function displayTournamentPlacings($tournamentID, $data){
 
 	$placings = getTournamentPlacings($tournamentID);
+	$fieldsetLink = $data['link'];
 
-	if($placings == null){
-		return;
-	}
 
 	if(($data['hideFinalResults'] == true)
 		&& (ALLOW['EVENT_SCOREKEEP'] == false)
@@ -195,8 +257,10 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
 // Calculate which results to show on the main screen
 	$i = 0;
+	$j = 0;
 	$placingsToShow = sizeof($placings);
 	$placingDisplay1 = [];
+
 	while($i < $placingsToShow){
 
 		if($placings[$i]['lowBound'] != null){
@@ -207,16 +271,27 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 			break;
 		}
 
+	// Fighter name
 		$rosterID = $placings[$i]['rosterID'];
 		if($rosterID == null){continue;}
 
-		if($isTeams == true){
+		if((int)$data['isTeams'] != 0){
 			$tmp['name'] = getTeamName($rosterID);
 		} else {
 			$tmp['name'] = getFighterName($rosterID);
 		}
 
+	// Append "tie" if the standings are tied
+		$tmp['placing'] = $placings[$i]['placing'];
+		if($j != 0 && $placings[$i]['placing'] == $placingDisplay1[$j-1]['placing']){
+			$txt = "<i>".$placings[$i]['placing']."-tie</i>";
+			$tmp['placeText'] = $txt;
+			$placingDisplay1[$j-1]['placeText'] = $txt;
+		} else {
+			$tmp['placeText'] = $placings[$i]['placing'];
+		}
 
+	// School name to display
 		if(isset($placings[$i]['schoolFullName'])){
 			$tmp['school'] = $placings[$i]['schoolFullName'];
 			if($placings[$i]['schoolBranch'] != null){
@@ -234,36 +309,40 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 
 		$i++;
 
-		$placingDisplay1[] = $tmp;
+		$placingDisplay1[$j] = $tmp;
+		$j++;
 	}
 
-	/// NO NOT RE-SET i BETWEEN THESE TWO LOOPS /////
+    //// !!   -------------------------------------------------------------   !! ////
+	//      DO NOT RE-SET i BETWEEN THESE TWO LOOPS //
+	//// !!   -------------------------------------------------------------   !! ////
 
 // Calculate which results to show on the secondary display.
 	$placingDisplay2 = [];
+	$j = 0;
 	for($i;$i<$placingsToShow;$i++){
 
-		switch($placings[$i]['placeType']){
-			case 'bracket':
-				$tmp['place'] = "Top ".$placings[$i]['placing'];
-				break;
-			case 'tie':
-				$tmp['place'] = $placings[$i]['lowBound']."<em>{Tie}</em>";
-				break;
-			default:
-				$tmp['place'] = $placings[$i]['placing'];
-				break;
+	// Append "tie" if the standings are tied
+		$tmp['placing'] = $placings[$i]['placing'];
+		if($j != 0 && $placings[$i]['placing'] == $placingDisplay2[$j-1]['placing']){
+			$txt = "<i>".$placings[$i]['placing']."-tie</i>";
+			$tmp['placeText'] = $txt;
+			$placingDisplay2[$j-1]['placeText'] = $txt;
+		} else {
+			$tmp['placeText'] = $placings[$i]['placing'];
 		}
 
+	// Fighter name
 		$rosterID = $placings[$i]['rosterID'];
 		if($rosterID == null){continue;}
 
-		if($isTeams == true){
+		if((int)$data['isTeams'] != 0){
 			$tmp['name'] = getTeamName($rosterID);
 		} else {
 			$tmp['name'] = getFighterName($rosterID);
 		}
 
+	// School name to display
 		if(isset($placings[$i]['schoolFullName'])){
 			$tmp['school'] = $placings[$i]['schoolFullName'];
 			if($placings[$i]['schoolBranch'] != null){
@@ -273,55 +352,112 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 			$tmp['school'] = '';
 		}
 
-		$placingDisplay2[] = $tmp;
+		$placingDisplay2[$j] = $tmp;
+		$j++;
 	}
-
 
 ?>
 
 
 <!-- Display the top 4 -->
-	<table>
+
+	<form method='POST' name='goToTournamentAlt<?= $tournamentID; ?>'>
+		<input type='hidden' name='formName' value='changeTournament'>
+		<input type='hidden' name='newPage' value='participantsTournament.php'>
+		<input type='hidden' name='newTournament' value=<?= $tournamentID; ?>>
+	</form>
+
+	<table class='data-table text-left results-table'>
+
+		<tr>
+
+			<td class='results-table-header' colspan='100%'>
+
+				<a style='font-size:1.5em' <?=$fieldsetLink?>>
+					<?=getTournamentName($tournamentID)?>
+
+				</a>
+
+				<span style='float: right;'>
+					<a class='extra-results-<?=$tournamentID?>'
+					onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
+					Show All ↓
+					</a>
+					<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()" class='extra-results-<?=$tournamentID?> hidden'>Hide ↑</a>
+				</span>
+
+			</td>
+		</tr>
+
+
 		<?php foreach($placingDisplay1 as $data):?>
 
 			<tr>
-				<td class='text-center'>
-					<?= $data['place'] ?>
+				<td class='text-center no-wrap'>
+					<?= $data['placeText'] ?>
 				</td>
-				<td>
+				<td style='text-align: left;'>
 					<strong><?=$data['name']?></strong>
 				</td>
-				<td>
+				<td style='text-align: left;'>
 					<em><?= $data['school'] ?></em>
 				</td>
 			</tr>
 
 		<?php endforeach ?>
-	</table>
+
 
 <!-- Display results above 4th place -->
 
 	<!-- Toggle visibility -->
 	<?php if($placingDisplay2 != null): ?>
-		<a class='extra-results-<?=$tournamentID?>'
-			onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
 
-			Show More ↓
-		</a>
+		<?php foreach($placingDisplay2 as $data):?>
+			<!-- Display data -->
+			<tr class='extra-results-<?=$tournamentID?> hidden'>
 
-		<!-- Display data -->
-		<div class='extra-results-<?=$tournamentID?> hidden'>
+				<td class='text-center no-wrap'>
+					<?= $data['placeText'] ?>
+				</td>
+				<td style='text-align: left;'>
+					<strong><?=$data['name']?></strong>
+				</td>
+				<td style='text-align: left;'>
+					<em><?= $data['school'] ?></em>
+				</td>
 
-			<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">Hide ↑</a>
+			</tr>
+		<?php endforeach ?>
 
-			<?php foreach($placingDisplay2 as $data):?>
-				<li>
-					<?=($data['place'])?> - <?=$data['name']?>
-					(<em><?=$data['school']?></em>)
-				</li>
-			<?php endforeach ?>
-		</div>
+	<?php else: ?>
+
+		<tr>
+			<td colspan='100%' class='results-table-info' >
+				<i>The event organizer has not finalized the tournament placings.</i>
+			</td>
+		</tr>
+
 	<?php endif ?>
+
+	<tr>
+		<td colspan='100%'  class='results-table-info'>
+
+		</td>
+	</tr>
+
+
+	<?php if(ALLOW_EDITING == true): ?>
+		<tr>
+			<td colspan='100%' class='results-table-info border-top'>
+				<?= manageTournamentPlacings($tournamentID)?>
+			</td>
+		</tr>
+	<?php endif ?>
+
+
+	</table>
+
+
 
 <?php
 }
@@ -329,12 +465,6 @@ function displayTournamentPlacings($tournamentID, $data, $isTeams){
 /******************************************************************************/
 
 function manageTournamentPlacings($tournamentID){
-
-	if(ALLOW_EDITING == false){
-		return;
-	}
-
-
 
 	$tournamentID = (int)$tournamentID;
 
@@ -431,9 +561,15 @@ function manageTournamentPlacings($tournamentID){
 
 /******************************************************************************/
 
-function manualTournamentPlacing($tournamentID, $isTeams = false){
+function manualTournamentPlacing($tournamentID){
 
+	if(ALLOW_EDITING == false || $tournamentID == 0){
+		return;
+	}
+
+	$isTeams = isTeams($tournamentID);
 	$roster = getTournamentCompetitors($tournamentID);
+	$name = getTournamentName($tournamentID);
 	$max = sizeof($roster);
 
 	define("TIE_TOP",'↰');
@@ -472,92 +608,106 @@ function manualTournamentPlacing($tournamentID, $isTeams = false){
 
 	?>
 
-	Click on squares to the right of names to set/clear ties.
-	<form method='POST'>
-	<input type='hidden' name='formName' value='finalizeTournament'>
-	<input type='hidden' name='tournamentID' value='<?= $tournamentID ?>'>
-
-	<?php
-	$tieCounter = 0;
-	for($i=1;$i<=$max;$i++):
+	<div class='large-7 medium-10 small-12 fieldset cell primary callout'
+		style='padding-bottom: 0.5em;padding-top: 0.5em;margin-bottom: 0.2em;'>
 
 
+			<h4 class='no-bottom' ><?=$name?></h4>
 
-		if(@$placings[$i]['tie'] != 0){
-			$tieCounter++;
-			if($tieCounter == 1){
-				$placeNum = $i;
-				$tieMark = TIE_TOP;
-			} elseif($tieCounter == @$placings[$i]['tie']){
-				$tieCounter = 0;
-				$tieMark = TIE_BOTTOM;
-			} else {
-				$tieMark = TIE_MIDDLE;
-			}
-			$tieVal = @$placings[$i]['tie'];
-			$class = 'blue-text';
 
-		} else{
-			$tieCounter = 0;
-			$tieVal = 0;
-			$placeNum = $i;
+		Click on squares to the right of names to set/clear ties.
+		<form method='POST'>
+		<input type='hidden' name='formName' value='finalizeTournament'>
+		<input type='hidden' name='tournamentID' value='<?= $tournamentID ?>'>
+
+		<?php
+
+		for($i=1;$i<=$max;$i++):
+
 			$class = '';
-			$tieMark = TIE_NO;
-		}
 
-		if($i != $max){
-			$cursor  = 'pointer';
-			$onClick = "onclick=\"placingsDeclareTie({$i},{$max})\"";
-		} else {
-			$cursor  = '';
-			$onClick = '';
-		}
+			if($i != $max && $placings[$i]['place'] == $placings[$i+1]['place']){
 
-		?>
+				if($i != 1 && $placings[$i]['place'] == $placings[$i-1]['place']){
+					$tieMark = TIE_MIDDLE;
+				} else {
+					$tieMark = TIE_TOP;
+				}
 
-		<!-- Select field -->
-		<div class='input-group'>
+				$class = 'blue-text';
 
-		<!-- Hidden inputs -->
-			<input type='hidden' id='place-value-<?=$i?>' value='<?=$placeNum?>'
-				name='tournamentPlacings[placings][<?=$i?>][place]' >
-			<input type='hidden' id='place-tie-<?=$i?>' value='<?=$tieVal?>'
-				name='tournamentPlacings[placings][<?=$i?>][tie]' >
+			} else {
 
-		<!-- Label for place -->
-			<span class='input-group-label <?=$class?>' id='place-label-<?=$i?>'><?=$placeNum?></span>
+				if($i != 1 && $placings[$i]['place'] == $placings[$i-1]['place']){
+					$class = 'blue-text';
+					$tieMark = TIE_BOTTOM;
+				} else {
 
+					$tieMark = TIE_NO;
+				}
 
-		<!-- Select tournament participant -->
-			<select class='input-group-field' name='tournamentPlacings[placings][<?=$i?>][rosterID]'>
-				<option></option>";
-				<?php
-				$checkAgainstID = @$placings[$i]['rosterID']; // Could not exist. Treat as null.
-				foreach($roster as $person):
-					$rosterID = $person['rosterID'];?>
-					<option <?=optionValue($rosterID,$checkAgainstID)?>>
-						<?= $names[$rosterID] ?>
-					</option>";
-				<?php endforeach ?>
-			</select>
+			}
 
-		<!-- The field to toggle a tie on/off -->
-			<span class='input-group-label <?=$cursor?> ' <?=$onClick?>
-				style="font-family:'Courier New', Courier, monospace;" >
-				<strong class='blue-text' id='declare-tie-<?=$i?>'><?=$tieMark?></strong>
-			</span>
-		</div>
+			$placeNum = $placings[$i]['place'];
 
 
-	<?php endfor ?>
-	<button class='button' name='formName' value='finalizeTournament'>
-		Finalize Tournament
-	</button>
-	<button class='button secondary' name='formName' value='finalizeTournament-no'>
-		Cancel
-	</button>
+			if($i != $max){
+				$cursor  = 'pointer';
+				$onClick = "onclick=\"placingsDeclareTie({$i},{$max})\"";
+			} else {
+				$cursor  = '';
+				$onClick = '';
+			}
 
-	</form>
+			?>
+
+			<!-- Select field -->
+			<div class='input-group'>
+
+			<!-- Hidden inputs -->
+				<input type='hidden' id='place-value-<?=$i?>' value='<?=$placeNum?>'
+					name='tournamentPlacings[placings][<?=$i?>][place]' >
+
+
+			<!-- Label for place -->
+				<span class='input-group-label <?=$class?>' id='place-label-<?=$i?>'><?=$placeNum?></span>
+
+
+			<!-- Select tournament participant -->
+				<select class='input-group-field' name='tournamentPlacings[placings][<?=$i?>][rosterID]'>
+					<option></option>";
+					<?php
+					$checkAgainstID = @$placings[$i]['rosterID']; // Could not exist. Treat as null.
+					foreach($roster as $person):
+						$rosterID = $person['rosterID'];?>
+						<option <?=optionValue($rosterID,$checkAgainstID)?>>
+							<?= $names[$rosterID] ?>
+						</option>";
+					<?php endforeach ?>
+				</select>
+
+			<!-- The field to toggle a tie on/off -->
+				<span class='input-group-label <?=$cursor?> ' <?=$onClick?>
+					style="font-family:'Courier New', Courier, monospace;" >
+					<strong class='blue-text' id='declare-tie-<?=$i?>'><?=$tieMark?></strong>
+				</span>
+			</div>
+
+
+		<?php endfor ?>
+		<button class='button' name='formName' value='finalizeTournament'>
+			Finalize Tournament
+		</button>
+		<button class='button secondary' name='formName' value='finalizeTournament-no'>
+			Cancel
+		</button>
+
+		</form>
+	</div>
+
+	<div class='large-12 cell'>
+		<HR>
+	</div>
 
 <?php
 	unset($_SESSION['manualPlacing']);

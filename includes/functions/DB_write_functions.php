@@ -5251,7 +5251,7 @@ function removeTournamentPlacings($tournamentID){
 	mysqlQuery($sql, SEND);
 
 	$_SESSION['checkEvent']['placings'] = true;
-	$_SESSION['jumpTo'] = "anchor{$tournamentID}";
+
 }
 
 /******************************************************************************/
@@ -5677,6 +5677,16 @@ function updateTournamentDivisions($info){
 
 	$divisionID = (int)$info['divisionID'];
 
+	$groupBy = "";
+	switch($info['groupBy']){
+		case 'prefixID':{	$groupBy = 'prefixID';		break;}
+		case 'weaponID':{	$groupBy = 'weaponID';		break;	}
+		case 'genderID':{	$groupBy = 'genderID';		break;	}
+		case 'materialID':{	$groupBy = 'materialID';	break;	}
+		default:{			break;								}
+	}
+
+
 	$sql = "SELECT divisionID, eventID
 			FROM eventTournamentDivisions
 			WHERE divisionID = {$divisionID}";
@@ -5685,9 +5695,9 @@ function updateTournamentDivisions($info){
 	if($result == []){
 
 		$sql = "INSERT INTO eventTournamentDivisions
-				(eventID, divisionName)
+				(eventID, divisionName, groupBy)
 				VALUES
-				({$eventID}, ?)";
+				({$eventID}, ?, '{$groupBy}')";
 
 		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 		// "s" means the database expects a string
@@ -5707,7 +5717,7 @@ function updateTournamentDivisions($info){
 		// Division exists already.
 
 		$sql = "UPDATE eventTournamentDivisions
-				SET divisionName = ?
+				SET divisionName = ?, groupBy = '{$groupBy}'
 				WHERE divisionID = {$divisionID}";
 
 		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
@@ -9091,6 +9101,7 @@ function setBurgeeInfo($info){
 	$burgeeRankingID = (int)$info['burgeeRankingID'];
 	$burgeeID = (int)$info['burgeeID'];
 	$burgeeName = (string)$info['burgeeName'];
+	$hideBurgee = (int)$info['hideBurgee'];
 
 	if($eventID != (int)$_SESSION['eventID'] || $burgeeRankingID == 0){
 		setAlert(USER_ERROR,"Invalid parameters passed in setBurgeeInfo()");
@@ -9104,9 +9115,9 @@ function setBurgeeInfo($info){
 		// Create if doen't exist
 
 		$sql = "INSERT INTO eventBurgees
-				(eventID, burgeeRankingID, burgeeName)
+				(eventID, burgeeRankingID, burgeeName, hideBurgee)
 				VALUES
-				({$eventID},{$burgeeRankingID},?)";
+				({$eventID},{$burgeeRankingID},?, {$hideBurgee})";
 
 		$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 		// "s" means the database expects a string
@@ -9133,7 +9144,9 @@ function setBurgeeInfo($info){
 		}
 
 		$sql = "UPDATE eventBurgees
-				SET burgeeRankingID = {$burgeeRankingID}, burgeeName = ?
+				SET burgeeRankingID = {$burgeeRankingID},
+					hideBurgee = {$hideBurgee},
+					burgeeName = ?
 				WHERE eventID = {$eventID}
 				AND burgeeID = {$burgeeID}";
 

@@ -2083,7 +2083,7 @@ function edit_tournamentPenaltyEscalationMode($tournamentID = 0){
 	<tr class='option-misc <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
-				Prenalty Escalation  <?=tooltip("
+				Penalty Escalation  <?=tooltip("
 					<b>Under Development</b><BR>
 					How penalties escalate through card colors. All the different possible ways, and how to manage them, have not yet been implemented.")?>
 			</div>
@@ -3812,22 +3812,30 @@ function changeRosterFilterDropdown(){
 
 /******************************************************************************/
 
-function burgeeDisplay($burgeeID){
+function burgeeDisplay($burgeeID, $skipHidden = false, $size = 8){
 
 	if($burgeeID == 0){
 		return;
 	}
 
-	$burgeePoints = getBurgeePoints($burgeeID);
 	$burgeeInfo = getBurgeeInfo($burgeeID);
+
+	if($skipHidden == true && (int)$burgeeInfo['hideBurgee'] != 0){
+		return;
+	}
+
+	$burgeePoints = getBurgeePoints($burgeeID);
 	$paramList = getBurgeeRankingParameters($burgeeInfo['burgeeRankingID']);
 	$name = getBurgeeName($burgeeID);
-
 
 	$schoolIDs = array_keys($burgeePoints);
 
 	$top4Burgees = [];
 	foreach($burgeePoints as $schoolID => $placing){
+
+		foreach($placing['fighters'] as $fighter){
+			@$burgeePoints[$schoolID]['counts'][$fighter['placingName']]++;
+		}
 
 		$burgeePoints[$schoolID]['placeText'] = $placing['place'];
 		if($placing['text'] != ""){
@@ -3842,112 +3850,79 @@ function burgeeDisplay($burgeeID){
 		}
 	}
 
+
+
 ?>
 
-	<fieldset class='large-10 small-12 fieldset'>
+	<div class='large-<?=$size?> small-12 cell'>
 
-		<legend><h4><?=$name?></h4></legend>
+		<table class=' data-table' style='border: 2px solid black'>
 
 
-		<table class='extra-burgee-<?=$burgeeID?>'>
+			<tr>
+				<td colspan='100%' style='text-align: left; background-color:black; color:white'>
+					<span style='font-size:1.5em'><?=$name?></span>
+					<span style='float: right;'>
+						<a class='extra-burgee-<?=$burgeeID?>'
+						onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()">
+						Full Standings ↓
+						</a>
+						<a onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()" class='extra-burgee-<?=$burgeeID?> hidden'>Hide ↑</a>
+					</span>
+				</td>
+			</tr>
 
 		<?php foreach($top4Burgees as $burgee):?>
 
-			<tr>
+			<tr  class='extra-burgee-<?=$burgeeID?>'>
 				<td class='text-center'>
 					<?=$burgee['placeText']?>
 				</td>
-				<td>
+				<td style='text-align: left;'>
 					<strong><?=$burgee['school']?></strong>
 				</td>
 			</tr>
 
 		<?php endforeach ?>
-		</table>
 
-		<?php if($top4Burgees != []):?>
-			<a class='extra-burgee-<?=$burgeeID?>'
-				onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()">
-				Full Standings ↓
-			</a>
-		<?php else: ?>
-			<a class='extra-burgee-<?=$burgeeID?>-explain'
-				onclick= "$('.extra-burgee-<?=$burgeeID?>-explain').toggle()">
-				How Is This Calculated? ↓
-			</a>
-		<?php endif ?>
-
-		<a onclick= "$('.extra-burgee-<?=$burgeeID?>').toggle()" class='extra-burgee-<?=$burgeeID?> hidden'>Hide ↑</a>
-
-		<table class='extra-burgee-<?=$burgeeID?> hidden'>
-
-			<tr>
-				<th>#</th>
-				<th>School</th>
-				<?php foreach($paramList as $params):?>
-					<th><?=$params['name']?></th>
+			<tr class='extra-burgee-<?=$burgeeID?> hidden'>
+				<td style='text-align: center; font-size:0.8em; font-weight: bold;'>#</td>
+				<td style='text-align: center; font-size:0.8em; font-weight: bold;'>School</td>
+				<?php foreach($paramList as $param):?>
+					<td style='text-align: center; font-size:0.8em; font-weight: bold;'><?=$param['name']?></td>
 				<?php endforeach ?>
-				<th>Points</th>
+				<td style='text-align: center; font-size:0.8em; font-weight: bold;'>Points</td>
 			</tr>
 
 
-			<?php
-				foreach($burgeePoints as $schoolID => $placing):?>
+			<?php foreach($burgeePoints as $schoolID => $placing):?>
 
-				<tr>
+				<tr  class='extra-burgee-<?=$burgeeID?> hidden'>
 					<td><?=$placing['placeText']?></td>
-					<td>
-						<a onclick="$('.school-fighters-<?=$schoolID?>').toggle()">
-							<?=getSchoolName($schoolID, 'long', true)?>
-						</a>
+					<td style='text-align: left;'>
+						<?=getSchoolName($schoolID, 'long', true)?>
 					</td>
-					<?php foreach($paramList as $i => $params):?>
-						<td><?=@$burgeePoints['schools'][$schoolID]['count'][$i]?></td>
+					<?php foreach($paramList as $i => $param):?>
+						<td style='text-align: center;'><?=@$placing['counts'][$param['name']]?></td>
 					<?php endforeach ?>
 
-					<td><?=$placing['score']?></td>
-				</tr>
-
-				<tr>
-					<td class='hidden' colspan='100%'></td>
-				</tr>
-
-				<tr class='hidden school-fighters-<?=$schoolID?> bottom-border'>
-					<td></td>
-					<td colspan='100%'>
-						<?php foreach($burgeePoints[$schoolID]['fighters'] as $rosterID => $fighter):?>
-
-							<li style='margin-bottom:0.3em;'>
-								<i><?=$fighter['placingName']?>:</i>
-								<b><?=getFighterName($rosterID)?></b>
-
-									<?php foreach($fighter['tournamentIDs'] as $tournamentID):?>
-										&nbsp; &nbsp; &nbsp;[<?=getTournamentName($tournamentID)?>]
-									<?php endforeach ?>
-
-
-							</li>
-
-						<?php endforeach ?>
-					</td>
+					<td style='text-align: center;'><?=$placing['score']?></td>
 				</tr>
 
 			<?php endforeach ?>
 
 
+			<tr class='extra-burgee-<?=$burgeeID?> hidden'>
+				<td colspan='100%' style='text-align: left;background-color: #EEE;'>
+					<u>How was this calculated?</u>
+					<?=displayBurgeeRankingExplanation($paramList)?>
+					Each club member is counted only once with their best result. (No matter how many tournaments they win.)
+				</td>
+			</tr>
+
 		</table>
 
-		<div class='extra-burgee-<?=$burgeeID?> extra-burgee-<?=$burgeeID?>-explain hidden'>
-			<u>How was this calculated?</u>
-			<?=displayBurgeeRankingExplanation($paramList)?>
-			Each club member is counted only once with their best result. (No matter how many tournaments they win.)
-		</div>
-
-	</fieldset>
-
-
-
-
+	</div>
 
 <?php
 }

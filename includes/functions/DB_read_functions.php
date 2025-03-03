@@ -1500,7 +1500,7 @@ function getEventLocation($eventID){
 
 /******************************************************************************/
 
-function getEventDays($eventID){
+function getEventDays($eventID, $useShortDay = false){
 
 	$eventID = (int)$eventID;
 
@@ -1527,7 +1527,12 @@ function getEventDays($eventID){
 
 	$dayNum = 1;
 	do{
-		$dayList[$dayNum] = $date->format('l');
+		if($useShortDay == false){
+			$dayList[$dayNum] = $date->format('l');
+		} else {
+			$dayList[$dayNum] = $date->format('D');
+		}
+
 		$date->modify('+1 day');
 		$dayNum++;
 	} while ($date <= $endDate);
@@ -2080,7 +2085,7 @@ function getBurgeeInfo($burgeeID){
 
 	$burgeeID = (int)$burgeeID;
 
-	$sql = "SELECT burgeeID, eventID, burgeeRankingID, burgeeName
+	$sql = "SELECT burgeeID, eventID, burgeeRankingID, burgeeName, hideBurgee
 			FROM eventBurgees
 			WHERE burgeeID = {$burgeeID}";
 	$info = (array)mysqlQuery($sql, SINGLE);
@@ -2513,7 +2518,7 @@ function getTournamentDivisions($eventID){
 	$eventID = (int)$eventID;
 
 
-	$sql = "SELECT divisionID, eventID, divisionName
+	$sql = "SELECT divisionID, eventID, divisionName, groupBy
 			FROM eventTournamentDivisions
 			WHERE eventID = {$eventID}";
 	$divisions = (array)mysqlQuery($sql, ASSOC);
@@ -6668,6 +6673,34 @@ function getTournamentName($tournamentID = null){
 	}
 
 	return $name;
+
+}
+
+/******************************************************************************/
+
+function getTournamentAttribute($tournamentID, $attribute){
+
+	$tournamentID = (int)$tournamentID;
+
+	switch($attribute){
+		case 'tournamentPrefixID':{		$attribute = 'tournamentPrefixID';		break;}
+		case 'tournamentWeaponID':{		$attribute = 'tournamentWeaponID';		break;	}
+		case 'tournamentGenderID':{		$attribute = 'tournamentGenderID';		break;	}
+		case 'tournamentMaterialID':{	$attribute = 'tournamentMaterialID';	break;	}
+		default:{						$attribute = ''; 						break;	}
+	}
+
+	if($tournamentID == 0 || $attribute == ''){
+		return ['attributeID' => 0, 'attributeName' => ''];
+	}
+
+	$sql = "SELECT {$attribute}, tournamentType AS attributeName
+			FROM eventTournaments AS eT
+			INNER JOIN systemTournaments AS sT ON eT.{$attribute} = sT.tournamentTypeID
+			WHERE tournamentID = {$tournamentID}";
+	$retVal = (array)mysqlQuery($sql, SINGLE);
+
+	return ($retVal);
 
 }
 
