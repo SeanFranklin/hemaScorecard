@@ -847,6 +847,78 @@ function logisticsEditStaffShifts($shiftList, $eventID){
 
 /******************************************************************************/
 
+function logisticsCopyStaffShifts($data){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$toStartTime = (int)@$data['to'];
+	$fromStartTime = (int)@$data['from'];
+	$blockID =(int)@$data['blockID'];
+
+	if($blockID == 0 || $toStartTime == 0 || $fromStartTime == 0){
+		setAlert(USER_ERROR, "Please enter the proper data to copy the shift.");
+		return;
+	}
+
+	if($toStartTime == $fromStartTime){
+		setAlert(USER_ALERT, "You set both times the same and I didn't need to do anything.");
+		return;
+	}
+
+
+	$shifts = logistics_getScheduleBlockShifts($blockID);
+
+	if(isset($shifts[$fromStartTime]) == false || isset($shifts[$toStartTime]) == false){
+		setAlert(SYSTEM_ERROR, "Illegal array offset in logisticsCopyStaffShifts()");
+		return;
+	}
+
+	$fromShifts = $shifts[$fromStartTime];
+	$toShifts = $shifts[$toStartTime];
+
+	foreach($fromShifts as $i => $shift){
+		$fromShifts[$shift['locationID']] = $shift;
+		unset($fromShifts[$i]);
+	}
+
+	// clear old shifts
+	foreach($toShifts as $shift){
+
+		$shiftID = (int)$shift['shiftID'];
+		$locationID = (int)$shift['locationID'];
+
+		$sql = "DELETE FROM logisticsStaffShifts
+				WHERE shiftID = {$shiftID}";
+		mysqlQuery($sql, SEND);
+
+		$fromShiftID = $fromShifts[$locationID]['shiftID'];
+
+		$sql = "SELECT rosterID, logisticsRoleID
+				FROM logisticsStaffShifts
+				WHERE shiftID = {$fromShiftID}";
+		$staffAssignments = (array)mysqlQuery($sql, ASSOC);
+
+		foreach ($staffAssignments as $assign){
+			$rosterID = (int)$assign['rosterID'];
+			$logisticsRoleID = (int)$assign['logisticsRoleID'];
+
+			$sql = "INSERT INTO logisticsStaffShifts
+					(shiftID, rosterID, logisticsRoleID)
+					VALUES
+					({$shiftID}, {$rosterID}, {$logisticsRoleID})";
+			mysqlQuery($sql, SEND);
+
+		}
+
+	}
+
+
+}
+
+/******************************************************************************/
+
 function logisticsBulkStaffAssign($info){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){return;}
@@ -4140,7 +4212,8 @@ function recordTournamentPlacings($tournamentID,$input){
 	$errorString = '';
 	$index = 1;
 	foreach($input['placings'] as $placing){
-		$rosterID = (int)$placing['rosterID'];
+
+		$rosterID = (int)@$placing['rosterID'];
 		if($rosterID == 0){
 			continue;
 		}
@@ -4172,7 +4245,7 @@ function recordTournamentPlacings($tournamentID,$input){
 // Write the placings
 	foreach($input['placings'] as $placing){
 
-		$rosterID = (int)$placing['rosterID'];
+		$rosterID = (int)@$placing['rosterID'];
 		if($rosterID == 0){
 			continue;
 		}
@@ -4260,20 +4333,14 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 
 	$numSets = getNumGroupSets($tournamentID);
 
-	$place = 1;
-	foreach(@(array)$placings['placings'] as $oldIndex => $data){ // May not exist, ignore the entry.
-		if($data['place'] >= $place){
-			$place = $data['place'] + 1;
-		}
-	}
-
 	if(isset($placings['placings'])){
-		$maxPlacing = @max(array_keys($placings['placings'])); // May not exist, treat as zero.
+		$place = count($placings['placings']); // May not exist, treat as zero.
 	} else {
-		$maxPlacing = 0;
+		$place = 0;
 	}
 
-	$index = $maxPlacing + 1 ;
+	$place++;
+	$index = $place;
 
 	$startOfTie = 0;
 	$endOfTie = 0;
@@ -4311,33 +4378,8 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 			$placings['placings'][$index] = $tmp;
 			$assignedFighters[$rosterID] = true;
 
-			// Check if the fighter has tied with the previous one.
-			if($thisScore === $oldScore){
-				$hasTies = true;
-				if($startOfTie == 0){
-					$startOfTie = $index-1;
-					$tieSize = 1;
-				}
-				$tieSize++;
-				$endOfTie = $index;
-			} else {
-				$place++;
-			}
-
-			// If a tie has ended (past the last tied fighter), loop through and
-			// set the 'tie' value for all fighters involved in the tie.
-			if($tieSize != 0 && ($endOfTie != $index || $index == $numScores)){
-
-				for($i = $startOfTie; $i<=$endOfTie;$i++){
-					$placings['placings'][$i]['tie'] = $tieSize;
-				}
-
-				$tieSize = 0;
-				$endOfTie = 0;
-				$startOfTie = 0;
-			}
-
 			// Set data for the next loop
+			$place++;
 			$index++;
 			$oldScore = $thisScore;
 		}
@@ -4352,7 +4394,7 @@ function generateTournamentPlacings_set($tournamentID, $placings = []){
 				<BR><em>Ties are shown in the right hand box with blue arrows.</em>(<strong class='blue-text'>&#8624;</strong>)";
 
 		if(basename($_SERVER['PHP_SELF']) != 'infoSummary.php'){
-			redirect("infoSummary.php#anchor{$tournamentID}");
+			redirect("infoSummary.php");
 		}
 
 	} else {
@@ -4371,101 +4413,81 @@ function generateTournamentPlacings_round($tournamentID){
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
-			AND groupType = 'round'";
-	$res = mysqlQuery($sql, ASSOC);
+			AND groupType = 'round'
+			ORDER BY groupSet DESC, groupNumber DESC";
+	$matchScores = mysqlQuery($sql, ASSOC);
 
-	$numScores = 0;
-	foreach($res as $match){
-		if($match['score'] === null){ continue;	}
-		$scores[$match['groupSet']][$match['groupNumber']][$match['fighter1ID']] = $match['score'];
-		$numScores++;
+	$highestGroupSetForFighter = [];
+	$roundScores = [];
+	foreach($matchScores as $match){
+		$groupSet = $match['groupSet'];
+		$rosterID = $match['fighter1ID'];
+		$maxGroupSet = (int)@$highestGroupSetForFighter[$rosterID];
+
+		// If maxGroupSet has a value, and it is not this round, that means
+		// the fighter has a score in a higher round. Skip them.
+		if($maxGroupSet != 0 && $maxGroupSet != $groupSet){
+			continue;
+		}
+
+		if($match['score'] === null){
+			continue;
+		}
+
+		$highestGroupSetForFighter[$rosterID] = $groupSet;
+
+		@$roundScores[$groupSet][$rosterID] += $match['score'];
+
 	}
 
-	$overalScores = array();
-	$index = 1;
-	$startOfTie = 0;
-	$endOfTie = 0;
-	$tieSize = 0;
 	$place = 1;
+	$index = 1;
 	$hasTies = false;
+	$placings = [];
+	foreach($roundScores as $i => $roundData){
+		arsort($roundData);
+		$roundScores[$i] = $roundData;
 
-	// Loop through all the sets backward, because the later results are more important.
-	for($groupSet = count($scores); $groupSet >= 1; $groupSet--){
+		unset($hold);
+		foreach($roundData as $rosterID => $score){
 
-		// Loop through all the groups backwards, because the later results are more important.
-		for($groupNum = count($scores[$groupSet]); $groupNum >= 1; $groupNum--){
+			$tmp = [];
 
-			$roundScores = [];
-			// Sum up the group set scores for each fighter (points are cumulative across rounds.)
-			foreach($scores[$groupSet][$groupNum] as $rosterID => $score){
-				if(isset($fightersInList[$rosterID])){ continue; }
-				$score = 0;
-				foreach($scores[$groupSet] as $pieces){
-					$score += @$pieces[$rosterID]; // Might not exist, score is same as zero
-				}
-				$fightersInList[$rosterID] = true;
+			$tmp['rosterID'] = $rosterID;
+			$tmp['score'] = $score;
 
-				$roundScores[$rosterID] = $score;
-			}
-
-			if(isset($roundScores)){
-				if(isReverseScore($tournamentID) == REVERSE_SCORE_NO){
-					arsort($roundScores);
-				} else {
-					asort($roundScores);
-				}
-				$oldScore = null;
-				foreach($roundScores as $rosterID => $score){
-
-					// Record the place data
-				$tmp['rosterID'] = $rosterID;
+			if(isset($hold) == false || $score != $hold['score']){
 				$tmp['place'] = $place;
 				$tmp['tie'] = 0;
-				$placings['placings'][$index] = $tmp;
-				$assignedFighters[$rosterID] = true;
 
-				// Check if the fighter has tied with the previous one.
-				if((int)$score === $oldScore){
-					$hasTies = true;
-					if($startOfTie == 0){
-						$startOfTie = $index-1;
-						$tieSize = 1;
-					}
-					$tieSize++;
-					$endOfTie = $index;
-				} else {
-					$place++;
-				}
-
-				// If a tie has ended (past the last tied fighter), loop through and
-				// set the 'tie' value for all fighters involved in the tie.
-				if($tieSize != 0 && ($endOfTie != $index || $index == $numScores)){
-
-					for($i = $startOfTie; $i<=$endOfTie;$i++){
-						$placings['placings'][$i]['tie'] = $tieSize;
-					}
-
-					$tieSize = 0;
-					$endOfTie = 0;
-					$startOfTie = 0;
-				}
-
-				// Set data for the next loop
-				$index++;
-				$oldScore = (int)$score;
-				}
+				$hold['place'] = $place;
+				$hold['index'] = $index;
+				$hold['score'] = $score;
+			} else {
+				$hasTies = true;
+				$tmp['tie'] = 1;
+				$tmp['place'] = $hold['place'];
 			}
+
+			$placings['placings'][$index] = $tmp;
+
+			$place++;
+			$index++;
 		}
+
 	}
+
 
 	if($hasTies == true){
 
-		setAlert(USER_ALERT, "Ties detected in tournament. Please confirm results. ");
 		$_SESSION['manualPlacing']['tournamentID'] = $tournamentID;
 		$_SESSION['manualPlacing']['data'] = $placings['placings'];
 		$_SESSION['manualPlacing']['message'] = "Ties have been detected. Please confirm this list.
 				<BR><em>Ties are shown in the right hand box with wblue arrows.</em>(<strong class='blue-text'>&#8624;</strong>)";
-		redirect("infoSummary.php#anchor{$tournamentID}");
+
+		if(basename($_SERVER['PHP_SELF']) != 'infoSummary.php'){
+			redirect("infoSummary.php");
+		}
 
 	} else {
 		recordTournamentPlacings($tournamentID, $placings);
@@ -4568,7 +4590,7 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 				if($matchInfo['loserID'] != null){
 
 					$tmp['rosterID'] = $matchInfo['loserID'];
-					$tmp['place'] = $high;
+					$tmp['place'] = $low;
 					$tmp['tie'] = $high - $low + 1;
 					$tmp['bracket'] = true;
 					$bracketPlacings[] = $tmp;
@@ -4596,7 +4618,7 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 				if($matchInfo['loserID'] != null){
 
 					$tmp['rosterID'] = $matchInfo['loserID'];
-					$tmp['place'] = $high;
+					$tmp['place'] = $low;
 					$tmp['tie'] = $high - $low + 1;
 					$tmp['bracket'] = true;
 					$bracketPlacings[] = $tmp;
@@ -4637,7 +4659,7 @@ function generateTournamentPlacings_bracket($tournamentID, $specs){
 		$_SESSION['manualPlacing']['message'] = "<p class='red-text'><strong>You seem to have matches with no winners in your bracket.</p></strong><p>Please fill in the results manually. (I did the best I could.)</p>";
 
 		if(basename($_SERVER['PHP_SELF']) != 'infoSummary.php'){
-			redirect("infoSummary.php#anchor{$tournamentID}");
+			redirect("infoSummary.php");
 		}
 
 	} else {
@@ -4660,54 +4682,10 @@ function breakBracketTies($tournamentID,$placings, $specs){
 		$subMatchLimit = 0;
 	}
 
-	$sql = "SELECT fighter1ID, fighter2ID, winnerID,
-					fighter1score, fighter2score, matchNumber
-			FROM eventMatches
-			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}
-			AND groupType = 'elim'
-			AND isPlaceholder = 0";
-	$matchData = mysqlQuery($sql, ASSOC);
-
-	$emptyScore['sort2'] 		= 0;
-	$emptyScore['sort3']		= 0;
-	$emptyScore['numWins'] 		= 0;
-	$emptyScore['numMatches'] 	= 0;
-
-	foreach($matchData as $match){
-		$f1ID = $match['fighter1ID'];
-		$f2ID = $match['fighter2ID'];
-
-		if(isset($scores[$f1ID]) == false){
-			$scores[$f1ID] = $emptyScore;
-		}
-		if(isset($scores[$f2ID]) == false){
-			$scores[$f2ID] = $emptyScore;
-		}
-
-		$scores[$f1ID]['numMatches']++;
-		$scores[$f2ID]['numMatches']++;
-
-		if($subMatchLimit == 0 || $match['matchNumber'] <= $subMatchLimit){
-			$scores[$f1ID]['sort3'] += $match['fighter1score'] - $match['fighter2score'];
-			$scores[$f2ID]['sort3'] += $match['fighter2score'] - $match['fighter1score'];
-		}
-
-		if($match['winnerID'] == $f1ID){
-			$scores[$f1ID]['numWins']++;
-		} elseif($match['winnerID'] == $f2ID){
-			$scores[$f2ID]['numWins']++;
-		}
-
-		$scores[$f1ID]['sort2'] = $scores[$f1ID]['numWins']/$scores[$f1ID]['numMatches'];
-		$scores[$f2ID]['sort2'] = $scores[$f2ID]['numWins']/$scores[$f2ID]['numMatches'];
-
-
-		$sort2[$f1ID] = $scores[$f1ID]['sort2'];
-		$sort2[$f2ID] = $scores[$f2ID]['sort2'];
-		$sort3[$f1ID] = $scores[$f1ID]['sort3'];
-		$sort3[$f2ID] = $scores[$f2ID]['sort3'];
-
+	$poolStandings = (array)getTournamentStandings($tournamentID);
+	$poolPlacing = [];
+	foreach($poolStandings as $standing){
+		$poolPlacing[$standing['rosterID']] = $standing['rank'];
 	}
 
 
@@ -4715,82 +4693,36 @@ function breakBracketTies($tournamentID,$placings, $specs){
 		$rosterID = $place['rosterID'];
 
 		if(isset($place['bracket']) == false){
-			unset($scores[$rosterID]);
-			unset($sort2[$rosterID]);
-			unset($sort3[$rosterID]);
 			continue;
 		}
 
-		$scores[$rosterID]['place'] = $place['place'] - $place['tie'] + 1;
-		$scores[$rosterID]['sort1'] = $scores[$place['rosterID']]['place'];
-		$sort1[$rosterID] = $place['place'];
-		$scores[$rosterID]['index'] = $index;
+		for($i = $index; $i > 1; $i--){
+
+			// Look to see if the prior placing is the same as the current one
+			if($placings[$i-1]['place'] != $placings[$i]['place']){
+				break;
+			}
+
+
+
+			$poolPlacing_k1 = $poolPlacing[$placings[$i-1]['rosterID']];
+			$poolPlacing_k0 = $poolPlacing[$rosterID];
+
+			if($poolPlacing_k1 > $poolPlacing_k0){
+				$tmp = $placings[$i-1];
+				$placings[$i-1] = $placings[$i];
+				$placings[$i] = $tmp;
+			}
+		}
 
 	}
 
 
-	array_multisort($sort1, SORT_ASC, $sort2, SORT_DESC, $sort3, SORT_DESC, $scores);
-
-
-	$place == null;
-
-	end($scores);
-	$lastRosterID = key($scores);
-	$last['sort1'] = null;
-	$last['sort2'] = null;
-	$last['sort3'] = null;
-	$startOfTie = 0;
-	foreach($scores as $rosterID => $item){
-
-		$place = $item['place'];
-		if(isset($placeOffset[$place]) == false){
-			$placeOffset[$place] = 0;
-		}
-
-		$finalPlace = $place + $placeOffset[$place];
-		$placeOffset[$place]++;
-
-		$index = $item['index'];
-
-		$placings[$index]['place'] = $finalPlace;
-		$placings[$index]['tie'] = 0;
-		unset($placings[$index]['bracket']);
-
-		if(    $item['sort1'] == $last['sort1']
-			&& $item['sort2'] == $last['sort2']
-			&& $item['sort3'] == $last['sort3']){
-
-			$endOfTie = $index;
-			$tiePlace = $place;
-
-			if($startOfTie == 0){
-				$startOfTie = $lastIndex;
-				$tieSize = 2;
-			} else {
-				$tieSize++;
-			}
-
-		}
-
-
-		if($startOfTie != 0
-			&& (($endOfTie != $index) || $rosterID == $lastRosterID) ){
-
-			for($i = $startOfTie;$i<=$endOfTie;$i++){
-				$placings[$i]['place'] = $tiePlace;
-				$placings[$i]['tie'] = $tieSize;
-			}
-
-			$startOfTie = 0;
-			$tieSize = 0;
-		}
-
-		$last['sort1'] = $item['sort1'];
-		$last['sort2'] = $item['sort2'];
-		$last['sort3'] = $item['sort3'];
-		$lastIndex = $index;
+	foreach($placings as $index => $place){
+		$placings[$index]['place'] = $index;
 
 	}
+
 
 	return $placings;
 

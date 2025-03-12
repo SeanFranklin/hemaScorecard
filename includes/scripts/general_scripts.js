@@ -583,3 +583,87 @@ function switchActiveTab(tabNum, groupClass){
 
 /******************************************************************************/
 
+/******************************************************************************/
+
+function validateNameSelection(name, num){
+
+    var dataId = name+"-"+num;
+    var inputElement = document.querySelectorAll("[data-id='"+dataId+"']")[0];
+    var datalist = document.getElementById(name+'-datalist').options;
+
+    var valid = false;
+
+
+    if(inputElement.value.trim() == ""){
+        inputElement.value = "";
+        valid = false;
+
+    } else {
+        for(var j = 0; j < datalist.length; j++){
+
+            if(datalist[j].label === inputElement.value){
+
+                valid = true;
+            }
+
+        }
+    }
+
+
+    if(valid == true){
+        document.getElementById('submit-name-button').classList.remove("secondary");
+        document.getElementById('submit-name-button').classList.remove("hollow");
+        document.getElementById('submit-name-is-valid').value = 1;
+    } else {
+        document.getElementById('submit-name-button').classList.add("secondary");
+        document.getElementById('submit-name-button').classList.add("hollow");
+        document.getElementById('submit-name-is-valid').value = 0;
+    }
+
+
+}
+
+/******************************************************************************/
+
+function submitNameForm(formID, formName, directMode = false){
+
+    if(directMode == false){
+        form = document.getElementById(formID);
+    } else {
+        form = formID;
+    }
+
+    var classList = form.getElementsByClassName('input-datalist');
+
+    var isValid = document.getElementById('submit-name-is-valid').value;
+    if(isValid == 0){
+        return;
+    }
+
+    for(var i = 0; i < classList.length; i++){
+
+        var inputElement = classList[i];
+        var datalist = document.getElementById('event-roster-datalist').options;
+
+        for(var j = 0; j < datalist.length; j++){
+
+            if(datalist[j].label === inputElement.value){
+                var formNameInput = document.createElement('input');
+                formNameInput.type = 'hidden';
+                formNameInput.name = inputElement.dataset.name;
+                formNameInput.value = datalist[j].dataset.value;
+                form.appendChild(formNameInput);
+            }
+
+        }
+    }
+
+    var formNameInput = document.createElement('input');
+    formNameInput.type = 'hidden';
+    formNameInput.name = 'formName';
+    formNameInput.value = formName;
+    form.appendChild(formNameInput);
+
+    form.submit();
+}
+

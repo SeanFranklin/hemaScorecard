@@ -39,6 +39,14 @@ td.border-top{
   margin-right:10px;
   color: #FFF;
   cursor: pointer;
+
+  &.unfinished{
+    color: #FFF;
+    background-color: #AAA; /* selected-color */
+    &:before,&:after{
+      background-color: #AAA; /* selected-color */
+    }
+  }
   &.selected, &:hover{
     z-index: 3;
     color: #FFF;

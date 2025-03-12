@@ -532,6 +532,12 @@ function processPostData(){
 			case 'editStaffShifts':
 				logisticsEditStaffShifts($_POST['editStaffShifts'], $_SESSION['eventID']);
 				break;
+			case 'copyStaffShifts':
+				logisticsCopyStaffShifts($_POST['copyStaffShifts'], $_SESSION['eventID']);
+				break;
+			case 'filterBlockType':
+				$_SESSION['filterBlockType'] = (int)$_POST['filterBlockType'];
+				break;
 			case 'bulkStaffAssign':
 				logisticsBulkStaffAssign($_POST['bulkStaffAssign']);
 				break;
@@ -630,10 +636,10 @@ function processPostData(){
 				updateTournamentCuttingStandard($_SESSION['tournamentID']);
 				break;
 			case 'addQualledFighterEvent':
-				addNewCuttingQual_event();
+				addNewCuttingQual_event($_POST);
 				break;
 			case 'removeQualledFighterEvent':
-				removeCuttingQual_event();
+				removeCuttingQual_event($_POST);
 				break;
 			case 'changeCuttingStandard':
 				$_SESSION['cuttingQualStandard'] = $_POST['standardID'];

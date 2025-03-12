@@ -14,6 +14,7 @@
 $pageName = 'Cutting Qualification';
 $includeTournament = true;
 $jsIncludes[] = 'misc_scripts.js';
+$createSortableDataTable[] = ['cutQualList',50];
 include('includes/header.php');
 
 if($_SESSION['tournamentID'] == null){
@@ -94,7 +95,7 @@ if($_SESSION['tournamentID'] == null){
 <!-- Select tournament standard -->
 	<?php if($thisStandard != null): ?>
 		Fighters who have completed
-		<strong><?=$thisStandard['standardName']?></strong>
+		cutting qualification
 		since <strong><?=$thisStandard['date']?></strong><BR>
 	<?php else:
 		$alertText = "No Cutting Qualification Standards Set";
@@ -104,91 +105,14 @@ if($_SESSION['tournamentID'] == null){
 		displayAlert($alertText);
 	endif ?>
 
-	<?php if(ALLOW['SOFTWARE_ASSIST'] == true): ?>
-		<a class='button small-expanded hollow' href='cutQuals.php'>
-			Master Qualification List
-		</a>
-	<?php endif ?>
-
-	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
-
-		<a class='button small-expanded' data-open='changeStandardsBox'>
-			Change Tournament Standards
-		</a>
 
 
-		<div class='reveal' id='changeStandardsBox' data-reveal>
-		<form method='POST'>
+	<?=cutQualManagementButton($allStandards, $thisStandard)?>
 
-		<h4>Tournament Cutting Standard</h4>
-		<!-- Standards -->
-		<div class='input-group grid-x'>
-			<span class='input-group-label medium-shrink small-12'>Qualification Type:</span>
-			<select class='input-group-field' name='qualStandard'>
-				<?php foreach($allStandards as $standard):
-					$standardID = $standard['standardID'];
-					$name = $standard['standardName'];
-					$selected = isSelected($standardID, $thisStandard['standardID']);
-					?>
-					<option value=<?=$standardID?> <?=$selected?>><?=$name?></option>
-				<?php endforeach ?>
-			</select>
-		</div>
 
-		<!-- Relative Time -->
-		<fieldset class='fieldset'>
-		<legend>
-			Use Relative Time:
-			<input type='radio' name='useDateType' value='relative' checked id='relative-date'>
-		</legend>
-
-		<div class='input-group grid-x'>
-			<input class='input-group-field' type='number' name='qualYears'
-				min=0 max=10 placeholder='Years' onchange="toggleRadio('relative-date')">
-			<input class='input-group-field' type='number' name='qualMonths'
-				min=0 max=12 placeholder='Months' onchange="toggleRadio('relative-date')">
-			<input class='input-group-field' type='number' name='qualDays'
-				min=0 max=31 placeholder='Days' onchange="toggleRadio('relative-date')">
-			<span class='input-group-label medium-shrink small-12'>Prior to event start</span>
-		</div>
-		</fieldset>
-
-		<!-- Absolute Date -->
-		<fieldset class='fieldset'>
-		<legend>
-			Use Absolute Date:
-			<input type='radio' name='useDateType' value='absolute' id='absolute-date'>
-		</legend>
-
-		<div class='input-group grid-x'>
-			<span class='input-group-label medium-shrink small-12'>Since Date:</span>
-			<input class='input-group-field' type='date' name='qualDate' value='<?=$thisStandard['date']?>'
-				onchange="toggleRadio('absolute-date')">
-		</div>
-		</fieldset>
-
-		<div class='grid-x grid-margin-x'>
-			<button class='button success small-6 cell' name='formName' value='setCutQualStandards'>
-				Update
-			</button>
-			<a class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
-				Cancel
-			</a>
-		</div>
-
-		</form>
-
-	<!-- Close button -->
-		<button class='close-button' data-close aria-label='Close modal' type='button'>
-			<span aria-hidden='true'>&times;</span>
-		</button>
-
-	</div>
-
-	<?php endif ?>
 
 	<div class='grid-x grid-padding-x'>
-	<div class='large-5 medium-7 cell'>
+	<div class='large-6 medium-8 cell'>
 
 
 
@@ -196,85 +120,97 @@ if($_SESSION['tournamentID'] == null){
 	<?php if($thisStandard != null): ?>
 
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-			<h4><strong><?=$numToQual?></strong> left to Qualify.</h4>
+			<a class='button small primary' href='cutQualsTournament.php'>Reload Page</a>
+			<span style='font-size:1.5em'><strong><?=$numToQual?></strong> left to Qualify.
+			</span>
 		<?php endif ?>
-	<table>
+	<table id='cutQualList'>
 
 	<!-- Header -->
+
+		<thead>
 		<form method='post'>
 		<input type='hidden' name='formName' value='changeCutQualDisplay'>
 
+
 		<tr>
 			<th>
-				<button name='cutQualDisplayMode' value='name'><a><strong>
-					Name
-				</strong></a></button>
+				Name
 			</th>
 			<th>
-				<button name='cutQualDisplayMode' value='quall'><a><strong>
-					Qualified
-					<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-					<?=tooltip('<u>Add</u><BR>Fighter has not met qual standard.<BR>
-								<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-qualified on this date.<BR>
-								<u>Remove</u><BR>Remove qualification achieved at this event.'
-								)?>
-					<?php endif ?>
-				</strong></a></button>
+				Qual
 			</th>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+				<th>
+					Update
+					<?=tooltip('<u>Add</u><BR>Fighter has not met qual standard.<BR>
+							<u>Update</u><BR>Fighter has qualled previously. Click to indicate if they re-qualified on this date.<BR>
+							<u>Remove</u><BR>Remove qualification achieved at this event.'
+							)?>
+				</th>
+			<?php endif ?>
 		</tr>
+
 		</form>
+		</thead>
 
 	<!-- Data -->
-
+		<tbody>
 		<?php foreach((array)$displayList as $fighter):
-			if(isset($fighter['qualID'])){
-				$qualID = $fighter['qualID'];
-			} else {
-				$qualID = '';
-			}
+
+
+			$sysID = $fighter['systemRosterID'];
 
 			if(isset($hide['roster'][$fighter['rosterID']]) == true){
 				continue;
 			}
 
+			$class = "button tiny hollow no-bottom";
+			$qualID = '';
+
+			if($fighter['qualled'] == false){
+				$isSet = 0;
+				$qualID = '';
+				$class .= " success";
+				$txt = "Add";
+			} else if (isset($fighter['thisEvent']) == true) {
+				$qualID = $fighter['qualID'];
+				$class .= " alert";
+				$txt = "Remove";
+			} else {
+				$qualID = 0;
+				$class .= "";
+				$txt = "Update";
+			}
+
 			?>
 			<tr>
-				<form method='POST'>
-				<input type='hidden' name='systemRosterID' value='<?=$fighter['systemRosterID']?>'>
-				<input type='hidden' name='qualID' value='<?=$qualID?>'>
+
+				<input type='hidden' id='qualID-<?=$sysID?>' value='<?=$qualID?>'>
 
 				<td><?=$fighter['name']?></td>
-				<th>
+				<td>
 					<?php if($fighter['qualled']): ?>
-						<?php if(isset($fighter['thisEvent']) && ALLOW['EVENT_SCOREKEEP'] == true):?>
-							<button class='button tiny hollow alert no-bottom'
-								name='formName' value='removeQualledFighterEvent'>
-								Remove
-							</button>
-						<?php elseif(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-							<button class='button tiny hollow no-bottom'
-								name='formName' value='addQualledFighterEvent'>
-								Update
-							</button>
-						<?php else: ?>
-							<strong>
-								&#x2714;
-							</strong>
-						<?php endif ?>
-					 <?php else: ?>
-						 <?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
-							<button class='button tiny hollow success no-bottom'
-								name='formName' value='addQualledFighterEvent'>
-								Add
-							</button>
-						<?php endif ?>
-					 <?php endif ?>
-				</th>
-				</form>
+						<strong>
+							&#x2714;
+						</strong>
+					<?php endif ?>
+				</td>
+				<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+					<td class='text-left'>
+
+						<button class='<?=$class?>' style='width:10em' id='button-<?=$sysID?>'
+							onclick="updateCutQualInfo(<?=$fighter['systemRosterID']?>)" value='<?=$txt?>'>
+								<?=$txt?>
+						</button>
+
+					</td>
+				<?php endif ?>
+
 			</tr>
 		<?php endforeach ?>
 
-
+	</tbody>
 	</table>
 	<?php else: ?>
 		<?php displayAlert('Qualification Standard not yet applied'); ?>
@@ -290,6 +226,96 @@ include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function cutQualManagementButton($allStandards, $thisStandard){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+?>
+	<?php if(ALLOW['SOFTWARE_ASSIST'] == true): ?>
+		<a class='button small-expanded hollow' href='cutQuals.php'>
+			Master Qualification List
+		</a>
+	<?php endif ?>
+
+	<a class='button small-expanded' data-open='changeStandardsBox'>
+		Change Tournament Standards
+	</a>
+
+
+	<div class='reveal' id='changeStandardsBox' data-reveal>
+		<form method='POST'>
+
+			<h4>Tournament Cutting Standard</h4>
+			<!-- Standards -->
+			<div class='input-group grid-x'>
+				<span class='input-group-label medium-shrink small-12'>Qualification Type:</span>
+				<select class='input-group-field' name='qualStandard'>
+					<?php foreach($allStandards as $standard):
+						$standardID = $standard['standardID'];
+						$name = $standard['standardName'];
+						$selected = isSelected($standardID, @$thisStandard['standardID']);
+						?>
+						<option value=<?=$standardID?> <?=$selected?>><?=$name?></option>
+					<?php endforeach ?>
+				</select>
+			</div>
+
+			<!-- Relative Time -->
+			<fieldset class='fieldset'>
+			<legend>
+				Use Relative Time:
+				<input type='radio' name='useDateType' value='relative' checked id='relative-date'>
+			</legend>
+
+			<div class='input-group grid-x'>
+				<input class='input-group-field' type='number' name='qualYears'
+					min=0 max=10 placeholder='Years' onchange="toggleRadio('relative-date')">
+				<input class='input-group-field' type='number' name='qualMonths'
+					min=0 max=12 placeholder='Months' onchange="toggleRadio('relative-date')">
+				<input class='input-group-field' type='number' name='qualDays'
+					min=0 max=31 placeholder='Days' onchange="toggleRadio('relative-date')">
+				<span class='input-group-label medium-shrink small-12'>Prior to event start</span>
+			</div>
+			</fieldset>
+
+			<!-- Absolute Date -->
+			<fieldset class='fieldset'>
+			<legend>
+				Use Absolute Date:
+				<input type='radio' name='useDateType' value='absolute' id='absolute-date'>
+			</legend>
+
+			<div class='input-group grid-x'>
+				<span class='input-group-label medium-shrink small-12'>Since Date:</span>
+				<input class='input-group-field' type='date' name='qualDate' value='<?=@$thisStandard['date']?>'
+					onchange="toggleRadio('absolute-date')">
+			</div>
+			</fieldset>
+
+			<div class='grid-x grid-margin-x'>
+				<button class='button success small-6 cell' name='formName' value='setCutQualStandards'>
+					Update
+				</button>
+				<a class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
+					Cancel
+				</a>
+			</div>
+
+		</form>
+
+	<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+<?php
+}
 
 /******************************************************************************/
 
