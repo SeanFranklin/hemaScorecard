@@ -3473,11 +3473,8 @@ function autoFinalizeBracketForm($tournamentID){
 	<!-- Break Ties -->
 		<div class='input-group'>
 			<span class='input-group-label'>
-				Use Tie-Breakers?
-				<?=tooltip("Normaly results are generated in the format 'Top 8, Top 16, etc..<BR>
-							Using a tie breaker will attempt to generate an ordered list using:
-							<BR>1) Win Percentage (including sub-matches)
-							<BR>2) Points +/-")?>
+				Use Tie-Breakers?&nbsp;
+				<?=tooltip("In the bracket fighters are 'tied' based on where they are eliminated. For example all fighters eliminated in the quarter-finals (top 8) will be tied for 5th place. Using the tie-breaker will rank them 5th-8th according to their pool standings.")?>
 			</span>
 
 			<div class='switch no-bottom input-group-field'>

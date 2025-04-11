@@ -291,3 +291,51 @@ function eventStartDateUpdated(startDateStr){
 }
 
 /******************************************************************************/
+
+function updateCutQualInfo(systemRosterID){
+
+	var button =  document.getElementById('button-'+systemRosterID);
+
+    button.classList.remove("hollow");
+    operation = button.value;
+    var qualID = document.getElementById('qualID-'+systemRosterID).value;
+
+    var query = "mode=updateCuttingQual&systemRosterID="+systemRosterID;
+    query = query + "&operation=" + button.value;
+    query = query + "&qualID=" + qualID;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            if(this.responseText.length > 1){ // If the fighter has already fought
+
+            	var button =  document.getElementById('button-'+systemRosterID);
+                var data = JSON.parse(this.responseText);
+
+                button.classList.remove("alert");
+                button.classList.remove("success");
+
+                if(data['txt'] == 'Add'){
+                	button.classList.add("success");
+                	button.innerHTML = data['txt'];
+                } else if (data['txt'] == 'Remove'){
+                	button.innerHTML = data['txt'];
+                	button.classList.add("alert");
+                } else {
+                	// Default color is ok for 'update'
+                }
+
+                document.getElementById('qualID-'+systemRosterID).value = data['qualID'];
+                button.value = data['txt'];
+
+                button.classList.add("hollow");
+            }
+        }
+    };
+}
+
+/******************************************************************************/

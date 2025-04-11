@@ -50,8 +50,7 @@ if($_SESSION['eventID'] == null){
 				continue;
 			}
 
-
-			$initialized = false;
+			$firstTab = true;
 
 			foreach((array)$t['tournaments'] as $i => $item){
 
@@ -65,13 +64,20 @@ if($_SESSION['eventID'] == null){
 				$size = max($size, 0.6);
 				$tournamentsToDisplay[$j]['tournaments'][$i]['tabTextSize'] = $size;
 
-				if($initialized == false){
-					$tournamentList[$tID]['tabClass'] = " selected";
-					$tournamentList[$tID]['bodyClass'] = " ";
-					$initialized = true;
+				$tournamentList[$tID]['placings'] = getTournamentPlacings($tID);
+
+				$tournamentList[$tID]['tabClass'] = "";
+				$tournamentList[$tID]['bodyClass'] = " ";
+
+				if(count($tournamentList[$tID]['placings']) == 0){
+					$tournamentList[$tID]['tabClass'] .= 'unfinished';
+				}
+
+				if($firstTab == true){
+					$tournamentList[$tID]['tabClass'] .= " selected";
+					$firstTab = false;
 				} else {
-					$tournamentList[$tID]['tabClass'] = " ";
-					$tournamentList[$tID]['bodyClass'] = " hidden";
+					$tournamentList[$tID]['bodyClass'] .= " hidden";
 				}
 
 			}
@@ -626,7 +632,24 @@ function manualTournamentPlacing($tournamentID){
 
 			$class = '';
 
-			if($i != $max && $placings[$i]['place'] == $placings[$i+1]['place']){
+			if(isset($placings[$i-1]['place']) == true){
+				$isOneBefore = true;
+			} else {
+				$isOneBefore = false;
+			}
+
+			if(isset($placings[$i+1]['place']) == true){
+				$isOneMore = true;
+			} else {
+				$isOneMore = false;
+			}
+
+			if(isset($placings[$i]) == false){
+
+				$placings[$i]['place'] = $i;
+				$tieMark = TIE_NO;
+
+			} else if($isOneMore == true && $placings[$i]['place'] == $placings[$i+1]['place']){
 
 				if($i != 1 && $placings[$i]['place'] == $placings[$i-1]['place']){
 					$tieMark = TIE_MIDDLE;
@@ -638,7 +661,7 @@ function manualTournamentPlacing($tournamentID){
 
 			} else {
 
-				if($i != 1 && $placings[$i]['place'] == $placings[$i-1]['place']){
+				if($isOneBefore == true && $placings[$i]['place'] == $placings[$i-1]['place']){
 					$class = 'blue-text';
 					$tieMark = TIE_BOTTOM;
 				} else {
@@ -708,6 +731,7 @@ function manualTournamentPlacing($tournamentID){
 	<div class='large-12 cell'>
 		<HR>
 	</div>
+
 
 <?php
 	unset($_SESSION['manualPlacing']);

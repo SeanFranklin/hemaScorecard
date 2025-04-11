@@ -8,10 +8,10 @@
 
 /**********************************************************************/
 
-function addNewCuttingQual_event(){
+function addNewCuttingQual_event($data){
 
 	$date = getEventEndDate($_SESSION['eventID']);
-	$systemRosterID = $_POST['systemRosterID'];
+	$systemRosterID = $data['systemRosterID'];
 
 	$tournamentID = $_SESSION['tournamentID'];
 	if($tournamentID == null){ return null;	}
@@ -30,13 +30,17 @@ function addNewCuttingQual_event(){
 	$exec = mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 
+	$qualID = (int)mysqli_insert_id($GLOBALS["___mysqli_ston"]);
+
+	return ($qualID);
+
 }
 
 /**********************************************************************/
 
-function removeCuttingQual_event(){
+function removeCuttingQual_event($data){
 
-	$qualID = (int)$_POST['qualID'];
+	$qualID = (int)$data['qualID'];
 
 	$sql = "DELETE FROM systemCutQualifications
 			WHERE qualID = {$qualID}";

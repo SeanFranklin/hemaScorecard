@@ -1199,6 +1199,45 @@ case 'updateFighterRating': {
 
 /******************************************************************************/
 
+case 'updateCuttingQual': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$retVal = [];
+
+	$systemRosterID = (int)$_REQUEST['systemRosterID'];
+	$qualID = (int)$_REQUEST['qualID'];
+	$operation = $_REQUEST['operation'];
+
+	$params = [];
+
+	if($operation == 'Update' || $operation == 'Add'){
+		$params['systemRosterID'] = $systemRosterID;
+		$qualID = addNewCuttingQual_event($params);
+		$txt = "Remove";
+	} else if($operation == 'Remove') {
+		$params['qualID'] = $qualID;
+		removeCuttingQual_event($params);
+		$txt = "Add";
+		$qualID = "";
+	} else {
+		/* Invalid, do nothing. */
+	}
+
+	$retVal['qualID'] = $qualID;
+	$retVal['systemRosterID'] = $systemRosterID;
+	$retVal['txt'] = $txt;
+
+	echo json_encode($retVal);
+
+} break;
+
+/******************************************************************************/
+
+/******************************************************************************/
+
 }
 
 

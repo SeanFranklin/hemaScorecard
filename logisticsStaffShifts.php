@@ -31,6 +31,10 @@ if($_SESSION['eventID'] == null){
 		$formLock = 'disabled';
 	}
 
+	if(isset($_SESSION['filterBlockType']) == false){
+		$_SESSION['filterBlockType'] = 0;
+	};
+
 
 	$roles = logistics_getRoles();
 	$schedule = logistics_getEventSchedule($_SESSION['eventID'],true);
@@ -146,6 +150,14 @@ if($_SESSION['eventID'] == null){
 		</li>
 
 	<?php endforeach ?>
+
+	<?php if (count($shifts) > 1): ?>
+		<li class="tabs-title">
+			<a data-tabs-target="panel-shift-copy" >
+				Copy Staff
+			</a>
+		</li>
+	<?php endif ?>
 	</ul>
 
 <!-- Panels -->
@@ -206,9 +218,17 @@ if($_SESSION['eventID'] == null){
 
 
 	<?php endforeach ?>
+
+	<?php if (count($shifts) > 1): ?>
+		<?=shiftStaffCopyPannel($shifts)?>
+	<?php endif ?>
+
+
 	</div>
 
 	<?php endif ?>
+
+	<?=addFilterBox()?>
 
 
 <?php }
@@ -216,6 +236,129 @@ include('includes/footer.php');
 
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
+
+function addFilterBox(){
+?>
+
+	<BR>
+
+	<div class='grid-x grid-margin-x'>
+	<div class='cell large-7 medium-9'>
+
+		<form method="POST">
+
+
+				Filter <i>"Assign Staff To"</i> &nbsp;Dropdown by Block Type:
+
+				<BR>
+
+				<select style='width:15em' name='filterBlockType'>
+					<option <?=optionValue(0, $_SESSION['filterBlockType'])?>>
+						Show Everything
+					</option>
+					<option <?=optionValue(SCHEDULE_BLOCK_TOURNAMENT, $_SESSION['filterBlockType'])?>>
+						Tournaments Only
+					</option>
+					<option <?=optionValue(SCHEDULE_BLOCK_WORKSHOP, $_SESSION['filterBlockType'])?>>
+						Classes Only
+					</option>
+					<option <?=optionValue(SCHEDULE_BLOCK_STAFFING, $_SESSION['filterBlockType'])?>>
+						Staffing Only
+					</option>
+					<option <?=optionValue(SCHEDULE_BLOCK_MISC, $_SESSION['filterBlockType'])?>>
+						Misc Only
+					</option>
+				</select>
+
+				<button class='button success no-bottom' name='formName' value='filterBlockType'>
+					Update
+				</button>
+			</div>
+		</form>
+
+	</div>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function shiftStaffCopyPannel($shifts){
+
+
+
+	$optionList = [];
+
+	foreach($shifts as $index => $shift){
+
+		$startTime = min2hr($shift[0]['startTime']);
+		$endTime = min2hr($shift[0]['endTime']);
+
+		$tmp = [];
+		$tmp['txt'] = "{$startTime} - {$endTime}";
+		$tmp['startTime'] = $shift[0]['startTime'];
+
+		$optionList[] = $tmp;
+	}
+
+?>
+
+	<div class="tabs-panel" id="panel-shift-copy">
+
+		<h3>Copy Staff</h3>
+
+		<div class='grid-x grid-margin-x'>
+		<div class='large-4 medium-6 cell'>
+
+			<div class='callout warning'>
+				<i>This will erase all the staff in the shift you copy to.</i>
+			</div>
+
+			<form method='POST'>
+
+				<input class='hidden' name='copyStaffShifts[blockID]' value=<?=$_SESSION['blockID']?>>
+
+				<div class='input-group'>
+					<span class='input-group-label' style='width:5em'>From:</span>
+					<select class='input-group-field' name='copyStaffShifts[from]'>
+						<option value='0' selected disabled>-- Pick donor shift --</option>
+						<?php foreach($optionList as $o):?>
+							<option value=<?=$o['startTime']?>><?=$o['txt']?></option>
+						<?php endforeach ?>
+
+					</select>
+				</div>
+
+				<div class='input-group'>
+					<span class='input-group-label' style='width:5em'>To:</span>
+					<select class='input-group-field'  name='copyStaffShifts[to]' required>
+						<option value='0' selected disabled>-- Pick receiving shift --</option>
+						<?php foreach($optionList as $o):?>
+							<option value=<?=$o['startTime']?>><?=$o['txt']?></option>
+						<?php endforeach ?>
+
+					</select>
+				</div>
+
+				<button class='button success' name='formName' value='copyStaffShifts'>
+					Copy Staff
+				</button>
+
+
+
+			</form>
+		</div>
+		</div>
+
+
+	</div>
+
+<?php
+}
+
 /******************************************************************************/
 
 function bulkAddBox($roles){
@@ -480,7 +623,9 @@ function changeScheduleBlock($blockInfo, $schedule){
 		<?php foreach($schedule as $dayNum => $daySchedule): ?>
 			<option disabled>
 				Day <?=$dayNum?>
-				<?foreach($daySchedule as $loopBlock): ?>
+				<?foreach($daySchedule as $loopBlock):
+					if($_SESSION['filterBlockType'] != 0 &&$loopBlock['blockTypeID'] != $_SESSION['filterBlockType']){ continue;}
+					?>
 					<option <?=optionValue($loopBlock['blockID'], $blockID)?> >
 						<?php if(logistics_isBlockStaffed($loopBlock['blockID'],
 															$loopBlock['blockTypeID']) == false): ?>

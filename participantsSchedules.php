@@ -317,50 +317,70 @@ function showStaffingHours($rosterID, $eventID){
 /******************************************************************************/
 
 function changeRosterID($eventRoster){
+
 	if(isset($_SESSION['rosterID'])){
 		$currentRosterID = $_SESSION['rosterID'];
+		$currentName = getFighterName($currentRosterID);
 	} else {
 		$currentRosterID =  null;
+		$currentName = null;
 	}
 
 ?>
 
-	<div class='callout cell success text-center'>
-
-	<form method='POST'>
-	<input type='hidden' name='formName' value='changeRosterID'>
-	<div class='input-group grid-x no-bottom'>
-	<span class='input-group-label large-3 medium-4 small-12 text-right'>
-		Showing Schedule For:
-	</span>
-	<select name='rosterID' onchange='this.form.submit()' class='  input-group-field'>
-
-		<?php if($currentRosterID == null): ?>
-			<option></option>
+	<h4>Showing Schedule For: <b><?=$currentName?></b>
+		<?php if($currentRosterID != null): ?>
+			<button class='button small hollow' onclick="popOutSchedule()">
+				Print View
+			</button>
 		<?php endif ?>
+	</h4>
 
-		<?php foreach($eventRoster as $person): ?>
-			<option <?=optionValue($person['rosterID'], $currentRosterID)?> >
-				<?=getFighterName($person['rosterID'])?>
-			</option>
-		<?php endforeach ?>
 
-		<?php if(ALLOW['EVENT_MANAGEMENT'] == true || ALLOW['VIEW_SETTINGS'] == true ): ?>
-			<option <?=optionValue(-1, $currentRosterID)?>>== Everyone ==</option>
-		<?php endif ?>
+	<form method='POST' id='update-session-rosterID'>
 
-	</select>
+		<datalist id="event-roster-datalist">
+			<?php foreach($eventRoster as $person): ?>
+				<option data-value='<?=$person['rosterID']?>'><?=getFighterName($person['rosterID'])?></option>
+			<?php endforeach ?>
+		</datalist>
 
-	<?php if($currentRosterID != null): ?>
-		<button class='button input-group-button' onclick="popOutSchedule()">
-			Print
-		</button>
-	<?php endif ?>
+		<input type='hidden' id='submit-name-is-valid' value=0>
 
-	</div>
+		<div class='input-group grid-x no-bottom'>
+		<div class='large-8 medium-12 cell'>
+
+		<div class='input-group grid-x no-bottom'>
+			<span class='input-group-label text-right'>
+				Switch Schedule:
+			</span>
+
+
+			<input class='input-datalist input-group-field' list="event-roster-datalist"
+
+				placeholder="- empty -"
+				data-name='rosterID'
+				data-id='event-roster-0'
+				value=''
+				onchange="validateNameSelection('event-roster',0)">
+
+			<a class='button secondary hollow input-group-button' id='submit-name-button'
+				onclick="submitNameForm('update-session-rosterID', 'changeRosterID')">
+				Change<BR>Participant
+			</a>
+
+		</div>
+
+		</div>
+		<div class='large-2 medium-3 cell'>
+
+
+
+
+		</div>
+		</div>
 	</form>
 
-	</div>
 
 
 <?php
