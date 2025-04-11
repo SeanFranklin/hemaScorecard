@@ -223,6 +223,7 @@
 		define("DEDUCTION_ADDITION_MODE_ADD",0);
 		define("DEDUCTION_ADDITION_MODE_MAX",1);
 		define("DEDUCTION_ADDITION_MODE_RMS",2);
+	$options['T']["PENALTIES_ADD_POINTS"]           = 26;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

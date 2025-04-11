@@ -4801,6 +4801,9 @@ function insertLastExchange($matchInfo, $lastExchangeID, $exchangeType,
 				VALUES
 				({$matchID}, '{$exchangeType}', {$rosterID}, {$receivingID}, {$scoreValue},
 				{$scoreDeduction}, {$exchangeTime}, {$refPrefix}, {$refType}, {$refTarget}, {$exchangeNumber})";
+		mysqlQuery($sql, SEND);
+
+		$exchangeID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 	} else {
 		$sql = "UPDATE eventExchanges
 				SET matchID 	= {$matchID},
@@ -4814,9 +4817,13 @@ function insertLastExchange($matchInfo, $lastExchangeID, $exchangeType,
 				refType			= {$refType},
 				refTarget		= {$refTarget}
 				WHERE exchangeID = {$exchangeID}";
+
+		mysqlQuery($sql, SEND);
 	}
 
-	mysqlQuery($sql, SEND);
+
+
+	return ($exchangeID);
 
 }
 
@@ -6561,6 +6568,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	writeOption('T', $tournamentID, 'MATCH_SOFT_CLOCK_TIME', (int)$formInfo['softClock']);
 	writeOption('T', $tournamentID, 'MATCH_ORDER_MODE', (int)$formInfo['matchOrder']);
 	writeOption('T', $tournamentID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT', (int)$formInfo['limitOvershoot']);
+	writeOption('T', $tournamentID, 'PENALTIES_ADD_POINTS', (int)$formInfo['penaltiesAddPoints']);
 	writeOption('T', $tournamentID, 'BRACKET_POINT_CAP', (int)$formInfo['bracketPointCap']);
 	writeOption('T', $tournamentID, 'FINALS_POINT_CAP', (int)$formInfo['finalsPointCap']);
 
@@ -6894,6 +6902,7 @@ function importTournamentSettings($config){
 	$sourceSettings['softClock'] = readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');
 	$sourceSettings['matchOrder'] = readOption('T', $sourceID, 'MATCH_ORDER_MODE');
 	$sourceSettings['limitScoreOvershoot'] = readOption('T', $sourceID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+	$sourceSettings['penaltiesAddPoints'] = readOption('T', $sourceID, 'PENALTIES_ADD_POINTS');
 	$formInfo['bracketPointCap'] = readOption('T', $sourceID, 'BRACKET_POINT_CAP');
 	$formInfo['finalsPointCap'] = readOption('T', $sourceID, 'FINALS_POINT_CAP');
 

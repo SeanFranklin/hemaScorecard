@@ -1681,6 +1681,38 @@ function edit_tournamentLimitScoreOvershoot($tournamentID = 0){
 
 /******************************************************************************/
 
+function edit_tournamentPenaltiesAddPoints($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+	$penaltiesAddPoints = (int)readOption('T',$tournamentID,'PENALTIES_ADD_POINTS');
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Penalties Add Points*
+				<?=tooltip("This is a work around which adds a zero-point penalty, and then automatically adds a second exchange with points to the opponent.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[penaltiesAddPoints]' id='penaltiesAddPoints_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$penaltiesAddPoints)?>>No (normal)</option>
+				<option <?=optionValue(1,$penaltiesAddPoints)?>>Yes</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentTimerCountdown($tournamentID = 0){
 // Select menu for whether or not the tournament allows ties
 // Calls to javascrip on change to alter the form based	on it's selection

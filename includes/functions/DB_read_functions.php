@@ -533,6 +533,11 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 			AND matchComplete = 1";
 	$finishedMatches = mysqlQuery($sql, ASSOC);
 
+	$sql = "SELECT MAX(groupSet) AS numGroupSets
+			FROM eventGroups
+			WHERE tournamentID = {$tournamentID}";
+	$numGroupSets = (int)mysqlQuery($sql, SINGLE, 'numGroupSets');
+
 // Create the CSV file
 	$fp = fopen($fileName, 'w');
 
@@ -568,7 +573,7 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 
 
 
-		$stageName = (string)getMatchStageName($match['matchID']);
+		$stageName = (string)getMatchStageName($match['matchID'], $numGroupSets);
 
 		if((int)$match['ignoreMatch'] == 1){
 			$stageName = "!! Attention !! Excluded From Scoring Calculations ".$stageName;
@@ -710,23 +715,33 @@ function getMatchSignOff($matchID){
 
 /******************************************************************************/
 
-function getMatchStageName($matchID){
+function getMatchStageName($matchID, $numGroupSets = 0){
 // Returns the name of the stage a match occured at.
 // ie. Pools, Elims, Gold Medal Match
 
 	$matchID = (int)$matchID;
 
-	$sql = "SELECT groupType, groupSet, groupName, bracketLevel, groupID, tournamentID
+	$sql = "SELECT groupType, groupSet, groupName, bracketLevel, groupID, tournamentID, numFighters
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE matchID = {$matchID}";
 	$groupInfo = mysqlQuery($sql, SINGLE);
 
 	if($groupInfo['groupType'] == 'pool'){
-		return getSetName($groupInfo['groupSet'], $groupInfo['tournamentID']);
+
+		if($numGroupSets == 1){
+			return "Pools";
+		} else {
+			return getSetName($groupInfo['groupSet'], $groupInfo['tournamentID']);
+		}
+
 	}
 
+
 	if($groupInfo['groupType'] == 'elim'){
+
+		$maxSize = (int)$groupInfo['numFighters'];
+
 		if($groupInfo['groupName'] == 'winner'){
 			switch($groupInfo['bracketLevel']){
 				case 1:
@@ -735,14 +750,13 @@ function getMatchStageName($matchID){
 				case 2:
 					return 'Semifinals';
 					break;
-				case 3:
-					return 'Quarterfinals';
-					break;
-				case 4:
-					return 'Eighth-Finals';
-					break;
 				default:
-					return 'Elimination Bracket';
+					$size = pow(2, $groupInfo['bracketLevel']);
+					if($size > $maxSize){
+						$size = $maxSize;
+					}
+
+					return "Top {$size}";
 					break;
 			}
 

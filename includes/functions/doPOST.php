@@ -621,6 +621,9 @@ function processPostData(){
 			case 'updateSoftwareUpdates':
 				updateSoftwareUpdates($_POST['updateSoftwareUpdates']);
 				break;
+			case 'oppositesAttract':
+				$_SESSION['stats']['oppositesAttract'] = (bool)$_POST['oppositesAttract'];
+				break;
 
 	// Cutting Qualification Cases
 			case 'newCutQuals':
@@ -1535,13 +1538,44 @@ function insertPenalty($matchInfo, $scoring, $lastExchangeID){
 
 	$matchID 	= $matchInfo['matchID'];
 	$exchangeID = $scoring['exchangeID'];
-	$scoreValue = $scoring['penalty']['value'];
+	$penaltyValue = $scoring['penalty']['value'];
 	$card 		= $scoring['penalty']['card'];
 	$action		= $scoring['penalty']['action'];
 	$rosterID 	= $scoring['penalty']['rosterID'];
 
-	insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue,
+
+
+	$addPoints = (bool)readOption('T',$matchInfo['tournamentID'],'PENALTIES_ADD_POINTS');
+
+	if($addPoints == false){
+		$scoreValue = $penaltyValue;
+	} else {
+		$scoreValue = 0;
+
+		if((int)$exchangeID != 0){
+			setAlert(USER_ERROR, "Sorry, editing a prior exchange into a penalty is not supported in positive penalty mode. <BR> <i>(This is because positive penalties are a hack that adds two exchanges at once, and you can't retroactively edit two old exchanges simultaneously.)</i>");
+			return;
+		}
+	}
+
+
+	$insertID = insertLastExchange($matchInfo, $lastExchangeID, 'penalty', $rosterID, $scoreValue,
 						0, null, $card, $action, $exchangeID);
+
+
+	// If the positive points mode is active then we need to add a second exchange for the points.
+	if($addPoints == true && $penaltyValue != 0){
+		$lastExchangeID = $insertID;
+
+		if($rosterID == $matchInfo['fighter1ID']){
+			$opponentID = $matchInfo['fighter2ID'];
+		} else {
+			$opponentID = $matchInfo['fighter1ID'];
+		}
+
+		insertLastExchange($matchInfo, $lastExchangeID, 'clean', $opponentID, $penaltyValue,
+						0, null, null, null, $exchangeID);
+	}
 
 }
 
