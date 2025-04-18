@@ -1978,6 +1978,15 @@ function addPenaltyBox($matchInfo){
 	$actions = getPenaltyActions($_SESSION['eventID']);
 	$escalation = readOption('T',$matchInfo['tournamentID'],'PENALTY_ESCALATION_MODE');
 	$matchID = $matchInfo['matchID'];
+	$addPoints = (bool)readOption('T',$matchInfo['tournamentID'],'PENALTIES_ADD_POINTS');
+
+	if($addPoints == false){
+		$pointDeductionText = "Point Deduction";
+		$penaltyValues = [0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10];
+	} else {
+		$pointDeductionText = "Point Value";
+		$penaltyValues = [0, 1,2,3,4,5,6,7,8,9,10];
+	}
 
 
 	if((bool)readOption('E',$_SESSION['eventID'],'PENALTY_ACTION_IS_MANDATORY') == true){
@@ -2013,12 +2022,12 @@ function addPenaltyBox($matchInfo){
 		<!-- Point deduction -->
 			<div class='input-group'>
 				<span class='input-group-label'>
-					Point Deduction
+					<?=$pointDeductionText?>
 				</span>
 				<select class='input-group-field' name='score[penalty][value]'>
-					<?php for($penaltyVal = 0; $penaltyVal >= $maxPenalty; $penaltyVal--): ?>
-						<option value='<?=$penaltyVal?>'><?=$penaltyVal?> Points</option>
-					<?php endfor ?>
+					<?php foreach($penaltyValues as $value): ?>
+						<option value='<?=$value?>'><?=$value?> Points</option>
+					<?php endforeach ?>
 				</select>
 			</div>
 

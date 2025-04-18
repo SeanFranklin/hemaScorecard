@@ -1414,6 +1414,115 @@ function _Crossing_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _Alpeadria_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+
+	// Loop through to figure out how many groupSets we are using in the
+	// case of cumulative pool scores.
+	$groupSets = [];
+	for($i = $groupSet; $i >= 1; $i--){
+		$groupSets[] = $i;
+
+		if(isCumulative($i, $tournamentID) == false){
+			break;
+		}
+	}
+
+	$groupSetsStr = implode2int($groupSets);
+
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+		$score = 0;
+
+		$controlPointID = (int)ATTACK_CONTROL_DB;
+
+		$sql = "SELECT matchID, winnerID, fighter1ID, fighter2ID, fighter1Score, fighter2Score
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID = {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet IN ({$groupSetsStr})
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$score = 0;
+		$numMatches = 0;
+		foreach($matches as $match){
+
+			if($rosterID == $match['fighter1ID']){
+				$for = $match['fighter1Score'];
+				$against = $match['fighter2Score'];
+			} else {
+				$for = $match['fighter2Score'];
+				$against = $match['fighter1Score'];
+			}
+
+			if($rosterID == $match['winnerID']){
+				$score += 1;
+			}
+
+			$doubleOut = false;
+			if((int)$match['winnerID'] == 0){
+
+
+				$matchID = (int)$match['matchID'];
+
+				$sql = "SELECT COUNT(*) AS doubleOut
+						FROM eventExchanges
+						WHERE matchID = {$matchID}
+						AND exchangeType = 'doubleOut'";
+				$doubleOut = mysqlQuery($sql, SINGLE, 'doubleOut');
+			}
+
+			if($doubleOut == false){
+				$score += $for;
+				$score -= $against;
+			} else {
+				$score += 0; // points for
+				$score -= (5 - $for); // points against
+			}
+
+
+
+			$numMatches++;
+
+		}
+
+
+		if($numMatches != 0){
+			$score /= $numMatches;
+		} else {
+			$score = 0;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 
 	$scoreData['score'] = 0;

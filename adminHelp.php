@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Help';
+$createSortableDataTable[] = ['rankingAlgoList',100];
 include('includes/header.php');
 
 
@@ -20,6 +21,7 @@ include('includes/header.php');
 <a name='topOfPage'></a>
 
 <?=helpDisplayAbout()?>
+<?=rankingTypeDescriptions()?>
 
 <ul class="tabs" data-tabs id="help-tabs">
 	<li class="tabs-title"><a data-tabs-target="panel-video" href="#panel-video">Video Guides</a></li>
@@ -508,6 +510,7 @@ score and the value deducted by the afterblow are entered by the scorekeeper.
 
 <strong>Ranking Algorithm</strong> determines how fighters will be ranked based on the performance in their pools. Should you wish
 to use a algorithm not listed please contact us to code it in for you.
+<i>(<a data-open='rankingTypesReveal'>View Existing Ranking Algorithms</a>)</i>
 <BR>*note* When calculating pool results all pools will be normalized to the same size. By default this size
 is 4, but can be changed in <strong><a href='adminTournaments.php'>Manage Event > Tournament Settings</a></strong>.
 
@@ -835,6 +838,7 @@ function helpDisplayLogistics(){
 			(under development)
 		</div>
 		<div class='large-12 medium-6 small-12'>
+			<li><a href='#ranking-types'>Ranking Types</a></li>
 			<li><a href='#divisions'>Tournament Divisions</a></li>
 			<li><a href='#cut-deduct'>Cutting Deductions</a></li>
 		</div>
@@ -845,6 +849,21 @@ function helpDisplayLogistics(){
 </div>
 
 
+<!-- Ranking Types ------------------------------------------------------------>
+
+<a name='ranking-types'></a>
+
+<div class='documentation-div'>
+
+<h1>Ranking Types</h1>
+
+<p>
+	Pools can be ranked using the following algorithms:<BR>
+	<strong><a data-open='rankingTypesReveal'>Show Me!</a></strong>
+</p>
+
+</div>
+<a href='#topOfPage'>Back to Top</a>
 
 
 

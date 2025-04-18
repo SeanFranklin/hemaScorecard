@@ -111,6 +111,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentSoftClock(0);
 				edit_tournamentMatchOrderMode(0);
 				edit_tournamentLimitScoreOvershoot(0);
+				edit_tournamentPenaltiesAddPoints(0);
 
 			?>
 	</table>
