@@ -438,24 +438,41 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		<div class='input-group'>
 			<span class='input-group-label'>
 				Lower Bracket Size:&nbsp;
-				<?=tooltip("Leave blank/zero for single elimination")?>
+				<b><a onclick="$('#explain-double-elim-size').toggle()">(?)</a></b>
 			</span>
 			<input class='input-group-field' type='number' name='createBracket[sizeSecondary]'
 				max=<?=$maxBracketSize?> placeholder='Single Elim'>
+		</div>
+
+		<div class='hidden callout' id='explain-double-elim-size'>
+			<p><b>How The Lower Bracket Size Works</b><BR>
+			The lower bracket size should be the "TopX" of people who will be able to go to the losers bracket. <u>In a standard double-elim make this the same as the Bracket Size</u>. The following examples use [Bracket Size | Lower Bracket Size].</p>
+			<p><b>[32|32]</b> 32 people will go into the bracket, and all will go to the losers bracket after their first loss. (Normal way to do it.)</p>
+			<p><b>[32|16]</b> 32 people will go into the bracket, but only the top16 go to the losers bracket. This means if you lose in the first round you are out, but if you make it to the top16 you will go to the losers bracket after your first loss.</p>
+			<p><b>[16|32]</b> 16 people go to the upper bracket, and the rest of the top32 (#17-32) get seeded into the lower bracket as if they had lost their first round already.</p>
+
 		</div>
 
 
 		<div class='input-group'>
 			<span class='input-group-label'>
 				Double Elim Type:&nbsp;
-				<?=tooltip("<b>IGNORE IF USING SINGLE ELIM</b><BR><u>Consolation</u>: If you lose once you go the the lower bracket to try to win bronze.<BR>
-							<u>True</u>: The winner of the lower bracket can win gold if they defeat the upper bracket winner twice in a row.")?>
+				<b><a onclick="$('#explain-double-elim-type').toggle()">(?)</a></b>
 			</span>
 			<select class='input-group-field' name='createBracket[secondaryType]'>
 				<option value='<?=ELIM_TYPE_CONSOLATION?>'>Consolation Bracket</option>
 				<option value='<?=ELIM_TYPE_LOWER_BRACKET?>'>True Double Elim</option>
 			</select>
 		</div>
+
+		<div class='hidden callout' id='explain-double-elim-type'>
+			<p><b>Double Elim Type</b><BR>
+			IGNORE THIS OPTION IF YOU ARE USING SINGLE ELIM</p>
+			<p><u>Consolation Bracket</u>: If you lose once you go the the lower bracket to try to win bronze.</p>
+			<p><u>True Double Elim</u>: The winner of the lower bracket can win gold if they defeat the upper bracket winner twice in a row.</p>
+		</div>
+
+
 
 
 	<!-- Submit buttons -->

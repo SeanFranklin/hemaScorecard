@@ -378,18 +378,12 @@ function menuTournament(){
 				<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
 
 				<li><div class="drop-down-separator">Before</div></li>
-				<li>
-					<a href='#'><b>Settings</b></a>
-					<ul class='menu vertical'>
-						<li><a href='adminTournaments.php'>Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a></li>
-						<li><a href='adminExchangeTypes.php'>Point Values (Optional)</a></li>
-						<li><div class="drop-down-separator"></div></li>
-						<li><a href='adminNewTournaments.php'>Create New Tournament</a></li>
-					</ul>
+				<li><a href='adminTournaments.php'>
+					Settings for: <b><?=getTournamentName($_SESSION['tournamentID'])?></b></a>
 				</li>
 				<li><a href='participantsRatings.php'>Fighter Ratings</a></li>
-
 				<li><a href='statsScoresheets.php'>Scoresheets</a></li>
+
 			<?php endif ?>
 
 		</ul>

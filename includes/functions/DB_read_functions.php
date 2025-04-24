@@ -8402,17 +8402,18 @@ function getTournamentVideo($tournamentID, $includeNull){
 	$tournamentID = (int)$tournamentID;
 
 	if($includeNull == false){
-		$isVideoClause = "AND videoLink IS NOT NULL AND videoLink != ''";
+		$joinType = "INNER";
 	} else {
-		$isVideoClause = '';
+		$joinType = "LEFT";
 	}
 
 	$sql = "SELECT matchID, sourceLink
-			FROM eventVideo
-			INNER JOIN eventMatches USING(matchID)
+			FROM eventMatches
+			{$joinType} JOIN eventVideo USING(matchID)
 			INNER JOIN eventGroups USING(groupID)
-			WHERE tournamentID = {$tournamentID}
-			{$isVideoClause}";
+			WHERE tournamentID = {$tournamentID}";
+
+
 	return (array)mysqlQuery($sql, ASSOC);
 
 }
