@@ -375,10 +375,6 @@ function processPostData(){
 			case 'removeTournamentPlacings':
 				removeTournamentPlacings($_POST['tournamentID']);
 				break;
-			case 'goToPointsPage':
-				changeTournament($_POST['modifyTournamentID']);
-				refreshPage('adminExchangeTypes.php');
-				break;
 			case 'addAttackTypes':
 				addAttacksToTournament();
 				break;
