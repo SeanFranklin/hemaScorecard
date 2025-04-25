@@ -1505,6 +1505,9 @@ function logisticsAssignTournamentToRing($assignInfo, $overidePlaceID = null){
 				$sql = "DELETE FROM logisticsLocationsMatches
 						WHERE matchID = {$matchID}";
 				mysqlQuery($sql, SEND);
+
+				updateSubMatchLocations($matchID);
+
 				continue;
 			}
 
@@ -1525,6 +1528,8 @@ function logisticsAssignTournamentToRing($assignInfo, $overidePlaceID = null){
 						WHERE matchID = {$matchID}";
 				mysqlQuery($sql, SINGLE);
 			}
+
+			updateSubMatchLocations($matchID);
 		}
 	}
 
@@ -8340,6 +8345,68 @@ function updateSubMatches($matchID, $numSubMatches, $fighter1ID, $fighter2ID, $g
 			WHERE placeholderMatchID = {$matchID}
 			AND matchNumber > {$numSubMatches}";
 	mysqlQuery($sql, SEND);
+
+
+// Deal with sub-match locations
+
+	updateSubMatchLocations($matchID);
+
+}
+
+/******************************************************************************/
+
+function updateSubMatchLocations($placeholderMatchID){
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){return;}
+
+	$placeholderMatchID = (int)$placeholderMatchID;
+	if($placeholderMatchID == 0){
+		return;
+	}
+
+	$sql = "SELECT locationID
+			FROM logisticsLocationsMatches
+			WHERE matchID = {$placeholderMatchID}";
+	$locationID = (int)mysqlQuery($sql, SINGLE, 'locationID');
+
+	$sql = "SELECT matchID, locationID, matchLocationID
+			FROM eventMatches
+			LEFT JOIN logisticsLocationsMatches USING(matchID)
+			WHERE placeholderMatchID = {$placeholderMatchID}";
+	$subMatches = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($subMatches as $s){
+
+		$matchID = (int)$s['matchID'];
+		$matchLocationID = (int)$s['matchLocationID'];
+
+		if((int)$s['locationID'] == $locationID){
+
+			continue;
+
+		} elseif ($matchLocationID != 0) {
+
+			if($locationID != 0){
+				$sql = "UPDATE logisticsLocationsMatches
+						SET locationID = {$locationID}
+						WHERE matchLocationID = {$matchLocationID}";
+			} else {
+				$sql = "DELETE FROM logisticsLocationsMatches
+						WHERE matchID = {$matchID}";
+			}
+
+		} else {
+
+			$sql = "INSERT INTO logisticsLocationsMatches
+					(locationID, matchID)
+					VALUES
+					({$locationID}, {$matchID})";
+
+		}
+
+		mysqlQuery($sql, SEND);
+
+	}
 
 }
 

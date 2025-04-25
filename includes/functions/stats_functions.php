@@ -784,6 +784,7 @@ function getAnnualShutoutsByFighter($year, $futureView){
 						FROM eventExchanges AS eE2
 						WHERE eE2.matchID = eM.matchID
 						AND scoreValue != 0) >= 3
+				AND isPlaceholder = 0
 			GROUP BY systemRosterID
 			ORDER BY numMatches DESC
 			LIMIT 100";
@@ -1055,7 +1056,8 @@ function getAnnualRematchesByFighter($year, $futureView){
 			INNER JOIN eventRoster AS eR1 ON eM.fighter1ID = eR1.rosterID
 			INNER JOIN eventRoster AS eR2 ON eM.fighter2ID = eR2.rosterID
 			WHERE {$eventListStr}
-			AND fighter1ID != fighter2ID
+				AND fighter1ID != fighter2ID
+				AND placeholderMatchID IS NULL
 			GROUP BY systemRosterID1, systemRosterID2
 			ORDER BY num DESC";
 	$rematches = (array)mysqlQuery($sql, ASSOC);
