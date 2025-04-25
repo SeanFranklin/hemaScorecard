@@ -8369,6 +8369,22 @@ function getNumEventRegistrations($eventID){
 
 /******************************************************************************/
 
+function getNumEventClubs($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT COUNT(DISTINCT(schoolID)) AS numClubs
+			FROM eventRoster AS eR
+			WHERE eventID = {$eventID}
+			AND isTeam = 0";
+	$numClubs = (int)mysqlQuery($sql, SINGLE, 'numClubs');
+
+	return ($numClubs);
+
+}
+
+/******************************************************************************/
+
 function getMatchVideoLink($matchID){
 
 	$matchID = (int)$matchID;
