@@ -116,7 +116,7 @@ function streamLocationInfoDisplay($info){
 		if($matchInfo['matchType'] == 'pool'){
 			$matchDescription .= "Match ".$matchInfo['matchNumber'];
 		} else {
-			$matchDescription .= getMatchStageName($match['matchID']);
+			$matchDescription .= getMatchStageName($info['matchID']);
 		}
 
 		$matchDescription .= "<BR>";
