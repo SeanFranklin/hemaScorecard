@@ -5330,6 +5330,73 @@ function getTournamentPoolIncompletes($tournamentID, $groupSet = 0){
 
 /******************************************************************************/
 
+function getTournamentIncompletes($tournamentID, $isTeams){
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in getTournamentIncompletes()");
+		return;
+	}
+
+	$numToReturn = 7;
+
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, groupID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			WHERE tournamentID = {$tournamentID}
+			AND matchComplete != 1
+			AND ignoreMatch != 1
+			LIMIT {$numToReturn}";
+	$incompleteMatches['list'] = (array)mysqlQuery($sql, ASSOC);
+
+	$incompleteMatches['count'] = sizeof($incompleteMatches['list']);
+	$incompleteMatches['more'] = 0;
+
+
+	foreach($incompleteMatches['list'] as $index => $m){
+
+		if($isTeams == false){
+			$incompleteMatches['list'][$index]['name1'] = getFighterName($m['fighter1ID']);
+		} else {
+			$incompleteMatches['list'][$index]['name1'] = getTeamName($m['fighter1ID']);
+		}
+
+		if($incompleteMatches['list'][$index]['name1'] == null){
+			$incompleteMatches['list'][$index]['name1'] = ' [Empty] ';
+		}
+
+		if($isTeams == false){
+			$incompleteMatches['list'][$index]['name2'] = getFighterName($m['fighter2ID']);
+		} else {
+			$incompleteMatches['list'][$index]['name2'] = getTeamName($m['fighter2ID']);
+		}
+		if($incompleteMatches['list'][$index]['name2'] == null){
+			$incompleteMatches['list'][$index]['name2'] = ' [Empty] ';
+		}
+
+
+		$incompleteMatches['list'][$index]['groupName'] = getGroupName($m['groupID']);
+	}
+
+
+	if($incompleteMatches['count'] == $numToReturn){
+		$sql = "SELECT COUNT(*) AS numMatches
+				FROM eventMatches
+				INNER JOIN eventGroups USING(groupID)
+				WHERE tournamentID = {$tournamentID}
+				AND matchComplete != 1
+				AND ignoreMatch != 1";
+		$incompleteMatches['count'] = (int)mysqlQuery($sql, SINGLE, 'numMatches');
+		$incompleteMatches['more'] = $incompleteMatches['count'] - $numToReturn;
+	}
+
+	return $incompleteMatches;
+
+}
+
+
+/******************************************************************************/
+
 function getRounds($tournamentID , $groupSet = 0){
 
 	$groupSet = (int)$groupSet;
@@ -7009,33 +7076,51 @@ function logistics_getMatchStaffSuggestion($matchInfo){
 
 // Look at previous matches in the same ring and grab the most recently edited one.
 	$matchID = (int)$matchInfo['matchID'];
+	$groupID = (int)$matchInfo['groupID'];
+	$matchNumber = (int)$matchInfo['matchNumber'];
 	$locationID = (int)$matchInfo['locationID'];
-	if($locationID == 0){
-		return [];
+
+
+	$prevMatchID = 0;
+
+	if($locationID != 0){
+
+		$sql = "SELECT matchID
+				FROM logisticsStaffMatches
+				INNER JOIN logisticsLocationsMatches USING(matchID)
+				WHERE locationID = {$locationID}
+				ORDER BY matchStaffID DESC
+				LIMIT 1	";
+		$prevMatchID = (int)mysqlQuery($sql, SINGLE, 'matchID');
+
+	} else if($matchInfo['matchType'] == 'pool') {
+
+		$sql = "SELECT matchID
+				FROM eventMatches
+				WHERE groupID = {$groupID}
+				AND matchNumber < {$matchNumber}
+				ORDER BY matchNumber DESC
+				LIMIT 1	";
+		$prevMatchID = (int)mysqlQuery($sql, SINGLE, 'matchID');
+
+	} else {
+
+		// Can't find a previous match to use
+
 	}
 
-	$sql = "SELECT matchID
-			FROM logisticsStaffMatches
-			INNER JOIN logisticsLocationsMatches USING(matchID)
-			WHERE locationID = {$locationID}
-			ORDER BY matchStaffID DESC
-			LIMIT 1	";
-	$prevMatchID = (int)mysqlQuery($sql, SINGLE, 'matchID');
 
-	// Pick the match with the latest entry
-	$sql = "SELECT (-1) AS matchStaffID, rosterID, logisticsRoleID
-			FROM logisticsStaffMatches
-			INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
-			WHERE matchID = {$prevMatchID}
-			ORDER BY roleSortImportance DESC";
-	$staffInMatch =  mysqlQuery($sql, ASSOC);
-
-	if($staffInMatch != null){
-		return $staffInMatch;
+	$staffInMatch = [];
+	if($prevMatchID != 0){
+		$sql = "SELECT (-1) AS matchStaffID, rosterID, logisticsRoleID
+				FROM logisticsStaffMatches
+				INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
+				WHERE matchID = {$prevMatchID}
+				ORDER BY roleSortImportance DESC";
+		$staffInMatch =  (array)mysqlQuery($sql, ASSOC);
 	}
 
-// Give up
-	return [];
+	return $staffInMatch;
 
 }
 

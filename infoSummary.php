@@ -250,6 +250,7 @@ function displayTournamentPlacings($tournamentID, $data){
 
 	$placings = getTournamentPlacings($tournamentID);
 	$fieldsetLink = $data['link'];
+	$isTeams = $data['isTeams'];
 
 
 	if(($data['hideFinalResults'] == true)
@@ -362,6 +363,11 @@ function displayTournamentPlacings($tournamentID, $data){
 		$j++;
 	}
 
+	$showAllText = null;
+	if($placingsToShow != 0){
+		$showAllText = "Show All  ↓ (".$placingsToShow.")";
+	}
+
 ?>
 
 
@@ -387,7 +393,7 @@ function displayTournamentPlacings($tournamentID, $data){
 				<span style='float: right;'>
 					<a class='extra-results-<?=$tournamentID?>'
 					onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
-					Show All ↓
+					<?=$showAllText?>
 					</a>
 					<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()" class='extra-results-<?=$tournamentID?> hidden'>Hide ↑</a>
 				</span>
@@ -452,10 +458,10 @@ function displayTournamentPlacings($tournamentID, $data){
 	</tr>
 
 
-	<?php if(ALLOW_EDITING == true): ?>
+	<?php if(ALLOW_EDITING == true):?>
 		<tr>
 			<td colspan='100%' class='results-table-info border-top'>
-				<?= manageTournamentPlacings($tournamentID)?>
+				<?= manageTournamentPlacings($tournamentID, $isTeams )?>
 			</td>
 		</tr>
 	<?php endif ?>
@@ -470,7 +476,7 @@ function displayTournamentPlacings($tournamentID, $data){
 
 /******************************************************************************/
 
-function manageTournamentPlacings($tournamentID){
+function manageTournamentPlacings($tournamentID, $isTeams){
 
 	$tournamentID = (int)$tournamentID;
 
@@ -478,11 +484,12 @@ function manageTournamentPlacings($tournamentID){
 
 	if($isFinalized == false && areAllMatchesFinished($tournamentID) == false){
 		$manualClass = 'secondary';
-		$autoDisable = 'disabled';
+		$allowAutoFinalize = false;
 	} else {
 		$manualClass = '';
-		$autoDisable = '';
+		$allowAutoFinalize = true;
 	}
+
 
 	if($isFinalized == false && isBrackets($tournamentID) == true){
 		autoFinalizeSpecificationBox($tournamentID);
@@ -491,6 +498,13 @@ function manageTournamentPlacings($tournamentID){
 		$useSpecs = false;
 	}
 
+
+	$incompleteMatches = [];
+	if($allowAutoFinalize == false){
+		$incompleteMatches = getTournamentIncompletes($tournamentID, $isTeams);
+	}
+
+
 ?>
 	<form method='POST'>
 	<input type='hidden' name='tournamentID' value='<?=$tournamentID ?>'>
@@ -498,17 +512,28 @@ function manageTournamentPlacings($tournamentID){
 	<?php if($isFinalized == false): ?>
 
 		<?php if(!isResultsOnly($tournamentID)): ?>
-			<?php if($useSpecs == false): ?>
-				<button class='button no-bottom success' name='formName'
-					value='autoFinalizeTournament' <?=$autoDisable?>>
-					Auto Finalize Tournament
-				</button>
+
+			<?php if($allowAutoFinalize == true): ?>
+				<?php if($useSpecs == false): ?>
+					<button class='button no-bottom success' name='formName'
+						value='autoFinalizeTournament'>
+						Auto Finalize Tournament
+					</button>
+				<?php else: ?>
+					<a class='button no-bottom success'
+						data-open='autoFinalizeBox-<?=$tournamentID?>'>
+						Auto Finalize Tournament
+					</a>
+				<?php endif ?>
 			<?php else: ?>
-				<a class='button no-bottom success' <?=$autoDisable?>
-					data-open='autoFinalizeBox-<?=$tournamentID?>'>
-					Auto Finalize Tournament
+
+				<a onclick="$('#incomplete-matches-<?=$tournamentID?>').toggle()">
+					<?=$incompleteMatches['count']?> Incomplete Matches ↓
 				</a>
+
 			<?php endif ?>
+
+
 		<?php endif ?>
 
 		<button class='button hollow no-bottom <?=$manualClass?>' name='formName' value='editTournamentPlacings'>
@@ -526,6 +551,25 @@ function manageTournamentPlacings($tournamentID){
 
 	<?php endif ?>
 	</form>
+
+
+	<div class='hidden' id='incomplete-matches-<?=$tournamentID?>'>
+
+		<HR>
+
+		<?php foreach($incompleteMatches['list'] as $m): ?>
+			<b><?=$m['name1']?></b> vs <b><?=$m['name2']?></b>;
+			<?=$m['groupName']?>
+			(id: <?=$m['matchID']?>)
+			<BR>
+		<?php endforeach ?>
+
+		<?php if($incompleteMatches['more'] != 0):?>
+			and <?=$incompleteMatches['more']?> more
+		<?php endif ?>
+
+	</div>
+
 
 <!-- Delete Confirmation Box -->
 	<?php if($isFinalized == true): ?>

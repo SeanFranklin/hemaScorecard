@@ -1908,7 +1908,7 @@ function pool_ScoreFighters($tournamentID, $groupSet = 1){
 	if(substr($formula,0,1) !== '#'){
 
 		$sql = "UPDATE eventStandings
-				SET score = ($formula)
+				SET score = ROUND(($formula),2)
 				WHERE tournamentID = {$tournamentID}
 				AND groupType = 'pool'
 				AND groupSet = {$groupSet}";
@@ -2737,6 +2737,7 @@ function pool_NormalizeSizes($fighterStats, $tournamentID, $groupSet = 1){
 			$fighterStats[$rosterID][$dataIndex] = round($data * $correction,3);
 
 		}
+
 	}
 
 	return $fighterStats;

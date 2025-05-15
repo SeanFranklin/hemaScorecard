@@ -5051,10 +5051,24 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 	$standingsToDelete = [];
 	foreach((array)$existingStandings as $standing){
 		$rosterID = $standing['rosterID'];
-		if(isset($allFighterStats[$rosterID])){
-			$standingsToUpdate[$rosterID] = $standing['standingID'];
-		} else{
+
+		if(isset($standingsToUpdate[$rosterID]) == true){
+
+			// There is somehow the same rosterID again in the standings.
+			// This duplicate should be deleted.
 			$standingsToDelete[] = $standing['standingID'];
+
+		} else if(isset($allFighterStats[$rosterID])){
+
+			// The fighter already has a standing, and thus it should be
+			//  updated rather than a new one made.
+			$standingsToUpdate[$rosterID] = $standing['standingID'];
+
+		} else{
+
+			// The fighter this standing belongs to is no longer in the tournament.
+			$standingsToDelete[] = $standing['standingID'];
+
 		}
 	}
 

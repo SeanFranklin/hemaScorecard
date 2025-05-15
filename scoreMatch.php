@@ -104,6 +104,17 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 
 	}
 
+// Load the match staff, and determine which are real and which are suggestions
+	$matchStaffSuggestions = logistics_getMatchStaffSuggestion($matchInfo);
+
+	$matchStaffList = [];
+	foreach($matchStaffSuggestions as $s){
+		if((int)$s['matchStaffID'] > 0){
+			$matchStaffList[] = $s;
+		}
+	}
+
+
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
@@ -136,7 +147,8 @@ if($matchID == null || $tournamentID == null || $eventID == null){
 <!-- Main column -->
 		<div class='medium-9 cell'>
 			<?php backToListButton($matchInfo); ?>
-			<?php confirmStaffBox($matchInfo) ?>
+			<?php confirmStaffBox($matchInfo, $matchStaffSuggestions) ?>
+			<?php displayStaffBox($matchInfo, $matchStaffList)?>
 			<?php addPenaltyBox($matchInfo) ?>
 			<?php switchFighersBox($matchInfo) ?>
 
@@ -384,7 +396,7 @@ function subMatchBox($matchInfo){
 
 /******************************************************************************/
 
-function confirmStaffBox($matchInfo){
+function confirmStaffBox($matchInfo, $matchStaffSuggestions){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == FALSE){
 		return;
@@ -392,7 +404,6 @@ function confirmStaffBox($matchInfo){
 
 	$rolesList = logistics_getRoles();
 	$staffList = getEventRoster();
-	$matchStaffList = logistics_getMatchStaffSuggestion($matchInfo);
 	$hideRows = '';
 	$possibleStaffShifts = logistics_getMatchStaffShifts($matchInfo);
 	$rowCounter = 0;
@@ -450,7 +461,7 @@ function confirmStaffBox($matchInfo){
 
 	<!-- Data entry fields -->
 		<table>
-			<?php foreach($matchStaffList as $member):
+			<?php foreach($matchStaffSuggestions as $member):
 
 				$rowCounter++;
 				$i = $rowCounter;
@@ -617,6 +628,63 @@ function confirmStaffBox($matchInfo){
 			</div>
 
 		</form>
+
+		<!-- Close button -->
+		<button class='close-button' data-close aria-label='Close modal' type='button'>
+			<span aria-hidden='true'>&times;</span>
+		</button>
+
+	</div>
+
+
+<?php
+}
+
+
+/******************************************************************************/
+
+function displayStaffBox($matchInfo, $matchStaffList){
+?>
+
+	<div class='reveal' id='matchStaffDisplayBox' data-reveal>
+
+		<h4> Match Staff </h4>
+
+	<!-- Instructions ------>
+		<em> Note: This page is as accurate as the table was at checking in the correct staff for this match. </em>
+
+		<table>
+			<?php foreach($matchStaffList as $member): ?>
+				<tr>
+					<td>
+						<?=logistics_getRoleName($member['logisticsRoleID'])?>
+					</td>
+
+					<td>
+						<?=getFighterName($member['rosterID'])?>
+					</td>
+			<?php endforeach ?>
+
+		</table>
+
+		<?php if($matchStaffList == []): ?>
+			<div class='callout secondary text-center'>No staff have been entered for this match.</div>
+		<?php endif ?>
+
+		<HR>
+
+
+	<!-- Submit buttons -->
+
+		<div class='grid-x grid-margin-x'>
+
+			<a class=' small-6 cell'>
+			</a>
+
+			<button class='button secondary small-6 cell' data-close aria-label='Close modal' type='button'>
+				Close
+			</button>
+		</div>
 
 		<!-- Close button -->
 		<button class='close-button' data-close aria-label='Close modal' type='button'>
@@ -2128,9 +2196,7 @@ function createSideBar($matchInfo){
 	if(ALLOW['EVENT_SCOREKEEP'] == true && $matchInfo['placeholderMatchID'] == null){
 		$checkInLevel = logistics_getTournamentStaffCheckInLevel($matchInfo['tournamentID']);
 
-		if($checkInLevel != STAFF_CHECK_IN_NONE){
-			$staffConfirmActive = true;
-		}
+		$staffConfirmActive = true;
 
 		if($checkInLevel == STAFF_CHECK_IN_MANDATORY){
 			$staffConfirmRequired = !logistics_areMatchStaffCheckedIn($matchID);
@@ -2483,7 +2549,10 @@ function createSideBar($matchInfo){
 				</a>
 			</strong>
 
-
+	<?php else: ?>
+		<a data-open='matchStaffDisplayBox'>
+			View Match Staff
+		</a>
 	<?php endif ?>
 
 	<?=matchOptionsBox($matchInfo)?>

@@ -7,7 +7,7 @@ const VIDEO_STREAM_VIRTUAL  = 3;
 
 const VIDEO_SOURCE_UNKNOWN 		= 0;
 const VIDEO_SOURCE_YOUTUBE 		= 1;
-const VIDEO_SOURCE_TWITCH 		= 2;
+const VIDEO_SOURCE_NONE   		= 2;
 const VIDEO_SOURCE_GOOGLE_DRIVE = 3;
 
 var streamMatchInfo = {
@@ -27,6 +27,10 @@ function getStreamMatchInfo(){
 		var identifier = document.getElementById('stream-matchID').value;
 	}
 
+	if(identifier == 0){
+		return;
+	}
+
 	if(streamMode == VIDEO_STREAM_VIRTUAL){
 		var synchTime = document.getElementById('stream-synch-time').value;
 		var synchTime2 = document.getElementById('stream-synch-time-2').value;;
@@ -39,8 +43,8 @@ function getStreamMatchInfo(){
 		videoTime = Math.floor(player.getCurrentTime());
 	} else if(videoSource == VIDEO_SOURCE_GOOGLE_DRIVE) {
 		videoTime = 0;
-	} else {
-		videoTime = 0;
+	} else if(videoSource == VIDEO_SOURCE_NONE){
+		videoTime = document.getElementById('stream-video-time').value;
 	}
 
 	var query = "mode=getStreamOverlayInfo";
@@ -182,8 +186,6 @@ function openVideoWindow(identifier, streamMode){
 		matchID    = identifier;
 	}
 
-console
-
 	updateStreamSession(streamMode ,matchID, locationID);
 
 	streamMatchInfo.lastExch  = -1;
@@ -238,6 +240,21 @@ function validateVideoLink(){
 		buttons[0].disabled = true;
 	}
 
+}
+
+/******************************************************************************/
+
+function updateStreamMatchTime(){
+
+	var isActive = document.getElementById('stream-run-match').checked;
+
+	if(isActive == true){
+		var time = parseFloat(document.getElementById('stream-video-time').value);
+		time += 0.1;
+		time = Math.round(time * 10) / 10
+
+		document.getElementById('stream-video-time').value = time;
+	}
 }
 
 /******************************************************************************/

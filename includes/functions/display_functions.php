@@ -1759,9 +1759,10 @@ function edit_tournamentStaffCheckin($tournamentID){
 
 
 	$tournamentID = (int)$tournamentID;
-	$checkInStaff = STAFF_CHECK_IN_NONE;
+	$checkInStaff = STAFF_CHECK_IN_ALLOWED;
 
 	if($tournamentID !=  0){
+
 		$sql = "SELECT checkInStaff
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
@@ -1786,7 +1787,6 @@ function edit_tournamentStaffCheckin($tournamentID){
 			<div class='grid-x grid-padding-x'>
 				<select name='updateTournament[checkInStaff]' class='shrink'
 						id='checkInStaff_select<?=$tournamentID?>'>
-						<option <?=optionValue(STAFF_CHECK_IN_NONE,$checkInStaff)?> >No</option>
 						<option <?=optionValue(STAFF_CHECK_IN_ALLOWED,$checkInStaff)?> >Optional</option>
 						<option <?=optionValue(STAFF_CHECK_IN_MANDATORY,$checkInStaff)?> >Mandatory </option>
 				</select>
@@ -1801,7 +1801,7 @@ function edit_tournamentStaffCheckin($tournamentID){
 function edit_tournamentRequireSignOff($tournamentID = 0){
 
 	$tournamentID = (int)$tournamentID;
-	$requireSignOff = STAFF_CHECK_IN_NONE;
+	$requireSignOff = 0;
 
 	if($tournamentID != 0){
 
