@@ -529,17 +529,23 @@ case 'getStreamOverlayInfo':{
 	$returnInfo['fighter2School'] = $matchInfo['fighter2School'];
 
 // Fighter Colors
-	$sql = "SELECT colorCode
+	$sql = "SELECT colorCode, contrastCode
 			FROM eventTournaments, systemColors
 			WHERE eventTournaments.tournamentID = {$matchInfo['tournamentID']}
 			AND color1ID = colorID";
-	$returnInfo['color1Code'] = mysqlQuery($sql, SINGLE, 'colorCode');
+	$ret_val = mysqlQuery($sql, SINGLE);
 
-	$sql = "SELECT colorCode
+	$returnInfo['color1Code'] = $ret_val['colorCode'];
+	$returnInfo['color1Contrast'] = $ret_val['contrastCode'];
+
+	$sql = "SELECT colorCode, contrastCode
 			FROM eventTournaments, systemColors
 			WHERE tournamentID = {$matchInfo['tournamentID']}
 			AND color2ID = colorID";
-	$returnInfo['color2Code'] = mysqlQuery($sql, SINGLE, 'colorCode');
+	$ret_val = mysqlQuery($sql, SINGLE);
+
+	$returnInfo['color2Code'] = $ret_val['colorCode'];
+	$returnInfo['color2Contrast'] = $ret_val['contrastCode'];
 
 // Return last exchange information
 
@@ -866,7 +872,8 @@ case 'penaltyEscalation': {
 				FROM eventExchanges
 				INNER JOIN eventMatches USING(matchID)
 				INNER JOIN eventGroups USING(groupID)
-				WHERE refType IS NOT NULL
+				WHERE exchangeType = 'penalty'
+				AND refType IS NOT NULL
 				AND scoringID = {$rosterID}
 				AND (tournamentID = {$tournamentID})
 				AND (	matchID = {$matchID}
