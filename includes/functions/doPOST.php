@@ -543,6 +543,9 @@ function processPostData(){
 			case 'updateMatchStaffFromShift':
 				logisticsCheckInMatchStaffFromShift($_POST['updateMatchStaffFromShift']);
 				break;
+			case 'matchStaffBatchChange':
+				logisticsMatchStaffBatchChange($_POST['matchStaffBatchChange']);
+				break;
 			case 'updateStaffTemplates':
 				logisticsUpdateStaffTemplates($_POST['staffTemplateInfo']);
 				break;

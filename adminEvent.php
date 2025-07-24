@@ -141,10 +141,10 @@ function changePenaltiesBox($canChangeSettings){
 
 		<table class='table-compact'>
 			<tr>
-				<th>Penalty</th>
+				<th>Penalty Action</th>
 				<th style='white-space: nowrap;'>
-					<span class='hide-for-small-only'>Disabled</span>
-					<?=tooltip('<b>Disabled</b><BR>This will not appear in the penalty list for the scorekeeper.')?>
+					<span class='hide-for-small-only'>Enabled</span>
+					<?=tooltip("Unchecking an action will remove it from the 'Add Penalty' option list.")?>
 					&nbsp;&nbsp;&nbsp;
 				</th>
 				<th  style='white-space: nowrap;'>
@@ -157,9 +157,9 @@ function changePenaltiesBox($canChangeSettings){
 
 			<?php foreach($penalties as $p):
 				if($p['isDisabled'] == false){
-					$isDisabled = 'checked';
+					$isEnabled = 'checked';
 				} else {
-					$isDisabled = '';
+					$isEnabled = '';
 				}
 
 				?>
@@ -173,7 +173,7 @@ function changePenaltiesBox($canChangeSettings){
 						<input type='hidden' name='penaltyCustomize[attackID][<?=$p['attackID']?>][isDisabled]' value='1'>
 						<input type='checkbox' class='no-bottom'
 							name='penaltyCustomize[attackID][<?=$p['attackID']?>][isDisabled]' value='0'
-							<?=$isDisabled?> >
+							<?=$isEnabled?> >
 					</td>
 
 					<td>

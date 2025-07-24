@@ -1260,6 +1260,59 @@ function logisticsCheckInMatchStaffFromShift($info){
 
 /******************************************************************************/
 
+function logisticsMatchStaffBatchChange($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+
+	$toRoleID     = (int)$postData['toRoleID'];
+	$fromRoleID   = (int)$postData['fromRoleID'];
+	$tournamentID = (int)$postData['tournamentID'];
+
+	if(logistics_getRoleName($fromRoleID) == NULL){
+		setAlert(USER_ERROR, "Please specify a valid FROM role ");
+		return;
+	}
+
+	if($toRoleID != 0 && logistics_getRoleName($toRoleID) == NULL){
+		setAlert(USER_ERROR, "Please specify a valid TO role ");
+		return;
+	}
+
+
+	if($toRoleID != 0){
+
+		$sql = "UPDATE logisticsStaffMatches
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				SET logisticsRoleID = {$toRoleID}
+				WHERE logisticsRoleID = {$fromRoleID}
+				AND tournamentID = {$tournamentID}";
+		mysqlQuery($sql, SEND);
+
+		$msg = "All match staff assignments in <u>".getTournamentName($tournamentID)."</u> of <b>".logistics_getRoleName($fromRoleID)."</b> have been changed to <b>".logistics_getRoleName($toRoleID)."</b>.";
+
+	} else {
+
+		$sql = "DELETE lSM FROM logisticsStaffMatches lSM
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				WHERE logisticsRoleID = {$fromRoleID}
+				AND tournamentID = {$tournamentID}";
+		mysqlQuery($sql, SEND);
+
+		$msg = "All match staff assignments in <u>".getTournamentName($tournamentID)."</u> of <b>".logistics_getRoleName($fromRoleID)."</b> have been deleted.";
+
+	}
+
+	setAlert(USER_ALERT, $msg);
+
+}
+
+/******************************************************************************/
+
 function logisticsUpdateAnnouncement($announcement){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){

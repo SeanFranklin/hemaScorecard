@@ -39,12 +39,23 @@ function getStreamMatchInfo(){
 		var synchTime2 = 0;
 	}
 
+	videoTime = 0;
 	if(videoSource == VIDEO_SOURCE_YOUTUBE){
+  
 		videoTime = Math.floor(player.getCurrentTime());
+    
 	} else if(videoSource == VIDEO_SOURCE_GOOGLE_DRIVE) {
+  
 		videoTime = 0;
+    
 	} else if(videoSource == VIDEO_SOURCE_NONE){
-		videoTime = document.getElementById('stream-video-time').value;
+
+		var videoTimeElement = document.getElementById("stream-video-time");
+
+		if(document.body.contains(videoTimeElement) == true){
+			videoTime = document.getElementById('stream-video-time').value;
+		}
+
 	}
 
 	var query = "mode=getStreamOverlayInfo";
@@ -115,13 +126,13 @@ function updateStreamOverlay(matchInfo){
 	document.getElementById('fighter1School').innerHTML = matchInfo['fighter1School'];
 	document.getElementById('fighter1Score').innerHTML = matchInfo['fighter1Score'];
 	document.getElementById('color1Div').style.background = matchInfo['color1Code'];
+	document.getElementById('color1Div').style.color = matchInfo['color1Contrast'];
 
 	document.getElementById('fighter2Name').innerHTML = matchInfo['fighter2Name'];
 	document.getElementById('fighter2School').innerHTML = matchInfo['fighter2School'];
 	document.getElementById('fighter2Score').innerHTML = matchInfo['fighter2Score'];
 	document.getElementById('color2Div').style.background = matchInfo['color2Code'];
-
-
+	document.getElementById('color2Div').style.color = matchInfo['color2Contrast'];
 
 // Last Exchange
 	exchName = getExchangeName( matchInfo['exchangeType'], matchInfo['points']);

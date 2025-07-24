@@ -374,6 +374,7 @@ function menuTournament(){
 			<?php endif ?>
 
 			<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
+
 				<li><div class="drop-down-separator">During</div></li>
 				<li><a href='adminFighters.php'>Withdraw Fighters</a></li>
 
@@ -469,6 +470,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsStaffConflicts.php?t=0'>Conflicts</a></li>
 			<li><a href='logisticsStaffGrid.php?t=0'>Full Grid</a></li>
 			<li><a href='logisticsStaffList.php'>Full Staff List</a></li>
+			<li><a href='logisticsStaffMatch.php'>Match Staff Lists</a></li>
 
 		</ul>
 	</li>
@@ -617,7 +619,8 @@ function menuAdmin(){
 
 function activeLivestream(){
 
-	if(isVideoStreamingForEvent($_SESSION['eventID']) == false){
+	if(    (isVideoStreamingForEvent($_SESSION['eventID']) == false)
+	    || ALLOW['VIEW_MATCHES'] == false){
 		return;
 	}
 

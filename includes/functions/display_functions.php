@@ -2945,8 +2945,9 @@ function matchHistoryBar($matchInfo){
 			case "afterblow":
 				if($doubleTypes['afterblowType'] == 'deductive'){
 
-					$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
-					$exchanges[$i][$index1][2] = "(".(-$exchange['scoreDeduction']).")";
+					$netPts = $exchange['scoreValue'] - $exchange['scoreDeduction'];
+					$exchanges[$i][$index1][1] = "<b>".$netPts."</b>";
+					$exchanges[$i][$index1][2] = "[".$exchange['scoreValue']."-".$exchange['scoreDeduction']."]";
 
 				} else {
 
@@ -3050,6 +3051,9 @@ function matchHistoryBar($matchInfo){
 		?>
 
 		<div class='shrink text-center' style='width: 40px' title='<?=$exchange['detail']?>'>
+			<div class='cell <?=$class?>' style='font-size:0.8em;'>
+				#<?=$num?>
+			</div>
 			<div class='cell <?=$class?>'>
 				<?=$exchange['time']?>
 			</div>
@@ -3059,6 +3063,7 @@ function matchHistoryBar($matchInfo){
 			<div class='cell <?=$back2?>' style='<?=$odd?>'>
 				<?=$b1?><BR><?=$b2?>
 			</div>
+
 		</div>
 
 		<?php
@@ -3100,7 +3105,10 @@ function matchHistoryBar($matchInfo){
 		?>
 
 		<tr class='old-exch-mini'>
-			<td class='<?=$class?>'>
+			<td class='<?=$class?>' style='width:1px;font-size:0.8em'>
+				#<?=$num?>
+			</td>
+			<td class='<?=$class?>' style='width:1px'>
 				<?=$exchange['time']?>
 			</td>
 			<td class='<?=$back1?>' style='<?=$odd?>'>
