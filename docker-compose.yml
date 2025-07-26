@@ -11,7 +11,7 @@ services:
     command: >
       sh -c "docker-php-ext-install mysqli &&
              docker-php-ext-enable mysqli &&
-             pecl install xdebug &&
+             pecl install xdebug-3.1.5 ||
              docker-php-ext-enable xdebug &&
              php -S 0.0.0.0:8000 -t /hemaScorecard"
 
@@ -29,7 +29,5 @@ services:
       MYSQL_ROOT_PASSWORD: passw0rd
 
     volumes:
-      # comment line below after first run
-      # - ./includes:/docker-entrypoint-initdb.d
-      # uncomment line below after first run
+      - ./includes:/docker-entrypoint-initdb.d
       - ./data:/var/lib/mysql

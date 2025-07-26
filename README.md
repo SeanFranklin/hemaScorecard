@@ -12,16 +12,10 @@ After that simply issue docker-compose up in the source root directory. The appl
 PHP docker image contains xdebug, and project contains sample VS Code config which allows user to debug application via "Listen for XDebug" command.
 
 ## Data persistence
-In order to persist data after the first, initial run, comment out first volume in db service (`- ./includes:/docker-entrypoint-initdb.d`) and uncomment the second one (`./data:/var/lib/mysql`)
-Data is persisted in ./data folder.
+MySql data will be persisted to the ./data folder in the repository directory as per the docker compose. This can be altered if needed.
 
 ### Troubleshooting
-In case of issues with running web container (`xdebug install failed`) issue
 
-```bash
-$ docker-compose down
-$ docker composer rm -fsv
-```
 
 If there is a need to get inside running container simply issue 
 
