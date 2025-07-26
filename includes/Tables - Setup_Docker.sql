@@ -5,7 +5,7 @@
 INSERT INTO systemUsers(
             userName, 
             userEmail, 
-            EVENT_YOUTUBE, 
+            EVENT_VIDEO, 
             EVENT_SCOREKEEP, 
             EVENT_MANAGEMENT, 
             SOFTWARE_EVENT_SWITCHING, 
