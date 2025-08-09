@@ -1,0 +1,14 @@
+/* Chivo is a variable font, so we only need one @font-face per style */
+@font-face {
+  font-family: 'Chivo';
+  font-style: normal;
+  font-weight: 100 900;
+  src: url(Chivo-VariableFont_wght.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Chivo';
+  font-style: italic;
+  font-weight: 100 900;
+  src: url(Chivo-Italic-VariableFont_wght.ttf) format('truetype');
+}
