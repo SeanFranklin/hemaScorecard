@@ -286,27 +286,33 @@ function poolMatchQueue($matchInfo){
 
 function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 	$class = '';
-	if($fighterNum == 1){
 
-		$fighterName = getCombatantName($matchInfo['fighter1ID']);
+	if($fighterNum == 1){
+		$rosterID = $matchInfo['fighter1ID'];
 		$class = 'f1-BG f1-text';
 		$border = 'right';
-		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
-			$class .= ' bold';
-		}
+
 	} else {
-		$fighterName = getCombatantName($matchInfo['fighter2ID']);
+		$rosterID = $matchInfo['fighter2ID'];
 		$class = 'f2-BG f2-text';
 		$border = 'left';
-		if($matchInfo['winnerID'] == $matchInfo['fighter2ID']){
-			$class .= ' bold';
-		}
+	}
+
+	$fighterName = getCombatantName($rosterID);
+	if($matchInfo['winnerID'] == $rosterID){
+		$class .= ' bold';
 	}
 
 	if($pageSide == 'left'){
 		$class .= ' text-left';
 	} else {
 		$class .= ' text-right';
+	}
+
+	$limitShallow = readOption('T',$matchInfo['tournamentID'],'LIMIT_SHALLOW');
+	$numShallow = 0;
+	if($limitShallow != 0){
+		$numShallow = getNumShallowHitsInMatch($matchInfo['matchID'], $rosterID);
 	}
 
 ?>
@@ -317,6 +323,15 @@ function fighterNameDisplay($matchInfo, $fighterNum, $pageSide){
 		<span style='font-size: 5.5vw;'>
 
 			<?=$fighterName?>
+					<?php if($limitShallow != 0):?>
+						<i>
+							<span style='letter-spacing:-0.17em;'>
+								[<?=$numShallow?>
+								/
+								<?=$limitShallow?>&nbsp;]
+							</span>
+						</i>
+					<?php endif ?>
 
 		</span>
 

@@ -1093,7 +1093,7 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[limitPoolMatches]' class='shrink'
 					id='limitPoolMatches_select<?=$tournamentID?>'>
-					<option <?=optionValue(0,$maxMatches)?> > No </option>
+					<option <?=optionValue(0,$maxMatches)?> > No (normal)</option>
 					<?php for($i = 1; $i <= $maxMatchesLimit; $i++):?>
 						<option <?=optionValue($i,$maxMatches)?> ><?=$i?></option>
 					<?php endfor ?>
@@ -1610,6 +1610,44 @@ function edit_tournamentSoftClock($tournamentID = 0){
 
 /******************************************************************************/
 
+function edit_tournamentMinExchTime($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID !=  0){
+		$minExchTime = readOption('T', $tournamentID, 'MINIMUM_EXCH_TIME');
+	} else {
+		$minExchTime = null;
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Minimum Exchange Time
+				<?=tooltip("Minimum amount of time to take off the clock every exchange. <BR> eg: If the echange only takes 7 seconds, and this is set to 10, then 3 extra seconds are taken off.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+
+				<input type='number' name='updateTournament[minExchTime]' value='<?=$minExchTime?>'
+						placeholder='Unlimited' min=0 max=300 class='text-center'>
+
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
 function edit_tournamentMatchOrderMode($tournamentID = 0){
 
 	$tournamentID = (int)$tournamentID;
@@ -1640,6 +1678,53 @@ function edit_tournamentMatchOrderMode($tournamentID = 0){
 			<select name='updateTournament[matchOrder]' id='matchOrder_select<?=$tournamentID?>' class='shrink '>
 				<option <?=optionValue(MATCH_ORDER_MODE_DEFAULT,$matchOrderMode)?>>Default</option>
 				<option <?=optionValue(MATCH_ORDER_MODE_ORIGINAL,$matchOrderMode)?>>Classic</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/******************************************************************************/
+
+function edit_tournamentLimitShallow($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+
+	if($tournamentID !=  0){
+		$limitShallow = readOption('T',$tournamentID,'LIMIT_SHALLOW');
+	} else {
+		$limitShallow = 0;
+	}
+
+	$hide = 'hidden';
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-misc <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Limit Shallow
+				<?=tooltip("<b>Don't use unless you know what it does already.</b><BR>This is for a very weird custom tournament format.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[limitShallow]' id='limitShallow_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$limitShallow)?>>No (normal)</option>
+				<option <?=optionValue(1,$limitShallow)?>>1</option>
+				<option <?=optionValue(2,$limitShallow)?>>2</option>
+				<option <?=optionValue(3,$limitShallow)?>>3</option>
+				<option <?=optionValue(4,$limitShallow)?>>4</option>
+				<option <?=optionValue(5,$limitShallow)?>>5</option>
+				<option <?=optionValue(6,$limitShallow)?>>6</option>
+				<option <?=optionValue(7,$limitShallow)?>>7</option>
+				<option <?=optionValue(8,$limitShallow)?>>8</option>
+				<option <?=optionValue(9,$limitShallow)?>>8</option>
 			</select>
 			</div>
 		</td>
@@ -2085,8 +2170,8 @@ function edit_tournamentDoublesCarryForward($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 				<select name='updateTournament[doublesCarryForward]' class='shrink'
 						id='doublesCarryForward_select<?=$tournamentID?>'>
-					<option <?=optionValue(0,$isEnabled)?>>No</option>
-					<option <?=optionValue(1,$isEnabled)?>>Yes</option>
+					<option <?=optionValue(0,$isEnabled)?>>No (normal)</option>
+					<option <?=optionValue(1,$isEnabled)?>>Yes I want to be non-HEMA Ratings Eligible</option>
 				</select>
 			</div>
 		</td>
@@ -2838,6 +2923,8 @@ function matchHistoryBar($matchInfo){
 	$colorCode2 = COLOR_CODE_2;
 	$isZeroNumberedExchanges = false;
 
+	$limitShallow = readOption('T',$matchInfo['tournamentID'],'LIMIT_SHALLOW');
+
 	foreach($exchangeInfo as $exchange){
 	// Check if there are old exchanges in the system which don't have an exchange order assigned.
 		if($exchange['exchangeNumber'] == 0){
@@ -2968,12 +3055,23 @@ function matchHistoryBar($matchInfo){
 
 					}
 
+					if($limitShallow != 0 && $exchange['refTarget'] == TARGET_SHALLOW_DB){
+						$exchanges[$i][$index1][1] .= "<i>s</i>";
+					}
+					if($limitShallow != 0 && $exchange['refPrefix'] == PREFIX_SHALLOW_DB){
+						$exchanges[$i][$index2][1] .= "<i>s</i>";
+					}
+
 				}
 				break;
 
 			case "clean":
 				$exchanges[$i][$index1][1] = "<b>".$exchange['scoreValue']."</b>";
 				$exchanges[$i][$index1][2] = "";
+
+				if($limitShallow != 0 && $exchange['refTarget'] == TARGET_SHALLOW_DB){
+					$exchanges[$i][$index1][1] .= "<i>s</i>";
+				}
 
 				// $exchanges[$i][$index1][2] = "(".$exchange['scoreValue'].")";
 				// I have no idea why I added this. Kept here incase the reason becomes apparent.

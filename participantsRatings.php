@@ -52,6 +52,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 	}
 
 	arsort($ratingsNumbers);
+	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -208,6 +209,25 @@ if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['VIEW_SETTINGS'] == false){
 							Ask for directions if you are planning on using this feature.")?>
 		</div>
 		---->
+	<div class='callout warning'>
+	<form method="POST">
+		<input type="hidden" name='formName' value='importFighterRatings'>
+		<input type="hidden" name='importFighterRatings[tournamentID]' value='<?=$_SESSION['tournamentID']?>'>
+		<span class='input-group'>
+			<span class='input-group-label'>Import Ratings From:</span>
+			<select class='input-group-field' name='importFighterRatings[donorID]' required>
+				<option selected disabled>-- Select Tournament --</option>
+				<?php foreach($tournamentIDs as $tID): ?>
+					<option value=<?=$tID?>>
+						<?=getTournamentName($tID)?>
+					</option>
+				<?php endforeach ?>
+			</select>
+			<input type='submit' class='button input-group-button success' value='Import'>
+		</span>
+		<i>*This will only import the rating for unrated fencers. Fencers who have been assigned ratings for this tournament will not have them updated.</i>
+	</form>
+	</div>
 
 	</div>
 	</div>

@@ -101,6 +101,8 @@
 
 	define("ATTACK_CONTROL_DB",9);
 	define("ATTACK_AFTERBLOW_DB",13);
+	define("TARGET_SHALLOW_DB",33);
+	define("PREFIX_SHALLOW_DB",101);
 
 	define("SUB_MATCH_ANALOG",0);
 	define("SUB_MATCH_DIGITAL",1);
@@ -224,6 +226,8 @@
 		define("DEDUCTION_ADDITION_MODE_MAX",1);
 		define("DEDUCTION_ADDITION_MODE_RMS",2);
 	$options['T']["PENALTIES_ADD_POINTS"]           = 26;
+	$options['T']["LIMIT_SHALLOW"]                  = 27;
+	$options['T']["MINIMUM_EXCH_TIME"]              = 28;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

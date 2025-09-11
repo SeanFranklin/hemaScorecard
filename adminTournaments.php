@@ -187,21 +187,29 @@ function tournamentSettingsForm($tournamentID, $formLock, $tournamentName){
 
 		// Logistics
 			edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
-			edit_tournamentCuttingQual($tournamentID);
-			edit_tournamentDoublesCarryForward($tournamentID);
+
+			echo "<tr class='option-misc hidden'><td colspan=100%><b>Match Stuff</b><td></tr>";
+			edit_tournamentSoftClock($tournamentID);
+			edit_tournamentMinExchTime($tournamentID);
 			edit_tournamentPenaltyEscalationMode($tournamentID);
+			edit_tournamentPenaltiesAddPoints($tournamentID);
+			edit_tournamentLimitScoreOvershoot($tournamentID);
+
+			echo "<tr class='option-misc hidden'><td colspan=100%><b>Bookkeeping Stuff</b><td></tr>";
+			edit_tournamentStaffCheckin($tournamentID);
+			edit_tournamentCuttingQual($tournamentID);
+			edit_tournamentRequireSignOff($tournamentID);
 			edit_tournamentHideFinalResults($tournamentID);
 			edit_tournamentKeepPrivate($tournamentID);
-			edit_tournamentRequireSignOff($tournamentID);
-			edit_tournamentStaffCheckin($tournamentID);
-			edit_tournamentNormalization($tournamentID);
-			edit_tournamentLimitPoolMatches($tournamentID);
+
+			echo "<tr class='option-misc hidden'><td colspan=100%><b>Really Esoteric Stuff</b><td></tr>";
 			edit_tournamentPriorityNotice($tournamentID);
 			edit_tournamentDenoteOtherCheck($tournamentID);
-			edit_tournamentSoftClock($tournamentID);
+			edit_tournamentLimitPoolMatches($tournamentID);
+			edit_tournamentDoublesCarryForward($tournamentID);
+			edit_tournamentNormalization($tournamentID);
 			edit_tournamentMatchOrderMode($tournamentID);
-			edit_tournamentLimitScoreOvershoot($tournamentID);
-			edit_tournamentPenaltiesAddPoints($tournamentID);
+			edit_tournamentLimitShallow($tournamentID);
 		?>
 	</table>
 
