@@ -84,6 +84,10 @@ if($tournamentID == null){
 		<?php endforeach ?>
 	</table>
 
+	<?=displayTeamRatingsTable($teamRostersSorted)?>
+
+	<hr>
+
 <!-- Buttons to update teams -->
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
 		<button class='button no-bottom success' name='formName' value='addToTeams'>
@@ -359,6 +363,50 @@ function showUnAssignedFighters($addableFighters){
 <?php
 }
 
+
+/******************************************************************************/
+
+function displayTeamRatingsTable($teamRosters){
+
+	$showRating = (bool)readOption('E',$_SESSION['eventID'],'SHOW_FIGHTER_RATINGS');
+	if(ALLOW['STATS_EVENT'] == FALSE && ALLOW['EVENT_SCOREKEEP'] == false && $showRating == false){
+		return;
+	}
+
+	$teamList = [];
+	foreach($teamRosters as $teamID => $team){
+		$tmp = [];
+		$tmp['name'] = getTeamName($teamID);
+		$tmp['rating'] = getTeamRating($teamID);
+		$teamList[] = $tmp;
+	}
+
+	usort($teamList, function($a, $b) {
+	    return $b['rating'] <=> $a['rating'];
+	});
+
+
+?>
+
+
+	<a onclick="$('.team-ratings-table').toggle()">Show Team Ratings ? </a>
+
+	<div class='grid-x grid-margin-x'>
+	<div class='large-5 team-ratings-table hidden'>
+	<table class='data-table'>
+
+		<?php foreach($teamList as $team): ?>
+			<tr>
+				<td><?=$team['name']?></td>
+				<td><?=$team['rating']?></td>
+			</tr>
+		<?php endforeach ?>
+	</table>
+	</div>
+	</div>
+<?php
+
+}
 
 /******************************************************************************/
 

@@ -137,6 +137,9 @@ function processPostData(){
 			case 'updateFighterRatings':
 				updateFighterRatings($_POST['updateRatings']);
 				break;
+			case 'importFighterRatings':
+				importFighterRatings($_POST['importFighterRatings']);
+				break;
 			case 'editEventParticipant':
 				editEventParticipant();
 				break;
@@ -1314,10 +1317,55 @@ function addNewExchange(){
 			setAlert(USER_ALERT,"<strong>Match automatically concluded.</strong>");
 		} else {
 			shouldTeamsSwitch($matchInfo, $previousScores);
+			applyMinExchTime($matchInfo);
 		}
 
 	}
 
+}
+
+/******************************************************************************/
+
+function applyMinExchTime($matchInfo){
+
+	$minExchTime = readOption('T',$matchInfo['tournamentID'],'MINIMUM_EXCH_TIME');
+	if($minExchTime == 0){
+		return;
+	}
+
+	$matchID = (int)$matchInfo['matchID'];
+
+	$sql = "SELECT exchangeID, exchangeTime
+			FROM eventExchanges
+			WHERE matchID = {$matchID}
+			ORDER BY exchangeNumber DESC
+			LIMIT 2";
+	$exchanges = mysqlQuery($sql, ASSOC);
+
+	$time0 = (int)@$exchanges[0]['exchangeTime'];
+	$time1 = (int)@$exchanges[1]['exchangeTime'];
+
+	$exchLength = $time0 - $time1;
+
+	// Have to be careful not to add time if the exchLength is zero, because then doing multiple opperations
+	// on the same fencing exchange (penalties, etc) would add time every table exchange that is input.
+	if($exchLength >= $minExchTime || $exchLength == 0){
+		return;
+	}
+
+	$newTime = $time1 + $minExchTime;
+
+	$sql = "UPDATE eventMatches
+			SET matchTime = {$newTime}
+			WHERE matchID = {$matchID}";
+	mysqlQuery($sql, SEND);
+
+	$exchangeID = (int)@$exchanges[0]['exchangeID'];
+
+	$sql = "UPDATE eventExchanges
+			SET exchangeTime = {$newTime}
+			WHERE exchangeID = {$exchangeID}";
+	mysqlQuery($sql, SEND);
 
 }
 
@@ -1599,6 +1647,7 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 	$afterblowPrefix = null;
 
 	$fighter1Hit = false;
+	$limitShallow = readOption('T',$matchInfo['tournamentID'],'LIMIT_SHALLOW');
 
 	// If raw score
 	if($_POST['scoreLookupMode'] == 'rawPoints'){
@@ -1649,6 +1698,16 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 		}
 
 		$scoreValue = 	$scoring[$rosterID]['hit'];
+
+
+		if($limitShallow != 0 && $rTarget == TARGET_SHALLOW_DB){
+			$numShallow = getNumShallowHitsInMatch($matchInfo['matchID'], $rosterID);
+			if($numShallow >= $limitShallow){
+				$scoreValue = 0;
+			}
+		}
+
+
 		$scoreDeduction = 'null';
 		$exchangeType = 'clean';
 
@@ -1666,8 +1725,55 @@ function fullAfterblowScoring($matchInfo,$scoring, $lastExchangeID){
 
 	} else {//both hit
 
-		//attributes the strike to the fighter with the higher value hit
-		if($score1 > $score2){
+		if($limitShallow != 0){
+			// This is a special mode almost never used.
+
+			$rosterID = $id1;
+			$otherID = $id2;
+
+			$numShallow1 = getNumShallowHitsInMatch($matchInfo['matchID'], $id1);
+			$numShallow2 = getNumShallowHitsInMatch($matchInfo['matchID'], $id2);
+			$invalid1 = false;
+			$invalid2 = false;
+
+
+			if(@$at1['attackTarget'] == TARGET_SHALLOW_DB){
+				$rTarget = TARGET_SHALLOW_DB;
+				if($numShallow1 >= $limitShallow){
+					$invalid1 = true;
+				}
+			}
+			if(@$at2['attackTarget'] == TARGET_SHALLOW_DB){
+				$rPrefix = PREFIX_SHALLOW_DB;
+				if($numShallow2 >= $limitShallow){
+					$invalid2 = true;
+				}
+			}
+
+			if($invalid1 == true && $invalid2 == false){
+				// If fighter2 has a valid hit and fighter1 doesn't they become the scoring
+				// fighter. In all other cases fighter1 is the scoring.
+				$rosterID = $id2;
+				$otherID  = $id1;
+				$tmp = $invalid1;
+				$invalid1 = $invalid2;
+				$invalid2 = $tmp;
+			} else {
+				$rosterID = $id1;
+				$otherID  = $id2;
+			}
+
+			if($invalid1 == true && $invalid2 == true){
+				$scoring[$rosterID]['hit'] = 0;
+				$scoring[$otherID]['hit']  = 0;
+			} elseif ($invalid1 == false && $invalid2 == true) {
+				$scoring[$rosterID]['hit'] = (int)$scoring[$rosterID]['hit']/2;
+				$scoring[$otherID]['hit']  = 0;
+			} else {
+				// Keep the scores equal and unmodified.
+			}
+
+		} elseif($score1 > $score2){
 			$rosterID = $id1;
 			$otherID = $id2;
 		} else if($score2 > $score1){
