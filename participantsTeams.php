@@ -56,6 +56,7 @@ if($tournamentID == null){
 
 	<?php createNewTeamInterface($addableFighters, $teamSize) ?>
 	<?php showUnAssignedFighters($addableFighters)?>
+	<?php teamsAutoCreateForm($addableFighters, $teamSize)?>
 
 	<?php if(count($teamRostersSorted) == 0): ?>
 		<?=displayAlert("No Teams Created")?>
@@ -255,7 +256,6 @@ function createNewTeamInterface($addableFighters, $teamSize){
 	</button>
 
 
-
 <!-- Creation Form -->
 	<fieldset class='fieldset hidden' id='createTeamForm'>
 		<legend><h4>
@@ -389,7 +389,7 @@ function displayTeamRatingsTable($teamRosters){
 ?>
 
 
-	<a onclick="$('.team-ratings-table').toggle()">Show Team Ratings ? </a>
+	<a onclick="$('.team-ratings-table').toggle()">Show Team Ratings ↓ </a>
 
 	<div class='grid-x grid-margin-x'>
 	<div class='large-5 team-ratings-table hidden'>
@@ -406,6 +406,73 @@ function displayTeamRatingsTable($teamRosters){
 	</div>
 <?php
 
+}
+
+/******************************************************************************/
+
+function teamsAutoCreateForm($addableFighters, $teamSize){
+	if(ALLOW['EVENT_MANAGEMENT'] == false || $teamSize < 1){
+		return;
+	}
+
+	$numUnassigned = count($addableFighters);
+	if($numUnassigned < $teamSize){
+		$emptySpots = $numUnassigned;
+	} else {
+		$emptySpots = $teamSize;
+	}
+
+	$teamsToMake = (int)($numUnassigned / $teamSize);
+	$leftovers = $numUnassigned % $teamSize;
+
+	if($leftovers != 0){
+		$leftoverText = "<BR>However <b>{$leftovers}</b> fighter(s), picked at random, will be left without a team. (sorry)";
+	} else {
+		$leftoverText = "";
+	}
+
+?>
+<!-- Visibility Button -->
+	<button class='button hollow secondary' id='teamsAutoCreateButton' onclick="$(this).hide();$(teamsAutoCreateForm).show();">
+		Auto Create Teams
+	</button>
+
+
+
+<!-- Creation Form -->
+	<fieldset class='fieldset hidden' id='teamsAutoCreateForm'>
+		<legend><h4>
+			Auto Create &nbsp;
+			<a class='button secondary no-bottom hollow small'
+				id='createTeamShow' style='float:right'
+				onclick="$(teamsAutoCreateButton).show();$(teamsAutoCreateForm).hide();">
+				Close
+			</a>
+		</h4></legend>
+
+		<p>This will automatically create teams out of the un-assigned fencers, based on their Rating. (Tournament Information > Fighter Ratings) The teams will be named "Pickup-A", "Pickup-B", etc. You can change the names of the teams manually after they are created.</p>
+		<p>There are <b><?=$numUnassigned?></b> fighters not in a team. With a team size of <b><?=$teamSize?></b> this will result in <b><?=$teamsToMake?></b> teams. <?=$leftoverText?></p>
+
+		<form method="POST">
+
+			<input type='hidden' name='teamsAutoCreate[tournamentID]' value=<?=$_SESSION['tournamentID']?>>
+
+		<!-- Sumbit Buttons -->
+			<button class='button no-bottom success' name='formName' value='teamsAutoCreate'>
+				Make It So
+			</button>
+
+			<a class='button secondary no-bottom align-right'
+				id='createTeamShow' style='float:right'
+				onclick="$(teamsAutoCreateButton).show();$(teamsAutoCreateForm).hide();">
+				Cancel Team Creation
+			</a>
+
+		</form>
+
+	</fieldset>
+
+<?php
 }
 
 /******************************************************************************/

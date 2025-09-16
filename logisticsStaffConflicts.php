@@ -147,6 +147,8 @@ function scheduleStaffOverCompetency($staffOverCompetency, $eventDays){
 
 function scheduleUnfilledShifts($badShifts, $eventDays){
 
+	echo "<p><b>Note:</b> Shifts flagged with the 'Suppress Conflicts' option are not examined for unfilled templates.</p>";
+
 	if($badShifts == null){
 		displayAlert("All shifts match their template.<BR>(Good job)");
 		return;

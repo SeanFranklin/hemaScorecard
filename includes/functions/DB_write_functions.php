@@ -3263,6 +3263,116 @@ function createNewTeam($teamInfo){
 
 /******************************************************************************/
 
+function teamsAutoCreate($postInfo){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		setAlert(USER_ERROR,"You must be logged in as an Event Organizer to do this operation");
+		return;
+	}
+
+	$tournamentID = (int)$postInfo['tournamentID'];
+	$DEFAULT_NAME = "Pickup";
+	$alphabet = range('A', 'Z');
+
+
+// Figure out the team sizing
+
+	$teamRostersRaw = (array)getTeamRosters($tournamentID);
+	$addableFighters = (array)getUngroupedRoster($tournamentID, $teamRostersRaw);
+
+	$teamSize = (int)readOption('T',$tournamentID,'TEAM_SIZE');
+
+	$numUnassigned = count($addableFighters);
+	if($numUnassigned < $teamSize){
+		$emptySpots = $numUnassigned;
+	} else {
+		$emptySpots = $teamSize;
+	}
+
+	$teamsToMake = (int)($numUnassigned / $teamSize);
+	$leftovers = $numUnassigned % $teamSize;
+
+
+// Generate the list to be added into teams
+
+	$rosterIDs = [];
+	foreach($addableFighters as $f){
+		$rosterIDs[] = $f['rosterID'];
+	}
+
+	// Remove the people who don't fit into the team size.
+	shuffle($rosterIDs);
+
+	for($i = 0; $i < $leftovers; $i++){
+		array_pop($rosterIDs);
+	}
+
+	// Return a sorted list of fighters, by rating.
+	$rosterIDs = implode2int($rosterIDs);
+	$sql = "SELECT rosterID
+			FROM eventTournamentRoster
+			LEFT JOIN eventRatings USING(tournamentRosterID)
+			WHERE rosterID IN ({$rosterIDs})
+			AND tournamentID = {$tournamentID}
+			ORDER BY rating DESC, RAND() ASC";
+	$fighterListSorted = (array)mysqlQuery($sql, SINGLES, 'rosterID');
+
+
+	// Pull the fighters into teams using snake seeding
+	$teamList = [];
+	for($teamNum = 0; $teamNum < $teamsToMake; $teamNum++){
+		for($memberNum = 0; $memberNum < $teamSize; $memberNum++){
+
+			if($memberNum % 2 == 0){
+				// Count down for even columns
+				$index = $teamNum + ($memberNum * $teamsToMake);
+			} else {
+				// Count up for odd columns
+				$index = ($teamsToMake - 1) + (($memberNum-1) * $teamsToMake);
+				$index += ($teamsToMake - $teamNum);
+			}
+
+			$teamList[$teamNum]['newMembers'][] = $fighterListSorted[$index];
+		}
+	}
+
+
+// Make names for teams and create them
+
+	foreach($teamList as $i => $team){
+
+
+		// Team Name ----------------------------
+		$numText = $alphabet[$i % 26];
+
+		if($i >= 26){
+			$numText = $alphabet[(int)($i / 26)-1].$numText;
+			// If you are auto generating more than 676 teams, m
+			if($i >= (25 * 26)){
+				setAlert(USER_ERROR, "What are you doing that auto-generates hundreds of teams? Name generation is messed up because I never covered this case.");
+			}
+		}
+
+		$teamList[$i]['teamName'] = $DEFAULT_NAME.'-'.$numText ;
+
+
+		createNewTeam($teamList[$i]);
+
+	}
+
+
+	if($leftovers != 0){
+		$leftoverText = "<BR>However <b>{$leftovers}</b> fighter(s), picked at random, did not fit into a the team size. (sorry)";
+	} else {
+		$leftoverText = "";
+	}
+
+	setAlert(USER_ALERT,"Created <b>{$teamsToMake}</b> teams, with {$teamSize} members each. {$leftoverText}");
+
+}
+
+/******************************************************************************/
+
 function addTeamMembers($teamInfo, $tournamentID){
 
 	$tournamentID = (int)$tournamentID;
