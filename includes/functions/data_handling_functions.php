@@ -1569,7 +1569,7 @@ function shouldMatchConcludeByTime($matchInfo){
 
 		$matchID = (int)$matchInfo['matchID'];
 
-		$sql = "SELECT scoringID, exchangeType
+		$sql = "SELECT scoringID, exchangeType, scoreValue, scoreDeduction
 				FROM eventExchanges
 				WHERE matchID = {$matchID}
 				ORDER BY exchangeNumber DESC
@@ -1591,11 +1591,32 @@ function shouldMatchConcludeByTime($matchInfo){
 			$winning = 0;
 		}
 
-		$validExchange = false;
-		if($exch['exchangeType'] == 'clean' || $exch['exchangeType'] == 'afterblow'){
-			$validExchange = true;
-		}
 
+		$validExchange = false;
+		switch($exch['exchangeType']){
+			case 'clean':
+			{
+				$validExchange = true;
+				break;
+			}
+			case 'afterblow':
+			{
+				// If it is an equal hit exchange in a Full AB tournament, neither could be said
+				//  to have "scored" a go ahead point.
+				if($exch['scoreValue'] == $exch['scoreDeduction'] && $matchInfo['doubleType'] == FULL_AFTERBLOW){
+					$validExchange = false;
+				} else {
+					$validExchange = true;
+				}
+				break;
+
+			}
+			default:
+			{
+				$validExchange = false;
+				break;
+			}
+		}
 
 		if($winning == 0){
 

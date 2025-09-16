@@ -7589,15 +7589,19 @@ function logistics_findUnfilledShifts($eventID){
 			continue;
 		}
 
-		$sql = "SELECT shiftID
+		$sql = "SELECT shiftID, suppressConflicts
 				FROM logisticsScheduleShifts
 				INNER JOIN logisticsScheduleBlocks USING(blockID)
 				WHERE tournamentID = {$tournamentID}";
-		$allShifts = mysqlQuery($sql, SINGLES, 'shiftID');
+		$allShifts = mysqlQuery($sql, KEY, 'shiftID');
 
-
-		foreach($allShifts as $shiftID){
+		foreach($allShifts as $shiftID => $shiftInfo){
 			$shiftID = (int)$shiftID;
+
+			// If suppressConflicts is active we shouldn't be flagging the shift as unfilled.
+			if((int)$shiftInfo['suppressConflicts'] != 0){
+				continue;
+			}
 
 			$sql = "SELECT logisticsRoleID, COUNT(*) AS numStaff
 					FROM logisticsStaffShifts

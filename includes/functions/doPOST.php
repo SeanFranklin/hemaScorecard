@@ -152,6 +152,9 @@ function processPostData(){
 			case 'createNewTeam':
 				createNewTeam($_POST['newTeamInfo']);
 				break;
+			case 'teamsAutoCreate':
+				teamsAutoCreate($_POST['teamsAutoCreate']);
+				break;
 			case 'deleteTeams':
 				deleteTeams($_POST['deleteTeamsInfo']);
 				break;
