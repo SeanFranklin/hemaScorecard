@@ -1810,6 +1810,70 @@ function updateFighterRatings($ratingData){
 
 /******************************************************************************/
 
+function importFighterRatings($postData){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	$donorID = (int)$postData['donorID'];
+	$tournamentID = (int)$postData['tournamentID'];
+
+	if($tournamentID == 0){
+		setAlert(SYSTEM_ERROR, "No tournamentID or donorID in importFighterRatings()");
+		return;
+	}
+
+
+	$sql = "SELECT rosterID, tournamentRosterID, ratingID
+			FROM eventTournamentRoster
+			LEFT JOIN eventRatings USING(tournamentRosterID)
+			WHERE tournamentID = {$tournamentID}
+			AND ratingID IS NULL";
+
+	$roster = (array)mysqlQuery($sql, ASSOC);
+
+
+	// Loop through and get a list of rosterIDs which don't have ratings associated with them.
+	$rosterIDsRaw = [];
+	foreach($roster as $r){
+		$rosterIDsRaw[] = $r['rosterID'];
+	}
+
+	if($rosterIDsRaw == []){
+		return;
+	}
+	$rosterIDs = implode2int($rosterIDsRaw);
+
+
+	// Insert new ratings if there is a rating that exists in the donor tournament.
+	$sql = "SELECT rosterID, rating
+			FROM eventRatings
+			INNER JOIN eventTournamentRoster USING(tournamentRosterID)
+			WHERE tournamentID = {$donorID}
+			AND rosterID IN ($rosterIDs)";
+	$ratings = (array)mysqlQuery($sql, KEY_SINGLES, 'rosterID', 'rating');
+
+	foreach($roster as $r){
+
+		if(isset($ratings[$r['rosterID']]) == false){
+			continue;
+		}
+
+		$rating = (int)$ratings[$r['rosterID']];
+		$tournamentRosterID = (int)$r['tournamentRosterID'];
+		$sql = "INSERT INTO
+				eventRatings
+				(tournamentRosterID, rating)
+				VALUES
+				({$tournamentRosterID},{$rating})";
+		mysqlQuery($sql, SEND);
+	}
+
+}
+
+/******************************************************************************/
+
 function addEventParticipants($eventID, $fighterList){
 
 	$eventID = (int)$eventID;
@@ -3194,6 +3258,116 @@ function createNewTeam($teamInfo){
 
 // Add team members
 	addTeamMembers($teamInfo, $tournamentID);
+
+}
+
+/******************************************************************************/
+
+function teamsAutoCreate($postInfo){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		setAlert(USER_ERROR,"You must be logged in as an Event Organizer to do this operation");
+		return;
+	}
+
+	$tournamentID = (int)$postInfo['tournamentID'];
+	$DEFAULT_NAME = "Pickup";
+	$alphabet = range('A', 'Z');
+
+
+// Figure out the team sizing
+
+	$teamRostersRaw = (array)getTeamRosters($tournamentID);
+	$addableFighters = (array)getUngroupedRoster($tournamentID, $teamRostersRaw);
+
+	$teamSize = (int)readOption('T',$tournamentID,'TEAM_SIZE');
+
+	$numUnassigned = count($addableFighters);
+	if($numUnassigned < $teamSize){
+		$emptySpots = $numUnassigned;
+	} else {
+		$emptySpots = $teamSize;
+	}
+
+	$teamsToMake = (int)($numUnassigned / $teamSize);
+	$leftovers = $numUnassigned % $teamSize;
+
+
+// Generate the list to be added into teams
+
+	$rosterIDs = [];
+	foreach($addableFighters as $f){
+		$rosterIDs[] = $f['rosterID'];
+	}
+
+	// Remove the people who don't fit into the team size.
+	shuffle($rosterIDs);
+
+	for($i = 0; $i < $leftovers; $i++){
+		array_pop($rosterIDs);
+	}
+
+	// Return a sorted list of fighters, by rating.
+	$rosterIDs = implode2int($rosterIDs);
+	$sql = "SELECT rosterID
+			FROM eventTournamentRoster
+			LEFT JOIN eventRatings USING(tournamentRosterID)
+			WHERE rosterID IN ({$rosterIDs})
+			AND tournamentID = {$tournamentID}
+			ORDER BY rating DESC, RAND() ASC";
+	$fighterListSorted = (array)mysqlQuery($sql, SINGLES, 'rosterID');
+
+
+	// Pull the fighters into teams using snake seeding
+	$teamList = [];
+	for($teamNum = 0; $teamNum < $teamsToMake; $teamNum++){
+		for($memberNum = 0; $memberNum < $teamSize; $memberNum++){
+
+			if($memberNum % 2 == 0){
+				// Count down for even columns
+				$index = $teamNum + ($memberNum * $teamsToMake);
+			} else {
+				// Count up for odd columns
+				$index = ($teamsToMake - 1) + (($memberNum-1) * $teamsToMake);
+				$index += ($teamsToMake - $teamNum);
+			}
+
+			$teamList[$teamNum]['newMembers'][] = $fighterListSorted[$index];
+		}
+	}
+
+
+// Make names for teams and create them
+
+	foreach($teamList as $i => $team){
+
+
+		// Team Name ----------------------------
+		$numText = $alphabet[$i % 26];
+
+		if($i >= 26){
+			$numText = $alphabet[(int)($i / 26)-1].$numText;
+			// If you are auto generating more than 676 teams, m
+			if($i >= (25 * 26)){
+				setAlert(USER_ERROR, "What are you doing that auto-generates hundreds of teams? Name generation is messed up because I never covered this case.");
+			}
+		}
+
+		$teamList[$i]['teamName'] = $DEFAULT_NAME.'-'.$numText ;
+
+
+		createNewTeam($teamList[$i]);
+
+	}
+
+
+	if($leftovers != 0){
+		$leftoverText = "<BR>However <b>{$leftovers}</b> fighter(s), picked at random, did not fit into a the team size. (sorry)";
+	} else {
+		$leftoverText = "";
+	}
+
+	setAlert(USER_ALERT,"Created <b>{$teamsToMake}</b> teams, with {$teamSize} members each. {$leftoverText}");
 
 }
 
@@ -6643,6 +6817,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	writeOption('T', $tournamentID, 'PENALTIES_ADD_POINTS', (int)$formInfo['penaltiesAddPoints']);
 	writeOption('T', $tournamentID, 'BRACKET_POINT_CAP', (int)$formInfo['bracketPointCap']);
 	writeOption('T', $tournamentID, 'FINALS_POINT_CAP', (int)$formInfo['finalsPointCap']);
+	writeOption('T', $tournamentID, 'LIMIT_SHALLOW', (int)$formInfo['limitShallow']);
+	writeOption('T', $tournamentID, 'MINIMUM_EXCH_TIME', (int)$formInfo['minExchTime']);
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -6962,21 +7138,23 @@ function importTournamentSettings($config){
 	}
 
 // Import options from target (these can't be read from the eventTournaments table)
-	$sourceSettings['allowTies'] = readOption('T', $sourceID, 'MATCH_TIE_MODE');
-	$sourceSettings['teamSwitchPoints'] = readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
-	$sourceSettings['teamSwitchMode'] = readOption('T', $sourceID, 'TEAM_SWITCH_MODE');
+	$sourceSettings['allowTies'] 				= readOption('T', $sourceID, 'MATCH_TIE_MODE');
+	$sourceSettings['teamSwitchPoints'] 		= readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
+	$sourceSettings['teamSwitchMode'] 			= readOption('T', $sourceID, 'TEAM_SWITCH_MODE');
 	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
-	$sourceSettings['teamSize'] = readOption('T', $sourceID, 'TEAM_SIZE');
-	$sourceSettings['doublesCarryForward'] = readOption('T', $sourceID, 'DOUBLES_CARRY_FORWARD');
-	$sourceSettings['penaltyEscalation'] = readOption('T', $sourceID, 'PENALTY_ESCALATION_MODE');
-	$sourceSettings['priorityNotice'] = readOption('T', $sourceID, 'PRIORITY_NOTICE_ON_NON_SCORING');
-	$sourceSettings['otherNotice'] = readOption('T', $sourceID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
-	$sourceSettings['softClock'] = readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');
-	$sourceSettings['matchOrder'] = readOption('T', $sourceID, 'MATCH_ORDER_MODE');
-	$sourceSettings['limitScoreOvershoot'] = readOption('T', $sourceID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT');
-	$sourceSettings['penaltiesAddPoints'] = readOption('T', $sourceID, 'PENALTIES_ADD_POINTS');
-	$formInfo['bracketPointCap'] = readOption('T', $sourceID, 'BRACKET_POINT_CAP');
-	$formInfo['finalsPointCap'] = readOption('T', $sourceID, 'FINALS_POINT_CAP');
+	$sourceSettings['teamSize'] 				= readOption('T', $sourceID, 'TEAM_SIZE');
+	$sourceSettings['doublesCarryForward'] 		= readOption('T', $sourceID, 'DOUBLES_CARRY_FORWARD');
+	$sourceSettings['penaltyEscalation'] 		= readOption('T', $sourceID, 'PENALTY_ESCALATION_MODE');
+	$sourceSettings['priorityNotice']			= readOption('T', $sourceID, 'PRIORITY_NOTICE_ON_NON_SCORING');
+	$sourceSettings['otherNotice'] 				= readOption('T', $sourceID, 'DENOTE_FIGHTERS_WITH_OPTION_CHECK');
+	$sourceSettings['softClock'] 				= readOption('T', $sourceID, 'MATCH_SOFT_CLOCK_TIME');
+	$sourceSettings['matchOrder'] 				= readOption('T', $sourceID, 'MATCH_ORDER_MODE');
+	$sourceSettings['limitOvershoot'] 			= readOption('T', $sourceID, 'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+	$sourceSettings['penaltiesAddPoints'] 		= readOption('T', $sourceID, 'PENALTIES_ADD_POINTS');
+	$sourceSettings['bracketPointCap'] 			= readOption('T', $sourceID, 'BRACKET_POINT_CAP');
+	$sourceSettings['finalsPointCap'] 			= readOption('T', $sourceID, 'FINALS_POINT_CAP');
+	$sourceSettings['limitShallow'] 			= readOption('T', $sourceID, 'LIMIT_SHALLOW');
+	$sourceSettings['minExchTime'] 				= readOption('T', $sourceID, 'MINIMUM_EXCH_TIME');
 
 
 // Name is saved from the current tournament

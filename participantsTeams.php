@@ -56,6 +56,7 @@ if($tournamentID == null){
 
 	<?php createNewTeamInterface($addableFighters, $teamSize) ?>
 	<?php showUnAssignedFighters($addableFighters)?>
+	<?php teamsAutoCreateForm($addableFighters, $teamSize)?>
 
 	<?php if(count($teamRostersSorted) == 0): ?>
 		<?=displayAlert("No Teams Created")?>
@@ -83,6 +84,10 @@ if($tournamentID == null){
 			<?=displayTeam($team, $teamID, $addableFighters, $teamSize)?>
 		<?php endforeach ?>
 	</table>
+
+	<?=displayTeamRatingsTable($teamRostersSorted)?>
+
+	<hr>
 
 <!-- Buttons to update teams -->
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true): ?>
@@ -251,7 +256,6 @@ function createNewTeamInterface($addableFighters, $teamSize){
 	</button>
 
 
-
 <!-- Creation Form -->
 	<fieldset class='fieldset hidden' id='createTeamForm'>
 		<legend><h4>
@@ -359,6 +363,117 @@ function showUnAssignedFighters($addableFighters){
 <?php
 }
 
+
+/******************************************************************************/
+
+function displayTeamRatingsTable($teamRosters){
+
+	$showRating = (bool)readOption('E',$_SESSION['eventID'],'SHOW_FIGHTER_RATINGS');
+	if(ALLOW['STATS_EVENT'] == FALSE && ALLOW['EVENT_SCOREKEEP'] == false && $showRating == false){
+		return;
+	}
+
+	$teamList = [];
+	foreach($teamRosters as $teamID => $team){
+		$tmp = [];
+		$tmp['name'] = getTeamName($teamID);
+		$tmp['rating'] = getTeamRating($teamID);
+		$teamList[] = $tmp;
+	}
+
+	usort($teamList, function($a, $b) {
+	    return $b['rating'] <=> $a['rating'];
+	});
+
+
+?>
+
+
+	<a onclick="$('.team-ratings-table').toggle()">Show Team Ratings ↓ </a>
+
+	<div class='grid-x grid-margin-x'>
+	<div class='large-5 team-ratings-table hidden'>
+	<table class='data-table'>
+
+		<?php foreach($teamList as $team): ?>
+			<tr>
+				<td><?=$team['name']?></td>
+				<td><?=$team['rating']?></td>
+			</tr>
+		<?php endforeach ?>
+	</table>
+	</div>
+	</div>
+<?php
+
+}
+
+/******************************************************************************/
+
+function teamsAutoCreateForm($addableFighters, $teamSize){
+	if(ALLOW['EVENT_MANAGEMENT'] == false || $teamSize < 1){
+		return;
+	}
+
+	$numUnassigned = count($addableFighters);
+	if($numUnassigned < $teamSize){
+		$emptySpots = $numUnassigned;
+	} else {
+		$emptySpots = $teamSize;
+	}
+
+	$teamsToMake = (int)($numUnassigned / $teamSize);
+	$leftovers = $numUnassigned % $teamSize;
+
+	if($leftovers != 0){
+		$leftoverText = "<BR>However <b>{$leftovers}</b> fighter(s), picked at random, will be left without a team. (sorry)";
+	} else {
+		$leftoverText = "";
+	}
+
+?>
+<!-- Visibility Button -->
+	<button class='button hollow secondary' id='teamsAutoCreateButton' onclick="$(this).hide();$(teamsAutoCreateForm).show();">
+		Auto Create Teams
+	</button>
+
+
+
+<!-- Creation Form -->
+	<fieldset class='fieldset hidden' id='teamsAutoCreateForm'>
+		<legend><h4>
+			Auto Create &nbsp;
+			<a class='button secondary no-bottom hollow small'
+				id='createTeamShow' style='float:right'
+				onclick="$(teamsAutoCreateButton).show();$(teamsAutoCreateForm).hide();">
+				Close
+			</a>
+		</h4></legend>
+
+		<p>This will automatically create teams out of the un-assigned fencers, based on their Rating. (Tournament Information > Fighter Ratings) The teams will be named "Pickup-A", "Pickup-B", etc. You can change the names of the teams manually after they are created.</p>
+		<p>There are <b><?=$numUnassigned?></b> fighters not in a team. With a team size of <b><?=$teamSize?></b> this will result in <b><?=$teamsToMake?></b> teams. <?=$leftoverText?></p>
+
+		<form method="POST">
+
+			<input type='hidden' name='teamsAutoCreate[tournamentID]' value=<?=$_SESSION['tournamentID']?>>
+
+		<!-- Sumbit Buttons -->
+			<button class='button no-bottom success' name='formName' value='teamsAutoCreate'>
+				Make It So
+			</button>
+
+			<a class='button secondary no-bottom align-right'
+				id='createTeamShow' style='float:right'
+				onclick="$(teamsAutoCreateButton).show();$(teamsAutoCreateForm).hide();">
+				Cancel Team Creation
+			</a>
+
+		</form>
+
+	</fieldset>
+
+<?php
+}
 
 /******************************************************************************/
 

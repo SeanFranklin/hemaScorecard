@@ -1186,6 +1186,12 @@ function fighterDataEntryBox($matchInfo,$num){
 		$priorityText = "";
 	}
 
+	$limitShallow = readOption('T',$tournamentID,'LIMIT_SHALLOW');
+	$numShallow = 0;
+	if($limitShallow != 0){
+		$numShallow = getNumShallowHitsInMatch($matchInfo['matchID'], $id);
+	}
+
 	?>
 
 <!-- Begin display -->
@@ -1235,6 +1241,15 @@ function fighterDataEntryBox($matchInfo,$num){
 				<div>
 				<span style='font-size:60px;'>
 					<?=$score?>
+					<?php if($limitShallow != 0):?>
+						<i style='font-size:30px; '>
+							<span style='letter-spacing:-0.17em;'>
+								[<?=$numShallow?>
+								/
+								<?=$limitShallow?>&nbsp;&nbsp;</span>
+							<span class='hide-for-small-only'>shallow</span>]
+						</i>
+					<?php endif ?>
 				</span>
 
 				</div>

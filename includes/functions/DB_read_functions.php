@@ -3383,6 +3383,35 @@ function getMatchDoubles($matchID){
 
 /******************************************************************************/
 
+function getNumShallowHitsInMatch($matchID, $rosterID){
+// This function is for use with the LIMIT_SHALLOW tournament option.
+
+	$matchID = (int)$matchID;
+	$rosterID = (int)$rosterID;
+
+	if($matchID == 0 || $rosterID == 0){
+		return 0;
+	}
+
+	$TARGET_SHALLOW_DB = (int)TARGET_SHALLOW_DB;
+	$PREFIX_SHALLOW_DB = (int)PREFIX_SHALLOW_DB;
+	$sql = "SELECT COUNT(*) AS numShallow
+			FROM eventExchanges
+			WHERE matchID = {$matchID}
+			AND (	(    (scoringID  = {$rosterID})
+				 	 AND (refTarget = {$TARGET_SHALLOW_DB}))
+				OR
+					(    (receivingID  = {$rosterID})
+					 AND (refPrefix = {$PREFIX_SHALLOW_DB}))
+				)";
+	$numShallow = (int)mysqlQuery($sql, SINGLE, 'numShallow');
+
+	return ($numShallow);
+
+}
+
+/******************************************************************************/
+
 function getMatchExchanges($matchID){
 // returns an unsorted 	array of all exchanges in a match
 
@@ -7560,15 +7589,19 @@ function logistics_findUnfilledShifts($eventID){
 			continue;
 		}
 
-		$sql = "SELECT shiftID
+		$sql = "SELECT shiftID, suppressConflicts
 				FROM logisticsScheduleShifts
 				INNER JOIN logisticsScheduleBlocks USING(blockID)
 				WHERE tournamentID = {$tournamentID}";
-		$allShifts = mysqlQuery($sql, SINGLES, 'shiftID');
+		$allShifts = mysqlQuery($sql, KEY, 'shiftID');
 
-
-		foreach($allShifts as $shiftID){
+		foreach($allShifts as $shiftID => $shiftInfo){
 			$shiftID = (int)$shiftID;
+
+			// If suppressConflicts is active we shouldn't be flagging the shift as unfilled.
+			if((int)$shiftInfo['suppressConflicts'] != 0){
+				continue;
+			}
 
 			$sql = "SELECT logisticsRoleID, COUNT(*) AS numStaff
 					FROM logisticsStaffShifts
@@ -8813,6 +8846,23 @@ function getTeamMemberPosition($teamID, $teamMemberRosterID){
 	}
 
 	return $position;
+}
+
+/******************************************************************************/
+
+function getTeamRating($teamID){
+
+	$teamID = (int)$teamID;
+
+	$sql = "SELECT SUM(rating) AS rating
+			FROM eventTeamRoster
+			LEFT JOIN eventRatings USING(tournamentRosterID)
+			WHERE teamID = {$teamID}
+			AND memberRole = 'member'";
+	$rating = (int)mysqlQuery($sql, SINGLE, 'rating');
+
+	return($rating);
+
 }
 
 /******************************************************************************/

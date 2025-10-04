@@ -97,22 +97,29 @@ if($_SESSION['eventID'] == null){
 
 			// Logistics
 				edit_tournamentOptionsRow("Other Miscelanious Options","option-misc");
-				edit_tournamentCuttingQual(0);
-				edit_tournamentDoublesCarryForward(0);
+
+				echo "<tr class='option-misc hidden'><td colspan=100%><b>Match Stuff</b><td></tr>";
+				edit_tournamentSoftClock(0);
+				edit_tournamentMinExchTime(0);
 				edit_tournamentPenaltyEscalationMode(0);
+				edit_tournamentPenaltiesAddPoints(0);
+				edit_tournamentLimitScoreOvershoot(0);
+
+				echo "<tr class='option-misc hidden'><td colspan=100%><b>Bookkeeping Stuff</b><td></tr>";
+				edit_tournamentStaffCheckin(0);
+				edit_tournamentCuttingQual(0);
+				edit_tournamentRequireSignOff(0);
 				edit_tournamentHideFinalResults(0);
 				edit_tournamentKeepPrivate(0);
-				edit_tournamentRequireSignOff(0);
-				edit_tournamentStaffCheckin(0);
-				edit_tournamentNormalization(0);
-				edit_tournamentLimitPoolMatches(0);
+
+				echo "<tr class='option-misc hidden'><td colspan=100%><b>Really Esoteric Stuff</b><td></tr>";
 				edit_tournamentPriorityNotice(0);
 				edit_tournamentDenoteOtherCheck(0);
-				edit_tournamentSoftClock(0);
+				edit_tournamentLimitPoolMatches(0);
+				edit_tournamentDoublesCarryForward(0);
+				edit_tournamentNormalization(0);
 				edit_tournamentMatchOrderMode(0);
-				edit_tournamentLimitScoreOvershoot(0);
-				edit_tournamentPenaltiesAddPoints(0);
-
+				edit_tournamentLimitShallow(0);
 			?>
 	</table>
 	</div>

@@ -463,7 +463,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsStaffRoster.php?t=0'>Staff Roster</a></li>
 			<li><a href='logisticsInstructors.php?t=0'>Instructors</a></li>
 			<li><a href='logisticsStaffShifts.php?t=0'>Shifts</a></li>
-			<li><a href='logisticsStaffTemplates.php?t=0'>Shift Templates</a></li>
+			<li><a href='logisticsStaffTemplates.php'>Shift Templates</a></li>
 
 			<div class="drop-down-separator">Summary</div>
 			<li><a href='logisticsParticipantHours.php?t=0'>Hours</a></li>
