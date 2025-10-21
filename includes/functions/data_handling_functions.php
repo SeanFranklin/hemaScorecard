@@ -1789,16 +1789,24 @@ function createMatchScoresheet($matchInfo)
 
 
 	foreach($exchanges as $e){
-		$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
-		$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";
+
+		if($e['exchangeType'] == 'noExchange'){
+			$scoresheet .= "\n".$e['exchangeTime']." "."No Exchange";
+		} else {
+			$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
+			$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";
+		}
+
 		if((int)$e['refPrefix'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refPrefix']);
 		}
+
 		if((int)$e['refTarget'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refTarget']);
 		}
+
 		if((int)$e['refType'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refType']);

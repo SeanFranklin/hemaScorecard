@@ -3618,9 +3618,9 @@ function autoFinalizeBracketForm($tournamentID){
 			<div class='switch no-bottom input-group-field'>
 				<input class='switch-input' type='hidden'
 					name='autoFinalizeSpecs[breakTies]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='breakTies'
+				<input class='switch-input polar-disables' type='checkbox' id='breakTies-<?=$tournamentID?>'
 					name='autoFinalizeSpecs[breakTies]' value=1>
-				<label class='switch-paddle' for='breakTies'>
+				<label class='switch-paddle' for='breakTies-<?=$tournamentID?>'>
 				</label>
 			</div>
 		</div>

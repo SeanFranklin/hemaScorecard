@@ -6244,7 +6244,8 @@ function customizeEventPenalties($post){
 	$penaltiesToSuppress = implode2int($penaltiesToSuppress);
 
 	$sql = "DELETE FROM eventPenaltyDisabled
-			WHERE penaltyDisabledID NOT IN ($penaltiesToSuppress)";
+			WHERE penaltyDisabledID NOT IN ($penaltiesToSuppress)
+			AND eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 
 
