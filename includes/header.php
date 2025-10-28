@@ -776,8 +776,8 @@ function eventNameListSelectOptions($eventID){
 		echo "<option selected disabled>* No Event Selected *</option>";
 	}
 
-	$newList = getEventListByPublication(ALLOW['VIEW_HIDDEN'], 'date');
-	$allList = getEventListByPublication(ALLOW['VIEW_HIDDEN']);
+	$newList = getEventListByPublication('date');
+	$allList = getEventListByPublication();
 
 	// This makes it so when tournaments are twice in the list the top option
 	// is the one that is selected.

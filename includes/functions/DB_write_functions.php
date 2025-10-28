@@ -5363,7 +5363,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst, doubles,
 					noExchanges, AbsPointsFor, AbsPointsAgainst, AbsPointsAwarded, numPenalties,
 					numYellowCards, numRedCards, penaltiesAgainstOpponents, penaltiesAgainst,
-					doubleOuts
+					doubleOuts, numCleanHits
 				FROM eventStandings
 				WHERE tournamentID = {$tournamentID}
 				AND groupType = 'pool'
@@ -5399,7 +5399,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 						numRedCards 		= numRedCards + {$score['numRedCards']},
 						penaltiesAgainstOpponents = penaltiesAgainstOpponents + {$score['penaltiesAgainstOpponents']},
 						penaltiesAgainst	= penaltiesAgainst + {$score['penaltiesAgainst']},
-						doubleOuts 			= doubleOuts + {$score['doubleOuts']}
+						doubleOuts 			= doubleOuts + {$score['doubleOuts']},
+						numCleanHits        = numCleanHits + {$score['numCleanHits']}
 					WHERE tournamentID = {$tournamentID}
 					AND groupType = 'pool'
 					AND groupSet = {$groupSet}
