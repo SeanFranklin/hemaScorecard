@@ -2578,7 +2578,7 @@ function edit_tournamentMaxPoints($tournamentID = 0){
 	<tr class='option-auto-conclude <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
-				Maximum Points
+				Point Cap
 		<?php tooltip("Match will automaticaly conclude after this number is reached. <BR>
 			<strong>Leave blank for unlimited.</strong>"); ?>
 			</div>
@@ -2751,7 +2751,7 @@ function edit_tournamentBracketPointCap($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' name='updateTournament[bracketPointCap]' value='<?=$maximumPoints?>'
-					placeholder='n/a' min=0 max=100 class='text-center'>
+					placeholder='same' min=0 max=100 class='text-center'>
 			</div>
 		</td>
 	</tr>
@@ -2801,12 +2801,67 @@ function edit_tournamentFinalsPointCap($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' name='updateTournament[finalsPointCap]' value='<?=$maximumPoints?>'
-					placeholder='n/a' min=0 max=100 class='text-center'>
+					placeholder='same' min=0 max=100 class='text-center'>
 			</div>
 		</td>
 	</tr>
 
 <?php }
+
+
+/******************************************************************************/
+
+function edit_tournamentPointSpreadStartVal($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID !=  0){
+		$sql = "SELECT formatID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$formatID = (int)mysqlQuery($sql, SINGLE,'formatID');
+
+		$pointSpreadStartVal = readOption('T', $tournamentID, 'POINT_SPREAD_START_VAL');
+
+		if($pointSpreadStartVal == 0){
+			$pointSpreadStartVal = null;
+		}
+
+	} else {
+		$pointSpreadStartVal = null;
+		$formatID = FORMAT_MATCH;
+	}
+
+	if($formatID != FORMAT_MATCH){
+		$hide = 'hidden';
+	} else {
+		$hide = '';
+	}
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-auto-conclude <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Min Score For Spread
+				<?=tooltip("<b>This is only relevant if you have set a <u>Maximum Points Spread</u></b>.<BR>The minimum number of total points to win a match using the point spread. eg: If Point Spread is 5, and Min Score is 10, you don't win with a 5-0, but can win with 10-5 score.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+
+				<input type='number' name='updateTournament[pointSpreadStartVal]' value='<?=$pointSpreadStartVal?>'
+						placeholder='n/a' min=0 max=300 class='text-center'>
+
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
 
 /*********************************************************(********************/
 

@@ -1530,12 +1530,31 @@ function shouldMatchConcludeBySpread($matchInfo){
 	}
 
 	$spread = abs($matchInfo['fighter1score'] - $matchInfo['fighter2score']);
+	$maxScore = max($matchInfo['fighter1score'], $matchInfo['fighter2score']);
 
 	$shouldConclude = false;
 
 	if($spread >= $maxSpread){
-		$shouldConclude = true;
-		setAlert(USER_ALERT,"Point spread reached.");
+
+		$pointSpreadStartVal = readOption('T', $matchInfo['tournamentID'], 'POINT_SPREAD_START_VAL');
+
+		if($pointSpreadStartVal == 0){
+
+			$shouldConclude = true;
+			setAlert(USER_ALERT,"Point spread reached.");
+
+		} else {
+
+			if($maxScore >= $pointSpreadStartVal){
+				$shouldConclude = true;
+				setAlert(USER_ALERT,"Point spread reached.");
+			} else {
+				$shouldConclude = false;
+				setAlert(USER_ALERT,"Point spread reached, but the minimum score to conclude is <b>{$pointSpreadStartVal}</b>.");
+			}
+
+		}
+
 	}
 
 	return $shouldConclude;

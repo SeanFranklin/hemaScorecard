@@ -6821,6 +6821,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	writeOption('T', $tournamentID, 'FINALS_POINT_CAP', (int)$formInfo['finalsPointCap']);
 	writeOption('T', $tournamentID, 'LIMIT_SHALLOW', (int)$formInfo['limitShallow']);
 	writeOption('T', $tournamentID, 'MINIMUM_EXCH_TIME', (int)$formInfo['minExchTime']);
+	writeOption('T', $tournamentID, 'POINT_SPREAD_START_VAL', (int)$formInfo['pointSpreadStartVal']);
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -7157,6 +7158,7 @@ function importTournamentSettings($config){
 	$sourceSettings['finalsPointCap'] 			= readOption('T', $sourceID, 'FINALS_POINT_CAP');
 	$sourceSettings['limitShallow'] 			= readOption('T', $sourceID, 'LIMIT_SHALLOW');
 	$sourceSettings['minExchTime'] 				= readOption('T', $sourceID, 'MINIMUM_EXCH_TIME');
+	$sourceSettings['pointSpreadStartVal'] 		= readOption('T', $sourceID, 'POINT_SPREAD_START_VAL');
 
 
 // Name is saved from the current tournament

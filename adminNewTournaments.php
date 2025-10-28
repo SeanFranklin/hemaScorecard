@@ -76,13 +76,16 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
 					"Optional settings for the software to automatically end a match when these conditions are met.
 					Scorekeepers can always conclude (or re-open) matches regardless of what is set here.");
-				edit_tournamentMaxDoubles(0);
+
 				edit_tournamentTimeLimit(0);
 				edit_tournamentMaxPoints(0);
-				edit_tournamentMaxPointSpread(0);
-				edit_tournamentMaxExchanges(0);
 				edit_tournamentBracketPointCap(0);
 				edit_tournamentFinalsPointCap(0);
+				echo "<tr class='option-auto-conclude'><td colspan=100%><b>asdf</b><td></tr>";
+				edit_tournamentMaxDoubles(0);
+				edit_tournamentMaxExchanges(0);
+				edit_tournamentMaxPointSpread(0);
+				edit_tournamentPointSpreadStartVal(0);
 
 			// Sub Matches --------------------------
 				edit_tournamentOptionsRow("Sub-Match Info","option-sub-match",

@@ -164,15 +164,18 @@ function tournamentSettingsForm($tournamentID, $formLock, $tournamentName){
 
 		// Match Conclusion --------------------------
 			edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
-				"Optional settings for the software to automatically end a match when these conditions are met.
+				"Optional settings for the software to automatically end a match when these conditions are met.s
 				Scorekeepers can always conclude (or re-open) matches regardless of what is set here.");
-			edit_tournamentMaxDoubles($tournamentID);
+			echo "<tr class='option-auto-conclude'><td colspan=100%><b>Most Common</b><td></tr>";
 			edit_tournamentTimeLimit($tournamentID);
 			edit_tournamentMaxPoints($tournamentID);
-			edit_tournamentMaxPointSpread($tournamentID);
-			edit_tournamentMaxExchanges($tournamentID);
 			edit_tournamentBracketPointCap($tournamentID);
 			edit_tournamentFinalsPointCap($tournamentID);
+			echo "<tr class='option-auto-conclude'><td colspan=100%><b>Less Common</b><td></tr>";
+			edit_tournamentMaxDoubles($tournamentID);
+			edit_tournamentMaxExchanges($tournamentID);
+			edit_tournamentMaxPointSpread($tournamentID);
+			edit_tournamentPointSpreadStartVal($tournamentID);
 
 		// Sub Matches --------------------------
 			edit_tournamentOptionsRow("Sub-Match Info","option-sub-match",

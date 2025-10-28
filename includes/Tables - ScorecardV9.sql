@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Oct 28, 2025 at 02:15 AM
+-- Generation Time: Oct 28, 2025 at 06:23 AM
 -- Server version: 5.7.33-0ubuntu0.16.04.1
 -- PHP Version: 7.0.33-0ubuntu0.16.04.16
 
@@ -2256,7 +2256,8 @@ INSERT INTO `systemOptionsList` (`optionID`, `optionEnum`, `optionName`, `option
 (25, 'DEDUCTION_ADDITION_MODE', 'DEDUCTION_ADDITION_MODE', 'tournament', NULL),
 (26, 'PENALTIES_ADD_POINTS', 'PENALTIES_ADD_POINTS', 'tournament', NULL),
 (27, 'LIMIT_SHALLOW', 'LIMIT_SHALLOW', 'tournament', NULL),
-(28, 'MINIMUM_EXCH_TIME', 'MINIMUM_EXCH_TIME', 'tournament', NULL);
+(28, 'MINIMUM_EXCH_TIME', 'MINIMUM_EXCH_TIME', 'tournament', NULL),
+(29, 'POINT_SPREAD_START_VAL', 'POINT_SPREAD_START_VAL', 'tournament', NULL);
 
 -- --------------------------------------------------------
 
@@ -2388,7 +2389,8 @@ INSERT INTO `systemRankings` (`tournamentRankingID`, `name`, `formatID`, `number
 (90, 'Frost On The Blade', 2, 3, '== Ranking ====\r\n\r\nWins\r\n\r\nTiebreakers:\r\n1st: PointsFor - PointsAgainst\r\n2nd: Doubles\r\n', NULL, NULL, 'PointsFor - PointsAgainst', 'wins', 'DESC', 'score', 'DESC', 'doubles', 'ASC', NULL, NULL, 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', '+/-', 'score', 'Doubles', 'doubles'),
 (91, 'King\'s Cup v1', 2, 6, '== Ranking ====\r\nIndicator Score\r\n1st Tiebreaker: Points Against [Lowest]\r\n2nd Tiebreaker: Doubles [Lowest]\r\n3rd Tiebreaker: Points For - Points Against [Lowest]\r\n\r\n==Indicator Score ====\r\n +(5 * [Wins])\r\n +(2 * [Ties]', NULL, NULL, '(5*wins) + (2*ties)', 'score', 'DESC', 'AbsPointsAgainst', 'ASC', 'doubles', 'ASC', '(pointsFor - pointsAgainst)', 'DESC', 'Wins', 'wins', 'Ties', 'ties', 'Doubles', 'doubles', 'Points Against', 'AbsPointsAgainst', 'Points For', 'pointsFor'),
 (92, 'Franklin 2014.FullAB', 2, 4, '== Ranking ====\r\n1) Indicator Score [highest]\r\n2) Wins [highest]\r\n3) Doubles [lowest]\r\n\r\n== Indicator Score ====\r\n +[Points For]\r\n +(3 * [Wins])\r\n -[Points Against]', NULL, NULL, '(3*wins) + pointsFor - pointsAgainst', 'score', 'DESC', 'wins', 'DESC', '(afterblowsAgainst + afterblowsFor)', 'ASC', NULL, NULL, 'Score', 'score', 'Wins', 'wins', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Doubles', '(afterblowsAgainst + afterblowsFor)'),
-(93, 'Devil\'s Point', 2, 1, '== Ranking ===\r\nFewest Points Against\r\n1st Tiebreaker: Wins\r\n2nd Tiebreaker: Control Points For\r\n3rd Tiebreaker: Ties', NULL, NULL, '#Crossing', 'AbsPointsAgainst', 'ASC', 'wins', 'DESC', 'score', 'DESC', 'ties', 'DESC', 'Wins', 'wins', 'Ties', 'ties', 'Control Points', 'score', 'Points For', 'AbsPointsFor', 'Points Against', 'AbsPointsAgainst');
+(93, 'Devil\'s Point', 2, 1, '== Ranking ===\r\nFewest Points Against\r\n1st Tiebreaker: Wins\r\n2nd Tiebreaker: Control Points For\r\n3rd Tiebreaker: Ties', NULL, NULL, '#Crossing', 'AbsPointsAgainst', 'ASC', 'wins', 'DESC', 'score', 'DESC', 'ties', 'DESC', 'Wins', 'wins', 'Ties', 'ties', 'Control Points', 'score', 'Points For', 'AbsPointsFor', 'Points Against', 'AbsPointsAgainst'),
+(94, 'Academie Scrimicie 2025', 2, 1, '== Ranking ====\r\n1) Wins [highest]\r\n2) Clean Hits [highest]\r\n3) Points +/- [highest]\r\n4) Points For [highest]', NULL, NULL, '(pointsFor - pointsAgainst)', 'wins', 'DESC', 'numCleanHits', 'DESC', 'score', 'DESC', 'pointsFor', 'DESC', 'Wins', 'wins', 'Clean Hits', 'numCleanHits', 'Points For', 'pointsFor', 'Points Against', 'pointsAgainst', 'Points +/-', 'score');
 
 -- --------------------------------------------------------
 
@@ -3344,7 +3346,7 @@ ALTER TABLE `eventCutStandards`
 -- AUTO_INCREMENT for table `eventDefaults`
 --
 ALTER TABLE `eventDefaults`
-  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1252;
+  MODIFY `tableID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1253;
 --
 -- AUTO_INCREMENT for table `eventDescriptions`
 --
@@ -3359,7 +3361,7 @@ ALTER TABLE `eventEventOptions`
 -- AUTO_INCREMENT for table `eventExchanges`
 --
 ALTER TABLE `eventExchanges`
-  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1405896;
+  MODIFY `exchangeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1405897;
 --
 -- AUTO_INCREMENT for table `eventGroupRankings`
 --
@@ -3409,7 +3411,7 @@ ALTER TABLE `eventPlacings`
 -- AUTO_INCREMENT for table `eventPublication`
 --
 ALTER TABLE `eventPublication`
-  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=727;
+  MODIFY `publicationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=728;
 --
 -- AUTO_INCREMENT for table `eventRatings`
 --
@@ -3439,12 +3441,12 @@ ALTER TABLE `eventRulesLinks`
 -- AUTO_INCREMENT for table `eventScoresheets`
 --
 ALTER TABLE `eventScoresheets`
-  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157829;
+  MODIFY `scoresheetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157830;
 --
 -- AUTO_INCREMENT for table `eventSettings`
 --
 ALTER TABLE `eventSettings`
-  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=941;
+  MODIFY `eventSettingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=942;
 --
 -- AUTO_INCREMENT for table `eventSponsors`
 --
@@ -3629,7 +3631,7 @@ ALTER TABLE `systemDoubleTypes`
 -- AUTO_INCREMENT for table `systemEvents`
 --
 ALTER TABLE `systemEvents`
-  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=911;
+  MODIFY `eventID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=912;
 --
 -- AUTO_INCREMENT for table `systemFormats`
 --
@@ -3649,12 +3651,12 @@ ALTER TABLE `systemMatchOrder`
 -- AUTO_INCREMENT for table `systemOptionsList`
 --
 ALTER TABLE `systemOptionsList`
-  MODIFY `optionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `optionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 --
 -- AUTO_INCREMENT for table `systemRankings`
 --
 ALTER TABLE `systemRankings`
-  MODIFY `tournamentRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `tournamentRankingID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 --
 -- AUTO_INCREMENT for table `systemRoster`
 --
