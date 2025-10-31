@@ -916,6 +916,8 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 
 		switch($exchange['exchangeType']){
 			case 'clean':
+				@$fighterStats[$scoringID]['numCleanHits'] ++;
+				// Deliberate fall through
 			case 'afterblow':
 				@$fighterStats[$scoringID]['pointsFor'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
 				@$fighterStats[$scoringID]['AbsPointsFor'] += $exchange['scoreValue'];
@@ -1007,6 +1009,7 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 	$attributes[] = 'AbsPointsAgainst';
 	$attributes[] = 'AbsPointsFor';
 	$attributes[] = 'AbsPointsAwarded';
+	$attributes[] = 'numCleanHits';
 
 	// Set all values not counted to zero
 	foreach($fighterStats as $fighterID => $fighter){
@@ -1888,9 +1891,9 @@ function getEventListSmall(){
 
 /******************************************************************************/
 
-function getEventListByPublication($showHidden = false, $orderBy = 'name'){
+function getEventListByPublication($orderBy = 'name'){
 
-	if($showHidden == false){
+	if(ALLOW['VIEW_HIDDEN'] == false){
 		$whereClause = "WHERE isArchived = 1
 						OR publishDescription = 1
 						OR publishRoster = 1
@@ -1921,6 +1924,30 @@ function getEventListByPublication($showHidden = false, $orderBy = 'name'){
 			{$whereClause}
 			ORDER BY {$orderClause}";
 	$eventList = mysqlQuery($sql, ASSOC);
+
+	// Check for events that are assigned to that user
+	$userID = (int)$_SESSION['userID'];
+	if($userID != 0 && ALLOW['VIEW_HIDDEN'] == false){
+
+		$sql = "SELECT eventID, eventYear, eventName, eventCity, eventProvince, countryName, eventStartDate, eventEndDate, 'User Event' AS eventStatus
+		FROM systemEvents
+		INNER JOIN systemCountries USING(countryIso2)
+		LEFT JOIN eventPublication USING(eventID)
+		INNER JOIN systemUserEvents USING(eventID)
+		WHERE isArchived = 0
+			AND publishDescription = 0
+			AND publishRoster = 0
+			AND publishSchedule = 0
+			AND publishMatches = 0
+			AND publishRules = 0
+			AND userID = {$userID}
+		ORDER BY {$orderClause}";
+
+		$personalEvents = mysqlQuery($sql, ASSOC);
+
+		$eventList = array_merge($eventList, $personalEvents);
+
+	}
 
 	return $eventList;
 }
@@ -3049,6 +3076,7 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 	if($isTeam == true){
 		return getTeamName($rosterID, $splitName);
 	}
+
 
 	if($splitName == null){
 		$sql = "SELECT firstName, lastName

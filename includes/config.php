@@ -228,6 +228,7 @@
 	$options['T']["PENALTIES_ADD_POINTS"]           = 26;
 	$options['T']["LIMIT_SHALLOW"]                  = 27;
 	$options['T']["MINIMUM_EXCH_TIME"]              = 28;
+	$options['T']["POINT_SPREAD_START_VAL"]         = 29;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;
