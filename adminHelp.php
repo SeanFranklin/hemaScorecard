@@ -838,6 +838,7 @@ function helpDisplayLogistics(){
 			(under development)
 		</div>
 		<div class='large-12 medium-6 small-12'>
+			<li><a href='#final-match'>Finals Matches</a></li>
 			<li><a href='#ranking-types'>Ranking Types</a></li>
 			<li><a href='#divisions'>Tournament Divisions</a></li>
 			<li><a href='#cut-deduct'>Cutting Deductions</a></li>
@@ -847,6 +848,33 @@ function helpDisplayLogistics(){
 </div>
 
 </div>
+
+<!-- Finals ------------------------------------------------------------>
+
+<a name='final-match'></a>
+
+<div class='documentation-div'>
+
+<h1>Finals Matches</h1>
+
+<p>
+	To create a best 2-out-of-3 (or best any-out-of-any) finals match you need to have the match already created. Go into the <b>Match Options</b>.
+</p>
+<p>
+	<img src="includes/images/help_14.png" class='image-box' style='width:700px'>
+</p>
+<p>
+	The Match Options will have an option for converting to Sub-Matches, which is how you do multiple matches in the same 'match'.<BR>
+	For a standard 2-out-of-3 final use the following options:
+	<BR>- Number of Sub-Matches: <u>3</u>
+	<BR>- Sub-Match Mode: <u>Digital</u>
+</p>
+<p>
+	<img src="includes/images/help_15.png" class='image-box' style='width:500px'>
+</p>
+
+</div>
+<a href='#topOfPage'>Back to Top</a>
 
 
 <!-- Ranking Types ------------------------------------------------------------>
