@@ -532,6 +532,7 @@ function eventDescriptionBox($canChangeSettings){
 
 function displaySettingsBox($defaults, $canChangeSettings){
 	$tournamentIDs = getEventTournaments($_SESSION['eventID']);
+	$participants = getEventParticipantIds($_SESSION['eventID']);
 
 	if($defaults['tournamentSorting'] != 'custom'){
 		$showCustomSort = 'hidden';
@@ -543,6 +544,8 @@ function displaySettingsBox($defaults, $canChangeSettings){
 	if($canChangeSettings == false){
 		$formDiabled = 'disabled';
 	}
+
+	$useIDs = (int)readOption('E', $_SESSION['eventID'], 'USE_PARTICIPANT_IDS');
 
 ?>
 	<!--  Display settings  -------------------------------->
@@ -571,7 +574,7 @@ function displaySettingsBox($defaults, $canChangeSettings){
 	<!-- Tournament name order -->
 		<div class='large-12 cell'>
 			<div class='input-group'>
-				<span class='input-group-label'>Tournament:</span>
+				<span class='input-group-label'>Tournament Names:</span>
 				<select class='input-group-field' name='displaySettings[tournamentDisplay]'>
 
 					<option value='weapon'>
@@ -639,6 +642,40 @@ function displaySettingsBox($defaults, $canChangeSettings){
 				name='formName' value='displaySettings'>
 				Update Display Settings
 			</button>
+		</div>
+
+		<div class='large-6 cell'>
+			<a onclick="$('.participant-ids').toggle()">Use participant IDs (a weird option you probably won't use).</a>
+		</div>
+
+		<div class='large-12 cell hidden participant-ids grid-x grid-margin-x'>
+			<HR>
+			<form method="POST">
+				Participant IDs allow you to add an ID tag to all participants. It will show up next to their name, such as <b>Fighter Name (1234)</b>. IDs must be numbers, and can not be zero. Nothing here is going to stop you from entering the same ID to multiple people (if you wanted to for some reason).<BR>
+
+				<input type='hidden' name='formName' value='useParticipantIDs'>
+
+				<div class='large-5 medium-8'>
+
+					<div class='input-group'>
+						<span class='input-group-label'>Use Participant IDs</span>
+						<select name='useParticipantIDs[use]' class='input-group-field'>
+							<option <?=optionValue(0, $useIDs)?> > No </option>
+							<option <?=optionValue(1, $useIDs)?> > Yes </option>
+						</select>
+						<input type='submit' class='button success input-group-button' value='Update'>
+					</div>
+
+					<table class='data-table '>
+					<?php foreach($participants as $p): ?>
+						<tr>
+							<td><?=$p['firstName']?> <?=$p['lastName']?></td>
+							<td><input type='number' class='no-bottom' name='useParticipantIDs[IDs][<?=$p['rosterID']?>]' style='width:7em' value='<?=$p['participantID']?>' placeholder='n/a'></td>
+						</tr>
+					<?php endforeach ?>
+					</table>
+				</div>
+			</form>
 		</div>
 
 

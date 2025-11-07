@@ -960,6 +960,7 @@ case 'getDataForYear': {
 		case 'matches-by-event':	{$retVal = getAnnualMatchesByEvent($year, $futureView); break;}
 		case 'tournaments-by-event':{$retVal = getAnnualTournamentsByEvent($year, $futureView); break;}
 		case 'womens-by-event':		{$retVal = getAnnualWomensByEvent($year, $futureView); break;}
+		case 'exchanges-by-event-day':	{$retVal = getAnnualExchangesByEventDay($year, $futureView); break;}
 		case 'entries-by-club':		{$retVal = getAnnualEntriesByClub($year, $futureView); break;}
 		case 'matches-by-club':		{$retVal = getAnnualMatchesByClub($year, $futureView); break;}
 		case 'exchanges-by-club':	{$retVal = getAnnualExchangesByClub($year, $futureView); break;}
@@ -977,6 +978,12 @@ case 'getDataForYear': {
 		case 'exchanges-by-match':	{$retVal = getAnnualExchangesByMatch($year, $futureView); break;}
 		case 'comebacks-by-match':	{$retVal = getAnnualComebacksByMatch($year, $futureView); break;}
 		case 'rematches-by-fighter':{$retVal = getAnnualRematchesByFighter($year, $futureView); break;}
+		case 'exchanges-by-judge':	{$retVal = getAnnualExchangesByJudge($year, $futureView); break;}
+		case 'exchanges-by-director':	{$retVal = getAnnualExchangesByDirector($year, $futureView); break;}
+		case 'matches-by-table':	{$retVal = getAnnualMatchesByTable($year, $futureView); break;}
+		case 'matches-by-staff':	{$retVal = getAnnualMatchesByStaff($year, $futureView); break;}
+		case 'exchanges-by-judge-school':	{$retVal = getAnnualExchangesByJudgeSchool($year, $futureView); break;}
+		case 'exchanges-by-staff-school':	{$retVal = getAnnualExchangesByStaffSchool($year, $futureView); break;}
 	}
 
 	echo json_encode($retVal);

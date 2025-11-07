@@ -141,7 +141,7 @@ function bracketControl($allBracketInfo, $ringsInfo){
 				Main Bracket
 			</button>
 
-			<button class='button <?=$secondary?> no-bottom' name='bracketView' value='<?=BRACKET_SECONDARY?>'>
+			<button class='button warning <?=$secondary?> no-bottom' name='bracketView' value='<?=BRACKET_SECONDARY?>'>
 				Secondary Bracket
 			</button>
 
@@ -582,6 +582,14 @@ function displayBracket($bracketInfo,
 	}
 
 
+	// Change the background color if it's a secondary bracket.
+	if($_SESSION['bracketView'] == BRACKET_SECONDARY){
+		$bracketClass = "secondary-bracket";
+	} else {
+		$bracketClass = null;
+	}
+
+
 	// php to generate css based on bracket properties
 	include('finalsCSS.php');
 	?>
@@ -625,7 +633,7 @@ function displayBracket($bracketInfo,
 	<?php endif; ?>
 
 <!-- Bracket display -->
-	<div id='tournament_box' class='tournament_box'>
+	<div id='tournament_box' class='tournament_box <?=$bracketClass?>'>
 
 	<?php
 	for($currentLevel=$bracketLevels;$currentLevel >=1;$currentLevel--):
@@ -633,10 +641,13 @@ function displayBracket($bracketInfo,
 		$bracketLevelsDisplayed++;
 		$extraLevelsNum = $bracketLevelsDisplayed - $bracketLevels;
 		$seedList = @$bracketAdvancements[$currentLevel]; // may not exist, treat as null
+		$tierName = getBracketLevelName($currentLevel, $bracketType, $elimType, $extraLevelsNum);
 
 
 		echo"<div class='tier'>";
-		insertTierName($currentLevel, $bracketType, $elimType, $extraLevelsNum);
+
+		echo "<h3 class='text-center'>{$tierName}</h3>";
+
 
 		if($bracketType == BRACKET_PRIMARY){
 			$maxMatchesAtLevel = pow(2,$currentLevel-1);
@@ -736,75 +747,6 @@ function displayBracket($bracketInfo,
 	</form>
 
 <?php }
-
-/******************************************************************************/
-
-function insertTierName($level, $bracketType, $elimType, $extraLevelsNum){
-// Inserts the name of the bracket level
-// Context dependent based on winners/consolation bracket
-
-	if($extraLevelsNum > 0){
-		$isFirstPlace = true;
-	} else {
-		$isFirstPlace = false;
-	}
-
-	if($bracketType == BRACKET_SECONDARY){
-		if($level == 1){
-
-			if($isFirstPlace == false){
-				$name = "3rd Place";
-			} else {
-				$name = "To 1st Place Match";
-			}
-
-		} else {
-
-			$bracketInfo = getBracketInformation($_SESSION['tournamentID']);
-			$max = $bracketInfo[BRACKET_SECONDARY]['numFighters']+2;
-			$n = getNumEntriesAtLevel_consolation($level,'fighters')+2;
-			if($n > $max){$n = $max;}
-			$name = "Top {$n}";
-
-		}
-	} else {
-		if($elimType == ELIM_TYPE_LOWER_BRACKET || $elimType == ELIM_TYPE_TRUE_DOUBLE){
-			if($level != 1){
-				$name = 'Bracket';
-			} else {
-				if($isFirstPlace == false){
-					$name = "Top 4";
-				} else {
-					$name = "1st Place";
-				}
-
-			}
-
-		} else {
-			switch($level){
-				case 1:
-					if($elimType == ELIM_TYPE_CONSOLATION || $isFirstPlace == true){
-						$name = '1st Place';
-					} else {
-						$name = '3rd Place';
-					}
-					break;
-				case 2:
-					$name = 'Semi-Finals';
-					break;
-				case 3:
-					$name = 'Quarter-Finals';
-					break;
-				default:
-					$name = 'Bracket';
-					break;
-			}
-		}
-	}
-
-	echo "<h3 class='center'>{$name}</h3>";
-}
-
 
 /******************************************************************************/
 
