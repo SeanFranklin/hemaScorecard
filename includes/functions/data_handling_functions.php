@@ -1297,6 +1297,22 @@ function getEventStats($stats){
 
 /******************************************************************************/
 
+function getNumEntriesAtLevel_primary($bracketLevel,$mode){
+// Returns either matches or number of fighters for a given consolation bracket level
+// matches mode: 	the number of matches at the brackets level
+// default mode: 	the number of fighters which the bracket can accomodate
+//					this is just the number of fighters in the consolation bracket
+//					and does not include the 2 who remain in the winners bracket
+
+	if($mode == 'matches' || $mode == 'match'){
+		return (int)pow(2,floor($bracketLevel));
+	} else {
+		return pow(2,floor($bracketLevel));
+	}
+}
+
+/******************************************************************************/
+
 function getNumEntriesAtLevel_consolation($bracketLevel,$mode){
 // Returns either matches or number of fighters for a given consolation bracket level
 // matches mode: 	the number of matches at the brackets level

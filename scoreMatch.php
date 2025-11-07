@@ -852,7 +852,44 @@ function backToListButton($matchInfo){
 		$matchID = $matchInfo['matchID'];
 	}
 
+	// Name of the Match, and where it is fought.
 	$name = getTournamentName();
+	if($matchInfo['matchType'] != 'elim'){
+		$name .= " (".$matchInfo['groupName'].")";
+	} else {
+
+		$info = getBracketInformation($matchInfo['tournamentID']);
+		$elimType = $info['elimType'];
+
+
+		if($matchInfo['groupName'] == 'winner'){
+			$name .= " (Finals Bracket";
+			$bracketType = BRACKET_PRIMARY;
+			if($elimType == ELIM_TYPE_LOWER_BRACKET || $elimType == ELIM_TYPE_TRUE_DOUBLE){
+				$extraLevelsNum = $matchInfo['bracketPosition'] - 1;
+			} else {
+				$extraLevelsNum = 1;
+			}
+
+		} else {
+			$name .= " (Lower Bracket";
+			$bracketType = BRACKET_SECONDARY;
+			$extraLevelsNum = $matchInfo['bracketPosition'] - 1;
+		}
+
+		// WTF is "extraLevelsNum"?
+		// This is something that lets the function know it's more that one match
+		// in the final bracketLevel = 1. Implementation changes based on bracket type, but
+		// often 3rd place will be first up, then 1st place will have an extraLevelsNum = 1
+
+		$levelName = getBracketLevelName($matchInfo['bracketLevel'],
+										$bracketType,
+										$elimType,
+										$extraLevelsNum);
+		$name .= ", {$levelName})";
+
+	}
+
 
 	if(ALLOW['EVENT_SCOREKEEP'] == true){
 		$hideForSmall = 'hide-for-small-only';
@@ -861,9 +898,11 @@ function backToListButton($matchInfo){
 	}
 	?>
 
-	<div class='grid-x align-middle grid-padding-x cell'>
+	<!--------------------------------------------------------------------->
 
-	<div class='medium-shrink small-12 cell' style='margin-bottom: 10px;'>
+	<div class='align-middle cell ' style='display:flex; align-items: flex-start;'>
+
+	<div style='margin-bottom: 10px; white-space: nowrap'>
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
 		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php'>
 			Back To Bracket
@@ -903,11 +942,12 @@ function backToListButton($matchInfo){
 	</div>
 
 	<!-- Tournament name -->
-	<div class='auto text-center cell hide-for-small-only' >
-		<h5 class='inline-block'><?=$name?></h5>
+	<div class='text-center align-middle ' style='margin-left: 10px;'>
+		<?=$name?>
 	</div>
 
 	</div>
+
 
 <?php }
 

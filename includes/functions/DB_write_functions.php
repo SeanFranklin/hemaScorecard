@@ -5355,6 +5355,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 		}
 	}
 
+
 	if(isCumulative($groupSet, $tournamentID) && $groupSet > 1){
 		$lastGroupSet = $groupSet - 1;
 
@@ -5410,8 +5411,6 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 		}
 
 	}
-
-
 
 }
 
@@ -5979,6 +5978,67 @@ function updateSuppressDirectEntry($info){
 	}
 
 	setAlert(USER_ALERT, "Registration suppressions updated.");
+
+}
+
+/******************************************************************************/
+
+function useParticipantIDs($post){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
+		return;
+	}
+
+	writeOption('E', $_SESSION['eventID'], 'USE_PARTICIPANT_IDS', $post['use']);
+
+	$_SESSION['useParticipantIds'] = (int)$post['use'];
+
+	foreach(@$post['IDs'] as $rosterID => $participantID){
+
+		$participantID = (int)$participantID;
+		$rosterID = (int)$rosterID;
+
+		$sql = "SELECT tableID
+				FROM logisticsParticipantIds
+				WHERE rosterID = {$rosterID}";
+		$tableID = (int)mysqlQuery($sql, SINGLE, 'tableID');
+
+
+		if($tableID == 0){
+
+			if($participantID != 0){
+				$sql = "INSERT INTO logisticsParticipantIds
+						(rosterID, participantID)
+						VALUES
+						({$rosterID}, {$participantID})";
+			} else {
+				// No need to do anything. It doesn't exist, and also is supposed to be zero.
+			}
+
+
+		} else {
+
+			if($participantID != 0){
+
+				$sql = "UPDATE logisticsParticipantIds
+						SET participantID = {$participantID}
+						WHERE tableID = {$tableID}";
+
+			} else {
+
+				$sql = "DELETE FROM logisticsParticipantIds
+						WHERE tableID = {$tableID}";
+
+			}
+
+		}
+
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT, "ParticipantIDs updated.");
+
+
 
 }
 

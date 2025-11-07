@@ -444,6 +444,9 @@ function processPostData(){
 			case 'suppressDirectEntry':
 				updateSuppressDirectEntry($_POST['suppressDirectEntry']);
 				break;
+			case 'useParticipantIDs':
+				useParticipantIDs($_POST['useParticipantIDs']);
+				break;
 
 
 	// Admin Cases
@@ -2028,6 +2031,7 @@ function changeEvent($eventID, $logoutInhibit = false, $landingPage = null, $tou
 		$_SESSION['blockID'] = '';
 		$_SESSION['metaTournamentComponentSource'] = '';
 		$_SESSION['dayNum'] = logistics_getCurrentDayNum($_SESSION['eventID']);
+		$_SESSION['useParticipantIds'] = readOption('E', $_SESSION['eventID'], 'USE_PARTICIPANT_IDS');
 
 		// Log user out if switching event
 		if($logoutInhibit == true || ALLOW['SOFTWARE_EVENT_SWITCHING'] == true){

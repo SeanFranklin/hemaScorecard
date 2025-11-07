@@ -2375,6 +2375,23 @@ function getEventRoster($sortString = null, $staffInfo = false){
 
 /******************************************************************************/
 
+function getEventParticipantIds($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT firstName, lastName, rosterID, participantID
+			FROM eventRoster
+			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsParticipantIds USING(rosterID)
+			WHERE eventID = {$eventID}
+			ORDER BY firstName ASC, lastName ASC";
+	$roster = (array)mysqlQuery($sql, ASSOC);
+
+	return ($roster);
+}
+
+/******************************************************************************/
+
 function getEventAdditionalParticipants($eventID){
 
 	$sortString = NAME_MODE;
@@ -3101,6 +3118,20 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 				WHERE eventRoster.rosterID = {$rosterID}";
 		$name = mysqlQuery($sql, SINGLE);
 	}
+
+
+	if((@(int)$_SESSION['useParticipantIds']) != 0){
+
+		$sql = "SELECT participantID
+				FROM logisticsParticipantIds
+				WHERE rosterID = {$rosterID}";
+		$participantID = (int)mysqlQuery($sql, SINGLE, 'participantID');
+
+		if($participantID != 0){
+			$name .= " ({$participantID})";
+		}
+	}
+
 
 	return $name;
 }

@@ -114,7 +114,7 @@ define('FIRST_YEAR', 2015);
 		<li class="tabs-title"><a
 			data-tabs-target="panel-event"
 			href            ="#change-event"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-event','matches-by-event','tournaments-by-event','womens-by-event'], 'deepskyblue', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-event','matches-by-event','tournaments-by-event','womens-by-event','exchanges-by-event-day'], 'deepskyblue', 10)">
 				            Events
 		</a></li>
 
@@ -146,6 +146,13 @@ define('FIRST_YEAR', 2015);
 				            Matches
 		</a></li>
 
+		<li class="tabs-title"><a
+			data-tabs-target="panel-staff"
+			href            ="#change-staff"
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-judge', 'exchanges-by-director','matches-by-table', 'matches-by-staff', 'exchanges-by-judge-school', 'exchanges-by-staff-school'], 'Khaki', 10)">
+				            Staff
+		</a></li>
+
 		<li class="tabs-title">
 			<a data-tabs-target="panel-software" href="#change-software">
 				Software Improvements
@@ -153,6 +160,11 @@ define('FIRST_YEAR', 2015);
 		</li>
 
 	</ul>
+
+
+	<!----------------------------------------------------------------------------->
+	<!----------------------------------------------------------------------------->
+	<!----------------------------------------------------------------------------->
 
 
 	<div class="tabs-content" data-tabs-content="yearly-summary-tabs">
@@ -193,6 +205,9 @@ define('FIRST_YEAR', 2015);
 				</div>
 				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('womens-by-event', $year, ['unit'=>'Entries','txt'=>"Entries into tournaments which have been set up with a URG/Women's/WNBT designation."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-event-day', $year, ['unit'=>'Exch / Day','txt'=>"Avg Exchanges Per Day"])?>
 				</div>
 			</div>
 		</div>
@@ -260,12 +275,42 @@ define('FIRST_YEAR', 2015);
 					<?=yearlySummaryItem('exchanges-by-match', $year)?>
 				</div>
 				<div class='medium-6 cell'>
-					<?=yearlySummaryItem('comebacks-by-match', $year, ['unit'=>'Points Behind','txt'=>"The biggest point deficit a fighter has come back from and won."])?>
+					<?=yearlySummaryItem('comebacks-by-match', $year, ['unit'=>'Points Behind','txt'=>"The biggest point deficit a fighter has come back from and won. (Minimum of 8 exchanges in the match.)"])?>
 				</div>
 				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('rematches-by-fighter', $year, ['unit'=>'Matches Fought','txt'=>"Number of times two fighters have met in 1v1 matches, across all weapons."])?>
 				</div>
 
+			</div>
+		</div>
+
+		<div class="tabs-panel" id="panel-staff">
+			Note: Only matches which have had staff checked in show up in this count.
+			<a onclick="$('.staff-wtf').toggle()">(wtf where are my matches?)</a>
+			<div class='hidden staff-wtf callout'>
+				Glad you asked. <BR>
+				Scorecard has the ability to check in the match staff. On the lower right of the match scoring window there is a "Check In Match Staff" button which let let you save the match staff. (You can also look at the match staff as a participant, if they have been checked in by the table.)<BR>
+				Most organizers do not do this, and thus their hard working staff are not captured here. (Organizers can also specifiy that it is mandatory to check in staff befor their judges can run the match.)
+			</div>
+			<div class='grid-x grid-margin-x'>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-judge', $year, ['unit'=>'Exchanges','txt'=>"Judging (judge/director/ref/etc)"])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-director', $year, ['unit'=>'Exchanges','txt'=>"Directors (including refs and assistants)"])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('matches-by-table', $year, ['unit'=>'Matches','txt'=>"Table"])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('matches-by-staff', $year, ['unit'=>'Matches','txt'=>"All staffing roles"])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-judge-school', $year, ['unit'=>'Exchanges','txt'=>"All Judging Roles by School"])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-staff-school', $year, ['unit'=>'Exchanges','txt'=>"All Staffing Roles by School"])?>
+				</div>
 			</div>
 		</div>
 

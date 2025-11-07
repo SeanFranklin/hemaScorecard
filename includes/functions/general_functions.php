@@ -619,5 +619,91 @@ function getImagePathAndFile($basePath, $fileName, $useBaseUrl = false){
 
 
 /******************************************************************************/
+
+function getBracketLevelName($level, $bracketType, $elimType, $extraLevelsNum){
+// Inserts the name of the bracket level
+// Context dependent based on winners/consolation bracket
+
+	if($extraLevelsNum > 0){
+		$isFirstPlace = true;
+	} else {
+		$isFirstPlace = false;
+	}
+
+	if($bracketType == BRACKET_SECONDARY){
+
+		if($level == 1){
+
+			if($isFirstPlace == false){
+				$name = "3rd Place";
+			} else {
+				$name = "To 1st Place Match";
+			}
+
+		} else {
+
+			$bracketInfo = getBracketInformation($_SESSION['tournamentID']);
+			$max = $bracketInfo[BRACKET_SECONDARY]['numFighters']+2;
+			$n = getNumEntriesAtLevel_consolation($level,'fighters')+2;
+			if($n > $max){$n = $max;}
+			$name = "Top {$n}";
+
+		}
+
+	} else {
+
+		if($elimType == ELIM_TYPE_LOWER_BRACKET || $elimType == ELIM_TYPE_TRUE_DOUBLE){
+
+			if($level != 1){
+
+					$bracketInfo = getBracketInformation($_SESSION['tournamentID']);
+					$max = $bracketInfo[BRACKET_PRIMARY]['numFighters'];
+					$n = getNumEntriesAtLevel_consolation($level*2-2,'fighters')+2;
+					if($n > $max){$n = $max;}
+					$name = "Top {$n}";
+
+			} else {
+
+				if($isFirstPlace == true){
+					$name = "1st Place";
+				} else {
+					$name = "Top 3";
+				}
+
+			}
+
+		} else {
+
+			switch($level){
+				case 1:
+					if($elimType == ELIM_TYPE_CONSOLATION || $isFirstPlace == true){
+						$name = '1st Place';
+					} else {
+						$name = '3rd Place';
+					}
+					break;
+				case 2:
+					$name = 'Semi-Finals';
+					break;
+				case 3:
+					$name = 'Quarter-Finals';
+					break;
+				default:
+					$bracketInfo = getBracketInformation($_SESSION['tournamentID']);
+					$max = $bracketInfo[BRACKET_PRIMARY]['numFighters'];
+					$n = getNumEntriesAtLevel_primary($level,'fighters');
+					if($n > $max){$n = $max;}
+					$name = "Top {$n}";
+					break;
+			}
+		}
+	}
+
+	return ($name);
+
+}
+
+
+/******************************************************************************/
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

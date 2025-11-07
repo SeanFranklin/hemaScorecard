@@ -242,6 +242,47 @@ function getAnnualExchangesByEvent($year, $futureView){
 
 /******************************************************************************/
 
+function getAnnualExchangesByEventDay($year, $futureView){
+
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$validExchanges = "'clean','afterblow','double','noExchange','scored'";
+
+	$sql = "SELECT eventID, COUNT(*) AS value, DATEDIFF(eventEndDate,eventStartDate)+1 AS days
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
+			WHERE {$eventListStr}
+				AND exchangeType IN ($validExchanges)
+			GROUP BY eventID
+			ORDER BY value DESC";
+	$exchangesByEvent = (array)mysqlQuery($sql, ASSOC);
+
+	$rawName = true;
+	if($eventListStr == "eventID IS NOT NULL"){
+		$rawName = false;
+	}
+
+	$plotExchangesByEvent = [];
+	foreach($exchangesByEvent as $event){
+		$tmp = [];
+		$tmp['name'] = getEventName($event['eventID'], $rawName);
+		$tmp['value'] = $event['value']/$event['days'];
+		$plotExchangesByEvent[] = $tmp;
+	}
+
+	$price = array_column($plotExchangesByEvent, 'value');
+
+	array_multisort($price, SORT_DESC, $plotExchangesByEvent);
+
+
+	return($plotExchangesByEvent);
+}
+
+/******************************************************************************/
+
 function getAnnualMatchesByEvent($year, $futureView){
 
 	$eventListStr = makeEventListStr($year, $futureView);
@@ -924,14 +965,17 @@ function getAnnualComebacksByMatch($year, $futureView){
 
 	$sql = "SELECT matchID, fighter1ID, fighter2ID, winnerID,
 				fighter1Score, fighter2Score, eventName, tournamentID, eventYear
-			FROM eventMatches
+			FROM eventMatches AS eM
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
 				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
 				AND ((winnerID = fighter1ID AND fighter2Score > {$minScore} AND fighter1Score > fighter2Score)
 					OR (winnerID = fighter2ID AND fighter1Score > {$minScore} AND fighter2Score > fighter1Score))
-				AND winnerID IS NOT NULL";
+				AND winnerID IS NOT NULL
+				AND (SELECT COUNT(*) AS numExchanges
+					FROM eventExchanges AS eE2
+					WHERE eE2.matchID = eM.matchID) >= 9"; //Take off one for the "winner" exchange
     $matches = mysqlQuery($sql, ASSOC);
 
     $matchIDstr = "";
@@ -1089,6 +1133,163 @@ function getAnnualRematchesByFighter($year, $futureView){
 	return ($plotRematches);
 }
 
+/******************************************************************************/
+
+function getAnnualExchangesByJudge($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT systemRosterID, COUNT(*) AS numExchanges
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN logisticsStaffMatches USING(matchID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			AND logisticsRoleID IN (1,2,9,11,12)
+			GROUP BY systemRosterID
+			ORDER BY numExchanges DESC
+			LIMIT 100";
+	$numExchanges = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumExchanges = [];
+	foreach($numExchanges as $i => $f){
+		$plotNumExchanges[$i]['value'] = $f['numExchanges'];
+		$plotNumExchanges[$i]['name'] = getFighterNameSystem($f['systemRosterID']);
+	}
+
+	return($plotNumExchanges);
+}
+
+/******************************************************************************/
+
+function getAnnualExchangesByDirector($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+		$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT systemRosterID, COUNT(*) AS numExchanges
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN logisticsStaffMatches USING(matchID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			AND logisticsRoleID IN (1,9,11,12)
+			GROUP BY systemRosterID
+			ORDER BY numExchanges DESC
+			LIMIT 100";
+	$numExchanges = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumExchanges = [];
+	foreach($numExchanges as $i => $f){
+		$plotNumExchanges[$i]['value'] = $f['numExchanges'];
+		$plotNumExchanges[$i]['name'] = getFighterNameSystem($f['systemRosterID']);
+	}
+
+	return($plotNumExchanges);
+}
+
+/******************************************************************************/
+
+function getAnnualMatchesByTable($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
+			FROM logisticsStaffMatches
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			AND logisticsRoleID IN (3)
+			GROUP BY systemRosterID
+			ORDER BY numMatches DESC
+			LIMIT 100";
+	$numMatches = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumMatches = [];
+	foreach($numMatches as $i => $f){
+		$plotNumMatches[$i]['value'] = $f['numMatches'];
+		$plotNumMatches[$i]['name'] = getFighterNameSystem($f['systemRosterID']);
+	}
+
+	return($plotNumMatches);
+}
+
+/******************************************************************************/
+
+function getAnnualMatchesByStaff($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT systemRosterID, COUNT(*) AS numMatches
+			FROM logisticsStaffMatches
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			GROUP BY systemRosterID
+			ORDER BY numMatches DESC
+			LIMIT 100";
+	$numMatches = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumMatches = [];
+	foreach($numMatches as $i => $f){
+		$plotNumMatches[$i]['value'] = $f['numMatches'];
+		$plotNumMatches[$i]['name'] = getFighterNameSystem($f['systemRosterID']);
+	}
+
+	return($plotNumMatches);
+}
+
+/******************************************************************************/
+
+function getAnnualExchangesByStaffSchool($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT schoolID, COUNT(*) AS numExchanges
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN logisticsStaffMatches USING(matchID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			GROUP BY schoolID
+			ORDER BY numExchanges DESC
+			LIMIT 100";
+	$numExchanges = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumExchanges = [];
+	foreach($numExchanges as $i => $f){
+		$plotNumExchanges[$i]['value'] = $f['numExchanges'];
+		$plotNumExchanges[$i]['name'] = getSchoolName($f['schoolID']);
+	}
+
+	return($plotNumExchanges);
+}
+
+/******************************************************************************/
+
+function getAnnualExchangesByJudgeSchool($year, $futureView){
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT schoolID, COUNT(*) AS numExchanges
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN logisticsStaffMatches USING(matchID)
+			INNER JOIN eventRoster USING(rosterID)
+			WHERE {$eventListStr}
+			AND systemRosterID IS NOT NULL
+			AND logisticsRoleID IN (1,2,9,11,12)
+			GROUP BY schoolID
+			ORDER BY numExchanges DESC
+			LIMIT 100";
+	$numExchanges = (array)mysqlQuery($sql, ASSOC);
+
+	$plotNumExchanges = [];
+	foreach($numExchanges as $i => $f){
+		$plotNumExchanges[$i]['value'] = $f['numExchanges'];
+		$plotNumExchanges[$i]['name'] = getSchoolName($f['schoolID']);
+	}
+
+	return($plotNumExchanges);
+}
 
 /******************************************************************************/
 
