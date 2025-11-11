@@ -2544,6 +2544,10 @@ function addNewEvent($eventInfo){
 
 	$isMetaEvent = (int)((BOOLEAN)$eventInfo['isMetaEvent']);
 
+	$eventInfo['eventName'] = trim($eventInfo['eventName']);
+	$eventInfo['eventProvince'] = trim($eventInfo['eventProvince']);
+	$eventInfo['eventCity'] = trim($eventInfo['eventCity']);
+
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
 			eventEndDate, countryIso2, eventProvince, eventCity, isMetaEvent)

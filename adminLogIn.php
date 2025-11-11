@@ -14,10 +14,9 @@ $pageName = 'Log In';
 $jsIncludes[] = 'misc_scripts.js';
 include('includes/header.php');
 
-$activeEvents = getEventList('active');
-$upcomingEvents = getEventList('upcoming');
-$hiddenEvents = getEventList('hidden');
-$metaEvents = getEventList('meta');
+
+$openEvents = getEventList('open',0,0,"eventName ASC");
+$metaEvents = getEventList('open',0,1,"eventName ASC");
 
 if(isset($_SESSION['failedLogIn'])){
 	$defaultEventID = $_SESSION['failedLogIn']['eventID'];
@@ -72,12 +71,8 @@ if($typeSelect == null){
 			<label id='logInEventListDiv' class='<?=$eventListVisibility?>'>
 				<span>Event</span>
 				<select id='logInEventID' name='logInData[eventID]'  onchange="logInEventToggle('logInEventID')">
-					<option selected disabled>- Active ------------------------</option>
-					<?php populateEventSelectFields($activeEvents, $defaultEventID); ?>
-					<option disabled>- Upcoming ----------------------</option>
-					<?php populateEventSelectFields($upcomingEvents, $defaultEventID); ?>
-					<option disabled>- Unpublished -------------------</option>
-					<?php populateEventSelectFields($hiddenEvents, $defaultEventID); ?>
+					<option selected disabled>- Open ------------------------</option>
+					<?php populateEventSelectFields($openEvents, $defaultEventID); ?>
 					<option disabled>- Leagues -----------------------</option>
 					<?php populateEventSelectFields($metaEvents, $defaultEventID); ?>
 				</select>

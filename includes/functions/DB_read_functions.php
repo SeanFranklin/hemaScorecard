@@ -1743,11 +1743,6 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	if($eventStatus == 'meta'){
-		$isMetaEvent = 1;
-	}
-	$isMetaEvent = (int)$isMetaEvent;
-
 	$limit = (int)$limit;
 	if($limit == 0){
 		$limitClause = "";
@@ -1763,6 +1758,15 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 	$publishClause = "";
 
 	switch($eventStatus){
+
+		case 'open':
+		case 'meta_open':
+
+			$publishClause	= "(
+						isArchived = 0
+					)";
+			break;
+
 		case 'recent':
 
 			$eventActiveLimit = EVENT_ACTIVE_LIMIT-1;
@@ -1832,13 +1836,13 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 				   )";
 			break;
 
-		case 'meta':
 		default:
 			// In this case we don't care. Get everything.
 			$publishClause	= "(1 = 1)";
 			break;
 	}
 
+	$TEST_EVENT_ID = (int)TEST_EVENT_ID;
 
 	$sql = "SELECT eventID, eventName, eventYear, eventStartDate,
 			eventEndDate, countryName, eventProvince, eventCity
@@ -1847,6 +1851,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 			LEFT JOIN eventPublication USING(eventID)
 			WHERE {$publishClause}
 			AND isMetaEvent = {$isMetaEvent}
+			AND eventID != {$TEST_EVENT_ID}
 			ORDER BY {$orderClause}
 			{$limitClause}";
 
