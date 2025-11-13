@@ -12,6 +12,8 @@
 
 /******************************************************************************/
 
+define("STATS_VALID_EXCHANGES", "'clean','afterblow','double','noExchange','scored'");
+
 function makeEventListStr($year, $futureView = false){
 
 	$year = (int)$year;
@@ -138,6 +140,94 @@ function getAnnualEventsByCountry($year, $futureView){
 	}
 
 	return ($eventsByCountry);
+}
+
+/******************************************************************************/
+
+function getAnnualExchangesByCountry($year, $futureView){
+
+	$eventListStr = makeEventListStr($year, $futureView);
+	$validExchanges = STATS_VALID_EXCHANGES;
+
+	$sql = "SELECT countryName, COUNT(*) AS numExchanges
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
+				INNER JOIN systemCountries USING(countryIso2)
+			WHERE {$eventListStr}
+				AND exchangeType IN ($validExchanges)
+			GROUP BY countryIso2
+			ORDER BY numExchanges DESC, countryIso2 ASC";
+	$eventList = (array)mysqlQuery($sql, ASSOC);
+
+	$exchangesByCountry = [];
+	foreach($eventList as $i => $f){
+		$exchangesByCountry[$i]['value'] = $f['numExchanges'];
+		$exchangesByCountry[$i]['name'] = $f['countryName'];
+	}
+
+	return ($exchangesByCountry);
+}
+
+/******************************************************************************/
+
+function getAnnualEventsByUsState($year, $futureView){
+
+	$eventListStr = makeEventListStr($year, $futureView);
+
+	$sql = "SELECT eventProvince, COUNT(*) AS numEvents
+			FROM systemEvents
+			WHERE {$eventListStr}
+				AND countryIso2 = 'US'
+			GROUP BY eventProvince
+			ORDER BY numEvents DESC, eventProvince ASC";
+	$eventList = (array)mysqlQuery($sql, ASSOC);
+
+	$numCountries = sizeof($eventList);
+
+	$totalNumEvents = 0;
+	foreach($eventList as $e){
+		$totalNumEvents += $e['numEvents'];
+	}
+
+	$eventsByUsState = [];
+	foreach($eventList as $i => $f){
+		$eventsByUsState[$i]['value'] = $f['numEvents'];
+		$eventsByUsState[$i]['name'] = $f['eventProvince'];
+	}
+
+	return ($eventsByUsState);
+}
+
+/******************************************************************************/
+
+function getAnnualExchangesByUsState($year, $futureView){
+
+	$eventListStr = makeEventListStr($year, $futureView);
+	$validExchanges = STATS_VALID_EXCHANGES;
+
+	$sql = "SELECT eventProvince, COUNT(*) AS numExchanges
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
+			WHERE {$eventListStr}
+				AND countryIso2 = 'US'
+				AND exchangeType IN ($validExchanges)
+			GROUP BY eventProvince
+			ORDER BY numExchanges DESC, eventProvince ASC";
+	$eventList = (array)mysqlQuery($sql, ASSOC);
+
+	$exchangesByUsState = [];
+	foreach($eventList as $i => $f){
+		$exchangesByUsState[$i]['value'] = $f['numExchanges'];
+		$exchangesByUsState[$i]['name'] = $f['eventProvince'];
+	}
+
+	return ($exchangesByUsState);
 }
 
 /******************************************************************************/

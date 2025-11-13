@@ -101,7 +101,7 @@ define('FIRST_YEAR', 2015);
 
 		<li class="tabs-title"><a
 			href            ="#panel-country"
-			onclick="getDataForYear(<?=$year?>, 'events-by-country', 'teal',0)">
+			onclick="getDataForYearType(<?=$year?>, ['events-by-country', 'exchanges-by-country', 'events-by-us-state', 'exchanges-by-us-state'], 'teal',[0,0,10,10])">
 				            Country
 		</a></li>
 
@@ -175,8 +175,17 @@ define('FIRST_YEAR', 2015);
 
 		<div class="tabs-panel" id="panel-country">
 			<div class='grid-x grid-margin-x'>
-				<div class='medium-12 cell'>
+				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('events-by-country', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-country', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-us-state', $year, ['unit'=>'Events','txt'=>"American stuff, everyone else can disregard."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-us-state', $year, ['unit'=>'Exchanges','txt'=>"American stuff, everyone else can disregard."])?>
 				</div>
 			</div>
 		</div>
