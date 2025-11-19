@@ -188,6 +188,10 @@ function checkForTermsOfUse(){
 					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][1]'>
 					I understand that anyone can look at and have access to all the results/data from any tournament.
 				</div>
+				<div style='margin-left: 20px;'>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][5]'>
+					I am using it for an <i>external</i> (aka multiple clubs) tournament. Scorecard <u>is not for in-house tournaments</u>.
+				</div>
 			</div>
 
 		<!-- Exchange Info -->
@@ -229,9 +233,9 @@ function checkForTermsOfUse(){
 			</div>
 
 		<!-- Submit -->
-			<input type='hidden' name='ToS[numCheckboxes]' value='4'>
+			<input type='hidden' name='ToS[numCheckboxes]' value='5'>
 			<button class='button success small-6 cell' name='formName' value='SubmitToS'>
-				Got it!<BR> I checked and agreed to all 4 boxes and filled in the e-mail.
+				Got it!<BR> I checked and agreed to all 5 boxes and filled in the e-mail.
 			</button>
 
 			<button class='button alert small-6 cell' name='formName' value='logUserOut'>
