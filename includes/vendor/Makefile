@@ -11,6 +11,10 @@ foundation.min.css:
 dataTables.foundation.min.css:
 	curl -L -o $@  https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css
 
+.PHONY: dataTables.foundation.min.js
+dataTables.foundation.min.js:
+	curl -L -o $@  https://cdn.datatables.net/1.10.19/js/dataTables.foundation.min.js
+
 # Chivo came from Google Fonts, but that's a highly manual process
 
 .PHONY: tinymce.min.js
