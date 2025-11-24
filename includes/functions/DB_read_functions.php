@@ -916,6 +916,8 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 
 		switch($exchange['exchangeType']){
 			case 'clean':
+				@$fighterStats[$scoringID]['numCleanHits'] ++;
+				// Deliberate fall through
 			case 'afterblow':
 				@$fighterStats[$scoringID]['pointsFor'] += ($exchange['scoreValue']-$exchange['scoreDeduction']);
 				@$fighterStats[$scoringID]['AbsPointsFor'] += $exchange['scoreValue'];
@@ -1007,6 +1009,7 @@ function getAllTournamentExchanges($tournamentID, $groupType, $groupSet){
 	$attributes[] = 'AbsPointsAgainst';
 	$attributes[] = 'AbsPointsFor';
 	$attributes[] = 'AbsPointsAwarded';
+	$attributes[] = 'numCleanHits';
 
 	// Set all values not counted to zero
 	foreach($fighterStats as $fighterID => $fighter){
@@ -1740,11 +1743,6 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 // returns an unsorted array of all events in the software
 // indexed by eventID
 
-	if($eventStatus == 'meta'){
-		$isMetaEvent = 1;
-	}
-	$isMetaEvent = (int)$isMetaEvent;
-
 	$limit = (int)$limit;
 	if($limit == 0){
 		$limitClause = "";
@@ -1760,6 +1758,15 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 	$publishClause = "";
 
 	switch($eventStatus){
+
+		case 'open':
+		case 'meta_open':
+
+			$publishClause	= "(
+						isArchived = 0
+					)";
+			break;
+
 		case 'recent':
 
 			$eventActiveLimit = EVENT_ACTIVE_LIMIT-1;
@@ -1829,13 +1836,13 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 				   )";
 			break;
 
-		case 'meta':
 		default:
 			// In this case we don't care. Get everything.
 			$publishClause	= "(1 = 1)";
 			break;
 	}
 
+	$TEST_EVENT_ID = (int)TEST_EVENT_ID;
 
 	$sql = "SELECT eventID, eventName, eventYear, eventStartDate,
 			eventEndDate, countryName, eventProvince, eventCity
@@ -1844,6 +1851,7 @@ function getEventList($eventStatus = null, $limit = 0, $isMetaEvent = 0, $orderC
 			LEFT JOIN eventPublication USING(eventID)
 			WHERE {$publishClause}
 			AND isMetaEvent = {$isMetaEvent}
+			AND eventID != {$TEST_EVENT_ID}
 			ORDER BY {$orderClause}
 			{$limitClause}";
 
@@ -1888,9 +1896,9 @@ function getEventListSmall(){
 
 /******************************************************************************/
 
-function getEventListByPublication($showHidden = false, $orderBy = 'name'){
+function getEventListByPublication($orderBy = 'name'){
 
-	if($showHidden == false){
+	if(ALLOW['VIEW_HIDDEN'] == false){
 		$whereClause = "WHERE isArchived = 1
 						OR publishDescription = 1
 						OR publishRoster = 1
@@ -1921,6 +1929,30 @@ function getEventListByPublication($showHidden = false, $orderBy = 'name'){
 			{$whereClause}
 			ORDER BY {$orderClause}";
 	$eventList = mysqlQuery($sql, ASSOC);
+
+	// Check for events that are assigned to that user
+	$userID = (int)$_SESSION['userID'];
+	if($userID != 0 && ALLOW['VIEW_HIDDEN'] == false){
+
+		$sql = "SELECT eventID, eventYear, eventName, eventCity, eventProvince, countryName, eventStartDate, eventEndDate, 'User Event' AS eventStatus
+		FROM systemEvents
+		INNER JOIN systemCountries USING(countryIso2)
+		LEFT JOIN eventPublication USING(eventID)
+		INNER JOIN systemUserEvents USING(eventID)
+		WHERE isArchived = 0
+			AND publishDescription = 0
+			AND publishRoster = 0
+			AND publishSchedule = 0
+			AND publishMatches = 0
+			AND publishRules = 0
+			AND userID = {$userID}
+		ORDER BY {$orderClause}";
+
+		$personalEvents = mysqlQuery($sql, ASSOC);
+
+		$eventList = array_merge($eventList, $personalEvents);
+
+	}
 
 	return $eventList;
 }
@@ -2344,6 +2376,23 @@ function getEventRoster($sortString = null, $staffInfo = false){
 
 	return $roster;
 
+}
+
+/******************************************************************************/
+
+function getEventParticipantIds($eventID){
+
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT firstName, lastName, rosterID, participantID
+			FROM eventRoster
+			INNER JOIN systemRoster USING(systemRosterID)
+			LEFT JOIN logisticsParticipantIds USING(rosterID)
+			WHERE eventID = {$eventID}
+			ORDER BY firstName ASC, lastName ASC";
+	$roster = (array)mysqlQuery($sql, ASSOC);
+
+	return ($roster);
 }
 
 /******************************************************************************/
@@ -3050,6 +3099,7 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 		return getTeamName($rosterID, $splitName);
 	}
 
+
 	if($splitName == null){
 		$sql = "SELECT firstName, lastName
 				FROM eventRoster
@@ -3073,6 +3123,20 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 				WHERE eventRoster.rosterID = {$rosterID}";
 		$name = mysqlQuery($sql, SINGLE);
 	}
+
+
+	if((@(int)$_SESSION['useParticipantIds']) != 0){
+
+		$sql = "SELECT participantID
+				FROM logisticsParticipantIds
+				WHERE rosterID = {$rosterID}";
+		$participantID = (int)mysqlQuery($sql, SINGLE, 'participantID');
+
+		if($participantID != 0){
+			$name .= " ({$participantID})";
+		}
+	}
+
 
 	return $name;
 }

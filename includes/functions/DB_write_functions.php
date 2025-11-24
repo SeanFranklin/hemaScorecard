@@ -2544,6 +2544,10 @@ function addNewEvent($eventInfo){
 
 	$isMetaEvent = (int)((BOOLEAN)$eventInfo['isMetaEvent']);
 
+	$eventInfo['eventName'] = trim($eventInfo['eventName']);
+	$eventInfo['eventProvince'] = trim($eventInfo['eventProvince']);
+	$eventInfo['eventCity'] = trim($eventInfo['eventCity']);
+
 	$sql = "INSERT INTO systemEvents
 			(eventName, eventAbbreviation, eventYear, eventStartDate,
 			eventEndDate, countryIso2, eventProvince, eventCity, isMetaEvent)
@@ -5355,6 +5359,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 		}
 	}
 
+
 	if(isCumulative($groupSet, $tournamentID) && $groupSet > 1){
 		$lastGroupSet = $groupSet - 1;
 
@@ -5363,7 +5368,7 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 					hitsFor, hitsAgainst, afterblowsFor, afterblowsAgainst, doubles,
 					noExchanges, AbsPointsFor, AbsPointsAgainst, AbsPointsAwarded, numPenalties,
 					numYellowCards, numRedCards, penaltiesAgainstOpponents, penaltiesAgainst,
-					doubleOuts
+					doubleOuts, numCleanHits
 				FROM eventStandings
 				WHERE tournamentID = {$tournamentID}
 				AND groupType = 'pool'
@@ -5399,7 +5404,8 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 						numRedCards 		= numRedCards + {$score['numRedCards']},
 						penaltiesAgainstOpponents = penaltiesAgainstOpponents + {$score['penaltiesAgainstOpponents']},
 						penaltiesAgainst	= penaltiesAgainst + {$score['penaltiesAgainst']},
-						doubleOuts 			= doubleOuts + {$score['doubleOuts']}
+						doubleOuts 			= doubleOuts + {$score['doubleOuts']},
+						numCleanHits        = numCleanHits + {$score['numCleanHits']}
 					WHERE tournamentID = {$tournamentID}
 					AND groupType = 'pool'
 					AND groupSet = {$groupSet}
@@ -5409,8 +5415,6 @@ function recordScores($allFighterStats, $tournamentID, $groupSet = 0){
 		}
 
 	}
-
-
 
 }
 
@@ -5983,6 +5987,67 @@ function updateSuppressDirectEntry($info){
 
 /******************************************************************************/
 
+function useParticipantIDs($post){
+
+	if(ALLOW['EVENT_MANAGEMENT'] == FALSE){
+		return;
+	}
+
+	writeOption('E', $_SESSION['eventID'], 'USE_PARTICIPANT_IDS', $post['use']);
+
+	$_SESSION['useParticipantIds'] = (int)$post['use'];
+
+	foreach(@$post['IDs'] as $rosterID => $participantID){
+
+		$participantID = (int)$participantID;
+		$rosterID = (int)$rosterID;
+
+		$sql = "SELECT tableID
+				FROM logisticsParticipantIds
+				WHERE rosterID = {$rosterID}";
+		$tableID = (int)mysqlQuery($sql, SINGLE, 'tableID');
+
+
+		if($tableID == 0){
+
+			if($participantID != 0){
+				$sql = "INSERT INTO logisticsParticipantIds
+						(rosterID, participantID)
+						VALUES
+						({$rosterID}, {$participantID})";
+			} else {
+				// No need to do anything. It doesn't exist, and also is supposed to be zero.
+			}
+
+
+		} else {
+
+			if($participantID != 0){
+
+				$sql = "UPDATE logisticsParticipantIds
+						SET participantID = {$participantID}
+						WHERE tableID = {$tableID}";
+
+			} else {
+
+				$sql = "DELETE FROM logisticsParticipantIds
+						WHERE tableID = {$tableID}";
+
+			}
+
+		}
+
+		mysqlQuery($sql, SEND);
+	}
+
+	setAlert(USER_ALERT, "ParticipantIDs updated.");
+
+
+
+}
+
+/******************************************************************************/
+
 function divSeedingByRating($post){
 
 
@@ -6244,7 +6309,8 @@ function customizeEventPenalties($post){
 	$penaltiesToSuppress = implode2int($penaltiesToSuppress);
 
 	$sql = "DELETE FROM eventPenaltyDisabled
-			WHERE penaltyDisabledID NOT IN ($penaltiesToSuppress)";
+			WHERE penaltyDisabledID NOT IN ($penaltiesToSuppress)
+			AND eventID = {$eventID}";
 	mysqlQuery($sql, SEND);
 
 
@@ -6819,6 +6885,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	writeOption('T', $tournamentID, 'FINALS_POINT_CAP', (int)$formInfo['finalsPointCap']);
 	writeOption('T', $tournamentID, 'LIMIT_SHALLOW', (int)$formInfo['limitShallow']);
 	writeOption('T', $tournamentID, 'MINIMUM_EXCH_TIME', (int)$formInfo['minExchTime']);
+	writeOption('T', $tournamentID, 'POINT_SPREAD_START_VAL', (int)$formInfo['pointSpreadStartVal']);
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -7155,6 +7222,7 @@ function importTournamentSettings($config){
 	$sourceSettings['finalsPointCap'] 			= readOption('T', $sourceID, 'FINALS_POINT_CAP');
 	$sourceSettings['limitShallow'] 			= readOption('T', $sourceID, 'LIMIT_SHALLOW');
 	$sourceSettings['minExchTime'] 				= readOption('T', $sourceID, 'MINIMUM_EXCH_TIME');
+	$sourceSettings['pointSpreadStartVal'] 		= readOption('T', $sourceID, 'POINT_SPREAD_START_VAL');
 
 
 // Name is saved from the current tournament

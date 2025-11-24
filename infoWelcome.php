@@ -15,7 +15,7 @@ $pageName = "Welcome to HEMA Scorecard";
 
 include('includes/header.php');
 
-	$eventList = getEventListByPublication(ALLOW['VIEW_HIDDEN'],'date');
+	$eventList = getEventListByPublication('date');
 
 	$eventsToShow['active'] = [];
 	$eventsToShow['recent'] = [];
@@ -92,22 +92,19 @@ include('includes/header.php');
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<div class='cell' style='border-bottom:2px solid black'>
+<div class='cell ' style='border-bottom:2px solid black'>
+	<div class='grid-x grid-margin-x'>
 
+	<div class='large-4 medium-5 cell align-self-middle'>
 	<img style='width: 400px;' src="includes/images/logo_rect.jpg">
-	<BR><BR>
-	<p>HEMA Scorecard is a <b>FREE</b> online tournament management software for Historical European Martial Arts tournaments. Scorecard allows you to:<ul>
-		<li>Automate all your scoring and bracket paperwork.</li>
-		<li>Communicate information to your fencers and spectators. All matches & scores are live online.</li>
-		<li>Host your full event logistics chain, including scheduling workshops and volunteer shifts.</li>
-		<li>Do so much more than I can fit in this little box.</li>
-	</ul></p>
-
-	<p>If you are interested in using HEMA Scorecard to hold a tournament of your own, <a href='infoWhy.php'> why not have a look at some of it's best features</a>? </p>
+	</div>
+	<div class='large-8 medium-7 cell align-self-middle'>
+	<p>HEMA Scorecard is a <b>FREE</b> online tournament management software for Historical European Martial Arts tournaments. If you are interested in using HEMA Scorecard to hold a tournament of your own, <a href='infoWhy.php'> why not have a look at some of it's best features</a>? </p>
+</div></div>
 
 </div>
 
-
+<BR>
 <h3>Recent and Upcoming Events (<a href='infoSelect.php'>Full Event List</a>)</h3>
 
 

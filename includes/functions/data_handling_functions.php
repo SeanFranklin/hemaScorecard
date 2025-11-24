@@ -1297,6 +1297,22 @@ function getEventStats($stats){
 
 /******************************************************************************/
 
+function getNumEntriesAtLevel_primary($bracketLevel,$mode){
+// Returns either matches or number of fighters for a given consolation bracket level
+// matches mode: 	the number of matches at the brackets level
+// default mode: 	the number of fighters which the bracket can accomodate
+//					this is just the number of fighters in the consolation bracket
+//					and does not include the 2 who remain in the winners bracket
+
+	if($mode == 'matches' || $mode == 'match'){
+		return (int)pow(2,floor($bracketLevel));
+	} else {
+		return pow(2,floor($bracketLevel));
+	}
+}
+
+/******************************************************************************/
+
 function getNumEntriesAtLevel_consolation($bracketLevel,$mode){
 // Returns either matches or number of fighters for a given consolation bracket level
 // matches mode: 	the number of matches at the brackets level
@@ -1530,12 +1546,31 @@ function shouldMatchConcludeBySpread($matchInfo){
 	}
 
 	$spread = abs($matchInfo['fighter1score'] - $matchInfo['fighter2score']);
+	$maxScore = max($matchInfo['fighter1score'], $matchInfo['fighter2score']);
 
 	$shouldConclude = false;
 
 	if($spread >= $maxSpread){
-		$shouldConclude = true;
-		setAlert(USER_ALERT,"Point spread reached.");
+
+		$pointSpreadStartVal = readOption('T', $matchInfo['tournamentID'], 'POINT_SPREAD_START_VAL');
+
+		if($pointSpreadStartVal == 0){
+
+			$shouldConclude = true;
+			setAlert(USER_ALERT,"Point spread reached.");
+
+		} else {
+
+			if($maxScore >= $pointSpreadStartVal){
+				$shouldConclude = true;
+				setAlert(USER_ALERT,"Point spread reached.");
+			} else {
+				$shouldConclude = false;
+				setAlert(USER_ALERT,"Point spread reached, but the minimum score to conclude is <b>{$pointSpreadStartVal}</b>.");
+			}
+
+		}
+
 	}
 
 	return $shouldConclude;
@@ -1789,16 +1824,24 @@ function createMatchScoresheet($matchInfo)
 
 
 	foreach($exchanges as $e){
-		$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
-		$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";
+
+		if($e['exchangeType'] == 'noExchange'){
+			$scoresheet .= "\n".$e['exchangeTime']." "."No Exchange";
+		} else {
+			$scoresheet .= "\n".$e['exchangeTime']." ".$id2color[$e['rosterID']]." ". $e['exchangeType'];
+			$scoresheet .= " [".$e['scoreValue']."|".$e['scoreDeduction']."]";
+		}
+
 		if((int)$e['refPrefix'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refPrefix']);
 		}
+
 		if((int)$e['refTarget'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refTarget']);
 		}
+
 		if((int)$e['refType'] != 0)
 		{
 			$scoresheet .= ", ".GetAttackName($e['refType']);

@@ -188,6 +188,10 @@ function checkForTermsOfUse(){
 					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][1]'>
 					I understand that anyone can look at and have access to all the results/data from any tournament.
 				</div>
+				<div style='margin-left: 20px;'>
+					<input class='no-bottom' type='checkbox' name='ToS[checkboxes][5]'>
+					I am using it for an <i>external</i> (aka multiple clubs) tournament. Scorecard <u>is not for in-house tournaments</u>.
+				</div>
 			</div>
 
 		<!-- Exchange Info -->
@@ -229,9 +233,9 @@ function checkForTermsOfUse(){
 			</div>
 
 		<!-- Submit -->
-			<input type='hidden' name='ToS[numCheckboxes]' value='4'>
+			<input type='hidden' name='ToS[numCheckboxes]' value='5'>
 			<button class='button success small-6 cell' name='formName' value='SubmitToS'>
-				Got it!<BR> I checked and agreed to all 4 boxes and filled in the e-mail.
+				Got it!<BR> I checked and agreed to all 5 boxes and filled in the e-mail.
 			</button>
 
 			<button class='button alert small-6 cell' name='formName' value='logUserOut'>
@@ -2578,7 +2582,7 @@ function edit_tournamentMaxPoints($tournamentID = 0){
 	<tr class='option-auto-conclude <?=$hide?>'>
 		<td class='shrink-column'>
 			<div class='shrink'>
-				Maximum Points
+				Point Cap
 		<?php tooltip("Match will automaticaly conclude after this number is reached. <BR>
 			<strong>Leave blank for unlimited.</strong>"); ?>
 			</div>
@@ -2751,7 +2755,7 @@ function edit_tournamentBracketPointCap($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' name='updateTournament[bracketPointCap]' value='<?=$maximumPoints?>'
-					placeholder='n/a' min=0 max=100 class='text-center'>
+					placeholder='same' min=0 max=100 class='text-center'>
 			</div>
 		</td>
 	</tr>
@@ -2801,12 +2805,67 @@ function edit_tournamentFinalsPointCap($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 			<input type='number' name='updateTournament[finalsPointCap]' value='<?=$maximumPoints?>'
-					placeholder='n/a' min=0 max=100 class='text-center'>
+					placeholder='same' min=0 max=100 class='text-center'>
 			</div>
 		</td>
 	</tr>
 
 <?php }
+
+
+/******************************************************************************/
+
+function edit_tournamentPointSpreadStartVal($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+
+	if($tournamentID !=  0){
+		$sql = "SELECT formatID
+				FROM eventTournaments
+				WHERE tournamentID = {$tournamentID}";
+		$formatID = (int)mysqlQuery($sql, SINGLE,'formatID');
+
+		$pointSpreadStartVal = readOption('T', $tournamentID, 'POINT_SPREAD_START_VAL');
+
+		if($pointSpreadStartVal == 0){
+			$pointSpreadStartVal = null;
+		}
+
+	} else {
+		$pointSpreadStartVal = null;
+		$formatID = FORMAT_MATCH;
+	}
+
+	if($formatID != FORMAT_MATCH){
+		$hide = 'hidden';
+	} else {
+		$hide = '';
+	}
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-auto-conclude <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Min Score For Spread
+				<?=tooltip("<b>This is only relevant if you have set a <u>Maximum Points Spread</u></b>.<BR>The minimum number of total points to win a match using the point spread. eg: If Point Spread is 5, and Min Score is 10, you don't win with a 5-0, but can win with 10-5 score.");?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+
+				<input type='number' name='updateTournament[pointSpreadStartVal]' value='<?=$pointSpreadStartVal?>'
+						placeholder='n/a' min=0 max=300 class='text-center'>
+
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
 
 /*********************************************************(********************/
 
@@ -3618,9 +3677,9 @@ function autoFinalizeBracketForm($tournamentID){
 			<div class='switch no-bottom input-group-field'>
 				<input class='switch-input' type='hidden'
 					name='autoFinalizeSpecs[breakTies]' value=0>
-				<input class='switch-input polar-disables' type='checkbox' id='breakTies'
+				<input class='switch-input polar-disables' type='checkbox' id='breakTies-<?=$tournamentID?>'
 					name='autoFinalizeSpecs[breakTies]' value=1>
-				<label class='switch-paddle' for='breakTies'>
+				<label class='switch-paddle' for='breakTies-<?=$tournamentID?>'>
 				</label>
 			</div>
 		</div>

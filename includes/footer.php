@@ -94,12 +94,22 @@
 		<?php foreach($createSortableDataTable as $table):
 			$tableName = $table[0];
 			$tableSize = $table[1];
+			$tableSortCol = @(int)$table[2];
+			$tableSortOrder = @$table[3];
+			if($tableSortOrder == 'asc' || $tableSortOrder == 'desc'){
+				$order = "order: [[{$tableSortCol}, '{$tableSortOrder}']],";
+			} else {
+				$order = "";
+			}
+
+
 			?>
 
 			$(document).ready(function() {
 				$('#<?=$tableName?>').DataTable({
 					"pageLength": <?=$tableSize?>,
 					stateSave: true,
+					<?=$order?>
 				});
 			} );
 

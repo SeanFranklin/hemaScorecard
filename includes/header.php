@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $vJ = '?=1.9.6'; // Javascript Version
-$vC = '?=1.3.1'; // CSS Version
+$vC = '?=1.3.2'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -776,8 +776,8 @@ function eventNameListSelectOptions($eventID){
 		echo "<option selected disabled>* No Event Selected *</option>";
 	}
 
-	$newList = getEventListByPublication(ALLOW['VIEW_HIDDEN'], 'date');
-	$allList = getEventListByPublication(ALLOW['VIEW_HIDDEN']);
+	$newList = getEventListByPublication('date');
+	$allList = getEventListByPublication();
 
 	// This makes it so when tournaments are twice in the list the top option
 	// is the one that is selected.
