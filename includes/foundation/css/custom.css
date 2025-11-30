@@ -705,13 +705,42 @@ legend h4 {
   color:white;
 }
 
-.title-bar-title {
-  Color: white;
+.top-bar a {
+  color:#77DDFF;
 }
 
-a, a:visited {
-  color:#2D9CDB;
+.top-bar .white-text a {
+  color:white;
 }
+
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a::after {
+  border-color: #77DDFF transparent transparent;
+}
+
+.top-bar li.is-dropdown-submenu-parent.opens-right > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+.top-bar li.is-dropdown-submenu-parent.opens-left > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+
+/* White text overrides for dropdown arrows */
+.top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent > a::after {
+  content: "";
+  border-color: white transparent transparent;
+}
+
+.top-bar .white-text li.is-dropdown-submenu-item > a::after {
+  content: "";
+  border-color: transparent transparent transparent white;}
+
+
+
+/* a, a:visited {
+  color:#2D9CDB;
+} */
 
 /**#page-wrapper {
   margin-top:1rem;

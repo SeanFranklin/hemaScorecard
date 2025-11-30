@@ -2818,6 +2818,9 @@ ul.no-bullet, ol.no-bullet {
         .button.hollow.success:hover.disabled, .button.hollow.success:hover[disabled], .button.hollow.success:focus.disabled, .button.hollow.success:focus[disabled] {
           border: 1px solid #3adb76;
           color: #3adb76; }
+    .button.hollow.title-bar {
+      border: 1px solid #77DDFF;
+      color: #77DDFF; }
     .button.hollow.warning {
       border: 1px solid #ffae00;
       color: #ffae00; }
@@ -3830,7 +3833,7 @@ select {
   content: '';
   border-bottom-width: 0;
   border-top-style: solid;
-  border-color: #1779ba transparent transparent;
+  border-color: #77DDFF transparent transparent;
   right: 5px;
   left: auto;
   margin-top: -3px; }
