@@ -36,7 +36,7 @@ td.border-top{
 
 .folder-tab {
   height: 30px; /* tabs-height */
-  /* width: 150px; */
+   /* width: 150px; */
   position: relative;
   top: 11px;
   background-color: #259EE8; /* tabs-color */
@@ -705,6 +705,10 @@ legend h4 {
   color:white;
 }
 
+.title-bar-title {
+  Color: white;
+}
+
 .top-bar a {
   color:#77DDFF;
 }
@@ -898,7 +902,7 @@ h2 {
 }
 
 .title-bar .login-link {
-  display:inline-block;
+  /* display:inline-block; */
   float:right;
   color:white;
   margin: 0 .5rem;
