@@ -4,7 +4,7 @@
 
 .secondary-bracket{
   background-color:#FFF5E8;
-  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1); */
+  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1);
 }
 
 /* __ Placings for infoSummary ______________________________________________*/
@@ -35,7 +35,7 @@ td.border-top{
 
 .folder-tab {
   height: 30px; /* tabs-height */
-  // width: 150px;
+   /* width: 150px; */
   position: relative;
   top: 11px;
   background-color: #259EE8; /* tabs-color */
@@ -63,7 +63,7 @@ td.border-top{
   }
 
   &:before {
-    // opacity:1;
+    /* // opacity:1; */
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
@@ -102,8 +102,8 @@ td.border-top{
 
 .tabs-body {
   background-color: white;
-  height: calc(~"100vh - 120px");
-  width: calc(~"100vw - 61px");
+  height: calc("100vh - 120px");
+  width: calc("100vw - 61px");
   position: relative;
   top: 10px;
   left: 1px;
@@ -705,12 +705,45 @@ legend h4 {
 }
 
 .title-bar-title {
-  Color:white;
+  Color: white;
 }
 
-a, a:visited {
-  color:#2D9CDB;
+.top-bar a {
+  color:#77DDFF;
 }
+
+.top-bar .white-text a {
+  color:white;
+}
+
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a::after {
+  border-color: #77DDFF transparent transparent;
+}
+
+.top-bar li.is-dropdown-submenu-parent.opens-right > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+.top-bar li.is-dropdown-submenu-parent.opens-left > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+
+/* White text overrides for dropdown arrows */
+.top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent > a::after {
+  content: "";
+  border-color: white transparent transparent;
+}
+
+.top-bar .white-text li.is-dropdown-submenu-item > a::after {
+  content: "";
+  border-color: transparent transparent transparent white;}
+
+
+
+/* a, a:visited {
+  color:#2D9CDB;
+} */
 
 /**#page-wrapper {
   margin-top:1rem;
@@ -865,7 +898,7 @@ h2 {
 }
 
 .title-bar .login-link {
-  display:inline-block;
+  /* display:inline-block; */
   float:right;
   color:white;
   margin: 0 .5rem;
