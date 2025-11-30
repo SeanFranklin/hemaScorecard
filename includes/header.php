@@ -94,7 +94,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<div class="title-bar" data-responsive-toggle="tourney-animated-menu" data-hide-for="large" style='display:none'>
 		<form method='POST' name='logOutForm1'>
 		<button class="menu-icon" type="button" data-toggle></button>
-		<div class="white-text">Menu</div>
+		<div class="title-bar-title">Menu</div>
 
 		<?php if($_SESSION['userName'] == null): ?>
 			<a href='adminLogIn.php' class='login-link'>Login</a>
