@@ -116,9 +116,9 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 				<?=menuTournament()?>
 				<?=menuEventOrg()?>
 				<?=activeLivestream()?>
-				<li style='border-right: 1px solid white' class='hide-for-small-only'>&nbsp;</li>
-                <li><div class="drop-down-separator show-for-small-only">Software</div></li>
 				<?=menuAnalytics()?>
+                <li><div class="drop-down-separator show-for-small-only">Software</div></li>
+				<li style='border-right: 1px solid white' class='hide-for-small-only'>&nbsp;</li>
 				<!--<li><a style='margin-left:5px;' class='button warning hollow no-bottom' href='statsYear.php'>2024 in Review</a></li>-->
 				<li class="white-text"><a href='infoSelect.php'>Change Event</a></li>
 				<li class="white-text"><a href='adminHelp.php'>Help/About</a></li>
@@ -526,7 +526,7 @@ function menuEventOrgAfter(){
 
 function menuAnalytics(){
 ?>
-	<li class="white-text">
+	<li>
 		<a href='#'>Stats/Analytics</a>
 		<ul class='menu vertical'>
 

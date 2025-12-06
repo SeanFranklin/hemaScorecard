@@ -730,16 +730,30 @@ legend h4 {
   border-color: transparent transparent transparent #77DDFF;
 }
 
+.top-bar .dropdown.menu .is-active > a {
+  background: transparent;
+  color:#77DDFF;
+}
+
 /* White text overrides for dropdown arrows */
 .top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent > a::after {
   content: "";
   border-color: white transparent transparent;
 }
+.top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent.is-active > a {
+  background: transparent;
+  color: white;
+}
+
 
 .top-bar .white-text li.is-dropdown-submenu-item > a::after {
   content: "";
   border-color: transparent transparent transparent white;}
 
+  .top-bar .white-text li.is-dropdown-submenu-item.is-active > a {
+    background: transparent;
+    color: white;
+  }
 
 
 /* a, a:visited {

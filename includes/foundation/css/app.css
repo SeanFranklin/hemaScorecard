@@ -2488,7 +2488,7 @@ a {
   text-decoration: none;
   cursor: pointer; }
   a:hover, a:focus {
-    color: #1468a0; }
+     color: #1468a0; }
   a img {
     border: 0; }
 
@@ -3843,9 +3843,7 @@ select {
   [data-whatinput='mouse'] .dropdown.menu a {
     outline: 0; }
 
-.dropdown.menu .is-active > a {
-  background: transparent;
-  color: #1779ba; }
+.dropdown.menu .is-active > a { background: transparent;}
 
 .no-js .dropdown.menu ul {
   display: none; }
