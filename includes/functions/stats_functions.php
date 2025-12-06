@@ -274,8 +274,18 @@ function getAnnualEventsByDays($year, $futureView){
 
 	$plotEventsByDays = [];
 
-	for($i = 0; $i < 5; $i++){
-		$plotEventsByDays[$i]['name'] = $i." Day".plrl($i);
+	$MAX_DAYS = 4;
+
+	for($i = 0; $i < $MAX_DAYS; $i++){
+		$day = $i+1;
+
+		if($day != $MAX_DAYS){
+			$plotEventsByDays[$i]['name'] = $day." Day".plrl($day);
+		} else {
+			$plotEventsByDays[$i]['name'] = $day."+ Days";
+		}
+
+
 		$plotEventsByDays[$i]['value'] = 0;
 	}
 
@@ -284,6 +294,10 @@ function getAnnualEventsByDays($year, $futureView){
 		$end = strtotime($e['eventEndDate']);
 		$datediff = 1 + (($end - $start) / (60 * 60 * 24));
 		$index = $datediff - 1; // Javascript will need a zero-indexed array
+
+		if($index > $MAX_DAYS){
+			$index = $MAX_DAYS;
+		}
 
 		if(isset($plotEventsByDays[$index]) == true){
 			$plotEventsByDays[$index]['value']++;

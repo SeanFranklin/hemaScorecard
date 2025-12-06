@@ -97,6 +97,12 @@ if($typeSelect == null){
 			</button>
 		</form>
 		</div>
+
+		<div class='callout medium-5 large-3 cell'>
+			<i>Looking for an event as a participant or spectator?</i>
+			<BR>This page is for logging in as event staff. You can see the full event list using <a>Change Event</a> in the main navigation, or view a summary of active/recent/upcoming events on the <a>Landing Page</a>.
+		</div>
+
 	</div>
 
 
