@@ -1253,7 +1253,7 @@ function fighterDataEntryBox($matchInfo,$num){
 
 				<span style='font-size:20px;'> <?=$fighterName?></span>
 
-				<?php if(ALLOW['EVENT_SCOREKEEP'] == false):?>
+				<?php if(ALLOW['EVENT_SCOREKEEP'] == false || ALLOW['SOFTWARE_ADMIN'] == true ):?>
 					<div>
 						<span style='font-size:15px;'>
 						<?=$fighterSchool?>
