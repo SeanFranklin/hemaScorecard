@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.9.6'; // Javascript Version
+$vJ = '?=1.9.7'; // Javascript Version
 $vC = '?=1.3.2'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
@@ -471,6 +471,7 @@ function menuEventOrgBefore(){
 			<li><a href='logisticsStaffGrid.php?t=0'>Full Grid</a></li>
 			<li><a href='logisticsStaffList.php'>Full Staff List</a></li>
 			<li><a href='logisticsStaffMatch.php'>Match Staff Lists</a></li>
+			<li><a href='logisticsJudgeEval.php'>Judge Summary</a></li>
 
 		</ul>
 	</li>

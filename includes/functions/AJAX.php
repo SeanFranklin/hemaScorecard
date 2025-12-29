@@ -1253,6 +1253,234 @@ case 'updateCuttingQual': {
 
 /******************************************************************************/
 
+case 'judgeEval': {
+
+	if(ALLOW['EVENT_SCOREKEEP'] == false){
+		return;
+	}
+
+	$retVal = [];
+	$eventID = (int)$_SESSION['eventID'];
+
+	if($_REQUEST['tournamentIDs'] == 0){
+
+		$sql = "SELECT tournamentID
+				FROM eventTournaments
+				WHERE eventID = {$eventID}";
+
+		$tournamentIDs = implode2int((array)mysqlQuery($sql, SINGLES, 'tournamentID'));
+
+	} else {
+		$tournamentIDs = implode2int((array)$_REQUEST['tournamentIDs']);
+	}
+
+
+	$roleIDs = implode2int((array)$_REQUEST['roleIDs']);
+	$dataType = $_REQUEST['dataType'];
+	if((int)$_REQUEST['sortByValue'] == 0){
+		$sortMode = 'name';
+	} else {
+		$sortMode = 'value';
+	}
+
+	if($roleIDs === "0"){
+		$roleClause = "";
+	} else {
+		$roleClause = "AND logisticsRoleID IN ({$roleIDs})";
+	}
+
+	$hideWhiteCards = (boolean)readOption('E', $eventID, 'HIDE_WHITE_CARD_PENALTIES');
+
+
+	/* __ Parse Exchanges _______________________________________________________________ */
+
+	// This is an upper bound on the exchange length, unless there is some weirdness in the data.
+	$MAX_EXCH_LENGTH = 180;
+
+	$sql = "SELECT exchangeID, matchID, exchangeTime, rosterID, timestamp, exchangeType, refType
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				LEFT JOIN logisticsStaffMatches USING(matchID)
+			WHERE tournamentID IN ({$tournamentIDs})
+				{$roleClause}
+			ORDER BY rosterID ASC, matchID ASC, exchangeNumber ASC";
+	$raw = mysqlQuery($sql, ASSOC);
+
+	$lastExchangeTime = 0;
+	$matchID = 0;
+	$JudgeSummaries = [];
+	$lastUnixTimestamp = 0;
+
+
+	// Count each exchange and associate it with someone based on the role they had.
+	foreach($raw as $e){
+		$rosterID = (int)$e['rosterID'];
+
+		$unixTimestamp = strtotime($e['timestamp']);
+
+		if($e['matchID'] != $matchID){
+			$matchID = $e['matchID'];
+			$lastExchangeTime = 0;
+			@$JudgeSummaries[$rosterID]['numMatches']++;
+
+
+			$totalTimeSec = $e['exchangeTime'];
+
+		} else {
+			$totalTimeSec = $unixTimestamp - $lastUnixTimestamp;
+		}
+
+		if($e['exchangeType'] == 'penalty'){
+
+			if($hideWhiteCards == true && $e['refType'] == PENALTY_CARD_NONE){
+				// Don't count penalties without a color.
+			} else {
+				@$JudgeSummaries[$rosterID]['numPenalties']++;
+			}
+
+		}
+
+		$onTimeSec = $e['exchangeTime'] - $lastExchangeTime;
+		if($onTimeSec <= 0){
+			continue;
+		}
+
+		$offTimeSec = $totalTimeSec - $onTimeSec;
+
+
+		@$JudgeSummaries[$rosterID]['numExchanges']++;
+		@$JudgeSummaries[$rosterID]['timeOnTotal'] += limit($onTimeSec, 0, $MAX_EXCH_LENGTH);
+		@$JudgeSummaries[$rosterID]['timeAllTotal'] += limit($totalTimeSec, 0, $MAX_EXCH_LENGTH);
+		@$JudgeSummaries[$rosterID]['timeOffTotal'] += limit($offTimeSec, 0, $MAX_EXCH_LENGTH);
+
+
+		$lastUnixTimestamp = $unixTimestamp;
+		$lastExchangeTime = $e['exchangeTime'];
+
+	}
+
+	$retVal = [];
+	$retVal['plot'] = [];
+	$retVal['notes'] = "";
+	$i = 0;
+
+	// Parse the data and calculate things based on the total counts.
+	foreach($JudgeSummaries as $rosterID => $data){
+
+		if($JudgeSummaries[$rosterID]['timeOffTotal'] != 0){
+			@$JudgeSummaries[$rosterID]['timeRatio'] = $JudgeSummaries[$rosterID]['timeOnTotal'] / $JudgeSummaries[$rosterID]['timeOffTotal'];
+		} else {
+			@$JudgeSummaries[$rosterID]['timeRatio'] = 0;
+		}
+
+		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+			@$JudgeSummaries[$rosterID]['timeOnAvg'] = $JudgeSummaries[$rosterID]['timeOnTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
+		} else {
+			@$JudgeSummaries[$rosterID]['timeOnAvg'] = 0;
+		}
+
+		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+			@$JudgeSummaries[$rosterID]['timeOffAvg'] = $JudgeSummaries[$rosterID]['timeOffTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
+		} else {
+			@$JudgeSummaries[$rosterID]['timeOffAvg'] = 0;
+		}
+
+		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+			@$JudgeSummaries[$rosterID]['timeAllAvg'] = $JudgeSummaries[$rosterID]['timeAllTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
+		} else {
+			@$JudgeSummaries[$rosterID]['timeAllAvg'] = 0;
+		}
+
+		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+			@$JudgeSummaries[$rosterID]['penaltiesPerExch'] = $JudgeSummaries[$rosterID]['numPenalties'] / $JudgeSummaries[$rosterID]['numExchanges'];
+		} else {
+			@$JudgeSummaries[$rosterID]['penaltiesPerExch'] = 0;
+		}
+
+
+		$retVal['plot'][$i]['value'] = @$JudgeSummaries[$rosterID][$dataType];
+
+
+		if($rosterID != 0){
+			$retVal['plot'][$i]['name'] = getFighterName($rosterID);
+		} else {
+			$retVal['plot'][$i]['name'] = "*Unknown*";
+		}
+
+		$i++;
+
+	}
+
+	// currently only two modes are supported, name and descending by value.
+	if($sortMode == 'name'){
+		usort($retVal['plot'], function($a, $b) {
+			return $a['name'] <=> $b['name'];
+		});
+	} else {
+		usort($retVal['plot'], function($a, $b) {
+			return $b['value'] <=> $a['value'];
+		});
+	}
+
+
+	/* __ Description of the data returned _____________________________________ */
+
+	switch($dataType){
+		case 'numMatches':
+			$retVal['notes'] .= "Total number of matches staffed.";
+			break;
+		case 'numExchanges':
+			$retVal['notes'] .= "Total number of exchanges scored.";
+			break;
+		case 'numPenalties':
+			$retVal['notes'] .= "Total number of penalties awarded";
+			break;
+		case 'penaltiesPerExch':
+			$retVal['notes'] .= "Average number of penalties per exchange scored.";
+			break;
+		case 'timeOffTotal':
+			$retVal['notes'] .= "Total time [seconds] in matches without the clock running. (aka judge time).";
+			break;
+		case 'timeOffAvg':
+			$retVal['notes'] .= "Average time [seconds] per exchange with the clock not running (aka judge time).";
+			break;
+		case 'timeOnTotal':
+			$retVal['notes'] .= "Total time [seconds] in matches while the clock is running. (aka fighting time).";
+			break;
+		case 'timeOnAvg':
+			$retVal['notes'] .= "Average time [seconds] per exchange with the clock running (aka fighting time).";
+			break;
+		case 'timeAllTotal':
+			$retVal['notes'] .= "Total time [seconds] in matches.";
+			break;
+		case 'timeAllAvg':
+			$retVal['notes'] .= "Average time [seconds] per exchange (fighting + judging time).";
+			break;
+		case 'timeRatio':
+			$retVal['notes'] .= "Ratio of [fighting : judging] time.";
+			break;
+
+		default:	break;
+	}
+
+	if($dataType == 'numPenalties' || $dataType == 'penaltiesPerExch'){
+		if($hideWhiteCards == true){
+			$retVal['notes'] .= '<BR>Only colored cards displayed.';
+		} else {
+			$retVal['notes'] .= '<BR>Showing <u>all</u> exchanges entered as penalties, including white cards.';
+		}
+
+	}
+
+	$retVal['notes'] .= "<br><b>".getEventName($eventID)."<b>";
+
+
+	echo json_encode($retVal);
+
+} break;
+
 /******************************************************************************/
 
 }
