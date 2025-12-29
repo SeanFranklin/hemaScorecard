@@ -354,6 +354,101 @@ function getDataForYear(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing 
 
 /**********************************************************************/
 
+function updateJudgeEval(){
+
+    populateGoogleColumnChart([]);
+
+    var tournamentID = document.getElementById('judge-eval-tournamentID').value;
+    var roleID = document.getElementById('judge-eval-roleID').value;
+    var dataType = document.getElementById('judge-eval-dataType').value;
+    var sortByValue = document.getElementById('judge-eval-sortByValue').value;
+
+	var query = "mode=judgeEval";
+	query = query + "&tournamentIDs="+tournamentID;
+	query = query + "&roleIDs="+roleID;
+	query = query + "&dataType="+dataType;
+	query = query + "&sortByValue="+sortByValue;
+
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", AJAX_LOCATION+"?"+query, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+
+    xhr.onreadystatechange = function (){
+        if(this.readyState == 4 && this.status == 200){
+            if(this.responseText.length > 1){
+
+            	//console.log(this.responseText);
+                data = JSON.parse(this.responseText);
+
+                document.getElementById('judge-eval-notes').innerHTML = data['notes'];
+
+                populateGoogleColumnChart(data['plot'], 'judge-eval-chart');
+
+			}
+   		}
+
+	}
+}
+
+/**********************************************************************/
+
+function populateGoogleColumnChart(data, chartID){
+
+	google.charts.load('current', {packages: ['corechart', 'bar']});
+	google.charts.setOnLoadCallback(function (){drawMultSeries(data, chartID)});
+
+}
+
+/**********************************************************************/
+
+function drawMultSeries(data, chartID) {
+
+	var plotData = new google.visualization.DataTable();
+
+	plotData.addColumn('string', 'Name');
+	plotData.addColumn('number', 'Value');
+
+	numItems = data.length;
+
+	var axisLabelFontSize = 14;
+	if(numItems >= 40){
+		axisLabelFontSize = 10;
+	}
+
+	for(var i = 0; i < data.length; i++){
+		plotData.addRows([
+			[data[i]['name'],data[i]['value']],
+		]);
+	}
+
+
+	var options = {
+		legend: {position: 'none'},
+		hAxis: {
+			showTextEvery: 1,
+		    slantedText: true,
+		    slantedTextAngle: 45,
+		    textStyle: {
+		      fontSize: axisLabelFontSize,
+		    }
+		},
+		chartArea: {
+			left: 70,
+			bottom: 150,
+			right: 10,
+			top: 10,
+			width: '80%',
+			height: '75%'
+		}
+	};
+
+	var chart = new google.visualization.ColumnChart(document.getElementById(chartID));
+
+	chart.draw(plotData, options);
+
+}
 
 
 /**********************************************************************/

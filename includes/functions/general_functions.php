@@ -703,6 +703,12 @@ function getBracketLevelName($level, $bracketType, $elimType, $extraLevelsNum){
 
 }
 
+/******************************************************************************/
+
+// Limit the value to between MIN and MAX
+function limit($x, $min, $max){
+	return (max(min($x, $max), $min));
+}
 
 /******************************************************************************/
 // END OF FILE /////////////////////////////////////////////////////////////////

@@ -1,10 +1,11 @@
 /* Added By Sean **************************************************************/
 
+
 /* __ Bracket Formatting ______________________________________________*/
 
 .secondary-bracket{
   background-color:#FFF5E8;
-  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1); */
+  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1);
 }
 
 /* __ Placings for infoSummary ______________________________________________*/
@@ -35,7 +36,7 @@ td.border-top{
 
 .folder-tab {
   height: 30px; /* tabs-height */
-  // width: 150px;
+  /* width: 150px; */
   position: relative;
   top: 11px;
   background-color: #259EE8; /* tabs-color */
@@ -63,7 +64,7 @@ td.border-top{
   }
 
   &:before {
-    // opacity:1;
+    /* opacity:1; */
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
@@ -102,8 +103,8 @@ td.border-top{
 
 .tabs-body {
   background-color: white;
-  height: calc(~"100vh - 120px");
-  width: calc(~"100vw - 61px");
+  height: calc("100vh - 120px");
+  width: calc("100vw - 61px");
   position: relative;
   top: 10px;
   left: 1px;
@@ -705,7 +706,7 @@ legend h4 {
 }
 
 .title-bar-title {
-  Color:white;
+  Color: white;
 }
 
 a, a:visited {
@@ -716,7 +717,10 @@ a, a:visited {
   margin-top:1rem;
 }**/
 
-/**Match Styling **/
+
+
+/* __ Match Styling ___________________________________________________________________________________ */
+/* ____________________________________________________________________________________________________ */
 
 .match-item {
   display:block;
