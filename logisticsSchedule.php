@@ -744,25 +744,8 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 			}
 			$itemInfo['subtitle'] = $block['blockSubtitle'];
 
-
-
-			$itemInfo['colspan'] = sizeof($block['locationIDs']);
-
-			$isFirstLocation = true;
-
 			foreach($block['locationIDs'] as $locationID){
-
-				// The type 'new' indicates that this is a new block in this schedule grid
-				// spot. The type 'skip' indicates that this schedule grid spot is filled, but
-				// shouldn't be displayed in the table because the rowspan and colspan will
-				// cover it.
-				if($isFirstLocation == true){
-					$itemInfo['itemType'] = 'new';
-					$isFirstLocation = false;
-				} else {
-					$itemInfo['itemType'] = 'skip';
-				}
-
+				$itemInfo['itemType'] = 'new';
 				$scheduleData_table[$dayNum][$startTime][$locationID] = $itemInfo;
 
 				$itemInfo['itemType'] = 'skip';
@@ -773,11 +756,6 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 					$scheduleData_table[$dayNum][$time][$locationID] = $itemInfo;
 				}
 			}
-
-
-
-
-
 		}
 	}
 	return $scheduleData_table;
@@ -852,7 +830,6 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 
 					if(isset($itemInfo['itemType']) == false){
 						$rowspan = 1;
-						$colspan = 1;
 						$style = '';
 						$onclick = '';
 
@@ -872,7 +849,6 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						}
 
 						$rowspan = $itemInfo['numBlocks'];
-						$colspan = $itemInfo['colspan'];
 						$style = "border: solid black 1px; cursor: pointer;";
 
 						if(ALLOW['EVENT_MANAGEMENT'] == true){
@@ -903,37 +879,17 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						$style .= " background: {$color};";
 
 
-						$txtLength = strlen($itemInfo['name']." : ".$itemInfo['subtitle']);
-
-						$TITLE_SCALE_START = 40;
-						$TITLE_SCALE_END = 100;
-						$TITLE_SCALE_RANGE = 0.25;
-
-						if($txtLength <= $TITLE_SCALE_START){
-							$itemInfo['scale'] = 1;
-						} else if($txtLength >= $TITLE_SCALE_END) {
-							$itemInfo['scale'] = 1 - $TITLE_SCALE_RANGE;
-						} else {
-
-							$x = $txtLength - $TITLE_SCALE_START;
-							$x /= ($TITLE_SCALE_END - $TITLE_SCALE_START);
-
-							$itemInfo['scale'] = 1- ($x * $TITLE_SCALE_RANGE);
-						}
-
 					}
 
 						?>
-					<td rowspan=<?=$rowspan?> colspan=<?=$colspan?> style="<?=$style?>" <?=$onclick?> class='<?=$class?>'>
+					<td rowspan=<?=$rowspan?> style="<?=$style?>" <?=$onclick?> class='<?=$class?>'>
 						<?php if(isset($itemInfo['itemType']) != false):?>
 
-							<span style='font-size:<?=$itemInfo['scale']?>em'>
-								<strong ><?=$itemInfo['name']?></strong>
+							<strong><?=$itemInfo['name']?></strong>
 
-								<?php if($itemInfo['subtitle'] != null):?>
-									: <em><?=$itemInfo['subtitle']?></em>
-								<?php endif ?>
-							</span>
+							<?php if($itemInfo['subtitle'] != null):?>
+								<BR><em><?=$itemInfo['subtitle']?></em>
+							<?php endif ?>
 
 							<?php foreach($itemInfo['instructors'] as $instructor): ?>
 								<BR>&#8226;<u><?=$instructor['name']?></u>
