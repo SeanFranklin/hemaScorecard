@@ -2619,13 +2619,13 @@ function addNewEvent($eventInfo){
 function addNewSchool(){
 	if(ALLOW['EVENT_MANAGEMENT'] == false && ALLOW['SOFTWARE_ASSIST'] == false){return;}
 
-	$schoolFullName = $_POST['schoolFullName'];
-	$schoolShortName = $_POST['schoolShortName'];
-	$schoolAbbreviation = $_POST['schoolAbbreviation'];
-	$schoolBranch = $_POST['schoolBranch'];
+	$schoolFullName = trim($_POST['schoolFullName']);
+	$schoolShortName = trim($_POST['schoolShortName']);
+	$schoolAbbreviation = trim($_POST['schoolAbbreviation']);
+	$schoolBranch = trim($_POST['schoolBranch']);
 	$countryIso2 = $_POST['countryIso2'];
-	$schoolProvince = $_POST['schoolProvince'];
-	$schoolCity = $_POST['schoolCity'];
+	$schoolProvince = trim($_POST['schoolProvince']);
+	$schoolCity = trim($_POST['schoolCity']);
 
 	if($schoolShortName == null){$schoolShortName = $schoolFullName;}
 	if($schoolFullName == null){$schoolFullName = $schoolShortName;}
@@ -7332,13 +7332,13 @@ function updateExistingSchool(){
 		return;
 	}
 
-	$schoolFullName = $_POST['schoolFullName'];
-	$schoolShortName = $_POST['schoolShortName'];
-	$schoolAbbreviation = $_POST['schoolAbbreviation'];
-	$schoolBranch = $_POST['schoolBranch'];
+	$schoolFullName = trim($_POST['schoolFullName']);
+	$schoolShortName = trim($_POST['schoolShortName']);
+	$schoolAbbreviation = trim($_POST['schoolAbbreviation']);
+	$schoolBranch = trim($_POST['schoolBranch']);
 	$countryIso2 = $_POST['countryIso2'];
-	$schoolProvince = $_POST['schoolProvince'];
-	$schoolCity = $_POST['schoolCity'];
+	$schoolProvince = trim($_POST['schoolProvince']);
+	$schoolCity = trim($_POST['schoolCity']);
 
 	$sql = "UPDATE systemSchools SET
 			schoolFullName = ?,
