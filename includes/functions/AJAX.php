@@ -955,8 +955,10 @@ case 'getDataForYear': {
 	switch($_REQUEST['dataType']){
 		case 'events-by-country':	{$retVal = getAnnualEventsByCountry($year, $futureView); break;}
 		case 'exchanges-by-country':{$retVal = getAnnualExchangesByCountry($year, $futureView); break;}
-		case 'events-by-us-state':	{$retVal = getAnnualEventsByUsState($year, $futureView); break;}
+		case 'exchanges-by-nonus-country':{$retVal = getAnnualExchangesByNonusCountry($year, $futureView); break;}
 		case 'exchanges-by-us-state':{$retVal = getAnnualExchangesByUsState($year, $futureView); break;}
+		case 'events-by-nonus-country':	{$retVal = getAnnualEventsByNonusCountry($year, $futureView); break;}
+		case 'events-by-us-state':	{$retVal = getAnnualEventsByUsState($year, $futureView); break;}
 		case 'events-by-month':		{$retVal = getAnnualEventsByMonth($year, $futureView); break;}
 		case 'events-by-days':		{$retVal = getAnnualEventsByDays($year, $futureView); break;}
 		case 'exchanges-by-event':	{$retVal = getAnnualExchangesByEvent($year, $futureView); break;}

@@ -12,7 +12,6 @@ $hidePageTitle = true;
 $jsIncludes[] = 'stats_scripts.js';
 include('includes/header.php');
 
-define('FIRST_YEAR', 2015);
 
 {
 	// Show last year for the first 30 days of the new year.
@@ -101,7 +100,7 @@ define('FIRST_YEAR', 2015);
 
 		<li class="tabs-title"><a
 			href            ="#panel-country"
-			onclick="getDataForYearType(<?=$year?>, ['events-by-country', 'exchanges-by-country', 'events-by-us-state', 'exchanges-by-us-state'], 'teal',[0,0,10,10])">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-country', 'events-by-country', 'exchanges-by-nonus-country', 'exchanges-by-us-state', 'events-by-nonus-country', 'events-by-us-state'], 'teal',[10,10,10,10, 10, 10])">
 				            Country
 		</a></li>
 
@@ -176,16 +175,22 @@ define('FIRST_YEAR', 2015);
 		<div class="tabs-panel" id="panel-country">
 			<div class='grid-x grid-margin-x'>
 				<div class='medium-6 cell'>
-					<?=yearlySummaryItem('events-by-country', $year)?>
-				</div>
-				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('exchanges-by-country', $year)?>
 				</div>
 				<div class='medium-6 cell'>
-					<?=yearlySummaryItem('events-by-us-state', $year, ['unit'=>'Events','txt'=>"American stuff, everyone else can disregard."])?>
+					<?=yearlySummaryItem('events-by-country', $year)?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('exchanges-by-nonus-country', $year, ['unit'=>'Exchanges','txt'=>"American events removed for scaling."])?>
 				</div>
 				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('exchanges-by-us-state', $year, ['unit'=>'Exchanges','txt'=>"American stuff, everyone else can disregard."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-nonus-country', $year, ['unit'=>'Events','txt'=>"American events removed for scaling."])?>
+				</div>
+				<div class='medium-6 cell'>
+					<?=yearlySummaryItem('events-by-us-state', $year, ['unit'=>'Events','txt'=>"American stuff, everyone else can disregard."])?>
 				</div>
 			</div>
 		</div>

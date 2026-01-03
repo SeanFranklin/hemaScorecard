@@ -245,6 +245,9 @@ function getDataForYear(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing 
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send();
 
+    var table = document.getElementById(id+"-table");
+    table.innerHTML = "<tr><td class='text-center'><BR><i>Working on it...</i><BR><BR></td></tr>";
+
     xhr.onreadystatechange = function (){
         if(this.readyState == 4 && this.status == 200){
             if(this.responseText.length > 1){
