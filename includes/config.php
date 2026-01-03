@@ -68,6 +68,8 @@
 
 	define("EXPORT_DIR",'exports/');
 
+	define('FIRST_YEAR', 2015);
+
 // Tournament Related Constants
 
 	define("DEFAULT_COLOR_NAME_1",'RED');
