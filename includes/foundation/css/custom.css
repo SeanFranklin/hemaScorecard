@@ -36,7 +36,7 @@ td.border-top{
 
 .folder-tab {
   height: 30px; /* tabs-height */
-  /* width: 150px; */
+   /* width: 150px; */
   position: relative;
   top: 11px;
   background-color: #259EE8; /* tabs-color */
@@ -709,9 +709,56 @@ legend h4 {
   Color: white;
 }
 
-a, a:visited {
-  color:#2D9CDB;
+.top-bar a {
+  color:#77DDFF;
 }
+
+.top-bar .white-text a {
+  color:white;
+}
+
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a::after {
+  border-color: #77DDFF transparent transparent;
+}
+
+.top-bar li.is-dropdown-submenu-parent.opens-right > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+.top-bar li.is-dropdown-submenu-parent.opens-left > a::after {
+  content: "";
+  border-color: transparent transparent transparent #77DDFF;
+}
+
+.top-bar .dropdown.menu .is-active > a {
+  background: transparent;
+  color:#77DDFF;
+}
+
+/* White text overrides for dropdown arrows */
+.top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent > a::after {
+  content: "";
+  border-color: white transparent transparent;
+}
+.top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent.is-active > a {
+  background: transparent;
+  color: white;
+}
+
+
+.top-bar .white-text li.is-dropdown-submenu-item > a::after {
+  content: "";
+  border-color: transparent transparent transparent white;}
+
+  .top-bar .white-text li.is-dropdown-submenu-item.is-active > a {
+    background: transparent;
+    color: white;
+  }
+
+
+/* a, a:visited {
+  color:#2D9CDB;
+} */
 
 /**#page-wrapper {
   margin-top:1rem;
@@ -869,7 +916,7 @@ h2 {
 }
 
 .title-bar .login-link {
-  display:inline-block;
+  /* display:inline-block; */
   float:right;
   color:white;
   margin: 0 .5rem;

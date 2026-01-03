@@ -110,16 +110,18 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<div class="top-bar" id="tourney-animated-menu" data-animate="hinge-in-from-top hinge-out-from-top" style='display:none'>
 		<div class="top-bar-left">
 			<ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu style='z-index: 4;'>
-
+				<li><div class="drop-down-separator show-for-small-only">Tournament</div></li>
 				<?php tournamentListForHeader(); ?>
 				<?=menuEvent()?>
 				<?=menuTournament()?>
 				<?=menuEventOrg()?>
-				<?=menuAnalytics()?>
 				<?=activeLivestream()?>
+                <li><div class="drop-down-separator show-for-small-only">Software</div></li>
+				<li style='border-right: 1px solid white' class='hide-for-small-only'>&nbsp;</li>
+				<?=menuAnalytics()?>
 				<!--<li><a style='margin-left:5px;' class='button warning hollow no-bottom' href='statsYear.php'>2024 in Review</a></li>-->
-				<li><a href='infoSelect.php'>Change Event</a></li>
-				<li><a href='adminHelp.php'>Help/About</a></li>
+				<li class="white-text"><a href='infoSelect.php'>Change Event</a></li>
+				<li class="white-text"><a href='adminHelp.php'>Help/About</a></li>
 				<?=menuAdmin()?>
 			</ul>
 
@@ -423,6 +425,7 @@ function menuEventOrg(){
 
 		</ul>
 	</li>
+	<!-- <li><a href='statsResultsDump.php?t=0'>Export Results</a></li> -->
 <?php }
 
 /******************************************************************************/
@@ -507,7 +510,7 @@ function menuEventOrgDuring(){
 
 function menuEventOrgAfter(){
 
-	return; // HEMA Ratings form Removed. No more content here
+	// return; // HEMA Ratings form Removed. No more content here // Added Hema Ratings export back
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){
 		return;
@@ -515,7 +518,7 @@ function menuEventOrgAfter(){
 ?>
 	<div class="drop-down-separator">After</div>
 
-	<li><a href=''></a></li>
+	<li><a href='statsResultsDump.php?t=0'>Export Results</a></li>
 <?php }
 
 
@@ -523,7 +526,7 @@ function menuEventOrgAfter(){
 
 function menuAnalytics(){
 ?>
-	<li>
+	<li class='white-text'>
 		<a href='#'>Stats/Analytics</a>
 		<ul class='menu vertical'>
 
@@ -587,7 +590,7 @@ function menuAdmin(){
 	}
 
 ?>
-	<li>
+	<li class="white-text">
 		<a href='#'>ADMIN</a>
 		<ul class='menu vertical'>
 			<li><a href='masterEvents.php?t=0'>Manage Events</a></li>
@@ -831,7 +834,7 @@ function tournamentListForHeader(){
 	<?php if($_SESSION['tournamentID'] == null): ?>
 		<span class='button success hollow' style='margin-bottom: 0px'>Select Tournament</span>
 	<?php else: ?>
-		<a href='#' class='button hollow'><?= $currentTournamentName ?></a>
+		<a href='#' class='button hollow title-bar'><?= $currentTournamentName ?></a>
 	<?php endif ?>
 
 	<?php if($tournamentsToDisplay != []):?>
