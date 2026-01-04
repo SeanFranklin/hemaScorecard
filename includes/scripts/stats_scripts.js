@@ -387,7 +387,32 @@ function updateJudgeEval(){
 
                 document.getElementById('judge-eval-notes').innerHTML = data['notes'];
 
-                populateGoogleColumnChart(data['plot'], 'judge-eval-chart');
+                var axisLabelFontSize = 14;
+				if(numItems >= 40){
+					axisLabelFontSize = 10;
+				}
+
+                var options = {
+					legend: {position: 'none'},
+					hAxis: {
+						showTextEvery: 1,
+					    slantedText: true,
+					    slantedTextAngle: 45,
+					    textStyle: {
+					      fontSize: axisLabelFontSize,
+					    }
+					},
+					chartArea: {
+						left: 70,
+						bottom: 150,
+						right: 10,
+						top: 10,
+						width: '80%',
+						height: '75%'
+					}
+				};
+
+                populateGoogleColumnChart(data['plot'], 'judge-eval-chart', 'bar', options);
 
 			}
    		}
@@ -406,7 +431,7 @@ function populateGoogleColumnChart(data, chartID){
 
 /**********************************************************************/
 
-function drawMultSeries(data, chartID) {
+function drawMultSeries(data, chartID, chartType = 'bar', options = null) {
 
 	var plotData = new google.visualization.DataTable();
 
@@ -415,10 +440,7 @@ function drawMultSeries(data, chartID) {
 
 	numItems = data.length;
 
-	var axisLabelFontSize = 14;
-	if(numItems >= 40){
-		axisLabelFontSize = 10;
-	}
+
 
 	for(var i = 0; i < data.length; i++){
 		plotData.addRows([
@@ -427,27 +449,20 @@ function drawMultSeries(data, chartID) {
 	}
 
 
-	var options = {
-		legend: {position: 'none'},
-		hAxis: {
-			showTextEvery: 1,
-		    slantedText: true,
-		    slantedTextAngle: 45,
-		    textStyle: {
-		      fontSize: axisLabelFontSize,
-		    }
-		},
-		chartArea: {
-			left: 70,
-			bottom: 150,
-			right: 10,
-			top: 10,
-			width: '80%',
-			height: '75%'
-		}
-	};
 
-	var chart = new google.visualization.ColumnChart(document.getElementById(chartID));
+
+	console.log(chartType);
+
+	switch(chartType){
+		case 'pie':
+			var chart = new google.visualization.PieChart(document.getElementById(chartID));
+			break;
+		case 'bar':
+		default:
+			var chart = new google.visualization.ColumnChart(document.getElementById(chartID));
+			break;
+
+	}
 
 	chart.draw(plotData, options);
 

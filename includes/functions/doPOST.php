@@ -623,6 +623,9 @@ function processPostData(){
 			case 'statsYear':
 				$_SESSION['stats']['year'] = (int)$_POST['stats']['year'];
 				break;
+			case 'statsWeaponID':
+				$_SESSION['stats']['weaponID'] = (int)$_POST['stats']['weaponID'];
+				break;
 			case 'statsFutureView':
 				$_SESSION['stats']['futureView'] = (int)$_POST['stats']['futureView'];
 				break;
