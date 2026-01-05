@@ -5999,7 +5999,7 @@ function useParticipantIDs($post){
 
 	foreach(@$post['IDs'] as $rosterID => $participantID){
 
-		$participantID = (int)$participantID;
+		$participantID = trim($participantID);
 		$rosterID = (int)$rosterID;
 
 		$sql = "SELECT tableID
@@ -6010,11 +6010,18 @@ function useParticipantIDs($post){
 
 		if($tableID == 0){
 
-			if($participantID != 0){
+			if(strlen($participantID) != 0){
+
 				$sql = "INSERT INTO logisticsParticipantIds
 						(rosterID, participantID)
 						VALUES
-						({$rosterID}, {$participantID})";
+						({$rosterID}, ?)";
+
+				$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+				$bind = mysqli_stmt_bind_param($stmt, "s", $participantID);
+				$exec = mysqli_stmt_execute($stmt);
+				mysqli_stmt_close($stmt);
+
 			} else {
 				// No need to do anything. It doesn't exist, and also is supposed to be zero.
 			}
@@ -6025,19 +6032,24 @@ function useParticipantIDs($post){
 			if($participantID != 0){
 
 				$sql = "UPDATE logisticsParticipantIds
-						SET participantID = {$participantID}
+						SET participantID = ?
 						WHERE tableID = {$tableID}";
+
+				$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+				$bind = mysqli_stmt_bind_param($stmt, "s", $participantID);
+				$exec = mysqli_stmt_execute($stmt);
+				mysqli_stmt_close($stmt);
 
 			} else {
 
 				$sql = "DELETE FROM logisticsParticipantIds
 						WHERE tableID = {$tableID}";
+				mysqlQuery($sql, SEND);
 
 			}
 
 		}
 
-		mysqlQuery($sql, SEND);
 	}
 
 	setAlert(USER_ALERT, "ParticipantIDs updated.");

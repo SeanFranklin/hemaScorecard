@@ -164,7 +164,7 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 
 		<!-- Participant info -->
 			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
-				<?=getFighterName($rosterID)?>
+				<?=getFighterName($rosterID, null, null, false, true)?>
 			</td>
 
 			<?php
