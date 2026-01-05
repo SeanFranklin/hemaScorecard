@@ -237,6 +237,9 @@
 	$options['E']["HIDE_WHITE_CARD_PENALTIES"] 		= 14;
 	$options['E']["SHOW_FIGHTER_RATINGS"] 		    = 24;
 	$options['E']["USE_PARTICIPANT_IDS"] 		    = 30;
+		define("PARTICIPANT_IDS_NO",0);
+		define("PARTICIPANT_IDS_APPEND",1);
+		define("PARTICIPANT_IDS_REPLACE",2);
 
 	define('OPTION',$options);
 
