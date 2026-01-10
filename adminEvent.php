@@ -651,17 +651,19 @@ function displaySettingsBox($defaults, $canChangeSettings){
 		<div class='large-12 cell hidden participant-ids grid-x grid-margin-x'>
 			<HR>
 			<form method="POST">
-				Participant IDs allow you to add an ID tag to all participants. It will show up next to their name, such as <b>Fighter Name (1234)</b>. IDs must be numbers, and can not be zero. Nothing here is going to stop you from entering the same ID to multiple people (if you wanted to for some reason).<BR>
+				Participant IDs allow you to add an ID tag to participants. In Append Mode will show up next to their name, such as <i>Fighter Name (1234)</i>. In Replace Mode it will replace their name with the ID is all places <i>except</i> the event roster page (where it will display in Append Mode). If the ID is left blank the name will display as normal, no matter what mode is selected.
+				(Nothing here is going to stop you from entering the same ID to multiple people if you wanted to for some reason).<BR>
 
 				<input type='hidden' name='formName' value='useParticipantIDs'>
 
-				<div class='large-5 medium-8'>
+				<div class='large-6 medium-9'>
 
 					<div class='input-group'>
 						<span class='input-group-label'>Use Participant IDs</span>
 						<select name='useParticipantIDs[use]' class='input-group-field'>
 							<option <?=optionValue(0, $useIDs)?> > No </option>
-							<option <?=optionValue(1, $useIDs)?> > Yes </option>
+							<option <?=optionValue(1, $useIDs)?> > Append After Name </option>
+							<option <?=optionValue(2, $useIDs)?> > Replace Name </option>
 						</select>
 						<input type='submit' class='button success input-group-button' value='Update'>
 					</div>
@@ -670,7 +672,7 @@ function displaySettingsBox($defaults, $canChangeSettings){
 					<?php foreach($participants as $p): ?>
 						<tr>
 							<td><?=$p['firstName']?> <?=$p['lastName']?></td>
-							<td><input type='number' class='no-bottom' name='useParticipantIDs[IDs][<?=$p['rosterID']?>]' style='width:7em' value='<?=$p['participantID']?>' placeholder='n/a'></td>
+							<td><input type='text' class='no-bottom' name='useParticipantIDs[IDs][<?=$p['rosterID']?>]' style='width:7em' value='<?=$p['participantID']?>' placeholder='n/a'></td>
 						</tr>
 					<?php endforeach ?>
 					</table>

@@ -3088,7 +3088,7 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 
 /******************************************************************************/
 
-function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false){
+function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false, $forceParticipantIds = false){
 
 	$rosterID = (int)$rosterID;
 	if($rosterID == 0){
@@ -3099,8 +3099,27 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 		return getTeamName($rosterID, $splitName);
 	}
 
+	// __ Participant ID feature __________________________________________________
+	// Not used in the vast majority of events
+	$participantID = "";
+	$useParticipantIds = PARTICIPANT_IDS_NO;
 
+	if($forceParticipantIds == true){
+		$useParticipantIds = PARTICIPANT_IDS_APPEND;
+	} else {
+		$useParticipantIds = @(int)$_SESSION['useParticipantIds'];
+	}
+
+	if($useParticipantIds != PARTICIPANT_IDS_NO){
+		$sql = "SELECT participantID
+				FROM logisticsParticipantIds
+				WHERE rosterID = {$rosterID}";
+		$participantID = mysqlQuery($sql, SINGLE, 'participantID');
+	}
+
+	// __ Query Name _____________________________________________________________
 	if($splitName == null){
+
 		$sql = "SELECT firstName, lastName
 				FROM eventRoster
 				INNER JOIN systemRoster USING(systemRosterID)
@@ -3116,27 +3135,37 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 			$name = @$result['firstName']." ".@$result['lastName'];
 		}
 
+		// It's inneficient getting the name then just overwriting it, but the code is cleaner
+		// and this option is used so infrequently it's worth the tradeoff.
+		if($participantID != ""){
+
+			if($useParticipantIds == PARTICIPANT_IDS_REPLACE){
+				$name = "$participantID";
+			} else {
+				$name .= " ({$participantID})";
+			}
+
+		}
+
 	} else {
+
 		$sql = "SELECT systemRoster.firstName, systemRoster.lastName
 				FROM eventRoster
 				INNER JOIN systemRoster ON eventRoster.systemRosterID = systemRoster.systemRosterID
 				WHERE eventRoster.rosterID = {$rosterID}";
 		$name = mysqlQuery($sql, SINGLE);
-	}
 
+		if($participantID != ""){
 
-	if((@(int)$_SESSION['useParticipantIds']) != 0){
+			if($useParticipantIds == PARTICIPANT_IDS_REPLACE){
+				$name['firstName'] = "$participantID";
+				$name['lastName'] = "&nbsp;";
+			} else {
+				$name['lastName'] .= " ({$participantID})";
+			}
 
-		$sql = "SELECT participantID
-				FROM logisticsParticipantIds
-				WHERE rosterID = {$rosterID}";
-		$participantID = (int)mysqlQuery($sql, SINGLE, 'participantID');
-
-		if($participantID != 0){
-			$name .= " ({$participantID})";
 		}
 	}
-
 
 	return $name;
 }

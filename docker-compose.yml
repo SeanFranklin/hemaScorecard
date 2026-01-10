@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
 
-    volumes: 
+    volumes:
       - .:/hemaScorecard
 
     command: >
