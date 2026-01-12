@@ -904,6 +904,68 @@ function _PhoMatchPoints_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _WinsPointsFast_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+	// Calculate the normalized size
+	$normalizedMatches = getNormalization($tournamentID, $groupSet) - 1;
+
+	$sql = "SELECT standingID, rosterID, matches, wins, losses, ties
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+
+		$sql = "SELECT matchID,
+					(SELECT MAX(exchangeTime)
+					FROM eventExchanges AS eE2
+					WHERE eE2.matchID = eM.matchID
+					) AS matchTime
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+				AND ignoreMatch = 0
+				AND matchComplete = 1";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$numMatches = 0;
+		$timeInMatches = 0;
+
+		foreach($matches as $match){
+			$numMatches++;
+
+			$timeInMatches += $match['matchTime'];
+		}
+
+		if($numMatches != 0){
+			$score = $timeInMatches/$numMatches;
+		} else {
+			$score = 0;
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+/******************************************************************************/
+
 function _Schnegel_calculateScore($tournamentID, $groupSet = 1){
 
 	$tournamentID = (int)$tournamentID;
