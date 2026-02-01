@@ -744,10 +744,54 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 			}
 			$itemInfo['subtitle'] = $block['blockSubtitle'];
 
-			foreach($block['locationIDs'] as $locationID){
-				$itemInfo['itemType'] = 'new';
+			$colspan = 1;
+
+			foreach($block['locationIDs'] as $index => $locationID){
+
+				// The type 'new' indicates that this is a new block in this schedule grid
+				// spot. The type 'skip' indicates that this schedule grid spot is filled, but
+				// shouldn't be displayed in the table because the rowspan and colspan will
+				// cover it.
+
+				// The colspan mess is to determine if the block spans contiguous columns
+				// and thus should be displayed as one colspan block, instead of multiple
+				// blocks in the case the locations would not be displayed next to each other
+				// in the schedule. colspan = 0 means that this is the start of a new block
+				// and it is not shown in the space immediately to its left
+
+				$colspan--;
+				if($colspan == 0){
+					foreach($eventPlaces as $placeIndex => $place){
+
+						if($colspan == 0){
+							if($place['locationID'] == $locationID){
+								$colspan = 1;
+							}
+						} else {
+							if(isset($block['locationIDs'][$index+$colspan]) == true
+								&& $block['locationIDs'][$index+$colspan] == $place['locationID']){
+								$colspan++;
+							} else {
+								break;
+							}
+						}
+					}
+
+					$itemInfo['itemType'] = 'new';
+
+				} else {
+
+					$itemInfo['itemType'] = 'skip';
+
+				}
+
+				$itemInfo['colspan'] = $colspan;
+
+				// Update the first block in the vertical stack
 				$scheduleData_table[$dayNum][$startTime][$locationID] = $itemInfo;
 
+				// Update the subsequent blocks in the vertical stack. These need to be skipped,
+				// as a rowspan will take care of it.
 				$itemInfo['itemType'] = 'skip';
 				for($time = $startTime +  SCHEDULE_TIME_INTERVAL;
 					$time < $endTime;
@@ -756,6 +800,7 @@ function convertScheduleToTableDisplayFormat($schedule, $eventDays, $eventPlaces
 					$scheduleData_table[$dayNum][$time][$locationID] = $itemInfo;
 				}
 			}
+
 		}
 	}
 	return $scheduleData_table;
@@ -830,6 +875,7 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 
 					if(isset($itemInfo['itemType']) == false){
 						$rowspan = 1;
+						$colspan = 1;
 						$style = '';
 						$onclick = '';
 
@@ -849,6 +895,7 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						}
 
 						$rowspan = $itemInfo['numBlocks'];
+						$colspan = $itemInfo['colspan'];
 						$style = "border: solid black 1px; cursor: pointer;";
 
 						if(ALLOW['EVENT_MANAGEMENT'] == true){
@@ -879,17 +926,36 @@ function displayScheduleDay_asTable($timeLine, $eventPlaces,$conflictList){
 						$style .= " background: {$color};";
 
 
+						// Scale the text size of the class name if it gets really long
+						$txtLength = strlen($itemInfo['name']." : ".$itemInfo['subtitle']);
+
+						$TITLE_SCALE_START = 40;
+						$TITLE_SCALE_END = 100;
+						$TITLE_SCALE_RANGE = 0.25;
+
+						if($txtLength <= $TITLE_SCALE_START){
+							$itemInfo['scale'] = 1;
+						} else if($txtLength >= $TITLE_SCALE_END) {
+							$itemInfo['scale'] = 1 - $TITLE_SCALE_RANGE;
+						} else {
+
+							$x = $txtLength - $TITLE_SCALE_START;
+							$x /= ($TITLE_SCALE_END - $TITLE_SCALE_START);
+
+							$itemInfo['scale'] = 1- ($x * $TITLE_SCALE_RANGE);
+						}
+
 					}
 
 						?>
-					<td rowspan=<?=$rowspan?> style="<?=$style?>" <?=$onclick?> class='<?=$class?>'>
+					<td rowspan=<?=$rowspan?> colspan=<?=$colspan?> style="<?=$style?>" <?=$onclick?> class='<?=$class?>'>
 						<?php if(isset($itemInfo['itemType']) != false):?>
 
-							<strong><?=$itemInfo['name']?></strong>
-
-							<?php if($itemInfo['subtitle'] != null):?>
-								<BR><em><?=$itemInfo['subtitle']?></em>
-							<?php endif ?>
+							<span style='font-size:<?=$itemInfo['scale']?>em'>
+								<strong ><?=$itemInfo['name']?></strong><?php if($itemInfo['subtitle'] != null):?>
+: <em><?=$itemInfo['subtitle']?></em>
+								<?php endif ?>
+							</span>
 
 							<?php foreach($itemInfo['instructors'] as $instructor): ?>
 								<BR>&#8226;<u><?=$instructor['name']?></u>
