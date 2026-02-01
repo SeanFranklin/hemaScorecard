@@ -644,6 +644,8 @@ function displaySettingsBox($defaults, $canChangeSettings){
 			</button>
 		</div>
 
+	</form>
+
 		<div class='large-6 cell'>
 			<a onclick="$('.participant-ids').toggle()">Use participant IDs (a weird option you probably won't use).</a>
 		</div>
