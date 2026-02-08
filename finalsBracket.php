@@ -412,6 +412,10 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 
 		<?php endif ?>
 
+		<div class='large-9 medium-8 cell text-right'>
+			<a class='no-bottom' onclick="$('.seed-text').toggle()"><i>Show Seed Positions</i></a>
+		</div>
+
 	</div>
 	</fieldset>
 
@@ -664,6 +668,12 @@ function displayBracket($bracketInfo,
 				$effectivePosition += $bracketLevelsDisplayed - $bracketLevels;
 			}
 
+            // bracketPosition is the position of the match, this needs to be converted into
+			// the position of the actual fighter in the bracket
+			$seedText = getBracketSeedByPos(2*$bracketPosition-1,$currentLevel);
+			$seedText .=" v ";
+			$seedText .= getBracketSeedByPos(2*$bracketPosition,$currentLevel);
+
 			if(isset($bracketMatches[$currentLevel][$effectivePosition]) == false){
 				$matchInfo = null;
 				$matchID = null;
@@ -699,6 +709,8 @@ function displayBracket($bracketInfo,
 						}
 
 						goToMatchButton($matchInfo);
+
+						echo "<span style='font-size:0.85em; display:none' class='seed-text'>{$seedText}</span>";
 					} ?>
 
 
