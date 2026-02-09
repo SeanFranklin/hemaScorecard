@@ -1378,6 +1378,56 @@ function getBracketPositionByRank($rank, $numPositions){
 
 /******************************************************************************/
 
+function getBracketSeedByPos($pos, $bracketLevel){
+// returns the 'ideal' seed position for a fighter given the position in the bracket.
+// this is position from the top of the bracket for that level given an idealized
+// primary bracket (no byes) with the first position being 1-index and not 0-index.
+// This always assumes the higher rated fencer wins a match to determine the 'ideal'.
+
+	$pos = (int)$pos;
+
+	if($bracketLevel == 0){
+		return(1);
+	} else {
+
+		$numAtLevel = pow(2,$bracketLevel);
+
+		// Calculate the position we should look at if we move up one level in the bracket.
+		$searchPos = ceil($pos/2);
+
+		$upstreamSeed = getBracketSeedByPos($searchPos, $bracketLevel - 1);
+		$upstreamPair = $numAtLevel - $upstreamSeed + 1; // opponent of the seed
+
+
+		// Every second match has the top seed on the bottom and the lower seed on the top
+		// This has the mod operation twice (once to generate searchPos and once here)
+		// because this is dealing with matche positions and not fighter positions
+		if(($searchPos % 2) == 0){
+			$top = $upstreamSeed;
+			$bottom = $upstreamPair;
+		} else {
+			$top = $upstreamPair;
+			$bottom = $upstreamSeed;
+		}
+
+		// Once we determine which match we should use when going backwards from the upstream
+		// seed & pair we then determine which of the seeds from this match we should be looking at,
+		// the top or bottom.
+		if(($pos % 2) == 0){
+			$seed = $top;
+		} else {
+			$seed = $bottom;
+		}
+
+		return($seed);
+
+
+	}
+
+}
+
+/******************************************************************************/
+
 function updatePoolStandings($tournamentID, $groupSet = 1){
 // Calls the functions in poolScoring.php required to update the pool standings
 // If called with groupSet == 0 it does them all
