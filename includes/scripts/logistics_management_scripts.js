@@ -43,7 +43,7 @@ function logistics_esbPopulateForm(){
 
         var query = "mode=getSessionDayNum";
         var xhr2 = new XMLHttpRequest();
-        xhr2.open("POST", AJAX_LOCATION+"?"+query, true);
+        xhr2.open("GET", AJAX_LOCATION+"?"+query, true);
         xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         xhr2.send();
 
@@ -66,7 +66,7 @@ function logistics_esbPopulateForm(){
 
         var query = "mode=getScheduleBlockInfo&blockID="+blockID.toString();
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+        xhr.open("GET", AJAX_LOCATION+"?"+query, true);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         xhr.send();
 
