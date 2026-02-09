@@ -47,7 +47,7 @@ function checkIfFought(checkbox){
 		}
 
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", AJAX_LOCATION+"?"+query, true);
+		xhr.open("GET", AJAX_LOCATION+"?"+query, true);
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		xhr.send();
 
