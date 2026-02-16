@@ -5830,7 +5830,8 @@ function logistics_getEventSchedule($eventID, $withShifts = false){
 		$sql = "SELECT locationID
 				FROM logisticsLocationsBlocks
 				INNER JOIN logisticsLocations USING(locationID)
-				WHERE blockID = {$blockID}";
+				WHERE blockID = {$blockID}
+				ORDER BY locationOrder ASC, hasMatches DESC, hasClasses DESC, locationName ASC";
 
 		$scheduleData[$index]['locationIDs'] = mysqlQuery($sql, SINGLES,'locationID');
 	}
