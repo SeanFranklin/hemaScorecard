@@ -2094,7 +2094,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			displayTitle4, displayField4,
 			displayTitle5, displayField5
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 	$displayMeta = mysqlQuery($sql, SINGLE);
 
@@ -2891,7 +2891,7 @@ function pool_RankFighters($tournamentID, $groupSet = 1, $useTeams = false){
 			orderByField3, orderBySort3,
 			orderByField4, orderBySort4
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	$meta = mysqlQuery($sql, SINGLE);

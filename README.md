@@ -17,16 +17,16 @@ MySql data will be persisted to the ./data folder in the repository directory as
 ### Troubleshooting
 
 
-If there is a need to get inside running container simply issue 
+If there is a need to get inside running container simply issue the following specifying the db or web container.
 
 ```bash
-$ docker-compose exec db /bin/bash
+$ docker compose exec [db/web] /bin/bash
 ``` 
 
-to get into mysql container, and 
+To login to the mysql database inside of the running db container. You'll be prompted for the password which you can find in the docker compose file.
 
 ```bash
-$ docker-compose exec web /bin/bash
+$ docker compose exec db /bin/bash
+$ mysql -uroot -p ScorecardV5
 ```
 
-to get to the web container, respectively.
