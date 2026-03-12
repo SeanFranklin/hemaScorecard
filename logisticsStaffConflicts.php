@@ -213,7 +213,7 @@ function scheduleConflictList($conflictList, $eventDays){
 		<?php foreach($conflicts as $conflict):
 			$info[1] = logistics_getScheduleItemDescription($conflict[1]['blockID'],$conflict[1]['shiftID']);
 			$info[2] = logistics_getScheduleItemDescription($conflict[2]['blockID'],$conflict[2]['shiftID']);
-			$i++;
+
 
 			if($i % 2 == 0){
 				$color = 'white';
@@ -243,6 +243,8 @@ function scheduleConflictList($conflictList, $eventDays){
 					continue;
 				}
 			}
+
+			$i++;
 
 			?>
 			<tr style='border-top: 1px solid black; background-color: <?=$color?>;'>
