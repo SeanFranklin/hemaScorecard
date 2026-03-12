@@ -2414,6 +2414,24 @@ function getEventAdditionalParticipants($eventID){
 
 /******************************************************************************/
 
+function isConflictSuppressed($rosterID, $tournamentID1, $tournamentID2){
+	$rosterID = (int)$rosterID;
+	$tournamentID1 = (int)$tournamentID1;
+	$tournamentID2 = (int)$tournamentID2;
+
+	$sql = "SELECT scheduleConflictID
+			FROM logisticsScheduleConflicts
+			WHERE rosterID = {$rosterID}
+				AND tournamentID1 = {$tournamentID1}
+				AND tournamentID2 = {$tournamentID2}";
+	$scheduleConflictID = (int)mysqlQuery($sql, SINGLE, 'scheduleConflictID');
+
+	return ((boolean)$scheduleConflictID);
+
+}
+
+/******************************************************************************/
+
 function getCheckInStatusEvent($eventID){
 
 	$eventID = (int)$eventID;
@@ -7013,10 +7031,11 @@ function logistics_getEventInstructors($eventID){
 		$name = "CONCAT(lastName,', ',firstName)";
 	}
 
-	$sql = "SELECT rosterID, {$name} AS name, instructorBio, systemRosterID
+	$sql = "SELECT rosterID, {$name} AS name, instructorBio, systemRosterID, schoolFullName AS schoolName
 			FROM logisticsInstructors AS lI
-			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventRoster AS eR USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)
+			INNER JOIN systemSchools AS sS ON eR.schoolID = sS.schoolID
 			WHERE lI.eventID = {$eventID}
 			ORDER BY {$orderName} ASC, {$orderName2} ASC";
 	$list = (array)mysqlQuery($sql, ASSOC);
@@ -7604,7 +7623,7 @@ function logistics_getParticipantSchedule($rosterID, $eventID){
 	$eventID = (int)$eventID;
 
 // Get Tournament Entries
-	$sql = "SELECT eTR.tournamentID, blockID, dayNum, startTime, endTime, suppressConflicts
+	$sql = "SELECT eTR.tournamentID, blockID, dayNum, startTime, endTime, suppressConflicts, eTR.tournamentID
 			FROM eventTournamentRoster AS eTR
 			INNER JOIN eventTournaments AS eT USING(tournamentID)
 			LEFT JOIN logisticsScheduleBlocks AS blocks ON blocks.tournamentID = eTR.tournamentID
