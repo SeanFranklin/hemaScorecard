@@ -192,7 +192,7 @@ function displayInstructorBio($instructor){
 	<!-- systemRosterID: <?=$instructor['systemRosterID']?> -->
 
 	<div class='cell large-12'>
-		<h3><?=($instructor['name'])?></h3>
+		<h3><?=($instructor['name'])?> <i>(<?=$instructor['schoolName']?>)</i></h3>
 	</div>
 
 	<?php if($imagePathAndName != null): ?>

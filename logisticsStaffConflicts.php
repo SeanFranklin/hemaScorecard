@@ -202,8 +202,11 @@ function scheduleConflictList($conflictList, $eventDays){
 		displayAlert("No staffing conflicts.<BR>(Good job)");
 		return;
 	}
+	$i = -1;
 ?>
-	<table class='stack'>
+	<form method="POST">
+
+	<table class='stack data-table'>
 
 
 	<?php foreach($conflictList as $rosterID => $conflicts): ?>
@@ -211,20 +214,46 @@ function scheduleConflictList($conflictList, $eventDays){
 			$info[1] = logistics_getScheduleItemDescription($conflict[1]['blockID'],$conflict[1]['shiftID']);
 			$info[2] = logistics_getScheduleItemDescription($conflict[2]['blockID'],$conflict[2]['shiftID']);
 
+
+			if($i % 2 == 0){
+				$color = 'white';
+			} else {
+				$color = '#EAF3FB';
+			}
+
+			$bothTournaments = true;
 			if($conflict[1]['shiftID'] != null){
 				$info[1]['type'] = "Staffing";
+				$bothTournaments = false;
 			} else {
 				$info[1]['type'] = "Tournament Entry";
 			}
 
 			if($conflict[2]['shiftID'] != null){
 				$info[2]['type'] = "Staffing";
+				$bothTournaments = false;
 			} else {
 				$info[2]['type'] = "Tournament Entry";
 			}
 
+			if($bothTournaments == true){
+				$suppressed = isConflictSuppressed($rosterID, $conflict[1]['tournamentID'], $conflict[2]['tournamentID']);
+
+				if($suppressed == true){
+					continue;
+				}
+			}
+
+			$i++;
+
 			?>
-			<tr style='border-top: 1px solid black;'>
+			<tr style='border-top: 1px solid black; background-color: <?=$color?>;'>
+
+				<input type='hidden' name='suppressConflict[<?=$i?>][rosterID]' value='<?=$rosterID?>'>
+				<input type='hidden' name='suppressConflict[<?=$i?>][tournamentID1]' value='<?=$conflict[1]['tournamentID']?>'>
+				<input type='hidden' name='suppressConflict[<?=$i?>][tournamentID2]' value='<?=$conflict[2]['tournamentID']?>'>
+				<input type='hidden' name='suppressConflict[<?=$i?>][suppressConflict]' value='0'>
+
 				<td rowspan='2'>
 					<h5><?=getFighterName($rosterID)?></h5>
 				</td>
@@ -247,8 +276,15 @@ function scheduleConflictList($conflictList, $eventDays){
 				<td>
 					<?=logistics_getLocationName($info[1]['locationID'])?>
 				</td>
+				<?php if($bothTournaments == true): ?>
+					<td rowspan='2'>
+						<input type='checkbox' class='no-bottom' name='suppressConflict[<?=$i?>][suppressConflict]' value='1'>
+					</td>
+				<?php else: ?>
+					<td></td>
+				<?php endif ?>
 			</tr>
-			<tr>
+			<tr style=' background-color: <?=$color?>;'>
 				<td>
 					<strong><?=$info[2]['type']?></strong>
 				</td>
@@ -261,6 +297,9 @@ function scheduleConflictList($conflictList, $eventDays){
 				<td>
 					<?=logistics_getLocationName($info[2]['locationID'])?>
 				</td>
+				<?php if($bothTournaments == false): ?>
+					<td></td>
+				<?php endif ?>
 			<tr>
 
 
@@ -268,6 +307,10 @@ function scheduleConflictList($conflictList, $eventDays){
 	<?php endforeach ?>
 
 	</table>
+
+	<button class='button success' name='formName' value='suppressConflict'>Suppress Selected Conflicts </button>
+
+	</form>
 
 
 <?php
@@ -292,8 +335,10 @@ function generateConflictList($eventRoster){
 					$conflict[1]['shiftID'] = $lastShift;
 					$conflict[1]['blockID'] = $lastBlock;
 					$conflict[1]['dayNum'] = $dayNum;
+					$conflict[1]['tournamentID'] = $lastTournamentID;
 					$conflict[2]['shiftID'] = @$item['shiftID']; // might not exist
 					$conflict[2]['blockID'] = $item['blockID'];
+					$conflict[2]['tournamentID'] = (int)@$item['tournamentID'];
 
 					$conflictList[$person['rosterID']][] = $conflict;
 
@@ -301,6 +346,7 @@ function generateConflictList($eventRoster){
 				$lastSuppressConflicts = (bool)$item['suppressConflicts'];
 				$lastEndTime = $item['endTime'];
 				$dayNum = $item['dayNum'];
+				$lastTournamentID = (int)@$item['tournamentID'];
 				$lastBlock = $item['blockID'];
 				$lastShift = @$item['shiftID']; // Could also not exist
 

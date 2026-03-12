@@ -481,9 +481,39 @@ function logistics_populateBlockDescription(blockID){
                     var str = "<HR><a onclick=\"$('#sbd-staffing-box').toggle();$('#sbd-modal').removeClass('medium');$('#sbd-modal').addClass('large')\">Staffing ↓</a>";
                     str = str + "<table id='sbd-staffing-box' class='hidden'>";
 
+                    var prevLocation = 0;
+                    var prevStartTime = 0;
 
-                    data['staffing'].forEach(function(staffDetails){
-                        str = str + "<tr><td>";
+                    for(var i = 0; i < data['staffing'].length; i++){
+
+                        staffDetails = data['staffing'][i];
+
+                        var borderThickness = 0;
+
+                        if(prevStartTime != staffDetails['startTime']){
+                            borderThickness++;
+                        }
+                        if(prevLocation != staffDetails['locationID']){
+                            borderThickness++;
+                        }
+
+                        if(borderThickness != 0){
+                            borderStyle = 'border-top:' + borderThickness + 'px solid ';
+
+                            if(borderThickness == 1){
+                                borderStyle = borderStyle + "black";
+                            } else {
+                                borderStyle = borderStyle + "#1779BA";
+                            }
+
+                        } else {
+                            borderStyle = '';
+                        }
+
+                        prevStartTime = staffDetails['startTime'];
+                        prevLocation = staffDetails['locationID'];
+
+                        str = str + "<tr style='background:white;" + borderStyle + "'><td>";
                         str = str + secondsToMinAndSec(staffDetails['startTime']);
                         str = str + "-" + secondsToMinAndSec(staffDetails['endTime']);
                         str = str + "</td><td>" + staffDetails['locationName'] + "</td><td><b>";
@@ -492,7 +522,7 @@ function logistics_populateBlockDescription(blockID){
                         str = str + "</td></tr>";
 
                         $("#sbd-staffing").append(str);
-                    });
+                    }
 
                     str = str + "</table>";
                     $("#sbd-staffing").html(str);

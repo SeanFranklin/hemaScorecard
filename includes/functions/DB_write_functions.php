@@ -1383,6 +1383,36 @@ function logisticsUpdateAnnouncement($announcement){
 
 /******************************************************************************/
 
+function logiscticsSuppressConflicts($postData){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($postData as $conflict){
+		if((int)$conflict['suppressConflict'] == 0){
+			continue;
+		}
+
+		$tournamentID1 = (int)$conflict['tournamentID1'];
+		$tournamentID2 = (int)$conflict['tournamentID2'];
+		$rosterID = (int)$conflict['rosterID'];
+
+		if($tournamentID1 == 0 || $tournamentID2 == 0 || $rosterID == 0){
+			continue;
+		}
+
+		$sql = "INSERT INTO logisticsScheduleConflicts
+				(rosterID, tournamentID1, tournamentID2)
+				VALUES
+				({$rosterID}, {$tournamentID1}, {$tournamentID2})";
+		mysqlQuery($sql, SEND);
+
+	}
+
+}
+
+/******************************************************************************/
+
 function logisticsCheckInMatchStaff($info){
 
 	if(ALLOW['EVENT_SCOREKEEP'] == false){
