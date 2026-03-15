@@ -15,22 +15,65 @@ include('includes/header.php');
 	$csvInput = @$_SESSION['eventRating']['cvsData'];
 
 
-
+	$maxAtRating = [];
 	if(isset($_SESSION['eventRating']['cvsData']) == true){
 		$ratingsList = [];
+
+		$numEvents = sizeof($_SESSION['eventRating']['cvsData']);
 
 		foreach($_SESSION['eventRating']['cvsData'] as $hrEventID => $data){
 
 			$ratingsRaw = $data['ratings'];
 			rsort($ratingsRaw);
 
+			$tmp = [];
 			$tmp['name'] = $data['name'];
 			$tmp['year'] = $data['year'];
 			$tmp['ratings'] = $ratingsRaw;
 
+			$toughCompetitors = 0;
+			$numCompetitors = 0;
+
+
+			foreach($ratingsRaw as $i => $r){
+				if($r >= 1600){
+					$toughCompetitors++;
+				}
+				$numCompetitors++;
+			}
+
+			$tmp['numTough'] = $toughCompetitors;
+			$tmp['numFighters'] = $numCompetitors;
+
+			if($tmp['numFighters'] < 4){
+				continue;
+			}
+
+			$tmp = calculateEventRating($tmp);
+
+			$i = 0;
+			foreach($tmp['histogram'] as $i => $h){
+
+
+
+				if(isset($maxAtRating[$i]) == false || $h > $maxAtRating[$i]){
+					$maxAtRating[$i] = $h;
+				}
+
+				$tmp2 = [];
+				$tmp2['num'] = $h;
+				//$tmp2['color'] = $color;
+				$tmp['displayHistogram'][] = $tmp2;
+				$i++;
+
+			}
+
 			$ratingsList[] = $tmp;
 
 		}
+
+		$eventRatings = array_column($ratingsList, 'eventRating');
+		array_multisort($eventRatings, SORT_DESC, $ratingsList);
 
 		unset($_SESSION['eventRating']['cvsData']);
 
@@ -56,7 +99,7 @@ include('includes/header.php');
 		Tournament Ratings are calculated using the <b><a href='https://swordstem.com/2024/01/01/on-rating-hema-tournaments/'>PB25 Algorithm.</a></b>
 	</div>
 
-	<?=showEventRating($ratingsList)?>
+	<?=showEventRating($ratingsList, $maxAtRating)?>
 	<p><i>Note: All ratings rounded up to floor value of <?=EVENT_RATING_MIN_RATING?></i></p>
 
 
@@ -135,7 +178,7 @@ include('includes/footer.php');
 
 /******************************************************************************/
 
-function showEventRating($ratingsList, $tableMode = false){
+function showEventRating($ratingsList, $maxAtRating){
 
 	if(sizeof($ratingsList) == 0){
 		return;
@@ -145,33 +188,35 @@ function showEventRating($ratingsList, $tableMode = false){
 		$tableMode = false;
 	}
 
+	$showYear = "";
+	foreach($ratingsList as $r){
+		if((int)$r['year'] != 0){
+			$showYear = "<th>Year</th>";
+		}
+	}
+
 	if($tableMode == true){
 		echo "<table>
 		<tr>
-		<th>Event</th>
-		<th>Year</th>
-		<th># Fighters</th>
-		<th>Rating</th>";
+		<th style='vertical-align:bottom'>Name</th>
+		{$showYear}
+		<th style='font-size:0.8em'># Total</th>
+		<th style='font-size:0.8em'># > 1600</th>
+		<th style='vertical-align:bottom'>Rating</th>";
 
 		for($i = 2100; $i >= 800; $i -= 100){
-			$num = $i/1000;
-			echo "<th>≤{$num}</th>";
+			$num = $i-100;
+			echo "<th style='font-size:0.6em; vertical-align:bottom''> >{$num}</th>";
 		}
 
 		echo "</tr>";
 	}
 
 	foreach($ratingsList as $eventData){
-		$eventData['numFighters'] = sizeof((array)$eventData['ratings']);
 
-		if($eventData['numFighters'] < 8){
-			continue;
-		}
-
-		$eventData = calculateEventRating($eventData);
 
 		if($tableMode == true){
-			showEventRatingTable($eventData);
+			showEventRatingTable($eventData, $showYear, $maxAtRating);
 		} else {
 			showEventRatingCell($eventData);
 		}
@@ -216,16 +261,38 @@ function parseRatings($oldInput){
 
 /******************************************************************************/
 
-function showEventRatingTable($eventInfo){
+function showEventRatingTable($eventInfo, $showYear, $maxAtRating){
+
+
 ?>
 
-	<tr>
+	<tr class='text-right'>
 		<td><?=$eventInfo['name']?></td>
-		<td><?=$eventInfo['year']?></td>
+		<?php if($showYear != ""): ?>
+			<td><?=$eventInfo['year']?></td>
+		<?php endif ?>
 		<td><?=$eventInfo['numFighters']?></td>
+		<td><?=$eventInfo['numTough']?></td>
 		<td><?=$eventInfo['eventRating']?></td>
-		<?php foreach($eventInfo['histogram'] as $rating => $count):?>
-			<td><?=$count?></td>
+		<?php foreach($eventInfo['histogram'] as $i => $h):
+
+
+			$color = "";
+			if($maxAtRating[$i] == 0 || $h == ""){
+				$color .= "#FFF";
+			} else if($h == $maxAtRating[$i]) {
+				$color .= "#F00";
+			} else {
+				$color .= "#F";
+				$num = 15-floor((16*(int)$h)/$maxAtRating[$i]);
+				$color .= dechex($num);
+				$color .= dechex($num);
+			}
+
+			?>
+			<td style='border-left:1px solid #ACD; background:<?=$color?>' class='text-right'>
+				<?=$h?>
+			</td>
 		<?php endforeach ?>
 	</tr>
 

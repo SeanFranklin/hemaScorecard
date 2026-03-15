@@ -224,13 +224,16 @@
 	$options['T']["BRACKET_POINT_CAP"]              = 22;
 	$options['T']["FINALS_POINT_CAP"]               = 23;
 	$options['T']["DEDUCTION_ADDITION_MODE"]        = 25;
-		define("DEDUCTION_ADDITION_MODE_ADD",0);
-		define("DEDUCTION_ADDITION_MODE_MAX",1);
-		define("DEDUCTION_ADDITION_MODE_RMS",2);
+		define("DEDUCTION_ADDITION_MODE_ADD", 0);
+		define("DEDUCTION_ADDITION_MODE_MAX", 1);
+		define("DEDUCTION_ADDITION_MODE_RMS", 2);
 	$options['T']["PENALTIES_ADD_POINTS"]           = 26;
 	$options['T']["LIMIT_SHALLOW"]                  = 27;
 	$options['T']["MINIMUM_EXCH_TIME"]              = 28;
 	$options['T']["POINT_SPREAD_START_VAL"]         = 29;
+	$options['T']["BONUS_POINT_NAME"]               = 31;
+		define("BONUS_POINT_NAME_CONTROL", 0);
+		define("BONUS_POINT_NAME_BOUND", 1);
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

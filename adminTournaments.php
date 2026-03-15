@@ -552,6 +552,7 @@ function exchangeTypeModifiers($formLock){
 	$maxAfterblowValue = 9;
 	$controlPointValue = getControlPointValue($_SESSION['tournamentID']);
 	$maxControlValue = 9;
+	$bonusPointName = readOption('T', $_SESSION['tournamentID'], 'BONUS_POINT_NAME');
 ?>
 
 	<div style='border-bottom: 1px solid black; margin-top: 3em; font-size: 1.5em;'>
@@ -588,12 +589,16 @@ function exchangeTypeModifiers($formLock){
 
 
 			<div class='input-group large-4 medium-5  cell'>
-				<span class='input-group-label no-bottom'>Controlling Action</span>
-				<select class='input-group-field no-bottom' name='tournamentAttackModifiers[control]'>
+				<span class='input-group-label no-bottom'>Bonus</span>
+				<select class='input-group-field no-bottom' name='tournamentAttackModifiers[controlValue]'>
 					<option value=0>Not Used</option>
 					<?php for($p = 1;$p<=$maxControlValue;$p++):?>
 						<option <?=optionValue($p, $controlPointValue)?>>+<?=$p?></option>
 					<?php endfor?>
+				</select>
+				<select class='input-group-field no-bottom' name='tournamentAttackModifiers[controlName]'>
+					<option <?=optionValue(BONUS_POINT_NAME_CONTROL, $bonusPointName)?>>Controlled</option>
+					<option <?=optionValue(BONUS_POINT_NAME_BOUND, $bonusPointName)?>>Bound</option>
 				</select>
 			</div>
 
