@@ -7924,6 +7924,7 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 
 	$systemExchangeTypes = [];
 	$systemScoringTypes = [];
+	$controlName = getBonusPointName($tournamentID);
 
 	foreach($exchanges as $exchange){
 		$exchangeType = $exchange['exchangeType'];
@@ -7942,8 +7943,8 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 		} else{
 
 			if ($exchange['refPrefix'] == ATTACK_CONTROL_DB){
-				@$fighterExchanges[$exchange['scoringID']]['Control Points']++;	// Might not be set
-				$systemExchangeTypes['Control Points'] = true;
+				@$fighterExchanges[$exchange['scoringID']][$controlName]++;	// Might not be set
+				$systemExchangeTypes[$controlName] = true;
 			}
 
 			if(    $exchangeType == 'clean'

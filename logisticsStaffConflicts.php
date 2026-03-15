@@ -203,17 +203,18 @@ function scheduleConflictList($conflictList, $eventDays){
 		return;
 	}
 	$i = -1;
+
+
 ?>
 	<form method="POST">
 
-	<table class='stack data-table'>
+	<table class='stack'>
 
 
 	<?php foreach($conflictList as $rosterID => $conflicts): ?>
 		<?php foreach($conflicts as $conflict):
 			$info[1] = logistics_getScheduleItemDescription($conflict[1]['blockID'],$conflict[1]['shiftID']);
 			$info[2] = logistics_getScheduleItemDescription($conflict[2]['blockID'],$conflict[2]['shiftID']);
-
 
 			if($i % 2 == 0){
 				$color = 'white';
@@ -223,17 +224,18 @@ function scheduleConflictList($conflictList, $eventDays){
 
 			$bothTournaments = true;
 			if($conflict[1]['shiftID'] != null){
-				$info[1]['type'] = "Staffing";
+				$info[1]['type'] = "<b>Staffing</b><BR><i style='font-size:0.85em'>".logistics_getRoleName($conflict[1]['roleID'])."</i>";
+
 				$bothTournaments = false;
 			} else {
-				$info[1]['type'] = "Tournament Entry";
+				$info[1]['type'] = "<b>Tournament</b>";
 			}
 
 			if($conflict[2]['shiftID'] != null){
-				$info[2]['type'] = "Staffing";
+				$info[2]['type'] = "<b>Staffing</b><BR><i style='font-size:0.85em'>".logistics_getRoleName($conflict[2]['roleID'])."</i>";
 				$bothTournaments = false;
 			} else {
-				$info[2]['type'] = "Tournament Entry";
+				$info[2]['type'] = "<b>Tournament<b>";
 			}
 
 			if($bothTournaments == true){
@@ -242,6 +244,13 @@ function scheduleConflictList($conflictList, $eventDays){
 				if($suppressed == true){
 					continue;
 				}
+			}
+
+			$location[1] = logistics_getLocationName($info[1]['locationID']);
+			$location[2] = logistics_getLocationName($info[2]['locationID']);
+
+			if(strlen($location[2]) > 7){
+				$location[2] = "<span style='font-size:0.8em'>{$location[2]}</span>";
 			}
 
 			$i++;
@@ -254,27 +263,28 @@ function scheduleConflictList($conflictList, $eventDays){
 				<input type='hidden' name='suppressConflict[<?=$i?>][tournamentID2]' value='<?=$conflict[2]['tournamentID']?>'>
 				<input type='hidden' name='suppressConflict[<?=$i?>][suppressConflict]' value='0'>
 
-				<td rowspan='2'>
+				<td rowspan='2' style=' padding-bottom:3px;  padding-top:3px;'>
 					<h5><?=getFighterName($rosterID)?></h5>
 				</td>
-				<td rowspan='2'>
-					<strong>
+				<td rowspan='2' style=' padding-bottom:3px;  padding-top:3px;'>
+
 						Day <?=$conflict[1]['dayNum']?>
 						<BR>
+					<strong>
 						<?=$eventDays[$conflict[1]['dayNum']]?>
 					</strong>
 				</td>
-				<td>
-					<strong><?=$info[1]['type']?></strong>
+				<td style=' padding-bottom:1px; padding-top:3px;'>
+					<?=$info[1]['type']?>
 				</td>
-				<td>
+				<td style=' padding-bottom:1px; padding-top:3px;'>
 					<?=logistics_getScheduleBlockName($conflict[1]['blockID'])?>
 				</td>
-				<td>
-					<?=min2hr($info[1]['startTime'])?> - <?=min2hr($info[1]['endTime'])?>
+				<td style=' padding-bottom:1px; padding-top:3px;'>
+					<?=min2hr($info[1]['startTime'], false,true)?> - <?=min2hr($info[1]['endTime'], false,true)?>
 				</td>
 				<td>
-					<?=logistics_getLocationName($info[1]['locationID'])?>
+					<?=$location[1]?>
 				</td>
 				<?php if($bothTournaments == true): ?>
 					<td rowspan='2'>
@@ -284,18 +294,18 @@ function scheduleConflictList($conflictList, $eventDays){
 					<td></td>
 				<?php endif ?>
 			</tr>
-			<tr style=' background-color: <?=$color?>;'>
-				<td>
-					<strong><?=$info[2]['type']?></strong>
+			<tr style=' background-color: <?=$color?>; border-top:1px solid #DDD; '>
+				<td style=' padding-top:1px; padding-bottom:3px;'>
+					<?=$info[2]['type']?>
 				</td>
-				<td>
+				<td style=' padding-top:1px; padding-bottom:3px;'>
 					<?=logistics_getScheduleBlockName($conflict[2]['blockID'])?>
 				</td>
-				<td>
-					<?=min2hr($info[2]['startTime'])?> - <?=min2hr($info[2]['endTime'])?>
+				<td style=' padding-top:1px; padding-bottom:3px;'>
+					<?=min2hr($info[2]['startTime'], false,true)?> - <?=min2hr($info[2]['endTime'], false,true)?>
 				</td>
-				<td>
-					<?=logistics_getLocationName($info[2]['locationID'])?>
+				<td style=' padding-top:1px; padding-bottom:3px;'>
+					<?=$location[2]?>
 				</td>
 				<?php if($bothTournaments == false): ?>
 					<td></td>
@@ -333,10 +343,12 @@ function generateConflictList($eventRoster){
 				if(($item['dayNum'] == $dayNum && $item['startTime'] < $lastEndTime)
 					&& ($lastSuppressConflicts == false && $item['suppressConflicts'] == 0)){
 					$conflict[1]['shiftID'] = $lastShift;
+				    $conflict[1]['roleID'] = $lastRoleID;
 					$conflict[1]['blockID'] = $lastBlock;
 					$conflict[1]['dayNum'] = $dayNum;
 					$conflict[1]['tournamentID'] = $lastTournamentID;
 					$conflict[2]['shiftID'] = @$item['shiftID']; // might not exist
+					$conflict[2]['roleID'] = @$item['logisticsRoleID']; // might not exist
 					$conflict[2]['blockID'] = $item['blockID'];
 					$conflict[2]['tournamentID'] = (int)@$item['tournamentID'];
 
@@ -349,6 +361,7 @@ function generateConflictList($eventRoster){
 				$lastTournamentID = (int)@$item['tournamentID'];
 				$lastBlock = $item['blockID'];
 				$lastShift = @$item['shiftID']; // Could also not exist
+				$lastRoleID = @$item['logisticsRoleID']; // Could also not exist
 
 
 			}

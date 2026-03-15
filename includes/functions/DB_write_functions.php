@@ -252,8 +252,9 @@ function tournamentAttackModifiers($modifier, $tournamentID){
 		return;
 	}
 
-	writeOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', $modifier['afterblow']);
-	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', $modifier['control']);
+	writeOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', (int)@$modifier['afterblow']);
+	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', (int)@$modifier['controlValue']);
+	writeOption('T', $tournamentID, 'BONUS_POINT_NAME', (int)@$modifier['controlName']);
 
 }
 

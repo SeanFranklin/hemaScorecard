@@ -1371,7 +1371,10 @@ function gridScoreBox($matchInfo, $num){
 	$rosterID = $matchInfo[$pre.'ID'];
 	$otherID = $matchInfo[$otherPre.'ID'];
 	$fighterName = getCombatantName($rosterID);
+	$bonusPointName = getBonusPointName($matchInfo['tournamentID']);
 ?>
+
+	<input type='hidden' id='bonus-point-name' value='<?=$bonusPointName?>'>
 	<div class='reveal large' id='attack-grid-box-<?=$num?>' data-reveal >
 	<form method="post">
 
@@ -1628,7 +1631,7 @@ function scoreGridOptionList($parameters, $paramType, $rosterID, $name ='', $isP
 		<?php if($isPrefix == true & $controlPointValue != 0):?>
 
 			<tr>
-				<td>Control</td>
+				<td><?=getBonusPointName($_SESSION['tournamentID'])?></td>
 				<td>
 					<div class='switch input-group-button large no-bottom'>
 						<input class='switch-input' type='radio' id='score[<?=$rosterID?>][<?=$paramType?>]'
