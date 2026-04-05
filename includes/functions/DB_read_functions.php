@@ -568,10 +568,8 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 			$f2Result = $f1Result;
 		}
 
-		$fighter1 = getFighterName($f1ID, null, 'first');
-		$fighter2 = getFighterName($f2ID, null, 'first');
-
-
+		$fighter1 = getFighterName($f1ID, null, 'first', false, false);
+		$fighter2 = getFighterName($f2ID, null, 'first', false, false);
 
 		$stageName = (string)getMatchStageName($match['matchID'], $numGroupSets);
 
@@ -3106,7 +3104,7 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 
 /******************************************************************************/
 
-function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false, $forceParticipantIds = false){
+function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false, $forceParticipantIds = null){
 
 	$rosterID = (int)$rosterID;
 	if($rosterID == 0){
@@ -3124,6 +3122,8 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 
 	if($forceParticipantIds == true){
 		$useParticipantIds = PARTICIPANT_IDS_APPEND;
+	} else if($forceParticipantIds === false) {
+		$useParticipantIds = PARTICIPANT_IDS_NO;
 	} else {
 		$useParticipantIds = @(int)$_SESSION['useParticipantIds'];
 	}

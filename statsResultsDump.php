@@ -150,54 +150,65 @@ function HemaRatingExportOptions($tournamentList){
 	<form method='POST'>
 
 		<div class='grid-x grid-margin-x'>
-		<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
-
-	<!-- Export roster -->
+			<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
 
 
+		<!-- Export roster -->
+			<div class='large-3 medium-4 cell'>
 
-		<div class='large-3 medium-4 cell'>
-		<button class='button expanded' name='HemaRatingsExport' value='roster'>
-			Export Roster
-		</button>
-		</div>
+			<b>Export Roster</b>
 
-		<div class='callout success large-7 medium-8 cell'>
-			You will be asked for a link to the event in the HEMA Ratings Form:<BR>
-			<b><a href="<?=$linkPath?>"><?=$linkPath?></a></b>
-		</div>
+			<ul>
+				<li>
+					<button  name='HemaRatingsExport' value='roster'>
+						<a>fighters.csv</a>
+					</button>
+				</li>
+			</ul>
 
-
-		<div class='large-12 cell'><HR></div>
-
-	<!-- Export tournaments -->
-		<?php foreach((array)$tournamentList as $tournamentID => $tournament):
-			$name = getTournamentName($tournamentID);
-			$class = '';
-				$warning = null;
-
-
-			if(!isFinalized($tournamentID)){
-				$class = 'secondary';
-				$warning .= '<em> - Tournament not finalized</em><BR>';
-			}
-
-			if(isTournamentPrivate($tournamentID)){
-				$class = 'alert';
-				$warning = '<em> - Request for private results</em><BR>'.$warning;
-			}
-
-
-			?>
-
-			<div class='large-4 medium-6 cell'>
-			<button class='button hollow <?=$class?> expanded' name='HemaRatingsExport' value='<?=$tournamentID?>'>
-				Export <?=$name?>
-			</button>
-			<?=$warning?>
 			</div>
 
-		<?php endforeach ?>
+
+			<div class='callout success large-7 medium-8 cell'>
+				You will be asked for a link to the event in the HEMA Ratings Form:<BR>
+				<b><a href="<?=$linkPath?>"><?=$linkPath?></a></b>
+			</div>
+
+
+		<!-- Export tournaments -->
+			<div class='large-12 cell'>
+
+				<b>Export Matches</b>
+
+				<ul>
+				<?php foreach((array)$tournamentList as $tournamentID => $tournament):
+					$name = getTournamentName($tournamentID);
+
+					$warning = "";
+
+					if(isFinalized($tournamentID) == false){
+						$warning .= ' <em>[Tournament not finalized]</em>';
+					}
+
+					if(isTournamentPrivate($tournamentID) == true){
+						$warning .= ' <em>[Organizer has requested results not uploaded]</em>';
+					}
+
+
+					?>
+
+					<li>
+						<button name='HemaRatingsExport' value='<?=$tournamentID?>'>
+							<a><?=$name?></a>
+						</button>
+						<?=$warning?>
+					</li>
+
+				<?php endforeach ?>
+				</ul>
+
+			</div>
+
 		</div>
 
 	</form>
