@@ -184,13 +184,13 @@ include('includes/header.php');
 					<?=yearlySummaryItem('exchanges-by-nonus-country', $year, ['unit'=>'Exchanges','txt'=>"American events removed for scaling."])?>
 				</div>
 				<div class='medium-6 cell'>
-					<?=yearlySummaryItem('exchanges-by-us-state', $year, ['unit'=>'Exchanges','txt'=>"American stuff, everyone else can disregard."])?>
+					<?=yearlySummaryItem('exchanges-by-us-state', $year, ['unit'=>'Exchanges','txt'=>"Province/State (for geographically large countries)"])?>
 				</div>
 				<div class='medium-6 cell'>
 					<?=yearlySummaryItem('events-by-nonus-country', $year, ['unit'=>'Events','txt'=>"American events removed for scaling."])?>
 				</div>
 				<div class='medium-6 cell'>
-					<?=yearlySummaryItem('events-by-us-state', $year, ['unit'=>'Events','txt'=>"American stuff, everyone else can disregard."])?>
+					<?=yearlySummaryItem('events-by-us-state', $year, ['unit'=>'Events','txt'=>"Province/State (for geographically large countries)"])?>
 				</div>
 			</div>
 		</div>

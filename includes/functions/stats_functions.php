@@ -215,7 +215,8 @@ function getAnnualExchangesByUsState($year, $futureView){
 				INNER JOIN eventTournaments USING(tournamentID)
 				INNER JOIN systemEvents USING(eventID)
 			WHERE {$eventListStr}
-				AND countryIso2 = 'US'
+				AND eventProvince IS NOT NULL
+				AND eventProvince != ''
 				AND exchangeType IN ($validExchanges)
 			GROUP BY eventProvince
 			ORDER BY numExchanges DESC, eventProvince ASC";
@@ -270,7 +271,8 @@ function getAnnualEventsByUsState($year, $futureView){
 	$sql = "SELECT eventProvince, COUNT(*) AS numEvents
 			FROM systemEvents
 			WHERE {$eventListStr}
-				AND countryIso2 = 'US'
+				AND eventProvince IS NOT NULL
+				AND eventProvince != ''
 			GROUP BY eventProvince
 			ORDER BY numEvents DESC, eventProvince ASC";
 	$eventList = (array)mysqlQuery($sql, ASSOC);
