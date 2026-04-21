@@ -1076,6 +1076,10 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 		$maxMatches = getTournamentPoolMatchLimit($tournamentID);
 	}
 
+	if($maxMatches <= 0){
+		return;
+	}
+
 	$hide = "hidden";
 
 ?>

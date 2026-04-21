@@ -2166,7 +2166,7 @@ function addPenaltyBox($matchInfo){
 					onchange="calculatePenaltyEscalation(<?=$escalation?>, <?=$matchID?>)"
 					id='penalty-infraction'>
 
-					<option value=''>None</option>
+					<option value=''>None (White Card)</option>
 					<?php foreach($actions as $a):
 						if($a['isDisabled'] == true){continue;}?>
 						<option value='<?=$a['attackID']?>'>
