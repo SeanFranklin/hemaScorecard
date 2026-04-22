@@ -19,10 +19,8 @@
 	define("DEBUGGING", 0);
 	date_default_timezone_set("UTC");
 
-	define("DEPLOYMENT_UNKNOWN",0);
-	define("DEPLOYMENT_PRODUCTION",1);
-	define("DEPLOYMENT_TEST",2);
-	define("DEPLOYMENT_LOCAL",3);
+	// Deployment flags — defined in deployment_constants.php so the API bootstrap can share them
+	require_once __DIR__ . '/deployment_constants.php';
 
 // Database Connection
 	if(!defined('BASE_URL')){

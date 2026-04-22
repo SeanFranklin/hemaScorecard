@@ -9,6 +9,7 @@
 
 *******************************************************************************/
 
+require_once __DIR__ . '/../includes/deployment_constants.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/db_constants.php';
 require_once __DIR__ . '/../includes/functions/mysql_lib.php';
