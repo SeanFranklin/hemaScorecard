@@ -8,7 +8,7 @@ class ApiKeyAuth {
     private const EXEMPT_PATHS = ['/api/v1/health'];
 
     public static function check(): void {
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '';
         if (in_array($path, self::EXEMPT_PATHS, true)) {
             return;
         }

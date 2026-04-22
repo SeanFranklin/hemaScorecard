@@ -21,6 +21,9 @@ class JsonResponse {
     }
 
     private static function send(int $status, array $body): void {
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         header('X-Api-Version: v1');

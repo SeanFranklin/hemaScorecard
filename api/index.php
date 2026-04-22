@@ -5,10 +5,10 @@
 	Dispatches /api/v1/* requests via Flight. Emits a consistent JSON
 	error envelope for all error states, including 404 and 405.
 
-	Output buffering is active for the entire request so any stray
-	output from legacy code paths (e.g. mysql_lib.php's checkMySQL()
-	die('Error: ...') on query failure) can be discarded before we
-	emit the proper JSON error response.
+	Output buffering is active for the entire request; JsonResponse::send()
+	discards it before emitting JSON so any stray output from legacy code
+	paths (e.g. mysql_lib.php's checkMySQL() die('Error: ...')) is always
+	cleaned up in one place.
 
 *******************************************************************************/
 
@@ -45,11 +45,7 @@ Flight::before('start', function() {
 
 // Global error handler: expected ApiException → structured JSON;
 // anything else → logged 500 without leaking exception details.
-// Discard any buffered output (e.g. die()s from legacy DB helpers) first.
 Flight::map('error', function($e) {
-    if (ob_get_length() !== false) {
-        ob_end_clean();
-    }
     if ($e instanceof ApiException) {
         JsonResponse::error($e->getErrorCode(), $e->getHttpStatus(), $e->getMessage());
     }
@@ -59,9 +55,6 @@ Flight::map('error', function($e) {
 
 // Override Flight's default HTML 404 page.
 Flight::map('notFound', function() {
-    if (ob_get_length() !== false) {
-        ob_end_clean();
-    }
     JsonResponse::error('not_found', 404, 'Not found');
 });
 
