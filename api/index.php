@@ -48,9 +48,10 @@ Flight::before('start', function() {
 Flight::map('error', function($e) {
     if ($e instanceof ApiException) {
         JsonResponse::error($e->getErrorCode(), $e->getHttpStatus(), $e->getMessage());
+    } else {
+        error_log('[API] Uncaught exception: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        JsonResponse::error('internal_error', 500, 'An unexpected error occurred');
     }
-    error_log('[API] Uncaught exception: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-    JsonResponse::error('internal_error', 500, 'An unexpected error occurred');
 });
 
 // Override Flight's default HTML 404 page.

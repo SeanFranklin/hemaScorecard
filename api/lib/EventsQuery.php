@@ -52,6 +52,7 @@ class EventsQuery {
     public static function countPublished(): int {
         $sql = "SELECT COUNT(*) AS c
                 FROM systemEvents
+                INNER JOIN systemCountries USING(countryIso2)
                 LEFT JOIN eventPublication USING(eventID)
                 WHERE " . self::VISIBLE_WHERE;
         return (int)mysqlQuery($sql, SINGLE, 'c');

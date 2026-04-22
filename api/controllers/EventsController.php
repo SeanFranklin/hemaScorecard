@@ -1,6 +1,7 @@
 <?php
 namespace HemaScorecard\Api\Controllers;
 
+use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\EventsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\Pagination;
@@ -34,7 +35,7 @@ class EventsController {
         $idInt = (int)$id;
         $row = EventsQuery::findById($idInt);
         if ($row === null) {
-            throw new \HemaScorecard\Api\Lib\ApiException('not_found', 404, "Event {$id} not found");
+            throw new ApiException('not_found', 404, "Event {$id} not found");
         }
 
         $tournamentCount = EventsQuery::countTournaments($idInt);
