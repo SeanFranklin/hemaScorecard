@@ -5,6 +5,7 @@ use HemaScorecard\Api\Controllers\AnnouncementsController;
 use HemaScorecard\Api\Controllers\RosterController;
 use HemaScorecard\Api\Controllers\RulesController;
 use HemaScorecard\Api\Controllers\WorkshopsController;
+use HemaScorecard\Api\Controllers\SchedulesController;
 
 Flight::route('GET /api/v1/health', [HealthController::class, 'index']);
 
@@ -22,4 +23,8 @@ Flight::route('GET /api/v1/events/@eventID/rules',          [RulesController::cl
 Flight::route('GET /api/v1/events/@eventID/rules/@rulesID', [RulesController::class, 'show']);
 Flight::route('GET /api/v1/events/@eventID/workshops',            [WorkshopsController::class, 'index']);
 Flight::route('GET /api/v1/events/@eventID/workshops/@blockID',   [WorkshopsController::class, 'show']);
+Flight::route('GET /api/v1/events/@eventID/schedules/main',                  [SchedulesController::class, 'mainAll']);
+Flight::route('GET /api/v1/events/@eventID/schedules/main/day/@dayNum',      [SchedulesController::class, 'mainDay']);
+Flight::route('GET /api/v1/events/@eventID/schedules/workshops',             [SchedulesController::class, 'workshopsAll']);
+Flight::route('GET /api/v1/events/@eventID/schedules/workshops/day/@dayNum', [SchedulesController::class, 'workshopsDay']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
