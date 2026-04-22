@@ -27,6 +27,14 @@ class SchedulesController {
         $this->workshopsCore($eventID, (int)$dayNum);
     }
 
+    public function schoolAll(string $eventID, string $schoolID): void {
+        $this->schoolCore($eventID, $schoolID, null);
+    }
+
+    public function schoolDay(string $eventID, string $schoolID, string $dayNum): void {
+        $this->schoolCore($eventID, $schoolID, (int)$dayNum);
+    }
+
     // ----- Private cores -----
 
     private function mainCore(string $eventID, ?int $dayNum): void {
@@ -44,6 +52,21 @@ class SchedulesController {
         if ($gate === null) { return; }
 
         $rows = SchedulesQuery::workshops($id, $dayNum);
+        $this->emitBlocks($rows, $dayNum);
+    }
+
+    private function schoolCore(string $eventID, string $schoolID, ?int $dayNum): void {
+        $eid = (int)$eventID;
+        $sid = (int)$schoolID;
+
+        $gate = $this->gateOrThrow($eid, $dayNum);
+        if ($gate === null) { return; }
+
+        if (!SchedulesQuery::schoolExists($sid)) {
+            throw new ApiException('not_found', 404, "School {$sid} not found");
+        }
+
+        $rows = SchedulesQuery::school($eid, $sid, $dayNum);
         $this->emitBlocks($rows, $dayNum);
     }
 
