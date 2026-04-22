@@ -106,4 +106,132 @@ class SchedulesQuery {
                 ORDER BY lSB.dayNum ASC, lSB.startTime ASC, lSB.blockID ASC";
         return mysqlQuery($sql, ASSOC);
     }
+
+    /**
+     * Confirm a roster entry exists for (rosterID, eventID) and that the
+     * row is NOT a team (isTeam = 1 would mean team opacity — personal
+     * schedules only apply to individuals in v1).
+     */
+    public static function participantBelongsToEvent(int $rosterID, int $eventID): bool {
+        $rosterID = (int)$rosterID;
+        $eventID  = (int)$eventID;
+        if ($rosterID <= 0 || $eventID <= 0) {
+            return false;
+        }
+        $sql = "SELECT 1
+                FROM eventRoster
+                WHERE rosterID = {$rosterID}
+                AND eventID = {$eventID}
+                AND COALESCE(isTeam, 0) = 0
+                LIMIT 1";
+        return (bool)mysqlQuery($sql, SINGLE);
+    }
+
+    /**
+     * Personal schedule for a fighter at an event:
+     *   - Tournament blocks whose tournament contains the fighter as entrant.
+     *   - Any block where the fighter has a staff shift.
+     *
+     * Does NOT emit "unscheduled tournament" notices (spec-deferred).
+     * Dedup'd by blockID.
+     */
+    public static function personal(int $eventID, int $rosterID, ?int $dayNum = null): array {
+        $eventID  = (int)$eventID;
+        $rosterID = (int)$rosterID;
+        $dayClause = $dayNum !== null ? " AND lSB.dayNum = " . (int)$dayNum : "";
+
+        $sql = "SELECT DISTINCT
+                    lSB.blockID         AS blockID,
+                    lSB.eventID         AS eventID,
+                    lSB.dayNum          AS dayNum,
+                    lSB.startTime       AS startTime,
+                    lSB.endTime         AS endTime,
+                    lSB.blockTypeID     AS blockTypeID,
+                    lSB.tournamentID    AS tournamentID,
+                    lSB.blockTitle      AS blockTitle,
+                    lSB.blockSubtitle   AS blockSubtitle,
+                    lSB.blockDescription AS blockDescription,
+                    lSB.blockLink       AS blockLink,
+                    lSB.blockLinkDescription AS blockLinkDescription
+                FROM logisticsScheduleBlocks lSB
+                WHERE lSB.eventID = {$eventID}
+                {$dayClause}
+                AND (
+                    EXISTS (
+                        SELECT 1
+                        FROM eventTournamentRoster eTR
+                        WHERE eTR.tournamentID = lSB.tournamentID
+                          AND eTR.rosterID = {$rosterID}
+                    )
+                    OR EXISTS (
+                        SELECT 1
+                        FROM logisticsStaffShifts staff
+                        INNER JOIN logisticsScheduleShifts shifts ON shifts.shiftID = staff.shiftID
+                        WHERE shifts.blockID = lSB.blockID
+                          AND staff.rosterID = {$rosterID}
+                    )
+                )
+                ORDER BY lSB.dayNum ASC, lSB.startTime ASC, lSB.blockID ASC";
+        return mysqlQuery($sql, ASSOC);
+    }
+
+    /**
+     * Resolve each block's participation entries for a fighter. Returns
+     * map: blockID => [ { role, tournamentID?, shiftStartTime?, shiftEndTime? }, ... ].
+     *
+     * One query for entrant rows (tournamentID per tournament block) and
+     * one for shift rows (role + shift-specific times).
+     */
+    public static function fetchPersonalParticipation(int $rosterID, array $blockIDs): array {
+        $result = [];
+        foreach ($blockIDs as $id) {
+            $result[(int)$id] = [];
+        }
+        if (empty($blockIDs) || $rosterID <= 0) {
+            return $result;
+        }
+
+        $ints = array_map('intval', $blockIDs);
+        $inClause = implode(',', $ints);
+
+        // Entrant rows (tournament blocks)
+        $sql = "SELECT lSB.blockID AS blockID, eTR.tournamentID AS tournamentID
+                FROM eventTournamentRoster eTR
+                INNER JOIN logisticsScheduleBlocks lSB ON lSB.tournamentID = eTR.tournamentID
+                WHERE eTR.rosterID = {$rosterID}
+                AND lSB.blockID IN ({$inClause})";
+        foreach (mysqlQuery($sql, ASSOC) as $r) {
+            $bid = (int)$r['blockID'];
+            if (isset($result[$bid])) {
+                $result[$bid][] = [
+                    'role'         => 'entrant',
+                    'tournamentID' => (int)$r['tournamentID'],
+                ];
+            }
+        }
+
+        // Shift rows — join role name
+        $sql = "SELECT
+                    shifts.blockID       AS blockID,
+                    LOWER(role.roleName) AS role,
+                    shifts.startTime     AS startTime,
+                    shifts.endTime       AS endTime
+                FROM logisticsStaffShifts staff
+                INNER JOIN logisticsScheduleShifts shifts ON shifts.shiftID = staff.shiftID
+                INNER JOIN systemLogisticsRoles role ON role.logisticsRoleID = staff.logisticsRoleID
+                WHERE staff.rosterID = {$rosterID}
+                AND shifts.blockID IN ({$inClause})";
+        foreach (mysqlQuery($sql, ASSOC) as $r) {
+            $bid = (int)$r['blockID'];
+            if (isset($result[$bid])) {
+                $result[$bid][] = [
+                    'role'           => $r['role'],
+                    'shiftStartTime' => TimeFormat::minutesToHhmm((int)$r['startTime']),
+                    'shiftEndTime'   => TimeFormat::minutesToHhmm((int)$r['endTime']),
+                ];
+            }
+        }
+
+        return $result;
+    }
 }

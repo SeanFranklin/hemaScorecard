@@ -29,4 +29,6 @@ Flight::route('GET /api/v1/events/@eventID/schedules/workshops',             [Sc
 Flight::route('GET /api/v1/events/@eventID/schedules/workshops/day/@dayNum', [SchedulesController::class, 'workshopsDay']);
 Flight::route('GET /api/v1/events/@eventID/schedules/school/@schoolID',             [SchedulesController::class, 'schoolAll']);
 Flight::route('GET /api/v1/events/@eventID/schedules/school/@schoolID/day/@dayNum', [SchedulesController::class, 'schoolDay']);
+Flight::route('GET /api/v1/events/@eventID/schedules/personal/@rosterID',             [SchedulesController::class, 'personalAll']);
+Flight::route('GET /api/v1/events/@eventID/schedules/personal/@rosterID/day/@dayNum', [SchedulesController::class, 'personalDay']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);

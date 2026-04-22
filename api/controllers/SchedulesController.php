@@ -35,6 +35,14 @@ class SchedulesController {
         $this->schoolCore($eventID, $schoolID, (int)$dayNum);
     }
 
+    public function personalAll(string $eventID, string $rosterID): void {
+        $this->personalCore($eventID, $rosterID, null);
+    }
+
+    public function personalDay(string $eventID, string $rosterID, string $dayNum): void {
+        $this->personalCore($eventID, $rosterID, (int)$dayNum);
+    }
+
     // ----- Private cores -----
 
     private function mainCore(string $eventID, ?int $dayNum): void {
@@ -68,6 +76,53 @@ class SchedulesController {
 
         $rows = SchedulesQuery::school($eid, $sid, $dayNum);
         $this->emitBlocks($rows, $dayNum);
+    }
+
+    private function personalCore(string $eventID, string $rosterID, ?int $dayNum): void {
+        $eid = (int)$eventID;
+        $rid = (int)$rosterID;
+
+        $gate = $this->gateOrThrow($eid, $dayNum);
+        if ($gate === null) { return; }
+
+        if (!SchedulesQuery::participantBelongsToEvent($rid, $eid)) {
+            throw new ApiException('not_found', 404, "Participant {$rid} not found");
+        }
+
+        $rows = SchedulesQuery::personal($eid, $rid, $dayNum);
+        $rows = ScheduleBlocks::enrichWithLocations($rows);
+
+        $blockIDs = array_map(function($r) { return (int)$r['blockID']; }, $rows);
+        $participation = SchedulesQuery::fetchPersonalParticipation($rid, $blockIDs);
+
+        $shaped = array_map(function($row) use ($participation) {
+            $block = ScheduleBlocks::shape($row);
+            $block['participation'] = $participation[(int)$row['blockID']] ?? [];
+            return $block;
+        }, $rows);
+
+        // Bypass emitBlocks — personal needs participation in the shape, so
+        // we re-implement day grouping here.
+        if ($dayNum !== null) {
+            JsonResponse::success($shaped, ['dayNum' => $dayNum, 'count' => count($shaped)]);
+            return;
+        }
+
+        $byDay = [];
+        foreach ($shaped as $block) {
+            $byDay[$block['dayNum']][] = $block;
+        }
+        ksort($byDay, SORT_NUMERIC);
+
+        $days = [];
+        foreach ($byDay as $d => $blocks) {
+            $days[] = ['dayNum' => $d, 'blocks' => $blocks];
+        }
+
+        JsonResponse::success($days, [
+            'dayCount'   => count($days),
+            'blockCount' => count($shaped),
+        ]);
     }
 
     // ----- Shared helpers -----
