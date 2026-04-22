@@ -74,14 +74,55 @@ Error codes: `bad_request` (400), `unauthorized` (401), `forbidden`
 3. In the controller, call `JsonResponse::success($payload)` on the
    happy path, or throw `new ApiException('not_found', 404, '...')`
    on expected error states.
-4. For methods that convert DB rows to response shapes, use these names
-   so controllers stay readable as the API grows:
-   - `shapeListItem(array $row): array` — converts one row for a list response.
-   - `shapeSingle(array $row, ...): array` — converts the full single-resource shape.
-   Inline anonymous functions are fine for small one-off shapes (e.g. the
-   tournaments list inside a ruleset detail). Avoid `shapeItem` as a
-   generic name — prefer the list/single distinction so future readers
-   know which context is being handled.
+4. For response-shaping conventions (naming, time rendering, block shape),
+   see the **Conventions** section below.
+
+## Conventions
+
+**Time-of-day rendering.** The DB stores daily times as minutes since midnight
+(int). API responses emit `HH:MM` 24-hour strings via
+`HemaScorecard\Api\Lib\TimeFormat::minutesToHhmm(int): string`. Use this helper
+for any new schedule-adjacent endpoint. Clamps negatives to `00:00`; wraps
+past-24h values modulo 1440 (organizers should use `dayNum+1` for past-midnight
+blocks).
+
+**Schedule-block response shape.** `HemaScorecard\Api\Lib\ScheduleBlocks::shape(array $row)`
+produces the canonical block shape. Use it for any endpoint that exposes a
+`logisticsScheduleBlocks` row. The shape:
+
+```json
+{
+  "blockID": 4401,
+  "blockType": "workshop",
+  "dayNum": 2,
+  "startTime": "13:00",
+  "endTime": "14:30",
+  "title": "...",
+  "subtitle": "...",
+  "description": "...",
+  "link": "...",
+  "linkDescription": "...",
+  "tournamentID": null,
+  "locations": [{ "locationID": 3, "name": "...", "shortName": "..." }]
+}
+```
+
+`blockType` maps `blockTypeID` 1/2/3/4 → `"tournament" / "workshop" / "staffing" / "misc"`.
+Unknown IDs fall back to `"misc"`.
+
+**Location batch-fetch.** `ScheduleBlocks::enrichWithLocations(array $rows)` runs
+one batched query over `blockID IN (...)` to attach `locations` arrays. Never
+fetch per-block in a loop.
+
+**Shape-method naming.** New response-shaping helpers in controllers should
+follow:
+
+- `shapeListItem(array $row): array` — converts one row for a list response.
+- `shapeSingle(array $row, ...): array` — converts the full single-resource shape.
+
+Inline anonymous functions are fine for small one-off shapes (e.g. the
+tournaments list inside a ruleset detail). Avoid `shapeItem` as a generic name
+— prefer the list/single distinction.
 
 ## Key management
 

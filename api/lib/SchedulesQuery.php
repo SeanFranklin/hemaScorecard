@@ -53,6 +53,12 @@ class SchedulesQuery {
      *   - Workshop blocks with at least one instructor from the school.
      *   - Excludes staffing and misc blocks and tournaments without school entrants.
      *
+     * Note: intentionally diverges from the web app's getMatchesBySchool()
+     * (DB_read_functions.php), which uses eventRoster.schoolID without
+     * COALESCE. That pattern misses fighters whose home school is X but
+     * whose event-override is unset. The API's COALESCE version matches
+     * the /roster endpoint's "school at this event" semantic.
+     *
      * Optional dayNum filter.
      */
     public static function school(int $eventID, int $schoolID, ?int $dayNum = null): array {
