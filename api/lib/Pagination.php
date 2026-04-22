@@ -21,9 +21,13 @@ class Pagination {
      * Parse pagination params out of a query array (typically $_GET).
      * Throws ApiException(400) on invalid input.
      */
-    public static function parse(array $query): self {
+    public static function parse(
+        array $query,
+        int $defaultPerPage = self::DEFAULT_PER_PAGE,
+        int $maxPerPage = self::MAX_PER_PAGE
+    ): self {
         $page = self::parseIntParam($query, 'page', self::DEFAULT_PAGE, 1, PHP_INT_MAX);
-        $perPage = self::parseIntParam($query, 'per_page', self::DEFAULT_PER_PAGE, 1, self::MAX_PER_PAGE);
+        $perPage = self::parseIntParam($query, 'per_page', $defaultPerPage, 1, $maxPerPage);
         return new self($page, $perPage);
     }
 

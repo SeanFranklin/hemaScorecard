@@ -154,6 +154,44 @@ class EventsQuery {
     }
 
     /**
+     * Narrow gate query for nested endpoints: confirms the event is visible
+     * and returns just the flags needed to check resource-level publication.
+     * Returns null if the event doesn't exist or isn't visible.
+     *
+     * Separate from findById because findById joins systemCountries,
+     * eventDescriptions, and selects many more columns. This query runs on
+     * every nested request.
+     */
+    public static function findVisibleForGate(int $eventID): ?array {
+        if ($eventID <= 0) {
+            return null;
+        }
+
+        $sql = "SELECT
+                    systemEvents.eventID AS eventID,
+                    isArchived           AS isArchived,
+                    COALESCE(publishRoster, 0) AS publishRoster,
+                    COALESCE(publishRules,  0) AS publishRules
+                FROM systemEvents
+                LEFT JOIN eventPublication USING(eventID)
+                WHERE systemEvents.eventID = {$eventID}
+                AND " . self::VISIBLE_WHERE . "
+                LIMIT 1";
+
+        $row = mysqlQuery($sql, SINGLE);
+        if (!$row) {
+            return null;
+        }
+
+        return [
+            'eventID'       => (int)$row['eventID'],
+            'isArchived'    => (bool)(int)$row['isArchived'],
+            'publishRoster' => (bool)(int)$row['publishRoster'],
+            'publishRules'  => (bool)(int)$row['publishRules'],
+        ];
+    }
+
+    /**
      * SELECT + joins + columns common to all list queries. Does not end
      * with a WHERE — callers compose their own visibility + date filters.
      */
