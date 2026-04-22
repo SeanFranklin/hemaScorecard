@@ -1,3 +1,3 @@
-data/
+/data/*
 !/**/.gitkeep
-!data/api_keys.json.example
+!/data/api_keys.json.example
