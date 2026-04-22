@@ -18,6 +18,29 @@ class EventsController {
         );
     }
 
+    public function today(): void {
+        $this->emitList(EventsQuery::today());
+    }
+
+    public function upcoming(): void {
+        $this->emitList(EventsQuery::upcoming());
+    }
+
+    public function recent(): void {
+        $this->emitList(EventsQuery::recent());
+    }
+
+    /**
+     * Shared emit for the three bounded endpoints. No pagination —
+     * returns the whole bounded window plus a {count} meta block.
+     */
+    private function emitList(array $rows): void {
+        JsonResponse::success(
+            array_map([$this, 'shapeListItem'], $rows),
+            ['count' => count($rows)]
+        );
+    }
+
     /**
      * Convert a DB row (aliased by EventsQuery::baseSelect) into the
      * API list-item shape. Handles type coercion that SQL doesn't do

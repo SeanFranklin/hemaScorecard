@@ -58,6 +58,42 @@ class EventsQuery {
     }
 
     /**
+     * Events whose date range includes CURDATE() (server time is UTC).
+     */
+    public static function today(): array {
+        $sql = self::baseSelect() . "
+                WHERE " . self::VISIBLE_WHERE . "
+                AND eventStartDate <= CURDATE()
+                AND eventEndDate   >= CURDATE()
+                ORDER BY eventStartDate ASC, eventID ASC";
+        return mysqlQuery($sql, ASSOC);
+    }
+
+    /**
+     * Events starting in the next 7 days (exclusive of today).
+     */
+    public static function upcoming(): array {
+        $sql = self::baseSelect() . "
+                WHERE " . self::VISIBLE_WHERE . "
+                AND eventStartDate >  CURDATE()
+                AND eventStartDate <= CURDATE() + INTERVAL 7 DAY
+                ORDER BY eventStartDate ASC, eventID ASC";
+        return mysqlQuery($sql, ASSOC);
+    }
+
+    /**
+     * Events whose end date falls in the past 7 days (exclusive of today).
+     */
+    public static function recent(): array {
+        $sql = self::baseSelect() . "
+                WHERE " . self::VISIBLE_WHERE . "
+                AND eventEndDate <  CURDATE()
+                AND eventEndDate >= CURDATE() - INTERVAL 7 DAY
+                ORDER BY eventEndDate DESC, eventID DESC";
+        return mysqlQuery($sql, ASSOC);
+    }
+
+    /**
      * SELECT + joins + columns common to all list queries. Does not end
      * with a WHERE — callers compose their own visibility + date filters.
      */
