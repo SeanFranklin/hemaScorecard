@@ -67,12 +67,12 @@ class RosterQuery {
      * Missing teams get an empty array. One query total — no N+1.
      */
     public static function fetchTeamMembers(array $teamIDs): array {
+        if (empty($teamIDs)) {
+            return [];
+        }
         $result = [];
         foreach ($teamIDs as $id) {
             $result[(int)$id] = [];
-        }
-        if (empty($teamIDs)) {
-            return $result;
         }
 
         $ints = array_map('intval', $teamIDs);

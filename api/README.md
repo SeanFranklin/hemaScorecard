@@ -74,6 +74,14 @@ Error codes: `bad_request` (400), `unauthorized` (401), `forbidden`
 3. In the controller, call `JsonResponse::success($payload)` on the
    happy path, or throw `new ApiException('not_found', 404, '...')`
    on expected error states.
+4. For methods that convert DB rows to response shapes, use these names
+   so controllers stay readable as the API grows:
+   - `shapeListItem(array $row): array` — converts one row for a list response.
+   - `shapeSingle(array $row, ...): array` — converts the full single-resource shape.
+   Inline anonymous functions are fine for small one-off shapes (e.g. the
+   tournaments list inside a ruleset detail). Avoid `shapeItem` as a
+   generic name — prefer the list/single distinction so future readers
+   know which context is being handled.
 
 ## Key management
 

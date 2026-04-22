@@ -12,7 +12,7 @@ class RulesController {
         $id = (int)$eventID;
         $gate = EventsQuery::findVisibleForGate($id);
         if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$eventID} not found");
+            throw new ApiException('not_found', 404, "Event {$id} not found");
         }
 
         // If rules are not published and event is not archived, return empty.
@@ -34,17 +34,17 @@ class RulesController {
 
         $gate = EventsQuery::findVisibleForGate($eid);
         if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$eventID} not found");
+            throw new ApiException('not_found', 404, "Event {$eid} not found");
         }
 
         // Named-resource case: 404 (not empty) when rules aren't published.
         if (!($gate['isArchived'] || $gate['publishRules'])) {
-            throw new ApiException('not_found', 404, "Ruleset {$rulesID} not found");
+            throw new ApiException('not_found', 404, "Ruleset {$rid} not found");
         }
 
         $row = RulesQuery::findForEvent($eid, $rid);
         if ($row === null) {
-            throw new ApiException('not_found', 404, "Ruleset {$rulesID} not found");
+            throw new ApiException('not_found', 404, "Ruleset {$rid} not found");
         }
 
         $tournaments = RulesQuery::listLinkedTournaments($rid);

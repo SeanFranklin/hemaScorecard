@@ -12,7 +12,7 @@ class AnnouncementsController {
         $id = (int)$eventID;
         $gate = EventsQuery::findVisibleForGate($id);
         if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$eventID} not found");
+            throw new ApiException('not_found', 404, "Event {$id} not found");
         }
 
         $rows = AnnouncementsQuery::listForEvent($id);
