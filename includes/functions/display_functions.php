@@ -1076,6 +1076,10 @@ function edit_tournamentLimitPoolMatches($tournamentID = 0){
 		$maxMatches = getTournamentPoolMatchLimit($tournamentID);
 	}
 
+	if($maxMatches <= 0){
+		return;
+	}
+
 	$hide = "hidden";
 
 ?>
@@ -2983,6 +2987,7 @@ function matchHistoryBar($matchInfo){
 	$isZeroNumberedExchanges = false;
 
 	$limitShallow = readOption('T',$matchInfo['tournamentID'],'LIMIT_SHALLOW');
+	$bonusPointName = getBonusPointName($matchInfo['tournamentID'],'LIMIT_SHALLOW');
 
 	foreach($exchangeInfo as $exchange){
 	// Check if there are old exchanges in the system which don't have an exchange order assigned.
@@ -3156,7 +3161,12 @@ function matchHistoryBar($matchInfo){
 		$scoresheet .= " [".$exchange['scoreValue']."|".$exchange['scoreDeduction']."]";
 		if((int)$exchange['refPrefix'] != 0)
 		{
-			$scoresheet .= ", ".GetAttackName($exchange['refPrefix']);
+			if($exchange['refPrefix'] != ATTACK_CONTROL_DB){
+				$scoresheet .= ", ".GetAttackName($exchange['refPrefix']);
+			} else {
+				$scoresheet .= ", ".$bonusPointName;
+			}
+
 		}
 		if((int)$exchange['refTarget'] != 0)
 		{

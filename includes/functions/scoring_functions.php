@@ -3326,5 +3326,28 @@ function scored_UpdateExchanges($tournamentID = null){
 
 /******************************************************************************/
 
+function getBonusPointName($tournamentID){
+
+	$nameEnum = readOption('T', $tournamentID, 'BONUS_POINT_NAME');
+
+	switch($nameEnum){
+		case BONUS_POINT_NAME_BOUND:
+		{
+			$name = "Bound";
+			break;
+		}
+		case BONUS_POINT_NAME_CONTROL:
+		default:
+		{
+			$name = "Controlled";
+			break;
+		}
+	}
+
+	return($name);
+}
+
+/******************************************************************************/
+
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

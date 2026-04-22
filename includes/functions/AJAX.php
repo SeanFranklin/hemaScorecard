@@ -325,14 +325,14 @@ case 'getScheduleBlockInfo':{
 
 	$info['rules'] = getTournamentRules($info['tournamentID']);
 
-	$sql = "SELECT rosterID, locationName, lSS.startTime, lSS.endTime, roleName
+	$sql = "SELECT rosterID, locationName, lSS.startTime, lSS.endTime, roleName, locationID
 			FROM logisticsStaffShifts
 			INNER JOIN logisticsScheduleShifts AS lSS USING(shiftID)
 			INNER JOIN logisticsScheduleBlocks USING(blockID)
 			INNER JOIN logisticsLocations USING(locationID)
 			INNER JOIN systemLogisticsRoles USING(logisticsRoleID)
 			WHERE blockID = {$blockID}
-			ORDER BY lSS.startTime ASC, locationName ASC";
+			ORDER BY lSS.startTime ASC, locationOrder ASC, locationName ASC";
 	$info['staffing'] = (array)mysqlQuery($sql, ASSOC);
 
 	foreach($info['staffing'] as $index => $staff){
@@ -1371,31 +1371,31 @@ case 'judgeEval': {
 	// Parse the data and calculate things based on the total counts.
 	foreach($JudgeSummaries as $rosterID => $data){
 
-		if($JudgeSummaries[$rosterID]['timeOffTotal'] != 0){
+		if(@$JudgeSummaries[$rosterID]['timeOffTotal'] != 0){
 			@$JudgeSummaries[$rosterID]['timeRatio'] = $JudgeSummaries[$rosterID]['timeOnTotal'] / $JudgeSummaries[$rosterID]['timeOffTotal'];
 		} else {
 			@$JudgeSummaries[$rosterID]['timeRatio'] = 0;
 		}
 
-		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+		if(@$JudgeSummaries[$rosterID]['numExchanges'] != 0){
 			@$JudgeSummaries[$rosterID]['timeOnAvg'] = $JudgeSummaries[$rosterID]['timeOnTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
 		} else {
 			@$JudgeSummaries[$rosterID]['timeOnAvg'] = 0;
 		}
 
-		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+		if(@$JudgeSummaries[$rosterID]['numExchanges'] != 0){
 			@$JudgeSummaries[$rosterID]['timeOffAvg'] = $JudgeSummaries[$rosterID]['timeOffTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
 		} else {
 			@$JudgeSummaries[$rosterID]['timeOffAvg'] = 0;
 		}
 
-		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+		if(@$JudgeSummaries[$rosterID]['numExchanges'] != 0){
 			@$JudgeSummaries[$rosterID]['timeAllAvg'] = $JudgeSummaries[$rosterID]['timeAllTotal'] / $JudgeSummaries[$rosterID]['numExchanges'];
 		} else {
 			@$JudgeSummaries[$rosterID]['timeAllAvg'] = 0;
 		}
 
-		if($JudgeSummaries[$rosterID]['numExchanges'] != 0){
+		if(@$JudgeSummaries[$rosterID]['numExchanges'] != 0){
 			@$JudgeSummaries[$rosterID]['penaltiesPerExch'] = $JudgeSummaries[$rosterID]['numPenalties'] / $JudgeSummaries[$rosterID]['numExchanges'];
 		} else {
 			@$JudgeSummaries[$rosterID]['penaltiesPerExch'] = 0;

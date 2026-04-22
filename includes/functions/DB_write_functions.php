@@ -252,8 +252,9 @@ function tournamentAttackModifiers($modifier, $tournamentID){
 		return;
 	}
 
-	writeOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', $modifier['afterblow']);
-	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', $modifier['control']);
+	writeOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', (int)@$modifier['afterblow']);
+	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', (int)@$modifier['controlValue']);
+	writeOption('T', $tournamentID, 'BONUS_POINT_NAME', (int)@$modifier['controlName']);
 
 }
 
@@ -1379,6 +1380,36 @@ function logisticsUpdateAnnouncement($announcement){
 		setAlert(USER_ALERT,"Anouncement edited");
 
 	}
+}
+
+/******************************************************************************/
+
+function logiscticsSuppressConflicts($postData){
+	if(ALLOW['EVENT_MANAGEMENT'] == false){
+		return;
+	}
+
+	foreach($postData as $conflict){
+		if((int)$conflict['suppressConflict'] == 0){
+			continue;
+		}
+
+		$tournamentID1 = (int)$conflict['tournamentID1'];
+		$tournamentID2 = (int)$conflict['tournamentID2'];
+		$rosterID = (int)$conflict['rosterID'];
+
+		if($tournamentID1 == 0 || $tournamentID2 == 0 || $rosterID == 0){
+			continue;
+		}
+
+		$sql = "INSERT INTO logisticsScheduleConflicts
+				(rosterID, tournamentID1, tournamentID2)
+				VALUES
+				({$rosterID}, {$tournamentID1}, {$tournamentID2})";
+		mysqlQuery($sql, SEND);
+
+	}
+
 }
 
 /******************************************************************************/

@@ -568,10 +568,8 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 			$f2Result = $f1Result;
 		}
 
-		$fighter1 = getFighterName($f1ID, null, 'first');
-		$fighter2 = getFighterName($f2ID, null, 'first');
-
-
+		$fighter1 = getFighterName($f1ID, null, 'first', false, false);
+		$fighter2 = getFighterName($f2ID, null, 'first', false, false);
 
 		$stageName = (string)getMatchStageName($match['matchID'], $numGroupSets);
 
@@ -2414,6 +2412,24 @@ function getEventAdditionalParticipants($eventID){
 
 /******************************************************************************/
 
+function isConflictSuppressed($rosterID, $tournamentID1, $tournamentID2){
+	$rosterID = (int)$rosterID;
+	$tournamentID1 = (int)$tournamentID1;
+	$tournamentID2 = (int)$tournamentID2;
+
+	$sql = "SELECT scheduleConflictID
+			FROM logisticsScheduleConflicts
+			WHERE rosterID = {$rosterID}
+				AND tournamentID1 = {$tournamentID1}
+				AND tournamentID2 = {$tournamentID2}";
+	$scheduleConflictID = (int)mysqlQuery($sql, SINGLE, 'scheduleConflictID');
+
+	return ((boolean)$scheduleConflictID);
+
+}
+
+/******************************************************************************/
+
 function getCheckInStatusEvent($eventID){
 
 	$eventID = (int)$eventID;
@@ -3088,7 +3104,7 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 
 /******************************************************************************/
 
-function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false, $forceParticipantIds = false){
+function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam = false, $forceParticipantIds = null){
 
 	$rosterID = (int)$rosterID;
 	if($rosterID == 0){
@@ -3106,6 +3122,8 @@ function getFighterName($rosterID, $splitName = null, $nameMode = null, $isTeam 
 
 	if($forceParticipantIds == true){
 		$useParticipantIds = PARTICIPANT_IDS_APPEND;
+	} else if($forceParticipantIds === false) {
+		$useParticipantIds = PARTICIPANT_IDS_NO;
 	} else {
 		$useParticipantIds = @(int)$_SESSION['useParticipantIds'];
 	}
@@ -7013,10 +7031,11 @@ function logistics_getEventInstructors($eventID){
 		$name = "CONCAT(lastName,', ',firstName)";
 	}
 
-	$sql = "SELECT rosterID, {$name} AS name, instructorBio, systemRosterID
+	$sql = "SELECT rosterID, {$name} AS name, instructorBio, systemRosterID, schoolFullName AS schoolName
 			FROM logisticsInstructors AS lI
-			INNER JOIN eventRoster USING(rosterID)
+			INNER JOIN eventRoster AS eR USING(rosterID)
 			INNER JOIN systemRoster USING(systemRosterID)
+			INNER JOIN systemSchools AS sS ON eR.schoolID = sS.schoolID
 			WHERE lI.eventID = {$eventID}
 			ORDER BY {$orderName} ASC, {$orderName2} ASC";
 	$list = (array)mysqlQuery($sql, ASSOC);
@@ -7604,7 +7623,7 @@ function logistics_getParticipantSchedule($rosterID, $eventID){
 	$eventID = (int)$eventID;
 
 // Get Tournament Entries
-	$sql = "SELECT eTR.tournamentID, blockID, dayNum, startTime, endTime, suppressConflicts
+	$sql = "SELECT eTR.tournamentID, blockID, dayNum, startTime, endTime, suppressConflicts, eTR.tournamentID
 			FROM eventTournamentRoster AS eTR
 			INNER JOIN eventTournaments AS eT USING(tournamentID)
 			LEFT JOIN logisticsScheduleBlocks AS blocks ON blocks.tournamentID = eTR.tournamentID
@@ -7905,6 +7924,7 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 
 	$systemExchangeTypes = [];
 	$systemScoringTypes = [];
+	$controlName = getBonusPointName($tournamentID);
 
 	foreach($exchanges as $exchange){
 		$exchangeType = $exchange['exchangeType'];
@@ -7923,8 +7943,8 @@ function getTournamentFightersWithExchangeNumbers($tournamentID){
 		} else{
 
 			if ($exchange['refPrefix'] == ATTACK_CONTROL_DB){
-				@$fighterExchanges[$exchange['scoringID']]['Control Points']++;	// Might not be set
-				$systemExchangeTypes['Control Points'] = true;
+				@$fighterExchanges[$exchange['scoringID']][$controlName]++;	// Might not be set
+				$systemExchangeTypes[$controlName] = true;
 			}
 
 			if(    $exchangeType == 'clean'

@@ -187,8 +187,40 @@ function displayIndividualSchedule($schedule, $eventDays){
 
 	<?php if(isset($schedule['scheduled']) == true){
 		$dayNum = 0;
-		foreach($schedule['scheduled'] as $sItem){
-			$dayNum = displayScheduleItem($sItem, $eventDays, $dayNum);
+
+		$prevDay = 0;
+		$prevTID = 0;
+		$prevRoleID = 0;
+		$prevEndTime = 0;
+
+
+		$numScheduled = sizeof($schedule['scheduled']);
+		foreach($schedule['scheduled'] as $index => $sItem){
+
+			$borderThickness = 0;
+			$tID = (int)@$sItem['tournamentID'];
+			$roleID = (int)@$sItem['logisticsRoleID'];
+
+			if($prevDay != $sItem['dayNum']){
+				$border = "border-top: 3px solid #1779BA;";
+			} else if($prevTID == $tID && $tID != 0){
+				$border = "";
+			} else if($prevRoleID == $roleID && $prevEndTime == $sItem['startTime']){
+				$border = "";
+			} else {
+				$border = "border-top: 1px solid black;";
+			}
+
+			if($index == ($numScheduled-1)){
+				$border .= "border-bottom: 3px solid #1779BA";
+			}
+
+			$prevTID =  $tID;
+			$prevDay = $sItem['dayNum'];
+			$prevRoleID = $roleID;
+			$prevEndTime = $sItem['endTime'];
+
+			displayScheduleItem($sItem, $eventDays, $border);
 		}
 	} ?>
 
@@ -200,7 +232,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 
 /******************************************************************************/
 
-function displayScheduleItem($info, $eventDays, $dayNum){
+function displayScheduleItem($info, $eventDays, $border){
 
 
 	$name = logistics_getScheduleBlockName($info['blockID']);
@@ -214,11 +246,6 @@ function displayScheduleItem($info, $eventDays, $dayNum){
 	$timeString .= min2hr($info['endTime']);
 	$roleString = '';
 	$locationString = '';
-
-	$class = '';
-	if($dayNum != $info['dayNum']){
-		$class = 'top-border';
-	}
 
 	if(isset($info['shiftID']) == true){
 
@@ -246,7 +273,7 @@ function displayScheduleItem($info, $eventDays, $dayNum){
 
 	?>
 
-	<tr class='<?=$class?>'>
+	<tr style='background:white; <?=$border?>'>
 
 		<td><?=$typeString?>
 		<?=$roleString?></td>
@@ -263,7 +290,6 @@ function displayScheduleItem($info, $eventDays, $dayNum){
 	</tr>
 
 <?php
-	return ($info['dayNum']);
 }
 
 /******************************************************************************/

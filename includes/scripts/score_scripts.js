@@ -497,7 +497,8 @@ function gridScoreUpdate(rosterID, id){
 		}
 
 		if(isControl == true){
-			exchangeSummary = exchangeSummary + ", with Control (+" + controlPointValue + ")";
+			var bonusName = $("#bonus-point-name").val();
+			exchangeSummary = exchangeSummary + ", with " + bonusName + " (+" + controlPointValue + ")";
 			finalPointValue += controlPointValue;
 		}
 

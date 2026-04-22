@@ -579,6 +579,9 @@ function processPostData(){
 			case 'instructorDelete':
 				InstructorDelete($_POST['instructorBio']);
 				break;
+			case 'suppressConflict':
+				logiscticsSuppressConflicts($_POST['suppressConflict']);
+				break;
 
 
 	// Stats Cases
