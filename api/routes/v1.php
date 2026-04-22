@@ -4,6 +4,7 @@ use HemaScorecard\Api\Controllers\EventsController;
 use HemaScorecard\Api\Controllers\AnnouncementsController;
 use HemaScorecard\Api\Controllers\RosterController;
 use HemaScorecard\Api\Controllers\RulesController;
+use HemaScorecard\Api\Controllers\WorkshopsController;
 
 Flight::route('GET /api/v1/health', [HealthController::class, 'index']);
 
@@ -19,4 +20,6 @@ Flight::route('GET /api/v1/events/@eventID/announcements',  [AnnouncementsContro
 Flight::route('GET /api/v1/events/@eventID/roster',         [RosterController::class, 'index']);
 Flight::route('GET /api/v1/events/@eventID/rules',          [RulesController::class, 'index']);
 Flight::route('GET /api/v1/events/@eventID/rules/@rulesID', [RulesController::class, 'show']);
+Flight::route('GET /api/v1/events/@eventID/workshops',            [WorkshopsController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/workshops/@blockID',   [WorkshopsController::class, 'show']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
