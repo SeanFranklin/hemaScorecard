@@ -94,6 +94,65 @@ class EventsQuery {
     }
 
     /**
+     * Find a single visible event by ID. Returns null if the event doesn't
+     * exist OR isn't visible (hidden/unpublished drafts). Deliberately does
+     * not distinguish the two — prevents ID enumeration of hidden events.
+     *
+     * Returned array has all list-item fields PLUS:
+     *   regionCode, description, publication (5 booleans), plus the raw
+     *   publish flags for the controller to compose the publication block.
+     */
+    public static function findById(int $id): ?array {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $sql = "SELECT
+                    systemEvents.eventID AS eventID,
+                    eventName            AS name,
+                    eventAbbreviation    AS abbreviation,
+                    eventYear            AS year,
+                    eventStartDate       AS startDate,
+                    eventEndDate         AS endDate,
+                    eventCity            AS city,
+                    eventProvince        AS province,
+                    systemEvents.countryIso2 AS countryIso2,
+                    countryName          AS countryName,
+                    isMetaEvent          AS isMetaEvent,
+                    regionCode           AS regionCode,
+                    isArchived           AS isArchived,
+                    COALESCE(publishDescription, 0) AS publishDescription,
+                    COALESCE(publishRoster,      0) AS publishRoster,
+                    COALESCE(publishSchedule,    0) AS publishSchedule,
+                    COALESCE(publishMatches,     0) AS publishMatches,
+                    COALESCE(publishRules,       0) AS publishRules,
+                    eventDescriptions.description   AS descriptionRaw,
+                    " . self::STATUS_EXPR . "       AS status
+                FROM systemEvents
+                INNER JOIN systemCountries USING(countryIso2)
+                LEFT JOIN eventPublication   USING(eventID)
+                LEFT JOIN eventDescriptions  ON eventDescriptions.eventID = systemEvents.eventID
+                WHERE systemEvents.eventID = {$id}
+                AND " . self::VISIBLE_WHERE . "
+                LIMIT 1";
+
+        $row = mysqlQuery($sql, SINGLE);
+        return $row ?: null;
+    }
+
+    public static function countTournaments(int $eventID): int {
+        $eventID = (int)$eventID;
+        $sql = "SELECT COUNT(*) AS c FROM eventTournaments WHERE eventID = {$eventID}";
+        return (int)mysqlQuery($sql, SINGLE, 'c');
+    }
+
+    public static function countRoster(int $eventID): int {
+        $eventID = (int)$eventID;
+        $sql = "SELECT COUNT(*) AS c FROM eventRoster WHERE eventID = {$eventID}";
+        return (int)mysqlQuery($sql, SINGLE, 'c');
+    }
+
+    /**
      * SELECT + joins + columns common to all list queries. Does not end
      * with a WHERE — callers compose their own visibility + date filters.
      */
