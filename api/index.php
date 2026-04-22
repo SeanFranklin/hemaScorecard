@@ -27,6 +27,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\JsonResponse;
+use HemaScorecard\Api\Middleware\ApiKeyAuth;
 
 // Reject non-GET methods before dispatch. This fires before the auth
 // middleware (added in Task 9) so bogus writes get a clean 405, not a 401.
@@ -34,6 +35,12 @@ Flight::before('start', function() {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         JsonResponse::error('method_not_allowed', 405, 'Only GET is supported');
     }
+});
+
+// Auth middleware — runs after the 405 check so bogus writes never
+// expose whether a key is valid.
+Flight::before('start', function() {
+    ApiKeyAuth::check();
 });
 
 // Global error handler: expected ApiException → structured JSON;
