@@ -170,8 +170,9 @@ class EventsQuery {
         $sql = "SELECT
                     systemEvents.eventID AS eventID,
                     isArchived           AS isArchived,
-                    COALESCE(publishRoster, 0) AS publishRoster,
-                    COALESCE(publishRules,  0) AS publishRules
+                    COALESCE(publishRoster,   0) AS publishRoster,
+                    COALESCE(publishRules,    0) AS publishRules,
+                    COALESCE(publishSchedule, 0) AS publishSchedule
                 FROM systemEvents
                 LEFT JOIN eventPublication USING(eventID)
                 WHERE systemEvents.eventID = {$eventID}
@@ -184,10 +185,11 @@ class EventsQuery {
         }
 
         return [
-            'eventID'       => (int)$row['eventID'],
-            'isArchived'    => (bool)(int)$row['isArchived'],
-            'publishRoster' => (bool)(int)$row['publishRoster'],
-            'publishRules'  => (bool)(int)$row['publishRules'],
+            'eventID'         => (int)$row['eventID'],
+            'isArchived'      => (bool)(int)$row['isArchived'],
+            'publishRoster'   => (bool)(int)$row['publishRoster'],
+            'publishRules'    => (bool)(int)$row['publishRules'],
+            'publishSchedule' => (bool)(int)$row['publishSchedule'],
         ];
     }
 
