@@ -7,6 +7,7 @@ use HemaScorecard\Api\Controllers\RulesController;
 use HemaScorecard\Api\Controllers\PoolsController;
 use HemaScorecard\Api\Controllers\PoolMatchesController;
 use HemaScorecard\Api\Controllers\PlacingsController;
+use HemaScorecard\Api\Controllers\BracketsController;
 use HemaScorecard\Api\Controllers\TournamentsController;
 use HemaScorecard\Api\Controllers\WorkshopsController;
 use HemaScorecard\Api\Controllers\SchedulesController;
@@ -46,4 +47,7 @@ Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@pool
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/matches',        [PoolMatchesController::class, 'index']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/matches/@matchID', [PoolMatchesController::class, 'show']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/placings', [PlacingsController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets',                         [BracketsController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID',              [BracketsController::class, 'show']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID/roster',       [BracketsController::class, 'roster']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
