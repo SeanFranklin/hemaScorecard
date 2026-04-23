@@ -59,6 +59,9 @@ class TournamentsController {
     }
 
     private function shapeSingle(array $row, array $rulesets): array {
+        // weapon is INNER-JOINed + NOT NULL in schema, so weaponID is always
+        // set for a row returned by findForEvent. Null-checked here for
+        // defensive consistency with the other (truly nullable) attribute slots.
         $attributes = [
             'weapon' => $row['weaponID'] !== null
                 ? ['id' => (int)$row['weaponID'], 'name' => $row['weaponName']]

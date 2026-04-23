@@ -27,7 +27,7 @@ class TournamentsQuery {
                 {$joinChain}
                 LEFT JOIN eventTournamentOrder eTO ON eTO.tournamentID = eT.tournamentID
                 WHERE eT.eventID = {$eventID}
-                ORDER BY COALESCE(eTO.sortOrder, 999999) ASC, {$nameExpr} ASC, eT.tournamentID ASC";
+                ORDER BY COALESCE(eTO.sortOrder, 999999) ASC, name ASC, eT.tournamentID ASC";
         return mysqlQuery($sql, ASSOC);
     }
 

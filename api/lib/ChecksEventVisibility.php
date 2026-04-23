@@ -21,6 +21,9 @@ trait ChecksEventVisibility {
      * to API consumers at this event. Archived events override all flags.
      */
     protected function isResourceVisible(array $gate, string $flagKey): bool {
+        if (!array_key_exists($flagKey, $gate)) {
+            throw new \InvalidArgumentException("Unknown gate flag key: {$flagKey}");
+        }
         return $gate['isArchived'] || $gate[$flagKey];
     }
 }
