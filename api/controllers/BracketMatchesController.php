@@ -5,6 +5,7 @@ use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\BracketMatchesQuery;
 use HemaScorecard\Api\Lib\BracketsQuery;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
+use HemaScorecard\Api\Lib\ExchangesQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 
 class BracketMatchesController {
@@ -29,6 +30,33 @@ class BracketMatchesController {
         $rows = BracketMatchesQuery::listForBracket($bid);
         $shaped = array_map([$this, 'shapeListItem'], $rows);
         JsonResponse::success($shaped, ['count' => count($shaped)]);
+    }
+
+    public function show(string $eventID, string $tournamentID, string $bracketID, string $matchID): void {
+        $eid = (int)$eventID;
+        $tid = (int)$tournamentID;
+        $bid = (int)$bracketID;
+        $mid = (int)$matchID;
+
+        $gate = $this->findVisibleEventOrThrow($eid);
+        if (!$this->isResourceVisible($gate, 'publishMatches')) {
+            throw new ApiException('not_found', 404, "Match {$mid} not found");
+        }
+
+        $row = BracketMatchesQuery::findMatchInScope($eid, $tid, $bid, $mid);
+        if ($row === null) {
+            throw new ApiException('not_found', 404, "Match {$mid} not found");
+        }
+
+        $exchanges = ExchangesQuery::forMatch($mid);
+        $options   = array_map(function(array $o): array {
+            return [
+                'optionID'    => (int)$o['optionID'],
+                'optionValue' => (int)$o['optionValue'],
+            ];
+        }, BracketMatchesQuery::optionsForMatch($mid));
+
+        JsonResponse::success($this->shapeDetail($row, $exchanges, $options));
     }
 
     protected function shapeListItem(array $row): array {
@@ -66,5 +94,15 @@ class BracketMatchesController {
             'firstName' => $row[$firstKey],
             'lastName'  => $row[$lastKey],
         ];
+    }
+
+    private function shapeDetail(array $row, array $exchanges, array $options): array {
+        $base = $this->shapeListItem($row);
+        $base['matchTime']    = $row['matchTime'] !== null ? (int)$row['matchTime'] : null;
+        $base['signOff1']     = (bool)(int)$row['signOff1'];
+        $base['signOff2']     = (bool)(int)$row['signOff2'];
+        $base['exchanges']    = $exchanges;
+        $base['matchOptions'] = $options;
+        return $base;
     }
 }

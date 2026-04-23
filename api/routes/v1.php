@@ -52,4 +52,5 @@ Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets', 
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID',              [BracketsController::class, 'show']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID/roster',       [BracketsController::class, 'roster']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID/matches',        [BracketMatchesController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/brackets/@bracketID/matches/@matchID', [BracketMatchesController::class, 'show']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
