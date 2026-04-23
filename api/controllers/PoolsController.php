@@ -5,6 +5,7 @@ use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\PoolsQuery;
+use HemaScorecard\Api\Lib\StandingsQuery;
 
 class PoolsController {
 
@@ -67,6 +68,25 @@ class PoolsController {
         JsonResponse::success($shaped, ['count' => count($shaped)]);
     }
 
+    public function standings(string $eventID, string $tournamentID, string $poolID): void {
+        $eid = (int)$eventID;
+        $tid = (int)$tournamentID;
+        $pid = (int)$poolID;
+
+        $gate = $this->findVisibleEventOrThrow($eid);
+        if (!$this->isResourceVisible($gate, 'publishMatches')) {
+            throw new ApiException('not_found', 404, "Pool {$pid} not found");
+        }
+
+        if (PoolsQuery::findPoolInScope($eid, $tid, $pid) === null) {
+            throw new ApiException('not_found', 404, "Pool {$pid} not found");
+        }
+
+        $rows = StandingsQuery::forPool($pid);
+        $shaped = array_map([$this, 'shapeStandingsRow'], $rows);
+        JsonResponse::success($shaped, ['count' => count($shaped)]);
+    }
+
     private function shapeListItem(array $row): array {
         return [
             'poolID'      => (int)$row['poolID'],
@@ -106,6 +126,43 @@ class PoolsController {
             'poolPosition'       => (int)$row['poolPosition'],
             'participantStatus'  => $row['participantStatus'],
             'tournamentTableID'  => $row['tournamentTableID'] !== null ? (int)$row['tournamentTableID'] : null,
+        ];
+    }
+
+    private function shapeStandingsRow(array $row): array {
+        return [
+            'rosterID'                 => (int)$row['rosterID'],
+            'firstName'                => $row['firstName'],
+            'lastName'                 => $row['lastName'],
+            'schoolID'                 => $row['schoolID']   !== null ? (int)$row['schoolID']   : null,
+            'schoolName'               => $row['schoolName'] !== null ? $row['schoolName']      : null,
+            'rank'                     => $row['rank']        !== null ? (int)$row['rank']        : null,
+            'overlapSize'              => $row['overlapSize'] !== null ? (int)$row['overlapSize'] : null,
+            'score'                    => (float)$row['score'],
+            'matches'                  => (float)$row['matches'],
+            'wins'                     => (float)$row['wins'],
+            'losses'                   => (float)$row['losses'],
+            'ties'                     => (float)$row['ties'],
+            'pointsFor'                => (float)$row['pointsFor'],
+            'pointsAgainst'            => (float)$row['pointsAgainst'],
+            'hitsFor'                  => (float)$row['hitsFor'],
+            'hitsAgainst'              => (float)$row['hitsAgainst'],
+            'afterblowsFor'            => (float)$row['afterblowsFor'],
+            'afterblowsAgainst'        => (float)$row['afterblowsAgainst'],
+            'doubles'                  => (float)$row['doubles'],
+            'noExchanges'              => (float)$row['noExchanges'],
+            'absPointsFor'             => (float)$row['absPointsFor'],
+            'absPointsAgainst'         => (float)$row['absPointsAgainst'],
+            'absPointsAwarded'         => (float)$row['absPointsAwarded'],
+            'numPenalties'             => (float)$row['numPenalties'],
+            'numYellowCards'           => (int)$row['numYellowCards'],
+            'numRedCards'              => (int)$row['numRedCards'],
+            'penaltiesAgainstOpponents'=> (float)$row['penaltiesAgainstOpponents'],
+            'penaltiesAgainst'         => (float)$row['penaltiesAgainst'],
+            'doubleOuts'               => (float)$row['doubleOuts'],
+            'numCleanHits'             => (float)$row['numCleanHits'],
+            'basePointValue'           => (int)$row['basePointValue'],
+            'ignoreForBracket'         => (bool)(int)$row['ignoreForBracket'],
         ];
     }
 }
