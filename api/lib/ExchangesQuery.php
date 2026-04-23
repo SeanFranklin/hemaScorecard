@@ -50,6 +50,6 @@ class ExchangesQuery {
                     'target' => AttacksVocabulary::lookup($row['refTarget'] !== null ? (int)$row['refTarget'] : null),
                 ],
             ];
-        }, (array)$rows);
+        }, $rows);
     }
 }

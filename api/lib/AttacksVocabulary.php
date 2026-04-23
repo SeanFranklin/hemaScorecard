@@ -24,7 +24,7 @@ class AttacksVocabulary {
     private static function load(): void {
         $rows = mysqlQuery("SELECT attackID, attackCode, attackText FROM systemAttacks", ASSOC);
         $cache = [];
-        foreach ((array)$rows as $row) {
+        foreach ($rows as $row) {
             $cache[(int)$row['attackID']] = [
                 'code' => $row['attackCode'],
                 'text' => $row['attackText'],
