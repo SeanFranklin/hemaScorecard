@@ -3,7 +3,6 @@ namespace HemaScorecard\Api\Controllers;
 
 use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
-use HemaScorecard\Api\Lib\EventsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\ScheduleBlocks;
 use HemaScorecard\Api\Lib\WorkshopsQuery;
