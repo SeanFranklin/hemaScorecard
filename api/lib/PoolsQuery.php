@@ -4,20 +4,6 @@ namespace HemaScorecard\Api\Lib;
 class PoolsQuery {
 
     /**
-     * Confirm tournament $tid belongs to event $eid. Used by controllers
-     * before calling list-style pool queries.
-     */
-    public static function tournamentBelongsToEvent(int $eventID, int $tournamentID): bool {
-        if ($eventID <= 0 || $tournamentID <= 0) {
-            return false;
-        }
-        $sql = "SELECT 1 FROM eventTournaments
-                WHERE tournamentID = {$tournamentID} AND eventID = {$eventID}
-                LIMIT 1";
-        return (bool)mysqlQuery($sql, SINGLE);
-    }
-
-    /**
      * Flat list of all pools for a tournament, across every groupSet.
      * Returns [{poolID, poolName, poolNumber, groupSet, numFighters,
      * locationID, isComplete}, ...]. Sort: groupSet ASC, poolNumber ASC.

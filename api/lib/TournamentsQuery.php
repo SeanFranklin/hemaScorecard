@@ -110,4 +110,18 @@ class TournamentsQuery {
                 ORDER BY eR.rulesOrder ASC, eR.rulesName ASC, eR.rulesID ASC";
         return mysqlQuery($sql, ASSOC);
     }
+
+    /**
+     * Confirm tournament $tid belongs to event $eid. Used by controllers
+     * before list-style tournament-scoped queries.
+     */
+    public static function belongsToEvent(int $eventID, int $tournamentID): bool {
+        if ($eventID <= 0 || $tournamentID <= 0) {
+            return false;
+        }
+        $sql = "SELECT 1 FROM eventTournaments
+                WHERE tournamentID = {$tournamentID} AND eventID = {$eventID}
+                LIMIT 1";
+        return (bool)mysqlQuery($sql, SINGLE);
+    }
 }

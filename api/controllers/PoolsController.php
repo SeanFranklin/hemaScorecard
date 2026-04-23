@@ -6,6 +6,7 @@ use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\PoolsQuery;
 use HemaScorecard\Api\Lib\StandingsQuery;
+use HemaScorecard\Api\Lib\TournamentsQuery;
 
 class PoolsController {
 
@@ -21,7 +22,7 @@ class PoolsController {
             return;
         }
 
-        if (!PoolsQuery::tournamentBelongsToEvent($eid, $tid)) {
+        if (!TournamentsQuery::belongsToEvent($eid, $tid)) {
             throw new ApiException('not_found', 404, "Tournament {$tid} not found");
         }
 
