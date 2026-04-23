@@ -1,0 +1,1843 @@
+openapi: 3.0.3
+
+info:
+  title: HEMA Scorecard API
+  version: "1.0.0"
+  description: |
+    Read-only HTTP API for HEMA Scorecard — tournament-management software
+    for Historical European Martial Arts events.
+
+    All endpoints require an API key in the `X-API-Key` header. Responses
+    follow a consistent envelope: success bodies wrap the payload in `data`
+    plus optional `meta`; error bodies use `{ "error": { "code", "message" } }`.
+
+    Visibility: each event has a set of `publication` flags (description,
+    roster, schedule, matches, rules). Named-resource endpoints return 404
+    when the corresponding flag is false on a non-archived event; list
+    endpoints return a 200 empty-list in the same state. Archived events
+    expose all resources regardless of flag state.
+  contact:
+    name: HEMA Scorecard
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development (docker-compose)
+  - url: "{protocol}://{host}/api/v1"
+    description: Configurable deployment
+    variables:
+      protocol:
+        default: https
+        enum: [http, https]
+      host:
+        default: api.example.com
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - { name: Health,        description: Connectivity checks }
+  - { name: Events,        description: Top-level event resources }
+  - { name: Roster,        description: Event rosters }
+  - { name: Announcements, description: Event announcements }
+  - { name: Rules,         description: Event rules (per-tournament rulesets) }
+  - { name: Workshops,     description: Workshop (class) sessions }
+  - { name: Schedules,     description: "Schedule variants: main/workshops/school/personal/location" }
+  - { name: Tournaments,   description: Tournament-level resources }
+  - { name: Pools,         description: Pool-stage tournament data }
+  - { name: Brackets,      description: Bracket-stage tournament data }
+  - { name: Placings,      description: Tournament final placings }
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: API health check
+      description: Lightweight connectivity probe. Does not touch the database. No auth required.
+      security: []
+      responses:
+        "200":
+          description: API reachable.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [status]
+                    properties:
+                      status: { type: string, example: ok }
+
+  /events:
+    get:
+      tags: [Events]
+      summary: List published events
+      description: |
+        Paginated list of visible events, sorted by start date descending.
+        Filters combine with AND across parameters and OR within comma-lists.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+        - name: year
+          in: query
+          description: Exact-match year filter. Accepts a single value or comma-list (e.g. `2026` or `2026,2025`).
+          schema: { type: string, example: "2026" }
+        - name: country
+          in: query
+          description: ISO 3166-1 alpha-2 country code. Case-insensitive. Accepts a single value or comma-list (e.g. `US` or `US,CA,GB`).
+          schema: { type: string, example: "US" }
+        - name: isMeta
+          in: query
+          description: "Filter to meta-events (true) or non-meta (false). Accepts `true`/`false`/`1`/`0` (case-insensitive)."
+          schema: { type: string, example: "false" }
+      responses:
+        "200":
+          description: Paginated event list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/EventListItem" } }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /events/today:
+    get:
+      tags: [Events]
+      summary: Events happening today
+      description: Events whose date range includes today (server UTC). Not paginated.
+      responses:
+        "200":
+          description: Today's events.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventListCountResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /events/upcoming:
+    get:
+      tags: [Events]
+      summary: Upcoming events (next 7 days)
+      responses:
+        "200":
+          description: Events starting within the next 7 days (exclusive of today).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventListCountResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /events/recent:
+    get:
+      tags: [Events]
+      summary: Recently-completed events
+      responses:
+        "200":
+          description: Events whose end date fell in the past 7 days (exclusive of today).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventListCountResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /events/{eventID}:
+    get:
+      tags: [Events]
+      summary: Event detail
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+      responses:
+        "200":
+          description: Event detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/EventDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/roster:
+    get:
+      tags: [Roster]
+      summary: Event roster (fighters + teams)
+      description: |
+        Paginated. Default 50 per page, max 200. Each row is either an
+        individual fighter (`isTeam: false`) or a team (`isTeam: true`, with
+        `teamMembers` array of rosterIDs).
+
+        Visibility: gates on `publishRoster`. Unpublished non-archived events
+        return an empty list (200); archived events expose the roster.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/Page"
+        - name: per_page
+          in: query
+          description: Page size (default 50, max 200).
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+      responses:
+        "200":
+          description: Paginated roster.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RosterEntry" } }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/announcements:
+    get:
+      tags: [Announcements]
+      summary: Event announcements
+      description: |
+        Returns active announcements for the event. `isGlobal: true` rows
+        are system-wide announcements that apply to all events.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+      responses:
+        "200":
+          description: Announcements list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Announcement" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/rules:
+    get:
+      tags: [Rules]
+      summary: Rules list (summary)
+      description: |
+        Returns list of rulesets for the event, without rules text. Use
+        the detail endpoint to fetch full text per ruleset.
+
+        Visibility: gates on `publishRules`.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+      responses:
+        "200":
+          description: Rules list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/RuleListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/rules/{rulesID}:
+    get:
+      tags: [Rules]
+      summary: Rules detail (with text + linked tournaments)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/RulesID"
+      responses:
+        "200":
+          description: Rules detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/RuleDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/workshops:
+    get:
+      tags: [Workshops]
+      summary: Workshops (class sessions) list
+      description: |
+        Only returns schedule blocks with `blockType: workshop`. For all
+        block types (including tournaments and staffing), use `/schedules/*`.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+      responses:
+        "200":
+          description: Workshop list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Workshop" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/workshops/{blockID}:
+    get:
+      tags: [Workshops]
+      summary: Workshop detail
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/BlockID"
+      responses:
+        "200":
+          description: Workshop detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/Workshop" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/main:
+    get:
+      tags: [Schedules]
+      summary: Main schedule (all block types, day-grouped)
+      description: |
+        Returns all schedule blocks grouped by `dayNum`. Each block includes
+        type, title, start/end time, and any assigned locations.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+      responses:
+        "200":
+          description: Day-grouped schedule.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleDayGroupResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/main/day/{dayNum}:
+    get:
+      tags: [Schedules]
+      summary: Main schedule for one day (flat list)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/DayNum"
+      responses:
+        "200":
+          description: Flat list of blocks for the given day.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleFlatDayResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/workshops:
+    get:
+      tags: [Schedules]
+      summary: Workshops-only schedule (day-grouped)
+      parameters: [{ $ref: "#/components/parameters/EventID" }]
+      responses:
+        "200":
+          description: Day-grouped workshops schedule.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleDayGroupResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/workshops/day/{dayNum}:
+    get:
+      tags: [Schedules]
+      summary: Workshops schedule for one day (flat list)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/DayNum"
+      responses:
+        "200":
+          description: Flat list of workshop blocks for the given day.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleFlatDayResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/school/{schoolID}:
+    get:
+      tags: [Schedules]
+      summary: School-scoped schedule (day-grouped)
+      description: |
+        Blocks where any fighter or instructor is affiliated with the given
+        school (by `eventRoster.schoolID` or `systemRoster.schoolID`).
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/SchoolID"
+      responses:
+        "200":
+          description: Day-grouped school schedule.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleDayGroupResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/school/{schoolID}/day/{dayNum}:
+    get:
+      tags: [Schedules]
+      summary: School-scoped schedule for one day (flat list)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/SchoolID"
+        - $ref: "#/components/parameters/DayNum"
+      responses:
+        "200":
+          description: Flat list of blocks for the school on the given day.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleFlatDayResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/personal/{rosterID}:
+    get:
+      tags: [Schedules]
+      summary: Personal schedule (day-grouped, with participation)
+      description: |
+        Returns blocks relevant to the given roster entry, with each block
+        annotated by a `participation` array describing the person's role
+        in that block (entrant, instructor, judge, etc.).
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/RosterID"
+      responses:
+        "200":
+          description: Day-grouped personal schedule.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/PersonalDayGroup" }
+                  meta: { $ref: "#/components/schemas/DayGroupMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/personal/{rosterID}/day/{dayNum}:
+    get:
+      tags: [Schedules]
+      summary: Personal schedule for one day (flat list)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/RosterID"
+        - $ref: "#/components/parameters/DayNum"
+      responses:
+        "200":
+          description: Flat list of personal blocks for the given day.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/PersonalScheduleBlock" }
+                  meta: { $ref: "#/components/schemas/FlatDayMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/location/{locationID}:
+    get:
+      tags: [Schedules]
+      summary: Location-scoped schedule (day-grouped)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/LocationID"
+      responses:
+        "200":
+          description: Day-grouped schedule for the given location.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleDayGroupResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/schedules/location/{locationID}/day/{dayNum}:
+    get:
+      tags: [Schedules]
+      summary: Location-scoped schedule for one day (flat list)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/LocationID"
+        - $ref: "#/components/parameters/DayNum"
+      responses:
+        "200":
+          description: Flat list of blocks for the location on the given day.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScheduleFlatDayResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments:
+    get:
+      tags: [Tournaments]
+      summary: Tournaments list
+      description: |
+        Visibility: gates on `publishMatches`. Unpublished non-archived
+        events return 200 empty.
+      parameters: [{ $ref: "#/components/parameters/EventID" }]
+      responses:
+        "200":
+          description: Tournament list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/TournamentListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}:
+    get:
+      tags: [Tournaments]
+      summary: Tournament detail (with attributes, ranking, scoring, rulesets)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+      responses:
+        "200":
+          description: Tournament detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/TournamentDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools:
+    get:
+      tags: [Pools]
+      summary: Pool list (across pool sets)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+      responses:
+        "200":
+          description: Flat list of pools sorted by groupSet then poolNumber.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/PoolListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools/{poolID}:
+    get:
+      tags: [Pools]
+      summary: Pool detail (with location + match progress + rank)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/PoolID"
+      responses:
+        "200":
+          description: Pool detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/PoolDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools/{poolID}/roster:
+    get:
+      tags: [Pools]
+      summary: Pool roster (fighters seeded 1..N)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/PoolID"
+      responses:
+        "200":
+          description: Fighters in the pool, ordered by poolPosition.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/GroupRosterEntry" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools/{poolID}/matches:
+    get:
+      tags: [Pools]
+      summary: Pool matches list
+      description: "Placeholder rows excluded; ignored matches included with `isIgnored: true`."
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/PoolID"
+      responses:
+        "200":
+          description: Match list sorted by matchNumber.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/PoolMatchListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools/{poolID}/matches/{matchID}:
+    get:
+      tags: [Pools]
+      summary: Pool match detail (with exchanges + match options)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/PoolID"
+        - $ref: "#/components/parameters/MatchID"
+      responses:
+        "200":
+          description: Match detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/PoolMatchDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/pools/{poolID}/standings:
+    get:
+      tags: [Pools]
+      summary: Pool standings (full stats)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/PoolID"
+      responses:
+        "200":
+          description: Standings sorted by rank ASC.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Standing" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/brackets:
+    get:
+      tags: [Brackets]
+      summary: Bracket list (primary + optional secondary)
+      description: |
+        Returns brackets sorted primary-first. Each bracket carries a derived
+        `elimType` (single / consolation / lower_bracket / true_double) that
+        is computed across the tournament's bracket structure.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+      responses:
+        "200":
+          description: Bracket list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/BracketListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/brackets/{bracketID}:
+    get:
+      tags: [Brackets]
+      summary: Bracket detail (with progress counts + embedded placings)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/BracketID"
+      responses:
+        "200":
+          description: Bracket detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/BracketDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/brackets/{bracketID}/roster:
+    get:
+      tags: [Brackets]
+      summary: Bracket roster (fighters seeded 1..N)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/BracketID"
+      responses:
+        "200":
+          description: Fighters in the bracket, ordered by poolPosition (seed).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/GroupRosterEntry" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/brackets/{bracketID}/matches:
+    get:
+      tags: [Brackets]
+      summary: Bracket matches list
+      description: |
+        Sorted by `bracketLevel DESC` (first rounds top, finals bottom) then
+        `bracketPosition ASC`. Fighters may be null on higher-level matches
+        whose feeders haven't resolved yet. Placeholders excluded; ignored
+        matches included with `isIgnored: true`.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/BracketID"
+      responses:
+        "200":
+          description: Match list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/BracketMatchListItem" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/brackets/{bracketID}/matches/{matchID}:
+    get:
+      tags: [Brackets]
+      summary: Bracket match detail (with exchanges + match options)
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+        - $ref: "#/components/parameters/BracketID"
+        - $ref: "#/components/parameters/MatchID"
+      responses:
+        "200":
+          description: Match detail.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/BracketMatchDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /events/{eventID}/tournaments/{tournamentID}/placings:
+    get:
+      tags: [Placings]
+      summary: Tournament final placings
+      description: Empty list if placings haven't been finalized yet.
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+      responses:
+        "200":
+          description: Placings sorted by placing ASC.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Placing" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Opaque API key. Keys are stored server-side in `data/api_keys.json`;
+        treat any leak as requiring rotation. All endpoints except `/health`
+        require a valid key.
+
+  parameters:
+    EventID:
+      name: eventID
+      in: path
+      required: true
+      description: Numeric event identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9001 }
+
+    TournamentID:
+      name: tournamentID
+      in: path
+      required: true
+      description: Numeric tournament identifier. Must belong to the event in the URL.
+      schema: { type: integer, format: int32, minimum: 1, example: 9101 }
+
+    PoolID:
+      name: poolID
+      in: path
+      required: true
+      description: Numeric pool group identifier (`eventGroups.groupID` where `groupType='pool'`).
+      schema: { type: integer, format: int32, minimum: 1, example: 9501 }
+
+    BracketID:
+      name: bracketID
+      in: path
+      required: true
+      description: Numeric bracket group identifier (`eventGroups.groupID` where `groupType='elim'`).
+      schema: { type: integer, format: int32, minimum: 1, example: 9701 }
+
+    MatchID:
+      name: matchID
+      in: path
+      required: true
+      description: Numeric match identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9601 }
+
+    BlockID:
+      name: blockID
+      in: path
+      required: true
+      description: Schedule block identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 4402 }
+
+    SchoolID:
+      name: schoolID
+      in: path
+      required: true
+      description: School identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 7001 }
+
+    RosterID:
+      name: rosterID
+      in: path
+      required: true
+      description: Event-roster identifier for a person or team.
+      schema: { type: integer, format: int32, minimum: 1, example: 9201 }
+
+    LocationID:
+      name: locationID
+      in: path
+      required: true
+      description: Location identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 6001 }
+
+    RulesID:
+      name: rulesID
+      in: path
+      required: true
+      description: Rules-document identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9301 }
+
+    DayNum:
+      name: dayNum
+      in: path
+      required: true
+      description: Event day number (1-indexed).
+      schema: { type: integer, format: int32, minimum: 1, example: 1 }
+
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed).
+      schema: { type: integer, minimum: 1, default: 1 }
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Page size.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+
+  responses:
+    BadRequest:
+      description: Invalid request parameter.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: bad_request
+              message: "Invalid year: 'abc'"
+
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: unauthorized
+              message: Missing or invalid API key
+
+    NotFound:
+      description: |
+        Resource not found. Returned for missing IDs, cross-scope
+        references (e.g. a pool ID that doesn't belong to the
+        tournament in the URL), and hidden resources on non-archived
+        events with the corresponding `publication` flag false.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: not_found
+              message: Event 9999 not found
+
+  schemas:
+
+    # --- Envelope / meta ---
+
+    ErrorBody:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code.
+              enum: [bad_request, unauthorized, not_found, internal_error]
+            message:
+              type: string
+              description: Human-readable explanation.
+
+    PaginationMeta:
+      type: object
+      required: [count, page, per_page, total, total_pages]
+      description: Pagination envelope for paginated list endpoints.
+      properties:
+        count:       { type: integer, description: Items in this response. }
+        page:        { type: integer, description: 1-indexed current page. }
+        per_page:    { type: integer, description: Page size in effect. }
+        total:       { type: integer, description: Total items across all pages. }
+        total_pages: { type: integer, description: "ceil(total / per_page)." }
+
+    CountMeta:
+      type: object
+      required: [count]
+      description: Simple count envelope for list endpoints without pagination.
+      properties:
+        count: { type: integer }
+
+    DayGroupMeta:
+      type: object
+      required: [dayCount, blockCount]
+      properties:
+        dayCount:   { type: integer, description: Distinct days present. }
+        blockCount: { type: integer, description: Total blocks across all days. }
+
+    FlatDayMeta:
+      type: object
+      required: [dayNum, count]
+      properties:
+        dayNum: { type: integer }
+        count:  { type: integer }
+
+    EventListCountResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { type: array, items: { $ref: "#/components/schemas/EventListItem" } }
+        meta: { $ref: "#/components/schemas/CountMeta" }
+
+    ScheduleDayGroupResponse:
+      type: object
+      required: [data, meta]
+      description: Day-grouped schedule response (used by the non-day-filtered schedule endpoints).
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/ScheduleDayGroup" }
+        meta: { $ref: "#/components/schemas/DayGroupMeta" }
+
+    ScheduleFlatDayResponse:
+      type: object
+      required: [data, meta]
+      description: Flat (non-grouped) schedule response (used when a `dayNum` path param is present).
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/ScheduleBlock" }
+        meta: { $ref: "#/components/schemas/FlatDayMeta" }
+
+    # --- Events ---
+
+    EventStatus:
+      type: string
+      enum: [upcoming, active, complete]
+      description: |
+        Derived lifecycle state based on publication flags and `isArchived`:
+        - `upcoming`: any publish flag set but `publishMatches` is false.
+        - `active`:  `publishMatches` is true and event is not archived.
+        - `complete`: event is archived.
+
+    EventPublication:
+      type: object
+      description: |
+        Publication flags that gate visibility of nested resources. Archived
+        events expose all resources regardless of these flags.
+      required: [description, roster, schedule, matches, rules]
+      properties:
+        description: { type: boolean }
+        roster:      { type: boolean }
+        schedule:    { type: boolean }
+        matches:     { type: boolean }
+        rules:       { type: boolean }
+
+    EventListItem:
+      type: object
+      description: Event as returned in list endpoints.
+      required: [eventID, name, abbreviation, year, startDate, endDate, city, province, countryIso2, countryName, status, isMetaEvent]
+      properties:
+        eventID:      { type: integer, example: 9001 }
+        name:         { type: string }
+        abbreviation: { type: string, nullable: true }
+        year:         { type: integer, nullable: true }
+        startDate:    { type: string, format: date }
+        endDate:      { type: string, format: date }
+        city:         { type: string, nullable: true }
+        province:     { type: string, nullable: true }
+        countryIso2:  { type: string, description: "ISO 3166-1 alpha-2 country code." }
+        countryName:  { type: string }
+        status:       { $ref: "#/components/schemas/EventStatus" }
+        isMetaEvent:  { type: boolean, description: "True for league/meta events that aggregate across other events." }
+
+    EventDetail:
+      type: object
+      description: |
+        Event detail includes everything in the list item plus publication
+        flags, optional description (only when visible), and summary counts.
+      allOf:
+        - $ref: "#/components/schemas/EventListItem"
+        - type: object
+          required: [regionCode, description, publication, tournamentCount, rosterCount]
+          properties:
+            regionCode:
+              type: integer
+              nullable: true
+              description: Optional numeric region code (organization-defined).
+            description:
+              type: string
+              nullable: true
+              description: Long-form event description. Null when `publication.description` is false on a non-archived event.
+            publication:     { $ref: "#/components/schemas/EventPublication" }
+            tournamentCount: { type: integer }
+            rosterCount:     { type: integer }
+
+    # --- Roster ---
+
+    LocationInfo:
+      type: object
+      description: Free-form location (city/province/country) for a person's home location.
+      nullable: true
+      required: [city, province, country]
+      properties:
+        city:     { type: string, nullable: true }
+        province: { type: string, nullable: true }
+        country:  { type: string, nullable: true, description: "ISO 3166-1 alpha-2 or free-form." }
+
+    School:
+      type: object
+      description: HEMA school (affiliation) for a roster entry.
+      nullable: true
+      required: [schoolID, name, shortName, abbreviation]
+      properties:
+        schoolID:     { type: integer }
+        name:         { type: string, description: "Full school name." }
+        shortName:    { type: string, nullable: true }
+        abbreviation: { type: string, nullable: true }
+
+    RosterEntry:
+      type: object
+      description: |
+        A roster entry is either an individual fighter (`isTeam: false`) or
+        a team (`isTeam: true`). Team rows have `teamName` and `teamMembers`
+        populated while individual name fields are null; individuals have
+        name fields populated and team fields null.
+      required:
+        - rosterID
+        - systemRosterID
+        - isTeam
+        - firstName
+        - middleName
+        - lastName
+        - nickname
+        - gender
+        - hemaRatingsID
+        - location
+        - school
+        - teamName
+        - teamMembers
+        - checkedIn
+        - waiverSigned
+        - publicNotes
+      properties:
+        rosterID:       { type: integer }
+        systemRosterID:
+          type: integer
+          nullable: true
+          description: Link to the cross-event `systemRoster` identity. Null on some team rows.
+        isTeam:         { type: boolean }
+        firstName:      { type: string, nullable: true }
+        middleName:     { type: string, nullable: true }
+        lastName:       { type: string, nullable: true }
+        nickname:       { type: string, nullable: true }
+        gender:         { type: string, nullable: true, description: "Free-form gender string." }
+        hemaRatingsID:
+          type: integer
+          nullable: true
+          description: Optional linkage to hemaratings.com by ID.
+        location:    { $ref: "#/components/schemas/LocationInfo" }
+        school:      { $ref: "#/components/schemas/School" }
+        teamName:    { type: string, nullable: true }
+        teamMembers:
+          type: array
+          nullable: true
+          description: Team-only. Array of `rosterID` values for team members.
+          items: { type: integer }
+        checkedIn:    { type: boolean }
+        waiverSigned: { type: boolean }
+        publicNotes:  { type: string, nullable: true }
+
+    # --- Announcements ---
+
+    Announcement:
+      type: object
+      required: [announcementID, message, displayUntil, isGlobal]
+      properties:
+        announcementID: { type: integer }
+        message:        { type: string }
+        displayUntil:
+          type: string
+          format: date-time
+          description: ISO 8601 UTC timestamp; announcements with past `displayUntil` are omitted from responses.
+        isGlobal:
+          type: boolean
+          description: True for system-wide announcements that apply to all events.
+
+    # --- Rules ---
+
+    RuleListItem:
+      type: object
+      required: [rulesID, rulesName, rulesOrder]
+      properties:
+        rulesID:    { type: integer }
+        rulesName:  { type: string }
+        rulesOrder: { type: integer, description: Display order within the event. }
+
+    RuleLinkedTournament:
+      type: object
+      required: [tournamentID, name]
+      properties:
+        tournamentID: { type: integer }
+        name:         { type: string }
+
+    RuleDetail:
+      type: object
+      required: [rulesID, rulesName, rulesOrder, rulesText, tournaments]
+      properties:
+        rulesID:    { type: integer }
+        rulesName:  { type: string }
+        rulesOrder: { type: integer }
+        rulesText:  { type: string, description: "Free-text rules body. May contain newlines." }
+        tournaments:
+          type: array
+          description: Tournaments linked to this rules document.
+          items: { $ref: "#/components/schemas/RuleLinkedTournament" }
+
+    # --- Schedule blocks ---
+
+    BlockType:
+      type: string
+      enum: [tournament, workshop, staffing, misc]
+
+    ScheduleLocation:
+      type: object
+      required: [locationID, name, shortName]
+      properties:
+        locationID: { type: integer }
+        name:       { type: string }
+        shortName:  { type: string, nullable: true }
+
+    ScheduleBlock:
+      type: object
+      description: A generic schedule block. Workshops use the same shape plus extra fields (see `Workshop`).
+      required:
+        - blockID
+        - blockType
+        - dayNum
+        - startTime
+        - endTime
+        - title
+        - subtitle
+        - description
+        - link
+        - linkDescription
+        - tournamentID
+        - locations
+      properties:
+        blockID:         { type: integer }
+        blockType:       { $ref: "#/components/schemas/BlockType" }
+        dayNum:          { type: integer, description: "1-indexed event day." }
+        startTime:       { type: string, description: "Local time-of-day `HH:MM`." }
+        endTime:         { type: string, description: "Local time-of-day `HH:MM`." }
+        title:           { type: string, nullable: true }
+        subtitle:        { type: string, nullable: true }
+        description:     { type: string, nullable: true }
+        link:            { type: string, nullable: true, format: uri }
+        linkDescription: { type: string, nullable: true }
+        tournamentID:
+          type: integer
+          nullable: true
+          description: Present when `blockType=tournament`; links the block to a tournament row.
+        locations:
+          type: array
+          items: { $ref: "#/components/schemas/ScheduleLocation" }
+
+    ScheduleDayGroup:
+      type: object
+      required: [dayNum, blocks]
+      properties:
+        dayNum: { type: integer }
+        blocks:
+          type: array
+          items: { $ref: "#/components/schemas/ScheduleBlock" }
+
+    # --- Workshops (a ScheduleBlock with extra workshop-only fields) ---
+
+    WorkshopInstructor:
+      type: object
+      required: [rosterID, systemRosterID, firstName, lastName, bio]
+      properties:
+        rosterID:       { type: integer }
+        systemRosterID: { type: integer, nullable: true }
+        firstName:      { type: string, nullable: true }
+        lastName:       { type: string, nullable: true }
+        bio:            { type: string, nullable: true }
+
+    Workshop:
+      type: object
+      description: "A schedule block with `blockType: workshop`, plus instructor / equipment / experience metadata."
+      allOf:
+        - $ref: "#/components/schemas/ScheduleBlock"
+        - type: object
+          required: [experience, equipment, instructors]
+          properties:
+            experience: { type: string, nullable: true, description: "Required experience level (free-form, e.g. 'Beginner')." }
+            equipment:  { type: string, nullable: true, description: "Equipment requirements (free-form)." }
+            instructors:
+              type: array
+              items: { $ref: "#/components/schemas/WorkshopInstructor" }
+
+    # --- Personal schedule (block + participation) ---
+
+    PersonalParticipation:
+      type: object
+      description: |
+        One participation role on a personal-schedule block. `role` is
+        open-ended (entrant, instructor, judge, etc.); role-specific fields
+        may appear (`tournamentID` for entrants, `shiftStartTime`/
+        `shiftEndTime` for staff shifts).
+      required: [role]
+      properties:
+        role:           { type: string, description: "Participation role string." }
+        tournamentID:
+          type: integer
+          nullable: true
+          description: Present for `role=entrant` when the block is a tournament.
+        shiftStartTime:
+          type: string
+          nullable: true
+          description: "Staff shift start (HH:MM) when applicable."
+        shiftEndTime:
+          type: string
+          nullable: true
+          description: "Staff shift end (HH:MM) when applicable."
+      additionalProperties: true
+
+    PersonalScheduleBlock:
+      type: object
+      description: A schedule block with a `participation` array describing the fighter's role(s) in it.
+      allOf:
+        - $ref: "#/components/schemas/ScheduleBlock"
+        - type: object
+          required: [participation]
+          properties:
+            participation:
+              type: array
+              items: { $ref: "#/components/schemas/PersonalParticipation" }
+
+    PersonalDayGroup:
+      type: object
+      required: [dayNum, blocks]
+      properties:
+        dayNum: { type: integer }
+        blocks:
+          type: array
+          items: { $ref: "#/components/schemas/PersonalScheduleBlock" }
+
+    # --- Tournaments ---
+
+    TournamentFormat:
+      type: object
+      description: Format enum for the tournament (results-only, match-scored, solo, or meta).
+      required: [formatID, name]
+      properties:
+        formatID:
+          type: integer
+          description: "1 = results, 2 = match-scored, 3 = solo/cutting, 4 = meta."
+          enum: [1, 2, 3, 4]
+        name: { type: string }
+
+    TournamentAttribute:
+      type: object
+      nullable: true
+      required: [id, name]
+      description: One of the weapon / prefix / gender / material / suffix attributes.
+      properties:
+        id:   { type: integer }
+        name: { type: string }
+
+    TournamentAttributes:
+      type: object
+      description: |
+        Composed-name ingredients. `weapon` is always present for non-meta
+        tournaments; the other fields are optional refinements combined
+        left-to-right (e.g. "Women's Steel Longsword Open").
+      required: [weapon, prefix, gender, material, suffix]
+      properties:
+        weapon:   { $ref: "#/components/schemas/TournamentAttribute" }
+        prefix:   { $ref: "#/components/schemas/TournamentAttribute" }
+        gender:   { $ref: "#/components/schemas/TournamentAttribute" }
+        material: { $ref: "#/components/schemas/TournamentAttribute" }
+        suffix:   { $ref: "#/components/schemas/TournamentAttribute" }
+
+    TournamentRanking:
+      type: object
+      nullable: true
+      required: [id, name]
+      properties:
+        id:   { type: integer }
+        name: { type: string, description: "Ranking scheme name (e.g. 'Franklin 2014')." }
+
+    TournamentDoubleType:
+      type: object
+      nullable: true
+      required: [id, name]
+      properties:
+        id:   { type: integer }
+        name: { type: string, description: "e.g. 'Deductive Afterblow'." }
+
+    TournamentScoring:
+      type: object
+      required:
+        - maxPoolSize
+        - maxDoubleHits
+        - maximumExchanges
+        - maximumPoints
+        - maxPointSpread
+        - basePointValue
+        - allowTies
+        - timerCountdown
+        - timeLimit
+        - isNotNetScore
+        - isReverseScore
+        - doubleType
+      properties:
+        maxPoolSize:      { type: integer }
+        maxDoubleHits:    { type: integer }
+        maximumExchanges: { type: integer, nullable: true }
+        maximumPoints:    { type: integer, nullable: true }
+        maxPointSpread:   { type: integer }
+        basePointValue:   { type: integer }
+        allowTies:        { type: boolean }
+        timerCountdown:   { type: boolean }
+        timeLimit:        { type: integer, description: "Match time limit in seconds (0 = unlimited)." }
+        isNotNetScore:    { type: boolean }
+        isReverseScore:   { type: boolean }
+        doubleType:       { $ref: "#/components/schemas/TournamentDoubleType" }
+
+    TournamentRuleset:
+      type: object
+      required: [rulesID, rulesName]
+      properties:
+        rulesID:   { type: integer }
+        rulesName: { type: string }
+
+    TournamentListItem:
+      type: object
+      required:
+        - tournamentID
+        - eventID
+        - name
+        - isTeams
+        - isFinalized
+        - format
+        - numParticipants
+      properties:
+        tournamentID:    { type: integer }
+        eventID:         { type: integer }
+        name:            { type: string, description: "Composed from weapon/prefix/gender/material/suffix." }
+        isTeams:         { type: boolean }
+        isFinalized:     { type: boolean }
+        format:          { $ref: "#/components/schemas/TournamentFormat" }
+        numParticipants: { type: integer }
+
+    TournamentDetail:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/TournamentListItem"
+        - type: object
+          required: [attributes, ranking, isPrivate, hideFinalResults, rulesets, scoring]
+          properties:
+            attributes:       { $ref: "#/components/schemas/TournamentAttributes" }
+            ranking:          { $ref: "#/components/schemas/TournamentRanking" }
+            isPrivate:        { type: boolean }
+            hideFinalResults: { type: boolean }
+            rulesets:
+              type: array
+              items: { $ref: "#/components/schemas/TournamentRuleset" }
+            scoring:          { $ref: "#/components/schemas/TournamentScoring" }
+
+    # --- Pools ---
+
+    PoolListItem:
+      type: object
+      required: [poolID, poolName, poolNumber, groupSet, numFighters, locationID, isComplete]
+      properties:
+        poolID:      { type: integer }
+        poolName:    { type: string }
+        poolNumber:  { type: integer }
+        groupSet:
+          type: integer
+          description: "1 for the first pool set; 2+ for subsequent re-pooling rounds (e.g. finals pools)."
+        numFighters: { type: integer }
+        locationID:  { type: integer, nullable: true, description: "Pool's assigned ring, if any." }
+        isComplete:  { type: boolean }
+
+    PoolDetail:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/PoolListItem"
+        - type: object
+          required: [locationName, rank, overlapSize, matchesTotal, matchesComplete]
+          properties:
+            locationName:
+              type: string
+              nullable: true
+              description: Readable name of the assigned location, null when `locationID` is null.
+            rank:
+              type: integer
+              nullable: true
+              description: Pool's rank against other pools in the same set (populated post-scoring).
+            overlapSize:
+              type: integer
+              nullable: true
+              description: Overlap size used for tie-breaking against other pools (0 when no ties).
+            matchesTotal:
+              type: integer
+              description: Total non-placeholder matches in the pool.
+            matchesComplete:
+              type: integer
+              description: Subset of `matchesTotal` that are marked complete and not ignored.
+
+    GroupRosterEntry:
+      type: object
+      description: A fighter in a pool or bracket. Used by both `/pools/:id/roster` and `/brackets/:id/roster`.
+      required:
+        - rosterID
+        - firstName
+        - lastName
+        - schoolID
+        - schoolName
+        - poolPosition
+        - participantStatus
+        - tournamentTableID
+      properties:
+        rosterID:     { type: integer }
+        firstName:    { type: string, nullable: true }
+        lastName:     { type: string, nullable: true }
+        schoolID:     { type: integer, nullable: true }
+        schoolName:   { type: string, nullable: true, description: "Full school name (`systemSchools.schoolFullName`)." }
+        poolPosition:
+          type: integer
+          description: "Seed position within the group (1..N). Field name reused for brackets."
+        participantStatus:
+          type: string
+          description: "Free-form status (e.g. `normal`, `withdrawn`)."
+        tournamentTableID:
+          type: integer
+          nullable: true
+          description: "Cross-link to the tournament-level roster row."
+
+    # --- Matches (pool + bracket share most fields) ---
+
+    Fighter:
+      type: object
+      nullable: true
+      required: [rosterID, firstName, lastName]
+      description: Minimal fighter shape on match rows. Null when the match slot is unassigned (bye or unresolved feeder).
+      properties:
+        rosterID:  { type: integer }
+        firstName: { type: string, nullable: true }
+        lastName:  { type: string, nullable: true }
+
+    PoolMatchListItem:
+      type: object
+      required:
+        - matchID
+        - matchNumber
+        - groupID
+        - fighter1
+        - fighter2
+        - fighter1Score
+        - fighter2Score
+        - winnerRosterID
+        - isComplete
+        - isIgnored
+        - locationID
+        - locationName
+      properties:
+        matchID:        { type: integer }
+        matchNumber:    { type: integer }
+        groupID:        { type: integer, description: "Pool (or bracket) group ID — `eventGroups.groupID`." }
+        fighter1:       { $ref: "#/components/schemas/Fighter" }
+        fighter2:       { $ref: "#/components/schemas/Fighter" }
+        fighter1Score:  { type: number, format: float, nullable: true }
+        fighter2Score:  { type: number, format: float, nullable: true }
+        winnerRosterID: { type: integer, nullable: true, description: "Null if the match isn't decided." }
+        isComplete:     { type: boolean }
+        isIgnored:      { type: boolean, description: "Ignored matches exist but don't contribute to standings." }
+        locationID:     { type: integer, nullable: true, description: "Per-match location (ring) assignment." }
+        locationName:   { type: string, nullable: true }
+
+    AttackRef:
+      type: object
+      nullable: true
+      required: [code, text]
+      description: Expanded attack attribute (`systemAttacks`), as seen on exchanges.
+      properties:
+        code: { type: string, description: "Machine-readable code (e.g. `head`, `cut`, `afterblow`)." }
+        text: { type: string, description: "Human-readable label." }
+
+    ExchangeAttack:
+      type: object
+      description: Attack descriptor on an exchange. Any of the three may be null.
+      required: [prefix, type, target]
+      properties:
+        prefix: { $ref: "#/components/schemas/AttackRef" }
+        type:   { $ref: "#/components/schemas/AttackRef" }
+        target: { $ref: "#/components/schemas/AttackRef" }
+
+    Exchange:
+      type: object
+      description: One scored exchange within a match.
+      required:
+        - exchangeID
+        - exchangeNumber
+        - exchangeType
+        - scoringRosterID
+        - receivingRosterID
+        - scoreValue
+        - scoreDeduction
+        - exchangeTime
+        - attack
+      properties:
+        exchangeID:        { type: integer }
+        exchangeNumber:    { type: integer, description: "1-indexed ordinal within the match." }
+        exchangeType:
+          type: string
+          description: |
+            Free-form type string. Common values include `clean`, `afterblow`,
+            `double`, `no-exchange`.
+        scoringRosterID:   { type: integer, nullable: true }
+        receivingRosterID: { type: integer, nullable: true }
+        scoreValue:
+          type: number
+          format: float
+          nullable: true
+          description: Points scored by the attacker (null if unrecorded).
+        scoreDeduction:
+          type: number
+          format: float
+          description: |
+            Points deducted from the scoring fighter. Defaults to 0.0 when
+            no deduction applies (null-in-DB is coerced to 0.0, while
+            `scoreValue` null passes through as null — intentional asymmetry).
+        exchangeTime:
+          type: integer
+          nullable: true
+          description: Seconds into the match when the exchange occurred.
+        attack: { $ref: "#/components/schemas/ExchangeAttack" }
+
+    MatchOption:
+      type: object
+      description: Per-match override of tournament-level scoring options.
+      required: [optionID, optionValue]
+      properties:
+        optionID:    { type: integer, description: "Option enum ID — see tournament-options documentation." }
+        optionValue: { type: integer }
+
+    PoolMatchDetail:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/PoolMatchListItem"
+        - type: object
+          required: [matchTime, signOff1, signOff2, exchanges, matchOptions]
+          properties:
+            matchTime:
+              type: integer
+              nullable: true
+              description: Total elapsed match time in seconds.
+            signOff1: { type: boolean }
+            signOff2: { type: boolean }
+            exchanges:
+              type: array
+              items: { $ref: "#/components/schemas/Exchange" }
+            matchOptions:
+              type: array
+              items: { $ref: "#/components/schemas/MatchOption" }
+
+    # --- Standings ---
+
+    Standing:
+      type: object
+      description: Full per-fighter standings row within a pool.
+      required:
+        - rosterID
+        - firstName
+        - lastName
+        - schoolID
+        - schoolName
+        - rank
+        - overlapSize
+        - score
+        - matches
+        - wins
+        - losses
+        - ties
+        - pointsFor
+        - pointsAgainst
+        - hitsFor
+        - hitsAgainst
+        - afterblowsFor
+        - afterblowsAgainst
+        - doubles
+        - noExchanges
+        - absPointsFor
+        - absPointsAgainst
+        - absPointsAwarded
+        - numPenalties
+        - numYellowCards
+        - numRedCards
+        - penaltiesAgainstOpponents
+        - penaltiesAgainst
+        - doubleOuts
+        - numCleanHits
+        - basePointValue
+        - ignoreForBracket
+      properties:
+        rosterID:                  { type: integer }
+        firstName:                 { type: string, nullable: true }
+        lastName:                  { type: string, nullable: true }
+        schoolID:                  { type: integer, nullable: true }
+        schoolName:                { type: string, nullable: true }
+        rank:                      { type: integer, nullable: true }
+        overlapSize:               { type: integer, nullable: true }
+        score:                     { type: number, format: float }
+        matches:                   { type: number, format: float }
+        wins:                      { type: number, format: float }
+        losses:                    { type: number, format: float }
+        ties:                      { type: number, format: float }
+        pointsFor:                 { type: number, format: float }
+        pointsAgainst:             { type: number, format: float }
+        hitsFor:                   { type: number, format: float }
+        hitsAgainst:               { type: number, format: float }
+        afterblowsFor:             { type: number, format: float }
+        afterblowsAgainst:         { type: number, format: float }
+        doubles:                   { type: number, format: float }
+        noExchanges:               { type: number, format: float }
+        absPointsFor:              { type: number, format: float }
+        absPointsAgainst:          { type: number, format: float }
+        absPointsAwarded:          { type: number, format: float }
+        numPenalties:              { type: number, format: float }
+        numYellowCards:            { type: integer }
+        numRedCards:               { type: integer }
+        penaltiesAgainstOpponents: { type: number, format: float }
+        penaltiesAgainst:          { type: number, format: float }
+        doubleOuts:                { type: number, format: float }
+        numCleanHits:              { type: number, format: float }
+        basePointValue:            { type: integer }
+        ignoreForBracket:          { type: boolean }
+
+    # --- Brackets ---
+
+    BracketType:
+      type: string
+      enum: [primary, secondary]
+
+    ElimType:
+      type: string
+      description: |
+        Tournament-wide elimination type, derived from bracket structure:
+        - `single`: single-elimination, optional consolation-less secondary.
+        - `consolation`: has a multi-level secondary bracket for losers.
+        - `lower_bracket`: double-elim with 2 level-1 matches in primary.
+        - `true_double`: double-elim with 3 level-1 matches (bracket reset possible).
+      enum: [single, consolation, lower_bracket, true_double]
+
+    BracketListItem:
+      type: object
+      required:
+        - bracketID
+        - bracketType
+        - bracketLevels
+        - numFighters
+        - elimType
+        - isComplete
+        - locationID
+      properties:
+        bracketID:     { type: integer }
+        bracketType:   { $ref: "#/components/schemas/BracketType" }
+        bracketLevels: { type: integer, description: "Tree depth. 1 = finals-level only; N = N-round bracket." }
+        numFighters:   { type: integer }
+        elimType:      { $ref: "#/components/schemas/ElimType" }
+        isComplete:    { type: boolean }
+        locationID:    { type: integer, nullable: true }
+
+    BracketDetail:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/BracketListItem"
+        - type: object
+          required: [locationName, matchesTotal, matchesComplete, placings]
+          properties:
+            locationName:    { type: string, nullable: true }
+            matchesTotal:    { type: integer }
+            matchesComplete: { type: integer }
+            placings:
+              type: array
+              description: |
+                Tournament-wide placings embedded for convenience. Same
+                shape as the dedicated `/placings` endpoint. Empty until
+                the tournament is finalized.
+              items: { $ref: "#/components/schemas/Placing" }
+
+    BracketMatchListItem:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/PoolMatchListItem"
+        - type: object
+          required: [bracketLevel, bracketPosition]
+          properties:
+            bracketLevel:
+              type: integer
+              description: "1 = finals; higher = earlier rounds. `bracketLevels` in the parent bracket is the max."
+            bracketPosition:
+              type: integer
+              description: 1-indexed slot on the given level.
+
+    BracketMatchDetail:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/BracketMatchListItem"
+        - type: object
+          required: [matchTime, signOff1, signOff2, exchanges, matchOptions]
+          properties:
+            matchTime: { type: integer, nullable: true }
+            signOff1:  { type: boolean }
+            signOff2:  { type: boolean }
+            exchanges:
+              type: array
+              items: { $ref: "#/components/schemas/Exchange" }
+            matchOptions:
+              type: array
+              items: { $ref: "#/components/schemas/MatchOption" }
+
+    # --- Placings ---
+
+    PlaceType:
+      type: string
+      nullable: true
+      description: |
+        Type of placing:
+        - `final`: firm final placing (no tie).
+        - `tie`: placing is part of a tied range; `highBound`/`lowBound` describe it.
+      enum: [final, tie]
+
+    Placing:
+      type: object
+      required: [rosterID, firstName, lastName, schoolID, schoolName, placing, placeType, highBound, lowBound]
+      properties:
+        rosterID:   { type: integer }
+        firstName:  { type: string, nullable: true }
+        lastName:   { type: string, nullable: true }
+        schoolID:   { type: integer, nullable: true }
+        schoolName: { type: string, nullable: true }
+        placing:    { type: integer, description: "Final rank (1 = first)." }
+        placeType:  { $ref: "#/components/schemas/PlaceType" }
+        highBound:
+          type: integer
+          nullable: true
+          description: "Low end of the tied range (inclusive). Null for non-tie rows."
+        lowBound:
+          type: integer
+          nullable: true
+          description: "High end of the tied range (inclusive). Null for non-tie rows."
