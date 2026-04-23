@@ -2,12 +2,15 @@
 namespace HemaScorecard\Api\Controllers;
 
 use HemaScorecard\Api\Lib\ApiException;
+use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\EventsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\ScheduleBlocks;
 use HemaScorecard\Api\Lib\SchedulesQuery;
 
 class SchedulesController {
+
+    use ChecksEventVisibility;
 
     // ----- Public action methods (route targets) -----
 
@@ -138,11 +141,8 @@ class SchedulesController {
      * Returns null only when empty response was emitted.
      */
     protected function gateOrThrow(int $eventID, ?int $dayNum = null): ?array {
-        $gate = EventsQuery::findVisibleForGate($eventID);
-        if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$eventID} not found");
-        }
-        if (!($gate['isArchived'] || $gate['publishSchedule'])) {
+        $gate = $this->findVisibleEventOrThrow($eventID);
+        if (!$this->isResourceVisible($gate, 'publishSchedule')) {
             $this->emitEmpty($dayNum);
             return null;
         }

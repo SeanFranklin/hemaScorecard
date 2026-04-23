@@ -2,6 +2,7 @@
 namespace HemaScorecard\Api\Controllers;
 
 use HemaScorecard\Api\Lib\ApiException;
+use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\EventsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\ScheduleBlocks;
@@ -9,14 +10,13 @@ use HemaScorecard\Api\Lib\WorkshopsQuery;
 
 class WorkshopsController {
 
+    use ChecksEventVisibility;
+
     public function index(string $eventID): void {
         $id = (int)$eventID;
-        $gate = EventsQuery::findVisibleForGate($id);
-        if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$id} not found");
-        }
+        $gate = $this->findVisibleEventOrThrow($id);
 
-        if (!($gate['isArchived'] || $gate['publishSchedule'])) {
+        if (!$this->isResourceVisible($gate, 'publishSchedule')) {
             JsonResponse::success([], ['count' => 0]);
             return;
         }
@@ -39,12 +39,9 @@ class WorkshopsController {
         $eid = (int)$eventID;
         $bid = (int)$blockID;
 
-        $gate = EventsQuery::findVisibleForGate($eid);
-        if ($gate === null) {
-            throw new ApiException('not_found', 404, "Event {$eid} not found");
-        }
+        $gate = $this->findVisibleEventOrThrow($eid);
 
-        if (!($gate['isArchived'] || $gate['publishSchedule'])) {
+        if (!$this->isResourceVisible($gate, 'publishSchedule')) {
             throw new ApiException('not_found', 404, "Workshop {$bid} not found");
         }
 

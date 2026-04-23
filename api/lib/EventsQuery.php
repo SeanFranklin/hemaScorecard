@@ -172,7 +172,8 @@ class EventsQuery {
                     isArchived           AS isArchived,
                     COALESCE(publishRoster,   0) AS publishRoster,
                     COALESCE(publishRules,    0) AS publishRules,
-                    COALESCE(publishSchedule, 0) AS publishSchedule
+                    COALESCE(publishSchedule, 0) AS publishSchedule,
+                    COALESCE(publishMatches,  0) AS publishMatches
                 FROM systemEvents
                 LEFT JOIN eventPublication USING(eventID)
                 WHERE systemEvents.eventID = {$eventID}
@@ -190,6 +191,7 @@ class EventsQuery {
             'publishRoster'   => (bool)(int)$row['publishRoster'],
             'publishRules'    => (bool)(int)$row['publishRules'],
             'publishSchedule' => (bool)(int)$row['publishSchedule'],
+            'publishMatches'  => (bool)(int)$row['publishMatches'],
         ];
     }
 
