@@ -14,6 +14,12 @@ class ExchangesQuery {
      *   scoringRosterID, receivingRosterID,
      *   scoreValue, scoreDeduction, exchangeTime,
      *   attack: { prefix: {code,text}|null, type: ..., target: ... }
+     *
+     * Null handling note: scoreDeduction null-in-DB is coerced to 0.0
+     * (absence of a deduction is semantically equivalent to zero, and
+     * deductions are rare), while scoreValue null-in-DB is passed through
+     * as null (absence of a score is distinct from a zero score — e.g.
+     * unscored exchanges in pending matches). The asymmetry is intentional.
      */
     public static function forMatch(int $matchID): array {
         $matchID = (int)$matchID;
