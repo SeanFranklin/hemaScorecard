@@ -103,6 +103,25 @@ class ScheduleBlocks {
         ];
     }
 
+    /**
+     * Group a shaped-blocks array by dayNum and return
+     * [{dayNum, blocks: [...]}, ...] sorted numerically by day.
+     * Extracted from SchedulesController::emitBlocks + personalCore so
+     * both code paths share one implementation.
+     */
+    public static function groupByDay(array $shapedBlocks): array {
+        $byDay = [];
+        foreach ($shapedBlocks as $block) {
+            $byDay[$block['dayNum']][] = $block;
+        }
+        ksort($byDay, SORT_NUMERIC);
+        $days = [];
+        foreach ($byDay as $d => $blocks) {
+            $days[] = ['dayNum' => $d, 'blocks' => $blocks];
+        }
+        return $days;
+    }
+
     public static function blockTypeLabel(int $blockTypeID): string {
         return self::BLOCK_TYPE_LABELS[$blockTypeID] ?? 'misc';
     }

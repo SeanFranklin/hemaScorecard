@@ -111,24 +111,16 @@ class SchedulesController {
             return $block;
         }, $rows);
 
-        // Bypass emitBlocks — personal needs participation in the shape, so
-        // we re-implement day grouping here.
+        // Personal needs participation merged into each block's shape, so
+        // emitBlocks (which uses ScheduleBlocks::shape alone) isn't usable.
+        // We shape individually above, then delegate day-grouping to the
+        // same helper emitBlocks uses.
         if ($dayNum !== null) {
             JsonResponse::success($shaped, ['dayNum' => $dayNum, 'count' => count($shaped)]);
             return;
         }
 
-        $byDay = [];
-        foreach ($shaped as $block) {
-            $byDay[$block['dayNum']][] = $block;
-        }
-        ksort($byDay, SORT_NUMERIC);
-
-        $days = [];
-        foreach ($byDay as $d => $blocks) {
-            $days[] = ['dayNum' => $d, 'blocks' => $blocks];
-        }
-
+        $days = ScheduleBlocks::groupByDay($shaped);
         JsonResponse::success($days, [
             'dayCount'   => count($days),
             'blockCount' => count($shaped),
@@ -184,18 +176,7 @@ class SchedulesController {
             return;
         }
 
-        // Group by dayNum, omitting empty days.
-        $byDay = [];
-        foreach ($shaped as $block) {
-            $byDay[$block['dayNum']][] = $block;
-        }
-        ksort($byDay, SORT_NUMERIC);
-
-        $days = [];
-        foreach ($byDay as $d => $blocks) {
-            $days[] = ['dayNum' => $d, 'blocks' => $blocks];
-        }
-
+        $days = ScheduleBlocks::groupByDay($shaped);
         JsonResponse::success($days, [
             'dayCount'   => count($days),
             'blockCount' => count($shaped),
