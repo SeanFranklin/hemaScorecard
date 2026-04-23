@@ -19,12 +19,12 @@ class BracketsQuery {
     public static function listForTournament(int $tournamentID): array {
         $tournamentID = (int)$tournamentID;
         $sql = "SELECT
-                    groupID        AS bracketID,
-                    groupNumber    AS groupNumber,
-                    bracketLevels  AS bracketLevels,
-                    numFighters    AS numFighters,
-                    locationID     AS locationID,
-                    groupComplete  AS isComplete
+                    groupID AS bracketID,
+                    groupNumber,
+                    bracketLevels,
+                    numFighters,
+                    locationID,
+                    groupComplete AS isComplete
                 FROM eventGroups
                 WHERE tournamentID = {$tournamentID}
                 AND groupType = 'elim'
@@ -41,13 +41,13 @@ class BracketsQuery {
             return null;
         }
         $sql = "SELECT
-                    eG.groupID        AS bracketID,
-                    eG.groupNumber    AS groupNumber,
-                    eG.bracketLevels  AS bracketLevels,
-                    eG.numFighters    AS numFighters,
-                    eG.locationID     AS locationID,
-                    lL.locationName   AS locationName,
-                    eG.groupComplete  AS isComplete
+                    eG.groupID AS bracketID,
+                    eG.groupNumber,
+                    eG.bracketLevels,
+                    eG.numFighters,
+                    eG.locationID,
+                    lL.locationName,
+                    eG.groupComplete AS isComplete
                 FROM eventGroups eG
                 INNER JOIN eventTournaments eT ON eT.tournamentID = eG.tournamentID
                 LEFT JOIN logisticsLocations lL ON lL.locationID = eG.locationID

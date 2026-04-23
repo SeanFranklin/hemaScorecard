@@ -11,12 +11,12 @@ class PoolsQuery {
     public static function listForTournament(int $tournamentID): array {
         $tournamentID = (int)$tournamentID;
         $sql = "SELECT
-                    groupID       AS poolID,
-                    groupName     AS poolName,
-                    groupNumber   AS poolNumber,
-                    groupSet      AS groupSet,
-                    numFighters   AS numFighters,
-                    locationID    AS locationID,
+                    groupID AS poolID,
+                    groupName AS poolName,
+                    groupNumber AS poolNumber,
+                    groupSet,
+                    numFighters,
+                    locationID,
                     groupComplete AS isComplete
                 FROM eventGroups
                 WHERE tournamentID = {$tournamentID}
@@ -35,16 +35,16 @@ class PoolsQuery {
             return null;
         }
         $sql = "SELECT
-                    eG.groupID       AS poolID,
-                    eG.groupName     AS poolName,
-                    eG.groupNumber   AS poolNumber,
-                    eG.groupSet      AS groupSet,
-                    eG.numFighters   AS numFighters,
-                    eG.locationID    AS locationID,
-                    lL.locationName  AS locationName,
+                    eG.groupID AS poolID,
+                    eG.groupName AS poolName,
+                    eG.groupNumber AS poolNumber,
+                    eG.groupSet,
+                    eG.numFighters,
+                    eG.locationID,
+                    lL.locationName,
                     eG.groupComplete AS isComplete,
-                    eGR.groupRank    AS `rank`,
-                    eGR.overlapSize  AS overlapSize
+                    eGR.groupRank AS `rank`,
+                    eGR.overlapSize
                 FROM eventGroups eG
                 INNER JOIN eventTournaments eT ON eT.tournamentID = eG.tournamentID
                 LEFT JOIN logisticsLocations lL ON lL.locationID = eG.locationID
