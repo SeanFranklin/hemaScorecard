@@ -240,4 +240,54 @@ class SchedulesQuery {
 
         return $result;
     }
+
+    /**
+     * Confirm a location belongs to $eventID. 404 gate for
+     * /schedules/location/:id.
+     */
+    public static function locationBelongsToEvent(int $locationID, int $eventID): bool {
+        $locationID = (int)$locationID;
+        $eventID    = (int)$eventID;
+        if ($locationID <= 0 || $eventID <= 0) {
+            return false;
+        }
+        $sql = "SELECT 1
+                FROM logisticsLocations
+                WHERE locationID = {$locationID}
+                AND eventID = {$eventID}
+                LIMIT 1";
+        return (bool)mysqlQuery($sql, SINGLE);
+    }
+
+    /**
+     * Schedule filtered to a single location. Returns rows in the same
+     * shape as ScheduleBlocks::select so the caller can use
+     * enrichWithLocations + shape on them.
+     */
+    public static function location(int $eventID, int $locationID, ?int $dayNum = null): array {
+        $eventID    = (int)$eventID;
+        $locationID = (int)$locationID;
+        $dayClause  = $dayNum !== null ? " AND lSB.dayNum = " . (int)$dayNum : "";
+
+        $sql = "SELECT DISTINCT
+                    lSB.blockID         AS blockID,
+                    lSB.eventID         AS eventID,
+                    lSB.dayNum          AS dayNum,
+                    lSB.startTime       AS startTime,
+                    lSB.endTime         AS endTime,
+                    lSB.blockTypeID     AS blockTypeID,
+                    lSB.tournamentID    AS tournamentID,
+                    lSB.blockTitle      AS blockTitle,
+                    lSB.blockSubtitle   AS blockSubtitle,
+                    lSB.blockDescription AS blockDescription,
+                    lSB.blockLink       AS blockLink,
+                    lSB.blockLinkDescription AS blockLinkDescription
+                FROM logisticsScheduleBlocks lSB
+                INNER JOIN logisticsLocationsBlocks lLB ON lLB.blockID = lSB.blockID
+                WHERE lSB.eventID = {$eventID}
+                AND lLB.locationID = {$locationID}
+                {$dayClause}
+                ORDER BY lSB.dayNum ASC, lSB.startTime ASC, lSB.blockID ASC";
+        return mysqlQuery($sql, ASSOC);
+    }
 }

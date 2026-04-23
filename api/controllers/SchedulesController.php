@@ -46,6 +46,14 @@ class SchedulesController {
         $this->personalCore($eventID, $rosterID, (int)$dayNum);
     }
 
+    public function locationAll(string $eventID, string $locationID): void {
+        $this->locationCore($eventID, $locationID, null);
+    }
+
+    public function locationDay(string $eventID, string $locationID, string $dayNum): void {
+        $this->locationCore($eventID, $locationID, (int)$dayNum);
+    }
+
     // ----- Private cores -----
 
     private function mainCore(string $eventID, ?int $dayNum): void {
@@ -126,6 +134,21 @@ class SchedulesController {
             'dayCount'   => count($days),
             'blockCount' => count($shaped),
         ]);
+    }
+
+    private function locationCore(string $eventID, string $locationID, ?int $dayNum): void {
+        $eid = (int)$eventID;
+        $lid = (int)$locationID;
+
+        $gate = $this->gateOrThrow($eid, $dayNum);
+        if ($gate === null) { return; }
+
+        if (!SchedulesQuery::locationBelongsToEvent($lid, $eid)) {
+            throw new ApiException('not_found', 404, "Location {$lid} not found");
+        }
+
+        $rows = SchedulesQuery::location($eid, $lid, $dayNum);
+        $this->emitBlocks($rows, $dayNum);
     }
 
     // ----- Shared helpers -----
