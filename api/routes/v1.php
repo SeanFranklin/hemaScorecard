@@ -4,6 +4,7 @@ use HemaScorecard\Api\Controllers\EventsController;
 use HemaScorecard\Api\Controllers\AnnouncementsController;
 use HemaScorecard\Api\Controllers\RosterController;
 use HemaScorecard\Api\Controllers\RulesController;
+use HemaScorecard\Api\Controllers\PoolsController;
 use HemaScorecard\Api\Controllers\TournamentsController;
 use HemaScorecard\Api\Controllers\WorkshopsController;
 use HemaScorecard\Api\Controllers\SchedulesController;
@@ -36,4 +37,7 @@ Flight::route('GET /api/v1/events/@eventID/schedules/personal/@rosterID',       
 Flight::route('GET /api/v1/events/@eventID/schedules/personal/@rosterID/day/@dayNum', [SchedulesController::class, 'personalDay']);
 Flight::route('GET /api/v1/events/@eventID/schedules/location/@locationID',             [SchedulesController::class, 'locationAll']);
 Flight::route('GET /api/v1/events/@eventID/schedules/location/@locationID/day/@dayNum', [SchedulesController::class, 'locationDay']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools',                        [PoolsController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID',                [PoolsController::class, 'show']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/roster',         [PoolsController::class, 'roster']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
