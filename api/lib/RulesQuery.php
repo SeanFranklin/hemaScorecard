@@ -44,22 +44,15 @@ class RulesQuery {
      */
     public static function listLinkedTournaments(int $rulesID): array {
         $rulesID = (int)$rulesID;
+        $nameExpr = TournamentNames::composedNameExpr();
+        $joinChain = TournamentNames::joinClauses('et');
+
         $sql = "SELECT
                     et.tournamentID AS tournamentID,
-                    TRIM(CONCAT_WS(' ',
-                        NULLIF(prefix.tournamentType,   ''),
-                        NULLIF(gender.tournamentType,   ''),
-                        NULLIF(material.tournamentType, ''),
-                        weapon.tournamentType,
-                        NULLIF(suffix.tournamentType,   '')
-                    )) AS name
+                    {$nameExpr}     AS name
                 FROM eventRulesLinks erl
                 INNER JOIN eventTournaments et ON et.tournamentID = erl.tournamentID
-                INNER JOIN systemTournaments weapon   ON et.tournamentWeaponID   = weapon.tournamentTypeID
-                LEFT JOIN  systemTournaments prefix   ON et.tournamentPrefixID   = prefix.tournamentTypeID
-                LEFT JOIN  systemTournaments gender   ON et.tournamentGenderID   = gender.tournamentTypeID
-                LEFT JOIN  systemTournaments material ON et.tournamentMaterialID = material.tournamentTypeID
-                LEFT JOIN  systemTournaments suffix   ON et.tournamentSuffixID   = suffix.tournamentTypeID
+                {$joinChain}
                 WHERE erl.rulesID = {$rulesID}
                 ORDER BY et.tournamentID ASC";
         return mysqlQuery($sql, ASSOC);
