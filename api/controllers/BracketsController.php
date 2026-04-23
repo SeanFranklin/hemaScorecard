@@ -4,6 +4,7 @@ namespace HemaScorecard\Api\Controllers;
 use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\BracketsQuery;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
+use HemaScorecard\Api\Lib\GroupsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\PlacingsQuery;
 use HemaScorecard\Api\Lib\TournamentsQuery;
@@ -50,7 +51,7 @@ class BracketsController {
         }
 
         $elimType = BracketsQuery::elimTypeFor($tid);
-        $counts   = BracketsQuery::progressCounts($bid);
+        $counts   = GroupsQuery::progressCountsForGroup($bid);
         $placings = array_map([PlacingsController::class, 'shape'], PlacingsQuery::forTournament($tid));
 
         JsonResponse::success($this->shapeDetail($row, $elimType, $counts, $placings));

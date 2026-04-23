@@ -59,24 +59,6 @@ class PoolsQuery {
     }
 
     /**
-     * Count of matches in a pool (excluding placeholders) plus subset that
-     * are marked complete AND not ignored. Used by the pool-detail endpoint.
-     */
-    public static function progressCounts(int $poolID): array {
-        $poolID = (int)$poolID;
-        $sql = "SELECT
-                    SUM(CASE WHEN isPlaceholder = 0 THEN 1 ELSE 0 END) AS total,
-                    SUM(CASE WHEN isPlaceholder = 0 AND matchComplete = 1 AND ignoreMatch = 0 THEN 1 ELSE 0 END) AS complete
-                FROM eventMatches
-                WHERE groupID = {$poolID}";
-        $row = mysqlQuery($sql, SINGLE);
-        return [
-            'total'    => (int)($row['total']    ?? 0),
-            'complete' => (int)($row['complete'] ?? 0),
-        ];
-    }
-
-    /**
      * Fighters in a pool, sorted by poolPosition. Includes name + school.
      */
     public static function rosterForPool(int $poolID): array {

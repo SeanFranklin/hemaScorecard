@@ -61,24 +61,6 @@ class BracketsQuery {
     }
 
     /**
-     * Match progress for a bracket: total (excluding placeholders) and
-     * complete (not ignored, matchComplete=1).
-     */
-    public static function progressCounts(int $bracketID): array {
-        $bracketID = (int)$bracketID;
-        $sql = "SELECT
-                    SUM(CASE WHEN isPlaceholder = 0 THEN 1 ELSE 0 END) AS total,
-                    SUM(CASE WHEN isPlaceholder = 0 AND matchComplete = 1 AND ignoreMatch = 0 THEN 1 ELSE 0 END) AS complete
-                FROM eventMatches
-                WHERE groupID = {$bracketID}";
-        $row = mysqlQuery($sql, SINGLE);
-        return [
-            'total'    => (int)($row['total']    ?? 0),
-            'complete' => (int)($row['complete'] ?? 0),
-        ];
-    }
-
-    /**
      * Fighters in a bracket, sorted by poolPosition (seed). Joins in name
      * and school via the same chain as PoolsQuery::rosterForPool.
      */

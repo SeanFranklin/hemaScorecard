@@ -3,6 +3,7 @@ namespace HemaScorecard\Api\Controllers;
 
 use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
+use HemaScorecard\Api\Lib\GroupsQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
 use HemaScorecard\Api\Lib\PoolsQuery;
 use HemaScorecard\Api\Lib\StandingsQuery;
@@ -46,7 +47,7 @@ class PoolsController {
             throw new ApiException('not_found', 404, "Pool {$pid} not found");
         }
 
-        $counts = PoolsQuery::progressCounts($pid);
+        $counts = GroupsQuery::progressCountsForGroup($pid);
         JsonResponse::success($this->shapeDetail($row, $counts));
     }
 
