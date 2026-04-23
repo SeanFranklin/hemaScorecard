@@ -1,21 +1,17 @@
 <?php
 namespace HemaScorecard\Api\Lib;
 
+use HemaScorecard\Api\Lib\LogisticsRoles;
+use HemaScorecard\Api\Lib\ScheduleBlockTypes;
+
 class WorkshopsQuery {
-
-    // Matches LOGISTICS_ROLE_INSTRUCTOR (=5) from includes/config.php.
-    // Hardcoded because the API bootstrap doesn't load config.php; a
-    // shared-constants extraction is backlogged (see spec).
-    private const ROLE_INSTRUCTOR = 5;
-
-    private const BLOCK_TYPE_WORKSHOP = 2;
 
     /**
      * Workshop blocks for an event, sorted by day/time.
      */
     public static function listForEvent(int $eventID): array {
         $eventID = (int)$eventID;
-        $where = "eventID = {$eventID} AND blockTypeID = " . self::BLOCK_TYPE_WORKSHOP;
+        $where = "eventID = {$eventID} AND blockTypeID = " . ScheduleBlockTypes::WORKSHOP;
         return ScheduleBlocks::select($where, 'dayNum ASC, startTime ASC, blockID ASC');
     }
 
@@ -29,7 +25,7 @@ class WorkshopsQuery {
         if ($eventID <= 0 || $blockID <= 0) {
             return null;
         }
-        $where = "blockID = {$blockID} AND eventID = {$eventID} AND blockTypeID = " . self::BLOCK_TYPE_WORKSHOP;
+        $where = "blockID = {$blockID} AND eventID = {$eventID} AND blockTypeID = " . ScheduleBlockTypes::WORKSHOP;
         $rows = ScheduleBlocks::select($where, 'blockID ASC');
         return $rows ? $rows[0] : null;
     }
@@ -82,7 +78,7 @@ class WorkshopsQuery {
 
         $ints = array_map('intval', $blockIDs);
         $inClause = implode(',', $ints);
-        $roleInstructor = self::ROLE_INSTRUCTOR;
+        $roleInstructor = LogisticsRoles::INSTRUCTOR;
 
         $sql = "SELECT DISTINCT
                     lSS.blockID         AS blockID,

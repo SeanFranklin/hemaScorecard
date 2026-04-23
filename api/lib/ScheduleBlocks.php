@@ -1,8 +1,15 @@
 <?php
 namespace HemaScorecard\Api\Lib;
 
+use HemaScorecard\Api\Lib\ScheduleBlockTypes;
+
 class ScheduleBlocks {
 
+    /**
+     * Integer keys are ScheduleBlockTypes::{TOURNAMENT, WORKSHOP, STAFFING, MISC}.
+     * Kept as literals because PHP 7.4 class constants can't be used as
+     * array keys inside a const expression.
+     */
     private const BLOCK_TYPE_LABELS = [
         1 => 'tournament',
         2 => 'workshop',

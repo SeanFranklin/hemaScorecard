@@ -1,14 +1,10 @@
 <?php
 namespace HemaScorecard\Api\Lib;
 
+use HemaScorecard\Api\Lib\LogisticsRoles;
+use HemaScorecard\Api\Lib\ScheduleBlockTypes;
+
 class SchedulesQuery {
-
-    // Matches LOGISTICS_ROLE_INSTRUCTOR (=5) from includes/config.php.
-    // Same hardcoded pattern as WorkshopsQuery.
-    private const ROLE_INSTRUCTOR = 5;
-
-    private const BLOCK_TYPE_TOURNAMENT = 1;
-    private const BLOCK_TYPE_WORKSHOP   = 2;
 
     /**
      * All blocks for an event, optionally filtered to a single day.
@@ -27,7 +23,7 @@ class SchedulesQuery {
      */
     public static function workshops(int $eventID, ?int $dayNum = null): array {
         $eventID = (int)$eventID;
-        $where = "eventID = {$eventID} AND blockTypeID = " . self::BLOCK_TYPE_WORKSHOP;
+        $where = "eventID = {$eventID} AND blockTypeID = " . ScheduleBlockTypes::WORKSHOP;
         if ($dayNum !== null) {
             $where .= " AND dayNum = " . (int)$dayNum;
         }
@@ -64,9 +60,9 @@ class SchedulesQuery {
     public static function school(int $eventID, int $schoolID, ?int $dayNum = null): array {
         $eventID  = (int)$eventID;
         $schoolID = (int)$schoolID;
-        $roleInstructor = self::ROLE_INSTRUCTOR;
-        $blockTournament = self::BLOCK_TYPE_TOURNAMENT;
-        $blockWorkshop   = self::BLOCK_TYPE_WORKSHOP;
+        $roleInstructor = LogisticsRoles::INSTRUCTOR;
+        $blockTournament = ScheduleBlockTypes::TOURNAMENT;
+        $blockWorkshop   = ScheduleBlockTypes::WORKSHOP;
 
         $dayClause = $dayNum !== null ? " AND lSB.dayNum = " . (int)$dayNum : "";
 
