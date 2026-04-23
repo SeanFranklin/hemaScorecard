@@ -28,6 +28,11 @@ class TournamentNames {
      * is NOT NULL in the schema); the other four are LEFT (nullable).
      */
     public static function joinClauses(string $tournamentTableAlias): string {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tournamentTableAlias)) {
+            throw new \InvalidArgumentException(
+                "joinClauses alias must be a plain SQL identifier, got: {$tournamentTableAlias}"
+            );
+        }
         $t = $tournamentTableAlias;
         return "
             INNER JOIN systemTournaments weapon   ON {$t}.tournamentWeaponID   = weapon.tournamentTypeID
