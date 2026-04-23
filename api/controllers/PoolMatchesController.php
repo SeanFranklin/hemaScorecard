@@ -59,7 +59,7 @@ class PoolMatchesController {
         JsonResponse::success($this->shapeDetail($row, $exchanges, $options));
     }
 
-    protected function shapeListItem(array $row): array {
+    private function shapeListItem(array $row): array {
         return [
             'matchID'        => (int)$row['matchID'],
             'matchNumber'    => (int)$row['matchNumber'],
@@ -81,7 +81,7 @@ class PoolMatchesController {
      * Returns null when the fighter slot is unassigned (NULL fighterNID —
      * valid for bye placeholders left in real data).
      */
-    protected function shapeFighter(array $row, int $slot): ?array {
+    private function shapeFighter(array $row, int $slot): ?array {
         $idKey    = "fighter{$slot}ID";
         $firstKey = "fighter{$slot}FirstName";
         $lastKey  = "fighter{$slot}LastName";

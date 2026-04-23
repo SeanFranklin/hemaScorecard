@@ -59,7 +59,7 @@ class BracketMatchesController {
         JsonResponse::success($this->shapeDetail($row, $exchanges, $options));
     }
 
-    protected function shapeListItem(array $row): array {
+    private function shapeListItem(array $row): array {
         return [
             'matchID'         => (int)$row['matchID'],
             'matchNumber'     => (int)$row['matchNumber'],
@@ -82,7 +82,7 @@ class BracketMatchesController {
      * Build a {rosterID, firstName, lastName} object for fighter N (1 or 2).
      * Returns null when the fighter slot is unassigned.
      */
-    protected function shapeFighter(array $row, int $slot): ?array {
+    private function shapeFighter(array $row, int $slot): ?array {
         $idKey    = "fighter{$slot}ID";
         $firstKey = "fighter{$slot}FirstName";
         $lastKey  = "fighter{$slot}LastName";
