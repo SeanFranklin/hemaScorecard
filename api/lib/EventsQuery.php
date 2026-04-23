@@ -35,12 +35,12 @@ class EventsQuery {
     /**
      * Return one page of visible events.
      */
-    public static function listPublished(int $offset, int $limit): array {
+    public static function listPublished(int $offset, int $limit, array $filters = []): array {
         $offset = max(0, $offset);
         $limit  = max(1, $limit);
 
         $sql = self::baseSelect() . "
-                WHERE " . self::VISIBLE_WHERE . "
+                WHERE " . self::VISIBLE_WHERE . self::filterWhere($filters) . "
                 ORDER BY eventStartDate DESC, eventID DESC
                 LIMIT {$limit} OFFSET {$offset}";
         return mysqlQuery($sql, ASSOC);
@@ -49,12 +49,12 @@ class EventsQuery {
     /**
      * Count all visible events.
      */
-    public static function countPublished(): int {
+    public static function countPublished(array $filters = []): int {
         $sql = "SELECT COUNT(*) AS c
                 FROM systemEvents
                 INNER JOIN systemCountries USING(countryIso2)
                 LEFT JOIN eventPublication USING(eventID)
-                WHERE " . self::VISIBLE_WHERE;
+                WHERE " . self::VISIBLE_WHERE . self::filterWhere($filters);
         return (int)mysqlQuery($sql, SINGLE, 'c');
     }
 
@@ -218,5 +218,30 @@ class EventsQuery {
             INNER JOIN systemCountries USING(countryIso2)
             LEFT JOIN eventPublication USING(eventID)
         ";
+    }
+
+    /**
+     * Build an SQL fragment appended after VISIBLE_WHERE for list/count queries.
+     * Known filter keys:
+     *   - 'years':     ?int[]  matching eventYear exactly (IN list).
+     *   - 'countries': ?string[] UPPERCASE 2-letter ISO codes (IN list).
+     *   - 'isMeta':    ?bool   matching isMetaEvent = 1 or 0.
+     * Returns '' when no filters are active. Callers prepend the 'AND '
+     * separator implicitly via string concatenation.
+     */
+    private static function filterWhere(array $filters): string {
+        $clauses = [];
+        if (!empty($filters['years'])) {
+            $ints = array_map('intval', $filters['years']);
+            $clauses[] = 'eventYear IN (' . implode(',', $ints) . ')';
+        }
+        if (!empty($filters['countries'])) {
+            $quoted = array_map('quote_smart', $filters['countries']);
+            $clauses[] = 'systemEvents.countryIso2 IN (' . implode(',', $quoted) . ')';
+        }
+        if (isset($filters['isMeta']) && $filters['isMeta'] !== null) {
+            $clauses[] = 'isMetaEvent = ' . ($filters['isMeta'] ? 1 : 0);
+        }
+        return $clauses ? ' AND ' . implode(' AND ', $clauses) : '';
     }
 }

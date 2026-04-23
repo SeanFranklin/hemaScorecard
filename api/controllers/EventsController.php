@@ -10,8 +10,14 @@ class EventsController {
 
     public function index(): void {
         $p = Pagination::parse($_GET);
-        $rows = EventsQuery::listPublished($p->offset, $p->perPage);
-        $total = EventsQuery::countPublished();
+        $filters = [
+            'years'     => $this->parseIntList($_GET['year']    ?? null, 'year'),
+            'countries' => $this->parseCountryList($_GET['country'] ?? null),
+            'isMeta'    => $this->parseBool($_GET['isMeta']   ?? null, 'isMeta'),
+        ];
+
+        $rows  = EventsQuery::listPublished($p->offset, $p->perPage, $filters);
+        $total = EventsQuery::countPublished($filters);
 
         JsonResponse::success(
             array_map([$this, 'shapeListItem'], $rows),
@@ -120,5 +126,51 @@ class EventsController {
             'status'       => $row['status'],
             'isMetaEvent'  => (bool)(int)$row['isMetaEvent'],
         ];
+    }
+
+    /**
+     * Parse ?year=2026 or ?year=2026,2025 into an int array. Null when absent.
+     * Throws 400 on non-integer entries.
+     */
+    private function parseIntList(?string $raw, string $field): ?array {
+        if ($raw === null || $raw === '') { return null; }
+        $ints = [];
+        foreach (explode(',', $raw) as $part) {
+            $trimmed = trim($part);
+            if (!ctype_digit($trimmed)) {
+                throw new ApiException('bad_request', 400, "Invalid {$field}: '{$trimmed}'");
+            }
+            $ints[] = (int)$trimmed;
+        }
+        return $ints;
+    }
+
+    /**
+     * Parse ?country=US or ?country=US,CA into an uppercase 2-letter ISO array.
+     * Null when absent. Case-insensitive input; throws 400 on malformed entries.
+     */
+    private function parseCountryList(?string $raw): ?array {
+        if ($raw === null || $raw === '') { return null; }
+        $codes = [];
+        foreach (explode(',', $raw) as $part) {
+            $code = strtoupper(trim($part));
+            if (!preg_match('/^[A-Z]{2}$/', $code)) {
+                throw new ApiException('bad_request', 400, "Invalid country: '{$code}'");
+            }
+            $codes[] = $code;
+        }
+        return $codes;
+    }
+
+    /**
+     * Parse ?isMeta=true / ?isMeta=false / ?isMeta=1 / ?isMeta=0 into a bool.
+     * Null when absent. Throws 400 on other values.
+     */
+    private function parseBool(?string $raw, string $field): ?bool {
+        if ($raw === null || $raw === '') { return null; }
+        $lc = strtolower($raw);
+        if (in_array($lc, ['1', 'true'],  true)) { return true; }
+        if (in_array($lc, ['0', 'false'], true)) { return false; }
+        throw new ApiException('bad_request', 400, "Invalid {$field}: '{$raw}'");
     }
 }
