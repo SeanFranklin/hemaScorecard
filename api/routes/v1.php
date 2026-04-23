@@ -43,4 +43,5 @@ Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@pool
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/roster',         [PoolsController::class, 'roster']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/standings',      [PoolsController::class, 'standings']);
 Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/matches',        [PoolMatchesController::class, 'index']);
+Flight::route('GET /api/v1/events/@eventID/tournaments/@tournamentID/pools/@poolID/matches/@matchID', [PoolMatchesController::class, 'show']);
 Flight::route('GET /api/v1/events/@id',                     [EventsController::class, 'show']);
