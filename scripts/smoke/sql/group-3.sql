@@ -68,9 +68,10 @@ INSERT INTO eventDescriptions (eventDescriptionID, eventID, description) VALUES
   (9008, 9008, 'Partial-publish test event.'),
   (9009, 9009, 'Rich roster test event.');
 
-INSERT INTO eventTournaments (tournamentID, eventID, tournamentWeaponID, formatID) VALUES
-  (9101, 9001, 8701, 2),
-  (9102, 9001, 8702, 2);
+INSERT INTO eventTournaments (tournamentID, eventID, tournamentWeaponID, formatID, isTeams) VALUES
+  (9101, 9001, 8701, 2, 0),
+  (9102, 9001, 8702, 2, 0),
+  (9107, 9009, 8701, 2, 1);  -- team tournament on Rich Roster event
 
 INSERT INTO eventRoster (rosterID, systemRosterID, eventID, schoolID, publicNotes, privateNotes, isTeam, eventCheckIn, eventWaiver) VALUES
   (9201, 8001, 9001, 7001, 'Registered for longsword and rapier', 'private note',   0, 1, 1),
@@ -145,9 +146,11 @@ INSERT INTO logisticsBlockAttributes (blockAttributeID, blockID, blockAttributeT
   (4701, 4402, 'experience', 'Beginner'),
   (4702, 4402, 'equipment',  'Longsword, mask, jacket');
 
-INSERT INTO eventTournamentRoster (tournamentRosterID, tournamentID, rosterID) VALUES
-  (9201, 9101, 9201),  -- Alex (school 7001) in tournament 9101
-  (9202, 9101, 9202);  -- Ingrid (school 7001) in tournament 9101
+INSERT INTO eventTournamentRoster (tournamentRosterID, tournamentID, rosterID, tournamentCheckIn, tournamentGearCheck, tournamentOtherCheck) VALUES
+  (9201, 9101, 9201, 0, 0, 0),  -- Alex (school 7001) in tournament 9101
+  (9202, 9101, 9202, 0, 0, 0),
+  (9205, 9107, 9253, 1, 1, 0),  -- team "Thunder Squad" in team tournament 9107
+  (9206, 9107, 9250, 1, 0, 0);  -- individual captain also entered
 
 SELECT
   (SELECT COUNT(*) FROM logisticsLocations        WHERE locationID     BETWEEN 6001 AND 6099) AS locations,

@@ -117,13 +117,16 @@ INSERT INTO logisticsLocationsMatches (locationID, matchID) VALUES
 INSERT INTO eventMatchOptions (matchID, optionID, optionValue) VALUES
   (9601, 21, 1);
 
--- Exchanges on match 9601: clean / afterblow / double / clean
+-- Exchanges on match 9601: clean / afterblow / double / clean + two penalties
 -- systemAttacks values: target head=1, torso=2, arm=3; type cut=5, thrust=6; prefix control=9, afterblow=13.
+-- Penalty card IDs: yellowCard=34, redCard=35 (see includes/config.php PENALTY_CARD_*).
 INSERT INTO eventExchanges (matchID, exchangeType, scoringID, receivingID, scoreValue, scoreDeduction, exchangeNumber, exchangeTime, refPrefix, refType, refTarget) VALUES
-  (9601, 'clean',     9201, 9202, 2.0, 0,   1, 15, NULL, 5, 1),    -- Alice cuts Bob's head
-  (9601, 'afterblow', 9202, 9201, 1.0, 0.5, 2, 22, 13,   5, 3),    -- Afterblow cut to Alice's arm
+  (9601, 'clean',     9201, 9202, 2.0, 0,   1, 15, NULL, 5,  1),   -- Alice cuts Bob's head
+  (9601, 'afterblow', 9202, 9201, 1.0, 0.5, 2, 22, 13,   5,  3),   -- Afterblow cut to Alice's arm
   (9601, 'double',    9201, 9202, 0,   0,   3, 38, NULL, NULL, NULL), -- Double, no attribution
-  (9601, 'clean',     9201, 9202, 1.0, 0,   4, 55, 9,    6, 2);    -- Controlled thrust to Bob's torso
+  (9601, 'clean',     9201, 9202, 1.0, 0,   4, 55, 9,    6,  2),   -- Controlled thrust to Bob's torso
+  (9601, 'penalty',   9202, NULL, -1,  0,   5, 60, NULL, 34, 1),   -- Yellow card on Bob
+  (9601, 'penalty',   9202, NULL, -1,  0,   6, 90, NULL, 35, 1);   -- Red card on Bob
 
 -- Group rankings + standings for ranked pools only (9501, 9502, 9510, 9511).
 -- Finals 9503 is deliberately un-ranked + partially-scored to exercise null-rank path.
