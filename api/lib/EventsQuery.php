@@ -213,7 +213,9 @@ class EventsQuery {
                 systemEvents.countryIso2 AS countryIso2,
                 countryName          AS countryName,
                 isMetaEvent          AS isMetaEvent,
-                " . self::STATUS_EXPR . " AS status
+                " . self::STATUS_EXPR . " AS status,
+                (SELECT COUNT(*) FROM eventTournaments
+                    WHERE eventTournaments.eventID = systemEvents.eventID) AS tournamentCount
             FROM systemEvents
             INNER JOIN systemCountries USING(countryIso2)
             LEFT JOIN eventPublication USING(eventID)

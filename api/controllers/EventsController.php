@@ -113,18 +113,19 @@ class EventsController {
      */
     private function shapeListItem(array $row): array {
         return [
-            'eventID'      => (int)$row['eventID'],
-            'name'         => $row['name'],
-            'abbreviation' => $row['abbreviation'],
-            'year'         => $row['year'] !== null ? (int)$row['year'] : null,
-            'startDate'    => $row['startDate'],
-            'endDate'      => $row['endDate'],
-            'city'         => $row['city'],
-            'province'     => $row['province'],
-            'countryIso2'  => $row['countryIso2'],
-            'countryName'  => $row['countryName'],
-            'status'       => $row['status'],
-            'isMetaEvent'  => (bool)(int)$row['isMetaEvent'],
+            'eventID'         => (int)$row['eventID'],
+            'name'            => $row['name'],
+            'abbreviation'    => $row['abbreviation'],
+            'year'            => $row['year'] !== null ? (int)$row['year'] : null,
+            'startDate'       => $row['startDate'],
+            'endDate'         => $row['endDate'],
+            'city'            => $row['city'],
+            'province'        => $row['province'],
+            'countryIso2'     => $row['countryIso2'],
+            'countryName'     => $row['countryName'],
+            'status'          => $row['status'],
+            'isMetaEvent'     => (bool)(int)$row['isMetaEvent'],
+            'tournamentCount' => (int)$row['tournamentCount'],
         ];
     }
 

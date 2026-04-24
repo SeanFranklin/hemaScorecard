@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: HEMA Scorecard API
-  version: "1.0.0"
+  version: "1.1.0"
   description: |
     Read-only HTTP API for HEMA Scorecard — tournament-management software
     for Historical European Martial Arts events.
@@ -531,6 +531,33 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /events/{eventID}/tournaments/{tournamentID}/roster:
+    get:
+      tags: [Tournaments]
+      summary: Tournament roster (individuals and teams entered)
+      description: |
+        Full entrant list for a tournament — individuals and teams as recorded
+        in `eventTournamentRoster`. Shape mirrors the event-wide roster entry
+        with three extra tournament-scoped check flags and the
+        `tournamentRosterID`. Gated on the event's `publishRoster` flag
+        (same as `/events/{eventID}/roster`).
+      parameters:
+        - $ref: "#/components/parameters/EventID"
+        - $ref: "#/components/parameters/TournamentID"
+      responses:
+        "200":
+          description: Tournament roster, sorted individuals-before-teams then by last/first name.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/TournamentRosterEntry" } }
+                  meta: { $ref: "#/components/schemas/CountMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /events/{eventID}/tournaments/{tournamentID}/pools:
     get:
       tags: [Pools]
@@ -1044,7 +1071,7 @@ components:
     EventListItem:
       type: object
       description: Event as returned in list endpoints.
-      required: [eventID, name, abbreviation, year, startDate, endDate, city, province, countryIso2, countryName, status, isMetaEvent]
+      required: [eventID, name, abbreviation, year, startDate, endDate, city, province, countryIso2, countryName, status, isMetaEvent, tournamentCount]
       properties:
         eventID:      { type: integer, example: 9001 }
         name:         { type: string }
@@ -1058,16 +1085,20 @@ components:
         countryName:  { type: string }
         status:       { $ref: "#/components/schemas/EventStatus" }
         isMetaEvent:  { type: boolean, description: "True for league/meta events that aggregate across other events." }
+        tournamentCount:
+          type: integer
+          description: Total number of tournaments attached to this event (all formats, regardless of publication state).
 
     EventDetail:
       type: object
       description: |
         Event detail includes everything in the list item plus publication
-        flags, optional description (only when visible), and summary counts.
+        flags, optional description (only when visible), and the event-wide
+        roster count.
       allOf:
         - $ref: "#/components/schemas/EventListItem"
         - type: object
-          required: [regionCode, description, publication, tournamentCount, rosterCount]
+          required: [regionCode, description, publication, rosterCount]
           properties:
             regionCode:
               type: integer
@@ -1077,9 +1108,8 @@ components:
               type: string
               nullable: true
               description: Long-form event description. Null when `publication.description` is false on a non-archived event.
-            publication:     { $ref: "#/components/schemas/EventPublication" }
-            tournamentCount: { type: integer }
-            rosterCount:     { type: integer }
+            publication: { $ref: "#/components/schemas/EventPublication" }
+            rosterCount: { type: integer }
 
     # --- Roster ---
 
@@ -1155,6 +1185,27 @@ components:
         checkedIn:    { type: boolean }
         waiverSigned: { type: boolean }
         publicNotes:  { type: string, nullable: true }
+
+    TournamentRosterEntry:
+      description: |
+        A single entry in a tournament's roster. Extends `RosterEntry` with
+        the surrogate `tournamentRosterID` and three tournament-scoped check
+        flags from `eventTournamentRoster`.
+      allOf:
+        - $ref: "#/components/schemas/RosterEntry"
+        - type: object
+          required:
+            - tournamentRosterID
+            - tournamentCheckIn
+            - tournamentGearCheck
+            - tournamentOtherCheck
+          properties:
+            tournamentRosterID:
+              type: integer
+              description: Surrogate key of the eventTournamentRoster row (links to rating/ranking tables).
+            tournamentCheckIn:    { type: boolean }
+            tournamentGearCheck:  { type: boolean }
+            tournamentOtherCheck: { type: boolean }
 
     # --- Announcements ---
 
@@ -1605,8 +1656,13 @@ components:
         exchangeType:
           type: string
           description: |
-            Free-form type string. Common values include `clean`, `afterblow`,
-            `double`, `no-exchange`.
+            Free-form type string. Scoring exchanges are `clean`, `afterblow`,
+            `double`, `noExchange` — these are what `MatchStats.exchangeCount`
+            counts. A `penalty` exchange records a penalty against
+            `scoringRosterID`, with card severity (yellow/red/black) surfaced
+            via `attack.type.code` (`yellowCard` / `redCard` / `blackCard`).
+            Other values seen in the wild: `winner`, `tie`, `doubleOut`,
+            `noQuality`, `scored`, `switchFighter`, `pending`.
         scoringRosterID:   { type: integer, nullable: true }
         receivingRosterID: { type: integer, nullable: true }
         scoreValue:
@@ -1640,7 +1696,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/PoolMatchListItem"
         - type: object
-          required: [matchTime, signOff1, signOff2, exchanges, matchOptions]
+          required: [matchTime, signOff1, signOff2, exchanges, matchOptions, stats]
           properties:
             matchTime:
               type: integer
@@ -1654,6 +1710,7 @@ components:
             matchOptions:
               type: array
               items: { $ref: "#/components/schemas/MatchOption" }
+            stats: { $ref: "#/components/schemas/MatchStats" }
 
     # --- Standings ---
 
@@ -1799,7 +1856,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/BracketMatchListItem"
         - type: object
-          required: [matchTime, signOff1, signOff2, exchanges, matchOptions]
+          required: [matchTime, signOff1, signOff2, exchanges, matchOptions, stats]
           properties:
             matchTime: { type: integer, nullable: true }
             signOff1:  { type: boolean }
@@ -1810,6 +1867,54 @@ components:
             matchOptions:
               type: array
               items: { $ref: "#/components/schemas/MatchOption" }
+            stats: { $ref: "#/components/schemas/MatchStats" }
+
+    MatchStats:
+      type: object
+      description: |
+        Per-match aggregate stats computed from the exchange list. Designed
+        to back a "Duration / Doubles / Penalties" stat row plus an optional
+        per-fighter card-breakdown card.
+      required: [exchangeCount, doublesCount, penalties]
+      properties:
+        exchangeCount:
+          type: integer
+          description: |
+            Count of valid scoring exchanges (`clean`, `afterblow`, `double`,
+            `noExchange`). Matches the set used by the tournament's standings
+            aggregator.
+        doublesCount:
+          type: integer
+          description: Subset of `exchangeCount` where `exchangeType = 'double'`.
+        penalties:
+          type: array
+          description: |
+            One entry per fighter. Both top-level match fighters
+            (`fighter1.rosterID` / `fighter2.rosterID`) always appear as
+            zero-seeded entries so clients can render "0 cards" without
+            null checks. For team matches where sub-match fighters receive
+            cards, their rosterIDs appear as additional entries beyond the
+            two top-level fighters. Ordered: fighter1, fighter2, then any
+            remaining rosterIDs ascending.
+          items: { $ref: "#/components/schemas/MatchPenaltyBreakdown" }
+
+    MatchPenaltyBreakdown:
+      type: object
+      required: [rosterID, total, yellow, red]
+      properties:
+        rosterID: { type: integer }
+        total:
+          type: integer
+          description: |
+            All penalty exchanges against this roster (equivalent to the
+            standings `numPenalties` field). Includes no-card penalties and
+            black cards — so `total >= yellow + red`.
+        yellow:
+          type: integer
+          description: "Penalties with attack type code `yellowCard`."
+        red:
+          type: integer
+          description: "Penalties with attack type code `redCard`."
 
     # --- Placings ---
 

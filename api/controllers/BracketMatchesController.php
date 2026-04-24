@@ -7,6 +7,7 @@ use HemaScorecard\Api\Lib\BracketsQuery;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\ExchangesQuery;
 use HemaScorecard\Api\Lib\JsonResponse;
+use HemaScorecard\Api\Lib\MatchStats;
 
 class BracketMatchesController {
 
@@ -103,6 +104,11 @@ class BracketMatchesController {
         $base['signOff2']     = (bool)(int)$row['signOff2'];
         $base['exchanges']    = $exchanges;
         $base['matchOptions'] = $options;
+        $base['stats'] = MatchStats::computeFromExchanges(
+            $exchanges,
+            $row['fighter1ID'] !== null ? (int)$row['fighter1ID'] : null,
+            $row['fighter2ID'] !== null ? (int)$row['fighter2ID'] : null
+        );
         return $base;
     }
 }

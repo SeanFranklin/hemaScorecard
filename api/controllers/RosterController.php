@@ -40,73 +40,9 @@ class RosterController {
         $membersByTeam = RosterQuery::fetchTeamMembers($teamIDs);
 
         $shaped = array_map(function($row) use ($membersByTeam) {
-            return $this->shapeItem($row, $membersByTeam);
+            return RosterQuery::shapeEntry($row, $membersByTeam);
         }, $rows);
 
         JsonResponse::success($shaped, Pagination::meta($p, $total, count($shaped)));
-    }
-
-    private function shapeItem(array $row, array $membersByTeam): array {
-        $isTeam = (int)$row['isTeam'] === 1;
-        $rosterID = (int)$row['rosterID'];
-
-        $school = null;
-        if ($row['resolvedSchoolID'] !== null) {
-            $school = [
-                'schoolID'     => (int)$row['resolvedSchoolID'],
-                'name'         => $row['schoolName'],
-                'shortName'    => $row['schoolShortName'],
-                'abbreviation' => $row['schoolAbbreviation'],
-            ];
-        }
-
-        if ($isTeam) {
-            return [
-                'rosterID'       => $rosterID,
-                'systemRosterID' => $row['systemRosterID'] !== null ? (int)$row['systemRosterID'] : null,
-                'isTeam'         => true,
-                'firstName'      => null,
-                'middleName'     => null,
-                'lastName'       => null,
-                'nickname'       => null,
-                'gender'         => null,
-                'hemaRatingsID'  => null,
-                'location'       => null,
-                'school'         => $school,
-                'teamName'       => $row['teamName'],
-                'teamMembers'    => $membersByTeam[$rosterID] ?? [],
-                'checkedIn'      => (bool)(int)$row['eventCheckIn'],
-                'waiverSigned'   => (bool)(int)$row['eventWaiver'],
-                'publicNotes'    => $row['publicNotes'],
-            ];
-        }
-
-        $location = null;
-        if ($row['rosterCity'] !== null || $row['rosterProvince'] !== null || $row['rosterCountry'] !== null) {
-            $location = [
-                'city'     => $row['rosterCity'],
-                'province' => $row['rosterProvince'],
-                'country'  => $row['rosterCountry'],
-            ];
-        }
-
-        return [
-            'rosterID'       => $rosterID,
-            'systemRosterID' => $row['systemRosterID'] !== null ? (int)$row['systemRosterID'] : null,
-            'isTeam'         => false,
-            'firstName'      => $row['firstName'],
-            'middleName'     => $row['middleName'],
-            'lastName'       => $row['lastName'],
-            'nickname'       => $row['nickname'],
-            'gender'         => $row['gender'],
-            'hemaRatingsID'  => $row['hemaRatingsID'] !== null ? (int)$row['hemaRatingsID'] : null,
-            'location'       => $location,
-            'school'         => $school,
-            'teamName'       => null,
-            'teamMembers'    => null,
-            'checkedIn'      => (bool)(int)$row['eventCheckIn'],
-            'waiverSigned'   => (bool)(int)$row['eventWaiver'],
-            'publicNotes'    => $row['publicNotes'],
-        ];
     }
 }

@@ -4,6 +4,7 @@ namespace HemaScorecard\Api\Controllers;
 use HemaScorecard\Api\Lib\ApiException;
 use HemaScorecard\Api\Lib\ChecksEventVisibility;
 use HemaScorecard\Api\Lib\JsonResponse;
+use HemaScorecard\Api\Lib\RosterQuery;
 use HemaScorecard\Api\Lib\TournamentsQuery;
 
 class TournamentsController {
@@ -41,6 +42,42 @@ class TournamentsController {
 
         $rulesets = TournamentsQuery::listRulesets($tid);
         JsonResponse::success($this->shapeSingle($row, $rulesets));
+    }
+
+    public function roster(string $eventID, string $tournamentID): void {
+        $eid = (int)$eventID;
+        $tid = (int)$tournamentID;
+
+        $gate = $this->findVisibleEventOrThrow($eid);
+        if (!$this->isResourceVisible($gate, 'publishRoster')) {
+            JsonResponse::success([], ['count' => 0]);
+            return;
+        }
+
+        if (!TournamentsQuery::belongsToEvent($eid, $tid)) {
+            throw new ApiException('not_found', 404, "Tournament {$tid} not found");
+        }
+
+        $rows = TournamentsQuery::rosterForTournament($tid);
+
+        $teamIDs = [];
+        foreach ($rows as $row) {
+            if ((int)$row['isTeam'] === 1) {
+                $teamIDs[] = (int)$row['rosterID'];
+            }
+        }
+        $membersByTeam = RosterQuery::fetchTeamMembers($teamIDs);
+
+        $shaped = array_map(function($row) use ($membersByTeam) {
+            $entry = RosterQuery::shapeEntry($row, $membersByTeam);
+            $entry['tournamentRosterID']   = (int)$row['tournamentRosterID'];
+            $entry['tournamentCheckIn']    = (bool)(int)$row['tournamentCheckIn'];
+            $entry['tournamentGearCheck']  = (bool)(int)$row['tournamentGearCheck'];
+            $entry['tournamentOtherCheck'] = (bool)(int)$row['tournamentOtherCheck'];
+            return $entry;
+        }, $rows);
+
+        JsonResponse::success($shaped, ['count' => count($shaped)]);
     }
 
     private function shapeListItem(array $row): array {

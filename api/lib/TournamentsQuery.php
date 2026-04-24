@@ -112,6 +112,57 @@ class TournamentsQuery {
     }
 
     /**
+     * Rows for the whole tournament roster (individuals and teams) — same
+     * column shape as RosterQuery::listForEvent so RosterQuery::shapeEntry
+     * can consume these rows, with three extra tournament-scoped columns
+     * (tournamentRosterID + the three check flags).
+     *
+     * Team members are NOT in this result set — resolve via
+     * RosterQuery::fetchTeamMembers(), as with the event-roster endpoint.
+     */
+    public static function rosterForTournament(int $tournamentID): array {
+        $tournamentID = (int)$tournamentID;
+        $sql = "SELECT
+                    eTR.tournamentRosterID   AS tournamentRosterID,
+                    eTR.tournamentCheckIn    AS tournamentCheckIn,
+                    eTR.tournamentGearCheck  AS tournamentGearCheck,
+                    eTR.tournamentOtherCheck AS tournamentOtherCheck,
+                    eR.rosterID              AS rosterID,
+                    eR.systemRosterID        AS systemRosterID,
+                    eR.isTeam                AS isTeam,
+                    eR.eventCheckIn          AS eventCheckIn,
+                    eR.eventWaiver           AS eventWaiver,
+                    eR.publicNotes           AS publicNotes,
+                    sR.firstName             AS firstName,
+                    sR.middleName            AS middleName,
+                    sR.lastName              AS lastName,
+                    sR.nickname              AS nickname,
+                    sR.gender                AS gender,
+                    sR.HemaRatingsID         AS hemaRatingsID,
+                    sR.rosterCity            AS rosterCity,
+                    sR.rosterProvince        AS rosterProvince,
+                    sR.rosterCountry         AS rosterCountry,
+                    COALESCE(eR.schoolID, sR.schoolID) AS resolvedSchoolID,
+                    sS.schoolFullName        AS schoolName,
+                    sS.schoolShortName       AS schoolShortName,
+                    sS.schoolAbbreviation    AS schoolAbbreviation,
+                    tn.memberName            AS teamName
+                FROM eventTournamentRoster eTR
+                INNER JOIN eventRoster eR ON eR.rosterID = eTR.rosterID
+                LEFT JOIN systemRoster sR ON sR.systemRosterID = eR.systemRosterID
+                LEFT JOIN systemSchools sS ON sS.schoolID = COALESCE(eR.schoolID, sR.schoolID)
+                LEFT JOIN eventTeamRoster tn
+                    ON tn.teamID = eR.rosterID AND tn.memberRole = 'teamName'
+                WHERE eTR.tournamentID = {$tournamentID}
+                ORDER BY
+                    eR.isTeam ASC,
+                    COALESCE(sR.lastName, tn.memberName, '') ASC,
+                    COALESCE(sR.firstName, '') ASC,
+                    eR.rosterID ASC";
+        return mysqlQuery($sql, ASSOC);
+    }
+
+    /**
      * Confirm tournament $tid belongs to event $eid. Used by controllers
      * before list-style tournament-scoped queries.
      */
