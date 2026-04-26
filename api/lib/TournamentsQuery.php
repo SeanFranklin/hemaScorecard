@@ -20,7 +20,8 @@ class TournamentsQuery {
                     eT.isFinalized     AS isFinalized,
                     eT.formatID        AS formatID,
                     sF.formatName      AS formatName,
-                    eT.numParticipants AS numParticipants,
+                    (SELECT COUNT(*) FROM eventTournamentRoster eTR
+                       WHERE eTR.tournamentID = eT.tournamentID) AS numParticipants,
                     {$nameExpr}        AS name
                 FROM eventTournaments eT
                 INNER JOIN systemFormats sF ON sF.formatID = eT.formatID
@@ -58,7 +59,8 @@ class TournamentsQuery {
                     eT.hideFinalResults AS hideFinalResults,
                     eT.formatID        AS formatID,
                     sF.formatName      AS formatName,
-                    eT.numParticipants AS numParticipants,
+                    (SELECT COUNT(*) FROM eventTournamentRoster eTR
+                       WHERE eTR.tournamentID = eT.tournamentID) AS numParticipants,
                     eT.tournamentRankingID AS rankingID,
                     sR.name            AS rankingName,
                     eT.doubleTypeID    AS doubleTypeID,
