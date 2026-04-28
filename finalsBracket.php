@@ -428,7 +428,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 	<fieldset <?=LOCK_TOURNAMENT?>>
 		<h4>Create Bracket</h4>
 
-		<form method='POST'>
+
 		<input class='hidden' name='createBracket[tournamentID]' value='<?=$_SESSION['tournamentID']?>'>
 
 
@@ -645,11 +645,23 @@ function displayBracket($bracketInfo,
 		$bracketLevelsDisplayed++;
 		$extraLevelsNum = $bracketLevelsDisplayed - $bracketLevels;
 		$seedList = @$bracketAdvancements[$currentLevel]; // may not exist, treat as null
+
+
 		$tierName = getBracketLevelName($currentLevel, $bracketType, $elimType, $extraLevelsNum);
 
+		if(    $bracketInfo['numFighters'] == 3
+			&& $bracketType == BRACKET_PRIMARY
+			&& $elimType == ELIM_TYPE_SINGLE){
+
+			if($currentLevel == 2){
+				$tierName = "3rd Place";
+			} else {
+				$tierName = "1st Place";
+			}
+
+		}
 
 		echo"<div class='tier'>";
-
 		echo "<h3 class='text-center'>{$tierName}</h3>";
 
 
@@ -658,6 +670,7 @@ function displayBracket($bracketInfo,
 		} else {
 			$maxMatchesAtLevel = getNumEntriesAtLevel_consolation($currentLevel,'matches');
 		}
+
 
 		for($bracketPosition = 1;$bracketPosition<=$maxMatchesAtLevel;$bracketPosition++):
 
