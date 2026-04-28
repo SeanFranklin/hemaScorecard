@@ -3732,16 +3732,18 @@ function createSecondaryBracket($tournamentID, $numFighters, $extendBracketBy = 
 
 				createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
 
-				if($bracketLevel == 1 && $extendBracketBy != 0){
-					for($i=1;$i<=$extendBracketBy;$i++){
-						$bracketPosition++;
-						createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
-					}
-				}
-
 			}
 		}
 
+
+		if($extendBracketBy != 0){
+			$bracketLevel = 1;
+			$bracketPosition = 1;
+			for($i=1;$i<=$extendBracketBy;$i++){
+				$bracketPosition++;
+				createBracketMatch($groupID, $bracketLevel, $bracketPosition, $numSubMatches);
+			}
+		}
 
 	}
 }
