@@ -1,0 +1,177 @@
+<?php
+namespace HemaScorecard\Api\Controllers;
+
+use HemaScorecard\Api\Lib\ApiException;
+use HemaScorecard\Api\Lib\EventsQuery;
+use HemaScorecard\Api\Lib\JsonResponse;
+use HemaScorecard\Api\Lib\Pagination;
+
+class EventsController {
+
+    public function index(): void {
+        $p = Pagination::parse($_GET);
+        $filters = [
+            'years'     => $this->parseIntList($_GET['year']    ?? null, 'year'),
+            'countries' => $this->parseCountryList($_GET['country'] ?? null),
+            'isMeta'    => $this->parseBool($_GET['isMeta']   ?? null, 'isMeta'),
+        ];
+
+        $rows  = EventsQuery::listPublished($p->offset, $p->perPage, $filters);
+        $total = EventsQuery::countPublished($filters);
+
+        JsonResponse::success(
+            array_map([$this, 'shapeListItem'], $rows),
+            Pagination::meta($p, $total, count($rows))
+        );
+    }
+
+    public function today(): void {
+        $this->emitList(EventsQuery::today());
+    }
+
+    public function upcoming(): void {
+        $this->emitList(EventsQuery::upcoming());
+    }
+
+    public function recent(): void {
+        $this->emitList(EventsQuery::recent());
+    }
+
+    public function show(string $id): void {
+        $idInt = (int)$id;
+        $row = EventsQuery::findById($idInt);
+        if ($row === null) {
+            throw new ApiException('not_found', 404, "Event {$id} not found");
+        }
+
+        $tournamentCount = EventsQuery::countTournaments($idInt);
+        $rosterCount     = EventsQuery::countRoster($idInt);
+
+        JsonResponse::success($this->shapeSingle($row, $tournamentCount, $rosterCount));
+    }
+
+    /**
+     * Convert the findById row into the full single-event response shape,
+     * applying the "suppress description if not published and not archived"
+     * rule from the design spec.
+     */
+    private function shapeSingle(array $row, int $tournamentCount, int $rosterCount): array {
+        $isArchived = (bool)(int)$row['isArchived'];
+        $publishDescription = (bool)(int)$row['publishDescription'];
+
+        // Suppress description text unless it's archived OR publishDescription=1.
+        // Archived events are treated as fully published (matching existing web helpers).
+        $descriptionVisible = $isArchived || $publishDescription;
+        $description = $descriptionVisible ? $row['descriptionRaw'] : null;
+
+        // Publication flags — archived treats all as true (matches isRosterPublished()
+        // / isSchedulePublished() / etc. behavior for archived events in the web app).
+        $pub = [
+            'description' => $isArchived || (bool)(int)$row['publishDescription'],
+            'roster'      => $isArchived || (bool)(int)$row['publishRoster'],
+            'schedule'    => $isArchived || (bool)(int)$row['publishSchedule'],
+            'matches'     => $isArchived || (bool)(int)$row['publishMatches'],
+            'rules'       => $isArchived || (bool)(int)$row['publishRules'],
+        ];
+
+        return [
+            'eventID'         => (int)$row['eventID'],
+            'name'            => $row['name'],
+            'abbreviation'    => $row['abbreviation'],
+            'year'            => $row['year'] !== null ? (int)$row['year'] : null,
+            'startDate'       => $row['startDate'],
+            'endDate'         => $row['endDate'],
+            'city'            => $row['city'],
+            'province'        => $row['province'],
+            'countryIso2'     => $row['countryIso2'],
+            'countryName'     => $row['countryName'],
+            'status'          => $row['status'],
+            'isMetaEvent'     => (bool)(int)$row['isMetaEvent'],
+            'regionCode'      => $row['regionCode'] !== null ? (int)$row['regionCode'] : null,
+            'description'     => $description,
+            'publication'     => $pub,
+            'tournamentCount' => $tournamentCount,
+            'rosterCount'     => $rosterCount,
+        ];
+    }
+
+    /**
+     * Shared emit for the three bounded endpoints. No pagination —
+     * returns the whole bounded window plus a {count} meta block.
+     */
+    private function emitList(array $rows): void {
+        JsonResponse::success(
+            array_map([$this, 'shapeListItem'], $rows),
+            ['count' => count($rows)]
+        );
+    }
+
+    /**
+     * Convert a DB row (aliased by EventsQuery::baseSelect) into the
+     * API list-item shape. Handles type coercion that SQL doesn't do
+     * (booleans come back as "0"/"1" strings from mysqli).
+     */
+    private function shapeListItem(array $row): array {
+        return [
+            'eventID'         => (int)$row['eventID'],
+            'name'            => $row['name'],
+            'abbreviation'    => $row['abbreviation'],
+            'year'            => $row['year'] !== null ? (int)$row['year'] : null,
+            'startDate'       => $row['startDate'],
+            'endDate'         => $row['endDate'],
+            'city'            => $row['city'],
+            'province'        => $row['province'],
+            'countryIso2'     => $row['countryIso2'],
+            'countryName'     => $row['countryName'],
+            'status'          => $row['status'],
+            'isMetaEvent'     => (bool)(int)$row['isMetaEvent'],
+            'tournamentCount' => (int)$row['tournamentCount'],
+        ];
+    }
+
+    /**
+     * Parse ?year=2026 or ?year=2026,2025 into an int array. Null when absent.
+     * Throws 400 on non-integer entries.
+     */
+    private function parseIntList(?string $raw, string $field): ?array {
+        if ($raw === null || $raw === '') { return null; }
+        $ints = [];
+        foreach (explode(',', $raw) as $part) {
+            $trimmed = trim($part);
+            if (!ctype_digit($trimmed)) {
+                throw new ApiException('bad_request', 400, "Invalid {$field}: '{$trimmed}'");
+            }
+            $ints[] = (int)$trimmed;
+        }
+        return $ints;
+    }
+
+    /**
+     * Parse ?country=US or ?country=US,CA into an uppercase 2-letter ISO array.
+     * Null when absent. Case-insensitive input; throws 400 on malformed entries.
+     */
+    private function parseCountryList(?string $raw): ?array {
+        if ($raw === null || $raw === '') { return null; }
+        $codes = [];
+        foreach (explode(',', $raw) as $part) {
+            $code = strtoupper(trim($part));
+            if (!preg_match('/^[A-Z]{2}$/', $code)) {
+                throw new ApiException('bad_request', 400, "Invalid country: '{$code}'");
+            }
+            $codes[] = $code;
+        }
+        return $codes;
+    }
+
+    /**
+     * Parse ?isMeta=true / ?isMeta=false / ?isMeta=1 / ?isMeta=0 into a bool.
+     * Null when absent. Throws 400 on other values.
+     */
+    private function parseBool(?string $raw, string $field): ?bool {
+        if ($raw === null || $raw === '') { return null; }
+        $lc = strtolower($raw);
+        if (in_array($lc, ['1', 'true'],  true)) { return true; }
+        if (in_array($lc, ['0', 'false'], true)) { return false; }
+        throw new ApiException('bad_request', 400, "Invalid {$field}: '{$raw}'");
+    }
+}

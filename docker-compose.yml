@@ -12,7 +12,7 @@ services:
              docker-php-ext-enable mysqli &&
              pecl install xdebug-3.1.5 ||
              docker-php-ext-enable xdebug &&
-             php -S 0.0.0.0:8000 -t /hemaScorecard"
+             php -S 0.0.0.0:8000 -t /hemaScorecard /hemaScorecard/router.php"
 
     environment:
       XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9000 remote_enable=1
