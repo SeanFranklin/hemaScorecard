@@ -4678,7 +4678,7 @@ function generateTournamentPlacings_round($tournamentID){
 
 	$tournamentID = (int)$tournamentID;
 
-	$sql = "SELECT fighter1ID, GREATEST(fighter1Score,fighter2Score) AS score, groupSet, groupNumber
+	$sql = "SELECT fighter1ID, fighter1Score AS score, groupSet, groupNumber
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
@@ -6760,7 +6760,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	$settings['isTeams'] = (int)$formInfo['isTeams'];
 	$settings['poolWinnersFirst'] = (int)$formInfo['poolWinnersFirst'];
-	$settings['limitPoolMatches'] = (int)$formInfo['limitPoolMatches'];
+	$settings['limitPoolMatches'] = @(int)$formInfo['limitPoolMatches'];
 	$settings['checkInStaff'] = (int)$formInfo['checkInStaff'];
 	$settings['hideFinalResults'] = (int)$formInfo['hideFinalResults'];
 
