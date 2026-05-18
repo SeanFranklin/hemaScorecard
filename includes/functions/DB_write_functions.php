@@ -6995,10 +6995,6 @@ function cloneRankingToEvent($tournamentID, $eventID, $tournamentRankingID){
 		return;
 	}
 
-	$sql = "DELETE FROM eventRankings
-			WHERE tournamentID = {$tournamentID}";
-	mysqlQuery($sql, SEND);
-
 	$sql = "INSERT INTO eventRankings (
 				eventID, tournamentID, systemRankingID,
 				name, formatID, description, displayFunction, scoringFunction, scoreFormula,
@@ -7017,7 +7013,34 @@ function cloneRankingToEvent($tournamentID, $eventID, $tournamentRankingID){
 				displayTitle3, displayField3, displayTitle4, displayField4,
 				displayTitle5, displayField5
 			FROM systemRankings
-			WHERE tournamentRankingID = {$tournamentRankingID}";
+			WHERE tournamentRankingID = {$tournamentRankingID}
+			ON DUPLICATE KEY UPDATE
+				eventID = VALUES(eventID),
+				systemRankingID = VALUES(systemRankingID),
+				name = VALUES(name),
+				formatID = VALUES(formatID),
+				description = VALUES(description),
+				displayFunction = VALUES(displayFunction),
+				scoringFunction = VALUES(scoringFunction),
+				scoreFormula = VALUES(scoreFormula),
+				orderByField1 = VALUES(orderByField1),
+				orderBySort1 = VALUES(orderBySort1),
+				orderByField2 = VALUES(orderByField2),
+				orderBySort2 = VALUES(orderBySort2),
+				orderByField3 = VALUES(orderByField3),
+				orderBySort3 = VALUES(orderBySort3),
+				orderByField4 = VALUES(orderByField4),
+				orderBySort4 = VALUES(orderBySort4),
+				displayTitle1 = VALUES(displayTitle1),
+				displayField1 = VALUES(displayField1),
+				displayTitle2 = VALUES(displayTitle2),
+				displayField2 = VALUES(displayField2),
+				displayTitle3 = VALUES(displayTitle3),
+				displayField3 = VALUES(displayField3),
+				displayTitle4 = VALUES(displayTitle4),
+				displayField4 = VALUES(displayField4),
+				displayTitle5 = VALUES(displayTitle5),
+				displayField5 = VALUES(displayField5)";
 	mysqlQuery($sql, SEND);
 
 }
