@@ -1648,6 +1648,116 @@ function _Alpeadria_calculateScore($tournamentID, $groupSet = 1){
 
 /******************************************************************************/
 
+function _IGLO_calculateScore($tournamentID, $groupSet = 1){
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+
+
+	$sql = "SELECT standingID, rosterID
+			FROM eventStandings
+			WHERE tournamentID = {$tournamentID}
+			AND groupSet = {$groupSet}";
+	$standingsToScore = mysqlQuery($sql, ASSOC);
+
+	if($standingsToScore == null){
+		return;
+	}
+
+
+	// Loop through to figure out how many groupSets we are using in the
+	// case of cumulative pool scores.
+	$groupSets = [];
+
+	for($i = $groupSet; $i >= 1; $i--){
+		$groupSets[] = $i;
+
+		if(isCumulative($i, $tournamentID) == false){
+			break;
+		}
+	}
+
+	$groupSetsStr = implode2int($groupSets);
+
+	$CFS_MAX = 5;
+	$CFS_WEIGHT_FACTOR = 0.3;
+
+	foreach($standingsToScore as $standing){
+
+		$rosterID = (int)$standing['rosterID'];
+		$standingID = (int)$standing['standingID'];
+		$score = 0;
+
+		$sql = "SELECT matchID, winnerID, fighter1Score, fighter2Score, fighter1ID, fighter2ID, groupSet
+				FROM eventMatches AS eM
+				INNER JOIN eventGroups USING(groupID)
+				WHERE (fighter1ID= {$rosterID} OR fighter2ID = {$rosterID})
+				AND tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet IN ({$groupSetsStr})
+				AND ignoreMatch = 0
+				AND matchComplete = 1
+				ORDER BY groupSet ASC";
+		$matches = mysqlQuery($sql, ASSOC);
+
+		$scores = [];
+		$numMatches = 0;
+		$loopGroupSet = 0;
+		$cfsTotal = 0;
+		foreach($matches as $match){
+			if($match['groupSet'] != $loopGroupSet){
+				$loopGroupSet = $match['groupSet'];
+				$scores[$loopGroupSet]['matchPts'] = 0;
+				$scores[$loopGroupSet]['numMatches'] = 0;
+			}
+
+			$scores[$loopGroupSet]['numMatches']++;
+
+			if($match['winnerID'] == $rosterID){
+
+				if($rosterID == $match['fighter1ID']){
+					$cfs = $match['fighter1Score'] - $match['fighter2Score'];
+				} else {
+					$cfs = $match['fighter2Score'] - $match['fighter1Score'];
+				}
+				$cfsTotal += min($cfs, $CFS_MAX);
+
+				$scores[$loopGroupSet]['matchPts'] += 3;
+
+			} else if ((int)$match['winnerID'] == 0){
+
+				$scores[$loopGroupSet]['matchPts'] += 1;
+
+			} else {
+				// Loss. No score is added
+			}
+
+			$numMatches++;
+
+		}
+
+		foreach($scores as $groupScore){
+			if($groupScore['numMatches'] != 0){
+				$score += $groupScore['matchPts'] / $groupScore['numMatches'];
+			}
+
+		}
+
+		if($numMatches != 0){
+			$cfsPerMatch = $cfsTotal / ($CFS_MAX * $numMatches);
+			$score += ($cfsPerMatch * $CFS_WEIGHT_FACTOR);
+		}
+
+		$sql = "UPDATE eventStandings
+				SET score = {$score}, matches = {$numMatches}, noExchanges = {$cfsTotal}
+				WHERE standingID = {$standingID}";
+		mysqlQuery($sql, SEND);
+	}
+}
+
+
+/******************************************************************************/
+
 function _PlacingPercent_calculateScore($tournamentPlacings, $basePointValue, $numEntries){
 
 	$scoreData['score'] = 0;

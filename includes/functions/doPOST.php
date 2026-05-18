@@ -1207,7 +1207,7 @@ function createTournamentBrackets($bracketSpecs){
 
 	// Create brackets
 	createPrimaryBracket($tournamentID, $sizePrimary, $extraPrimary);
-	if($sizeSecondary >= 2){
+	if($sizeSecondary >= 1){
 		createSecondaryBracket($tournamentID, $sizeSecondary, $extraSecondary);
 	}
 
