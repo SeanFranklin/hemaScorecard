@@ -19,10 +19,8 @@
 	define("DEBUGGING", 0);
 	date_default_timezone_set("UTC");
 
-	define("DEPLOYMENT_UNKNOWN",0);
-	define("DEPLOYMENT_PRODUCTION",1);
-	define("DEPLOYMENT_TEST",2);
-	define("DEPLOYMENT_LOCAL",3);
+	// Deployment flags — defined in deployment_constants.php so the API bootstrap can share them
+	require_once __DIR__ . '/deployment_constants.php';
 
 // Database Connection
 	if(!defined('BASE_URL')){
@@ -45,16 +43,8 @@
 	define("USER_ALERT",3);
 	define("USER_WARNING",4);
 
-	// mysqlQuery() function codes
-	define("SEND",0);
-	define("INDEX",1);
-	define("RAW",2);
-	define("NUM_ROWS",3);
-	define("ASSOC",4);
-	define("SINGLE",5);
-	define("KEY",6);
-	define("KEY_SINGLES",7);
-	define("SINGLES",8);
+	// mysqlQuery() function codes — defined in db_constants.php so the API can share them
+	require_once __DIR__ . '/db_constants.php';
 
 	define("SQL_FALSE",0);
 	define("SQL_TRUE",1);
