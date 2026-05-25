@@ -1,0 +1,259 @@
+openapi: 3.0.3
+
+info:
+  title: HEMA Scorecard API
+  version: "1.1.0"
+  description: |
+    Read-only HTTP API for HEMA Scorecard — tournament-management software
+    for Historical European Martial Arts events.
+
+    All endpoints require an API key in the `X-API-Key` header. Responses
+    follow a consistent envelope: success bodies wrap the payload in `data`
+    plus optional `meta`; error bodies use `{ "error": { "code", "message" } }`.
+
+    Visibility: each event has a set of `publication` flags (description,
+    roster, schedule, matches, rules). Named-resource endpoints return 404
+    when the corresponding flag is false on a non-archived event; list
+    endpoints return a 200 empty-list in the same state. Archived events
+    expose all resources regardless of flag state.
+  contact:
+    name: HEMA Scorecard
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development (docker-compose)
+  - url: "{protocol}://{host}/api/v1"
+    description: Configurable deployment
+    variables:
+      protocol:
+        default: https
+        enum: [http, https]
+      host:
+        default: api.example.com
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - { name: Health,        description: Connectivity checks }
+  - { name: Events,        description: Top-level event resources }
+  - { name: Roster,        description: Event rosters }
+  - { name: Announcements, description: Event announcements }
+  - { name: Rules,         description: Event rules (per-tournament rulesets) }
+  - { name: Workshops,     description: Workshop (class) sessions }
+  - { name: Schedules,     description: "Schedule variants: main/workshops/school/personal/location" }
+  - { name: Tournaments,   description: Tournament-level resources }
+  - { name: Pools,         description: Pool-stage tournament data }
+  - { name: Brackets,      description: Bracket-stage tournament data }
+  - { name: Placings,      description: Tournament final placings }
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: API health check
+      description: Lightweight connectivity probe. Does not touch the database. No auth required.
+      security: []
+      responses:
+        "200":
+          description: API reachable.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [status]
+                    properties:
+                      status: { type: string, example: ok }
+
+components:
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Opaque API key. Keys are stored server-side in `data/api_keys.json`;
+        treat any leak as requiring rotation. All endpoints except `/health`
+        require a valid key.
+
+  parameters:
+    EventID:
+      name: eventID
+      in: path
+      required: true
+      description: Numeric event identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9001 }
+
+    TournamentID:
+      name: tournamentID
+      in: path
+      required: true
+      description: Numeric tournament identifier. Must belong to the event in the URL.
+      schema: { type: integer, format: int32, minimum: 1, example: 9101 }
+
+    PoolID:
+      name: poolID
+      in: path
+      required: true
+      description: Numeric pool group identifier (`eventGroups.groupID` where `groupType='pool'`).
+      schema: { type: integer, format: int32, minimum: 1, example: 9501 }
+
+    BracketID:
+      name: bracketID
+      in: path
+      required: true
+      description: Numeric bracket group identifier (`eventGroups.groupID` where `groupType='elim'`).
+      schema: { type: integer, format: int32, minimum: 1, example: 9701 }
+
+    MatchID:
+      name: matchID
+      in: path
+      required: true
+      description: Numeric match identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9601 }
+
+    BlockID:
+      name: blockID
+      in: path
+      required: true
+      description: Schedule block identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 4402 }
+
+    SchoolID:
+      name: schoolID
+      in: path
+      required: true
+      description: School identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 7001 }
+
+    RosterID:
+      name: rosterID
+      in: path
+      required: true
+      description: Event-roster identifier for a person or team.
+      schema: { type: integer, format: int32, minimum: 1, example: 9201 }
+
+    LocationID:
+      name: locationID
+      in: path
+      required: true
+      description: Location identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 6001 }
+
+    RulesID:
+      name: rulesID
+      in: path
+      required: true
+      description: Rules-document identifier.
+      schema: { type: integer, format: int32, minimum: 1, example: 9301 }
+
+    DayNum:
+      name: dayNum
+      in: path
+      required: true
+      description: Event day number (1-indexed).
+      schema: { type: integer, format: int32, minimum: 1, example: 1 }
+
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed).
+      schema: { type: integer, minimum: 1, default: 1 }
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Page size.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+
+  responses:
+    BadRequest:
+      description: Invalid request parameter.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: bad_request
+              message: "Invalid year: 'abc'"
+
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: unauthorized
+              message: Missing or invalid API key
+
+    NotFound:
+      description: |
+        Resource not found. Returned for missing IDs, cross-scope
+        references (e.g. a pool ID that doesn't belong to the
+        tournament in the URL), and hidden resources on non-archived
+        events with the corresponding `publication` flag false.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+          example:
+            error:
+              code: not_found
+              message: Event 9999 not found
+
+  schemas:
+
+    # --- Envelope / meta ---
+
+    ErrorBody:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code.
+              enum: [bad_request, unauthorized, not_found, internal_error]
+            message:
+              type: string
+              description: Human-readable explanation.
+
+    PaginationMeta:
+      type: object
+      required: [count, page, per_page, total, total_pages]
+      description: Pagination envelope for paginated list endpoints.
+      properties:
+        count:       { type: integer, description: Items in this response. }
+        page:        { type: integer, description: 1-indexed current page. }
+        per_page:    { type: integer, description: Page size in effect. }
+        total:       { type: integer, description: Total items across all pages. }
+        total_pages: { type: integer, description: "ceil(total / per_page)." }
+
+    CountMeta:
+      type: object
+      required: [count]
+      description: Simple count envelope for list endpoints without pagination.
+      properties:
+        count: { type: integer }
+
+    DayGroupMeta:
+      type: object
+      required: [dayCount, blockCount]
+      properties:
+        dayCount:   { type: integer, description: Distinct days present. }
+        blockCount: { type: integer, description: Total blocks across all days. }
+
+    FlatDayMeta:
+      type: object
+      required: [dayNum, count]
+      properties:
+        dayNum: { type: integer }
+        count:  { type: integer }
