@@ -448,11 +448,6 @@ function drawMultSeries(data, chartID, chartType = 'bar', options = null) {
 		]);
 	}
 
-
-
-
-	console.log(chartType);
-
 	switch(chartType){
 		case 'pie':
 			var chart = new google.visualization.PieChart(document.getElementById(chartID));
