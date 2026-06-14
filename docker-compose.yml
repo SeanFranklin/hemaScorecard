@@ -14,15 +14,23 @@ services:
              php -S 0.0.0.0:8000 -t /hemaScorecard"
     environment:
       XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9000 remote_enable=1
+      DEPLOYMENT: ${DEPLOYMENT:-0}
+      PRIMARY_DATABASE: ${PRIMARY_DATABASE:-ScorecardV5}
+      DATABASE_HOST: ${DATABASE_HOST:-db}
+      DATABASE_USER: ${DATABASE_USER:-user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-passw0rd}
+      HEMA_RATINGS_TOKEN: ${HEMA_RATINGS_TOKEN:-}
+      HEMA_RATINGS_BY_NAME: ${HEMA_RATINGS_BY_NAME:-}
+      HEMA_RATINGS_BY_ID: ${HEMA_RATINGS_BY_ID:-}
     links:
       - db
   db:
     image: "mysql:5.7.33"
     environment:
-      MYSQL_DATABASE: ScorecardV5
-      MYSQL_USER: user
-      MYSQL_PASSWORD: passw0rd
-      MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: ${PRIMARY_DATABASE:-ScorecardV5}
+      MYSQL_USER: ${DATABASE_USER:-user}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-passw0rd}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD:-passw0rd}
     volumes:
       - ./includes:/docker-entrypoint-initdb.d
       - ./data:/var/lib/mysql
