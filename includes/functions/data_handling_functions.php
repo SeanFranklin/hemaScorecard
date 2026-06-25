@@ -591,6 +591,7 @@ function uploadCsvFile($fileName){
 /******************************************************************************/
 
 function uploadZipFile($filesToZip){
+// $filesToZip maps the name to use inside the archive => the file on disk
 
 	$zip = new ZipArchive();
 	$zipName = EXPORT_DIR."export.zip";
@@ -601,10 +602,10 @@ function uploadZipFile($filesToZip){
 	}
 
 
-	//add each file to the archive under its base name
-	foreach($filesToZip as $file)
+	//add each file to the archive under its given name
+	foreach($filesToZip as $archiveName => $file)
 	{
-		$zip->addFile($file, basename($file));
+		$zip->addFile($file, $archiveName);
 	}
 	$zip->close();
 
