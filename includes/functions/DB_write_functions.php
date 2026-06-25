@@ -7503,6 +7503,12 @@ function updateFinalsBracket(){
 			$finalists[1] = (int)@$finalists[1];
 			$finalists[2] = (int)@$finalists[2];
 
+			// A match can't have the same fighter on both sides.
+			if($finalists[1] != 0 && $finalists[1] == $finalists[2]){
+				setAlert(USER_ERROR, "A match can't have the same fighter on both sides.");
+				continue;
+			}
+
 			// Only reset the match when the fighters actually change.
 			// Re-submitting the same fighters (eg an accidental click) must
 			// not wipe a match that has already been scored. To clear a match
@@ -7533,16 +7539,18 @@ function updateFinalsBracket(){
 			if(!empty($finalists[1])){
 				$sql = "UPDATE eventMatches
 						SET fighter1ID = {$finalists[1]}
-						WHERE matchID = {$matchID}
-						OR placeholderMatchID = {$matchID}";
+						WHERE (matchID = {$matchID}
+							OR placeholderMatchID = {$matchID})
+						AND fighter2ID != {$finalists[1]}";
 				mysqlQuery($sql, SEND);
 			}
 
 			if(!empty($finalists[2])){
 				$sql = "UPDATE eventMatches
 						SET fighter2ID = {$finalists[2]}
-						WHERE matchID = {$matchID}
-						OR placeholderMatchID = {$matchID}";
+						WHERE (matchID = {$matchID}
+							OR placeholderMatchID = {$matchID})
+						AND fighter1ID != {$finalists[2]}";
 				mysqlQuery($sql, SEND);
 			}
 
