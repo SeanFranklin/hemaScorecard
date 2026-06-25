@@ -7503,9 +7503,28 @@ function updateFinalsBracket(){
 			$finalists[1] = (int)@$finalists[1];
 			$finalists[2] = (int)@$finalists[2];
 
-			if(!empty($finalists[1]) && !empty($finalists[2])){
+			// Only reset the match when the fighters actually change.
+			// Re-submitting the same fighters (eg an accidental click) must
+			// not wipe a match that has already been scored. To clear a match
+			// use the 'Clear Selected' button instead.
+			$current = mysqlQuery("SELECT fighter1ID, fighter2ID
+									FROM eventMatches
+									WHERE matchID = {$matchID}", SINGLE);
+			$fightersChanged = (!empty($finalists[1]) && $finalists[1] != (int)@$current['fighter1ID'])
+							|| (!empty($finalists[2]) && $finalists[2] != (int)@$current['fighter2ID']);
+
+			if(!empty($finalists[1]) && !empty($finalists[2]) && $fightersChanged){
 				$sql = "DELETE eventExchanges FROM eventExchanges
 						INNER JOIN eventMatches USING(matchID)
+						WHERE matchID = {$matchID}
+						OR placeholderMatchID = {$matchID}";
+				mysqlQuery($sql, SEND);
+
+				// The exchanges are gone, so reset the derived match state too.
+				// Otherwise the previous fighters' score is left on the match.
+				$sql = "UPDATE eventMatches
+						SET fighter1Score = null, fighter2Score = null, matchTime = 0,
+							winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
 						WHERE matchID = {$matchID}
 						OR placeholderMatchID = {$matchID}";
 				mysqlQuery($sql, SEND);
