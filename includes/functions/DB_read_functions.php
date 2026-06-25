@@ -539,6 +539,8 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 // Create the CSV file
 	$fp = fopen($fileName, 'w');
 
+	fputcsv($fp, ['Fighter 1', 'Fighter 2', 'Fighter 1 result', 'Fighter 2 result', 'Round']);
+
 	foreach($finishedMatches as $match){
 
 		$winnerID = (int)$match['winnerID'];
@@ -578,15 +580,7 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 
 		$fields = [$fighter1, $fighter2, $f1Result, $f2Result, $stageName];
 
-		$comma = ',';
-
-		foreach($fields as $index => $field){
-			if ($index == sizeof($fields)-1){
-				$comma = null;
-			}
-			fputs($fp, $field.$comma);
-		}
-		fputs($fp, PHP_EOL);
+		fputcsv($fp, $fields);
 
 	}
 	fclose($fp);
