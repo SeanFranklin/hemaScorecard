@@ -134,6 +134,29 @@ function hemaRatings_GetEventRosterForExport($eventID){
 
 /******************************************************************************/
 
+function hemaRatings_GetEventClubsForExport($eventID){
+
+	$eventID = (int)$eventID;
+
+	if($eventID == 0){
+		setAlert(SYSTEM,"No eventID in hemaRatings_GetEventClubsForExport()");
+		return;
+	}
+
+	// Distinct clubs that had fighters at the event, ignoring the
+	// *Unknown (1) and *Unaffiliated (2) placeholder schools.
+	$sql = "SELECT DISTINCT sch.schoolFullName, sch.countryIso2,
+				sch.schoolProvince, sch.schoolCity
+			FROM eventRoster ev
+			INNER JOIN systemSchools sch ON ev.schoolID = sch.schoolID
+			WHERE ev.eventID = {$eventID}
+			AND ev.schoolID NOT IN (1, 2)
+			ORDER BY sch.schoolFullName";
+	return mysqlQuery($sql, ASSOC);
+}
+
+/******************************************************************************/
+
 function hemaRatings_getFighterID($systemRosterID){
 	$systemRosterID = (int)$systemRosterID;
 
@@ -223,6 +246,42 @@ function hemaRatings_createEventRosterCsv($eventID = null, $dir = "exports/"){
 			$fields['countryIso2'],
 			'',
 			$fields['HemaRatingsID'],
+		]);
+	}
+	fclose($fp);
+
+	return $fileName;
+}
+
+/******************************************************************************/
+
+function hemaRatings_createClubsCsv($eventID = null, $dir = "exports/"){
+// Creates a .csv file with the clubs that had fighters at the event
+// Format: | Club Name | Country | State | City | Website URL | Facebook URL | Parent club |
+
+	if($eventID == null){$eventID = $_SESSION['eventID'];}
+	if($eventID == null){
+		setAlert(SYSTEM,"No Event ID in hemaRatings_createClubsCsv()");
+		return;
+	}
+
+	$clubList = hemaRatings_GetEventClubsForExport($eventID);
+	$fileName = "{$dir}clubs.csv";
+
+// Create the CSV file
+	$fp = fopen($fileName, 'w');
+
+	fputcsv($fp, ['Club Name', 'Country', 'State', 'City', 'Website URL', 'Facebook URL', 'Parent club']);
+
+	foreach((array)$clubList as $club){
+		fputcsv($fp, [
+			$club['schoolFullName'],
+			$club['countryIso2'],
+			$club['schoolProvince'],
+			$club['schoolCity'],
+			'',
+			'',
+			'',
 		]);
 	}
 	fclose($fp);
