@@ -956,7 +956,17 @@ function hemaRatings_ExportCsv($informationType){
 
 	if($informationType == 'all'){
 
-		$csvNames[0] = hemaRatings_createEventRosterCsv($_SESSION['eventID'], EXPORT_DIR);
+		$eventID = $_SESSION['eventID'];
+
+		$csvNames = [];
+		$csvNames[] = hemaRatings_createClubsCsv($eventID, EXPORT_DIR);
+		$csvNames[] = hemaRatings_createEventRosterCsv($eventID, EXPORT_DIR);
+
+		$tournamentList = getTournamentsFull($eventID);
+		foreach((array)$tournamentList as $tournamentID => $tournament){
+			$csvNames[] = hemaRatings_createTournamentResultsCsv($tournamentID, EXPORT_DIR);
+		}
+
 		uploadZipFile($csvNames);
 
 	} elseif($informationType == 'eventInfo'){
