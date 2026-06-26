@@ -15,7 +15,7 @@ $pageName = "Welcome to HEMA Scorecard";
 
 include('includes/header.php');
 
-	$eventList = getEventListByPublication('date');
+	$eventList = getEventListByPublication('date', 14);
 
 	$eventsToShow['active'] = [];
 	$eventsToShow['recent'] = [];
