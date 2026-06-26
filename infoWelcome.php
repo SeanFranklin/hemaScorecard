@@ -139,7 +139,7 @@ include('includes/header.php');
 	</div>
 
 	<div class="tabs-panel" id="panel-recent">
-		<?=displayEventTabe($eventsToShow['recent'])?>
+		<?=displayEventTabe(array_reverse($eventsToShow['recent']))?>
 	</div>
 
 </div>
