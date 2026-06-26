@@ -173,7 +173,7 @@ function displayEventTabe($eventList){
 		<?php foreach($eventList as $event): ?>
 			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$event['displayClass']?>'>
 				<td><?=$event['eventStartDate']?></td>
-				<td><?=getEventName($event['eventID'])?></td>
+				<td><?=$event['eventName']?> <?=$event['eventYear']?></td>
 				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
 				<td class='hide-for-small-only'><?=$event['displayStatus']?></td>
 			</tr>
