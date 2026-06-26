@@ -28,8 +28,6 @@ include('includes/header.php');
 		$dateDiffStart = compareDates($event['eventStartDate']);
 		$dateDiffEnd = compareDates($event['eventEndDate']);
 
-		if($dateDiffEnd > 14){ continue; }
-
 		$event['displayClass'] = "";
 
 
