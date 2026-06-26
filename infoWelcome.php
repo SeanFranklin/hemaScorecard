@@ -75,13 +75,13 @@ include('includes/header.php');
 
 
 		// Only make the Active tab the default if there are active events to show.
-		// Otherwise the Recent tab will be active on page load.
+		// Otherwise the Upcoming tab will be active on page load.
 		if($isAnyEventActive == true){
 			$activeClass = " is-active";
-			$recentClass = "";
+			$upcomingClass = "";
 		} else {
 			$activeClass = "";
-			$recentClass = " is-active";
+			$upcomingClass = " is-active";
 		}
 
 
@@ -115,11 +115,11 @@ include('includes/header.php');
 		Active
 	</a></li>
 
-	<li class="tabs-title"><a data-tabs-target="panel-upcoming">
+	<li class="tabs-title <?=$upcomingClass?>"><a data-tabs-target="panel-upcoming">
 		Upcoming
 	</a></li>
 
-	<li class="tabs-title <?=$recentClass?>"><a data-tabs-target="panel-recent">
+	<li class="tabs-title"><a data-tabs-target="panel-recent">
 		Recent
 	</a></li>
 
@@ -134,11 +134,11 @@ include('includes/header.php');
 		<?=displayEventTabe($eventsToShow['active'])?>
 	</div>
 
-	<div class="tabs-panel" id="panel-upcoming">
+	<div class="tabs-panel <?=$upcomingClass?>" id="panel-upcoming">
 		<?=displayEventTabe($eventsToShow['upcoming'])?>
 	</div>
 
-	<div class="tabs-panel <?=$recentClass?>" id="panel-recent">
+	<div class="tabs-panel" id="panel-recent">
 		<?=displayEventTabe($eventsToShow['recent'])?>
 	</div>
 
