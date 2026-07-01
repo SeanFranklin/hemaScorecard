@@ -1917,6 +1917,8 @@ function getEventListByPublication($orderBy = 'name', $dayLimit = null){
 		$dateClause = "AND eventEndDate >= DATE_SUB(CURDATE(), INTERVAL {$dayLimit} DAY)";
 	}
 
+	// Use implode here to keep it compact and memory efficient since we don't
+	// know exactly how many clauses we're joining.
 	$whereClause = empty($conditions) ? "" : "WHERE ".implode("\n\t\t\t\tAND ", $conditions);
 
 	if($orderBy == 'date'){
