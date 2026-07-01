@@ -7504,27 +7504,17 @@ function updateFinalsBracket(){
 			$finalists[2] = (int)@$finalists[2];
 
 			// Nothing was submitted for this match.
-			if(empty($finalists[1]) && empty($finalists[2])){
+			if(bracketFinalistsAreEmpty($finalists)){
 				continue;
 			}
 
 			// A match can't have the same fighter on both sides.
-			if($finalists[1] == $finalists[2]){
+			if(bracketFinalistsAreSameFighter($finalists)){
 				setAlert(USER_ERROR, "A match can't have the same fighter on both sides.");
 				continue;
 			}
 
-			// Only reset the match when the fighters actually change.
-			// Re-submitting the same fighters (eg an accidental click) must
-			// not wipe a match that has already been scored. To clear a match
-			// use the 'Clear Selected' button instead.
-			$current = mysqlQuery("SELECT fighter1ID, fighter2ID
-									FROM eventMatches
-									WHERE matchID = {$matchID}", SINGLE);
-			$fightersChanged = (!empty($finalists[1]) && $finalists[1] != (int)@$current['fighter1ID'])
-							|| (!empty($finalists[2]) && $finalists[2] != (int)@$current['fighter2ID']);
-
-			if(!empty($finalists[1]) && !empty($finalists[2]) && $fightersChanged){
+			if(bracketMatchNeedsReset($finalists, $matchID)){
 				$sql = "DELETE eventExchanges FROM eventExchanges
 						INNER JOIN eventMatches USING(matchID)
 						WHERE matchID = {$matchID}
@@ -7562,6 +7552,41 @@ function updateFinalsBracket(){
 		}
 	}
 
+}
+
+/******************************************************************************/
+
+function bracketFinalistsAreEmpty($finalists){
+// True when nothing was submitted for the match.
+
+	return empty($finalists[1]) && empty($finalists[2]);
+}
+
+/******************************************************************************/
+
+function bracketFinalistsAreSameFighter($finalists){
+// True when the same fighter was picked for both sides of the match.
+
+	return $finalists[1] == $finalists[2];
+}
+
+/******************************************************************************/
+
+function bracketMatchNeedsReset($finalists, $matchID){
+// True when both fighters are set and at least one differs from who is
+// currently in the match, so the old exchanges and score should be cleared.
+
+	if(empty($finalists[1]) || empty($finalists[2])){
+		return false;
+	}
+
+	$matchID = (int)$matchID;
+	$current = mysqlQuery("SELECT fighter1ID, fighter2ID
+							FROM eventMatches
+							WHERE matchID = {$matchID}", SINGLE);
+
+	return $finalists[1] != (int)@$current['fighter1ID']
+		|| $finalists[2] != (int)@$current['fighter2ID'];
 }
 
 /******************************************************************************/
