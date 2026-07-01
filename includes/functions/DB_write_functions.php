@@ -7503,8 +7503,13 @@ function updateFinalsBracket(){
 			$finalists[1] = (int)@$finalists[1];
 			$finalists[2] = (int)@$finalists[2];
 
+			// Nothing was submitted for this match.
+			if(empty($finalists[1]) && empty($finalists[2])){
+				continue;
+			}
+
 			// A match can't have the same fighter on both sides.
-			if($finalists[1] != 0 && $finalists[1] == $finalists[2]){
+			if($finalists[1] == $finalists[2]){
 				setAlert(USER_ERROR, "A match can't have the same fighter on both sides.");
 				continue;
 			}
