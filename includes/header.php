@@ -662,7 +662,7 @@ function displayEventAnnouncements(){
 	if(ALLOW['EVENT_SCOREKEEP'] == TRUE){
 
 		$tournamentID = $_SESSION['tournamentID'];
-		$tiedFighters = findTiedFighters($tournamentID);
+		$tiedFighters = []; ////findTiedFighters($tournamentID); <---- Disabled due to bug that can cause SQL query errors
 		$poolsActive = isInProgress($tournamentID,'pool');
 		$bracketPopulated = isBracketPopulated($tournamentID);
 
