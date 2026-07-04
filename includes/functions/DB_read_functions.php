@@ -1050,7 +1050,7 @@ function findTiedFighters($tournamentID){
 			orderByField3, orderBySort3,
 			orderByField4, orderBySort4
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	$meta = mysqlQuery($sql, SINGLE);
@@ -6542,7 +6542,7 @@ function getScoreFormula($tournamentID){
 
 	$sql = "SELECT scoreFormula
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	return mysqlQuery($sql,SINGLE, 'scoreFormula');
@@ -9828,8 +9828,7 @@ function getScoringFunctionName($tournamentID){
 	}
 
 	$sql = "SELECT scoringFunction
-			FROM systemRankings
-			INNER JOIN eventTournaments USING(tournamentRankingID)
+			FROM eventRankings
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'scoringFunction');
 	return $name;
@@ -9851,7 +9850,7 @@ function getRankingDescriptionByTournament($tournamentID){
 
 	$sql = "SELECT name, description, poolWinnersFirst, basePointValue
 			FROM eventTournaments AS eT
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	return mysqlQuery($sql, SINGLE);
@@ -9869,8 +9868,7 @@ function getDisplayFunctionName($tournamentID){
 	}
 
 	$sql = "SELECT displayFunction
-			FROM systemRankings
-			INNER JOIN eventTournaments USING(tournamentRankingID)
+			FROM eventRankings
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'displayFunction');
 	return $name;
