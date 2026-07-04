@@ -1894,18 +1894,32 @@ function getEventListSmall(){
 
 /******************************************************************************/
 
-function getEventListByPublication($orderBy = 'name'){
+function getEventListByPublication($orderBy = 'name', $dayLimit = null){
+
+	$conditions = [];
 
 	if(ALLOW['VIEW_HIDDEN'] == false){
-		$whereClause = "WHERE isArchived = 1
+		$conditions[] = "(isArchived = 1
 						OR publishDescription = 1
 						OR publishRoster = 1
 						OR publishSchedule = 1
 						OR publishMatches = 1
-						OR publishRules = 1";
-	} else {
-		$whereClause = "";
+						OR publishRules = 1)";
 	}
+
+	// Optionally only return events that ended within the last $dayLimit days
+	// (or are still upcoming), so callers that only show recent events don't
+	// have to pull the entire event history.
+	$dateClause = "";
+	if($dayLimit !== null){
+		$dayLimit = (int)$dayLimit;
+		$conditions[] = "eventEndDate >= DATE_SUB(CURDATE(), INTERVAL {$dayLimit} DAY)";
+		$dateClause = "AND eventEndDate >= DATE_SUB(CURDATE(), INTERVAL {$dayLimit} DAY)";
+	}
+
+	// Use implode here to keep it compact and memory efficient since we don't
+	// know exactly how many clauses we're joining.
+	$whereClause = empty($conditions) ? "" : "WHERE ".implode("\n\t\t\t\tAND ", $conditions);
 
 	if($orderBy == 'date'){
 		$orderClause = "eventStartDate ASC";
@@ -1944,6 +1958,7 @@ function getEventListByPublication($orderBy = 'name'){
 			AND publishMatches = 0
 			AND publishRules = 0
 			AND userID = {$userID}
+			{$dateClause}
 		ORDER BY {$orderClause}";
 
 		$personalEvents = mysqlQuery($sql, ASSOC);

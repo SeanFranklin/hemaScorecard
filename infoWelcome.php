@@ -15,7 +15,7 @@ $pageName = "Welcome to HEMA Scorecard";
 
 include('includes/header.php');
 
-	$eventList = getEventListByPublication('date');
+	$eventList = getEventListByPublication('date', 14);
 
 	$eventsToShow['active'] = [];
 	$eventsToShow['recent'] = [];
@@ -27,8 +27,6 @@ include('includes/header.php');
 
 		$dateDiffStart = compareDates($event['eventStartDate']);
 		$dateDiffEnd = compareDates($event['eventEndDate']);
-
-		if($dateDiffEnd > 14){ continue; }
 
 		$event['displayClass'] = "";
 
@@ -173,7 +171,7 @@ function displayEventTabe($eventList){
 		<?php foreach($eventList as $event): ?>
 			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$event['displayClass']?>'>
 				<td><?=$event['eventStartDate']?></td>
-				<td><?=getEventName($event['eventID'])?></td>
+				<td><?=$event['eventName']?> <?=$event['eventYear']?></td>
 				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
 				<td class='hide-for-small-only'><?=$event['displayStatus']?></td>
 			</tr>
