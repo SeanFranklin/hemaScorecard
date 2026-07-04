@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { TEST_EVENT_ID, TEST_EVENT_NAME } from './helpers/test-data';
 
 /**
- * Phase 3 — public/read-only pages. No login, no writes.
+ * public/read-only pages. No login, no writes.
  */
 test('event summary page renders the seeded event and tournament', async ({ page }) => {
   await page.goto(`/infoSummary.php?e=${TEST_EVENT_ID}`);
