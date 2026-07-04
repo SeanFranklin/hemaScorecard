@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `eventRankings` (
   KEY `eventID` (`eventID`),
   KEY `systemRankingID` (`systemRankingID`),
   KEY `formatID` (`formatID`),
-  CONSTRAINT `eventRankings_ibfk_event` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`),
-  CONSTRAINT `eventRankings_ibfk_tournament` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`),
+  CONSTRAINT `eventRankings_ibfk_event` FOREIGN KEY (`eventID`) REFERENCES `systemEvents` (`eventID`) on delete cascade on update cascade,
+  CONSTRAINT `eventRankings_ibfk_tournament` FOREIGN KEY (`tournamentID`) REFERENCES `eventTournaments` (`tournamentID`) on delete cascade on update cascade,
   CONSTRAINT `eventRankings_ibfk_format` FOREIGN KEY (`formatID`) REFERENCES `systemFormats` (`formatID`),
-  CONSTRAINT `eventRankings_ibfk_source` FOREIGN KEY (`systemRankingID`) REFERENCES `systemRankings` (`tournamentRankingID`)
+  CONSTRAINT `eventRankings_ibfk_source` FOREIGN KEY (`systemRankingID`) REFERENCES `systemRankings` (`tournamentRankingID`) on delete set null on update set null
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Populate from existing tournament/ranking associations
