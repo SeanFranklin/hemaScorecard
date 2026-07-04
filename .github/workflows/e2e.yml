@@ -1,0 +1,64 @@
+name: E2E Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Started first so MySQL seeds and the web container compiles mysqli
+      # while Node/Playwright install below.
+      - name: Start app stack
+        run: docker compose -f docker-compose.test.yml -p hemascorecard-test up -d
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Belt and suspenders: Playwright's global setup also polls this for
+      # 120s, but failing here gives a clearer signal and container logs.
+      - name: Wait for app
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/healthcheck.php || true)
+            if [ "$code" = "200" ]; then
+              echo "App ready."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "App did not become ready within 180s (last status: $code)"
+          docker compose -f docker-compose.test.yml -p hemascorecard-test logs --tail=100
+          exit 1
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.test.yml -p hemascorecard-test logs --tail=200

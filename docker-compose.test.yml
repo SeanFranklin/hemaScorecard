@@ -1,0 +1,49 @@
+# Isolated stack for E2E testing (Playwright). Standalone file — NOT an
+# override of docker-compose.yml (override merging cannot remove the base
+# file's ./data bind mount, which would defeat isolation).
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml -p hemascorecard-test up -d
+#   docker compose -f docker-compose.test.yml -p hemascorecard-test down
+#
+# The database lives on tmpfs: every `up` starts fresh from the schema +
+# seed, and the dev stack's ./data directory is never touched. To reset the
+# DB between test runs without restarting containers, run tests/reset-db.sh.
+#
+# Note: uses port 8000 like the dev stack, so the two cannot run at the
+# same time.
+services:
+  web:
+    image: "php:7.4-cli"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/hemaScorecard
+    # No xdebug (slow to install, unneeded in CI) and no migrations step
+    # (migrations/run.php does not exist in the repo).
+    command: >
+      sh -c "docker-php-ext-install mysqli &&
+             php -S 0.0.0.0:8000 -t /hemaScorecard"
+    environment:
+      DEPLOYMENT: 2 # DEPLOYMENT_TEST — shows the "Test Server" banner
+      PRIMARY_DATABASE: ScorecardV5
+      DATABASE_HOST: db
+      DATABASE_USER: user
+      DATABASE_PASSWORD: passw0rd
+    links:
+      - db
+  db:
+    image: "mysql:5.7.33"
+    environment:
+      MYSQL_DATABASE: ScorecardV5
+      MYSQL_USER: user
+      MYSQL_PASSWORD: passw0rd
+      MYSQL_ROOT_PASSWORD: passw0rd
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      # Individual file mounts (not the whole ./includes dir) so init order
+      # is explicit: schema -> admin user -> test seed.
+      - "./includes/Tables - ScorecardV9.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro"
+      - "./includes/Tables - Setup_Docker.sql:/docker-entrypoint-initdb.d/02-users.sql:ro"
+      - "./tests/fixtures/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro"

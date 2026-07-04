@@ -1,0 +1,4 @@
+# Shell scripts and SQL fixtures run inside Linux containers / CI —
+# they must keep LF endings regardless of contributor autocrlf settings.
+*.sh text eol=lf
+*.sql text eol=lf
