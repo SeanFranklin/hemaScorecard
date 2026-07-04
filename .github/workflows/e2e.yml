@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Started first so MySQL seeds and the web container compiles mysqli
       # while Node/Playwright install below.
       - name: Start app stack
         run: docker compose -f docker-compose.test.yml -p hemascorecard-test up -d
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
