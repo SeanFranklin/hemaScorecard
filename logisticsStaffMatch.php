@@ -118,6 +118,10 @@ function batchChangeBox($tournamentID){
 				<?php endforeach ?>
 				<option value=0>! Delete Assignment !</option>
 			</select>
+
+			<span class='input-group-label'>
+				in&nbsp;<b><?=getTournamentName($_SESSION['tournamentID'])?></b>
+			</span>
 		</div>
 
 		<a class='submit button success make-it-so' onclick="$('.make-it-so').toggle()">Make It So</a>
