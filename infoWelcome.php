@@ -15,7 +15,7 @@ $pageName = "Welcome to HEMA Scorecard";
 
 include('includes/header.php');
 
-	$eventList = getEventListByPublication('date');
+	$eventList = getEventListByPublication('date', 14);
 
 	$eventsToShow['active'] = [];
 	$eventsToShow['recent'] = [];
@@ -27,8 +27,6 @@ include('includes/header.php');
 
 		$dateDiffStart = compareDates($event['eventStartDate']);
 		$dateDiffEnd = compareDates($event['eventEndDate']);
-
-		if($dateDiffEnd > 14){ continue; }
 
 		$event['displayClass'] = "";
 
@@ -75,13 +73,13 @@ include('includes/header.php');
 
 
 		// Only make the Active tab the default if there are active events to show.
-		// Otherwise the Recent tab will be active on page load.
+		// Otherwise the Upcoming tab will be active on page load.
 		if($isAnyEventActive == true){
 			$activeClass = " is-active";
-			$recentClass = "";
+			$upcomingClass = "";
 		} else {
 			$activeClass = "";
-			$recentClass = " is-active";
+			$upcomingClass = " is-active";
 		}
 
 
@@ -115,11 +113,11 @@ include('includes/header.php');
 		Active
 	</a></li>
 
-	<li class="tabs-title"><a data-tabs-target="panel-upcoming">
+	<li class="tabs-title <?=$upcomingClass?>"><a data-tabs-target="panel-upcoming">
 		Upcoming
 	</a></li>
 
-	<li class="tabs-title <?=$recentClass?>"><a data-tabs-target="panel-recent">
+	<li class="tabs-title"><a data-tabs-target="panel-recent">
 		Recent
 	</a></li>
 
@@ -134,12 +132,12 @@ include('includes/header.php');
 		<?=displayEventTabe($eventsToShow['active'])?>
 	</div>
 
-	<div class="tabs-panel" id="panel-upcoming">
+	<div class="tabs-panel <?=$upcomingClass?>" id="panel-upcoming">
 		<?=displayEventTabe($eventsToShow['upcoming'])?>
 	</div>
 
-	<div class="tabs-panel <?=$recentClass?>" id="panel-recent">
-		<?=displayEventTabe($eventsToShow['recent'])?>
+	<div class="tabs-panel" id="panel-recent">
+		<?=displayEventTabe(array_reverse($eventsToShow['recent']))?>
 	</div>
 
 </div>
@@ -173,7 +171,7 @@ function displayEventTabe($eventList){
 		<?php foreach($eventList as $event): ?>
 			<tr onclick="changeEventJs(<?=$event['eventID']?>)" class='link-table <?=$event['displayClass']?>'>
 				<td><?=$event['eventStartDate']?></td>
-				<td><?=getEventName($event['eventID'])?></td>
+				<td><?=$event['eventName']?> <?=$event['eventYear']?></td>
 				<td><?=$event['countryName']?> (<?=$event['eventCity']?>, <?=$event['eventProvince']?>)</td>
 				<td class='hide-for-small-only'><?=$event['displayStatus']?></td>
 			</tr>
