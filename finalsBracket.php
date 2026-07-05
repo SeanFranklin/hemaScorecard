@@ -53,7 +53,7 @@ if($tournamentID == null){
 		if(isEntriesByTeam($tournamentID) == false){
 			$finalists = getTournamentFighters($tournamentID, 'rating');
 		} else {
-			$finalists = getTournamentTeams($tournamentID);
+			$finalists = getTournamentTeams($tournamentID, 'rating');
 		}
 
 	}

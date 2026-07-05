@@ -8873,7 +8873,7 @@ function getFighterTeam($rosterID, $tournamentID){
 
 /******************************************************************************/
 
-function getTournamentTeams($tournamentID = 0){
+function getTournamentTeams($tournamentID = 0, $sortType = null){
 
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
@@ -8884,8 +8884,17 @@ function getTournamentTeams($tournamentID = 0){
 			INNER JOIN eventRoster AS eR USING(rosterID)
 			WHERE isTeam = TRUE
 			AND eventTournamentRoster.tournamentID = {$tournamentID}";
+	$teams = (array)mysqlQuery($sql, ASSOC);
 
-	return mysqlQuery($sql, ASSOC);
+	if($sortType == 'rating'){
+		foreach($teams as $i => $t){
+			$teams[$i]['rating'] = getTeamRating($t['teamID']);
+		}
+
+		array_multisort(array_column($teams, 'rating'), SORT_DESC, $teams);
+	}
+
+	return ($teams);
 
 }
 
