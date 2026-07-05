@@ -216,28 +216,25 @@ function poolMatchQueue($matchInfo){
 
 	$remainingMatches = [];
 	$matches = getRemainingPoolMatches($matchInfo);
-	$matchesShown = 0;
-	$matchesHidden = 0;
+	$numMatchesLeft = 0;
 
 	foreach($matches as $m){
 
-		if($matchesShown < 3){
+		if($numMatchesLeft < 3){
 			$tmp = [];
 			$tmp['name'][1] = getFighterName($m['fighter1ID']);
 			$tmp['name'][2] = getFighterName($m['fighter2ID']);
 			$remainingMatches[] = $tmp;
-			$matchesShown++;
+			$numMatchesLeft++;
 		} else {
-			$matchesHidden++;
+			$numMatchesLeft++;
 		}
 	}
 
-	if($matchesHidden > 0){
-		$moreMatchesText = "<i>And {$matchesHidden} more ...</i>";
-	} else {
-		//$moreMatchesText = "- End of Pool ----";
-		$moreMatchesText = "--------------------<BR> End of Pool";
+	if((int)$matchInfo['matchComplete'] == 0){
+		$numMatchesLeft++;
 	}
+
 
 ?>
 
@@ -272,8 +269,18 @@ function poolMatchQueue($matchInfo){
 			</div>
 		<?php endforeach ?>
 
-		<div style='margin: 10px; color: white; font-size:2em;'>
-			<?=$moreMatchesText?>
+		<div style='margin: 10px; color: white; font-size:1em;'>
+			<table>
+				<tr>
+					<td rowspan='2' style='text-align: center; font-size:8em; background-color: black; margin: 0px; padding: 0px;line-height: 1.1;'>
+						<b><?=$numMatchesLeft?><b>
+					</td>
+					<td style=' vertical-align: bottom; background-color: black;'><i>matches</i></td>
+				</tr>
+				<tr>
+					<td style=' vertical-align: top;background-color: black;'><i>remain</i></td>
+				</tr>
+			</table>
 		</div>
 
 
