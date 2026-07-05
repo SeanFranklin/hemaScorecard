@@ -137,7 +137,6 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 	<?php
 
 	tableHeaders();
-	$i = 0;
 
 	foreach ((array)$roster as $person):
 
@@ -236,14 +235,6 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 		<tr id='tList2-<?=$rosterID?>' class='hidden'>
 			<td colspan='100%' ></td>
 		</tr>
-
-		<?php
-		// Repeats the header row every 15 entries
-		$i++;
-		if($i >= 15){
-			$i=0;
-			tableHeaders();
-		}?>
 
 	<?php endforeach?>
 

@@ -243,6 +243,12 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 			$navBarString .= "<li><a href='cutQualsTournament.php'>Cutting Qualification</a></li>";
 		}
 
+		// Tournament is results only.
+		// Many people select this by mistake and are confused why they can't make pools.
+		if($_SESSION['formatID'] == FORMAT_RESULTS && ALLOW['EVENT_MANAGEMENT'] == true){
+			$navBarString .= "<li><i>(This is a results-only tournament. Change the Tournament Type to 'Sparring Matches' for a standard fencing tournament.)</i></li>";
+		}
+
 		?>
 
 		<?php if(isset($navBarString)): ?>
