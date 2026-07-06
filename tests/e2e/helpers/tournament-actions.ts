@@ -71,15 +71,9 @@ export async function createTournament(page: Page, options: CreateTournamentOpti
   await page.goto('/adminNewTournaments.php');
   await page.locator('#formatID_select0').selectOption({ label: formatLabel });
 
-  // Ranking options arrive via AJAX after the format is picked.
-  const rankingSelect = page.locator('#rankingID_select0');
-  await expect(rankingSelect.locator(`option[value="${rankingID}"]`).first()).toBeAttached();
-  await rankingSelect.selectOption(rankingID);
-
-  if (customCriteria) {
-    await fillCustomCriteria(page, '0', customCriteria);
-  }
-
+  // Scoring-mode fields FIRST: changing the reverse-score select refreshes
+  // the custom-criteria fragment via htmx, so it must settle before any
+  // criteria are chosen.
   if (doubleTypeLabel) {
     await page.locator('#doubleID_select0').selectOption({ label: doubleTypeLabel });
   }
@@ -88,6 +82,15 @@ export async function createTournament(page: Page, options: CreateTournamentOpti
   }
   if (basePointValue) {
     await page.locator('#baseValue_select0').fill(basePointValue);
+  }
+
+  // Ranking options arrive via AJAX after the format is picked.
+  const rankingSelect = page.locator('#rankingID_select0');
+  await expect(rankingSelect.locator(`option[value="${rankingID}"]`).first()).toBeAttached();
+  await rankingSelect.selectOption(rankingID);
+
+  if (customCriteria) {
+    await fillCustomCriteria(page, '0', customCriteria);
   }
 
   await page.locator('#weaponID_div0').selectOption({ label: weapon });

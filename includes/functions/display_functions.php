@@ -795,7 +795,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 				hx-target='#customRanking_div<?=$tournamentID?>'
 				hx-swap='outerHTML'
 				hx-vals='{"tournamentID": <?=(int)$tournamentID?>}'
-				hx-include='this, #reverseScore_select<?=$tournamentID?>'>
+				hx-include='this, #reverseScore_select<?=$tournamentID?>, #customRanking_div<?=$tournamentID?> select'>
 
 				<option disabled <?=$nullOptionSelected?>></option>
 

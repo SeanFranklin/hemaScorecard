@@ -39,9 +39,19 @@ if(isset($_REQUEST['updateTournament']['isReverseScore']) == true){
 	$isReverse = $tournamentID != 0 && isReverseScore($tournamentID) > REVERSE_SCORE_NO;
 }
 
-// Prefill from the tournament's existing custom configuration if it has one
+// Prefill priority: the form's current (unsaved) criteria selections when the
+// refresh was triggered with criteria rows present (e.g. toggling reverse
+// scoring must not wipe them), then the tournament's saved custom config.
 $eventRanking = null;
-if(isCustomRanking($tournamentID) == true){
+
+$postedCriteria = @$_REQUEST['updateTournament']['customCriteria'];
+if(is_array($postedCriteria) == true){
+	$eventRanking = [];
+	foreach([1,2,3,4] as $num){
+		$eventRanking["orderByField{$num}"] = @$postedCriteria[$num]['field'] ?: null;
+		$eventRanking["orderBySort{$num}"] = @$postedCriteria[$num]['sort'] ?: null;
+	}
+} elseif(isCustomRanking($tournamentID) == true){
 	$eventRanking = getEventRankingForTournament($tournamentID);
 }
 
