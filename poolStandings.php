@@ -43,6 +43,7 @@ if($tournamentID == null){
 	poolSetNavigation($displayPoolsOption);
 
 	$incompleteMatches = getTournamentPoolIncompletes($tournamentID, $_SESSION['groupSet']);
+	$numIncompleteMatches = (int)count($incompleteMatches);
 	$incompleteComponents = getIncompletComponents($tournamentID);
 
 	$teamRoster = getTournamentTeams($tournamentID);
@@ -63,9 +64,9 @@ if($tournamentID == null){
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-	<?php if($incompleteMatches != null): ?>
+	<?php if($numIncompleteMatches != 0): ?>
 		<div class='large-12 callout secondary text-center'>
-		<p>All pool matches not yet concluded. <BR>
+		<p>All pool matches not yet concluded. (<?=$numIncompleteMatches?> remain)<BR>
 		Results may be extrapolated based on matches concluded so far.</p>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
 			<button class='button hollow' onclick="toggle('incompleteMatchesDiv')">

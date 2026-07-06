@@ -1050,7 +1050,7 @@ function findTiedFighters($tournamentID){
 			orderByField3, orderBySort3,
 			orderByField4, orderBySort4
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	$meta = mysqlQuery($sql, SINGLE);
@@ -6542,7 +6542,7 @@ function getScoreFormula($tournamentID){
 
 	$sql = "SELECT scoreFormula
 			FROM eventTournaments
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	return mysqlQuery($sql,SINGLE, 'scoreFormula');
@@ -8873,7 +8873,7 @@ function getFighterTeam($rosterID, $tournamentID){
 
 /******************************************************************************/
 
-function getTournamentTeams($tournamentID = 0){
+function getTournamentTeams($tournamentID = 0, $sortType = null){
 
 	$tournamentID = (int)$tournamentID;
 	if($tournamentID == 0){$tournamentID = $_SESSION['tournamentID'];}
@@ -8884,8 +8884,17 @@ function getTournamentTeams($tournamentID = 0){
 			INNER JOIN eventRoster AS eR USING(rosterID)
 			WHERE isTeam = TRUE
 			AND eventTournamentRoster.tournamentID = {$tournamentID}";
+	$teams = (array)mysqlQuery($sql, ASSOC);
 
-	return mysqlQuery($sql, ASSOC);
+	if($sortType == 'rating'){
+		foreach($teams as $i => $t){
+			$teams[$i]['rating'] = getTeamRating($t['teamID']);
+		}
+
+		array_multisort(array_column($teams, 'rating'), SORT_DESC, $teams);
+	}
+
+	return ($teams);
 
 }
 
@@ -9828,8 +9837,7 @@ function getScoringFunctionName($tournamentID){
 	}
 
 	$sql = "SELECT scoringFunction
-			FROM systemRankings
-			INNER JOIN eventTournaments USING(tournamentRankingID)
+			FROM eventRankings
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'scoringFunction');
 	return $name;
@@ -9851,7 +9859,7 @@ function getRankingDescriptionByTournament($tournamentID){
 
 	$sql = "SELECT name, description, poolWinnersFirst, basePointValue
 			FROM eventTournaments AS eT
-			INNER JOIN systemRankings USING(tournamentRankingID)
+			INNER JOIN eventRankings USING(tournamentID)
 			WHERE tournamentID = {$tournamentID}";
 
 	return mysqlQuery($sql, SINGLE);
@@ -9869,8 +9877,7 @@ function getDisplayFunctionName($tournamentID){
 	}
 
 	$sql = "SELECT displayFunction
-			FROM systemRankings
-			INNER JOIN eventTournaments USING(tournamentRankingID)
+			FROM eventRankings
 			WHERE tournamentID = {$tournamentID}";
 	$name = mysqlQuery($sql, SINGLE, 'displayFunction');
 	return $name;

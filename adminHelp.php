@@ -597,6 +597,7 @@ and you will have the option to populate them with fighters entered in the tourn
 As you enter fighters they will be removed from the list of eligible fighters.
 <BR><u>Larger Pools:</u> If you wish to create a pool size larger than what is shown you will need to increase
 the maximum pool size. <a href='#editTournaments'>Read More</a>
+<BR><u>Seeding Pools:</u> You can seed pools using HEMA Ratings, however you have to enter the ratings yourself. Go to <b>Tournament Information > Fighter Ratings</b> to enter ratings in. Normally you would use HEMA Ratings, however you could rate them using 1-5 or whatever else you want to use. This will then allow you to use the <b>Generate Pools</b> button at the top of the <b>Pool Rosters</b> page.
 </p>
 
 <a name='createPoolSets'></a>
