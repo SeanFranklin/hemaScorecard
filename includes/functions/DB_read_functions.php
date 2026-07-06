@@ -8376,6 +8376,40 @@ function getRankingInfo($tournamentRankingID){
 
 /******************************************************************************/
 
+function getEventRankingForTournament($tournamentID){
+// Reads the tournament specific ranking configuration.
+// A tournament is using a custom ranking when a row exists and
+// systemRankingID is null (i.e. it was not cloned from a template).
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		return null;
+	}
+
+	$sql = "SELECT systemRankingID,
+			orderByField1, orderBySort1,
+			orderByField2, orderBySort2,
+			orderByField3, orderBySort3,
+			orderByField4, orderBySort4
+			FROM eventRankings
+			WHERE tournamentID = {$tournamentID}";
+	return mysqlQuery($sql, SINGLE);
+
+}
+
+/******************************************************************************/
+
+function isCustomRanking($tournamentID){
+// True if the tournament has a tournament defined (custom) ranking
+// instead of one cloned from a systemRankings template.
+
+	$eventRanking = getEventRankingForTournament($tournamentID);
+	return ($eventRanking != null && $eventRanking['systemRankingID'] === null);
+
+}
+
+/******************************************************************************/
+
 function getTournamentLogic($tournamentID){
 
 	$tournamentID = (int)$tournamentID;

@@ -726,7 +726,11 @@ function edit_tournamentRankingType($tournamentID = 0){
 
 	$nullOptionSelected = "selected";
 	$rankingTypes = [];
+	$rankingTypesPopular = [];
 	$current = null;
+	$currentID = null;
+	$formatID = 0;
+	$isCustom = false;
 
 	if($tournamentID != 0){
 
@@ -759,6 +763,13 @@ function edit_tournamentRankingType($tournamentID = 0){
 				FROM eventTournaments
 				WHERE tournamentID = {$tournamentID}";
 		$currentID = mysqlQuery($sql, SINGLE, 'tournamentRankingID');
+
+		$isCustom = isCustomRanking($tournamentID);
+		if($isCustom == true){
+			$currentID = RANKING_CUSTOM;
+			$nullOptionSelected = null;
+			$customRanking = getEventRankingForTournament($tournamentID);
+		}
 	}
 	?>
 
@@ -778,9 +789,25 @@ function edit_tournamentRankingType($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[tournamentRankingID]' class="shrink"
 				onchange="enableTournamentButton('<?=$tournamentID?>')"
-				id='rankingID_select<?=$tournamentID?>'>
+				id='rankingID_select<?=$tournamentID?>'
+				hx-get='adminTournaments/htmx/customRankingCriteria.php'
+				hx-trigger='change, change from:#reverseScore_select<?=$tournamentID?>'
+				hx-target='#customRanking_div<?=$tournamentID?>'
+				hx-swap='outerHTML'
+				hx-vals='{"tournamentID": <?=(int)$tournamentID?>}'
+				hx-include='this, #reverseScore_select<?=$tournamentID?>'>
 
 				<option disabled <?=$nullOptionSelected?>></option>
+
+				<?php /* For a new tournament (tid 0) the options are AJAX-built
+				         on format selection (edit_formatType), which appends
+				         Custom itself — rendering it here too would let it be
+				         picked before the rebuild wipes the select. */ ?>
+				<?php if($formatID == FORMAT_MATCH): ?>
+					<option <?=optionValue(RANKING_CUSTOM, $currentID)?> >
+						Custom
+					</option>
+				<?php endif ?>
 
 				<?php if($rankingTypesPopular != []): ?>
 					<option disabled>- Most Popular: ----------------</option>
@@ -801,14 +828,108 @@ function edit_tournamentRankingType($tournamentID = 0){
 						<?=$name?>
 					</option>
 				<?php endforeach ?>
+
 			</select>
 			</div>
 
 		</td>
 	</tr>
 
+	<?php // isReverseScore() falls back to the session tournament for tid 0,
+		  // which is wrong on the new-tournament form; the fragment is empty
+		  // there anyway so skip the lookup.
+		edit_customRankingCriteria($tournamentID, @$customRanking,
+			$tournamentID != 0 && isReverseScore($tournamentID) > REVERSE_SCORE_NO); ?>
+
 
 <?php }
+
+/******************************************************************************/
+
+function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $isReverse = false){
+// Renders the custom ranking criteria selectors as a <tbody> fragment.
+// Emits an empty <tbody> when $eventRanking is null (custom not selected)
+// so the htmx swap target always exists in the options table.
+// $isReverse adds a warning about how criteria behave under
+// Golf/Injury (reverse) scoring.
+// Also echoed by adminTournaments/htmx/customRankingCriteria.php.
+
+	$criteriaFields = customRankingCriteria();
+	$rowLabels = [1 => 'Indicator', 2 => 'Tiebreaker 1', 3 => 'Tiebreaker 2', 4 => 'Tiebreaker 3'];
+
+	echo "<tbody id='customRanking_div{$tournamentID}'>";
+
+	if($eventRanking != null):
+
+		if($isReverse == true): ?>
+	<tr>
+		<td colspan='2'>
+			<div class='callout warning' id='customRankingReverseWarning<?=$tournamentID?>'>
+				This tournament uses Golf/Injury scoring. Ranking criteria are
+				calculated from standard match statistics (points and hits
+				<u>landed</u> on the opponent) &mdash; not the reversed scores
+				shown on scoresheets. Double-check that each criterion's
+				direction matches your intent.
+			</div>
+		</td>
+	</tr>
+	<?php endif;
+
+		foreach($rowLabels as $num => $label):
+
+			$currentField = @$eventRanking["orderByField{$num}"];
+			$currentSort = @$eventRanking["orderBySort{$num}"];
+			if(isset($criteriaFields[$currentField]) == true && $currentSort == null){
+				$currentSort = $criteriaFields[$currentField][1];
+			}
+	?>
+
+	<tr>
+		<td class='shrink-column'>
+			<?=$label?>
+			<?php if($num == 1){
+				tooltip("Fighters are ordered by the Indicator field.<BR>
+						Ties are broken by the tiebreaker fields in order.");
+			} ?>
+		</td>
+
+		<td>
+		<div class='grid-x grid-padding-x'>
+
+			<select name='updateTournament[customCriteria][<?=$num?>][field]' class='shrink'
+				id='customCriteria<?=$num?>Field_select<?=$tournamentID?>'
+				onchange="enableTournamentButton('<?=$tournamentID?>')">
+
+				<?php if($num != 1): ?>
+					<option value='' <?=isSelected($currentField == null)?>>- none -</option>
+				<?php endif ?>
+
+				<?php foreach($criteriaFields as $field => $fieldInfo): ?>
+					<option <?=optionValue($field, $currentField)?> >
+						<?=$fieldInfo[0]?>
+					</option>
+				<?php endforeach ?>
+			</select>
+
+			<select name='updateTournament[customCriteria][<?=$num?>][sort]' class='shrink'
+				id='customCriteria<?=$num?>Sort_select<?=$tournamentID?>'
+				onchange="enableTournamentButton('<?=$tournamentID?>')">
+
+				<option <?=optionValue('DESC', $currentSort)?> >Highest First</option>
+				<option <?=optionValue('ASC', $currentSort)?> >Lowest First</option>
+			</select>
+
+		</div>
+		</td>
+	</tr>
+
+	<?php
+		endforeach;
+	endif;
+
+	echo "</tbody>";
+
+}
 
 /******************************************************************************/
 
@@ -843,6 +964,7 @@ function rankingTypeDescriptions(){
 
 			<div class='callout success text-center large-12'>
 				<h5>If you would like a Ranking Algorithm not listed here, let the HEMA Scorecard Team know!</h5>
+				<p>Or select <strong>Custom</strong> as the Ranking Type to order fighters by your own choice of ranking field and tiebreakers.</p>
 			</div>
 
 			<div class='large-12'>

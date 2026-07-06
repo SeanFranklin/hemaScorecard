@@ -11,12 +11,46 @@ import { MatchScript, pairKey } from './standings-calc';
 
 export type Fighter = { rosterID: number; firstName: string; lastName: string };
 
+/** One custom ranking criterion; sorts map to Highest/Lowest First in the UI. */
+export type CustomCriterion = { field: string; sort: 'DESC' | 'ASC' };
+
 export type CreateTournamentOptions = {
   weapon: string;
   formatLabel?: string;
-  /** systemRankings ID; '1' = Franklin 2014. */
+  /** systemRankings ID; '1' = Franklin 2014, '-1' = Custom (RANKING_CUSTOM). */
   rankingID?: string;
+  /** Required when rankingID is '-1': up to 4 criteria, indicator first. */
+  customCriteria?: CustomCriterion[];
+  /** Double/Afterblow Type label; use 'No Afterblow' for reverse-score
+   *  tournaments (the server otherwise forces afterblow settings). */
+  doubleTypeLabel?: string;
+  /** isReverseScore: '1' = Golf, '2' = Injury. */
+  reverseScore?: '1' | '2';
+  /** Required for Injury scoring — base 0 double-outs matches instantly. */
+  basePointValue?: string;
 };
+
+/**
+ * Fill the custom ranking criteria selects (htmx fragment) for the given
+ * tournament's settings form. Assumes 'Custom' is already the selected
+ * Ranking Type, which makes the selects appear.
+ */
+export async function fillCustomCriteria(
+  page: Page,
+  tournamentID: string,
+  criteria: CustomCriterion[],
+) {
+  // The criteria selects arrive via an htmx swap after picking 'Custom'.
+  await expect(page.locator(`#customCriteria1Field_select${tournamentID}`)).toBeAttached();
+  for (let i = 0; i < criteria.length; i++) {
+    await page
+      .locator(`#customCriteria${i + 1}Field_select${tournamentID}`)
+      .selectOption(criteria[i].field);
+    await page
+      .locator(`#customCriteria${i + 1}Sort_select${tournamentID}`)
+      .selectOption(criteria[i].sort);
+  }
+}
 
 /**
  * Create a tournament via adminNewTournaments.php, leaving every other
@@ -24,7 +58,15 @@ export type CreateTournamentOptions = {
  * The session tracks the new tournament afterwards.
  */
 export async function createTournament(page: Page, options: CreateTournamentOptions) {
-  const { weapon, formatLabel = 'Sparring Matches', rankingID = '1' } = options;
+  const {
+    weapon,
+    formatLabel = 'Sparring Matches',
+    rankingID = '1',
+    customCriteria,
+    doubleTypeLabel,
+    reverseScore,
+    basePointValue,
+  } = options;
 
   await page.goto('/adminNewTournaments.php');
   await page.locator('#formatID_select0').selectOption({ label: formatLabel });
@@ -33,6 +75,20 @@ export async function createTournament(page: Page, options: CreateTournamentOpti
   const rankingSelect = page.locator('#rankingID_select0');
   await expect(rankingSelect.locator(`option[value="${rankingID}"]`).first()).toBeAttached();
   await rankingSelect.selectOption(rankingID);
+
+  if (customCriteria) {
+    await fillCustomCriteria(page, '0', customCriteria);
+  }
+
+  if (doubleTypeLabel) {
+    await page.locator('#doubleID_select0').selectOption({ label: doubleTypeLabel });
+  }
+  if (reverseScore) {
+    await page.locator('#reverseScore_select0').selectOption(reverseScore);
+  }
+  if (basePointValue) {
+    await page.locator('#baseValue_select0').fill(basePointValue);
+  }
 
   await page.locator('#weaponID_div0').selectOption({ label: weapon });
 
@@ -112,8 +168,20 @@ async function readSides(page: Page, fighters: Fighter[]): Promise<Record<string
   return sides;
 }
 
+export type ScoringOptions = {
+  /** Reverse-score (Golf/Injury) tournaments: hits are entered in the box of
+   *  the fighter who GOT HIT; the app swaps scoringID back to the true hitter
+   *  at write time, so scripts keep scorer = the fighter who landed the hit. */
+  reversed?: boolean;
+};
+
 /** On scoreMatch.php: play the scripted exchanges for this pairing and conclude. */
-async function playMatch(page: Page, script: MatchScript, fighters: Fighter[]) {
+async function playMatch(
+  page: Page,
+  script: MatchScript,
+  fighters: Fighter[],
+  opts: ScoringOptions = {},
+) {
   const sides = await readSides(page, fighters);
   const [nameA, nameB] = Object.keys(sides);
   const plan = script.get(pairKey(nameA, nameB));
@@ -131,7 +199,12 @@ async function playMatch(page: Page, script: MatchScript, fighters: Fighter[]) {
       await expect(page.locator('#Double_Hit_Radio')).toBeChecked();
       await expect(submit).toHaveAttribute('value', 'doubleHit');
     } else {
-      const { pre } = sides[ex.scorer!];
+      const scorerName = ex.scorer!;
+      // Reverse modes: enter the hit in the opposite fighter's box.
+      const entryName = opts.reversed
+        ? Object.keys(sides).find((n) => n !== scorerName)!
+        : scorerName;
+      const { pre } = sides[entryName];
       await page.locator(`#${pre}_score_dropdown`).selectOption(String(ex.points));
       if (ex.afterblow) {
         const afterblow = page.locator(`#${pre}_afterblow_input`);
@@ -152,13 +225,18 @@ async function playMatch(page: Page, script: MatchScript, fighters: Fighter[]) {
 }
 
 /** Score every incomplete pool match according to the script. */
-export async function scoreAllPoolMatches(page: Page, script: MatchScript, fighters: Fighter[]) {
+export async function scoreAllPoolMatches(
+  page: Page,
+  script: MatchScript,
+  fighters: Fighter[],
+  opts: ScoringOptions = {},
+) {
   for (let i = 0; i < script.size; i++) {
     await page.goto('/poolMatches.php');
     // Match links live inside per-match POST forms (goToMatch<ID>).
     await page.locator('.match-incomplete a', { hasText: /Match \d+/ }).first().click();
     await expect(page).toHaveURL(/scoreMatch\.php/);
-    await playMatch(page, script, fighters);
+    await playMatch(page, script, fighters, opts);
   }
   await page.goto('/poolMatches.php');
   await expect(page.locator('.match-incomplete')).toHaveCount(0);
@@ -173,6 +251,31 @@ export type DisplayedStanding = {
   doubles: number;
   score: number;
 };
+
+/**
+ * Read the poolStandings.php table generically: one Record per fighter row
+ * keyed by trimmed header label, top rank first. For rankings whose display
+ * columns differ from the default readStandings() shape.
+ */
+export async function readStandingsByHeader(page: Page): Promise<Record<string, string>[]> {
+  await page.goto('/poolStandings.php');
+
+  const table = page.locator('table').filter({ has: page.getByText('Rank') }).first();
+  const headers = (await table.locator('tr').first().locator('th').allInnerTexts()).map((h) =>
+    h.trim(),
+  );
+
+  const standings: Record<string, string>[] = [];
+  const rows = table.locator('tr');
+  const rowCount = await rows.count();
+  for (let i = 1; i < rowCount; i++) {
+    const cells = await rows.nth(i).locator('td').allInnerTexts();
+    const row: Record<string, string> = {};
+    headers.forEach((h, idx) => (row[h] = (cells[idx] ?? '').trim()));
+    standings.push(row);
+  }
+  return standings;
+}
 
 /** Read the poolStandings.php table, top rank first. */
 export async function readStandings(page: Page): Promise<DisplayedStanding[]> {

@@ -19,7 +19,8 @@ DB_NAME="${PRIMARY_DATABASE:-ScorecardV5}"
   $MYSQL -e "DROP DATABASE IF EXISTS \`$DB_NAME\`; CREATE DATABASE \`$DB_NAME\`;"
   for f in /docker-entrypoint-initdb.d/01-schema.sql \
            /docker-entrypoint-initdb.d/02-users.sql \
-           /docker-entrypoint-initdb.d/03-seed.sql; do
+           /docker-entrypoint-initdb.d/03-seed.sql \
+           /docker-entrypoint-initdb.d/04-V1_eventRankings.sql; do
     $MYSQL "$DB_NAME" < "$f"
   done
 ' sh "$DB_NAME"
