@@ -19,11 +19,17 @@ services:
       - "8000:8000"
     volumes:
       - .:/hemaScorecard
-    # No xdebug (slow to install, unneeded in CI). Migrations are applied as
-    # DB init files (04-*) rather than via migrations/run.php so that
-    # tests/reset-db.sh can replay the exact same file list.
+    # No xdebug (slow to install, unneeded in CI). Migrations run via
+    # migrations/run.php before the server starts.
+    # The connect-retry loop waits for MySQL init to finish (tmpfs DB
+    # re-initializes on every up); run.php itself runs once, so a genuine
+    # migration failure still blocks the server and fails the healthcheck.
     command: >
       sh -c "docker-php-ext-install mysqli &&
+             until php -r 'exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
+               echo 'waiting for db...'; sleep 2;
+             done &&
+             php /hemaScorecard/migrations/run.php &&
              php -S 0.0.0.0:8000 -t /hemaScorecard"
     environment:
       DEPLOYMENT: 2 # DEPLOYMENT_TEST — shows the "Test Server" banner
@@ -44,10 +50,10 @@ services:
       - /var/lib/mysql
     volumes:
       # Individual file mounts (not the whole ./includes dir) so init order
-      # is explicit: schema -> admin user -> test seed -> migrations.
-      # Migrations run after the seed so data backfills (e.g. eventRankings
+      # is explicit: schema -> admin user -> test seed. Migrations are NOT
+      # init files — the web container runs migrations/run.php after the
+      # seed (parity with dev/prod), so data backfills (e.g. eventRankings
       # cloned from each tournament's ranking) see the seeded rows.
       - "./includes/Tables - ScorecardV9.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro"
       - "./includes/Tables - Setup_Docker.sql:/docker-entrypoint-initdb.d/02-users.sql:ro"
       - "./tests/fixtures/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro"
-      - "./migrations/V1_eventRankings.sql:/docker-entrypoint-initdb.d/04-V1_eventRankings.sql:ro"
