@@ -956,8 +956,29 @@ function hemaRatings_ExportCsv($informationType){
 
 	if($informationType == 'all'){
 
-		$csvNames[0] = hemaRatings_createEventRosterCsv($_SESSION['eventID'], EXPORT_DIR);
-		uploadZipFile($csvNames);
+		$eventID = $_SESSION['eventID'];
+
+		// Maps the name to use inside the zip => the file on disk.
+		$files = [];
+		$files['clubs.csv']    = hemaRatings_createClubsCsv($eventID, EXPORT_DIR);
+		$files['fighters.csv'] = hemaRatings_createEventRosterCsv($eventID, EXPORT_DIR);
+
+		$tournamentList = getTournamentsFull($eventID);
+		foreach((array)$tournamentList as $tournamentID => $tournament){
+
+			$csvFile = hemaRatings_createTournamentResultsCsv($tournamentID, EXPORT_DIR);
+
+			// Move the file to a path that is unique per tournament so two
+			// tournaments with the same name don't overwrite each other on
+			// disk, then give it an archive name that is unique in the zip.
+			$diskPath = EXPORT_DIR.$tournamentID.'-'.basename($csvFile);
+			rename($csvFile, $diskPath);
+
+			$archiveName = hemaRatings_uniqueArchiveName(basename($csvFile), $files);
+			$files[$archiveName] = $diskPath;
+		}
+
+		uploadZipFile($files);
 
 	} elseif($informationType == 'eventInfo'){
 
@@ -979,6 +1000,28 @@ function hemaRatings_ExportCsv($informationType){
 		$_SESSION['alertMessages']['systemErrors'][] = 'Invalid informationType provided to hemaRatings_ExportCsv()';
 	}
 
+}
+
+/******************************************************************************/
+
+function hemaRatings_uniqueArchiveName($name, $existing){
+// Returns $name, or "name (2).ext", "name (3).ext" etc. so it does not
+// collide with an archive name already used as a key in $existing.
+
+	if(!isset($existing[$name])){
+		return $name;
+	}
+
+	$base = pathinfo($name, PATHINFO_FILENAME);
+	$ext = pathinfo($name, PATHINFO_EXTENSION);
+
+	$counter = 2;
+	do {
+		$candidate = "{$base} ({$counter}).{$ext}";
+		$counter++;
+	} while(isset($existing[$candidate]));
+
+	return $candidate;
 }
 
 /******************************************************************************/

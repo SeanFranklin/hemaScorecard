@@ -153,6 +153,14 @@ function HemaRatingExportOptions($tournamentList){
 			<input type='hidden' name='formName' value='hemaRatings_ExportCsv'>
 
 
+		<!-- Export everything as a single zip -->
+			<div class='large-12 cell'>
+				<button class='button success' name='HemaRatingsExport' value='all'>
+					Export All (clubs, fighters &amp; tournaments) as .zip
+				</button>
+			</div>
+
+
 		<!-- Export roster -->
 			<div class='large-3 medium-4 cell'>
 
