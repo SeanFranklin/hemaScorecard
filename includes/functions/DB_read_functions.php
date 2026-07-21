@@ -324,6 +324,27 @@ function hemaRatings_isEventInfoComplete($eventID, $hemaRatingInfo = null){
 
 /******************************************************************************/
 
+function hemaRatings_getQuestionableMatches($eventID){
+	$eventID = (int)$eventID;
+
+	$sql = "SELECT matchID, tournamentID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE   (eventID = {$eventID})
+				AND (ignoreMatch = 0)
+				AND (    (fighter1Score >= fighter2score AND winnerID = fighter2ID)
+				      OR (fighter2Score >= fighter1score AND winnerID = fighter1ID)
+				      OR (fighter1score IS NULL AND winnerID IS NOT NULL))
+			ORDER BY tournamentID";
+	$questionableMatches = (array)mysqlQuery($sql, ASSOC);
+
+	return($questionableMatches);
+
+}
+
+/******************************************************************************/
+
 function ferrotas_createTournamentResultsCsv($tournamentID, $dir = "exports/"){
 // Creates a .csv file with the results of all tournament matches
 
