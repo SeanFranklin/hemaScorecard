@@ -71,6 +71,8 @@
 	<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
 
+	<script src="includes/scripts/vendor/htmx.js"></script>
+
 	<script type='text/javascript' src='includes/scripts/general_scripts.js<?=$vJ?>'></script>
 	<script type='text/javascript' src='includes/scripts/delete_checking_scripts.js<?=$vJ?>'></script>
 

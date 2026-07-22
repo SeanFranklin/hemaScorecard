@@ -233,6 +233,9 @@ function edit_formatType(tournamentID){
 		option.selected = true;
 		select.appendChild(option);
 
+		// Refresh the custom ranking criteria fragment (clears it)
+		htmx.trigger('#rankingID_select'+tournamentID, 'change');
+
 		enableTournamentButton(tournamentID);
 
 		return;
@@ -260,6 +263,14 @@ function edit_formatType(tournamentID){
 				option.selected = true;
 				select.appendChild(option);
 
+				// Custom goes first so it is easy to find
+				if(formatID == FORMAT_MATCH){
+					var option = document.createElement('option');
+					option.value = RANKING_CUSTOM;
+					option.innerHTML = "Custom";
+					select.appendChild(option);
+				}
+
 				if(rankingTypes['popular'].length != 0){
 
 					var option = document.createElement('option');
@@ -286,6 +297,10 @@ function edit_formatType(tournamentID){
 					option.innerHTML = rankingTypes[i]['name'];
 					select.appendChild(option);
 				}
+
+				// Refresh the custom ranking criteria fragment (clears it,
+				// since the rebuilt select has no ranking selected)
+				htmx.trigger('#rankingID_select'+tournamentID, 'change');
 
 				enableTournamentButton(tournamentID);
 			}

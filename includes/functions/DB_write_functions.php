@@ -6711,21 +6711,52 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	}
 
 	$tournamentRankingID = @(int)$formInfo['tournamentRankingID']; // Not existing is zero value
-	$rankingInfo = getRankingInfo($tournamentRankingID);
 
-	if($tournamentRankingID != 0 && @(int)$rankingInfo['formatID'] == $settings['formatID']){
-		$settings['tournamentRankingID'] = $tournamentRankingID;
-	} else {
+	$customCriteria = [];
+	if($tournamentRankingID == RANKING_CUSTOM){
 
-		$formatName = getFormatName($settings['formatID']);
-		$rankingName = @$rankingInfo['name'];
-		if($rankingName == null){
-			$rankingName = "NULL";
+		if($settings['formatID'] != FORMAT_MATCH){
+			$formatName = getFormatName($settings['formatID']);
+			setAlert(USER_ERROR, "Custom Ranking Type is only valid for Match format tournaments,
+				not Format <i>\"{$formatName}\"</i>.<BR><b>Tournament not updated.</b>");
+			return;
 		}
 
-		setAlert(USER_ERROR, "Ranking Type <i>\"{$rankingName}\"</i> is not valid for Format <i>\"{$formatName}\"</i>.<BR><b>Tournament not updated.</b>");
-		return;
+		$customCriteria = validateCustomRankingCriteria(@$formInfo['customCriteria']);
+		if($customCriteria == null){
+			// validateCustomRankingCriteria() sets the user error alert
+			return;
+		}
 
+		if((int)@$formInfo['isReverseScore'] > REVERSE_SCORE_NO){
+			setAlert(USER_WARNING, "This tournament uses Golf/Injury scoring.
+				Ranking criteria are calculated from standard match statistics
+				(points and hits <u>landed</u> on the opponent) &mdash; not the
+				reversed scores shown on scoresheets.
+				Double-check that each criterion's direction matches your intent.");
+		}
+
+		// Custom rankings live only in eventRankings; no systemRankings template applies.
+		$settings['tournamentRankingID'] = 'NULL';
+
+	} else {
+
+		$rankingInfo = getRankingInfo($tournamentRankingID);
+
+		if($tournamentRankingID != 0 && @(int)$rankingInfo['formatID'] == $settings['formatID']){
+			$settings['tournamentRankingID'] = $tournamentRankingID;
+		} else {
+
+			$formatName = getFormatName($settings['formatID']);
+			$rankingName = @$rankingInfo['name'];
+			if($rankingName == null){
+				$rankingName = "NULL";
+			}
+
+			setAlert(USER_ERROR, "Ranking Type <i>\"{$rankingName}\"</i> is not valid for Format <i>\"{$formatName}\"</i>.<BR><b>Tournament not updated.</b>");
+			return;
+
+		}
 	}
 
 
@@ -6862,6 +6893,10 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			break;
 	}
 
+	if($customCriteria != []){
+		writeCustomRankingToEvent($tournamentID, $eventID, $settings['formatID'], $customCriteria);
+	}
+
 
 // Teams Options ---------------------------------------------------------------
 
@@ -6980,6 +7015,173 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 				WHERE tournamentRankingID = {$ID}";
 		mysqlQuery($sql, SEND);
 	}
+
+}
+
+/******************************************************************************/
+
+function validateCustomRankingCriteria($formCriteria){
+// Validates posted custom ranking criteria against the field whitelist.
+// Returns an ordered list of ['label','expression','sort'] entries,
+// or null (with a user error alert) if the input is invalid.
+// Only whitelisted field names and literal ASC/DESC may reach an ORDER BY.
+
+	$criteriaFields = customRankingCriteria();
+
+	$criteria = [];
+	$fieldsUsed = [];
+
+	foreach([1,2,3,4] as $num){
+
+		$field = @$formCriteria[$num]['field'];
+
+		if($field == null || $field == ''){
+			if($num == 1){
+				setAlert(USER_ERROR, "An Indicator field must be selected for a Custom Ranking Type.<BR><b>Tournament not updated.</b>");
+				return null;
+			}
+			continue;
+		}
+
+		if(isset($criteriaFields[$field]) == false){
+			setAlert(USER_ERROR, "Invalid custom ranking field.<BR><b>Tournament not updated.</b>");
+			return null;
+		}
+
+		if(isset($fieldsUsed[$field]) == true){
+			setAlert(USER_ERROR, "The same field may not be used for more than one custom ranking criteria.<BR><b>Tournament not updated.</b>");
+			return null;
+		}
+		$fieldsUsed[$field] = true;
+
+		// Map through a strict comparison so the raw POST string never reaches SQL
+		$sort = (@$formCriteria[$num]['sort'] === 'ASC') ? 'ASC' : 'DESC';
+
+		$criteria[] = [
+			'label' => $criteriaFields[$field][0],
+			'expression' => $field,
+			'sort' => $sort,
+		];
+	}
+
+	return $criteria;
+
+}
+
+/******************************************************************************/
+
+function writeCustomRankingToEvent($tournamentID, $eventID, $formatID, $criteria){
+// Upserts a tournament defined (custom) ranking into eventRankings.
+// $criteria is an ordered list of ['label','expression','sort'] entries
+// which have already been validated against the criteria whitelist.
+// systemRankingID is null to mark the ranking as custom.
+
+	$tournamentID = (int)$tournamentID;
+	$eventID = (int)$eventID;
+	$formatID = (int)$formatID;
+
+	if($tournamentID == 0 || $eventID == 0 || $criteria == []){
+		return;
+	}
+
+	$sortWords = ['DESC' => 'Highest', 'ASC' => 'Lowest'];
+	$tiebreakerNames = [1 => 'Tiebreaker 1', 2 => 'Tiebreaker 2', 3 => 'Tiebreaker 3'];
+
+// Build the order by, display, and description values from the criteria list
+// The standings display stops at the first empty display slot, so the
+// criteria fill slots 1..n contiguously with 'Score' in the slot after them.
+	$values = [];
+	$description = "== Ranking ====\n";
+
+	foreach([1,2,3,4,5] as $num){
+
+		if(isset($criteria[$num-1]) == true){
+			$entry = $criteria[$num-1];
+
+			if($num <= 4){
+				$values["orderByField{$num}"] = "'".$entry['expression']."'";
+				$values["orderBySort{$num}"] = "'".$entry['sort']."'";
+			}
+			$values["displayTitle{$num}"] = "'".$entry['label']."'";
+			$values["displayField{$num}"] = "'".$entry['expression']."'";
+
+			if($num == 1){
+				$description .= "{$entry['label']} [{$sortWords[$entry['sort']]}]";
+			} else {
+				$description .= "\n{$tiebreakerNames[$num-1]}: {$entry['label']} [{$sortWords[$entry['sort']]}]";
+			}
+
+		} elseif($num == count($criteria) + 1){
+			// The score column mirrors the primary criterion so standings
+			// displays which reference 'score' still show something meaningful.
+			if($num <= 4){
+				$values["orderByField{$num}"] = "NULL";
+				$values["orderBySort{$num}"] = "NULL";
+			}
+			$values["displayTitle{$num}"] = "'Score'";
+			$values["displayField{$num}"] = "'score'";
+
+		} else {
+			if($num <= 4){
+				$values["orderByField{$num}"] = "NULL";
+				$values["orderBySort{$num}"] = "NULL";
+			}
+			$values["displayTitle{$num}"] = "NULL";
+			$values["displayField{$num}"] = "NULL";
+		}
+	}
+
+	$scoreFormula = "'".$criteria[0]['expression']."'";
+
+	$sql = "INSERT INTO eventRankings (
+				eventID, tournamentID, systemRankingID,
+				name, formatID, description, displayFunction, scoringFunction, scoreFormula,
+				orderByField1, orderBySort1, orderByField2, orderBySort2,
+				orderByField3, orderBySort3, orderByField4, orderBySort4,
+				displayTitle1, displayField1, displayTitle2, displayField2,
+				displayTitle3, displayField3, displayTitle4, displayField4,
+				displayTitle5, displayField5
+			) VALUES (
+				{$eventID}, {$tournamentID}, NULL,
+				'Custom', {$formatID}, '{$description}', NULL, NULL, {$scoreFormula},
+				{$values['orderByField1']}, {$values['orderBySort1']},
+				{$values['orderByField2']}, {$values['orderBySort2']},
+				{$values['orderByField3']}, {$values['orderBySort3']},
+				{$values['orderByField4']}, {$values['orderBySort4']},
+				{$values['displayTitle1']}, {$values['displayField1']},
+				{$values['displayTitle2']}, {$values['displayField2']},
+				{$values['displayTitle3']}, {$values['displayField3']},
+				{$values['displayTitle4']}, {$values['displayField4']},
+				{$values['displayTitle5']}, {$values['displayField5']}
+			)
+			ON DUPLICATE KEY UPDATE
+				eventID = VALUES(eventID),
+				systemRankingID = VALUES(systemRankingID),
+				name = VALUES(name),
+				formatID = VALUES(formatID),
+				description = VALUES(description),
+				displayFunction = VALUES(displayFunction),
+				scoringFunction = VALUES(scoringFunction),
+				scoreFormula = VALUES(scoreFormula),
+				orderByField1 = VALUES(orderByField1),
+				orderBySort1 = VALUES(orderBySort1),
+				orderByField2 = VALUES(orderByField2),
+				orderBySort2 = VALUES(orderBySort2),
+				orderByField3 = VALUES(orderByField3),
+				orderBySort3 = VALUES(orderBySort3),
+				orderByField4 = VALUES(orderByField4),
+				orderBySort4 = VALUES(orderBySort4),
+				displayTitle1 = VALUES(displayTitle1),
+				displayField1 = VALUES(displayField1),
+				displayTitle2 = VALUES(displayTitle2),
+				displayField2 = VALUES(displayField2),
+				displayTitle3 = VALUES(displayTitle3),
+				displayField3 = VALUES(displayField3),
+				displayTitle4 = VALUES(displayTitle4),
+				displayField4 = VALUES(displayField4),
+				displayTitle5 = VALUES(displayTitle5),
+				displayField5 = VALUES(displayField5)";
+	mysqlQuery($sql, SEND);
 
 }
 
@@ -7313,6 +7515,22 @@ function importTournamentSettings($config){
 
 	foreach($doNotImport as $index){
 		unset($sourceSettings[$index]);
+	}
+
+// A source with a custom ranking has a null tournamentRankingID;
+// pass its criteria through so the import flows the custom ranking path.
+	if(isCustomRanking($sourceID) == true){
+
+		$sourceSettings['tournamentRankingID'] = RANKING_CUSTOM;
+		$sourceSettings['customCriteria'] = [];
+
+		$sourceRanking = getEventRankingForTournament($sourceID);
+		foreach([1,2,3,4] as $num){
+			$sourceSettings['customCriteria'][$num] = [
+				'field' => @$sourceRanking["orderByField{$num}"],
+				'sort' => @$sourceRanking["orderBySort{$num}"],
+			];
+		}
 	}
 
 // Import options from target (these can't be read from the eventTournaments table)
