@@ -23,6 +23,7 @@ if($_SESSION['eventID'] == null){
 
 
 	$tournamentList_unsorted = getTournamentsFull($_SESSION['eventID']);
+	$questionableMatches = hemaRatings_getQuestionableMatches($_SESSION['eventID']);
 
 	// Splits list into finalized tournaments first
 	$finalizedTournaments = [];
@@ -49,7 +50,7 @@ if($_SESSION['eventID'] == null){
 	<?php endif ?>
 
 
-	<?=HemaRatingExportOptions($tournamentList)?>
+	<?=HemaRatingExportOptions($tournamentList, $questionableMatches)?>
 
 	<?=FerrotasRatingExportOptions($tournamentList)?>
 
@@ -130,7 +131,7 @@ function FerrotasRatingExportOptions($tournamentList){
 
 /******************************************************************************/
 
-function HemaRatingExportOptions($tournamentList){
+function HemaRatingExportOptions($tournamentList, $questionableMatches){
 
 	$baseUrl = "http://$_SERVER[HTTP_HOST]";
 	$linkPath = $baseUrl."/infoSummary.php?e=".$_SESSION['eventID'];
@@ -176,7 +177,7 @@ function HemaRatingExportOptions($tournamentList){
 
 
 		<!-- Export tournaments -->
-			<div class='large-12 cell'>
+			<div class='medium-5 cell'>
 
 				<b>Export Matches</b>
 
@@ -209,6 +210,10 @@ function HemaRatingExportOptions($tournamentList){
 
 			</div>
 
+			<div class='medium-7 cell'>
+				<?=displayQuestionableMatches($questionableMatches)?>
+			</div>
+
 		</div>
 
 	</form>
@@ -220,6 +225,48 @@ function HemaRatingExportOptions($tournamentList){
 
 /******************************************************************************/
 
+function displayQuestionableMatches($matches){
+
+	if($matches == []){
+		return;
+	}
+
+	$displayMatches = [];
+
+	foreach($matches as $m){
+
+		$matchInfo = getMatchInfo($m['matchID']);
+		if($matchInfo['winnerID'] == $matchInfo['fighter1ID']){
+			$b1 = 'bold';
+			$b2 = 'normal';
+		} else {
+			$b2 = 'bold';
+			$b1 = 'normal';
+		}
+
+		$txt = "";
+		$txt .= "<u>".getTournamentName($matchInfo['tournamentID'])."</u>:<i> {$matchInfo['matchType']}</i><BR>";
+		$txt .= "<span style='font-weight:{$b1}'>".getFighterName($matchInfo['fighter1ID'])." ".$matchInfo['fighter1score']."</span>";
+		$txt .= " | ";
+		$txt .= "<span style='font-weight:{$b2}'>".$matchInfo['fighter2score']." ".getFighterName($matchInfo['fighter2ID'])."</span>";
+		$displayMatches[] = $txt;
+
+	}
+?>
+	<p>
+	<b>Possible Issues:</b>
+	<BR><i>Matches where the declared winner is not in the lead on points. This <u>may</u> mean that a fighter had to withdraw and the victor was awarded to close the match. This information is to give the heads up to the organizer before submitting, and should be used at their discretion.</i>
+	</p>
+
+	<?php foreach($displayMatches as $txt):?>
+		<p><?=$txt?></p>
+	<?php endforeach ?>
+
+
+<?php
+}
+
+/******************************************************************************/
 
 
 /******************************************************************************
