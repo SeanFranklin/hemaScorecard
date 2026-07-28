@@ -805,7 +805,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 				         picked before the rebuild wipes the select. */ ?>
 				<?php if($formatID == FORMAT_MATCH): ?>
 					<option <?=optionValue(RANKING_CUSTOM, $currentID)?> >
-						Custom
+						- Custom -
 					</option>
 				<?php endif ?>
 

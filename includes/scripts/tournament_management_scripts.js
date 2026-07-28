@@ -267,7 +267,7 @@ function edit_formatType(tournamentID){
 				if(formatID == FORMAT_MATCH){
 					var option = document.createElement('option');
 					option.value = RANKING_CUSTOM;
-					option.innerHTML = "Custom";
+					option.innerHTML = "- Custom -";
 					select.appendChild(option);
 				}
 
