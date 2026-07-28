@@ -30,6 +30,60 @@ export type CreateTournamentOptions = {
   basePointValue?: string;
 };
 
+/** Read the current tournament ID off adminTournaments.php's Update button. */
+export async function getCurrentTournamentID(page: Page): Promise<string> {
+  await page.goto('/adminTournaments.php');
+  const id = await page.locator("[id^='editTournamentButton']").getAttribute('id');
+  if (!id) throw new Error('No editTournamentButton found on adminTournaments.php');
+  return id.replace('editTournamentButton', '');
+}
+
+/** Point the session at a different tournament via the ?t= URL param. */
+export async function switchToTournament(page: Page, tournamentID: string) {
+  await page.goto(`/adminTournaments.php?t=${tournamentID}`);
+}
+
+/**
+ * Import Tournament Settings from sourceID onto the tournament currently
+ * open on adminTournaments.php (targetID must match the page already
+ * displayed — the form posts against the session's tournament).
+ */
+export async function importTournamentSettingsFrom(
+  page: Page,
+  targetID: string,
+  sourceID: string,
+) {
+  // Hidden until the "Import/Copy" toggle is clicked.
+  await page.locator(`a[onclick*="import-for-${targetID}"]`).click();
+  const sourceSelect = page.locator(
+    `#import-for-${targetID} select[name='importTournamentSettings[sourceID1]']`,
+  );
+  await expect(sourceSelect).toBeVisible();
+  await sourceSelect.selectOption(sourceID);
+  await page
+    .locator(`#import-for-${targetID} button[name='formName'][value='importTournamentSettings']`)
+    .click();
+}
+
+/** Read back the custom ranking criteria selects for the given tournament. */
+export async function readCustomCriteria(
+  page: Page,
+  tournamentID: string,
+): Promise<CustomCriterion[]> {
+  const criteria: CustomCriterion[] = [];
+  for (let i = 1; i <= 4; i++) {
+    const fieldSelect = page.locator(`#customCriteria${i}Field_select${tournamentID}`);
+    if ((await fieldSelect.count()) === 0) break;
+    const field = await fieldSelect.inputValue();
+    if (!field) break;
+    const sort = (await page
+      .locator(`#customCriteria${i}Sort_select${tournamentID}`)
+      .inputValue()) as 'DESC' | 'ASC';
+    criteria.push({ field, sort });
+  }
+  return criteria;
+}
+
 /**
  * Fill the custom ranking criteria selects (htmx fragment) for the given
  * tournament's settings form. Assumes 'Custom' is already the selected
