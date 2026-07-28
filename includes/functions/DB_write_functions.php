@@ -6713,6 +6713,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	$tournamentRankingID = @(int)$formInfo['tournamentRankingID']; // Not existing is zero value
 
 	$customCriteria = [];
+	$copyRankingFrom = (int)@$formInfo['copyCustomRankingFrom']; // Set by importTournamentSettings() to clone an existing custom ranking, rather than posted criteria
 	if($tournamentRankingID == RANKING_CUSTOM){
 
 		if($settings['formatID'] != FORMAT_MATCH){
@@ -6722,10 +6723,12 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 			return;
 		}
 
-		$customCriteria = validateCustomRankingCriteria(@$formInfo['customCriteria']);
-		if($customCriteria == null){
-			// validateCustomRankingCriteria() sets the user error alert
-			return;
+		if($copyRankingFrom == 0){
+			$customCriteria = validateCustomRankingCriteria(@$formInfo['customCriteria']);
+			if($customCriteria == null){
+				// validateCustomRankingCriteria() sets the user error alert
+				return;
+			}
 		}
 
 		if((int)@$formInfo['isReverseScore'] > REVERSE_SCORE_NO){
@@ -6895,6 +6898,8 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 	if($customCriteria != []){
 		writeCustomRankingToEvent($tournamentID, $eventID, $settings['formatID'], $customCriteria);
+	} elseif($copyRankingFrom != 0){
+		copyCustomRankingToTournament($copyRankingFrom, $tournamentID, $eventID, $settings['formatID']);
 	}
 
 
@@ -7154,6 +7159,76 @@ function writeCustomRankingToEvent($tournamentID, $eventID, $formatID, $criteria
 				{$values['displayTitle4']}, {$values['displayField4']},
 				{$values['displayTitle5']}, {$values['displayField5']}
 			)
+			ON DUPLICATE KEY UPDATE
+				eventID = VALUES(eventID),
+				systemRankingID = VALUES(systemRankingID),
+				name = VALUES(name),
+				formatID = VALUES(formatID),
+				description = VALUES(description),
+				displayFunction = VALUES(displayFunction),
+				scoringFunction = VALUES(scoringFunction),
+				scoreFormula = VALUES(scoreFormula),
+				orderByField1 = VALUES(orderByField1),
+				orderBySort1 = VALUES(orderBySort1),
+				orderByField2 = VALUES(orderByField2),
+				orderBySort2 = VALUES(orderBySort2),
+				orderByField3 = VALUES(orderByField3),
+				orderBySort3 = VALUES(orderBySort3),
+				orderByField4 = VALUES(orderByField4),
+				orderBySort4 = VALUES(orderBySort4),
+				displayTitle1 = VALUES(displayTitle1),
+				displayField1 = VALUES(displayField1),
+				displayTitle2 = VALUES(displayTitle2),
+				displayField2 = VALUES(displayField2),
+				displayTitle3 = VALUES(displayTitle3),
+				displayField3 = VALUES(displayField3),
+				displayTitle4 = VALUES(displayTitle4),
+				displayField4 = VALUES(displayField4),
+				displayTitle5 = VALUES(displayTitle5),
+				displayField5 = VALUES(displayField5)";
+	mysqlQuery($sql, SEND);
+
+}
+
+/******************************************************************************/
+
+function copyCustomRankingToTournament($sourceID, $targetID, $eventID, $formatID){
+// Copies an existing custom (tournament defined) ranking from one tournament
+// to another, e.g. via importTournamentSettings(). Unlike cloneRankingToEvent(),
+// the source is another tournament's eventRankings row rather than a
+// systemRankings template, so eventID/tournamentID/formatID come from the
+// target, not the source, and systemRankingID is forced to NULL to keep the
+// copy marked custom.
+// NOTE: this bypasses validateCustomRankingCriteria() on the copied fields.
+
+	$sourceID = (int)$sourceID;
+	$targetID = (int)$targetID;
+	$eventID = (int)$eventID;
+	$formatID = (int)$formatID;
+
+	if($sourceID == 0 || $targetID == 0 || $eventID == 0){
+		return;
+	}
+
+	$sql = "INSERT INTO eventRankings (
+				eventID, tournamentID, systemRankingID,
+				name, formatID, description, displayFunction, scoringFunction, scoreFormula,
+				orderByField1, orderBySort1, orderByField2, orderBySort2,
+				orderByField3, orderBySort3, orderByField4, orderBySort4,
+				displayTitle1, displayField1, displayTitle2, displayField2,
+				displayTitle3, displayField3, displayTitle4, displayField4,
+				displayTitle5, displayField5
+			)
+			SELECT
+				{$eventID}, {$targetID}, NULL,
+				name, {$formatID}, description, displayFunction, scoringFunction, scoreFormula,
+				orderByField1, orderBySort1, orderByField2, orderBySort2,
+				orderByField3, orderBySort3, orderByField4, orderBySort4,
+				displayTitle1, displayField1, displayTitle2, displayField2,
+				displayTitle3, displayField3, displayTitle4, displayField4,
+				displayTitle5, displayField5
+			FROM eventRankings
+			WHERE tournamentID = {$sourceID}
 			ON DUPLICATE KEY UPDATE
 				eventID = VALUES(eventID),
 				systemRankingID = VALUES(systemRankingID),
@@ -7517,20 +7592,12 @@ function importTournamentSettings($config){
 		unset($sourceSettings[$index]);
 	}
 
-// A source with a custom ranking has a null tournamentRankingID;
-// pass its criteria through so the import flows the custom ranking path.
+// A source with a custom ranking has a null tournamentRankingID.
+// Flag the copy so updateEventTournaments() routes down the custom path
+// and clones the source's eventRankings row instead of a systemRankings template.
 	if(isCustomRanking($sourceID) == true){
-
 		$sourceSettings['tournamentRankingID'] = RANKING_CUSTOM;
-		$sourceSettings['customCriteria'] = [];
-
-		$sourceRanking = getEventRankingForTournament($sourceID);
-		foreach([1,2,3,4] as $num){
-			$sourceSettings['customCriteria'][$num] = [
-				'field' => @$sourceRanking["orderByField{$num}"],
-				'sort' => @$sourceRanking["orderBySort{$num}"],
-			];
-		}
+		$sourceSettings['copyCustomRankingFrom'] = $sourceID;
 	}
 
 // Import options from target (these can't be read from the eventTournaments table)
