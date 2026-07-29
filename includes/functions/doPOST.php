@@ -869,6 +869,8 @@ function changeTournament($tournamentID, $matchID = 0){
 	$_SESSION['bracketHelper'] = '';
 	$_SESSION['groupSet'] = 1;
 
+	setcookie('lastViewedContext', (int)$_SESSION['eventID']."-".(int)$tournamentID, time()+CONTEXT_COOKIE_LIFETIME, '/', '', false, true);
+
 
 	if(isset($_SESSION['hideAnnouncement']) == true && $tournamentID != 0){
 
