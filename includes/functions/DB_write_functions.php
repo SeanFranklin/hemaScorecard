@@ -7514,7 +7514,17 @@ function updateFinalsBracket(){
 				continue;
 			}
 
-			if(bracketMatchNeedsReset($finalists, $matchID)){
+			$currentFighters = mysqlQuery("SELECT fighter1ID, fighter2ID
+											FROM eventMatches
+											WHERE matchID = {$matchID}", SINGLE);
+
+			// Re-submitting the same fighters (eg an accidental click) is a
+			// no-op. To clear a match use the 'Clear Selected' button instead.
+			if(bracketFinalistsAreUnchanged($finalists, $currentFighters)){
+				continue;
+			}
+
+			if(bracketMatchNeedsReset($finalists, $currentFighters)){
 				$sql = "DELETE eventExchanges FROM eventExchanges
 						INNER JOIN eventMatches USING(matchID)
 						WHERE matchID = {$matchID}
@@ -7572,7 +7582,16 @@ function bracketFinalistsAreSameFighter($finalists){
 
 /******************************************************************************/
 
-function bracketMatchNeedsReset($finalists, $matchID){
+function bracketFinalistsAreUnchanged($finalists, $currentFighters){
+// True when the submission matches the fighters already in the match.
+
+	return $finalists[1] == (int)@$currentFighters['fighter1ID']
+		&& $finalists[2] == (int)@$currentFighters['fighter2ID'];
+}
+
+/******************************************************************************/
+
+function bracketMatchNeedsReset($finalists, $currentFighters){
 // True when both fighters are set and at least one differs from who is
 // currently in the match, so the old exchanges and score should be cleared.
 
@@ -7580,13 +7599,8 @@ function bracketMatchNeedsReset($finalists, $matchID){
 		return false;
 	}
 
-	$matchID = (int)$matchID;
-	$current = mysqlQuery("SELECT fighter1ID, fighter2ID
-							FROM eventMatches
-							WHERE matchID = {$matchID}", SINGLE);
-
-	return $finalists[1] != (int)@$current['fighter1ID']
-		|| $finalists[2] != (int)@$current['fighter2ID'];
+	return $finalists[1] != (int)@$currentFighters['fighter1ID']
+		|| $finalists[2] != (int)@$currentFighters['fighter2ID'];
 }
 
 /******************************************************************************/
