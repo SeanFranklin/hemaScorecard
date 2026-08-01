@@ -13,7 +13,7 @@
 include_once('includes/config.php');
 
 $vJ = '?=1.9.11'; // Javascript Version
-$vC = '?=1.4.0'; // CSS Version
+$vC = '?=1.4.1'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
 	|| ALLOW['VIEW_SETTINGS'] == true
@@ -93,8 +93,10 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<!-- Mobile Navigation -->
 	<div class="title-bar" data-responsive-toggle="tourney-animated-menu" data-hide-for="large" style='display:none'>
 		<form method='POST' name='logOutForm1'>
-		<button class="menu-icon" type="button" data-toggle></button>
-		<div class="title-bar-title">Menu</div>
+		<button class="menu-toggle" type="button" data-toggle>
+			<span class="menu-icon"></span>
+			<span class="title-bar-title">Menu</span>
+		</button>
 
 		<?php if($_SESSION['userName'] == null): ?>
 			<a href='adminLogIn.php' class='login-link'>Login</a>

@@ -915,6 +915,17 @@ h2 {
   display:block;
 }
 
+/* The whole Menu control (icon + label) is the toggle, sized as a 44px touch target */
+.title-bar .menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: .25rem .5rem;
+  cursor: pointer;
+}
+
 .title-bar .login-link {
   /* display:inline-block; */
   float:right;
