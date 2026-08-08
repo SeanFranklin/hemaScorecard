@@ -83,9 +83,6 @@ include('includes/footer.php');
 
 function showSoloMatchData($systemRosterID){
 
-
-
-
 	// Show last year for the first 30 days of the new year.
 	$defaultYear = (int)date("Y", strtotime("-30 day"));
 	$currentYear = (int)date("Y");
@@ -170,6 +167,24 @@ function showSoloMatchData($systemRosterID){
 
 		google.charts.setOnLoadCallback(function (){drawMultSeries(data3, 'solo-exchType', 'pie', options)});
 
+		var data4 = [];
+		<?php foreach($exchStats['targetA'] as $i => $t):?>
+			data4[<?=$i?>] = [];
+			data4[<?=$i?>]['name'] = '<?=$t['name']?>';
+			data4[<?=$i?>]['value'] = <?=$t['value']?>;
+		<?php endforeach ?>
+
+		google.charts.setOnLoadCallback(function (){drawMultSeries(data4, 'solo-targetA', 'pie', options)});
+
+		var data5 = [];
+		<?php foreach($exchStats['typeA'] as $i => $t):?>
+			data5[<?=$i?>] = [];
+			data5[<?=$i?>]['name'] = '<?=$t['name']?>';
+			data5[<?=$i?>]['value'] = <?=$t['value']?>;
+		<?php endforeach ?>
+
+		google.charts.setOnLoadCallback(function (){drawMultSeries(data5, 'solo-typeA', 'pie', options)});
+
 	</script>
 
 <!-- Actual layout ---------------------------------------------------------------------------->
@@ -232,28 +247,40 @@ function showSoloMatchData($systemRosterID){
 
 		</div>
 
+		<div class='cell medium-6  hide-for-small-only text-center'>
+			<BR><BR><i>(If anyone knows something cool to put here let me know.)</i>
+		</div>
 
-		<div class='cell medium-6 callout'>
-			<span style="font-size: 1.5em">Outcomes</span>
+	<!--------------------------------------------------------------->
+
+		<div class='cell medium-4 callout'>
+			<span style="font-size: 1.5em">Exchange Outcomes</span>
 			<div id='solo-exchType'></div>
 
 			<BR><i style='font-size: 0.8em;'>Afterblow for/neutral/against indicates if the fighter got or lost points on an exchange where points were added for both competitors.</i>
 			<BR><i style='font-size: 0.8em;'>This breakdown may be incorrect if the table did not properly enter exchanges as doubles/afterblows when they happened.</i>
 		</div>
 
-		<div class='cell medium-6 callout'>
-			<span style="font-size: 1.5em">Attacks</span>
+		<div class='cell medium-4 callout'>
+			<span style="font-size: 1.5em">Actions For</span>
 			<div id='solo-type'></div>
+			<span style="font-size: 1.5em">Actions Against</span>
+			<div id='solo-typeA'></div>
 
 			<BR><i style='font-size: 0.8em;'>Includes data from tournaments where event organizers defined specific actions for the table to use. Generic score data does not include the attack type.</i>
 		</div>
 
-		<div class='cell medium-6 callout'>
-			<span style="font-size: 1.5em">Targets</span>
+		<div class='cell medium-4 callout'>
+			<span style="font-size: 1.5em">Targets For</span>
 			<div id='solo-target'></div>
+			<span style="font-size: 1.5em">Targets Against</span>
+			<div id='solo-targetA'></div>
 
 			<BR><i style='font-size: 0.8em;'>Includes data from tournaments where event organizers defined specific targets for the table to use. Generic score data does not include the attack type.</i>
 		</div>
+
+    <!--------------------------------------------------------------->
+
 
 
 	</div>
@@ -335,6 +362,24 @@ function getSoloExchStatsForYears($systemRosterID, $years, $weaponID = 0){
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
 				INNER JOIN systemEvents USING(eventID)
+				INNER JOIN systemAttacks ON refTarget = attackID
+				INNER JOIN eventRoster ON receivingID = rosterID
+			WHERE refTarget IS NOT NULL
+				AND systemRosterID = {$systemRosterID}
+				AND exchangeType IN ('clean','afterblow')
+				{$yearClause}
+				{$weaponClause}
+			GROUP BY refTarget
+			ORDER BY value DESC";
+
+	$exchStats['targetA'] = mySqlQuery($sql, ASSOC);
+
+	$sql = "SELECT attackText AS name, count(*) AS value
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
 				INNER JOIN systemAttacks ON refType = attackID
 				INNER JOIN eventRoster ON scoringID = rosterID
 			WHERE refType IS NOT NULL
@@ -347,16 +392,41 @@ function getSoloExchStatsForYears($systemRosterID, $years, $weaponID = 0){
 
 	$exchStats['type'] = mysqlQuery($sql, ASSOC);
 
-	$sql = "SELECT tournamentWeaponID, exchangeType, eR1.systemRosterID AS scoringSysID, (scoreValue - scoreDeduction) AS netScore
+	$sql = "SELECT attackText AS name, count(*) AS value
+			FROM eventExchanges
+				INNER JOIN eventMatches USING(matchID)
+				INNER JOIN eventGroups USING(groupID)
+				INNER JOIN eventTournaments USING(tournamentID)
+				INNER JOIN systemEvents USING(eventID)
+				INNER JOIN systemAttacks ON refType = attackID
+				INNER JOIN eventRoster ON receivingID = rosterID
+			WHERE refType IS NOT NULL
+				AND systemRosterID = {$systemRosterID}
+				AND exchangeType IN ('clean','afterblow')
+				{$yearClause}
+				{$weaponClause}
+			GROUP BY refType
+			ORDER BY value DESC";
+
+	$exchStats['typeA'] = mysqlQuery($sql, ASSOC);
+
+	// Pre-parsing the roster ID so there is only one join with the eventRoster table
+	// makes the query an order of magnitude faster
+	$sql = "SELECT rosterID
+			FROM eventRoster
+			WHERE systemRosterID = {$systemRosterID}";
+	$rosterIDs = implode2int((array)mysqlQuery($sql, SINGLES, 'rosterID'));
+
+	$sql = "SELECT tournamentWeaponID, exchangeType,
+	            eR1.systemRosterID AS scoringSysID, (scoreValue - scoreDeduction) AS netScore
 			FROM eventExchanges
 				INNER JOIN eventMatches USING(matchID)
 				INNER JOIN eventGroups USING(groupID)
 				INNER JOIN eventTournaments USING(tournamentID)
 				INNER JOIN systemEvents USING(eventID)
 				INNER JOIN eventRoster AS eR1 ON scoringID = eR1.rosterID
-				INNER JOIN eventRoster AS eR2 ON receivingID = eR2.rosterID
-			WHERE (eR1.systemRosterID = {$systemRosterID}
-				OR eR2.systemRosterID = {$systemRosterID})
+			WHERE (   scoringID   IN ({$rosterIDs})
+				   OR receivingID IN ({$rosterIDs}))
 				{$yearClause}
 				{$weaponClause}";
 
@@ -451,7 +521,7 @@ function showSoloAttendanceData($systemRosterID){
 
 	<table  id="matchesBySystemRosterID" class="display">
 		<thead>
-				<th>Year</th>
+				<th>Date</th>
 				<th>Event</th>
 				<th>Tournament</th>
 				<th>Match</th>
@@ -465,7 +535,7 @@ function showSoloAttendanceData($systemRosterID){
 
 			<?php if($event['matches'] == []): ?>
 				<tr>
-					<td><?=$event['year']?></td>
+					<td><?=$event['eventStartDate']?></td>
 					<td><?=$event['name']?></td>
 					<td>Did not compete</td>
 					<td></td>
@@ -509,7 +579,7 @@ function showSoloAttendanceData($systemRosterID){
 
 				?>
 				<tr>
-					<td><?=$event['year']?></td>
+					<td><?=$event['eventStartDate']?></td>
 					<td><?=$event['name']?></td>
 					<td><?=getTournamentName($m['tournamentID'])?></td>
 					<td><?=$nameTag?></td>
