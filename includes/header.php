@@ -46,18 +46,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	">
 	<meta name="keywords" content="HEMA, Tournament, Historical European Martial Arts, Martial Arts, Sword">
 	<title>HEMA Scorecard</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
-	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
-
-	<link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
-	<link rel="stylesheet" href="includes/foundation/css/app.css">
-	<link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
-
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	<script>google.charts.load('current', {'packages':['corechart']});</script>
-	<script src="https://cdn.tiny.cloud/1/ctrvec03t4hztqmygiaf7d6mtiod1qat9px92nlsxdq2mat3/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-
-	<link rel='icon' href='includes\images\favicon.png'>
+<?php include("includes/head_scripts.php"); ?>
 
 	<!-- Jumps to section on page if $_SESSION['jumpTo'] is set -->
 	<?php if(isset($_SESSION['jumpTo'])): ?>
