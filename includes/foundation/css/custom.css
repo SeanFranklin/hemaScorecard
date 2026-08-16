@@ -927,9 +927,11 @@ h2 {
 }
 
 .title-bar .login-link {
-  /* display:inline-block; */
   float:right;
   color:white;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   margin: 0 .5rem;
 }
 
