@@ -5515,7 +5515,7 @@ function getTournamentIncompletes($tournamentID, $isTeams){
 
 	$numToReturn = 7;
 
-	$sql = "SELECT matchID, fighter1ID, fighter2ID, groupID
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, groupID, groupType
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
@@ -5527,7 +5527,7 @@ function getTournamentIncompletes($tournamentID, $isTeams){
 	$incompleteMatches['count'] = sizeof($incompleteMatches['list']);
 	$incompleteMatches['more'] = 0;
 
-
+	$incompleteMatches['bracket'] = 0;
 	foreach($incompleteMatches['list'] as $index => $m){
 
 		if($isTeams == false){
