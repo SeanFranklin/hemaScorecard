@@ -500,8 +500,13 @@ function manageTournamentPlacings($tournamentID, $isTeams){
 
 
 	$incompleteMatches = [];
+	$allowAutoFinalizeWithIncompletes = false;
 	if($allowAutoFinalize == false){
 		$incompleteMatches = getTournamentIncompletes($tournamentID, $isTeams);
+
+		if($incompleteMatches['bracket'] == 0){
+			$allowAutoFinalizeWithIncompletes = true;
+		}
 	}
 
 
@@ -550,12 +555,31 @@ function manageTournamentPlacings($tournamentID, $isTeams){
 		</button>
 
 	<?php endif ?>
-	</form>
 
 
-	<div class='hidden' id='incomplete-matches-<?=$tournamentID?>'>
 
-		<HR>
+	<div class='hidden' style='padding-top:0.7em;' id='incomplete-matches-<?=$tournamentID?>'>
+
+
+		<p>
+		<i>Scorecard can auto-complete with incomplete pool matches but not incomplete bracket matches.</i>
+
+		<?php if($allowAutoFinalizeWithIncompletes == true): ?>
+
+			<?php if($useSpecs == false): ?>
+				<button class='button no-bottom success hollow small' name='formName'
+					value='autoFinalizeTournament'>
+					Auto Finalize Tournament
+				</button>
+			<?php else: ?>
+				<a class='button no-bottom success hollow small'
+					data-open='autoFinalizeBox-<?=$tournamentID?>'>
+					Auto Finalize Tournament
+				</a>
+			<?php endif ?>
+		<?php endif ?>
+		</p>
+
 
 		<?php foreach($incompleteMatches['list'] as $m): ?>
 			<b><?=$m['name1']?></b> vs <b><?=$m['name2']?></b>;
@@ -569,6 +593,8 @@ function manageTournamentPlacings($tournamentID, $isTeams){
 		<?php endif ?>
 
 	</div>
+
+	</form>
 
 
 <!-- Delete Confirmation Box -->

@@ -3058,8 +3058,7 @@ function getTeamName($teamID, $splitName = null, $returnType = null){
 
 	$teamID = (int)$teamID;
 	if($teamID == 0){
-		setAlert(SYSTEM,"No rosterID in getFighterName()");
-		return;
+		return '';
 	}
 
 	$sql = "SELECT memberName
@@ -3230,7 +3229,7 @@ function getFighterSchoolName($rosterID, $nameType = null, $includeBranch = null
 
 	$rosterID = (int)$rosterID;
 	if($rosterID == 0){
-		setAlert(SYSTEM,"No rosterID in getFighterName()");
+		setAlert(SYSTEM,"No rosterID in getFighterSchoolName()");
 		return;
 	}
 
@@ -5516,7 +5515,7 @@ function getTournamentIncompletes($tournamentID, $isTeams){
 
 	$numToReturn = 7;
 
-	$sql = "SELECT matchID, fighter1ID, fighter2ID, groupID
+	$sql = "SELECT matchID, fighter1ID, fighter2ID, groupID, groupType
 			FROM eventMatches
 			INNER JOIN eventGroups USING(groupID)
 			WHERE tournamentID = {$tournamentID}
@@ -5528,7 +5527,7 @@ function getTournamentIncompletes($tournamentID, $isTeams){
 	$incompleteMatches['count'] = sizeof($incompleteMatches['list']);
 	$incompleteMatches['more'] = 0;
 
-
+	$incompleteMatches['bracket'] = 0;
 	foreach($incompleteMatches['list'] as $index => $m){
 
 		if($isTeams == false){
@@ -5552,6 +5551,10 @@ function getTournamentIncompletes($tournamentID, $isTeams){
 
 
 		$incompleteMatches['list'][$index]['groupName'] = getGroupName($m['groupID']);
+
+		if($m['groupType'] == 'elim'){
+			$incompleteMatches['bracket']++;
+		}
 	}
 
 
@@ -5719,7 +5722,7 @@ function getListForNextRound($tournamentID, $groupSet, $groupNumber){
 		$highestRound = false;
 	}
 
-	if(!isset($scores)){return null;}
+	if(!isset($scores)){return [];}
 
 	if(isReverseScore($tournamentID) == REVERSE_SCORE_NO){
 		arsort($scores);
@@ -5729,6 +5732,7 @@ function getListForNextRound($tournamentID, $groupSet, $groupNumber){
 
 
 	$place = 0;
+	$sortedScores = [];
 	foreach($scores as $rosterID => $score){
 		if(@$ignores[$rosterID]['stopAtSet'] > 0){
 			// the array value not existing is logically the same as being zero
