@@ -99,7 +99,7 @@ include('includes/header.php');
 ?>
 
 	<div class='callout success text-center'>
-		Tournament Ratings are calculated using the <b><a href='https://swordstem.com/2024/01/01/on-rating-hema-tournaments/'>PB25 Algorithm.</a></b>
+		Tournament Ratings are calculated using the <b><a href='https://swordstem.com/2024/01/01/on-rating-hema-tournaments/'  target='_blank'>PB25 Algorithm.</a></b>
 	</div>
 
 	<?=showEventRating($ratingsList, $maxAtRating)?>
