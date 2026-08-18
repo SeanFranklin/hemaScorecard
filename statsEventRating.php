@@ -83,6 +83,9 @@ include('includes/header.php');
 
 		$ratingsList[0]['name'] = "Unknown Event";
 		$ratingsList[0]['year'] = '??';
+		$ratingsList[0]['numFighters'] = count($ratingsList[0]['ratings']);
+
+		$ratingsList[0] = calculateEventRating($ratingsList[0]);
 
 		unset($_SESSION['eventRating']['textInput']);
 
