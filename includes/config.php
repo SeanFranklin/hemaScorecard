@@ -63,6 +63,8 @@
 	define("DEFAULT_TOURNAMENT_ID",0);
 	define("TEST_EVENT_ID",2);
 
+	define("CONTEXT_COOKIE_LIFETIME",60*60*24*4);	// 4 days
+
 	define("FINALS","0");
 	define("ALL_GROUP_SETS",0);
 
@@ -258,6 +260,9 @@ require_once(BASE_URL.'includes/function_lib.php');
 $conn = connectToDB();
 
 // Set Session Values //////////////////////////////////////////////////////////
+
+// Restore last viewed context
+	restoreContextFromCookie();
 
 // Set the Permissions
 	setPermissions();
@@ -553,6 +558,41 @@ VIEW_EMAIL
 
 /******************************************************************************/
 
+function restoreContextFromCookie(){
+// Restores the last viewed event and tournament after the session has expired
+
+	if(!empty($_SESSION['eventID'])
+	   || !empty($_SESSION['userName'])
+	   || empty($_COOKIE['lastViewedContext'])){
+		return;
+	}
+
+	$IDs = explode('-', $_COOKIE['lastViewedContext']);
+	$eventID = (int)($IDs[0] ?? 0);
+	$tournamentID = (int)($IDs[1] ?? 0);
+
+	if($eventID == 0 || isEventPublished($eventID) == false){
+		return;
+	}
+
+	$_SESSION['eventID'] = $eventID;
+	$_SESSION['isMetaEvent'] = isMetaEvent($eventID);
+
+	if($tournamentID != 0){
+		$sql = "SELECT tournamentID
+				FROM eventTournaments
+				WHERE eventID = {$eventID}
+				AND tournamentID = {$tournamentID}";
+
+		if((bool)mysqlQuery($sql, SINGLE, null) == true){
+			$_SESSION['tournamentID'] = $tournamentID;
+		}
+	}
+
+}
+
+/******************************************************************************/
+
 function initializeSession(){
 // Starts the session and initializes any session variables
 // that are not set to null values.
@@ -659,5 +699,3 @@ function initializeSession(){
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-
