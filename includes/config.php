@@ -558,7 +558,9 @@ VIEW_EMAIL
 function restoreContextFromCookie(){
 // Restores the last viewed event and tournament after the session has expired
 
-	if(!empty($_SESSION['eventID']) || empty($_COOKIE['lastViewedContext'])){
+	if(!empty($_SESSION['eventID'])
+	   || !empty($_SESSION['userName'])
+	   || empty($_COOKIE['lastViewedContext'])){
 		return;
 	}
 
@@ -694,5 +696,3 @@ function initializeSession(){
 
 // END OF FILE /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-
