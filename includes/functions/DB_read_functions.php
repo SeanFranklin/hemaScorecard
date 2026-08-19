@@ -7955,7 +7955,7 @@ function getEventCountries($eventID){
 	$sql = "SELECT DISTINCT countryName
 			FROM eventRoster
 			INNER JOIN systemSchools AS sS USING(schoolID)
-			INNER JOIN systemCountries AS SC ON sS.countryIso2 = sC.countryIso2
+			INNER JOIN systemCountries AS sC ON sS.countryIso2 = sC.countryIso2
 			WHERE eventID = {$eventID}
 				AND schoolID != 1
 				AND schoolID != 2
