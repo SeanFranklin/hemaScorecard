@@ -83,6 +83,9 @@ include('includes/header.php');
 
 		$ratingsList[0]['name'] = "Unknown Event";
 		$ratingsList[0]['year'] = '??';
+		$ratingsList[0]['numFighters'] = count($ratingsList[0]['ratings']);
+
+		$ratingsList[0] = calculateEventRating($ratingsList[0]);
 
 		unset($_SESSION['eventRating']['textInput']);
 
@@ -96,7 +99,7 @@ include('includes/header.php');
 ?>
 
 	<div class='callout success text-center'>
-		Tournament Ratings are calculated using the <b><a href='https://swordstem.com/2024/01/01/on-rating-hema-tournaments/'>PB25 Algorithm.</a></b>
+		Tournament Ratings are calculated using the <b><a href='https://swordstem.com/2024/01/01/on-rating-hema-tournaments/'  target='_blank'>PB25 Algorithm.</a></b>
 	</div>
 
 	<?=showEventRating($ratingsList, $maxAtRating)?>
