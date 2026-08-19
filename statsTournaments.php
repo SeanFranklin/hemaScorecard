@@ -44,7 +44,9 @@ if($_SESSION['eventID'] == null){
 
 
 // Display tables
-	eventExchangesTable($overall);
+	echo "<div class='cell grid-x grid-margin-x'>";
+		eventExchangesTable($overall);
+	echo "</div>";
 	echo "<HR>";
 	tournamentExchangesTable($stats);
 	echo "<HR>";
@@ -170,7 +172,7 @@ function tournamentTargetTable($stats){
 ?>
 
 	<table>
-		<caption>Target Areas By Tournament</caption>
+		<caption>Target Values By Tournament</caption>
 
 	<!-- Headers -->
 		<tr>
@@ -232,180 +234,7 @@ function tournamentTargetTable($stats){
 
 <?php }
 
-/******************************************************************************/
 
-function eventExchangesTable($totals){
-
-
-	if(empty($totals['all'])){
-		$total = 1;
-		$actualTotal = 0; // To avoid the divide by zero
-	} else {
-		$total = $totals['all'];
-		$actualTotal = $total;
-	}
-
-	if(empty($totals['clean'])){
-		$cleanN = 0;
-		$cleanP = '';
-	} else {
-		$cleanN = $totals['clean'];
-		$cleanP = "(".(round($cleanN/$total,2)*100).'%)';
-	}
-
-	if(empty($totals['double'])){
-		$doubleN = 0;
-		$doubleP = '';
-	} else {
-		$doubleN = $totals['double'];
-		$doubleP = "(".(round($doubleN/$total,2)*100).'%)';
-	}
-
-	if(empty($totals['afterblow'])){
-		$afterN = 0;
-		$afterP = '';
-	} else {
-		$afterN = $totals['afterblow'];
-		$afterP = "(".(round($afterN/$total,2)*100).'%)';
-	}
-
-	if(empty($totals['noExchange'])){
-		$noExchangeN = 0;
-		$noExchangeP = '';
-	} else {
-		$noExchangeN = $totals['noExchange'];
-		$noExchangeP = "(".(round($noExchangeN/$total,2)*100).'%)';
-	}
-
-	if(empty($totals['noQuality'])){
-		$noQualityN = 0;
-		$noQualityP = '';
-	} else {
-		$noQualityN = $totals['noQuality'];
-		$noQualityP = "(".(round($noQualityN/$total,2)*100).'%)';
-	}
-
-	?>
-
-	<div class='grid-x grid-margin-x'>
-
-
-	<div class='medium-6 small-12 callout cell'>
-		<h5>
-		<div class='grid-x  grid-margin-x'>
-
-		<!-- Title -->
-		<div class='large-12 small-12 text-center'>
-			<strong>Event Summary</strong>
-		</div>
-
-		<div class='medium-12 show-for-large'>
-			&nbsp;
-		</div>
-
-		<!-- Tournaments -->
-		<div class='small-9 cell'>
-			Number of Tournaments:
-		</div>
-		<div class='small-3 cell align-self-middle'>
-			<?=$totals['tournaments']?>
-		</div>
-
-		<div class='medium-12 hide-for-small-only'>
-			&nbsp;
-		</div>
-
-		<!-- Weapons -->
-		<div class='small-9 cell'>
-			Number of Weapon Sets:
-		</div>
-		<div class='small-3 cell align-self-middle'>
-			<?=$totals['weapons']?>
-		</div>
-
-		<div class='medium-12 hide-for-small-only'>
-			&nbsp;
-		</div>
-
-		<!-- Matches -->
-		<div class='small-9 cell'>
-			Number of Matches:
-		</div>
-		<div class='small-3 cell align-self-middle'>
-			<?=$totals['matches']?>
-		</div>
-
-		<div class='medium-12 hide-for-small-only'>
-			&nbsp;
-		</div>
-
-		<!-- Pieces -->
-		<div class='small-9 cell'>
-			Number of Pieces:
-			<?php tooltip("A piece is a &#39;match&#39; from a solo event. If you have an idea
-						for a better name that doesn&#39;t already belong to something please let us know. :)
-						<BR><em>A &#39;round&#39; is already something.</em>");?>
-		</div>
-		<div class='small-3 cell align-self-middle'>
-			<?=$totals['pieces']?>
-		</div>
-
-		</div>
-
-
-		</h5>
-
-
-
-	</div>
-
-<!-- Exchanges -->
-	<div class='medium-6 small-12 cell'>
-	<table>
-		<caption>Exchange Summary</caption>
-		<tr>
-			<td>Clean Hits:</td>
-			<td><?=$cleanN?></td>
-			<td><?=$cleanP?></td>
-		</tr>
-		<tr>
-			<td>Double Hits:</td>
-			<td><?=$doubleN?></td>
-			<td><?=$doubleP?></td>
-		</tr>
-		<tr>
-			<td>Afterblows:</td>
-			<td><?=$afterN?></td>
-			<td><?=$afterP?></td>
-		</tr>
-		<tr>
-			<td>No Quality:</td>
-			<td><?=$noQualityN?></td>
-			<td><?=$noQualityP?></td>
-		</tr>
-		<tr>
-			<td>No Exchanges:</td>
-			<td><?=$noExchangeN?></td>
-			<td><?=$noExchangeP?></td>
-		</tr>
-
-		<tr style='border-top:solid 1px'>
-			<th>
-				<em>Total Exchanges:</em>
-			</th>
-			<th class='text-left'>
-				<em><?=$actualTotal?></em>
-			</th>
-			<th>
-				&nbsp;
-			</th>
-		</tr>
-	</table>
-
-	</div>
-	</div>
-
-<?php }
 
 /******************************************************************************/
 function tournamentExchangesTable($stats){

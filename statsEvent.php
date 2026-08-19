@@ -21,12 +21,6 @@ if($_SESSION['eventID'] == null){
 	displayAlert("Event is still upcoming<BR>Roster not yet released");
 } else {
 
-	$numParticipants = getNumEventRegistrations($_SESSION['eventID']);
-	$numFighters = getNumEventFighters($_SESSION['eventID']);
-	$totalTournamentEntries = getNumEventTournamentEntries($_SESSION['eventID']);
-	$numClubs = getNumEventClubs($_SESSION['eventID']);
-
-
 	$clubTotals = getAttendanceFromSchools($_SESSION['eventID']);
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -39,32 +33,7 @@ if($_SESSION['eventID'] == null){
 	<div class='large-6 medium-10 small-12'>
 
 
-	<div class='callout success'>
-<h5>
-		<div class='grid-x grid-margin-x'>
-			<div class='cell small-9 text-right'>
-				Total Event Participants <?=tooltip("Organizers will typically <b>NOT</b> enter non-fighting participants into Scorecard, and thus the total attendance may be higher than this number.")?>
-			</div>
-			<div class='cell small-3 bold ' style=' display:flex; align-items : center;'><?=$numParticipants?></div>
-
-			<div class='cell small-9 text-right'>
-				Total Event Fighters <?=tooltip('Number of participants that fought in a tournament.')?>
-			</div>
-			<div class='cell small-3 bold' style=' display:flex; align-items : center;'><?=$numFighters?></div>
-
-			<div class='cell small-9 text-right'>
-				Tournament Registrations <?=tooltip('<u>Example</u>: If the same person fights in 3 tournaments they count as 3 registrations.')?>
-			</div>
-			<div class='cell small-3 bold' style=' display:flex; align-items : center;' ><span ><?=$totalTournamentEntries?></span></div>
-
-			<div class='cell small-9 text-right'>
-				# of Schools Represented <?=tooltip('Do you really need a tooltip for this?')?>
-			</div>
-			<div class='cell small-3 bold' style=' display:flex; align-items : center;'><?=$numClubs?></div>
-		</div>
-
-		</h5>
-	</div>
+	<?=showEventFighterCounts($_SESSION['eventID'])?>
 
 	<?=showEventReg()?>
 	<BR>
