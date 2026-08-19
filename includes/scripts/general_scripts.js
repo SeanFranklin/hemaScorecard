@@ -8,6 +8,9 @@ const FORMAT_MATCH      = 2;
 const FORMAT_SOLO       = 3;
 const FORMAT_META       = 4;
 
+// Tournament Rankings
+const RANKING_CUSTOM    = -1;
+
 // Arrows
 const TIE_TOP     = '↰';
 const TIE_MIDDLE  = '|';

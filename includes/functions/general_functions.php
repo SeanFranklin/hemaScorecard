@@ -95,6 +95,28 @@ function optionValue($value, $selectValue = null){
 
 /******************************************************************************/
 
+function customRankingCriteria(){
+// Whitelist of eventStandings fields selectable as custom ranking criteria.
+// Returns [field => [display label, default sort direction]]
+// Only these field names may ever reach an ORDER BY clause; validate all
+// user input against the keys of this array.
+
+	return [
+		'wins'              => ['Wins', 'DESC'],
+		'matches'           => ['Matches', 'DESC'],
+		'pointsFor'         => ['Points For', 'DESC'],
+		'hitsFor'           => ['Hits For', 'DESC'],
+		'losses'            => ['Losses', 'ASC'],
+		'doubles'           => ['Doubles', 'ASC'],
+		'pointsAgainst'     => ['Points Against', 'ASC'],
+		'hitsAgainst'       => ['Hits Against', 'ASC'],
+		'afterblowsAgainst' => ['Afterblows Against', 'ASC'],
+	];
+
+}
+
+/******************************************************************************/
+
 function chk($value, $compare = null){
 // For use in setting checkboxes to true/false
 // It is OK to suppress errors on inputs, non-existant values are acceptable inputs.

@@ -93,6 +93,9 @@
 	define("FORMAT_SOLO",3);
 	define("FORMAT_META",4);
 
+	// Sentinel tournamentRankingID for a tournament defined ranking instead of a systemRankings template
+	define("RANKING_CUSTOM",-1);
+
 	define("NO_AFTERBLOW",1);
 	define("DEDUCTIVE_AFTERBLOW",2);
 	define("FULL_AFTERBLOW",3);

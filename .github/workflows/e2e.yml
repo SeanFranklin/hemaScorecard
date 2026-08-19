@@ -30,8 +30,9 @@ jobs:
         - name: Install dependencies
           run: npm ci
 
-        - name: Install Playwright browsers
-          run: npx playwright install --with-deps chromium
+          # Setup install after NPM Ci intsalled to ensure browser available.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       # Belt and suspenders: Playwright's global setup also polls this for
       # 120s, but failing here gives a clearer signal and container logs.
