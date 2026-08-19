@@ -85,28 +85,67 @@ if($_SESSION['eventID'] == null){
 		}
 	}
 
+	$burgeeIDs = getEventBurgees($_SESSION['eventID'], true);
+	$numBurgees = count($burgeeIDs);
+
+	$daysToEvent = getDaysToEventStart($_SESSION['eventID']);
+
+
+	if($daysToEvent > 0){
+		$descriptionClass = "is-active";
+		$burgeeClass = "";
+		$placingClass = "";
+	} else {
+		$descriptionClass = "";
+
+		if($numBurgees != 0){
+			$burgeeClass = "is-active";
+			$placingClass = "";
+		} else {
+			$burgeeClass = "";
+			$placingClass = "is-active";
+		}
+
+	}
 
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ?>
-	<?php if($anyFinalized == false){
-		showEventDescription();
-	}?>
 
-	<div class='grid-x grid-margin-x'>
+	<?=manualTournamentPlacing((int)@$_SESSION['manualPlacing']['tournamentID'])?>
 
-		<?=manualTournamentPlacing((int)@$_SESSION['manualPlacing']['tournamentID'])?>
+	<ul class="accordion" data-accordion data-allow-all-closed="true">
 
-		<?=showEventBurgees()?>
+		<li class="accordion-item <?=$descriptionClass?>" data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Event Description</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=showEventDescription()?>
+			</div>
+		</li>
 
-		<?=showTournamentPlacings($tournamentsToDisplay,  $tournamentList)?>
+		<li class="accordion-item" data-accordion-item>
+			<a href="#" class="accordion-title "><h3>Fun Stats</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=showFunEventStats($_SESSION['eventID'])?>
+			</div>
+		</li>
 
-	</div>
+		<li class="accordion-item <?=$placingClass?>" data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Tournament Placings</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=showTournamentPlacings($tournamentsToDisplay,  $tournamentList)?>
+			</div>
+		</li>
 
-	<?php if($anyFinalized == true){
-		showEventDescription();
-	}?>
+		<li class="accordion-item <?=$burgeeClass?>" data-accordion-item>
+			<a href="#" class="accordion-title"><h3>Team Awards</h3></a>
+			<div class="accordion-content" data-tab-content>
+				<?=showEventBurgees($burgeeIDs)?>
+			</div>
+		</li>
+
+	</ul>
 
 <?php }
 
@@ -121,7 +160,7 @@ include('includes/footer.php');
 
 function showTournamentPlacings($tournamentsToDisplay,  $tournamentList){
 ?>
-
+	<div class='grid-x grid-margin-x'>
 	<?php foreach($tournamentsToDisplay as $j => $t):
 		$groupClass = "tab-group-{$j}";
 
@@ -158,30 +197,31 @@ function showTournamentPlacings($tournamentsToDisplay,  $tournamentList){
 		</div>
 
 	<?php endforeach ?>
+	</div>
 <?php
 }
 
 /******************************************************************************/
 
-function showEventBurgees(){
-
-	$burgeeIDs = getEventBurgees($_SESSION['eventID']);
+function showEventBurgees($burgeeIDs){
 
 	$numBurgees = count($burgeeIDs );
-	if($numBurgees > 1){
+	if ($numBurgees == 0){
+		echo "<i>No team awards at this event.</i>";
+		return;
+	}elseif ($numBurgees > 1){
 		$size = 6;
 	} else {
 		$size = 8;
 	}
 
+
+	echo "<div class='grid-x grid-margin-x'>";
 	foreach($burgeeIDs as $burgeeID){
 		burgeeDisplay($burgeeID, true, $size);
 		$isBurgees = true;
 	}
-
-	if($numBurgees != 0){
-		echo "<div class='cell'><HR></div>";
-	}
+	echo "</div>";
 
 }
 
@@ -507,6 +547,7 @@ function manageTournamentPlacings($tournamentID, $isTeams){
 		if($incompleteMatches['bracket'] == 0){
 			$allowAutoFinalizeWithIncompletes = true;
 		}
+
 	}
 
 
@@ -559,7 +600,6 @@ function manageTournamentPlacings($tournamentID, $isTeams){
 
 
 	<div class='hidden' style='padding-top:0.7em;' id='incomplete-matches-<?=$tournamentID?>'>
-
 
 		<p>
 		<i>Scorecard can auto-complete with incomplete pool matches but not incomplete bracket matches.</i>

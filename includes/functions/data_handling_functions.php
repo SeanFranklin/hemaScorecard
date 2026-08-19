@@ -1256,7 +1256,9 @@ function getEventStats($stats){
 	$stats['overall']['afterblow'] = 0;
 	$stats['overall']['noExchange'] = 0;
 	$stats['overall']['noQuality']= 0;
-	$stats['overall']['all'] = 0;
+	$stats['overall']['scored']= 0;
+	$stats['overall']['fencingSum'] = 0;
+	$stats['overall']['allSum'] = 0;
 
 	foreach($stats as $tournamentID => $data){
 		$stats['overall']['clean'] += $data['clean'];
@@ -1264,10 +1266,14 @@ function getEventStats($stats){
 		$stats['overall']['afterblow'] += $data['afterblow'];
 		$stats['overall']['noExchange'] += $data['noExchange'];
 		$stats['overall']['noQuality'] += $data['noQuality'];
+		$stats['overall']['scored'] += $data['scored'];
 
 		$stats[$tournamentID]['total'] = $data['clean'] +
 			$data['double'] + $data['afterblow'] + $data['noExchange'] + $data['noQuality'];
-		$stats['overall']['all'] += $stats[$tournamentID]['total'];
+
+		$stats['overall']['fencingSum'] += $stats[$tournamentID]['total'];
+		$stats['overall']['allSum'] += ($stats[$tournamentID]['total'] + $data['scored']);
+
 		$stats[$tournamentID]['tournamentID'] = $tournamentID;
 
 		$bilaterals = $data['double'] + $data['afterblow'];
