@@ -5,7 +5,7 @@ import { TEST_EVENT_ID } from './helpers/test-data';
  * Mobile hamburger navigation. The toggle must be tappable on the whole
  * "Menu" control, not just the 20x16px hamburger icon.
  */
-test.use({ ...devices['iPhone 13'] });
+test.use({ ...devices['Pixel 5'] });
 
 const menu = (page: Page) => page.locator('#tourney-animated-menu');
 
