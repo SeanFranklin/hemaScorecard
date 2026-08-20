@@ -4348,5 +4348,497 @@ function displayFloorMapButton(){
 }
 
 /******************************************************************************/
+
+function showFunEventStats($eventID){
+	$eventID = (int)$eventID;
+
+ /* ____________________________________________________________________ */
+	$exchangesByTournament = getEventExchanges($eventID);
+
+	$stats = getEventStats($exchangesByTournament);
+	$overall = $stats['overall'];
+
+		$matchTotals = getNumEventMatches($eventID);
+	$overall['matches'] = $matchTotals['matches'];
+	$overall['pieces'] = $matchTotals['pieces'];
+
+	$eventTournaments = getEventTournaments($eventID);
+	$overall['tournaments'] = count($eventTournaments);
+
+	$weaponList = [];
+	foreach($eventTournaments as $tournamentID){
+		$weapon = getTournamentWeapon($tournamentID);
+		$weaponList[$weapon['weaponID']] = true;
+	}
+	$overall['weapons'] = count($weaponList);
+
+/* ____________________________________________________________________ */
+
+	$daysToEvent = getDaysToEventStart($eventID);
+
+	if($daysToEvent > 1){
+		$daysText = "<b>".number_format($daysToEvent)."</b> sleeps until the event!";
+	} else {
+		$daysToEvent *= -1;
+		$daysText = "<b>".number_format($daysToEvent)."</b> days since the start of the event.";
+	}
+
+/* ____________________________________________________________________ */
+
+	if(abs($daysToEvent) < 2){
+		$daysText .= " (based on whatever timezone this server lives in.)";
+	}
+
+	$countryList = getEventCountries($eventID);
+	$numCountries = sizeof($countryList);
+	$winsByColor = getWinsByColor($eventID);
+
+/* ____________________________________________________________________ */
+
+	$sql = "SELECT COUNT(*) AS num
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+				AND maximumPoints > 3
+				AND (fighter1Score <= 0 OR fighter2Score <= 0)
+				AND (fighter1Score >= maximumPoints OR fighter2Score >= maximumPoints)";
+	$numBlowouts = mysqlQuery($sql, SINGLE, 'num');
+
+	$sql = "SELECT COUNT(*) AS num
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+				AND maximumPoints > 3";
+	$numBlowoutsPossible = mysqlQuery($sql, SINGLE, 'num');
+
+	$sql = "SELECT COUNT(*) AS numExchanges, matchID
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+				AND formatID = 2
+			GROUP BY matchID
+			ORDER BY numExchanges DESC, (fighter1Score + fighter2Score) DESC
+			LIMIT 3";
+	$longMatches = mysqlQuery($sql, ASSOC);
+
+	$txt = '<ol>';
+	foreach($longMatches as $match){
+		$matchInfo = getMatchInfo($match['matchID']);
+
+		$txt .= "<li><b>".$match['numExchanges']." exchanges</b>: ";
+		$txt .= getFighterName($matchInfo['fighter1ID'])." vs ".getFighterName($matchInfo['fighter2ID']);
+		$txt .= "<BR> <i>(".getTournamentName($matchInfo['tournamentID']).")</i></li>";
+	}
+	$longMatchesTxt = $txt."</ol>";
+
+	$sql = "SELECT (fighter1Score + fighter2Score) as score, fighter1ID, fighter2ID, fighter1Score, fighter2Score, tournamentID
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+				AND formatID = 2
+			ORDER BY score DESC
+			LIMIT 3";
+	$highestScoring = mysqlQuery($sql, ASSOC);
+
+	$txt = '<ol>';
+	foreach($highestScoring as $match){
+
+		$txt .= "<li>";
+		$txt .= getFighterName($match['fighter1ID'])." <b>{$match['fighter1Score']}</b> | ";
+		$txt .= "<b>{$match['fighter2Score']}</b> ".getFighterName($match['fighter2ID']);
+		$txt .= "<BR> <i>(".getTournamentName($match['tournamentID']).")</i></li>";
+	}
+	$highScoringMatchTxt = $txt."</ol>";
+
+	$sql = "SELECT SUM(matchTime) AS num
+			FROM eventMatches
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}";
+	$matchTime = (int)mysqlQuery($sql, SINGLE, 'num');
+	$matchTime = (float)$matchTime/60;
+	$matchTimeHr = $matchTime/60;
+	$matchTime = round($matchTime);
+
+
+	$sql = "SELECT COUNT(*) AS num, fighter1ID
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN eventRoster AS eR ON eR.rosterID = eM.fighter1ID
+			WHERE eT.eventID = {$eventID}
+				AND formatID = 2
+				AND isTeam = 0
+			GROUP BY fighter1ID
+			ORDER BY num DESC
+			LIMIT 3";
+	$fighter1s = (array)mysqlQuery($sql, ASSOC);
+
+	$txt = '<ol>';
+	foreach($fighter1s as $f){
+
+		$txt .= "<li><b>".$f['num']."</b> matches - ";
+		$txt .= getFighterName($f['fighter1ID'])."</li>";
+	}
+	$fighter1txt = $txt."</ol>";
+
+	$sql = "SELECT COUNT(*) AS num, fighter2ID
+			FROM eventMatches AS eM
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments AS eT USING(tournamentID)
+			INNER JOIN eventRoster AS eR ON eR.rosterID = eM.fighter2ID
+			WHERE eT.eventID = {$eventID}
+				AND formatID = 2
+				AND isTeam = 0
+			GROUP BY fighter2ID
+			ORDER BY num DESC
+			LIMIT 3";
+	$fighter2s = (array)mysqlQuery($sql, ASSOC);
+
+	$txt = '<ol>';
+	foreach($fighter2s as $f){
+
+		$txt .= "<li><b>".$f['num']."</b> matches - ";
+		$txt .= getFighterName($f['fighter2ID'])."</li>";
+	}
+	$fighter2txt = $txt."</ol>";
+
+	$sql = "SELECT COUNT(*) AS numClean, scoringID AS rosterID
+			FROM eventExchanges
+			INNER JOIN eventMatches USING(matchID)
+			INNER JOIN eventGroups USING(groupID)
+			INNER JOIN eventTournaments USING(tournamentID)
+			WHERE eventID = {$eventID}
+				AND formatID = 2
+				AND exchangeType = 'clean'
+			GROUP BY scoringID
+			ORDER BY numClean DESC
+			LIMIT 3";
+	$numClean = (array)mysqlQuery($sql, ASSOC);
+
+	$txt = '<ol>';
+	foreach($numClean as $f){
+
+		$txt .= "<li><b>".$f['numClean']."</b> clean hits - ";
+		$txt .= getFighterName($f['rosterID'])."</li>";
+	}
+	$cleantxt = $txt."</ol>";
+
+?>
+
+	<div class='grid-x grid-margin-x'>
+		<div class='medium-6 cell'>
+				<?=$daysText?>
+			<BR>
+				<b><?=$numCountries?></b> countries* represented.
+				<a onclick="$('.country-txt').toggle()">(?)</a>
+				<span class='country-txt hidden'>
+					<i>*based on club locations. Scorecard doesn't actually know where anyone lives.</i>
+					<BR>(<?php foreach($countryList AS $country):?>
+						<?=$country?>,
+					<?php endforeach?>)
+				</span>
+			<BR>
+				<?php foreach ($winsByColor as $id => $w): ?>
+					<?=$w['name']?> has <b><?=$w['num']?></b> wins,
+				<?php endforeach ?>
+			<BR>
+				<b><?=$numBlowouts?></b> blowout matches (out of <?=$numBlowoutsPossible?>).
+				<?=tooltip('Matches with one fighter at the point cap, the other at 0. This only counts eligible matches which have a point cap higher than 3.')?>
+			<BR>
+				<b><?=number_format($matchTime)?></b> minutes of match time. (<?=number_format($matchTimeHr,1)?> hours)
+				<?=tooltip("Scorecard doesn't know if the event is stopped or continuous clock.")?>
+
+		</div>
+
+		<div class='cell show-for-small-only' style='padding:0.5em'>
+			<HR>
+		</div>
+
+		<div class='medium-6 cell'>
+			<?=showEventFighterCounts($eventID)?>
+			For individual tournament and club numbers you can check out<BR><b><a href='statsEvent.php'>Event Information > Event Stats > Attendance/Schools</a></b>.
+		</div>
+
+		<div class='cell' style='padding:0.5em'>
+			<HR>
+		</div>
+
+		<div class='cell large-7'>
+			<u>Longest Matches</u>:
+				<?=$longMatchesTxt?>
+
+			<BR>
+
+			<u>Highest Scoring Matches</u>:
+				<?=$highScoringMatchTxt?>
+
+			<BR>
+
+		</div>
+
+
+		<div class='cell large-5'>
+			<u>Most Appearances as Fighter 1</u>:
+				<?=$fighter1txt?>
+
+			<BR>
+
+			<u>Most Appearances as Fighter 2</u>:
+				<?=$fighter2txt?>
+
+			<BR>
+
+			<u>Most Clean Hits</u>:
+				<?=$cleantxt?>
+
+		</div>
+
+		<div class='cell' style='padding:0.5em'>
+			<HR>
+		</div>
+
+		<div class='cell grid-x grid-margin-x'>
+			<?=eventExchangesTable($overall)?>
+			For even more detailed tournament exchange statistics you can check out&nbsp;<b><a href='statsTournaments.php'>Event Information > Event Stats > Tournament Exchanges</a></b>.
+		</div>
+
+
+	</div>
+
+
+<?php
+}
+
+/******************************************************************************/
+
+function showEventFighterCounts($eventID){
+
+	$numParticipants = getNumEventRegistrations($eventID);
+	$numFighters = getNumEventFighters($eventID);
+	$totalTournamentEntries = getNumEventTournamentEntries($eventID);
+	$numClubs = getNumEventClubs($eventID);
+?>
+	<div class='callout success'>
+		<h5>
+		<div class='grid-x grid-margin-x'>
+			<div class='cell small-9 text-right'>
+				Total Event Participants <?=tooltip("Organizers will typically <b>NOT</b> enter non-fighting participants into Scorecard, and thus the total attendance may be higher than this number.")?>
+			</div>
+			<div class='cell small-3 bold ' style=' display:flex; align-items : center;'><?=$numParticipants?></div>
+
+			<div class='cell small-9 text-right'>
+				Total Event Fighters <?=tooltip('Number of participants that fought in a tournament.')?>
+			</div>
+			<div class='cell small-3 bold' style=' display:flex; align-items : center;'><?=$numFighters?></div>
+
+			<div class='cell small-9 text-right'>
+				Tournament Registrations <?=tooltip('<u>Example</u>: If the same person fights in 3 tournaments they count as 3 registrations.')?>
+			</div>
+			<div class='cell small-3 bold' style=' display:flex; align-items : center;' ><span ><?=$totalTournamentEntries?></span></div>
+
+			<div class='cell small-9 text-right'>
+				# of Schools Represented <?=tooltip('Do you really need a tooltip for this?')?>
+			</div>
+			<div class='cell small-3 bold' style=' display:flex; align-items : center;'><?=$numClubs?></div>
+		</div>
+
+		</h5>
+	</div>
+
+<?php
+}
+
+/******************************************************************************/
+
+function eventExchangesTable($totals){
+
+
+	if(empty($totals['fencingSum'])){
+		$total = 1;
+		$actualTotal = 0; // To avoid the divide by zero
+	} else {
+		$total = $totals['fencingSum'];
+		$actualTotal = $totals['allSum'];
+	}
+
+	if(empty($totals['clean'])){
+		$cleanN = 0;
+		$cleanP = '';
+	} else {
+		$cleanN = $totals['clean'];
+		$cleanP = "(".(round($cleanN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['double'])){
+		$doubleN = 0;
+		$doubleP = '';
+	} else {
+		$doubleN = $totals['double'];
+		$doubleP = "(".(round($doubleN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['afterblow'])){
+		$afterN = 0;
+		$afterP = '';
+	} else {
+		$afterN = $totals['afterblow'];
+		$afterP = "(".(round($afterN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['noExchange'])){
+		$noExchangeN = 0;
+		$noExchangeP = '';
+	} else {
+		$noExchangeN = $totals['noExchange'] + $totals['noQuality'];
+		$noExchangeP = "(".(round($noExchangeN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['noQuality'])){
+		$noQualityN = 0;
+		$noQualityP = '';
+	} else {
+		$noQualityN = $totals['noQuality'];
+		$noQualityP = "(".(round($noQualityN/$total,2)*100).'%)';
+	}
+
+	if(empty($totals['scored'])){
+		$scoredN = 0;
+		$scoredP = '';
+	} else {
+		$scoredN = $totals['scored'];
+		$scoredP = "(".(round($scoredN/$total,2)*100).'%)';
+	}
+
+	?>
+
+
+
+
+	<div class='medium-6 small-12 callout cell' style='font-size: 1.1em;'>
+
+		<div class='grid-x  grid-margin-x'>
+
+		<!-- Title -->
+		<div class='large-12 small-12 text-center'>
+			<strong>Event Summary</strong>
+		</div>
+
+		<div class='medium-12 hide-for-small-only'>
+			&nbsp;
+		</div>
+
+		<!-- Tournaments -->
+		<div class='small-9 cell'>
+			Number of Tournaments:
+		</div>
+		<div class='small-3 cell align-self-middle'>
+			<?=$totals['tournaments']?>
+		</div>
+
+		<div class='medium-12 hide-for-small-only'>
+			&nbsp;
+		</div>
+
+
+		<!-- Weapons -->
+		<div class='small-9 cell'>
+			Number of Weapon Sets:
+		</div>
+		<div class='small-3 cell align-self-middle'>
+			<?=$totals['weapons']?>
+		</div>
+
+		<div class='medium-12 hide-for-small-only'>
+			&nbsp;
+		</div>
+
+		<!-- Matches -->
+		<div class='small-9 cell'>
+			Number of Matches:
+		</div>
+		<div class='small-3 cell align-self-middle'>
+			<?=number_format($totals['matches'])?>
+		</div>
+
+		<div class='medium-12 hide-for-small-only'>
+			&nbsp;
+		</div>
+
+		<!-- Pieces -->
+		<div class='small-9 cell'>
+			Number of Pieces:
+			<?php tooltip("A piece is a &#39;match&#39; from a solo event. If you have an idea
+						for a better name that doesn&#39;t already belong to something please let us know. :)
+						<BR><em>A &#39;round&#39; is already something.</em>");?>
+		</div>
+		<div class='small-3 cell align-self-middle'>
+			<?=$totals['pieces']?>
+		</div>
+
+		</div>
+
+
+
+
+
+
+	</div>
+
+<!-- Exchanges -->
+	<div class='medium-6 small-12 cell'>
+	<table>
+		<caption>Exchange Summary</caption>
+		<tr>
+			<td>Clean Hits:</td>
+			<td><?=number_format($cleanN)?></td>
+			<td><?=$cleanP?></td>
+		</tr>
+		<tr>
+			<td>Double Hits <?=tooltip("These are only exchanges which are explicitly flagged as 'double' by the table. Formats such as fully weighted would store the 'double' as an 'afterblow' in the database because there is a point value for both fighters.")?>:</td>
+			<td><?=number_format($doubleN)?></td>
+			<td><?=$doubleP?></td>
+		</tr>
+		<tr>
+			<td>Afterblows
+				<?=tooltip("Any exchange where a point is entered for both fighters is stored in the database as an 'afterblow'. These could also be 'doubles' under fully weighted rulesets.")?>:</td>
+			<td><?=number_format($afterN)?></td>
+			<td><?=$afterP?></td>
+		</tr>
+		<tr>
+			<td>No Exchanges:</td>
+			<td><?=number_format($noExchangeN)?></td>
+			<td><?=$noExchangeP?></td>
+		</tr>
+		<tr>
+			<td>Solo Scored <?=tooltip("Could be many things, but realistically this probably means cuts.")?>:</td>
+			<td><?=number_format($scoredN)?></td>
+			<td></td>
+		</tr>
+
+		<tr style='border-top:solid 1px'>
+			<th>
+				<em>Total Exchanges:</em>
+			</th>
+			<th class='text-left'>
+				<em><?=number_format($actualTotal)?></em>
+			</th>
+			<th>
+				&nbsp;
+			</th>
+		</tr>
+	</table>
+
+	</div>
+
+
+<?php }
+
+/******************************************************************************/
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
