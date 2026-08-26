@@ -4350,6 +4350,7 @@ function displayFloorMapButton(){
 /******************************************************************************/
 
 function showFunEventStats($eventID){
+
 	$eventID = (int)$eventID;
 
  /* ____________________________________________________________________ */
@@ -4430,7 +4431,7 @@ function showFunEventStats($eventID){
 		$matchInfo = getMatchInfo($match['matchID']);
 
 		$txt .= "<li><b>".$match['numExchanges']." exchanges</b>: ";
-		$txt .= getFighterName($matchInfo['fighter1ID'])." vs ".getFighterName($matchInfo['fighter2ID']);
+		$txt .= getEntryNameSmart($matchInfo['fighter1ID'])." vs ".getEntryNameSmart($matchInfo['fighter2ID']);
 		$txt .= "<BR> <i>(".getTournamentName($matchInfo['tournamentID']).")</i></li>";
 	}
 	$longMatchesTxt = $txt."</ol>";
@@ -4449,8 +4450,8 @@ function showFunEventStats($eventID){
 	foreach($highestScoring as $match){
 
 		$txt .= "<li>";
-		$txt .= getFighterName($match['fighter1ID'])." <b>{$match['fighter1Score']}</b> | ";
-		$txt .= "<b>{$match['fighter2Score']}</b> ".getFighterName($match['fighter2ID']);
+		$txt .= getEntryNameSmart($match['fighter1ID'])." <b>{$match['fighter1Score']}</b> | ";
+		$txt .= "<b>{$match['fighter2Score']}</b> ".getEntryNameSmart($match['fighter2ID']);
 		$txt .= "<BR> <i>(".getTournamentName($match['tournamentID']).")</i></li>";
 	}
 	$highScoringMatchTxt = $txt."</ol>";
@@ -4483,7 +4484,7 @@ function showFunEventStats($eventID){
 	foreach($fighter1s as $f){
 
 		$txt .= "<li><b>".$f['num']."</b> matches - ";
-		$txt .= getFighterName($f['fighter1ID'])."</li>";
+		$txt .= getEntryNameSmart($f['fighter1ID'])."</li>";
 	}
 	$fighter1txt = $txt."</ol>";
 
@@ -4504,7 +4505,7 @@ function showFunEventStats($eventID){
 	foreach($fighter2s as $f){
 
 		$txt .= "<li><b>".$f['num']."</b> matches - ";
-		$txt .= getFighterName($f['fighter2ID'])."</li>";
+		$txt .= getEntryNameSmart($f['fighter2ID'])."</li>";
 	}
 	$fighter2txt = $txt."</ol>";
 
@@ -4525,7 +4526,7 @@ function showFunEventStats($eventID){
 	foreach($numClean as $f){
 
 		$txt .= "<li><b>".$f['numClean']."</b> clean hits - ";
-		$txt .= getFighterName($f['rosterID'])."</li>";
+		$txt .= getEntryNameSmart($f['rosterID'])."</li>";
 	}
 	$cleantxt = $txt."</ol>";
 
