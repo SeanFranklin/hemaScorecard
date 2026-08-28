@@ -2956,6 +2956,33 @@ function getEntryName($rosterID, $splitName = null, $nameMode = null){
 
 /******************************************************************************/
 
+function getEntryNameSmart($rosterID, $splitName = null, $nameMode = null){
+// Returns the fighter OR team name, detecting which to use.
+// This is slower than the normal function because it needs an addtional
+// query to detect which type of name it is.
+
+	if($rosterID == null){
+		return;
+	}
+
+	$rosterID = (int)$rosterID;
+
+	$sql = "SELECT *
+			FROM eventRoster
+			WHERE rosterID = {$rosterID}";
+	$is_team = (boolean)mysqlQuery($sql, SINGLE, 'isTeam');
+
+	if($is_team == true){
+		$name = getTeamName($rosterID, $splitName);
+	} else {
+		$name = getFighterName($rosterID, $splitName, $nameMode);
+	}
+
+	return $name;
+}
+
+/******************************************************************************/
+
 function getCombatantName($rosterID, $splitName = null, $nameMode = null){
 // This returns either the team or fighter name of a rosterID. It is based off
 // of the team logic of the tournament. Used for individual matches which could
