@@ -25,14 +25,15 @@ import {
  * The criteria deliberately invert the natural result: primary Doubles
  * [Lowest] ranks the 0-double, low-win fighters first, proving the standings
  * follow the custom order-by chain (including an ASC primary) rather than
- * any template.
+ * any template. Penalties [Lowest] as the first tiebreaker then puts the
+ * winless-but-clean Applegate above Bowman, who won a match but was penalised.
  */
 
 const WEAPON = 'Sword and Buckler'; // distinct from other specs' weapons
 
 const CUSTOM_CRITERIA: CustomCriterion[] = [
   { field: 'doubles', sort: 'ASC' },       // Indicator: Doubles [Lowest]
-  { field: 'pointsAgainst', sort: 'ASC' }, // Tiebreaker 1: Points Against [Lowest]
+  { field: 'numPenalties', sort: 'ASC' },  // Tiebreaker 1: Penalties [Lowest]
   { field: 'wins', sort: 'DESC' },         // Tiebreaker 2: Wins [Highest]
   { field: 'pointsFor', sort: 'DESC' },    // Tiebreaker 3: Points For [Highest]
 ];
@@ -41,7 +42,8 @@ const CUSTOM_CRITERIA: CustomCriterion[] = [
 const CUSTOM_FIGHTERS = FIGHTERS.slice(0, 4);
 
 // Same shape as the lifecycle spec's script: Dukas dominates on wins but
-// carries a double, so the custom ranking flips the order.
+// carries a double, so the custom ranking flips the order. Bowman's single
+// penalty (-1) drops him below the winless Applegate on the tiebreaker.
 const MATCH_SCRIPT: MatchScript = new Map([
   [pairKey('Dukas', 'Applegate'), {
     exchanges: [{ scorer: 'Dukas', points: 3 }, { scorer: 'Dukas', points: 2 }],
@@ -64,7 +66,11 @@ const MATCH_SCRIPT: MatchScript = new Map([
     winner: 'Chandler',
   }],
   [pairKey('Bowman', 'Applegate'), {
-    exchanges: [{ scorer: 'Bowman', points: 3 }, { scorer: 'Applegate', points: 1 }],
+    exchanges: [
+      { scorer: 'Bowman', points: 3 },
+      { penalty: 'Bowman', points: -1 },
+      { scorer: 'Applegate', points: 1 },
+    ],
     winner: 'Bowman',
   }],
 ]);
@@ -74,7 +80,7 @@ function expectedCustomStandings(script: MatchScript): FighterStats[] {
   return [...accumulateStats(script).values()].sort(
     (a, b) =>
       a.doubles - b.doubles ||               // doubles ASC
-      a.pointsAgainst - b.pointsAgainst ||   // pointsAgainst ASC
+      a.penalties - b.penalties ||           // numPenalties ASC
       b.wins - a.wins ||                     // wins DESC
       b.pointsFor - a.pointsFor,             // pointsFor DESC
   );
@@ -115,6 +121,9 @@ test('custom ranking: criteria persist and standings follow the custom order', a
 
   await test.step('standings follow the custom criteria order', async () => {
     const expected = expectedCustomStandings(MATCH_SCRIPT);
+    // Sanity: the penalty tiebreaker must actually decide a placing.
+    expect(expected.map((s) => s.lastName).slice(0, 2)).toEqual(['Applegate', 'Bowman']);
+
     const displayed = await readStandingsByHeader(page);
     expect(displayed).toHaveLength(expected.length);
 
@@ -126,7 +135,7 @@ test('custom ranking: criteria persist and standings follow the custom order', a
       // Display columns are the criteria themselves, plus Score mirroring
       // the indicator (doubles).
       expect(parseFloat(got['Doubles'])).toBe(want.doubles);
-      expect(parseFloat(got['Points Against'])).toBe(want.pointsAgainst);
+      expect(parseFloat(got['Penalties'])).toBe(want.penalties);
       expect(parseFloat(got['Wins'])).toBe(want.wins);
       expect(parseFloat(got['Points For'])).toBe(want.pointsFor);
       expect(parseFloat(got['Score'])).toBe(want.doubles);

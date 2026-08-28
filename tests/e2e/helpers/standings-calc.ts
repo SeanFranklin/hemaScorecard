@@ -10,6 +10,8 @@
  *  - a double hit counts once per fighter and awards no points
  *  - hitsAgainst counts scoring hits received (doubles excluded,
  *    afterblow-reduced hits included)
+ *  - a penalty increments the offender's numPenalties and adds its (negative)
+ *    deduction to the offender's pointsFor; the opponent is untouched
  */
 
 export type Exchange = {
@@ -19,6 +21,8 @@ export type Exchange = {
   /** Afterblow points landed by the opponent (deducted from the hit). */
   afterblow?: number;
   double?: boolean;
+  /** lastName of the fighter assessed a penalty (points = deduction, <= 0). */
+  penalty?: string;
 };
 
 export type MatchPlan = { exchanges: Exchange[]; winner: string };
@@ -33,6 +37,7 @@ export type FighterStats = {
   pointsAgainst: number;
   doubles: number;
   hitsAgainst: number;
+  penalties: number;
 };
 
 export type StandingRow = FighterStats & { score: number };
@@ -45,7 +50,9 @@ export function accumulateStats(script: MatchScript): Map<string, FighterStats> 
   const statsFor = (lastName: string) => {
     let s = stats.get(lastName);
     if (!s) {
-      s = { lastName, wins: 0, pointsFor: 0, pointsAgainst: 0, doubles: 0, hitsAgainst: 0 };
+      s = {
+        lastName, wins: 0, pointsFor: 0, pointsAgainst: 0, doubles: 0, hitsAgainst: 0, penalties: 0,
+      };
       stats.set(lastName, s);
     }
     return s;
@@ -61,6 +68,14 @@ export function accumulateStats(script: MatchScript): Map<string, FighterStats> 
       if (ex.double) {
         statsFor(a).doubles++;
         statsFor(b).doubles++;
+        continue;
+      }
+      if (ex.penalty) {
+        // A penalty counts once for the penalised fighter and its deduction
+        // lands in their pointsFor (eventExchanges.scoringID = the offender).
+        const offender = statsFor(ex.penalty);
+        offender.penalties++;
+        offender.pointsFor += ex.points ?? 0;
         continue;
       }
       const scorer = statsFor(ex.scorer!);

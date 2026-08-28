@@ -250,6 +250,24 @@ async function playMatch(
     // script loads silently leaves the submit button as 'noExchange'.
     await page.waitForFunction(() => typeof (window as any).scoreDropdownChange === 'function');
     const submit = page.locator('#New_Exchange_Button');
+    if (ex.penalty) {
+      // Penalties live in the 'Penalty / Warning -> More...' reveal; the
+      // form posts formName=newExchange with lastExchange=penalty.
+      const box = page.locator('#addPenaltyBox');
+      // Foundation rewrites data-reveal to a generated id once the modal is
+      // initialised; clicking the opener before that does nothing.
+      await expect(box).toHaveAttribute('data-reveal', /-reveal$/);
+      await page.locator("a[data-open='addPenaltyBox']").click();
+      await expect(box).toBeVisible();
+      const fighterNum = sides[ex.penalty].pre === 'fighter1' ? 1 : 2;
+      await box.locator(`#penalty-fighter-${fighterNum}`).check();
+      await box
+        .locator("select[name='score[penalty][value]']")
+        .selectOption(String(ex.points ?? 0));
+      await box.locator("button[name='lastExchange'][value='penalty']").click();
+      await expect(page.locator('#New_Exchange_Button')).toBeVisible();
+      continue;
+    }
     if (ex.double) {
       // Foundation switch: the radio input is hidden behind its paddle label.
       await page.click("label[for='Double_Hit_Radio']");
