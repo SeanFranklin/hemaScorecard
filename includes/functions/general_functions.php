@@ -111,6 +111,7 @@ function customRankingCriteria(){
 		'pointsAgainst'     => ['Points Against', 'ASC'],
 		'hitsAgainst'       => ['Hits Against', 'ASC'],
 		'afterblowsAgainst' => ['Afterblows Against', 'ASC'],
+		'numPenalties'      => ['Penalties','ASC']
 	];
 
 }
