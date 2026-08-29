@@ -7854,33 +7854,107 @@ function updateFinalsBracket(){
 			$finalists[1] = (int)@$finalists[1];
 			$finalists[2] = (int)@$finalists[2];
 
-			if(!empty($finalists[1]) && !empty($finalists[2])){
+			// Nothing was submitted for this match.
+			if(bracketFinalistsAreEmpty($finalists)){
+				continue;
+			}
+
+			// A match can't have the same fighter on both sides.
+			if(bracketFinalistsAreSameFighter($finalists)){
+				setAlert(USER_ERROR, "A match can't have the same fighter on both sides.");
+				continue;
+			}
+
+			$sql = "SELECT fighter1ID, fighter2ID
+					FROM eventMatches
+					WHERE matchID = {$matchID}";
+			$currentFighters = mysqlQuery($sql, SINGLE);
+
+			// Re-submitting the same fighters (eg an accidental click) is a
+			// no-op. To clear a match use the 'Clear Selected' button instead.
+			if(bracketFinalistsAreUnchanged($finalists, $currentFighters)){
+				continue;
+			}
+
+			if(bracketMatchNeedsReset($finalists, $currentFighters)){
 				$sql = "DELETE eventExchanges FROM eventExchanges
 						INNER JOIN eventMatches USING(matchID)
 						WHERE matchID = {$matchID}
 						OR placeholderMatchID = {$matchID}";
 				mysqlQuery($sql, SEND);
+
+				// The exchanges are gone, so reset the derived match state too.
+				// Otherwise the previous fighters' score is left on the match.
+				$sql = "UPDATE eventMatches
+						SET fighter1Score = null, fighter2Score = null, matchTime = 0,
+							winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
+						WHERE matchID = {$matchID}
+						OR placeholderMatchID = {$matchID}";
+				////mysqlQuery($sql, SEND); <-- Note this code is correct, however the fact that this housekeeping is never being done has been saving our ass. I'd preffer to be 100% sure it's gone from the field before adding it back in. (Sean)
 			}
 
 			if(!empty($finalists[1])){
 				$sql = "UPDATE eventMatches
 						SET fighter1ID = {$finalists[1]}
-						WHERE matchID = {$matchID}
-						OR placeholderMatchID = {$matchID}";
+						WHERE (matchID = {$matchID}
+							OR placeholderMatchID = {$matchID})
+						AND (    fighter2ID != {$finalists[1]}
+							  OR fighter2ID IS NULL)";
 				mysqlQuery($sql, SEND);
 			}
 
 			if(!empty($finalists[2])){
 				$sql = "UPDATE eventMatches
 						SET fighter2ID = {$finalists[2]}
-						WHERE matchID = {$matchID}
-						OR placeholderMatchID = {$matchID}";
+						WHERE (matchID = {$matchID}
+							OR placeholderMatchID = {$matchID})
+						AND (    fighter1ID != {$finalists[2]}
+							  OR fighter1ID IS NULL)";
 				mysqlQuery($sql, SEND);
 			}
 
 		}
 	}
 
+}
+
+/******************************************************************************/
+
+function bracketFinalistsAreEmpty($finalists){
+// True when nothing was submitted for the match.
+
+	return (empty($finalists[1]) && empty($finalists[2]));
+}
+
+/******************************************************************************/
+
+function bracketFinalistsAreSameFighter($finalists){
+// True when the same fighter was picked for both sides of the match.
+
+	return ($finalists[1] == $finalists[2]);
+}
+
+/******************************************************************************/
+
+function bracketFinalistsAreUnchanged($finalists, $currentFighters){
+// True when the submission matches the fighters already in the match.
+
+	return (	$finalists[1] == (int)@$currentFighters['fighter1ID']
+			 &&	$finalists[2] == (int)@$currentFighters['fighter2ID']);
+}
+
+/******************************************************************************/
+
+function bracketMatchNeedsReset($finalists, $currentFighters){
+// True when both fighters are set and at least one differs from who is
+// currently in the match, so the old exchanges and score should be cleared.
+
+	if(empty($finalists[1]) || empty($finalists[2])){
+		return false;
+	}
+
+	return (	$finalists[1] != (int)@$currentFighters['fighter1ID']
+			 ||	$finalists[2] != (int)@$currentFighters['fighter2ID']);
 }
 
 /******************************************************************************/
