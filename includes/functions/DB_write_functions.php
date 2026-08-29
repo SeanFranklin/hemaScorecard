@@ -7514,9 +7514,10 @@ function updateFinalsBracket(){
 				continue;
 			}
 
-			$currentFighters = mysqlQuery("SELECT fighter1ID, fighter2ID
-											FROM eventMatches
-											WHERE matchID = {$matchID}", SINGLE);
+			$sql = "SELECT fighter1ID, fighter2ID
+					FROM eventMatches
+					WHERE matchID = {$matchID}";
+			$currentFighters = mysqlQuery($sql, SINGLE);
 
 			// Re-submitting the same fighters (eg an accidental click) is a
 			// no-op. To clear a match use the 'Clear Selected' button instead.
@@ -7538,7 +7539,7 @@ function updateFinalsBracket(){
 							winnerID = null, matchComplete = 0, signOff1 = 0, signOff2 = 0
 						WHERE matchID = {$matchID}
 						OR placeholderMatchID = {$matchID}";
-				mysqlQuery($sql, SEND);
+				////mysqlQuery($sql, SEND); <-- Note this code is correct, however the fact that this housekeeping is never being done has been saving our ass. I'd preffer to be 100% sure it's gone from the field before adding it back in. (Sean)
 			}
 
 			if(!empty($finalists[1])){
@@ -7546,7 +7547,8 @@ function updateFinalsBracket(){
 						SET fighter1ID = {$finalists[1]}
 						WHERE (matchID = {$matchID}
 							OR placeholderMatchID = {$matchID})
-						AND fighter2ID != {$finalists[1]}";
+						AND (    fighter2ID != {$finalists[1]}
+							  OR fighter2ID IS NULL)";
 				mysqlQuery($sql, SEND);
 			}
 
@@ -7555,7 +7557,8 @@ function updateFinalsBracket(){
 						SET fighter2ID = {$finalists[2]}
 						WHERE (matchID = {$matchID}
 							OR placeholderMatchID = {$matchID})
-						AND fighter1ID != {$finalists[2]}";
+						AND (    fighter1ID != {$finalists[2]}
+							  OR fighter1ID IS NULL)";
 				mysqlQuery($sql, SEND);
 			}
 
@@ -7569,7 +7572,7 @@ function updateFinalsBracket(){
 function bracketFinalistsAreEmpty($finalists){
 // True when nothing was submitted for the match.
 
-	return empty($finalists[1]) && empty($finalists[2]);
+	return (empty($finalists[1]) && empty($finalists[2]));
 }
 
 /******************************************************************************/
@@ -7577,7 +7580,7 @@ function bracketFinalistsAreEmpty($finalists){
 function bracketFinalistsAreSameFighter($finalists){
 // True when the same fighter was picked for both sides of the match.
 
-	return $finalists[1] == $finalists[2];
+	return ($finalists[1] == $finalists[2]);
 }
 
 /******************************************************************************/
@@ -7585,8 +7588,8 @@ function bracketFinalistsAreSameFighter($finalists){
 function bracketFinalistsAreUnchanged($finalists, $currentFighters){
 // True when the submission matches the fighters already in the match.
 
-	return $finalists[1] == (int)@$currentFighters['fighter1ID']
-		&& $finalists[2] == (int)@$currentFighters['fighter2ID'];
+	return (	$finalists[1] == (int)@$currentFighters['fighter1ID']
+			 &&	$finalists[2] == (int)@$currentFighters['fighter2ID']);
 }
 
 /******************************************************************************/
@@ -7599,8 +7602,8 @@ function bracketMatchNeedsReset($finalists, $currentFighters){
 		return false;
 	}
 
-	return $finalists[1] != (int)@$currentFighters['fighter1ID']
-		|| $finalists[2] != (int)@$currentFighters['fighter2ID'];
+	return (	$finalists[1] != (int)@$currentFighters['fighter1ID']
+			 ||	$finalists[2] != (int)@$currentFighters['fighter2ID']);
 }
 
 /******************************************************************************/
