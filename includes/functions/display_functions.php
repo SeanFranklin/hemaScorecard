@@ -4841,5 +4841,36 @@ function eventExchangesTable($totals){
 <?php }
 
 /******************************************************************************/
+
+function eventTimezoneInput(){
+?>
+	<form method="POST">
+
+		<input class='hidden' name='formName' value='timezone'>
+
+		<div class='input-group shrink'>
+
+			<span class='input-group-label'>Time Zone:</span>
+
+			<select class='input-group-field select-shrink' name='timezone'>
+				<?php for($i = -12; $i <= 12; $i++):?>
+					<option <?=optionValue($i, $_SESSION['timezone'])?>>
+						<?=sprintf('%+d',$i)?>
+					</option>
+				<?php endfor ?>
+			</select>
+
+			<div class="input-group-button">
+				<input type="submit" class="button" value="Update">
+			</div>
+
+		</div>
+
+	</form>
+
+<?php
+}
+
+/******************************************************************************/
 // END OF DOCUMENT /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

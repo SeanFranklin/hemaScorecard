@@ -3,6 +3,8 @@
 	Database connection constants for mysql
 
 *******************************************************************************/
+
+
 /* Load from environment */
 	$deployment = getenv('DEPLOYMENT') ?: DEPLOYMENT_UNKNOWN;
 
@@ -10,10 +12,12 @@
 	$db_host = getenv('DATABASE_HOST') ?: 'db';
 	$db_user = getenv('DATABASE_USER') ?: 'user';
 	$db_pwd = getenv('DATABASE_PASSWORD') ?: 'passw0rd';
-	
+	$db_time = getenv('DATABASE_TIMEZONE') ?: '-5';
+
 	$hr_token = getenv('HEMA_RATINGS_TOKEN') ?: '';
 	$hr_by_name = getenv('HEMA_RATINGS_BY_NAME') ?: '';
 	$hr_by_id = getenv('HEMA_RATINGS_BY_ID') ?: '';
+
 
 /* Defnitions */
 	define("DEPLOYMENT", $deployment);
@@ -22,6 +26,7 @@
 	define("DATABASE_HOST", $db_host);
 	define("DATABASE_USER", $db_user);
 	define("DATABASE_PASSWORD", $db_pwd);
+	define("DATABASE_TIMEZONE", $db_time);
 
 	define("HEMA_RATINGS_TOKEN", $hr_token);
 	define("HEMA_RATINGS_BY_NAME", $hr_by_name);

@@ -545,6 +545,7 @@ function menuAnalytics(){
 					<ul class='menu vertical'>
 						<li><a href='statsMatchLength.php?t=0'>Match Timings</a></li>
 						<li><a href='statsScheduleAssistant.php?t=0'>Tournament Time Calculator</a></li>
+						<li><a href='statsTournamentLength.php'>Tournament Time Analyzer</a></li>
 					</ul>
 			</li>
 			<li>
