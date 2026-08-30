@@ -135,7 +135,7 @@ test('custom ranking: criteria persist and standings follow the custom order', a
       // Display columns are the criteria themselves, plus Score mirroring
       // the indicator (doubles).
       expect(parseFloat(got['Doubles'])).toBe(want.doubles);
-      expect(parseFloat(got['Penalties'])).toBe(want.penalties);
+      expect(parseFloat(got['Penalties - All'])).toBe(want.penalties);
       expect(parseFloat(got['Wins'])).toBe(want.wins);
       expect(parseFloat(got['Points For'])).toBe(want.pointsFor);
       expect(parseFloat(got['Score'])).toBe(want.doubles);
