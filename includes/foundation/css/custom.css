@@ -1,5 +1,40 @@
 /* Added By Sean **************************************************************/
 
+/* For making <select> elements small, even in input-groups */
+.input-group .select-shrink {
+  flex: 0 0 auto;
+  width: auto;
+  field-sizing: content;
+  padding-right: 1.75rem;
+}
+
+/* __ psudo-gantt charts ______________________________________________*/
+
+/* Row element */
+.psudo-gantt-row {
+  position: relative;     /* Establishes a coordinate system for children */
+  width: 100%;
+  height: 30px;           /* Thickness of the primary bar track */
+  background-color: #FFFFFF;
+  margin-top: 1px;       /* Spacing from top of viewport */
+  overflow: hidden;
+}
+
+/* Block element within row  */
+.psudo-gantt-block {
+  position: absolute;
+  top: 0;
+  bottom: 0; /* Fills the exact height of the parent container */
+
+  /* Maps positioning directly to custom layout variables */
+  left: var(--start);
+  right: calc(100% - var(--end));
+
+  background-color: var(--color);
+  padding-left: 0.5em;
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
 
 /* __ Bracket Formatting ______________________________________________*/
 

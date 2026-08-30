@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.9.11'; // Javascript Version
+$vJ = '?=1.9.13'; // Javascript Version
 $vC = '?=1.4.1'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
@@ -545,6 +545,7 @@ function menuAnalytics(){
 					<ul class='menu vertical'>
 						<li><a href='statsMatchLength.php?t=0'>Match Timings</a></li>
 						<li><a href='statsScheduleAssistant.php?t=0'>Tournament Time Calculator</a></li>
+						<li><a href='statsTournamentLength.php'>Tournament Time Analyzer</a></li>
 					</ul>
 			</li>
 			<li>
