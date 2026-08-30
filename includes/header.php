@@ -12,7 +12,7 @@
 
 include_once('includes/config.php');
 
-$vJ = '?=1.9.11'; // Javascript Version
+$vJ = '?=1.9.12'; // Javascript Version
 $vC = '?=1.4.1'; // CSS Version
 
 if(    ALLOW['EVENT_MANAGEMENT'] == true
