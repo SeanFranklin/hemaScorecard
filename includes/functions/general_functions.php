@@ -103,6 +103,7 @@ function customRankingCriteria(){
 
 	return [
 		'wins'              => ['Wins', 'DESC'],
+		'ties'              => ['Ties', 'DESC'],
 		'matches'           => ['Matches', 'DESC'],
 		'pointsFor'         => ['Points For', 'DESC'],
 		'hitsFor'           => ['Hits For', 'DESC'],
