@@ -9,8 +9,6 @@ export const TEST_TOURNAMENT_ID = 1;
 export const ORGANIZER_PASSWORD = 'organizer-test-pw';
 export const STAFF_PASSWORD = 'staff-test-pw';
 
-export const ORGANIZER_STORAGE_STATE = 'tests/e2e/.auth/organizer.json';
-
 export const FIGHTERS = [
   { rosterID: 1, firstName: 'Alice', lastName: 'Applegate' },
   { rosterID: 2, firstName: 'Brett', lastName: 'Bowman' },
