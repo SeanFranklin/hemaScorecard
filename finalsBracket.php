@@ -874,6 +874,10 @@ function bracket_finalistEntry($fighterNum,$matchInfo, $bracketInfo, $finalists,
 		?>
 
 		<div class='<?=$class?>' style='<?=$style?> padding-left: 3px;'>
+			<?php if(ALLOW['EVENT_SCOREKEEP'] == true): ?>
+				<input type='hidden' name='newFinalists[<?=$matchID?>][<?=$fighterNum?>]'
+					value='<?=$matchInfo[$fighterID]?>'>
+			<?php endif ?>
 			<?=$score?> <?=$name?>
 			<?php if($teamFighters != ""){
 				tooltip($teamFighters);

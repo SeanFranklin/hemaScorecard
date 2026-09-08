@@ -5096,6 +5096,22 @@ function logistics_getScheduleByFighter($eventID){
 
 /******************************************************************************/
 
+function logistics_getScheduleByTournament($tournamentID){
+
+	$tournamentID = (int)$tournamentID;
+
+	$sql = "SELECT blockID, dayNum, startTime, endTime, blockSubtitle
+			FROM logisticsScheduleBlocks
+			WHERE tournamentID = {$tournamentID}
+			ORDER BY dayNum ASC, startTime ASC";
+	$result = (array)mysqlQuery($sql, ASSOC);
+
+	return ($result);
+
+}
+
+/******************************************************************************/
+
 function logistics_getScheduleBlockInfo($blockID){
 
 	$blockID = (int)$blockID;

@@ -103,6 +103,7 @@ function customRankingCriteria(){
 
 	return [
 		'wins'              => ['Wins', 'DESC'],
+		'ties'              => ['Ties', 'DESC'],
 		'matches'           => ['Matches', 'DESC'],
 		'pointsFor'         => ['Points For', 'DESC'],
 		'hitsFor'           => ['Hits For', 'DESC'],
@@ -111,7 +112,8 @@ function customRankingCriteria(){
 		'pointsAgainst'     => ['Points Against', 'ASC'],
 		'hitsAgainst'       => ['Hits Against', 'ASC'],
 		'afterblowsAgainst' => ['Afterblows Against', 'ASC'],
-		'numPenalties'      => ['Penalties','ASC']
+		'numPenalties'      => ['Penalties - All','ASC'],
+		'(numYellowCards + numRedCards)' => ['Penalties - Colored','ASC']
 	];
 
 }

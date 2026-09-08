@@ -96,6 +96,9 @@ function processPostData(){
 			case 'setDataFilters':
 				setDataFilters($_POST['filters']);
 				break;
+			case 'timezone':
+				$_SESSION['timezone'] = (int)$_POST['timezone'];
+				break;
 
 	// Roster Management Cases
 			case 'addEventParticipants':

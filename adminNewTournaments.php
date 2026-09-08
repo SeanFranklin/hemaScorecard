@@ -71,6 +71,7 @@ if($_SESSION['eventID'] == null){
 				edit_tournamentOptionsRow("Pool Configuration","option-pools");
 				edit_tournamentMaxPoolSize(0);
 				edit_tournamentPoolWinners(0);
+				edit_tournamentDisplayPerMatch(0);
 
 			// Match Conclusion --------------------------
 				edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",
