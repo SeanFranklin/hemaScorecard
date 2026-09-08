@@ -2188,6 +2188,18 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	$schoolIDs = getTournamentFighterSchoolIDs($tournamentID);
 	$hide = getItemsHiddenByFilters($tournamentID,$_SESSION['filters'],'roster');
 
+	// Normalize display feature changes the table to show the average value per match
+	// instead of the total. This is only GUI, as numbers are auto-normalized in the
+	// standings calculation.
+	$normalizeDisplay = (boolean)readOption('T', $tournamentID, 'DISPLAY_STANDINGS_PER_MACH');
+	if($normalizeDisplay != false){
+		$normalize = getNormalization($tournamentID, $groupSet) - 1;
+		$normalize = max($normalize, 0);
+	} else {
+		$normalize = 0;
+	}
+
+
 	if(isset($bracketInfo[BRACKET_PRIMARY]['numFighters'])){
 		$numToElims = (int)$bracketInfo[BRACKET_PRIMARY]['numFighters'];
 	} else {
@@ -2253,8 +2265,9 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	}
 
 
-
-
+	if($normalize != 0){
+		echo "<i>Showing <b><u>average per match</u></b> values.</i>";
+	}
 
 
 	if($displayByPool == false){
@@ -2276,6 +2289,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 			|| @$ignores[$fighter['rosterID']]['ignoreAtSet'] >= $groupSet){
 			continue;
 		}
+
 
 		if($displayByPool == true && $fighter['groupID'] != $groupID){
 			$groupID = $fighter['groupID'];
@@ -2328,7 +2342,16 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 		echo "<td class='hidden school-name text-left'>{$school}</td>";
 		for($i = 1; $i <= $maxNumFields; $i++){
 			$index = $displayMeta["displayField".$i];
-			$value = round($fighter[$index],1) + 0;
+
+			$value = $fighter[$index] + 0;
+
+			if($normalize != 0){
+				$value /= $normalize;
+				// Normalized numbers tend to need more decimals to distinguish.
+				$value = round($value,2) + 0;
+			} else {
+				$value = round($value,1) + 0;
+			}
 
 			echo "<td>{$value}</td>";
 		}

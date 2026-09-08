@@ -239,6 +239,7 @@
 	$options['T']["BONUS_POINT_NAME"]               = 31;
 		define("BONUS_POINT_NAME_CONTROL", 0);
 		define("BONUS_POINT_NAME_BOUND", 1);
+	$options['T']["DISPLAY_STANDINGS_PER_MACH"]      = 32;
 
 	// Event Options
 	$options['E']["PENALTY_ACTION_IS_MANDATORY"]	= 13;

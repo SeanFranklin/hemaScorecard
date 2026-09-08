@@ -6971,6 +6971,7 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 	writeOption('T', $tournamentID, 'LIMIT_SHALLOW', (int)$formInfo['limitShallow']);
 	writeOption('T', $tournamentID, 'MINIMUM_EXCH_TIME', (int)$formInfo['minExchTime']);
 	writeOption('T', $tournamentID, 'POINT_SPREAD_START_VAL', (int)$formInfo['pointSpreadStartVal']);
+	writeOption('T', $tournamentID, 'DISPLAY_STANDINGS_PER_MACH', (int)$formInfo['displayStandingsPerMatch']);
 
 
 	$allowTies = (int)$formInfo['allowTies'];
@@ -7602,6 +7603,7 @@ function importTournamentSettings($config){
 
 // Import options from target (these can't be read from the eventTournaments table)
 	$sourceSettings['allowTies'] 				= readOption('T', $sourceID, 'MATCH_TIE_MODE');
+	$sourceSettings['displayStandingsPerMatch'] = readOption('T', $sourceID, 'DISPLAY_STANDINGS_PER_MACH');
 	$sourceSettings['teamSwitchPoints'] 		= readOption('T', $sourceID, 'TEAM_SWITCH_POINTS');
 	$sourceSettings['teamSwitchMode'] 			= readOption('T', $sourceID, 'TEAM_SWITCH_MODE');
 	$sourceSettings['doublesAreNotScoringExch'] = readOption('T', $sourceID, 'DOUBLES_ARE_NOT_SCORING_EXCH');
