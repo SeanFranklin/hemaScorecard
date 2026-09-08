@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/fixtures';
 import { FIGHTERS } from './helpers/test-data';
 import {
   createTournament,

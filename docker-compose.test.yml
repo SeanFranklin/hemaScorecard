@@ -37,6 +37,12 @@ services:
       DATABASE_HOST: db
       DATABASE_USER: user
       DATABASE_PASSWORD: passw0rd
+      # php -S is single-threaded by default; this lets it fork worker
+      # processes so Playwright's parallel workers don't just queue at the
+      # server. All workers still share this one DB/session store — see
+      # tests/e2e/helpers/fixtures.ts for the per-worker login that keeps
+      # concurrent sessions from colliding.
+      PHP_CLI_SERVER_WORKERS: 4
     links:
       - db
   db:
