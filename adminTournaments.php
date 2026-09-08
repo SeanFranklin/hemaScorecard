@@ -161,6 +161,7 @@ function tournamentSettingsForm($tournamentID, $formLock, $tournamentName){
 			edit_tournamentOptionsRow("Pool Configuration","option-pools");
 			edit_tournamentMaxPoolSize($tournamentID);
 			edit_tournamentPoolWinners($tournamentID);
+			edit_tournamentDisplayPerMatch($tournamentID);
 
 		// Match Conclusion --------------------------
 			edit_tournamentOptionsRow("Match Auto-Conclude","option-auto-conclude",

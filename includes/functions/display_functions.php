@@ -1489,6 +1489,50 @@ function edit_tournamentPoolWinners($tournamentID = 0){
 
 /***********************************************************(******************/
 
+
+function edit_tournamentDisplayPerMatch($tournamentID = 0){
+
+	$tournamentID = (int)$tournamentID;
+	$formatID = FORMAT_MATCH;
+	$allowTies = 0;
+
+	if($tournamentID !=  0){
+		$formatID = getTournamentFormat($tournamentID);
+		$displayStandingsPerMatch = readOption('T', $tournamentID, 'DISPLAY_STANDINGS_PER_MACH');
+	}
+
+	if($formatID != FORMAT_MATCH){
+		$hide = 'hidden';
+	} else {
+		$hide = '';
+	}
+
+?>
+
+<!-- Start display -->
+
+	<tr class='option-sparring <?=$hide?>'>
+		<td class='shrink-column'>
+			<div class='shrink'>
+				Pool Standings Per Match
+				<?=tooltip("Display the pool standings on per-match basis. eg: 0.83 wins/match if you go 5-and-1")?>
+			</div>
+		</td>
+
+		<td>
+			<div class='grid-x grid-padding-x'>
+			<select name='updateTournament[displayStandingsPerMatch]' id='displayStandingsPerMatch_select<?=$tournamentID?>' class='shrink '>
+				<option <?=optionValue(0,$displayStandingsPerMatch)?>>No (normal)</option>
+				<option <?=optionValue(1,$displayStandingsPerMatch)?>>Yes</option>
+			</select>
+			</div>
+		</td>
+	</tr>
+
+<?php }
+
+/***********************************************************(******************/
+
 function edit_tournamentColors($tournamentID, $num){
 // Select menu for the fighter colors. Called for fighter 1 and 2 depending
 // on the value of $num.
