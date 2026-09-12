@@ -3349,7 +3349,7 @@ function teamsAutoCreate($postInfo){
 			LEFT JOIN eventRatings USING(tournamentRosterID)
 			WHERE rosterID IN ({$rosterIDs})
 			AND tournamentID = {$tournamentID}
-			ORDER BY rating DESC, RAND() ASC";
+			ORDER BY rating ASC, RAND() ASC";
 	$fighterListSorted = (array)mysqlQuery($sql, SINGLES, 'rosterID');
 
 
