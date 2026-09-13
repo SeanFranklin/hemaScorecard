@@ -37,6 +37,13 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 				$allDuplicates = search_manualMatch($systemRosterID1, $systemRosterID2);
 				$name1 = getFighterNameSystem($systemRosterID1);
 				$name2 = getFighterNameSystem($systemRosterID2);
+				$duplicateEntries[$systemRosterID1] = duplicates_tournamentEntries($systemRosterID1);
+				$duplicateEntries[$systemRosterID2] = duplicates_tournamentEntries($systemRosterID2);
+
+				if($systemRosterID1 != 0 && $systemRosterID2 != 0){
+					$isDuplicates = duplicates_checkEntryConflicts($duplicateEntries);
+				}
+
 				break;
 			default:
 				$allDuplicates = [];
@@ -45,6 +52,28 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 
 	} else {
 		$_SESSION['duplicateNameSearchType'] = null;
+	}
+
+
+	// Check if the two fighters appear in the same event, in which case they can't be
+	// combined (because they then have a unique rosterID attached to every exchange,
+	// and it's not as simple as justre-assigning the rosterID-systemRosterID linking.)
+	$blockCombine = false;
+	if(isset($isDuplicates) == false){
+		$duplicatesClass = 'hidden';
+		$duplicatesText = '';
+	} elseif ($isDuplicates != []) {
+		$duplicatesClass = 'alert';
+		$duplicatesText = 'WARNING: Fighters appear in the same event(s):';
+		foreach($isDuplicates as $d){
+			$duplicatesText .= "<BR><b>{$d}</b>";
+		}
+		$duplicatesText .= "<BR><u>Can not combine!</u>";
+		$blockCombine = true;
+
+	} else {
+		$duplicatesClass = 'success';
+		$duplicatesText = 'No tournament entry conflicts.';
 	}
 
 // PAGE DISPLAY ////////////////////////////////////////////////////////////////
@@ -81,6 +110,10 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 					value='duplicateNameSearchParams'>Check SystemRosterIDs</button>
 		</form>
 	<?php endif ?>
+
+	<div class='callout <?=$duplicatesClass?>'>
+		<?=$duplicatesText?>
+	</div>
 
 <!-- Display search results ---------------------------------------------------->
 	<table>
@@ -124,7 +157,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 				<td><?=$setInfo[$index]['HemaRatingsID']?></td>
 				<td class='text-right'>
 					<?=$setInfo[$index]['numTournaments']?>&nbsp;&nbsp;&nbsp;
-					<?=tournamentEntryTooltip($fighter['systemRosterID'])?>
+					<?=tournamentEntryTooltip($duplicateEntries[$fighter['systemRosterID']])?>
 				</td>
 			</tr>
 
@@ -134,7 +167,7 @@ if(ALLOW['SOFTWARE_ADMIN'] == false){
 		<tr>
 			<td colspan='100%' class='text-right' style='border-bottom:1px solid black'>
 				<?php distinctFightersButton($setNum, $setInfo) ?>
-				<?php combineFightersButton($setNum, $setInfo) ?>
+				<?php combineFightersButton($setNum, $setInfo, $blockCombine) ?>
 			</td>
 		</tr>
 
@@ -171,8 +204,6 @@ function search_manualMatch($systemRosterID1, $systemRosterID2){
 		$allDuplicates[0][0] = $record1;
 		$allDuplicates[0][1] = $record2;
 	}
-
-
 
 	return($allDuplicates);
 }
@@ -287,7 +318,7 @@ function match_LastName_School($fighter){
 
 /******************************************************************************/
 
-function tournamentEntryTooltip($systemRosterID){
+function duplicates_tournamentEntries($systemRosterID){
 
 
 	$sql = "SELECT eventID, rosterID
@@ -297,12 +328,12 @@ function tournamentEntryTooltip($systemRosterID){
 			ORDER BY eventStartDate DESC";
 	$eventList = (array)mysqlQuery($sql, SINGLES, 'eventID');
 
-	$displayList = [];
+	$entryList = [];
 	foreach($eventList as $e){
 		$tmp = [];
 		$tmp['name'] = getEventName($e);
 		$tmp['tournaments'] = [];
-		$displayList[$e] = $tmp;
+		$entryList[$e] = $tmp;
 	}
 
 	$sql = "SELECT tournamentID, eventID
@@ -313,12 +344,38 @@ function tournamentEntryTooltip($systemRosterID){
 	$tournamentList = mysqlQuery($sql, ASSOC);
 
 	foreach($tournamentList as $t){
-		$displayList[$t['eventID']]['tournaments'][] = getTournamentName($t['tournamentID']);
+		$entryList[$t['eventID']]['tournaments'][] = getTournamentName($t['tournamentID']);
 	}
+
+	return ($entryList);
+
+}
+
+/******************************************************************************/
+
+function duplicates_checkEntryConflicts($entryList){
+
+	$duplicatesEvents = [];
+
+	$i = array_keys($entryList);
+
+	foreach($entryList[$i[0]] as $eventID => $e0){
+
+		if(isset($entryList[$i[1]][$eventID])){
+			$duplicatesEvents[$eventID] = $e0['name'];
+		}
+	}
+
+	return ($duplicatesEvents);
+}
+
+/******************************************************************************/
+
+function tournamentEntryTooltip($entryList){
 
 	$str = '';
 
-	foreach($displayList as $e){
+	foreach($entryList as $e){
 
 		$str .= "<ul><strong>{$e['name']}</strong><BR>";
 
@@ -335,12 +392,18 @@ function tournamentEntryTooltip($systemRosterID){
 	</div>
 
 	<?php
-
 }
 
 /******************************************************************************/
 
-function combineFightersButton($setNum, $setInfo){
+function combineFightersButton($setNum, $setInfo, $blockCombine = false){
+
+	if($blockCombine == true){
+		echo "	<a class='button secondary' style='text-decoration: line-through;'>
+		Combine Fighters </a>";
+		return;
+	}
+
 	?>
 
 	<a class='button warning' name='formName' value='newNotDuplicate'
