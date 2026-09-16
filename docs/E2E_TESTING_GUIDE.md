@@ -22,19 +22,6 @@ It catches regressions at the pull request instead of at a tournament, hopefully
 | `tests/e2e/*.spec.ts` | Test files. We have two smoke tests for the test harness itself and 1 sample test. |
 | `.github/workflows/e2e.yml` | Runs the suite on GitHub for every PR. |
 
-## Unit tests
-
-Pure PHP functions (no database or session) have PHPUnit tests in
-`tests/unit/`. They need Composer:
-
-```bash
-composer install
-composer test
-```
-
-`tests/unit/bootstrap.php` loads `includes/functions/data_handling_functions.php`
-only. Anything that calls `mysqlQuery()` belongs in the E2E suite below.
-
 ## Running locally
 
 One-time setup (needs Docker Desktop and Node.js):
