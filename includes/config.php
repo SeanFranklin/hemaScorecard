@@ -562,9 +562,12 @@ VIEW_EMAIL
 function restoreContextFromCookie(){
 // Restores the last viewed event and tournament after the session has expired
 
-	if(!empty($_SESSION['eventID'])
-	   || !empty($_SESSION['userName'])
-	   || empty($_COOKIE['lastViewedContext'])){
+	// Checking the url components is important as the parsing of the url for
+	// a permalink tournament happens after this call.
+	if(   empty($_SESSION['eventID']) == false
+	   || empty($_SESSION['userName']) == false
+	   || empty($_COOKIE['lastViewedContext']) == true
+       || isset($urlComponents['query']) == true){
 		return;
 	}
 
