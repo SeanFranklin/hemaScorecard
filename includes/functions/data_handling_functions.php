@@ -516,6 +516,10 @@ function calculatePoolMatchOrder($size){
 
 	$size = (int)$size;
 
+	if($size < 2){
+		return [];
+	}
+
 	if($size % 2 == 0){
 		$startIndex = 1;
 	} else {

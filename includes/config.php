@@ -82,6 +82,7 @@
 	define("DEFAULT_MAX_DOUBLES",3);
 	define("POOL_SIZE_LIMIT",30);	// If you raise this you also need to add the match order to the table.
 	define("STAFF_COMPETENCY_MAX",9);
+	define("SWISS_POOL_SIZE", 2);
 
 	define("PENALTY_CARD_NONE",		null);
 	define("PENALTY_CARD_YELLOW",	34);

@@ -2437,15 +2437,25 @@ function pool_GeneratePools($specifications){
 		return;
 	}
 
-	// These are special modes
+
+	// __ Special Modes _____________________________________________
+
+	// Depreciated feature to generate pools using two seeding sources together.
 	if($specifications['seedMethod'] == 'polar'){
 		pool_GeneratePolarPools($specifications);
 		return;
 	}
+
+	// Special mode for creating several pool sets of 2 fighter pools
 	if($specifications['seedMethod'] == 'swiss'){
 		pool_GenerateSwissPools($specifications);
 		return;
 	}
+
+
+	// __ Normal Implementation _____________________________________
+	// TODO: This content can become it's own function and make
+	// pool_GeneratePools() as selector function for the pool generation mode.
 
 	$groupSet = (int)$specifications['groupSet'];
 	$lastGroupSet = $groupSet - 1;
@@ -2809,7 +2819,7 @@ function pool_GenerateSwissPools($specifications){
 		return;
 	}
 
-	if(maxPoolSize($tournamentID) != 2){
+	if(maxPoolSize($tournamentID) != SWISS_POOL_SIZE){
 		setAlert(USER_ALERT,"Swiss pairing makes pools of 2.<BR>
 			Set the <strong>Maximum Pool Size</strong> to 2 in the tournament settings
 			so byes are scored correctly.");
@@ -2924,7 +2934,7 @@ function pool_AddByeStandings($fighterStats, $tournamentID, $groupSet){
 		return $fighterStats;
 	}
 
-	if(maxPoolSize($tournamentID) != 2){
+	if(maxPoolSize($tournamentID) != SWISS_POOL_SIZE){
 		return $fighterStats;
 	}
 

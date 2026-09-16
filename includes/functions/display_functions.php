@@ -1291,7 +1291,8 @@ function edit_tournamentMaxPoolSize($tournamentID = 0){
 			<div class='grid-x grid-padding-x'>
 			<select name='updateTournament[maxPoolSize]' class='shrink'
 					id='maxPoolSize_select<?=$tournamentID?>'>
-						<?php for($i = 2; $i <= POOL_SIZE_LIMIT; $i++):
+						<option <?=optionValue(2,$maxSize)?>>2 (Swiss Pools)</option>
+						<?php for($i = 3; $i <= POOL_SIZE_LIMIT; $i++):
 							$selected = isSelected($i, $maxSize);
 							?>
 
