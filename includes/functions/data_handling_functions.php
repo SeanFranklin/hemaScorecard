@@ -375,6 +375,105 @@ function generate_PoolSizePoints($numInPools,$maxPoolSize){
 
 /******************************************************************************/
 
+function generate_SwissPairings($fighters, $numberOfFightsTogether, $numberOfPools){
+// Pairs fighters swiss style for a pool set of 2 person pools.
+// Fighters are sorted by wins, then by rank, and the top half of each
+// score group is paired against the bottom half.
+// Returns a zero-indexed list of pools in the same shape as $_SESSION['poolSeeds']
+
+	$numberOfPools = (int)$numberOfPools;
+
+	$haveFought = function($rosterID1, $rosterID2) use ($numberOfFightsTogether){
+		// The pair might not exist in the list, treat as zero.
+		return ((int)@$numberOfFightsTogether[$rosterID1][$rosterID2] > 0);
+	};
+
+	usort($fighters, function($a, $b){
+		if((int)$a['wins'] != (int)$b['wins']){
+			return (int)$b['wins'] - (int)$a['wins'];
+		}
+		return (int)$a['rank'] - (int)$b['rank'];
+	});
+
+	// An odd field gives a bye to the lowest fighter who hasn't had one yet.
+	// The bye gets a pool to themself, added after all the pairings.
+	$bye = null;
+	if(count($fighters) % 2 == 1){
+		$byeIndex = count($fighters) - 1;
+		for($i = count($fighters) - 1; $i >= 0; $i--){
+			if(!$fighters[$i]['hadBye']){
+				$byeIndex = $i;
+				break;
+			}
+		}
+		$bye = $fighters[$byeIndex];
+		unset($fighters[$byeIndex]);
+		$fighters = array_values($fighters);
+	}
+
+	// Split into score groups, highest wins first
+	$scoreGroups = [];
+	foreach($fighters as $fighter){
+		$scoreGroups[(int)$fighter['wins']][] = $fighter;
+	}
+
+	// Pair each score group, top half vs bottom half.
+	// An odd group floats its lowest fighter down to lead the next group.
+	$pools = [];
+	$floater = null;
+	foreach($scoreGroups as $group){
+		if($floater != null){
+			array_unshift($group, $floater);
+			$floater = null;
+		}
+		if(count($group) % 2 == 1){
+			$floater = array_pop($group);
+		}
+
+		// Each fighter in the top half takes their opposite number in the
+		// bottom half, unless they have already fought, in which case they
+		// take the next free fighter they haven't fought. If everyone left
+		// is a rematch they take their opposite number anyway.
+		$half = (int)(count($group) / 2);
+		$topHalf = array_slice($group, 0, $half);
+		$bottomHalf = array_slice($group, $half);
+
+		foreach($topHalf as $i => $fighter){
+			$rosterID = $fighter['rosterID'];
+			$opponentIndex = $i;
+
+			if(!isset($bottomHalf[$i]) || $haveFought($rosterID, $bottomHalf[$i]['rosterID'])){
+				foreach($bottomHalf as $j => $candidate){
+					if(!$haveFought($rosterID, $candidate['rosterID'])){
+						$opponentIndex = $j;
+						break;
+					}
+				}
+			}
+			if(!isset($bottomHalf[$opponentIndex])){
+				$opponentIndex = array_key_first($bottomHalf);
+			}
+
+			$pools[] = [$rosterID, $bottomHalf[$opponentIndex]['rosterID']];
+			unset($bottomHalf[$opponentIndex]);
+		}
+	}
+
+	if($bye != null){
+		$pools[] = [$bye['rosterID']];
+	}
+
+	// The caller is responsible for creating the pools ahead of time.
+	if(count($pools) > $numberOfPools){
+		return null;
+	}
+
+	return $pools;
+
+}
+
+/******************************************************************************/
+
 function lookupPoolMatchOrder($size){
 
 	$size = (int)$size;
@@ -416,6 +515,10 @@ function lookupPoolMatchOrder($size){
 function calculatePoolMatchOrder($size){
 
 	$size = (int)$size;
+
+	if($size < 2){
+		return [];
+	}
 
 	if($size % 2 == 0){
 		$startIndex = 1;
@@ -1470,6 +1573,7 @@ function updatePoolStandings($tournamentID, $groupSet = 1){
 
 		$fighterStats = getAllTournamentExchanges($tournamentID, 'pool', $setNumber);
 		$fighterStats = pool_NormalizeSizes($fighterStats, $tournamentID, $setNumber);
+		$fighterStats = pool_AddByeStandings($fighterStats, $tournamentID, $setNumber);
 
 		recordScores($fighterStats, $tournamentID, $setNumber);
 		unset($fighterStats);

@@ -869,6 +869,10 @@ function autoPopluateButton($numPools, $enabled){
 				<strong>Seeding Source
 					<?=tooltip("'Seed List' data is manualy entered in <strong>
 						Manage Fighters -> Set Fighter Ratings</strong><BR><BR>
+						'Swiss Pairing' makes pools of 2. The first set is paired
+						off the seed list, later sets are paired by wins in the
+						previous set. Needs a max pool size of 2, cumulative
+						pool sets, and enough pools created for the set.
 						")?>
 					<!-- Suppressed Option: "Polar Seeding uses rating & rating2 to group people of similar
 						ratings together. Don't use it unless you know what you are doing. -->
@@ -883,6 +887,7 @@ function autoPopluateButton($numPools, $enabled){
 				<?php endif ?>
 				<option value='random'>Random</option>
 				<option value='seedList'>Seed List</option>
+				<option value='swiss'>Swiss Pairing</option>
 				<!--<option value='polar'>Polar Seeding</option>-->
 			</select>
 		</div>

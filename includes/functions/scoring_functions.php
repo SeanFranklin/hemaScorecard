@@ -2437,11 +2437,25 @@ function pool_GeneratePools($specifications){
 		return;
 	}
 
-	// This is a special mode
+
+	// __ Special Modes _____________________________________________
+
+	// Depreciated feature to generate pools using two seeding sources together.
 	if($specifications['seedMethod'] == 'polar'){
 		pool_GeneratePolarPools($specifications);
 		return;
 	}
+
+	// Special mode for creating several pool sets of 2 fighter pools
+	if($specifications['seedMethod'] == 'swiss'){
+		pool_GenerateSwissPools($specifications);
+		return;
+	}
+
+
+	// __ Normal Implementation _____________________________________
+	// TODO: This content can become it's own function and make
+	// pool_GeneratePools() as selector function for the pool generation mode.
 
 	$groupSet = (int)$specifications['groupSet'];
 	$lastGroupSet = $groupSet - 1;
@@ -2786,6 +2800,170 @@ $a = false;
 		}
 
 	}
+
+}
+
+/******************************************************************************/
+
+function pool_GenerateSwissPools($specifications){
+// Swiss style pairings for a pool set made up of 2 person pools.
+// The first set is paired off the seed list. Later sets are paired off the
+// standings of the previous set, grouped by wins, so the previous set should
+// be cumulative for any set past the second.
+// The pairing itself is done in generate_SwissPairings().
+
+	$tournamentID = (int)$specifications['tournamentID'];
+	$groupSet = (int)$specifications['groupSet'];
+	$lastGroupSet = $groupSet - 1;
+	if($tournamentID == 0 || $groupSet == 0){
+		return;
+	}
+
+	if(maxPoolSize($tournamentID) != SWISS_POOL_SIZE){
+		setAlert(USER_ALERT,"Swiss pairing makes pools of 2.<BR>
+			Set the <strong>Maximum Pool Size</strong> to 2 in the tournament settings
+			so byes are scored correctly.");
+	}
+
+	if($groupSet == 1){
+		$sql = "SELECT rosterID, 0 AS wins, rating
+				FROM eventTournamentRoster as eTR
+				INNER JOIN eventRoster USING(rosterID)
+				LEFT JOIN eventRatings USING(tournamentRosterID)
+				WHERE tournamentID = {$tournamentID}
+				AND (	SELECT COUNT(*)
+						FROM eventIgnores eI
+						WHERE eI.rosterID = eTR.rosterID
+						AND eI.tournamentID = {$tournamentID} ) = 0
+				ORDER BY rating DESC";
+		$fighters = (array)mysqlQuery($sql, ASSOC);
+
+		// Rank is just the seed list order
+		foreach($fighters as $index => $fighter){
+			$fighters[$index]['rank'] = $index + 1;
+		}
+
+	} else {
+		$sql = "SELECT rosterID, wins, `rank`
+				FROM eventStandings AS eS
+				INNER JOIN eventRoster USING(rosterID)
+				INNER JOIN eventTournamentRoster AS eTR USING(rosterID)
+				WHERE eS.tournamentID = {$tournamentID}
+				AND eTR.tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$lastGroupSet}
+				AND (	SELECT COUNT(*)
+						FROM eventIgnores eI
+						WHERE eI.rosterID = eS.rosterID
+						AND eI.tournamentID = {$tournamentID}
+						AND stopAtSet >= {$lastGroupSet}
+					) = 0
+				ORDER BY `rank` ASC";
+		$fighters = (array)mysqlQuery($sql, ASSOC);
+
+		if($lastGroupSet > 1 && isCumulative($lastGroupSet, $tournamentID) == false){
+			setAlert(USER_ALERT,"Pool set {$lastGroupSet} is not cumulative.<BR>
+				Fighters have been grouped by their wins in that set only.
+				Turn on <strong>Cumulative</strong> in <strong>Manage Pool Sets</strong>
+				to group by total wins.");
+		}
+	}
+
+	if($fighters == null){
+		setAlert(USER_ERROR,"No seeding data found.<BR>Pools not generated");
+		return;
+	}
+
+	// Anyone who has already sat alone in a pool has had their bye
+	$sql = "SELECT rosterID
+			FROM eventGroupRoster
+			WHERE groupID IN (
+				SELECT groupID
+				FROM eventGroupRoster
+				WHERE groupID IN (
+					SELECT groupID
+					FROM eventGroups
+					WHERE tournamentID = {$tournamentID}
+					AND groupType = 'pool'
+					AND groupSet < {$groupSet}
+				)
+				GROUP BY groupID
+				HAVING COUNT(*) = 1
+			)";
+	$priorByes = (array)mysqlQuery($sql, SINGLES, 'rosterID');
+
+	foreach($fighters as $index => $fighter){
+		$fighters[$index]['hadBye'] = in_array($fighter['rosterID'], $priorByes);
+	}
+
+	$fightsTogether = getAllFightsTogether($tournamentID);
+	$numberOfPools = count((array)getPools($tournamentID, $groupSet));
+
+	$pools = generate_SwissPairings($fighters, $fightsTogether, $numberOfPools);
+
+	if($pools === null){
+		$poolsNeeded = (int)ceil(count($fighters) / 2);
+		$numFighters = count($fighters);
+		setAlert(USER_ERROR,"Not enough pools.<BR>
+			Swiss pairing needs <strong>{$poolsNeeded}</strong> pools for
+			{$numFighters} fighters, there are {$numberOfPools}.");
+		return;
+	}
+
+	$_SESSION['poolSeeds'] = $pools;
+
+}
+
+/******************************************************************************/
+
+function pool_AddByeStandings($fighterStats, $tournamentID, $groupSet){
+// Gives a fighter who is alone in a pool (a bye) a standings row with one
+// match and one win, so the cumulative standings and the next set of swiss
+// pairings still include them.
+//
+// This is a synthetic result: there is no match in eventMatches to back it.
+// Standings are otherwise built purely from exchanges, so a fighter with no
+// match would have no row at all and would silently drop out of the
+// tournament. A win with no points is the standard swiss treatment of a bye.
+// Only applies to tournaments with a maximum pool size of 2, since a lone
+// fighter in a larger pool is a mistake rather than a bye.
+
+	$tournamentID = (int)$tournamentID;
+	$groupSet = (int)$groupSet;
+	if($tournamentID == 0 || $groupSet == 0){
+		return $fighterStats;
+	}
+
+	if(maxPoolSize($tournamentID) != SWISS_POOL_SIZE){
+		return $fighterStats;
+	}
+
+	$sql = "SELECT groupID, MIN(rosterID) AS rosterID
+			FROM eventGroupRoster
+			WHERE groupID IN (
+				SELECT groupID
+				FROM eventGroups
+				WHERE tournamentID = {$tournamentID}
+				AND groupType = 'pool'
+				AND groupSet = {$groupSet}
+			)
+			GROUP BY groupID
+			HAVING COUNT(*) = 1";
+	$byes = (array)mysqlQuery($sql, ASSOC);
+
+	foreach($byes as $bye){
+		$rosterID = (int)$bye['rosterID'];
+		if(isset($fighterStats[$rosterID])){
+			continue;
+		}
+		$fighterStats[$rosterID] = [
+			'groupID' => (int)$bye['groupID'],
+			'matches' => 1,
+			'wins' => 1,
+		];
+	}
+
+	return $fighterStats;
 
 }
 

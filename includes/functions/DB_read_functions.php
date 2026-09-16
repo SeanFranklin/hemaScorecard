@@ -4023,6 +4023,37 @@ function getTournamentMatchCaps($tournamentID){
 
 /******************************************************************************/
 
+function getAllFightsTogether($tournamentID){
+// returns how many times each pair of fighters has met in the pools
+// indexed by [rosterID1][rosterID2], pairs who haven't met are absent
+
+	$tournamentID = (int)$tournamentID;
+	if($tournamentID == 0){
+		setAlert(SYSTEM,"No tournamentID in getAllFightsTogether()");
+		return;
+	}
+
+	$sql = "SELECT fighter1ID, fighter2ID
+			FROM eventMatches
+			INNER JOIN eventGroups ON eventMatches.groupID = eventGroups.groupID
+			WHERE eventGroups.tournamentID = {$tournamentID}
+			AND eventGroups.groupType = 'pool'
+			AND fighter1ID IS NOT NULL
+			AND fighter2ID IS NOT NULL";
+	$matches = (array)mysqlQuery($sql, ASSOC);
+
+	$fightsTogether = [];
+	foreach($matches as $match){
+		@$fightsTogether[$match['fighter1ID']][$match['fighter2ID']]++; // Might not exist, treat as zero.
+		@$fightsTogether[$match['fighter2ID']][$match['fighter1ID']]++;
+	}
+
+	return $fightsTogether;
+
+}
+
+/******************************************************************************/
+
 function getNumberOfFightsTogether($rosterID1, $rosterID2, $tournamentID){
 
 	$rosterID1 = (int)$rosterID1;

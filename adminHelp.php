@@ -606,6 +606,11 @@ the maximum pool size. <a href='#editTournaments'>Read More</a>
 <p>
 There are several additional options for modifying pools using <strong>(More Options) > Re-Order Pools</strong> at the bottom of the Pool Rosters page.
 <BR><u>Manage Pool Sets:</u> Used do progressive pools aka swiss style.
+<BR><u>Swiss Pairing:</u> To run a swiss tournament set the <strong>Maximum Pool Size</strong> to 2, make one pool set per round
+with <strong>Cumulative</strong> turned on for each set, and create half as many pools as you have fighters (rounded up) in each set.
+Then use <strong>Generate Pools > Swiss Pairing</strong> to fill each set. Fighters are grouped by total wins and the top half of
+each group is paired against the bottom half, avoiding rematches where possible. With an odd number of fighters the lowest
+ranked fighter who hasn't had one yet gets a bye, which is scored as a win with no points.
 <BR><u>Change Pool Order:</u> Used to re-order pools after you have added fighters. This will temporarily lock pool rosters from being changed, and give the option to change the pool numbers. Click <strong>Done</strong> to save these changes, or <strong>Cancel</strong> to discard.
 
 <BR><u>Pool Rankings:</u> Special options for weird pool options, like making everyone in Pool #1 ranked ahead of Pool #2.
