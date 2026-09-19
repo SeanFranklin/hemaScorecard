@@ -1,43 +1,4 @@
 
-/************************************************************************************/
-
-function toggleTableRow(divName, divName2 = null) {
-    var x = document.getElementById(divName);
-
-    if (x.style.display == '') {
-        x.style.display = 'table-row';
-    } else {
-        x.style.display = '';
-    }
-
-    if(divName2 == null){return;}
-
-    var x = document.getElementById(divName2);
-    if (x.style.display == '') {
-        x.style.display = 'table-row';
-    } else {
-        x.style.display = '';
-    }
-
-}
-
-/************************************************************************************/
-
-function toggleCheckbox(checkboxID, divID, dontCheck){
-    checkbox = document.getElementById(checkboxID);
-
-    if(checkbox.checked){
-        checkbox.checked = false;
-        divID.style.background = 'none';
-    } else {
-        checkbox.checked = true;
-        divID.style.background = '#3adb76';
-    }
-    if(typeof dontCheck === 'undefined'){
-        checkIfFought(checkbox);
-    }
-}
-
 /******************************************************************************/
 
 function changeParticipantOrdering(sortWhat,sortHow){
@@ -98,92 +59,6 @@ function goToPersonalSchedule(rosterID){
     document.getElementsByTagName('body')[0].appendChild(myForm);
 
     myForm.submit();
-
-}
-
-/**********************************************************************/
-
-function editParticipant(rosterID){
-    var div = document.getElementById('editParticipantModal');
-    checkIfFought.numConflictsChecked = 0;
-    hasAlreadyFoughtWarning(false, div);
-
-    if(rosterID == 0){
-        $("#editParticipantModal").foundation("close");
-        return;
-    }
-
-    $("#editParticipantModal").foundation("open");
-
-    var eventID = document.getElementById('eventID').value;
-
-    var query = "mode=fighterInfo&rosterID="+rosterID.toString();
-    query = query + "&eventID=" + eventID.toString();
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
-
-    xhr.onreadystatechange = function (){
-        if(this.readyState == 4 && this.status == 200){
-            if(this.responseText.length > 1){ // If the fighter has already fought
-                var data = JSON.parse(this.responseText);
-                fillInFields(data);
-            }
-        }
-    };
-
-// Populate fields of the form with data
-    function fillInFields(data){
-        var elementList = document.getElementById('editParticipantForm');
-        for(var i =0; i < elementList.length; i++){
-            elementList[i].checked = false;
-        }
-        psudoButtons = document.getElementById('editTournamentListDiv').getElementsByTagName('div');
-        for(var i=0; i < psudoButtons.length; i++){
-            psudoButtons[i].style.background = 'none';
-        }
-
-        document.getElementById('editRosterID').value = rosterID;
-        document.getElementById('editFirstName').value = data.firstName;
-        document.getElementById('editLastName').value = data.lastName;
-        document.getElementById('editSchoolID').value = data.schoolID;
-        document.getElementById('editFullName').innerHTML = data.firstName+" "+data.lastName;
-        document.getElementById('rosterIDforDelete').name = "deleteFromEvent["+rosterID+"]";
-
-        for(var tournamentID in data.tournamentIDs){
-            document.getElementById('editTournamentID'+tournamentID).checked = true;
-            document.getElementById('divForeditTournamentID'+tournamentID).style.background = '#3adb76';
-        }
-
-        divList = document.getElementsByClassName('tournamentSelectBox');
-
-        for(var i=0; i < divList.length; i++){
-            divList[i].style.color = null;
-        }
-
-    }
-
-// Check if the fighter has already fought
-    var query = "mode=hasFought";
-    query = query + "&rosterID=" + rosterID.toString();
-    query = query + "&eventID=" + document.getElementById('eventID').value;
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
-
-    xhr.onreadystatechange = function (){
-        if(this.readyState == 4 && this.status == 200){
-            text = document.getElementById('warnIfFought');
-            if(this.responseText.length > 1){ // If the fighter has already fought
-                text.innerHTML = "<div class='callout alert'><u>Note:</u> This participant has already started competing</div>";
-            } else {
-                text.innerHTML = null;
-            }
-        }
-    };
 
 }
 
@@ -652,6 +527,159 @@ var RosterEntry = (function(){
         });
 
         input._autocomplete = { open: open, close: close, isOpen: isOpen };
+    }
+
+    return { init: init, attachSchoolCombobox: attachSchoolCombobox, toggleChip: toggleChip };
+
+})();
+
+/******************************************************************************/
+// Event roster table (participantsEvent.php). Organizers click a row to edit
+// it in place; public viewers click a row to reveal its schedule block.
+/******************************************************************************/
+
+var RosterTable = (function(){
+
+    var schools = [];       // {schoolID, label}
+    var tournaments = [];   // {tournamentID, name}
+    var template, form, rosterIDField;
+    var current = null;     // {row, editor, fought:{tournamentID:true}} while an editor is open
+
+    function init(config){
+        schools = config.schools || [];
+        tournaments = config.tournaments || [];
+        template = document.getElementById('rosterEditorTemplate');
+        form = document.getElementById('rosterEditForm');
+        rosterIDField = document.getElementById('editRosterID');
+
+        var rows = document.querySelectorAll('tr.roster-row');
+        for(var r = 0; r < rows.length; r++){
+            rows[r].addEventListener('click', template ? onEditClick : onScheduleClick);
+        }
+        document.addEventListener('keydown', function(e){
+            if(e.key == 'Escape' && !e._autocompleteHandled){ closeEditor(); }
+        });
+        if(form){ form.addEventListener('submit', onSubmit); }
+    }
+
+    // Guard the FK: never post schoolID 0 (a cleared box, or a school with no short name).
+    function onSubmit(e){
+        var els = current && current.editor.querySelector('.edit-school-id');
+        if(els && els.value == '0'){
+            e.preventDefault();
+            current.editor.querySelector('.edit-school-input').classList.add('is-invalid-input');
+        }
+    }
+
+    function onScheduleClick(){
+        var schedule = document.getElementById('tList-' + this.getAttribute('data-roster-id'));
+        if(schedule){ schedule.classList.toggle('hidden'); }
+    }
+
+    function onEditClick(e){
+        if(e.target.closest('.roster-remove')){ return; } // the delete checkbox
+        if(!current || current.row != this){ openEditor(this); }
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function openEditor(row){
+        closeEditor();
+
+        var holder = document.createElement('tbody');
+        holder.innerHTML = template.innerHTML;
+        var editor = holder.firstElementChild;
+        var rosterID = row.getAttribute('data-roster-id');
+        var entered = {};
+        row.getAttribute('data-tournament-ids').split(',').forEach(function(id){
+            if(id != ''){ entered[id] = true; }
+        });
+
+        // Names come from data attributes: the name cell may include a participant ID.
+        editor.querySelector('.edit-first-name').value = row.getAttribute('data-first-name');
+        editor.querySelector('.edit-last-name').value = row.getAttribute('data-last-name');
+
+        var els = {
+            school: editor.querySelector('.edit-school-input'),
+            schoolID: editor.querySelector('.edit-school-id'),
+            schoolToggle: editor.querySelector('.school-toggle')
+        };
+        RosterEntry.attachSchoolCombobox(els, schools);
+        var schoolID = row.getAttribute('data-school-id');
+        schools.forEach(function(s){
+            if(s.schoolID == schoolID){ els.school.value = s.label; els.schoolID.value = schoolID; }
+        });
+
+        var chipHolder = editor.querySelector('.edit-tournaments');
+        tournaments.forEach(function(t){
+            var chip = document.createElement('div');
+            chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
+            chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
+                + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
+                + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
+            chip.appendChild(document.createTextNode(t.name));
+            chip.addEventListener('click', function(){
+                RosterEntry.toggleChip(chip);
+                if(entered[t.tournamentID]){ checkFought(rosterID, t.tournamentID, chip.firstChild); }
+            });
+            chipHolder.appendChild(chip);
+        });
+
+        var scheduleRow = document.getElementById('tList-' + rosterID);
+        if(scheduleRow){
+            editor.querySelector('.roster-editor-schedule').innerHTML = scheduleRow.firstElementChild.innerHTML;
+        }
+
+        editor.querySelector('.roster-cancel').addEventListener('click', closeEditor);
+        editor.querySelectorAll('input[type=text]').forEach(function(input){
+            input.addEventListener('keydown', function(e){
+                if(e.key == 'Enter' && !e._autocompleteHandled){
+                    e.preventDefault();
+                    if(!editor.querySelector('.roster-save').disabled){ form.requestSubmit(); }
+                }
+            });
+        });
+
+        rosterIDField.value = rosterID;
+        row.parentNode.insertBefore(editor, row.nextSibling);
+        row.classList.add('is-editing');
+        current = { row: row, editor: editor, fought: {} };
+        editor.querySelector('.name-inputs input').focus();
+    }
+
+    function closeEditor(){
+        if(!current){ return; }
+        current.editor.parentNode.removeChild(current.editor);
+        current.row.classList.remove('is-editing');
+        rosterIDField.value = '0';
+        current = null;
+    }
+
+    // Removing a fighter from a tournament they have already fought in shows a
+    // warning and disables Save until the explicit confirm button is used.
+    function checkFought(rosterID, tournamentID, box){
+        var ctx = current;
+        if(box.checked){
+            delete ctx.fought[tournamentID];
+            updateWarning(ctx);
+            return;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', AJAX_LOCATION + '?mode=hasFought&rosterID=' + rosterID + '&tournamentID=' + tournamentID, true);
+        xhr.onload = function(){
+            // Ignore if the editor changed or the chip was re-checked while in flight.
+            if(current == ctx && !box.checked && this.responseText.slice(-10) == 'HAS FOUGHT'){
+                ctx.fought[tournamentID] = true;
+                updateWarning(ctx);
+            }
+        };
+        xhr.send();
+    }
+
+    function updateWarning(ctx){
+        var show = Object.keys(ctx.fought).length > 0;
+        ctx.editor.querySelector('.roster-editor-warning').classList.toggle('hidden', !show);
+        ctx.editor.querySelector('.roster-save').disabled = show;
     }
 
     return { init: init };

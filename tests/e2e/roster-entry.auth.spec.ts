@@ -176,12 +176,14 @@ test.describe('event roster entry', () => {
     await card.locator("button[name='formName'][value='addEventParticipants']").click();
 
     const roster = page.locator('#eventRosterForm');
-    await expect(roster.locator('tr.pointer', { hasText: 'Gable' })).toContainText(SCHOOLS[0].shortName);
-    await expect(roster.locator('tr.pointer', { hasText: 'Hart' })).toContainText(SCHOOLS[1].shortName);
+    const gable = roster.locator('tr.roster-row', { hasText: 'Gable' });
+    const hart = roster.locator('tr.roster-row', { hasText: 'Hart' });
+    await expect(gable).toContainText(SCHOOLS[0].shortName);
+    await expect(hart).toContainText(SCHOOLS[1].shortName);
 
     // Both were entered in the tournament, not just the event.
-    await expect(roster.getByText('Tournament Entries for Greta')).toBeAttached();
-    await expect(roster.getByText('Tournament Entries for Hana')).toBeAttached();
+    await expect(gable.locator('.roster-tournaments .tournament-box')).toHaveCount(1);
+    await expect(hart.locator('.roster-tournaments .tournament-box')).toHaveCount(1);
   });
 
   test('adminSchools return button reopens the entry card', async ({ page }) => {
@@ -201,3 +203,81 @@ test.describe('event roster entry', () => {
   });
 });
 
+/**
+ * Roster table inline editing. Clicking a row swaps it for an editor that
+ * POSTs formName=editEventParticipant with editParticipantData[...] exactly
+ * as the old modal did. Uses the fighters added above (serial within file)
+ * so it never touches fighters other spec files may have put into matches.
+ */
+test.describe('event roster inline edit', () => {
+  test('roster rows show tournament chips and no edit button', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await expect(roster.locator('th', { hasText: 'Tournaments' })).toBeVisible();
+    await expect(roster.getByText('Edit', { exact: true })).toHaveCount(0);
+    const hart = roster.locator('tr.roster-row', { hasText: 'Hart' });
+    await expect(hart.locator('.roster-tournaments .tournament-box')).toHaveCount(1);
+  });
+
+  test('cancel restores the row unchanged', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    const gable = roster.locator('tr.roster-row', { hasText: 'Gable' });
+    await gable.locator('.roster-name').click();
+
+    const editor = roster.locator('tr.roster-editor');
+    await expect(editor).toHaveCount(1);
+    await expect(editor.locator('.edit-first-name')).toHaveValue('Greta');
+    await editor.locator('.edit-last-name').fill('Nope');
+    await editor.locator('.roster-cancel').click();
+
+    await expect(roster.locator('tr.roster-editor')).toHaveCount(0);
+    await expect(gable).toBeVisible();
+    await expect(gable).toContainText('Gable');
+  });
+
+  test('saving an inline edit changes school and tournament entries', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    const hart = roster.locator('tr.roster-row', { hasText: 'Hart' });
+    const chipName = (await hart.locator('.roster-tournaments .tournament-box').first().innerText()).trim();
+    await hart.locator('.roster-school').click();
+
+    const editor = roster.locator('tr.roster-editor');
+    await editor.locator('.edit-school-input').fill('Test');
+    await page.getByRole('option', { name: SCHOOLS[0].shortName }).click();
+    await expect(editor.locator('.edit-school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
+
+    const chip = editor.locator('.tournament-box', { hasText: chipName });
+    await expect(chip.locator("input[type='checkbox']")).toBeChecked();
+    await chip.click();
+    await expect(chip.locator("input[type='checkbox']")).not.toBeChecked();
+
+    await editor.locator('.roster-save').click();
+
+    const saved = roster.locator('tr.roster-row', { hasText: 'Hart' });
+    await expect(saved).toContainText(SCHOOLS[0].shortName);
+    await expect(saved.locator('.roster-tournaments .tournament-box', { hasText: chipName })).toHaveCount(0);
+  });
+
+  test('save is refused while the school box is empty', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await roster.locator('tr.roster-row', { hasText: 'Gable' }).locator('.roster-name').click();
+    const editor = roster.locator('tr.roster-editor');
+    await editor.locator('.edit-school-input').fill('');
+    await editor.locator('.roster-save').click();
+    await expect(editor).toHaveCount(1);
+    await expect(editor.locator('.edit-school-input')).toHaveClass(/is-invalid-input/);
+  });
+
+  test('opening a second row closes the first editor', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await roster.locator('tr.roster-row', { hasText: 'Gable' }).locator('.roster-name').click();
+    await roster.locator('tr.roster-row', { hasText: 'Hart' }).locator('.roster-name').click();
+    const editor = roster.locator('tr.roster-editor');
+    await expect(editor).toHaveCount(1);
+    await expect(editor.locator('.edit-last-name')).toHaveValue('Hart');
+  });
+});

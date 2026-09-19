@@ -57,10 +57,9 @@ if($eventID == null){
 		}
 
 		displayEntryConflicts();
-		editParticipant(null,$schoolList);
 		addNewParticipantsButtons();
 		if($_SESSION['addEventParticipantsMode'] == 'on'){
-			addNewParticipantsCard($schoolList);
+			addNewParticipantsCard();
 		}
 
 		confirmDeleteReveal('eventRosterForm', 'deleteFromEvent', 'large');
@@ -71,7 +70,7 @@ if($eventID == null){
 // Display roster
 	displayEventRoster($roster, $isTournamentScheduleUsed,
 						$tournamentEntries, $tournamentNames,
-						$scheduleByRosterID, $scheduleBlockNames);
+						$scheduleByRosterID, $scheduleBlockNames, $schoolList);
 
 }
 
@@ -117,14 +116,17 @@ function eventRegistrationCountsDisplay(){
 
 function displayEventRoster($roster, $isTournamentScheduleUsed,
 							$tournamentEntries, $tournamentNames,
-							$staffingBlocks, $scheduleBlockNames){
-// Displays table of fighters already registered, and which tournaments they are in
+							$staffingBlocks, $scheduleBlockNames, $schoolList){
+// Displays table of fighters already registered, and which tournaments they are in.
+// Organizers click a row to edit it inline (see RosterTable in
+// roster_management_scripts.js); the editor posts the same
+// editParticipantData[...] fields the old modal did.
 	?>
 
 	<form method='POST' id='eventRosterForm'>
 	<input type='hidden' id='eventID' name='eventID' value=<?=$_SESSION['eventID']?>>
 
-	<table  class='hover'>
+	<table class='hover roster-table'>
 
 	<?php
 
@@ -134,99 +136,63 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 
 		$rosterID = $person['rosterID'];
 		$fullName = getFighterName($rosterID);
-		$field1 = "tList-{$rosterID}";
-		$field2 = "tList2-{$rosterID}";
+		$entries = isset($tournamentEntries[$rosterID]) ? (array)$tournamentEntries[$rosterID] : [];
+
+		$schoolName = $person['schoolShortName'];
+		if($person['schoolBranch'] != ''){
+			$schoolName .= ", {$person['schoolBranch']}";
+		}
+
+		$scheduleHtml = rosterScheduleHtml($rosterID, $fullName, $isTournamentScheduleUsed,
+											$staffingBlocks, $scheduleBlockNames);
+		$rowClass = 'roster-row';
+		if(ALLOW_EDITING == true || $scheduleHtml != ''){
+			$rowClass .= ' pointer';
+		}
 		?>
 
-		<tr class='pointer' id='divFor<?=$rosterID?>'
-			>
+		<tr class='<?=$rowClass?>' id='divFor<?=$rosterID?>'
+			data-roster-id='<?=$rosterID?>'
+			data-first-name='<?=htmlspecialchars($person['firstName'], ENT_QUOTES)?>'
+			data-last-name='<?=htmlspecialchars($person['lastName'], ENT_QUOTES)?>'
+			data-school-id='<?=(int)$person['schoolID']?>'
+			data-tournament-ids='<?=implode(',', $entries)?>'>
 
 		<!-- Deletion checkboxes -->
 			<?php if(ALLOW_EDITING == true): ?>
-				<td>
+				<td class='roster-remove'>
 					<a name="anchor<?=$rosterID?>"></a>
 					<input type='checkbox' name='deleteFromEvent[<?=$rosterID?>]'
 						id='<?=$rosterID?>' onchange="checkIfFought(this)">
-					<span class='button tiny hollow' onclick="editParticipant(<?=$rosterID?>)">
-						Edit
-					</span>
 				</td>
 			<?php endif?>
 
 		<!-- Participant info -->
-			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
+			<td class='roster-name'>
 				<?=getFighterName($rosterID, null, null, false, true)?>
 			</td>
 
-			<?php
-				$schoolName = $person['schoolShortName'];
-				if($person['schoolBranch'] != ''){
-					$schoolName .= ", {$person['schoolBranch']}";
-				}
-
-			?>
-
-
-			<td onClick="toggleTableRow('<?=$field1?>', '<?=$field2?>')">
+			<td class='roster-school'>
 				<?=$schoolName?>
 			</td>
 
-		</tr>
-		<tr id='tList-<?=$rosterID?>' class='hidden'>
-
-		<!-- Entries & assignements -->
-			<td colspan='100%' >
-
-
-			<!-- Tournament entries -->
-				<?php if(isset($tournamentEntries[$rosterID]) == true): ?>
-					Tournament Entries for
-					<u><?=$fullName?></u>:
-
-					<?php foreach((array)$tournamentEntries[$rosterID] as $tournamentID):
-						$name = $tournamentNames[$tournamentID];
-						?>
-						<div class='shrink tournament-box'>
-							<?=$name?>
-						</div>
-					<?php endforeach?>
-				<?php else: ?>
-					<u><?=$person['firstName']?> <?=$person['lastName']?></u>
-					has no tournament entries
+		<!-- Tournament entries -->
+			<td class='roster-tournaments'>
+				<?php if(count($entries) == 0): ?>
+					<span class='grey-text'>none</span>
 				<?php endif ?>
-
-
-			<!-- Staffing assignments -->
-				<?php if(ALLOW['VIEW_SCHEDULE'] == true): ?>
-
-					<?php if(isset($staffingBlocks[$rosterID]) == true): ?>
-						<BR><u><?=$fullName?></u> is also scheduled for:
-
-						<?php foreach((array)$staffingBlocks[$rosterID] as $shift):
-							$name = $scheduleBlockNames[$shift['blockID']];
-							?>
-							<div class='shrink tournament-box'>
-								<?php if($shift['blockTypeID'] != SCHEDULE_BLOCK_MISC): ?>
-									<u>Staffing</u>:
-								<?php endif ?>
-								<?=$name?>
-							</div>
-						<?php endforeach?>
-					<?php endif ?>
-
-					<?php if($isTournamentScheduleUsed == true || isset($staffingAssignments[$rosterID])): ?>
-						<BR>
-						<a onclick="goToPersonalSchedule('<?=$rosterID?>')">
-							View Full Schedule for <?=$fullName?>
-						</a>
-					<?php endif ?>
-				<?php endif ?>
-
+				<?php foreach($entries as $tournamentID): ?>
+					<div class='tournament-box is-static'><?=$tournamentNames[$tournamentID]?></div>
+				<?php endforeach ?>
 			</td>
+
 		</tr>
-		<tr id='tList2-<?=$rosterID?>' class='hidden'>
-			<td colspan='100%' ></td>
-		</tr>
+
+		<?php if($scheduleHtml != ''): ?>
+			<tr id='tList-<?=$rosterID?>' class='roster-schedule hidden'>
+				<td colspan='100%'><?=$scheduleHtml?></td>
+			</tr>
+		<?php endif ?>
 
 	<?php endforeach?>
 
@@ -242,7 +208,238 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 
 	</form>
 
+	<?php
+	// Public viewers get row-click schedule toggles only; organizers also get
+	// the inline editor and, when open, the entry card. One init for both
+	// modules, deferred until the footer has loaded roster_management_scripts.js.
+	$config = [];
+	if(ALLOW_EDITING == true){
+		rosterInlineEditor();
+		$config['schools'] = rosterSchoolOptions($schoolList);
+		foreach($tournamentNames as $tournamentID => $name){
+			$config['tournaments'][] = ['tournamentID' => (int)$tournamentID, 'name' => $name];
+		}
+	}
+	?>
+	<script>
+		window.addEventListener('DOMContentLoaded', function(){
+			var config = <?=json_encode($config, JSON_FLAGS_INLINE)?>;
+			RosterTable.init(config);
+			if(document.getElementById('addParticipantsForm')){ RosterEntry.init(config); }
+		});
+	</script>
+
 <?php }
+
+/******************************************************************************/
+
+function rosterScheduleHtml($rosterID, $fullName, $isTournamentScheduleUsed,
+							$staffingBlocks, $scheduleBlockNames){
+// Staffing assignments and personal schedule link for a participant.
+// Returns '' if there is nothing to show.
+
+	if(ALLOW['VIEW_SCHEDULE'] == false){ return ''; }
+
+	$hasStaffing = isset($staffingBlocks[$rosterID]);
+	if($hasStaffing == false && $isTournamentScheduleUsed == false){ return ''; }
+
+	ob_start();
+	?>
+
+	<?php if($hasStaffing): ?>
+		<u><?=$fullName?></u> is also scheduled for:
+
+		<?php foreach((array)$staffingBlocks[$rosterID] as $shift):
+			$name = $scheduleBlockNames[$shift['blockID']];
+			?>
+			<div class='tournament-box is-static'>
+				<?php if($shift['blockTypeID'] != SCHEDULE_BLOCK_MISC): ?>
+					<u>Staffing</u>:
+				<?php endif ?>
+				<?=$name?>
+			</div>
+		<?php endforeach?>
+	<?php endif ?>
+
+	<?php if($isTournamentScheduleUsed == true || $hasStaffing): ?>
+		<BR>
+		<a onclick="goToPersonalSchedule('<?=$rosterID?>')">
+			View Full Schedule for <?=$fullName?>
+		</a>
+	<?php endif ?>
+
+	<?php
+	return trim(ob_get_clean());
+}
+
+/******************************************************************************/
+
+function rosterInlineEditor(){
+// Form + row template for editing a roster entry in place (built by
+// RosterTable.openEditor). Editor inputs reference the form via the form=
+// attribute because the roster table already sits inside the delete form
+// and forms can not nest. The POST is identical to the old edit modal's.
+	?>
+
+	<form method='POST' id='rosterEditForm'>
+		<input type='hidden' name='formName' value='editEventParticipant'>
+		<input type='hidden' name='editParticipantData[rosterID]' id='editRosterID' value='0'>
+	</form>
+
+	<template id='rosterEditorTemplate'>
+		<tr class='roster-editor'>
+			<td colspan='100%'>
+				<div class='roster-editor-fields'>
+
+					<div class='new-participant-cell name-cell'>
+						<div class='name-inputs'>
+							<?php if(NAME_MODE == 'firstName'): ?>
+								<input type='text' class='edit-first-name' form='rosterEditForm'
+									name='editParticipantData[firstName]' placeholder='First Name'>
+								<input type='text' class='edit-last-name' form='rosterEditForm'
+									name='editParticipantData[lastName]' placeholder='Last Name'>
+							<?php else: ?>
+								<input type='text' class='edit-last-name' form='rosterEditForm'
+									name='editParticipantData[lastName]' placeholder='Last Name'>
+								<input type='text' class='edit-first-name' form='rosterEditForm'
+									name='editParticipantData[firstName]' placeholder='First Name'>
+							<?php endif ?>
+						</div>
+					</div>
+
+					<div class='new-participant-cell school-cell'>
+						<div class='autocomplete-wrap school-combobox'>
+							<input type='text' class='school-input edit-school-input' placeholder='School' autocomplete='off'>
+							<input type='hidden' class='school-id edit-school-id' form='rosterEditForm'
+								name='editParticipantData[schoolID]' value='0'>
+							<span class='school-toggle' tabindex='-1' aria-label='Show all schools'>&#9662;</span>
+						</div>
+					</div>
+
+					<div class='new-participant-cell tournaments-cell edit-tournaments'></div>
+
+					<div class='roster-editor-actions'>
+						<button class='button success roster-save' form='rosterEditForm'>Save</button>
+						<a class='button secondary hollow roster-cancel'>Cancel</a>
+					</div>
+
+				</div>
+
+				<div class='roster-editor-warning hidden'>
+					<p><span class='red-text'><u>Warning:</u> You are trying to remove a fighter from a tournament
+					they have already started competing in.</span><BR>
+					If they are injured or disqualified please use
+					<strong><a href='adminFighters.php'>Manage Fighters > Withdraw Fighters</a></strong></p>
+					<div class='text-right'>
+						<button class='button alert hollow no-bottom roster-save-anyway' form='rosterEditForm'>
+							I understand and still want to make the changes
+						</button>
+					</div>
+				</div>
+
+				<div class='roster-editor-schedule'></div>
+			</td>
+		</tr>
+	</template>
+
+<?php }
+
+/******************************************************************************/
+
+function rosterSchoolOptions($schoolList){
+// Schools as {schoolID, label} for the school comboboxes. IDs 1 and 2 are the
+// Unknown/Unaffiliated placeholders, listed first as the old form did; real
+// schools named "Unaffiliated" (or with no short name) are left out.
+
+	$schools = [
+		['schoolID' => 1, 'label' => '*Unknown'],
+		['schoolID' => 2, 'label' => '*Unaffiliated'],
+	];
+	foreach((array)$schoolList as $school){
+		$label = $school['schoolShortName'];
+		if($school['schoolID'] == 1 || $school['schoolID'] == 2
+			|| $label == null || $label == 'Unaffiliated'){
+			continue;
+		}
+		if($school['schoolBranch'] != ''){
+			$label .= ", ".$school['schoolBranch'];
+		}
+		$schools[] = ['schoolID' => (int)$school['schoolID'], 'label' => $label];
+	}
+	return $schools;
+}
+
+/******************************************************************************/
+
+function rosterTournamentGroups($tournamentIDs){
+// Tournaments grouped by weapon for the roster entry chips:
+//   [['weapon' => 'Longsword', 'tournaments' => [['tournamentID', 'label', 'weapon'], ...]], ...]
+// A chip's label is the rest of the name ("Tier A Open"); its 'weapon' is the
+// prefix shown when a collapsed row lists its picks outside their group.
+// Within a weapon: gender, then prefix, so the Open tiers sit together.
+// Tournaments that are only a weapon share one unlabeled group at the end.
+
+	$tournamentIDs = array_map('intval', (array)$tournamentIDs);
+	if(count($tournamentIDs) == 0){ return []; }
+
+	$sql = "SELECT eT.tournamentID, w.tournamentType AS weapon, p.tournamentType AS prefix,
+				g.tournamentType AS gender, m.tournamentType AS material, s.tournamentType AS suffix
+			FROM eventTournaments AS eT
+			LEFT JOIN systemTournaments AS w ON w.tournamentTypeID = eT.tournamentWeaponID
+			LEFT JOIN systemTournaments AS p ON p.tournamentTypeID = eT.tournamentPrefixID
+			LEFT JOIN systemTournaments AS g ON g.tournamentTypeID = eT.tournamentGenderID
+			LEFT JOIN systemTournaments AS m ON m.tournamentTypeID = eT.tournamentMaterialID
+			LEFT JOIN systemTournaments AS s ON s.tournamentTypeID = eT.tournamentSuffixID
+			WHERE eT.tournamentID IN (".implode(',', $tournamentIDs).")";
+
+	$byWeapon = [];
+	foreach((array)mysqlQuery($sql, ASSOC) as $t){
+		$parts = array_filter([$t['prefix'], $t['gender'], $t['material'], $t['suffix']],
+							function($v){ return $v !== null && $v !== ''; });
+		$label = implode(' ', $parts);
+		$byWeapon[(string)$t['weapon']][] = [
+			'tournamentID' => (int)$t['tournamentID'],
+			'label' => $label,
+			// The bare weapon first, then by gender (none last), prefix, and the rest.
+			'sort' => [$label == '' ? 0 : 1, $t['gender'] == '' ? 1 : 0,
+						(string)$t['gender'], (string)$t['prefix'], $label],
+		];
+	}
+	uksort($byWeapon, 'strnatcasecmp');
+
+	$groups = [];
+	$plain = [];
+	foreach($byWeapon as $weapon => $list){
+		$weapon = (string)$weapon;
+		if(max(array_map(function($t){ return $t['label'] != ''; }, $list)) == false){
+			foreach($list as $t){
+				$plain[] = ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => ''];
+			}
+			continue;
+		}
+
+		usort($list, function($a, $b){
+			foreach($a['sort'] as $i => $v){
+				$cmp = is_int($v) ? $v - $b['sort'][$i] : strnatcasecmp($v, $b['sort'][$i]);
+				if($cmp != 0){ return $cmp; }
+			}
+			return 0;
+		});
+
+		$tournaments = [];
+		foreach($list as $t){
+			$tournaments[] = ($t['label'] == '')
+				? ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => '']
+				: ['tournamentID' => $t['tournamentID'], 'label' => $t['label'], 'weapon' => $weapon];
+		}
+		$groups[] = ['weapon' => $weapon, 'tournaments' => $tournaments];
+	}
+
+	if(count($plain) > 0){
+		$groups[] = ['weapon' => '', 'tournaments' => $plain];
+	}
+	return $groups;
+}
 
 /******************************************************************************/
 
@@ -357,11 +554,12 @@ function displayEntryConflicts(){
 
 /******************************************************************************/
 
-function addNewParticipantsCard($schoolList){
+function addNewParticipantsCard(){
 // Interface to add participants to the event.
 // Rows are built client side from the <template> below (see RosterEntry in
-// roster_management_scripts.js): the card opens with one row and a fresh one
-// appears whenever the last row is focused. Each row posts the same newParticipants[k][...] fields the legacy
+// roster_management_scripts.js, initialised from displayEventRoster): the
+// card opens with one row and a fresh one appears whenever the last row is
+// focused. Each row posts the same newParticipants[k][...] fields the legacy
 // per-school form did, so addEventParticipants() and the conflict callout
 // are unchanged.
 
@@ -501,241 +699,7 @@ function addNewParticipantsCard($schoolList){
 		</div>
 	</template>
 
-	<script>
-		// roster_management_scripts.js is loaded in the footer, so wait for it.
-		window.addEventListener('DOMContentLoaded', function(){
-			RosterEntry.init({ schools: <?=json_encode(rosterSchoolOptions($schoolList), JSON_FLAGS_INLINE)?> });
-		});
-	</script>
-
 	</div>
-
-<?php }
-
-/******************************************************************************/
-
-function rosterSchoolOptions($schoolList){
-// Schools as {schoolID, label} for the school combobox. IDs 1 and 2 are the
-// Unknown/Unaffiliated placeholders, listed first as the old form did; real
-// schools named "Unaffiliated" (or with no short name) are left out.
-
-	$schools = [
-		['schoolID' => 1, 'label' => '*Unknown'],
-		['schoolID' => 2, 'label' => '*Unaffiliated'],
-	];
-	foreach((array)$schoolList as $school){
-		$label = $school['schoolShortName'];
-		if($school['schoolID'] == 1 || $school['schoolID'] == 2
-			|| $label == null || $label == 'Unaffiliated'){
-			continue;
-		}
-		if($school['schoolBranch'] != ''){
-			$label .= ", ".$school['schoolBranch'];
-		}
-		$schools[] = ['schoolID' => (int)$school['schoolID'], 'label' => $label];
-	}
-	return $schools;
-}
-
-/******************************************************************************/
-
-function rosterTournamentGroups($tournamentIDs){
-// Tournaments grouped by weapon for the roster entry chips:
-//   [['weapon' => 'Longsword', 'tournaments' => [['tournamentID', 'label', 'weapon'], ...]], ...]
-// A chip's label is the rest of the name ("Tier A Open"); its 'weapon' is the
-// prefix shown when a collapsed row lists its picks outside their group.
-// Within a weapon: gender, then prefix, so the Open tiers sit together.
-// Tournaments that are only a weapon share one unlabeled group at the end.
-
-	$tournamentIDs = array_map('intval', (array)$tournamentIDs);
-	if(count($tournamentIDs) == 0){ return []; }
-
-	$sql = "SELECT eT.tournamentID, w.tournamentType AS weapon, p.tournamentType AS prefix,
-				g.tournamentType AS gender, m.tournamentType AS material, s.tournamentType AS suffix
-			FROM eventTournaments AS eT
-			LEFT JOIN systemTournaments AS w ON w.tournamentTypeID = eT.tournamentWeaponID
-			LEFT JOIN systemTournaments AS p ON p.tournamentTypeID = eT.tournamentPrefixID
-			LEFT JOIN systemTournaments AS g ON g.tournamentTypeID = eT.tournamentGenderID
-			LEFT JOIN systemTournaments AS m ON m.tournamentTypeID = eT.tournamentMaterialID
-			LEFT JOIN systemTournaments AS s ON s.tournamentTypeID = eT.tournamentSuffixID
-			WHERE eT.tournamentID IN (".implode(',', $tournamentIDs).")";
-
-	$byWeapon = [];
-	foreach((array)mysqlQuery($sql, ASSOC) as $t){
-		$parts = array_filter([$t['prefix'], $t['gender'], $t['material'], $t['suffix']],
-							function($v){ return $v !== null && $v !== ''; });
-		$label = implode(' ', $parts);
-		$byWeapon[(string)$t['weapon']][] = [
-			'tournamentID' => (int)$t['tournamentID'],
-			'label' => $label,
-			// The bare weapon first, then by gender (none last), prefix, and the rest.
-			'sort' => [$label == '' ? 0 : 1, $t['gender'] == '' ? 1 : 0,
-						(string)$t['gender'], (string)$t['prefix'], $label],
-		];
-	}
-	uksort($byWeapon, 'strnatcasecmp');
-
-	$groups = [];
-	$plain = [];
-	foreach($byWeapon as $weapon => $list){
-		$weapon = (string)$weapon;
-		if(max(array_map(function($t){ return $t['label'] != ''; }, $list)) == false){
-			foreach($list as $t){
-				$plain[] = ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => ''];
-			}
-			continue;
-		}
-
-		usort($list, function($a, $b){
-			foreach($a['sort'] as $i => $v){
-				$cmp = is_int($v) ? $v - $b['sort'][$i] : strnatcasecmp($v, $b['sort'][$i]);
-				if($cmp != 0){ return $cmp; }
-			}
-			return 0;
-		});
-
-		$tournaments = [];
-		foreach($list as $t){
-			$tournaments[] = ($t['label'] == '')
-				? ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => '']
-				: ['tournamentID' => $t['tournamentID'], 'label' => $t['label'], 'weapon' => $weapon];
-		}
-		$groups[] = ['weapon' => $weapon, 'tournaments' => $tournaments];
-	}
-
-	if(count($plain) > 0){
-		$groups[] = ['weapon' => '', 'tournaments' => $plain];
-	}
-	return $groups;
-}
-
-/******************************************************************************/
-
-function editParticipant($rosterID,$schoolList){
-// Edit the information attributed with a participant
-// Values to be filled in by Javascript
-
-	if(ALLOW_EDITING == false){ return; }
-	$tournamentIDs = getEventTournaments();
-	?>
-
-	<div class='reveal large' id='editParticipantModal' data-reveal>
-		<h4 class='text-center'>Edit Participant Information</h4>
-		<BR>
-		<form method='POST' id='editParticipantForm'>
-
-		<input type='hidden' name='formName' value='editEventParticipant'>
-		<input type='hidden' name='editParticipantData[rosterID]' id='editRosterID'>
-
-		<div class='grid-x  grid-margin-x'>
-	<!-- Name -->
-		<div class='input-group cell medium-6'>
-			<span class='input-group-label hide-for-small-only'>Name</span>
-			<input type='text' class='input-group-field' name='editParticipantData[firstName]' id='editFirstName'>
-			<input type='text' class='input-group-field' name='editParticipantData[lastName]' id='editLastName'>
-		</div>
-
-	<!-- School -->
-		<div class='input-group cell medium-6'>
-			<span class='input-group-label hide-for-small-only'>School</span>
-			<select class='input-group-field' name='editParticipantData[schoolID]' id='editSchoolID'>
-
-
-			<?php foreach($schoolList as $school):?>
-				<option value='<?=$school['schoolID']?>'>
-				<?=$school['schoolShortName']?>, <?=$school['schoolBranch']?>
-				</option>
-			<?php endforeach?>
-
-			</select>
-		</div>
-
-
-
-	<!-- Tournament entries -->
-		<div class='medium-10 cell callout' id='editTournamentListDiv'>
-			<?php foreach($tournamentIDs as $tournamentID):?>
-				<?php $tName = getTournamentName($tournamentID);?>
-
-				<div class='shrink tournamentSelectBox tournament-box'
-					onclick="toggleCheckbox('editTournamentID<?=$tournamentID?>', this)"
-					id='divForeditTournamentID<?=$tournamentID?>'>
-					<input type='checkbox' name='editParticipantData[tournamentIDs][<?=$tournamentID?>]'
-					id='editTournamentID<?=$tournamentID?>' class='hidden'>
-					<?=$tName?>
-				</div>
-			<?php endforeach?>
-
-
-			<div class='hidden' style='border: solid 1px; margin-top: 10px; padding: 8px;' id='confirmEditSubmit'>
-			<p><span class='red-text'><u>Warning:</u> You are trying to remove a fighter from a tournament
-			they have already started competing in.</span><BR>
-			If they are injured or disqualified please use
-			<strong><a href='adminFighters.php'>Manage Fighters > Withdraw Fighters</a></strong></p>
-			<div class='text-right'>
-				<button class='button alert hollow no-bottom' name='rosterID'
-					value='<?=$rosterID?>'>
-					I understand and still want to make the changes
-				</button>
-			</div>
-			</div>
-
-		</div>
-
-	<!-- Sumbit options -->
-		<div  class='medium-2 small-12 cell'>
-			<button class='button success expanded' name='rosterID'
-				value='<?=$rosterID?>' id='normalEditSubmit'>
-				Update Fighter
-			</button>
-
-			<span class='button secondary expanded' onclick="editParticipant(0)">Cancel</span>
-		</div>
-
-		</div>
-		</form>
-
-<!-- Delete Participant Option -->
-		<BR><a class='button alert no-bottom' data-open='confirmIndividualDelete'>
-		Remove from event
-		</a>
-
-		<div class='reveal medium text-center' id='confirmIndividualDelete' data-reveal>
-
-
-			<p>This will completely remove <BR><strong id='editFullName'></strong><BR> from the event.</p>
-			<p>All information will be <u>permanently</u> erased.</p>
-
-
-			<HR>
-			<span id='warnIfFought'></span>
-			<form method='POST' style='display:inline;'>
-			<div class='grid-x grid-margin-x'>
-				<input type='hidden' name='deleteFromEvent[]' value='true' id='rosterIDforDelete'>
-				<button class='button alert small-6 cell no-bottom' name='formName'  value='deleteFromEvent'>
-					Delete Participant
-				</button>
-				</form>
-
-				<button class='button secondary small-6 cell no-bottom' data-close aria-label='Close modal' type='button'>
-					Cancel
-				</button>
-			</div>
-
-			<button class='close-button' data-close aria-label='Close modal' type='button'>
-				<span aria-hidden='true'>&times;</span>
-			</button>
-
-		</div>
-
-
-
-		<button class='close-button' onclick="editParticipant(0)">
-			<span aria-hidden='true'>&times;</span>
-		</button>
-
-	</div>
-
 
 <?php }
 
@@ -767,6 +731,7 @@ function tableHeaders(){
 		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center'>
 			<a>School <?=$schoolArrow?></a>
 		</th>
+		<th class='text-center'>Tournaments</th>
 	</tr>
 	</thead>
 <?php }

@@ -724,12 +724,14 @@ legend h4 {
 }
 
 .add-participants-bar .button,
-.add-participants-card .button {
+.add-participants-card .button,
+.roster-editor-actions .button {
   margin-bottom: 0;
 }
 
 .new-participant-header,
-.new-participant-row {
+.new-participant-row,
+.roster-editor-fields {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -749,7 +751,8 @@ legend h4 {
 }
 
 .new-participant-row input[type='text'],
-.new-participant-row select {
+.new-participant-row select,
+.roster-editor-fields input[type='text'] {
   margin: 0;
   height: 2.2rem;
 }
@@ -757,7 +760,7 @@ legend h4 {
 .new-participant-cell.name-cell { flex: 2 1 280px; }
 .new-participant-cell.school-cell { flex: 1 1 200px; }
 .new-participant-cell.staff-cell { flex: 0 0 5rem; }
-.new-participant-cell.tournaments-cell { flex: 2 1 240px; line-height: 1.4; }
+.new-participant-cell.tournaments-cell { flex: 2 1 240px; }
 .new-participant-cell.remove-cell { flex: 0 0 1.5rem; text-align: center; }
 
 .name-inputs {
@@ -865,6 +868,47 @@ legend h4 {
 
 .roster-counts td {
   padding-left: 0;
+}
+
+/* Roster table inline edit ------------------------------------------------ */
+
+.roster-table .roster-remove {
+  width: 4rem;
+}
+
+.roster-table .roster-tournaments,
+.new-participant-cell.tournaments-cell {
+  line-height: 1.4;
+}
+
+.tournament-box.is-static {
+  cursor: default;
+}
+
+.roster-table tr.roster-row.is-editing {
+  display: none;
+}
+
+.roster-table tr.roster-editor > td {
+  background: #f4f8fb;
+  border-left: 3px solid #1779ba;
+  padding: 0.75rem;
+}
+
+.roster-editor-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.roster-editor-warning {
+  border: solid 1px;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+}
+
+.roster-editor-schedule:not(:empty) {
+  margin-top: 0.75rem;
 }
 
 /* Autocomplete ------------------------------------------------------------ */
