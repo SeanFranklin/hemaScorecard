@@ -7005,10 +7005,11 @@ function getTournamentAttributeName($tournamentTypeID = 0){
 
 /******************************************************************************/
 
-function getTournamentName($tournamentID = null){
-	//generates the tournament name give the ID
+function getTournamentName($tournamentID = null, $displayMode = null){
+	//generates the tournament name give the ID, in the session's display mode unless one is given
 
 	if($tournamentID == null){$tournamentID = $_SESSION['tournamentID'];}
+	if($displayMode == null){$displayMode = $_SESSION['dataModes']['tournamentDisplay'];}
 	if($tournamentID == null){
 		setAlert(SYSTEM,"No tournamentID in getTournamentName()");
 		return;
@@ -7029,7 +7030,7 @@ function getTournamentName($tournamentID = null){
 
 	$name = "";
 
-	if($_SESSION['dataModes']['tournamentDisplay'] == 'prefix'){
+	if($displayMode == 'prefix'){
 		if(isset($prefixName)){$name = $prefixName." ";};
 		if(isset($genderName)){$name .= $genderName." ";};
 		if(isset($materialName)){$name .= $materialName." ";};

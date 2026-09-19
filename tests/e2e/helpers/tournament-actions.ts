@@ -16,6 +16,8 @@ export type CustomCriterion = { field: string; sort: 'DESC' | 'ASC' };
 
 export type CreateTournamentOptions = {
   weapon: string;
+  /** Division label, e.g. 'Novice'. */
+  prefix?: string;
   formatLabel?: string;
   /** systemRankings ID; '1' = Franklin 2014, '-1' = Custom (RANKING_CUSTOM). */
   rankingID?: string;
@@ -114,6 +116,7 @@ export async function fillCustomCriteria(
 export async function createTournament(page: Page, options: CreateTournamentOptions) {
   const {
     weapon,
+    prefix,
     formatLabel = 'Sparring Matches',
     rankingID = '1',
     customCriteria,
@@ -147,14 +150,21 @@ export async function createTournament(page: Page, options: CreateTournamentOpti
     await fillCustomCriteria(page, '0', customCriteria);
   }
 
+  if (prefix) {
+    await page.locator('#prefixID_div0').selectOption({ label: prefix });
+  }
   await page.locator('#weaponID_div0').selectOption({ label: weapon });
+
+  // Counted rather than expected once, so a spec can create same-named tournaments.
+  const listed = page.getByRole('listitem').filter({ hasText: weapon });
+  const numListed = await listed.count();
 
   const addButton = page.locator('#editTournamentButton0');
   await expect(addButton).toBeEnabled();
   await addButton.click();
 
   // POST-redirect-GET lands back on the page listing current tournaments.
-  await expect(page.getByRole('listitem').filter({ hasText: weapon })).toBeVisible();
+  await expect(listed).toHaveCount(numListed + 1);
 }
 
 /** Add event-roster fighters to the current tournament's roster. */
