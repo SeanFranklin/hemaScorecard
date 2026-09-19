@@ -228,6 +228,382 @@ function editSystemParticipant(systemRosterID){
 }
 
 /******************************************************************************/
+// Event roster entry form (participantsEvent.php)
+//
+// Builds "new participant" rows from a <template>, and attaches a small
+// vanilla-JS autocomplete to the name and school inputs. No jQuery.
+/******************************************************************************/
+
+var RosterEntry = (function(){
+
+    // Schools are embedded in the page (a short list); fighters are searched
+    // server side (AJAX 'fighterSearch') since the system roster runs to
+    // tens of thousands of names.
+    var schools = [];    // {schoolID, label}
+    var schoolsByID = {};
+    var nextIndex = 1;
+    var MAX_SUGGESTIONS = 8;
+    var SEARCH_DELAY_MS = 150;
+
+    var rowsContainer, template, form, errorBox;
+
+/*----------------------------------------------------------------------------*/
+
+    function init(config){
+        schools = config.schools || [];
+        schoolsByID = {};
+        for(var i = 0; i < schools.length; i++){
+            schoolsByID[schools[i].schoolID] = schools[i];
+        }
+
+        rowsContainer = document.getElementById('newParticipantRows');
+        template = document.getElementById('newParticipantRowTemplate');
+        form = document.getElementById('addParticipantsForm');
+        errorBox = document.getElementById('newParticipantError');
+
+        if(!rowsContainer || !template || !form){ return; }
+
+        addRow();
+
+        document.getElementById('addParticipantRow').addEventListener('click', function(e){
+            e.preventDefault();
+            addRow(); // not focused, or the focus rule below would add a second
+        });
+
+        form.addEventListener('submit', onSubmit);
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function addRow(){
+        var html = template.innerHTML.replace(/__K__/g, String(nextIndex++));
+        var holder = document.createElement('div');
+        holder.innerHTML = html;
+        var row = holder.querySelector('.new-participant-row');
+        rowsContainer.appendChild(row);
+        wireRow(row);
+        return row;
+    }
+
+    function removeRow(row){
+        row.parentNode.removeChild(row);
+        if(rowsContainer.children.length == 0){
+            addRow();
+        }
+    }
+
+    function allRows(){
+        return Array.prototype.slice.call(rowsContainer.querySelectorAll('.new-participant-row'));
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function wireRow(row){
+        var els = rowElements(row);
+
+        // Name autocomplete on both name inputs
+        [els.first, els.last].forEach(function(input){
+            attachAutocomplete(input, {
+                items: function(){ return matchFighters(row, els); },
+                render: function(f){ return f.firstName + ' ' + f.lastName; },
+                onSelect: function(f){ selectFighter(row, els, f); }
+            });
+            input.addEventListener('input', function(){
+                // Editing a picked fighter's name turns the row back into a new entry.
+                if(els.systemRosterID.value != '0'){
+                    els.systemRosterID.value = '0';
+                    unlockSchool(els);
+                }
+            });
+            input.addEventListener('keydown', function(e){ onEnter(e, row); });
+        });
+
+        // School combobox
+        attachSchoolCombobox(els, schools);
+        els.school.addEventListener('keydown', function(e){ onEnter(e, row); });
+
+        // Tournament chips
+        var chips = row.querySelectorAll('.tournament-box');
+        for(var i = 0; i < chips.length; i++){
+            chips[i].addEventListener('click', function(){ toggleChip(this); });
+        }
+
+        // Remove
+        row.querySelector('.remove-row').addEventListener('click', function(){ removeRow(row); });
+
+        // Keep one fresh row below whatever the user is editing.
+        row.addEventListener('focusin', function(){
+            if(row == rowsContainer.lastElementChild){ addRow(); }
+        });
+    }
+
+    function rowElements(row){
+        return {
+            first: row.querySelector('.first-name-input'),
+            last: row.querySelector('.last-name-input'),
+            systemRosterID: row.querySelector('.system-roster-id'),
+            school: row.querySelector('.school-input'),
+            schoolID: row.querySelector('.school-id'),
+            schoolToggle: row.querySelector('.school-toggle')
+        };
+    }
+
+    function toggleChip(chip){
+        var checkbox = chip.querySelector('input[type=checkbox]');
+        checkbox.checked = !checkbox.checked;
+        chip.classList.toggle('is-selected', checkbox.checked);
+    }
+
+    // Enter moves to the next row (adding one if needed) instead of submitting.
+    function onEnter(e, row){
+        if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+        e.preventDefault();
+        var next = row.nextElementSibling || addRow();
+        next.querySelector('.name-inputs input').focus();
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function selectedSystemIDs(exceptRow){
+        var ids = {};
+        allRows().forEach(function(r){
+            if(r == exceptRow){ return; }
+            var id = r.querySelector('.system-roster-id').value;
+            if(id != '0'){ ids[id] = true; }
+        });
+        return ids;
+    }
+
+    // Resolves to fighters matching the row's typed names, minus any already
+    // picked in another row. Debounced; the autocomplete discards stale results.
+    function matchFighters(row, els){
+        var first = els.first.value.trim();
+        var last = els.last.value.trim();
+        if(first == '' && last == ''){ return []; }
+
+        return new Promise(function(resolve){
+            clearTimeout(row._searchTimer);
+            row._searchTimer = setTimeout(function(){
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', AJAX_LOCATION + '?mode=fighterSearch&firstName=' + encodeURIComponent(first)
+                    + '&lastName=' + encodeURIComponent(last), true);
+                xhr.onload = function(){
+                    var taken = selectedSystemIDs(row);
+                    resolve(JSON.parse(this.responseText).filter(function(f){
+                        return !taken[f.systemRosterID];
+                    }).slice(0, MAX_SUGGESTIONS));
+                };
+                xhr.send();
+            }, SEARCH_DELAY_MS);
+        });
+    }
+
+    function selectFighter(row, els, f){
+        els.first.value = f.firstName;
+        els.last.value = f.lastName;
+        els.systemRosterID.value = String(f.systemRosterID);
+        var school = schoolsByID[f.schoolID];
+        if(school){
+            // Known fighters keep their school; the field unlocks if the name is edited.
+            setSchool(els, school);
+            els.school.readOnly = true;
+            els.school.parentNode.classList.add('is-locked');
+        } else {
+            // systemRoster.schoolID can be null: leave the school for the user to pick.
+            els.school.value = '';
+            els.schoolID.value = '0';
+            unlockSchool(els);
+        }
+    }
+
+    function unlockSchool(els){
+        els.school.readOnly = false;
+        els.school.parentNode.classList.remove('is-locked');
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    // School combobox: els = {school (text input), schoolID (hidden), schoolToggle (caret)}
+    function attachSchoolCombobox(els, schoolList){
+        attachAutocomplete(els.school, {
+            items: function(showAll){ return matchSchools(schoolList, showAll ? '' : els.school.value); },
+            render: function(s){ return s.label; },
+            onSelect: function(s){ setSchool(els, s); }
+        });
+        els.school.addEventListener('input', function(){
+            var exact = findSchoolByLabel(schoolList, els.school.value);
+            els.schoolID.value = exact ? exact.schoolID : '0';
+            els.school.classList.remove('is-invalid-input');
+        });
+        els.schoolToggle.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            if(els.school.readOnly){ return; }
+            els.school.focus();
+            els.school._autocomplete.open(true);
+        });
+    }
+
+    function matchSchools(schoolList, text){
+        text = text.trim().toLowerCase();
+        var out = [];
+        for(var i = 0; i < schoolList.length; i++){
+            if(text == '' || schoolList[i].label.toLowerCase().indexOf(text) >= 0){
+                out.push(schoolList[i]);
+            }
+        }
+        return out;
+    }
+
+    function findSchoolByLabel(schoolList, label){
+        label = label.trim().toLowerCase();
+        for(var i = 0; i < schoolList.length; i++){
+            if(schoolList[i].label.toLowerCase() == label){ return schoolList[i]; }
+        }
+        return null;
+    }
+
+    function setSchool(els, school){
+        els.school.value = school.label;
+        els.schoolID.value = String(school.schoolID);
+        els.school.classList.remove('is-invalid-input');
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function rowHasName(row){
+        return row.querySelector('.first-name-input').value.trim() != ''
+            || row.querySelector('.last-name-input').value.trim() != '';
+    }
+
+    function onSubmit(e){
+        errorBox.textContent = '';
+        var valid = true;
+        var anyToAdd = false;
+
+        allRows().forEach(function(row){
+            if(!rowHasName(row)){
+                // Blank rows are dropped so they never post.
+                row.parentNode.removeChild(row);
+                return;
+            }
+            anyToAdd = true;
+            var els = rowElements(row);
+            if(els.schoolID.value == '0'){
+                els.school.classList.add('is-invalid-input');
+                valid = false;
+            }
+        });
+
+        if(!anyToAdd){
+            e.preventDefault();
+            errorBox.textContent = 'Enter at least one participant.';
+            addRow();
+            return;
+        }
+        if(!valid){
+            e.preventDefault();
+            errorBox.textContent = 'Pick a school for each highlighted participant.';
+        }
+    }
+
+/*----------------------------------------------------------------------------*/
+// Minimal autocomplete: renders a listbox under the input, keyboard navigable.
+//   opts.items(showAll) -> array of items for the current input value, or a Promise of one
+//   opts.render(item)   -> label string
+//   opts.onSelect(item)
+// Enter/Escape handled here set e._autocompleteHandled so outer handlers skip them.
+
+    function attachAutocomplete(input, opts){
+        var wrap = input.parentNode;
+        var list = document.createElement('ul');
+        list.className = 'autocomplete-list';
+        list.setAttribute('role', 'listbox');
+        list.hidden = true;
+        wrap.appendChild(list);
+
+        var items = [];
+        var active = -1;
+        var requestID = 0;
+
+        function isOpen(){ return !list.hidden; }
+
+        function close(){
+            list.hidden = true;
+            list.innerHTML = '';
+            items = [];
+            active = -1;
+        }
+
+        function open(showAll){
+            if(input.readOnly){ return; }
+            var token = ++requestID;
+            Promise.resolve(opts.items(showAll)).then(function(result){
+                if(token == requestID){ show(result); }
+            });
+        }
+
+        function show(result){
+            items = result;
+            list.innerHTML = '';
+            if(items.length == 0){ close(); return; }
+            items.forEach(function(item, i){
+                var li = document.createElement('li');
+                li.className = 'autocomplete-item';
+                li.setAttribute('role', 'option');
+                li.textContent = opts.render(item);
+                li.addEventListener('mousedown', function(e){
+                    e.preventDefault(); // keep focus in the input
+                    choose(i);
+                });
+                list.appendChild(li);
+            });
+            active = -1;
+            list.hidden = false;
+        }
+
+        function choose(i){
+            var item = items[i];
+            close();
+            if(item){ opts.onSelect(item); }
+        }
+
+        function highlight(i){
+            var lis = list.children;
+            for(var j = 0; j < lis.length; j++){
+                lis[j].classList.toggle('is-active', j == i);
+            }
+            active = i;
+        }
+
+        input.addEventListener('input', function(){ open(false); });
+        input.addEventListener('focus', function(){ if(input.value.trim() != ''){ open(false); } });
+        input.addEventListener('blur', close);
+        input.addEventListener('keydown', function(e){
+            if(!isOpen()){ return; }
+            if(e.key == 'ArrowDown'){
+                e.preventDefault();
+                highlight((active + 1) % items.length);
+            } else if(e.key == 'ArrowUp'){
+                e.preventDefault();
+                highlight((active - 1 + items.length) % items.length);
+            } else if(e.key == 'Enter'){
+                e.preventDefault();
+                e._autocompleteHandled = true;
+                if(active >= 0){ choose(active); } else { close(); }
+            } else if(e.key == 'Escape'){
+                e._autocompleteHandled = true;
+                close();
+            }
+        });
+
+        input._autocomplete = { open: open, close: close, isOpen: isOpen };
+    }
+
+    return { init: init };
+
+})();
+
+/******************************************************************************/
 
 var SeedingData = {};
 

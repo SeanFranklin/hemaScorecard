@@ -40,16 +40,20 @@ VALUES
 INSERT INTO `systemSchools`
 	(`schoolID`, `schoolFullName`, `schoolShortName`, `schoolAbbreviation`, `countryIso2`)
 VALUES
-	(1, 'Test Fencing School', 'Test School', 'TFS', 'US');
+	(1, 'Test Fencing School', 'Test School', 'TFS', 'US'),
+	(2, 'Other Fencing Club', 'Other Club', 'OFC', 'US');
 
--- Six fighters with fixed IDs and predictable names
+-- Six fighters with fixed IDs and predictable names, plus one (Greta) who
+-- exists in the system but is NOT entered in the event, so roster-entry
+-- tests can pick a known fighter from the autocomplete.
 INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
 	(1, 'Alice',  'Applegate', 1),
 	(2, 'Brett',  'Bowman',    1),
 	(3, 'Carol',  'Chandler',  1),
 	(4, 'Dmitri', 'Dukas',     1),
 	(5, 'Erin',   'Eastwood',  1),
-	(6, 'Frank',  'Fischer',   1);
+	(6, 'Frank',  'Fischer',   1),
+	(7, 'Greta',  'Gable',     1);
 
 INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
 	(1, 1, 1, 1, 0, 1, 1),

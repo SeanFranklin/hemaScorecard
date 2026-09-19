@@ -6618,31 +6618,46 @@ function getSchoolPoints($eventID){
 
 /******************************************************************************/
 
-function getSchoolRosterNotInEvent($schoolID, $eventID){
+function searchSystemRosterNotInEvent($eventID, $firstName, $lastName, $limit = 12){
+// Fighters not yet in the event whose names start with the typed text.
+// Feeds the roster entry autocomplete (AJAX mode 'fighterSearch').
 
 	$eventID = (int)$eventID;
-	if($eventID == 0){
-		setAlert(SYSTEM,"No eventID in getSchoolRosterNotInEvent()");
-		return;
+	$firstName = addcslashes(trim($firstName), '%_');
+	$lastName = addcslashes(trim($lastName), '%_');
+	if($eventID == 0 || ($firstName == '' && $lastName == '')){ return []; }
+
+	if($firstName != '' && $lastName != ''){
+		$where = "sR.firstName LIKE ? AND sR.lastName LIKE ?";
+		$params = ["{$firstName}%", "{$lastName}%"];
+	} elseif($firstName != ''){
+		$where = "(sR.firstName LIKE ? OR CONCAT(sR.firstName, ' ', sR.lastName) LIKE ?)";
+		$params = ["{$firstName}%", "{$firstName}%"];
+	} else {
+		$where = "sR.lastName LIKE ?";
+		$params = ["{$lastName}%"];
 	}
 
-	$schoolID = (int)$schoolID;
-	if($schoolID == 0){
-		setAlert(SYSTEM,"No schoolID in getSchoolRosterNotInEvent()");
-		return;
-	}
-
-	$orderName = NAME_MODE;
-	$orderName2 = NAME_MODE_2;
-
-	$sql = "SELECT sR.systemRosterID
+	$sql = "SELECT sR.systemRosterID, sR.firstName, sR.lastName, sR.schoolID
 			FROM systemRoster AS sR
 			LEFT JOIN eventRoster AS eR ON sR.systemRosterID = eR.systemRosterID AND eR.eventID = {$eventID}
-			WHERE sR.schoolID = {$schoolID}
-			AND eR.eventID IS null
-			ORDER BY sR.{$orderName} ASC, sR.{$orderName2} ASC";
+			WHERE eR.eventID IS NULL AND {$where}
+			ORDER BY sR.lastName ASC, sR.firstName ASC
+			LIMIT ".(int)$limit;
 
-	return mysqlQuery($sql, ASSOC);
+	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
+	mysqli_stmt_bind_param($stmt, str_repeat('s', count($params)), ...$params);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_bind_result($stmt, $systemRosterID, $first, $last, $schoolID);
+
+	$fighters = [];
+	while(mysqli_stmt_fetch($stmt)){
+		$fighters[] = ['systemRosterID' => (int)$systemRosterID, 'firstName' => $first,
+						'lastName' => $last, 'schoolID' => (int)$schoolID];
+	}
+	mysqli_stmt_close($stmt);
+
+	return $fighters;
 
 }
 

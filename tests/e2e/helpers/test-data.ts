@@ -27,3 +27,10 @@ export const COUNTRY_FIGHTERS = {
   quill: { rosterID: 15, firstName: 'Quinn', lastName: 'Quill' }, // no country
   reyes: { rosterID: 16, firstName: 'Rosa', lastName: 'Reyes' }, // no country
 };
+
+/** In systemRoster but not in the event roster (see seed.sql). */
+export const UNENTERED_FIGHTER = { systemRosterID: 7, firstName: 'Greta', lastName: 'Gable' };
+export const SCHOOLS = [
+  { schoolID: 1, shortName: 'Test School' },
+  { schoolID: 2, shortName: 'Other Club' },
+];

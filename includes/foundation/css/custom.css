@@ -45,7 +45,6 @@
 
 /* __ Placings for infoSummary ______________________________________________*/
 
-
 .results-table{
   border:2px solid black;
   border-collapse: collapse;
@@ -65,7 +64,6 @@
 td.border-top{
   border-top:1px black solid;
 }
-
 
 /* __ Tabs for infoSummary ______________________________________________*/
 
@@ -159,7 +157,6 @@ td.border-top{
   background-color: #88C6F0  !important;
 }
 
-
 div.attack-box{
   padding: 5px;
   margin: 7px;
@@ -230,8 +227,6 @@ p.quiz-answer{
   background-color: #cc4b37;
 }
 
-
-
 .yearly-summary-text {
   font-size:1.25em;
 }
@@ -239,7 +234,6 @@ p.quiz-answer{
 .yearly-summary-title {
   font-size:1.7em;
 }
-
 
 .table-compact td{
   padding-top:0px;
@@ -309,7 +303,6 @@ div.clickable:active:hover {
 .drop-down-separator:not(:empty)::after {
   margin-left: .25em;
 }
-
 
 table td.match-queue{
   padding-top: 2em;
@@ -536,7 +529,6 @@ table tr.match-queue{
   }
 }
 
-
 .match-winner-button-div{
 	padding-right: 2px;
 	padding-left: 2px;
@@ -695,6 +687,193 @@ legend h4 {
   cursor:pointer;
   padding-right: 4px;
   padding-left: 4px;
+  margin: 2px 4px 2px 0;
+  border-radius: 3px;
+  line-height: 1.6;
+  user-select: none;
+}
+
+.tournament-box.is-selected {
+  background: #3adb76;
+}
+
+/* Event roster entry (participantsEvent.php) ------------------------------ */
+
+.add-participants-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-participants-bar-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.add-participants-bar-right {
+  margin-left: auto;
+}
+
+.add-participants-card {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-participants-bar .button,
+.add-participants-card .button {
+  margin-bottom: 0;
+}
+
+.new-participant-header,
+.new-participant-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.new-participant-header {
+  font-weight: bold;
+  padding: 0 0 0.25rem 0;
+  border-bottom: 1px solid #cacaca;
+  margin-bottom: 0.5rem;
+}
+
+.new-participant-row {
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed #d8d8d8;
+}
+
+.new-participant-row input[type='text'],
+.new-participant-row select {
+  margin: 0;
+  height: 2.2rem;
+}
+
+.new-participant-cell.name-cell { flex: 2 1 280px; }
+.new-participant-cell.school-cell { flex: 1 1 200px; }
+.new-participant-cell.staff-cell { flex: 0 0 5rem; }
+.new-participant-cell.tournaments-cell { flex: 2 1 240px; line-height: 1.4; }
+.new-participant-cell.remove-cell { flex: 0 0 1.5rem; text-align: center; }
+
+.name-inputs {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.name-inputs .autocomplete-wrap {
+  flex: 1 1 0;
+}
+
+.remove-row {
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #8a8a8a;
+}
+
+.remove-row:hover {
+  color: #cc4b37;
+}
+
+.new-participant-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.new-participant-footer #submitNewParticipants {
+  margin-left: auto;
+}
+
+.new-participant-error:empty {
+  display: none;
+}
+
+.roster-counts td {
+  padding-left: 0;
+}
+
+/* Autocomplete ------------------------------------------------------------ */
+
+.autocomplete-wrap {
+  position: relative;
+}
+
+.school-combobox .school-input {
+  padding-right: 1.75rem;
+}
+
+.school-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #8a8a8a;
+  font-size: 0.8rem;
+}
+
+.school-combobox.is-locked .school-toggle {
+  display: none;
+}
+
+.school-combobox.is-locked .school-input {
+  background: #e6e6e6;
+  cursor: default;
+}
+
+.autocomplete-list {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #cacaca;
+  border-top: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.autocomplete-item {
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.is-active {
+  background: #e6f2ff;
+}
+
+/* Name suggestions show "First Last", so let the list outgrow its input */
+.name-inputs .autocomplete-list {
+  right: auto;
+  min-width: 100%;
+  width: max-content;
+  max-width: 24rem;
+}
+
+@media screen and (max-width: 39.9375em) {
+  .new-participant-header {
+    display: none;
+  }
+  .new-participant-row {
+    padding: 0.6rem 0;
+  }
 }
 
 .pointer {
@@ -788,7 +967,6 @@ legend h4 {
   color: white;
 }
 
-
 .top-bar .white-text li.is-dropdown-submenu-item > a::after {
   content: "";
   border-color: transparent transparent transparent white;}
@@ -798,7 +976,6 @@ legend h4 {
     color: white;
   }
 
-
 /* a, a:visited {
   color:#2D9CDB;
 } */
@@ -806,8 +983,6 @@ legend h4 {
 /**#page-wrapper {
   margin-top:1rem;
 }**/
-
-
 
 /* __ Match Styling ___________________________________________________________________________________ */
 /* ____________________________________________________________________________________________________ */
@@ -873,7 +1048,6 @@ li.versus-item {
   display:inline-block;
 }
 
-
 .match-item li:last-child {
   float:right;
 }
@@ -891,7 +1065,6 @@ li h5 {
   opacity:.4;
   text-decoration:line-through;
 }
-
 
 .hero-title {
   background-color:#F2F2F2;
@@ -935,7 +1108,6 @@ h2 {
   Background-color:white;
   color:black;
 }
-
 
 .tourney-menu-large li.is-active {
 
