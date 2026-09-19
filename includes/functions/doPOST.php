@@ -101,6 +101,16 @@ function processPostData(){
 				break;
 
 	// Roster Management Cases
+			case 'uploadParticipantsCsv':
+				importParticipantsParseCsv($_SESSION['eventID'], @$_FILES['participantsCsv']);
+				break;
+			case 'cancelParticipantsImport':
+				unset($_SESSION['participantsImport']);
+				break;
+			case 'confirmParticipantsImport':
+				importParticipantsCommit($_SESSION['eventID']);
+				refreshPage('participantsEvent.php');
+				break;
 			case 'addEventParticipants':
 				if(empty($_POST['newParticipants']) == false){
 					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);

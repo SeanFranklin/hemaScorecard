@@ -49,9 +49,9 @@ VALUES
 	(5, 'Unaffiliated', 'Unaffiliated', NULL, 'US');
 
 -- Six fighters with fixed IDs and predictable names, plus fighters who exist
--- in the system but are NOT entered in the event, so roster-entry tests can
--- pick known fighters from the autocomplete: Greta, and two Ivo Ibsens at
--- different schools.
+-- in the system but are NOT entered in the event: roster-entry tests pick
+-- Greta, and two Ivo Ibsens at different schools, from the autocomplete; the
+-- CSV import test imports Hugo.
 INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
 	(1, 'Alice',  'Applegate', 3),
 	(2, 'Brett',  'Bowman',    3),
@@ -61,7 +61,8 @@ INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID
 	(6, 'Frank',  'Fischer',   3),
 	(7, 'Greta',  'Gable',     3),
 	(8, 'Ivo',    'Ibsen',     3),
-	(9, 'Ivo',    'Ibsen',     4);
+	(9, 'Ivo',    'Ibsen',     4),
+	(10, 'Hugo',  'Haldane',   3);
 
 INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
 	(1, 1, 1, 3, 0, 1, 1),
