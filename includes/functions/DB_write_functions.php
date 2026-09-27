@@ -10505,8 +10505,10 @@ function updateRules($rulesInfo)
 	}
 
 
+	// __ Update rules text ___________________________________
 
 	if($rulesID != 0){
+		// Update existing rules path
 		$sql = "UPDATE eventRules
 				SET rulesName = ?, rulesText = ?
 				WHERE rulesID = {$rulesID}";
@@ -10521,6 +10523,7 @@ function updateRules($rulesInfo)
 
 	} else {
 
+		// Add new rules path
 		$eventID = (int)$rulesInfo['eventID'];
 		if($eventID == 0){
 			setAlert(SYSTEM,"No eventID in updateRules()");
@@ -10539,13 +10542,20 @@ function updateRules($rulesInfo)
 		mysqli_stmt_close($stmt);
 		$rulesID = mysqli_insert_id($GLOBALS["___mysqli_ston"]);
 
-		setAlert(USER_ALERT,"A new ruleset <i>{$rulesName}</i> has been added.");
+		if($rulesID != 0){
+			setAlert(USER_ALERT,"A new ruleset <i>{$rulesName}</i> has been added.");
+		} else {
+			setAlert(USER_ERROR,"Scorecard has encountered an internal error and <i>{$rulesName}</i> could not be added.");
+		}
 
 	}
 
-	$_SESSION['rulesID'] = $rulesID;
 
-	if(isset($rulesInfo['tournamentIDs']) == true){
+	// __ Link tournaments to rules ___________________________________
+
+	$_SESSION['rulesID'] = (int)$rulesID;
+
+	if(isset($rulesInfo['tournamentIDs']) == true && $rulesID != 0){
 
 		foreach($rulesInfo['tournamentIDs'] as $tournamentID => $isLinked){
 			$isLinked = (bool)$isLinked;
