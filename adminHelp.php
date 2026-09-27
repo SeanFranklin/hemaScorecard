@@ -570,7 +570,7 @@ If there are changes which need to be made please bring them to the attention of
 <!-- Setting Up Tournaments --------------------------------------------->
 <a name='setupTournaments'></a>
 <fieldset class='fieldset'>
-<legend><h4>Preparing Up Your Tournaments</h4></legend>
+<legend><h4>Preparing Your Tournaments</h4></legend>
 
 <p>Once a tournament is created and fighters have been added to an event it is necessary to set up each tournament.
 <BR>Remember to make sure that you are entering information for the correct tournament!</p>

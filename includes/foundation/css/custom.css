@@ -169,6 +169,14 @@ div.attack-box-on{
   background-color: #96CDF2;
 }
 
+div.afterblow-box-on{
+  background-color: #E9B57D;
+}
+
+div.afterblow-box-disabled{
+  border: grey solid 1px !important;
+  color: grey;
+}
 
 div.quiz{
   border: black solid 1px;

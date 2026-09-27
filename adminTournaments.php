@@ -626,30 +626,22 @@ function exchangeTypeDataEntryMode($formLock){
 	$attackDisplayMode = readOption('T',$_SESSION['tournamentID'],'ATTACK_DISPLAY_MODE');
 
 	$gridValid = '';
-	$checkValid = '';
 	$gridText = '';
 	$checkText = '';
 
 	if(isDeductiveAfterblow($_SESSION['tournamentID']) == true){
 		$txt = "Deductive";
 		$gridValid = '';
-		$checkValid = 'disabled';
 	} else if(isFullAfterblow($_SESSION['tournamentID']) == true) {
 		$txt = "Full";
 		$gridValid = 'disabled';
-		$checkValid = '';
 	} else {
 		$txt = "No";
 		$gridValid = 'disabled';
-		$checkValid = 'disabled';
 	}
 
 	if($gridValid != ''){
 		$gridText = '<BR> - Grid mode is not (yet) supported.';
-	}
-
-	if($checkValid != ''){
-		$checkText = '<BR> - Check-Box mode is not (yet) supported.';
 	}
 
 	$warnMsg = "<div class='callout warning'>Your tournament is currently configured as <b>{$txt} Afterblow </b> mode.";
@@ -682,7 +674,7 @@ function exchangeTypeDataEntryMode($formLock){
 				<select class='input-group-field' name='attackDefinitionMode' >
 					<option <?=optionValue(ATTACK_DISPLAY_MODE_NORMAL, $attackDisplayMode)?> >Normal</option>
 					<option <?=optionValue(ATTACK_DISPLAY_MODE_GRID, $attackDisplayMode)?> <?=$gridValid?>>Grid</option>
-					<option <?=optionValue(ATTACK_DISPLAY_MODE_CHECK, $attackDisplayMode)?> <?=$checkValid?>>Check-Box</option>
+					<option <?=optionValue(ATTACK_DISPLAY_MODE_CHECK, $attackDisplayMode)?>>Check-Box</option>
 				</select>
 
 			</div>
