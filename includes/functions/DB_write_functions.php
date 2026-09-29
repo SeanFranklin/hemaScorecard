@@ -6858,10 +6858,10 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
 
-		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != ATTACK_DISPLAY_MODE_NORMAL){
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') == ATTACK_DISPLAY_MODE_GRID){
 			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
-			setAlert(USER_ALERT,"Grid & Check-Box Score Displays are not supported for No Afterblow (yet).<BR>Display changed back to normal.");
-		}
+			setAlert(USER_ALERT,"Grid Score Displays are not supported for No Afterblow (yet).<BR>Display changed back to normal.");
+				}
 
 	} else {
 		// Deductive mode

@@ -75,7 +75,7 @@ function isValidExchange(){
 
 // A radio button and a score are checked
 	if(    (fighter1Score != "" || fighter2Score != "")
-		&& (radioVal == "hit"))
+		&& (radioVal != "hit"))
 		{
 		isValid = false;
 	}
@@ -181,7 +181,9 @@ function getFighterAfterblowEntry(num, dataEntryMode = 0){
 		// Check-Box input mode
 		var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
 
-		if(fighterAfterblowInput.checked == true){
+		// Check input exists because if they didn't specify the afterblow value
+		// the input won't be created on the score entry page.
+		if(fighterAfterblowInput != null && fighterAfterblowInput.checked == true){
 			fighterAfterblow = fighterAfterblowInput.value;
 		}
 	}
@@ -234,7 +236,11 @@ function enableAfterblowInput(num, fighterScore, dataEntryMode = 0){
 		var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
 		var fighterAfterblowDiv = document.getElementById('afterblow-box-'+num+'-div');
 
-		if(afterblowEnabled == true){
+		if(fighterAfterblowInput == null || fighterAfterblowInput == null){
+			// If they haven't pre-specifed the afterblow value then it won't exist as
+			// a button. This is an empty branch so we don't try to compare to a div
+			// that doesn't exist.
+		} else if(afterblowEnabled == true){
 			fighterAfterblowDiv.classList.remove('afterblow-box-disabled');
 			fighterAfterblowInput.disabled = null;
 		} else {
@@ -451,8 +457,8 @@ function modifiersRadioButtons(){
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
 		$('#fighter1_afterblow_dropdown').prop('selectedIndex',0);
 		$('#fighter2_afterblow_dropdown').prop('selectedIndex',0);
-		$('#fighter1_afterblow_input').prop('selectedIndex',0);
-		$('#fighter2_afterblow_input').prop('selectedIndex',0);
+		$('#fighter1_afterblow_input').prop('checked', false);
+		$('#fighter2_afterblow_input').prop('checked', false);
 	}
 
 
