@@ -2875,7 +2875,7 @@ function edit_tournamentTimeLimit($tournamentID = 0){
 		<td>
 			<div class='grid-x grid-padding-x'>
 				<input type='number' name='updateTournament[timeLimit]' value='<?=$timeLimit?>'
-						placeholder='Unlimited' min=0 max=300 class='text-center'>
+						placeholder='Unlimited' min=0 max=3600 class='text-center'>
 			</div>
 		</td>
 	</tr>
