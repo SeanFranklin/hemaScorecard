@@ -1789,7 +1789,9 @@ function scoreSelectDropDown($id, $pre, $isReverseScore){
 /******************************************************************************/
 
 function scoreSelectCheckBox($id, $pre, $isReverseScore){
+
 	$attacks = getTournamentAttacks($_SESSION['tournamentID'], true);
+	$afterblowValue = readOption('T',$_SESSION['tournamentID'],'AFTERBLOW_POINT_VALUE');
 
 	if($attacks == null){
 
@@ -1843,18 +1845,20 @@ function scoreSelectCheckBox($id, $pre, $isReverseScore){
 
 			</div>
 
-<!--
-			<div class='cell shrink clickable  attack-box-<?=$num?> attack-box <?=$divClass?>'
-				onclick="scoreCheckboxChange(this, 'attack-box-<?=$id?>-value-noQuality', <?=$num?>)">
+			<?php if($afterblowValue > 0):?>
+			<div class='cell shrink clickable  afterblow-box-<?=$num?> attack-box <?=$divClass?> afterblow-box-disabled'
+				id='afterblow-box-<?=$num?>-div'
+				onclick="scoreCheckboxChangeAfterblow(<?=$num?>)">
 
-				<input type='radio' name='score[<?=$id?>][hit]' value='noQuality' class='attack-box-<?=$num?>'
-					id='attack-box-<?=$id?>-value-noQuality'    hidden
+				<input type='checkbox' name='score[<?=$id?>][afterblow]' value='<?=$afterblowValue?>'
+					id='afterblow-box-<?=$num?>-value'    hidden disabled
 					onchange="scoreDropdownChange(this)">
 
-				No Quality
+				Afterblow
 
 			</div>
-		-->
+			<?php endif ?>
+
 
 			<div class='large-12'></div>
 

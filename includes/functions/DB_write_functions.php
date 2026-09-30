@@ -256,6 +256,21 @@ function tournamentAttackModifiers($modifier, $tournamentID){
 	writeOption('T', $tournamentID, 'CONTROL_POINT_VALUE', (int)@$modifier['controlValue']);
 	writeOption('T', $tournamentID, 'BONUS_POINT_NAME', (int)@$modifier['controlName']);
 
+	// Sanity checks for the user. Due to complexity and race conditions this is
+	// not suppressed, the user is just warned.
+	if(isDeductiveAfterblow($tournamentID) == true){
+		$attackDisplayMode = readOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE');
+
+		if($attackDisplayMode == ATTACK_DISPLAY_MODE_CHECK && (int)@$modifier['afterblow'] == 0){
+			setAlert(USER_ERROR,"<b>No Afterblow value specified in <i>Misc Fancy Options</i>.</b><BR>
+				A pre-defined Afterblow value is required for deductive afterblow to work in Check-Box scoring mode.");
+		}
+		if($attackDisplayMode == ATTACK_DISPLAY_MODE_CHECK && (int)@$modifier['controlValue'] != 0){
+			setAlert(USER_ERROR,"<b>Bonus Point value specified in <i>Misc Fancy Options</i>.</b><BR>
+				Check-Box scoring mode does not support the bonus point, and this option does nothing.");
+		}
+	}
+
 }
 
 /******************************************************************************/
@@ -267,6 +282,22 @@ function switchAttackDefinitionMode($attackDefinitionMode,$tournamentID){
 	}
 
 	writeOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE', $attackDefinitionMode);
+
+	// Sanity checks for the user. Due to complexity and race conditions this is
+	// not suppressed, the user is just warrned.
+	if(isDeductiveAfterblow($tournamentID) == true){
+		$afterblowValue = readOption('T', $tournamentID, 'AFTERBLOW_POINT_VALUE', 0);
+		$bonusValue = readOption('T', $tournamentID, 'CONTROL_POINT_VALUE', 0);
+
+		if($attackDefinitionMode == ATTACK_DISPLAY_MODE_CHECK && $afterblowValue == 0){
+			setAlert(USER_ERROR,"<b>No Afterblow value specified in <i>Misc Fancy Options</i>.</b><BR>
+				A pre-defined Afterblow value is required for deductive afterblow to work in Check-Box scoring mode.");
+		}
+		if($attackDefinitionMode == ATTACK_DISPLAY_MODE_CHECK && $bonusValue != 0){
+			setAlert(USER_ERROR,"<b>Bonus Point value specified in <i>Misc Fancy Options</i>.</b><BR>
+				Check-Box scoring mode does not support the bonus point, and this option does nothing.");
+		}
+	}
 
 }
 
@@ -6827,18 +6858,13 @@ function updateEventTournaments($tournamentID, $updateType, $formInfo){
 
 		writeOption('T', $settings['tournamentID'], 'AFTERBLOW_POINT_VALUE', 0);
 
-		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') != ATTACK_DISPLAY_MODE_NORMAL){
+		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') == ATTACK_DISPLAY_MODE_GRID){
 			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
-			setAlert(USER_ALERT,"Grid & Check-Box Score Displays are not supported for No Afterblow (yet).<BR>Display changed back to normal.");
-		}
+			setAlert(USER_ALERT,"Grid Score Displays are not supported for No Afterblow (yet).<BR>Display changed back to normal.");
+				}
 
 	} else {
-
-		if(readOption('T',$settings['tournamentID'],'ATTACK_DISPLAY_MODE') == ATTACK_DISPLAY_MODE_CHECK){
-			writeOption('T', $settings['tournamentID'], 'ATTACK_DISPLAY_MODE', ATTACK_DISPLAY_MODE_NORMAL);
-			setAlert(USER_ALERT,"Checkbox Score Display is not supported for Deductive Afterblow (yet).<BR>Display changed back to normal.");
-		}
-		// Nothing to do.
+		// Deductive mode
 	}
 
 

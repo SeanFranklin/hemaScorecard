@@ -21,36 +21,36 @@ const BLACK_CARD  = 38;
 /************************************************************************************/
 
 function isValidExchange(){
+// Determine if what the table entered is valid, and if they are allowed to submit
+// the exchange. This function enables/disables the Submit button.
 
-
-	if(DATA_ENTRY_MODE != ATTACK_DISPLAY_MODE_NORMAL){
+	if(DATA_ENTRY_MODE == ATTACK_DISPLAY_MODE_GRID){
 		// This function is designed to check for conflicts between the dropdowns
 		// of each fighter and the exchange types that apply to both.
 		// In grid entry mode you can not have conflicting information, therefore this is not needed.
 		return;
 	}
-
-	var exchButton = document.getElementById('New_Exchange_Button');
-
-	var fighter1Score = document.getElementById('fighter1_score_dropdown');
-	var fighter2Score = document.getElementById('fighter2_score_dropdown');
-	var exchangeID = parseInt(document.getElementById('exchangeID').value);
-
-	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-	var radioValOverlap = false;
-	var isValid = true;
-
-	if(radioVal == "hit"){
-		radioValOverlap = true;
+	if(DOUBLE_TYPE == FULL_AFTERBLOW){
+		// In a full afterblow mode there is no need to check the validity because
+		// you are free to enter an exchange in each.
+		return;
 	}
 
-	var invalidText = "Invalid Exchange";
+	var exchButton = document.getElementById('New_Exchange_Button');
+	var fighter1Score = getFighterScoreEntry(1, DATA_ENTRY_MODE);
+	var fighter2Score = getFighterScoreEntry(2, DATA_ENTRY_MODE);
+	var exchangeID = parseInt(document.getElementById('exchangeID').value);
+	var radioVal = document.querySelector('input[name="mod"]:checked').value;
+
+
+// __ Check for input conflicts ____________________________________
+	var isValid = true;
 
 
 // Two scores are selected
 	if(DOUBLE_TYPE != FULL_AFTERBLOW)
 	{
-		if(fighter1Score.value != "" && fighter2Score.value != ""){
+		if(fighter1Score != "" && fighter2Score != ""){
 			isValid = false;
 		}
 	}
@@ -62,56 +62,42 @@ function isValidExchange(){
 
 // An afterblow is selected with no score
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
-		var fighter1Afterblow = document.getElementById('fighter1_afterblow_input');
-		var fighter2Afterblow = document.getElementById('fighter2_afterblow_input');
 
-		var Ab1Value = 0;
-		var Ab2Value = 0;
+		var Ab1Value = +getFighterAfterblowEntry(1, DATA_ENTRY_MODE);
+		var Ab2Value = +getFighterAfterblowEntry(2, DATA_ENTRY_MODE);
 
-		if(fighter1Afterblow.tagName == 'SELECT'){
-			Ab1Value = fighter1Afterblow.value;
-			Ab2Value = fighter2Afterblow.value;
-		} else if(fighter1Afterblow.tagName == 'INPUT'){
-			if(fighter1Afterblow.checked == true){
-				Ab1Value = fighter1Afterblow.value;
-			}
-			if(fighter2Afterblow.checked == true){
-				Ab2Value = fighter2Afterblow.value;
-			}
-		} else {
-			// wtf?
-		}
-
-		if(    (fighter1Score.value == "" && Ab1Value != 0)
-			|| (fighter2Score.value == "" && Ab2Value != 0)){
+		if(    (fighter1Score == "" && Ab1Value != 0)
+			|| (fighter2Score == "" && Ab2Value != 0)){
 			isValid = false;
 		}
 	}
 
 
-
-// A radio button and a score is checked
-	if(    (fighter1Score.value != "" || fighter2Score.value != "")
-		&& (radioValOverlap == false))
+// A radio button and a score are checked
+	if(    (fighter1Score != "" || fighter2Score != "")
+		&& (radioVal != "hit"))
 		{
 		isValid = false;
 	}
 
-// Control Points
-	fighter1Control = document.getElementById('fighter1_control_check');
-	fighter2Control = document.getElementById('fighter2_control_check');
-	if(fighter1Control != null && fighter2Control != null){
-		if($(fighter1Control).is(':checked') || $(fighter2Control).is(':checked')){
+
+// Bonus Points
+	var fighter1Bonus = document.getElementById('fighter1_control_check');
+	var fighter2Bonus = document.getElementById('fighter2_control_check');
+	if(fighter1Bonus != null && fighter2Bonus != null){
+		if($(fighter1Bonus).is(':checked') || $(fighter2Bonus).is(':checked')){
 			if(exchButton.value != 'scoringHit'){
 				isValid = false;
 			}
 		}
 	}
 
+
+// __ Set submit button state _____________________________
 	if(isValid){
 		exchButton.disabled = null;
 	} else {
-		exchButton.innerHTML = invalidText;
+		exchButton.innerHTML = "Invalid Exchange";
 		exchButton.disabled = "Disabled";
 	}
 
@@ -119,29 +105,27 @@ function isValidExchange(){
 
 /************************************************************************************/
 
-function scoreDropdownChange(selectID){
+function getFighterScoreEntry(num, dataEntryMode = 0){
+// Figure out what score the fighter number entered.
+// Different checks are needed depending on the afterblow type and the score input mode.
 
-	var exchButton = document.getElementById('New_Exchange_Button');
-	var radioVal = document.querySelector('input[name="mod"]:checked').value;
-	document.getElementById('NA_Radio').checked = 'checked';
+	if(num !== 1 && num !== 2){
+		return null;
+	}
 
-	var fighter1Score = "";
-	var fighter2Score = "";
+	var fighterScore = null;
+	if(dataEntryMode != ATTACK_DISPLAY_MODE_CHECK){
 
-	if(DATA_ENTRY_MODE != ATTACK_DISPLAY_MODE_CHECK){
+		var fighterScoreInput = document.getElementById('fighter'+num+'_score_dropdown');
 
-		var fighter1scoreInput = document.getElementById('fighter1_score_dropdown');
-		var fighter2scoreInput = document.getElementById('fighter2_score_dropdown');
-
-		if(fighter1scoreInput.tagName == 'SELECT'){
-			fighter1Score = fighter1scoreInput.value;
-			fighter2Score = fighter2scoreInput.value;
-		} else if(fighter1scoreInput.tagName == 'INPUT'){
-			if(fighter1scoreInput.checked == true){
-				fighter1Score = fighter1scoreInput.value;
-			}
-			if(fighter2Afterblow.checked == true){
-				fighter2Score = fighter2scoreInput.value;
+		// Different scoring modes, dropdown (select) vs grid (input)
+		if(fighterScoreInput.tagName == 'SELECT'){
+			// Using the dropdown to enter scores.
+			fighterScore = fighterScoreInput.value;
+		} else if(fighterScoreInput.tagName == 'INPUT'){
+			// Using grid mode to enter scores.
+			if(fighterScoreInput.checked == true){
+				fighterScore = fighterScoreInput.value;
 			}
 		} else {
 			// wtf?
@@ -149,120 +133,205 @@ function scoreDropdownChange(selectID){
 
 	} else {
 
-		var radioButtonName = document.getElementById('radio-button-name-1');
+		var radioButtonName = document.getElementById('radio-button-name-'+num);
 		var radioButtons = document.getElementsByName(radioButtonName.value);
 
 		for( i = 0; i < radioButtons.length; i++ ) {
 	        if( radioButtons[i].checked ) {
-	            fighter1Score =  radioButtons[i].value;
+	            fighterScore =  radioButtons[i].value;
 
 	        }
 	    }
-
-	    radioButtonName = document.getElementById('radio-button-name-2');
-		radioButtons = document.getElementsByName(radioButtonName.value);
-
-		for( i = 0; i < radioButtons.length; i++ ) {
-	        if( radioButtons[i].checked ) {
-	            fighter2Score =  radioButtons[i].value;
-
-	        }
-	    }
-
 	}
 
-	var afterblowDropDown = true;
+	return (fighterScore);
+}
+
+/************************************************************************************/
+
+function getFighterAfterblowEntry(num, dataEntryMode = 0){
+// Figure out what score the fighter number entered.
+// Different checks are needed depending on the afterblow type and the score input mode.
+
+	if(num !== 1 & num !== 2){
+		return null;
+	}
+
+	var fighterAfterblow = 0;
+
+	if(dataEntryMode != ATTACK_DISPLAY_MODE_CHECK){
+
+		var fighterAfterblowInput = document.getElementById('fighter'+num+'_afterblow_input');
+
+		// Different scoring modes, dropdown (select) vs grid or pre-defined toggles (input)
+		if(fighterAfterblowInput.tagName == 'SELECT'){
+			// Using a dropdown to enter the afterblow value
+			fighterAfterblow = fighterAfterblowInput.value;
+		} else if(fighterAfterblowInput.tagName == 'INPUT'){
+			// Using a button to enter the afterblow value
+			if(fighterAfterblowInput.checked == true){
+				fighterAfterblow = fighterAfterblowInput.value;
+			}
+		} else {
+			// There should not be a mode that gets you here. Keep the default zero.
+		}
+
+	} else {
+
+		// Check-Box input mode
+		var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
+
+		// Check input exists because if they didn't specify the afterblow value
+		// the input won't be created on the score entry page.
+		if(fighterAfterblowInput != null && fighterAfterblowInput.checked == true){
+			fighterAfterblow = fighterAfterblowInput.value;
+		}
+	}
+
+
+	return (fighterAfterblow);
+}
+
+/************************************************************************************/
+
+function enableAfterblowInput(num, fighterScore, dataEntryMode = 0){
+// Enable or disable the afterblow field. This is only relevant in Deductive Afterblow
+// mode, where we want to make sure the user can't submit and afterblow without also
+// a scoring hit for the fighter.
+
+	if(num !== 1 && num !== 2){
+		// We only support two fighters in a match at once!
+		return;
+	}
+
+
+	var afterblowEnabled = false;
+	if(fighterScore != "" && fighterScore != "noQuality"){
+		afterblowEnabled = true;
+	}
+
+	// Check has to be handled separately because it is custom created buttons
+	// for the afterblow, rather than using an html element for the form.
+	if(dataEntryMode != ATTACK_DISPLAY_MODE_CHECK){
+
+		var fighterAfterblowInput = document.getElementById('fighter'+num+'_afterblow_input');
+
+		if(afterblowEnabled == true){
+			fighterAfterblowInput.disabled = null;
+		} else {
+			if(fighterAfterblowInput.tagName != 'INPUT'){
+				// Afterblow is a dropdown
+				fighterAfterblowInput.selectedIndex = 0;
+			} else {
+				// Afterblow is a check button
+				fighterAfterblowInput.checked = false;
+			}
+
+			fighterAfterblowInput.disabled = "disabled";
+		}
+
+	} else {
+
+		// Check-Box input mode
+		var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
+		var fighterAfterblowDiv = document.getElementById('afterblow-box-'+num+'-div');
+
+		if(fighterAfterblowInput == null){
+			// If they haven't pre-specifed the afterblow value then it won't exist as
+			// a button. This is an empty branch so we don't try to compare to a div
+			// that doesn't exist.
+		} else if(afterblowEnabled == true){
+			fighterAfterblowDiv.classList.remove('afterblow-box-disabled');
+			fighterAfterblowInput.disabled = null;
+		} else {
+			fighterAfterblowInput.checked = false;
+			fighterAfterblowInput.disabled = "disabled";
+			fighterAfterblowDiv.classList.add('afterblow-box-disabled');
+			fighterAfterblowDiv.classList.remove('afterblow-box-on');
+		}
+
+	}
+}
+
+/************************************************************************************/
+
+function toggleBonusPointButtons(fighter1Score, fighter2Score){
+// Bonus was originally called "control" and is still refered to that in many places
+// of the code that have not been refactored.
+
+	fighter1Bonus = document.getElementById('fighter1_control_check');
+	fighter2Bonus = document.getElementById('fighter2_control_check');
+
+	if(fighter1Bonus != null && fighter2Bonus != null){
+		if(fighter1Score != ""){
+			$(fighter2Bonus).prop('checked', false);
+			$(fighter2Bonus).prop('disabled', true);
+			$(fighter1Bonus).prop('disabled', false);
+		}
+		if(fighter2Score != ""){
+			$(fighter1Bonus).prop('checked', false);
+			$(fighter1Bonus).prop('disabled', true);
+			$(fighter2Bonus).prop('disabled', false);
+		}
+		if(fighter1Score != "" && fighter2Score != ""){
+			$(fighter1Bonus).prop('disabled', true);
+			$(fighter2Bonus).prop('disabled', true);
+		}
+		if(fighter1Score == "" && fighter2Score == ""){
+			$(fighter1Bonus).prop('checked', false);
+			$(fighter2Bonus).prop('checked', false);
+			$(fighter1Bonus).prop('disabled', false);
+			$(fighter2Bonus).prop('disabled', false);
+		}
+
+	}
+}
+
+/************************************************************************************/
+
+function scoreDropdownChange(selectID){
+// Main update function for when the user changes a score value. Ensures that
+// illegal operations are inhibited and anything that should be un-checked because
+// of the input is cleared.
+
+	var exchButton = document.getElementById('New_Exchange_Button');
+	var radioVal = document.querySelector('input[name="mod"]:checked').value;
+	document.getElementById('NA_Radio').checked = 'checked';
+
+	var fighter1Score = getFighterScoreEntry(1, DATA_ENTRY_MODE);
+	var fighter2Score = getFighterScoreEntry(2, DATA_ENTRY_MODE);
 	var Ab1Value = 0;
 	var Ab2Value = 0;
 
+
+// __ Afterblow ___________________________
+	// Taking in the afterblow is only necessary in Deductive mode, as the "afterblow"
+	// is created in Full_Afterblow mode by making the lower fighterScore the afterblow.
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
+		Ab1Value = getFighterAfterblowEntry(1, DATA_ENTRY_MODE);
+		Ab2Value = getFighterAfterblowEntry(2, DATA_ENTRY_MODE);
 
-		var fighter1Afterblow = document.getElementById('fighter1_afterblow_input');
-		var fighter2Afterblow = document.getElementById('fighter2_afterblow_input');
-
-
-		if(fighter1Afterblow.tagName == 'INPUT'){
-			// The afterblow input is a checkbox
-			afterblowDropDown = false;
-		}
-
-		if(afterblowDropDown == true){
-			Ab1Value = fighter1Afterblow.value;
-			Ab2Value = fighter2Afterblow.value;
-		} else {
-			if(fighter1Afterblow.checked == true){
-				Ab1Value = fighter1Afterblow.value;
-			}
-			if(fighter2Afterblow.checked == true){
-				Ab2Value = fighter2Afterblow.value;
-			}
-		}
-
-
-		// Disable Afterblow if there is no initial hit for a fighter
-		if(fighter1Score == "" || fighter1Score == "noQuality"){
-			if(afterblowDropDown == true){
-				fighter1Afterblow.selectedIndex = 0;
-			} else {
-				fighter1Afterblow.checked = false;
-			}
-			fighter1Afterblow.disabled = "disabled";
-		} else {
-			fighter1Afterblow.disabled = null;
-		}
-
-
-		if(fighter2Score == "" || fighter2Score == "noQuality"){
-
-			if(afterblowDropDown == true){
-				fighter2Afterblow.selectedIndex = 0;
-			} else {
-				fighter2Afterblow.checked = false;
-			}
-			fighter2Afterblow.disabled = "disabled";
-		} else {
-			fighter2Afterblow.disabled = null;
-		}
-
-	}
-
-// Toggle Control Point Button
-	fighter1Control = document.getElementById('fighter1_control_check');
-	fighter2Control = document.getElementById('fighter2_control_check');
-
-	if(fighter1Control != null && fighter2Control != null){
-		if(fighter1Score != ""){
-			$(fighter2Control).prop('checked', false);
-			$(fighter2Control).prop('disabled', true);
-			$(fighter1Control).prop('disabled', false);
-		}
-		if(fighter2Score != ""){
-			$(fighter1Control).prop('checked', false);
-			$(fighter1Control).prop('disabled', true);
-			$(fighter2Control).prop('disabled', false);
-		}
-		if(fighter1Score != "" && fighter2Score != ""){
-			$(fighter1Control).prop('disabled', true);
-			$(fighter2Control).prop('disabled', true);
-		}
-		if(fighter1Score == "" && fighter2Score == ""){
-			$(fighter1Control).prop('checked', false);
-			$(fighter2Control).prop('checked', false);
-			$(fighter1Control).prop('disabled', false);
-			$(fighter2Control).prop('disabled', false);
-		}
-
+		enableAfterblowInput(1, fighter1Score, DATA_ENTRY_MODE);
+		enableAfterblowInput(2, fighter2Score, DATA_ENTRY_MODE);
 	}
 
 
-// Select no exchange if no scores are selected
+// __ Bonus Points ___________________________
+	// aka 'control points'
+	toggleBonusPointButtons(fighter1Score, fighter2Score);
+
+
+// __ Update Submit Buttion __________________________________
 	if(fighter1Score === "" && fighter2Score == ""){
+		// Select no exchange if no scores are selected
 		document.getElementById('No_Exchange_Radio').checked = 'checked';
 		exchButton.value = "noExchange";
 		exchButton.innerHTML = "Add: No Exchange";
 		setExchButtonClasses("");
 	} else if(DOUBLE_TYPE == FULL_AFTERBLOW) {
 
+		// Full Afterblow differs in that you can have a bilateral if
+		// there is a score entered for both fighters.
 		if(		(fighter1Score == "noQuality" && fighter2Score == "")
 			||  (fighter1Score == "" && fighter2Score == "noQuality"))
 		{
@@ -281,6 +350,9 @@ function scoreDropdownChange(selectID){
 		}
 
 	} else {
+
+		// Deductive and No Afterblow work the same, as you can only
+		// ever enter a score from a single fighter.
 		if(fighter1Score == "noQuality" || fighter2Score == "noQuality"){
 			exchButton.value = "noQuality";
 			exchButton.innerHTML = "Add: No Quality";
@@ -297,15 +369,15 @@ function scoreDropdownChange(selectID){
 				} else {
 					exchButton.innerHTML = "Add: Clean Hit";
 				}
-
 			}else {
-
 				exchButton.innerHTML = "Add: Clean Hit";
-
 			}
 		}
 	}
 
+
+// __ Check Exchange __________________________
+	// Enable/disable the submit button depending on what the user entered.
 	isValidExchange();
 
 }
@@ -313,6 +385,9 @@ function scoreDropdownChange(selectID){
 /************************************************************************************/
 
 function scoreCheckboxChange(divID, radioButtonID, fighterNum){
+// Function for when a custom checkbox is clicked when in Check-Box data entry mode.
+// This changes the color and updates the hidden radio button which has the actual
+// data form.
 
 	var radioButton = document.getElementById(radioButtonID);
 	radioButton.checked = 'checked';
@@ -326,6 +401,30 @@ function scoreCheckboxChange(divID, radioButtonID, fighterNum){
     divID.classList.add('attack-box-on');
 
 	scoreDropdownChange(this)
+
+}
+
+/************************************************************************************/
+
+function scoreCheckboxChangeAfterblow(num){
+// Function for when a custom afterblow checkbox is clicked when in Check-Box data .
+// entry mode. This changes the color and updates the hidden radio button which
+// has the actual data form. Additional logic because the afterblow button is disabled
+// if you don't have a valid intial score active.
+
+	var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
+	var fighterAfterblowDiv = document.getElementById('afterblow-box-'+num+'-div');
+
+	if(fighterAfterblowInput.disabled == false){
+		fighterAfterblowInput.checked = !fighterAfterblowInput.checked;
+		$(fighterAfterblowDiv).toggleClass('afterblow-box-on');
+	} else {
+		fighterAfterblowInput.checked = false;
+		$(fighterAfterblowDiv).removeClass('afterblow-box-on');
+		$(fighterAfterblowDiv).addClass('afterblow-box-disabled');
+	}
+
+	scoreDropdownChange(this);
 
 }
 
@@ -358,6 +457,8 @@ function modifiersRadioButtons(){
 	if(DOUBLE_TYPE == DEDUCTIVE_AFTERBLOW){
 		$('#fighter1_afterblow_dropdown').prop('selectedIndex',0);
 		$('#fighter2_afterblow_dropdown').prop('selectedIndex',0);
+		$('#fighter1_afterblow_input').prop('checked', false);
+		$('#fighter2_afterblow_input').prop('checked', false);
 	}
 
 
