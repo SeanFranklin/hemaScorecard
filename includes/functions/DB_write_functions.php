@@ -257,7 +257,7 @@ function tournamentAttackModifiers($modifier, $tournamentID){
 	writeOption('T', $tournamentID, 'BONUS_POINT_NAME', (int)@$modifier['controlName']);
 
 	// Sanity checks for the user. Due to complexity and race conditions this is
-	// not suppressed, the user is just warrned.
+	// not suppressed, the user is just warned.
 	if(isDeductiveAfterblow($tournamentID) == true){
 		$attackDisplayMode = readOption('T', $tournamentID, 'ATTACK_DISPLAY_MODE');
 

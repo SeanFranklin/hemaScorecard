@@ -109,7 +109,7 @@ function getFighterScoreEntry(num, dataEntryMode = 0){
 // Figure out what score the fighter number entered.
 // Different checks are needed depending on the afterblow type and the score input mode.
 
-	if(num !== 1 & num !== 2){
+	if(num !== 1 && num !== 2){
 		return null;
 	}
 
@@ -199,7 +199,7 @@ function enableAfterblowInput(num, fighterScore, dataEntryMode = 0){
 // mode, where we want to make sure the user can't submit and afterblow without also
 // a scoring hit for the fighter.
 
-	if(num !== 1 & num !== 2){
+	if(num !== 1 && num !== 2){
 		// We only support two fighters in a match at once!
 		return;
 	}
@@ -236,7 +236,7 @@ function enableAfterblowInput(num, fighterScore, dataEntryMode = 0){
 		var fighterAfterblowInput = document.getElementById('afterblow-box-'+num+'-value');
 		var fighterAfterblowDiv = document.getElementById('afterblow-box-'+num+'-div');
 
-		if(fighterAfterblowInput == null || fighterAfterblowInput == null){
+		if(fighterAfterblowInput == null){
 			// If they haven't pre-specifed the afterblow value then it won't exist as
 			// a button. This is an empty branch so we don't try to compare to a div
 			// that doesn't exist.
