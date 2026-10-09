@@ -97,7 +97,7 @@ function eventRegistrationCountsDisplay(){
 	$totalTournamentEntries = getNumEventTournamentEntries($_SESSION['eventID']);
 ?>
 
-	<table class='stack'>
+	<table class='stack roster-stats'>
 		<tr>
 			<td>
 				Total Event Participants
@@ -751,11 +751,11 @@ function tableHeaders(){
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
-		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center<?= $nameArrow != '' ? ' is-sorted' : '' ?>'>
 			<a>Name <?=$nameArrow?></a>
 		</th>
 
-		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center<?= $schoolArrow != '' ? ' is-sorted' : '' ?>'>
 			<a>School <?=$schoolArrow?></a>
 		</th>
 	</tr>

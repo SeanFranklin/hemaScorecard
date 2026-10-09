@@ -3040,17 +3040,22 @@ function edit_tournamentPointSpreadStartVal($tournamentID = 0){
 
 /*********************************************************(********************/
 
-function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bottom'){
+function tooltip($text, $tip = false, $dir='bottom'){
 // Creates a tooltip that displays as $tip containing $text
 // Defaults to displaying a help icon
+	$helpIcon = "<span class='help-icon' aria-hidden='true'>?</span>";
+	if($tip === false){
+		$tip = $helpIcon;
+	}
+	$tipClass = ($tip == $helpIcon) ? 'has-tip has-tip-icon' : 'has-tip';
 	?>
 
 	<?php if($tip == null): ?>
-		<img src='includes/images/help.png'>
+		<?=$helpIcon?>
 	<?php endif ?>
 
 
-	<span data-tooltip aria-haspopup='true' class='has-tip'
+	<span data-tooltip aria-haspopup='true' class='<?=$tipClass?>'
 		data-disable-hover='false' tabindex='2' title="<?=$text?>"
 		data-position='<?=$dir?>' data-allow-html='true' >
 
