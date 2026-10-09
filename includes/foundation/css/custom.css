@@ -1615,6 +1615,8 @@ img[src$="logo_rect.jpg"] {
   color: var(--hs-footer-strong);
 }
 
+/* The logo PNGs have opaque white backgrounds; multiply lets them take the page color */
 #page-wrapper ~ .grid-x img {
   opacity: 0.9;
+  mix-blend-mode: multiply;
 }
