@@ -4587,13 +4587,11 @@ function showFunEventStats($eventID){
 				<?=$daysText?>
 			<BR>
 				<b><?=$numCountries?></b> countries* represented.
-				<a onclick="$('.country-txt').toggle()">(?)</a>
-				<span class='country-txt hidden'>
-					<i>*based on club locations. Scorecard doesn't actually know where anyone lives.</i>
-					<BR>(<?php foreach($countryList AS $country):?>
-						<?=$country?>,
-					<?php endforeach?>)
-				</span>
+				<?php
+					$countryNames = array_map(function($c){ return htmlspecialchars($c, ENT_QUOTES); }, (array)$countryList);
+					$countryTip = "<i>*Based on club locations. Scorecard doesn't actually know where anyone lives.</i><BR>(".implode(', ', $countryNames).")";
+				?>
+				<?=tooltip($countryTip)?>
 			<BR>
 				<?php foreach ($winsByColor as $id => $w): ?>
 					<?=$w['name']?> has <b><?=$w['num']?></b> wins,
