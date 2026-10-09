@@ -10,6 +10,8 @@
   --hs-row-line: #e8ebef;
   --hs-stripe: #f1f4f7;
   --hs-hover: #e6effc;
+  --hs-head: #e8ebf1;
+  --hs-head-active: #d1e1f7;
   --hs-bar: #0b223e;
   --hs-bar-text: #ffffff;
   --hs-bar-hover: rgba(255, 255, 255, 0.10);
@@ -450,7 +452,7 @@ table thead, table tbody, table tfoot {
   background-color: var(--hs-surface);
 }
 table thead {
-  background: var(--hs-surface);
+  background: var(--hs-head);
   color: var(--hs-muted);
 }
 table thead th, table thead td {
@@ -470,7 +472,9 @@ table.unstriped tbody tr {
 table.unstriped tbody tr {
   border-bottom-color: var(--hs-row-line);
 }
-table.hover thead tr:hover,
+table.hover thead tr:hover {
+  background-color: var(--hs-head);
+}
 table.hover tfoot tr:hover {
   background-color: var(--hs-stripe);
 }
@@ -2027,15 +2031,16 @@ img[src$="logo_rect.jpg"] {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 0.875em;
-  height: 0.875em;
-  border: 1px solid var(--hs-muted);
+  /* the "?" at 60% of the text size, in a circle about 0.875 of the text size */
+  font-size: 0.6em;
+  width: 1.45em;
+  height: 1.45em;
+  border: 1px solid var(--hs-success);
   border-radius: 50%;
-  color: var(--hs-muted);
-  font-size: 1em;
+  color: var(--hs-success);
   font-weight: 700;
   line-height: 1;
-  vertical-align: 0.05em;
+  vertical-align: middle;
 }
 
 
@@ -2046,8 +2051,8 @@ img[src$="logo_rect.jpg"] {
 
 .has-tip-icon:hover .help-icon,
 .has-tip-icon:focus .help-icon {
-  border-color: var(--hs-link);
-  color: var(--hs-link);
+  border-color: var(--hs-success-hover);
+  color: var(--hs-success-hover);
 }
 
 /* Sortable table headers (the roster's clickable headers and DataTables columns):
@@ -2064,7 +2069,8 @@ thead th.is-sorted,
 table.dataTable thead .sorting:hover,
 table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc {
-  background-color: var(--hs-hover);
+  background-color: var(--hs-head-active);
+  color: var(--hs-text);
 }
 
 thead th.is-sorted,
