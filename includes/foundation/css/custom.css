@@ -407,6 +407,7 @@ input:checked ~ .switch-paddle {
 [type='datetime-local']:focus, [type='month']:focus, [type='week']:focus, [type='email']:focus,
 [type='number']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus,
 [type='url']:focus, [type='color']:focus, textarea:focus,
+input:not([type]):focus,
 select:focus {
   border-color: var(--hs-accent);
   box-shadow: 0 0 0 3px rgba(30, 91, 161, 0.18);
@@ -2139,6 +2140,78 @@ table tr:not(:has(> td)) > th {
   justify-content: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+/* Inputs with no type attribute (datalist pickers) miss Foundation's [type='text'] styling;
+   give them the same look so they match the text inputs around them */
+input:not([type]) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.4375rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem;
+  border: 1px solid #cacaca;
+  border-radius: 0;
+  background-color: #fefefe;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--hs-text);
+  appearance: none;
+}
+
+/* stays name-sized rather than filling the row, as before */
+.input-group > input:not([type]) {
+  flex: 0 1 16rem;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+}
+
+/* Buttons that are themselves the input-group button: center the label, square the attached side */
+.button.input-group-button {
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-radius: 0 var(--hs-radius) var(--hs-radius) 0;
+}
+
+/* Fighter page: name and Clear on one line, details as labeled facts */
+.fighter-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fighter-header h3,
+.fighter-header .button {
+  margin: 0;
+}
+
+.fighter-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.fighter-facts dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hs-muted);
+}
+
+.fighter-facts dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--hs-text);
 }
 
 /* Roster summary row: three equal, centered cells */
