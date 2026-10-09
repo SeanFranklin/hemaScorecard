@@ -1902,6 +1902,31 @@ background-color:#EB5757;
   text-decoration: none;
 }
 
+/* Phone Login / Log Out: the same button as desktop. The link is a 44px touch target, so the
+   button is painted by a pseudo-element sized like the desktop one rather than a spread shadow. */
+.title-bar .login-link {
+  position: relative;
+  z-index: 0;
+  font-weight: 600;
+}
+
+.title-bar .login-link::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: -6px;
+  right: -6px;
+  z-index: -1;
+  background: var(--hs-accent);
+  border-radius: 10px;
+}
+
+.title-bar .login-link:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
 /* Front page and event lists */
 
 /* The logo is a black-on-white JPG; multiply lets its white take the page color */
