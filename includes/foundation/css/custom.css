@@ -4,6 +4,7 @@
   --hs-bg: #f5f7f9;
   --hs-surface: #ffffff;
   --hs-text: #171d26;
+  --hs-text-soft: #3c434d;
   --hs-muted: #616a75;
   --hs-border: #dadee3;
   --hs-row-line: #e8ebef;
@@ -1712,6 +1713,11 @@ li h5 {
   margin-bottom:0rem;
 }
 
+.hero-title h2 {
+  font-weight: 400;
+  color: var(--hs-text-soft);
+}
+
 .hero-title select{
     margin-bottom:0.5rem;
  }
@@ -1843,6 +1849,12 @@ background-color:#EB5757;
 .top-bar-right a,
 .title-bar .login-link {
   font-size: 0.9rem;
+}
+
+/* Space between the top-level items so their hover backgrounds don't touch
+   (column-gap only, so the stacked phone menu is unchanged) */
+.top-bar .dropdown.menu {
+  column-gap: 0.5rem;
 }
 
 .top-bar .dropdown.menu > li > a {
