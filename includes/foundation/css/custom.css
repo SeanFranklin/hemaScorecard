@@ -1,3 +1,81 @@
+/* __ Theme tokens (Delft) ____________________________________________________*/
+
+:root {
+  --hs-bg: #f5f7f9;
+  --hs-surface: #ffffff;
+  --hs-text: #171d26;
+  --hs-muted: #616a75;
+  --hs-border: #dadee3;
+  --hs-row-line: #e8ebef;
+  --hs-stripe: #f1f4f7;
+  --hs-hover: #e6effc;
+  --hs-bar: #0b223e;
+  --hs-bar-text: #ffffff;
+  --hs-bar-hover: rgba(255, 255, 255, 0.10);
+  --hs-accent: #1e5ba1;
+  --hs-accent-hover: #1a4d89;
+  --hs-on-accent: #ffffff;
+  --hs-link: #17559b;
+  --hs-link-hover: #144884;
+  --hs-secondary: #616a75;
+  --hs-secondary-hover: #525a63;
+  --hs-footer-text: #5c646f;
+  --hs-footer-strong: #14273f;
+  --hs-active-text: #095717;
+  --hs-published-text: #0b4c92;
+  --hs-radius: 8px;
+  --hs-radius-sm: 4px;
+  --hs-font: "Atkinson Hyperlegible Next", "Chivo", system-ui, sans-serif;
+  --hs-font-mono: "Atkinson Hyperlegible Mono", monospace;
+}
+
+/* __ Theme baseline ___________________________________________________________*/
+/* Re-skins Foundation's defaults. It sits above the site's own rules so they
+   keep overriding Foundation exactly as before. */
+
+body {
+  background: var(--hs-bg);
+  color: var(--hs-text);
+  font-family: var(--hs-font);
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+  font-family: var(--hs-font);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 small, .h1 small, h2 small, .h2 small, h3 small, .h3 small,
+h4 small, .h4 small, h5 small, .h5 small, h6 small, .h6 small {
+  color: var(--hs-muted);
+}
+
+code, kbd, pre {
+  font-family: var(--hs-font-mono);
+}
+
+code {
+  background-color: var(--hs-stripe);
+  border-color: var(--hs-border);
+  color: var(--hs-text);
+}
+
+kbd {
+  background-color: var(--hs-stripe);
+  color: var(--hs-text);
+}
+
+a {
+  color: var(--hs-link);
+  text-underline-offset: 3px;
+}
+
+a:hover, a:focus {
+  color: var(--hs-link-hover);
+}
+
+/* __ End theme baseline __ */
+
 /* Added By Sean **************************************************************/
 
 /* For making <select> elements small, even in input-groups */

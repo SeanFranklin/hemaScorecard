@@ -49,7 +49,7 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.foundation.min.css">
 
-	<link href="https://fonts.googleapis.com/css?family=Chivo:300,400,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="includes/foundation/css/app.css">
 	<link rel="stylesheet" href="includes/foundation/css/custom.css<?=$vC?>">
 
