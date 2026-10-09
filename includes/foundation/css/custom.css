@@ -19,6 +19,7 @@
   --hs-link-hover: #144884;
   --hs-secondary: #616a75;
   --hs-secondary-hover: #525a63;
+  --hs-footer: #edf0f4;
   --hs-footer-text: #5c646f;
   --hs-footer-strong: #14273f;
   --hs-active-text: #095717;
@@ -1267,7 +1268,7 @@ table tr.match-queue{
 }
 
 .easter-egg{
-    color: var(--hs-bg) !important;
+    color: var(--hs-footer) !important;
 }
 
 .confirmed-hours{
@@ -1992,18 +1993,59 @@ img[src$="logo_rect.jpg"] {
   color: var(--hs-active-text);
 }
 
-/* Footer: the block that follows the page wrapper */
+/* Footer and the event sponsor block above it */
 
-#page-wrapper ~ .grid-x {
+.site-sponsors {
+  margin-top: 20px;
+  border-top: 1px solid var(--hs-border);
+}
+
+.site-footer {
+  margin-top: 20px;
+  border-top: 1px solid var(--hs-border);
+  background: var(--hs-footer);
   color: var(--hs-footer-text);
 }
 
-#page-wrapper ~ .grid-x a {
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.site-footer-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
+/* A logo and its text wrap together as one unit */
+.site-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.site-footer a {
   color: var(--hs-footer-strong);
 }
 
-/* The logo PNGs have opaque white backgrounds; multiply lets them take the page color */
-#page-wrapper ~ .grid-x img {
+/* Two lines of footer text tall (line-height 1.5), so the logos follow the text size.
+   The partner PNGs have opaque white backgrounds; multiply lets them take the band color. */
+.site-footer-logo {
+  display: block;
+  height: 3em;
+  width: auto;
   opacity: 0.9;
   mix-blend-mode: multiply;
+}
+
+/* The icon file is white (made for the dark display windows); draw it dark */
+.site-footer-logo-icon {
+  filter: brightness(0);
 }

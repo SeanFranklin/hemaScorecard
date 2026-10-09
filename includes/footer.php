@@ -17,49 +17,45 @@
 
 	<?=displaySponsors()?>
 
-	<div class='grid-x grid-margin-x text-right align-right'  style='border-top: 1px solid black; margin-top: 20px;'>
+	<footer class='site-footer'>
+		<div class='grid-container site-footer-inner'>
 
-		<div class='grid-x grid-margin-x align-right'>
-
-			<div class='shrink cell'>
-				<div class='grid-x grid-margin-x align-right'>
-					<div class='shrink cell'>
+			<div class='site-footer-group'>
+				<div class='site-footer-item'>
+					<a href='index.php'>
+						<img class='site-footer-logo site-footer-logo-icon' src='includes/images/favicon2.png' alt='HEMA Scorecard'>
+					</a>
+					<div>
 						<a href='index.php'>HEMA Scorecard</a><BR>
-						Developed by Sean Franklin <BR>
-						A <a href='http://www.swordstem.com/'>SwordSTEM</a> project<BR>
-
-						<a href='http://www.seanfranklin.ca/talenttree' class='easter-egg'>you found me</a>
-					</div>
-					<div class='shrink cell'>
-						<a href='http://www.swordstem.com/'>
-							<img src='includes/images/SwordSTEM_logo.png'>
-						</a>
+						Developed by Sean Franklin
 					</div>
 				</div>
 			</div>
 
-			<div class='shrink cell'>
-				<div class='grid-x grid-margin-x align-right'>
-					<div class='shrink cell'>
+			<div class='site-footer-group'>
+				<div class='site-footer-item'>
+					<div class='text-right'>
+						A <a href='http://www.swordstem.com/'>SwordSTEM</a> project<BR>
+						<a href='http://www.seanfranklin.ca/talenttree' class='easter-egg'>you found me</a>
+					</div>
+					<a href='http://www.swordstem.com/'>
+						<img class='site-footer-logo' src='includes/images/SwordSTEM_logo.png' alt='SwordSTEM'>
+					</a>
+				</div>
+				<div class='site-footer-item'>
+					<div class='text-right'>
 						Supported by the<BR>
 						<a href='https://www.hemaalliance.com/'>HEMA Alliance</a>
 					</div>
-					<div class='shrink cell'>
-						<a href='https://www.hemaalliance.com/'>
-							<img src='includes/images/hemaa_logo_s.png'>
-						</a>
-					</div>
+					<a href='https://www.hemaalliance.com/'>
+						<img class='site-footer-logo' src='includes/images/hemaa_logo_s.png' alt='HEMA Alliance'>
+					</a>
 				</div>
 			</div>
 
-
-
-			<div class='shrink cell'>
-
-			</div>
-
 		</div>
-	</div>
+	</footer>
+
 	<?php endif ?>
 
 <!-- Start Scripts -->
@@ -162,7 +158,7 @@ function displaySponsors(){
 
 
 ?>
-	<div class="large-12 cell align-top <?=$hideForSmall?>" style='border-top: 1px solid black; margin-top: 20px;'>
+	<div class="large-12 cell align-top site-sponsors <?=$hideForSmall?>">
 
 		<div class='grid-x grid-margin-x align-center align-top' id='sponsor-large'>
 
