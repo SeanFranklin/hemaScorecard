@@ -35,6 +35,12 @@
   --hs-alert-hover: #9e2320;
   --hs-alert-tint: #ffece9;
   --hs-alert-text: #b02b27;
+  --hs-scoring-tint: #b4d5f8;
+  --hs-afterblow-tint: #edc291;
+  --hs-double-out: #7f211d;
+  --hs-card-yellow: #f9e03f;
+  --hs-card-red: #d33c30;
+  --hs-shadow: rgba(11, 34, 62, 0.6);
   --hs-radius: 8px;
   --hs-radius-sm: 4px;
   --hs-font: "Atkinson Hyperlegible Next", "Chivo", system-ui, sans-serif;
@@ -833,8 +839,8 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
 /* __ Bracket Formatting ______________________________________________*/
 
 .secondary-bracket{
-  background-color:#FFF5E8;
-  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1);
+  background-color: var(--hs-warning-tint);
+  box-shadow: 0 0 10px 20px var(--hs-warning-tint);
 }
 
 /* __ Placings for infoSummary ______________________________________________*/
@@ -845,7 +851,7 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
   border-collapse: collapse;
 
   td.results-table-header{
-    background-color: #000;
+    background-color: var(--hs-bar);
     color:white;
     text-align: left;
   }
@@ -950,7 +956,7 @@ td.border-top{
 }
 
 .pending-exchange{
-  background-color: #88C6F0  !important;
+  background-color: var(--hs-scoring-tint)  !important;
 }
 
 
@@ -960,11 +966,11 @@ div.attack-box{
 }
 
 div.attack-box-on{
-  background-color: #96CDF2;
+  background-color: var(--hs-scoring-tint);
 }
 
 div.afterblow-box-on{
-  background-color: #E9B57D;
+  background-color: var(--hs-afterblow-tint);
 }
 
 div.afterblow-box-disabled{
@@ -974,7 +980,7 @@ div.afterblow-box-disabled{
 
 div.quiz{
   border: black solid 1px;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-right: 8px;
   padding: 8px;
   margin-bottom: 20px;
@@ -1050,7 +1056,7 @@ div.clickable{
   cursor: pointer;
 
   border: 1px solid black ;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-top: 4 px;
   margin-bottom: 12 px;
 }
@@ -1063,7 +1069,7 @@ div.clickable:active:hover {
 
 .image-box{
   border: 1px solid black ;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-right: 8px;
 }
 
@@ -1237,11 +1243,11 @@ table tr.match-queue{
 }
 
 .penalty-card-yellow{
-  background-color: #FFFF55;
+  background-color: var(--hs-card-yellow);
 }
 
 .penalty-card-red{
-  background-color: #F04124;
+  background-color: var(--hs-card-red);
 }
 
 .penalty-card-black{
@@ -1372,7 +1378,7 @@ table tr.match-queue{
 }
 
 .match-doubleOut{
-	color: #800000;
+	color: var(--hs-double-out);
 }
 
 .last-to-elims{
@@ -1635,12 +1641,12 @@ margin-bottom:.25rem;
 }
 
 .current-match a, current-match a:visited {
-background-color:black;
+background-color: var(--hs-bar);
 color:white;
 }
 
 .current-match {
-border-color:black;
+border-color: var(--hs-bar);
 }
 
 .match-item ul {
