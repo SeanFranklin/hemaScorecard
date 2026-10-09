@@ -488,6 +488,7 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
 }
 .tabs-title > a {
   color: var(--hs-muted);
+  font-size: 0.875rem;
   font-weight: 600;
 }
 .tabs-title > a:hover {
