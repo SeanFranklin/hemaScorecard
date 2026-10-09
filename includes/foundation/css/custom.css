@@ -868,7 +868,7 @@ table tr.match-queue{
 }
 
 .link-table-active{
-   color:red;
+   color: var(--hs-text);
 }
 
 #sponsor-large img{
@@ -953,7 +953,7 @@ table tr.match-queue{
 }
 
 .easter-egg{
-    color: white !important;
+    color: var(--hs-bg) !important;
 }
 
 .confirmed-hours{
@@ -1564,4 +1564,57 @@ background-color:#EB5757;
 .top-bar-right a[href^='javascript:document.logOutForm2']:hover {
   filter: brightness(1.08);
   text-decoration: none;
+}
+
+/* Front page and event lists */
+
+/* The logo is a black-on-white JPG; multiply lets its white take the page color */
+img[src$="logo_rect.jpg"] {
+  mix-blend-mode: multiply;
+}
+
+[data-tabs-content="recent-events-tabs"] {
+  border-radius: 0 0 var(--hs-radius) var(--hs-radius);
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:first-child,
+#eventListAll tbody td:first-child {
+  font-family: var(--hs-font-mono);
+  color: var(--hs-muted);
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:nth-child(2),
+#eventListAll tbody td:nth-child(2) {
+  font-weight: 500;
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:last-child,
+#eventListAll tbody td:last-child {
+  color: var(--hs-muted);
+}
+
+/* ACTIVE and Published are the bold statuses */
+[data-tabs-content="recent-events-tabs"] tbody td:last-child b,
+#eventListAll tbody td:last-child b {
+  color: var(--hs-published-text);
+  font-weight: 600;
+}
+
+[data-tabs-content="recent-events-tabs"] .link-table-active td:last-child b,
+#eventListAll .link-table-active td:last-child b {
+  color: var(--hs-active-text);
+}
+
+/* Footer: the block that follows the page wrapper */
+
+#page-wrapper ~ .grid-x {
+  color: var(--hs-footer-text);
+}
+
+#page-wrapper ~ .grid-x a {
+  color: var(--hs-footer-strong);
+}
+
+#page-wrapper ~ .grid-x img {
+  opacity: 0.9;
 }
