@@ -208,7 +208,7 @@ function listSlider(baseID){
 
 /**********************************************************************/
 
-function getDataForYearType(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing = false){
+function getDataForYearType(year, id, color = 'var(--hs-chart-blue)', numToShow = 5, hidePlacing = false){
 
 
 	if(typeof(id) == 'string'){
@@ -233,7 +233,7 @@ function getDataForYearType(year, id, color = '#D6E5FA', numToShow = 5, hidePlac
 
 /**********************************************************************/
 
-function getDataForYear(year, id, color = '#D6E5FA', numToShow = 5, hidePlacing = false){
+function getDataForYear(year, id, color = 'var(--hs-chart-blue)', numToShow = 5, hidePlacing = false){
 
     $i = 0;
 

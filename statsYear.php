@@ -100,55 +100,55 @@ include('includes/header.php');
 
 		<li class="tabs-title"><a
 			href            ="#panel-country"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-country', 'events-by-country', 'exchanges-by-nonus-country', 'exchanges-by-us-state', 'events-by-nonus-country', 'events-by-us-state'], 'teal',[10,10,10,10, 10, 10])">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-country', 'events-by-country', 'exchanges-by-nonus-country', 'exchanges-by-us-state', 'events-by-nonus-country', 'events-by-us-state'], 'var(--hs-chart-blue)',[10,10,10,10, 10, 10])">
 				            Country
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-date"
-			onclick="getDataForYearType(<?=$year?>, ['events-by-month','events-by-days'], 'crimson', [12,5], true)">
+			onclick="getDataForYearType(<?=$year?>, ['events-by-month','events-by-days'], 'var(--hs-chart-red)', [12,5], true)">
 				            Date
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-event"
 			href            ="#change-event"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-event','matches-by-event','tournaments-by-event','womens-by-event','exchanges-by-event-day'], 'deepskyblue', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-event','matches-by-event','tournaments-by-event','womens-by-event','exchanges-by-event-day'], 'var(--hs-chart-sky)', 10)">
 				            Events
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-club"
 			href            ="#change-club"
-			onclick="getDataForYearType(<?=$year?>, ['entries-by-club','matches-by-club','exchanges-by-club','wins-by-club'], 'Aquamarine', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['entries-by-club','matches-by-club','exchanges-by-club','wins-by-club'], 'var(--hs-chart-teal)', 10)">
 				            Clubs
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-weapon"
 			href            ="#change-weapon"
-			onclick="getDataForYearType(<?=$year?>, ['tournaments-by-weapon','exchanges-by-weapon','wtournaments-by-weapon','womens-by-weapon'], 'gray', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['tournaments-by-weapon','exchanges-by-weapon','wtournaments-by-weapon','womens-by-weapon'], 'var(--hs-chart-gray)', 10)">
 				            Weapons
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-fighter"
 			href            ="#change-fighter"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-fighter','close-by-fighter','entries-by-fighter','events-by-fighter','shutouts-by-fighter','matches-by-fighter'], 'salmon', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-fighter','close-by-fighter','entries-by-fighter','events-by-fighter','shutouts-by-fighter','matches-by-fighter'], 'var(--hs-chart-orange)', 10)">
 				            Fighters
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-match"
 			href            ="#change-match"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-match', 'rematches-by-fighter', 'comebacks-by-match'], 'violet', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-match', 'rematches-by-fighter', 'comebacks-by-match'], 'var(--hs-chart-violet)', 10)">
 				            Matches
 		</a></li>
 
 		<li class="tabs-title"><a
 			data-tabs-target="panel-staff"
 			href            ="#change-staff"
-			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-judge', 'exchanges-by-director','matches-by-table', 'matches-by-staff', 'exchanges-by-judge-school', 'exchanges-by-staff-school'], 'Khaki', 10)">
+			onclick="getDataForYearType(<?=$year?>, ['exchanges-by-judge', 'exchanges-by-director','matches-by-table', 'matches-by-staff', 'exchanges-by-judge-school', 'exchanges-by-staff-school'], 'var(--hs-chart-ochre)', 10)">
 				            Staff
 		</a></li>
 

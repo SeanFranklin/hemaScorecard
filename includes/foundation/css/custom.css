@@ -42,6 +42,14 @@
   --hs-double-out: #7f211d;
   --hs-card-yellow: #f9e03f;
   --hs-card-red: #d33c30;
+  --hs-chart-blue: #5788c7;
+  --hs-chart-red: #c06a64;
+  --hs-chart-sky: #2a92bb;
+  --hs-chart-teal: #0f9b89;
+  --hs-chart-gray: #7e8792;
+  --hs-chart-orange: #bc6f4c;
+  --hs-chart-violet: #9674bb;
+  --hs-chart-ochre: #a4802b;
   --hs-shadow: rgba(11, 34, 62, 0.6);
   --hs-radius: 8px;
   --hs-radius-sm: 4px;
