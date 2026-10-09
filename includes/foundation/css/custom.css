@@ -2035,6 +2035,10 @@ img[src$="logo_rect.jpg"] {
   color: var(--hs-footer-strong);
 }
 
+.site-footer-name {
+  font-weight: 700;
+}
+
 /* Two lines of footer text tall (line-height 1.5), so the logos follow the text size.
    The partner PNGs have opaque white backgrounds; multiply lets them take the band color. */
 .site-footer-logo {

@@ -26,8 +26,9 @@
 						<img class='site-footer-logo site-footer-logo-icon' src='includes/images/favicon2.png' alt='HEMA Scorecard'>
 					</a>
 					<div>
-						<a href='index.php'>HEMA Scorecard</a><BR>
+						<a href='index.php' class='site-footer-name'>HEMA Scorecard</a><BR>
 						Developed by Sean Franklin
+						<a href='http://www.seanfranklin.ca/talenttree' class='easter-egg'>you found me</a>
 					</div>
 				</div>
 			</div>
@@ -35,8 +36,8 @@
 			<div class='site-footer-group'>
 				<div class='site-footer-item'>
 					<div class='text-right'>
-						A <a href='http://www.swordstem.com/'>SwordSTEM</a> project<BR>
-						<a href='http://www.seanfranklin.ca/talenttree' class='easter-egg'>you found me</a>
+						A part of<BR>
+						<a href='http://www.swordstem.com/'>SwordSTEM</a>
 					</div>
 					<a href='http://www.swordstem.com/'>
 						<img class='site-footer-logo' src='includes/images/SwordSTEM_logo.png' alt='SwordSTEM'>
