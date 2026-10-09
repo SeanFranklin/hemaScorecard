@@ -74,6 +74,341 @@ a:hover, a:focus {
   color: var(--hs-link-hover);
 }
 
+/* Buttons. Foundation's primary and secondary button rules are replayed in
+   their original order with theme colors, so its later resets for hollow,
+   clear and disabled buttons still apply exactly as before. */
+
+.button {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+  border-radius: var(--hs-radius);
+}
+.button:hover, .button:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button.primary {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.primary:hover, .button.primary:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button.secondary {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button.secondary:hover, .button.secondary:focus {
+  background-color: var(--hs-secondary-hover);
+  color: var(--hs-on-accent);
+}
+.button.disabled, .button.disabled:hover, .button.disabled:focus,
+.button[disabled], .button[disabled]:hover, .button[disabled]:focus {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.disabled.primary, .button.disabled.primary:hover, .button.disabled.primary:focus,
+.button[disabled].primary, .button[disabled].primary:hover, .button[disabled].primary:focus {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.disabled.secondary, .button.disabled.secondary:hover, .button.disabled.secondary:focus,
+.button[disabled].secondary, .button[disabled].secondary:hover, .button[disabled].secondary:focus {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button.hollow {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow, .button.hollow:hover, .button.hollow:focus {
+  background-color: transparent;
+}
+.button.hollow.disabled, .button.hollow.disabled:hover, .button.hollow.disabled:focus,
+.button.hollow[disabled], .button.hollow[disabled]:hover, .button.hollow[disabled]:focus {
+  background-color: transparent;
+}
+.button.hollow:hover, .button.hollow:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.hollow:hover.disabled, .button.hollow:hover[disabled],
+.button.hollow:focus.disabled, .button.hollow:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.primary {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.primary:hover, .button.hollow.primary:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.hollow.primary:hover.disabled, .button.hollow.primary:hover[disabled],
+.button.hollow.primary:focus.disabled, .button.hollow.primary:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.secondary {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.hollow.secondary:hover, .button.hollow.secondary:focus {
+  border-color: var(--hs-secondary-hover);
+  color: var(--hs-secondary-hover);
+}
+.button.hollow.secondary:hover.disabled, .button.hollow.secondary:hover[disabled],
+.button.hollow.secondary:focus.disabled, .button.hollow.secondary:focus[disabled] {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear, .button.clear:hover, .button.clear:focus {
+  background-color: transparent;
+}
+.button.clear.disabled, .button.clear.disabled:hover, .button.clear.disabled:focus,
+.button.clear[disabled], .button.clear[disabled]:hover, .button.clear[disabled]:focus {
+  background-color: transparent;
+}
+.button.clear:hover, .button.clear:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.clear:hover.disabled, .button.clear:hover[disabled],
+.button.clear:focus.disabled, .button.clear:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear, .button.clear.disabled, .button.clear[disabled],
+.button.clear:hover, .button.clear:hover.disabled, .button.clear:hover[disabled],
+.button.clear:focus, .button.clear:focus.disabled, .button.clear:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.primary {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear.primary:hover, .button.clear.primary:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.clear.primary:hover.disabled, .button.clear.primary:hover[disabled],
+.button.clear.primary:focus.disabled, .button.clear.primary:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear.primary, .button.clear.primary.disabled, .button.clear.primary[disabled],
+.button.clear.primary:hover, .button.clear.primary:hover.disabled, .button.clear.primary:hover[disabled],
+.button.clear.primary:focus, .button.clear.primary:focus.disabled, .button.clear.primary:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.secondary {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear.secondary:hover, .button.clear.secondary:focus {
+  border-color: var(--hs-secondary-hover);
+  color: var(--hs-secondary-hover);
+}
+.button.clear.secondary:hover.disabled, .button.clear.secondary:hover[disabled],
+.button.clear.secondary:focus.disabled, .button.clear.secondary:focus[disabled] {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear.secondary, .button.clear.secondary.disabled, .button.clear.secondary[disabled],
+.button.clear.secondary:hover, .button.clear.secondary:hover.disabled, .button.clear.secondary:hover[disabled],
+.button.clear.secondary:focus, .button.clear.secondary:focus.disabled, .button.clear.secondary:focus[disabled] {
+  border-color: transparent;
+}
+.button.dropdown.hollow::after,
+.button.dropdown.hollow.primary::after {
+  border-top-color: var(--hs-accent);
+}
+.button.dropdown.hollow.secondary::after {
+  border-top-color: var(--hs-secondary);
+}
+.button-group.primary .button {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button-group.primary .button:hover, .button-group.primary .button:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button-group.secondary .button {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button-group.secondary .button:hover, .button-group.secondary .button:focus {
+  background-color: var(--hs-secondary-hover);
+  color: var(--hs-on-accent);
+}
+
+/* Buttons attached to inputs stay square so they still sit flush */
+.input-group-button .button {
+  border-radius: 0;
+}
+
+/* Labels and badges */
+
+.label, .label.primary, .badge, .badge.primary {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+
+.label.secondary, .badge.secondary {
+  background: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+
+/* Callouts */
+
+.callout {
+  background-color: var(--hs-surface);
+  border-color: var(--hs-border);
+  color: var(--hs-text);
+  border-radius: var(--hs-radius);
+}
+
+.callout.primary {
+  background-color: var(--hs-hover);
+}
+
+.callout.secondary {
+  background-color: var(--hs-stripe);
+}
+
+/* Menus, accordions, breadcrumbs, and their arrows (Foundation's order) */
+
+.accordion-title {
+  color: var(--hs-link);
+}
+.accordion-menu .is-accordion-submenu-parent:not(.has-submenu-toggle) > a::after,
+.submenu-toggle::after {
+  border-color: var(--hs-accent) transparent transparent;
+}
+.breadcrumbs a {
+  color: var(--hs-link);
+}
+.menu .is-active > a, .menu .active > a {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.drilldown .is-drilldown-submenu-parent > a::after,
+.drilldown.align-left .is-drilldown-submenu-parent > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+.drilldown.align-right .is-drilldown-submenu-parent > a::after,
+.drilldown .js-drilldown-back > a::before {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.dropdown.menu.vertical > li.opens-left > a::after {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.dropdown.menu.vertical > li.opens-right > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+@media print, screen and (min-width: 40em) {
+  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a::after {
+    border-color: var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.medium-vertical > li.opens-left > a::after {
+    border-color: transparent var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.medium-vertical > li.opens-right > a::after {
+    border-color: transparent transparent transparent var(--hs-accent);
+  }
+}
+@media print, screen and (min-width: 64em) {
+  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a::after {
+    border-color: var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.large-vertical > li.opens-left > a::after {
+    border-color: transparent var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.large-vertical > li.opens-right > a::after {
+    border-color: transparent transparent transparent var(--hs-accent);
+  }
+}
+.is-dropdown-submenu .is-dropdown-submenu-parent.opens-left > a::after {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.is-dropdown-submenu .is-dropdown-submenu-parent.opens-right > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+
+/* Pagination, progress, slider, switch */
+
+.pagination .current {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.progress.primary .progress-meter,
+.progress-meter {
+  background-color: var(--hs-accent);
+}
+.progress.secondary .progress-meter {
+  background-color: var(--hs-secondary);
+}
+.slider-handle {
+  background-color: var(--hs-accent);
+}
+.slider-handle:hover {
+  background-color: var(--hs-accent-hover);
+}
+input:checked ~ .switch-paddle {
+  background: var(--hs-accent);
+}
+
+/* Form focus: accent border and an outer ring (box-shadow, so no size change) */
+
+[type='text']:focus, [type='password']:focus, [type='date']:focus, [type='datetime']:focus,
+[type='datetime-local']:focus, [type='month']:focus, [type='week']:focus, [type='email']:focus,
+[type='number']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus,
+[type='url']:focus, [type='color']:focus, textarea:focus,
+select:focus {
+  border-color: var(--hs-accent);
+  box-shadow: 0 0 0 3px rgba(30, 91, 161, 0.18);
+}
+
+/* Modals and tooltips */
+
+.reveal {
+  border-color: var(--hs-border);
+  border-radius: var(--hs-radius);
+}
+@media screen and (max-width: 39.9375em) {
+  .reveal {
+    border-radius: 0;
+  }
+}
+.reveal-overlay {
+  background-color: rgba(11, 34, 62, 0.45);
+}
+.has-tip {
+  border-bottom-color: var(--hs-muted);
+}
+.tooltip {
+  background-color: var(--hs-bar);
+}
+.tooltip.bottom::before {
+  border-color: transparent transparent var(--hs-bar);
+}
+.tooltip.top::before {
+  border-color: var(--hs-bar) transparent transparent;
+}
+.tooltip.left::before {
+  border-color: transparent transparent transparent var(--hs-bar);
+}
+.tooltip.right::before {
+  border-color: transparent var(--hs-bar) transparent transparent;
+}
+
 /* __ End theme baseline __ */
 
 /* Added By Sean **************************************************************/
@@ -285,7 +620,7 @@ p.quiz-answer{
 }
 
 .background-primary{
-  background-color: #1779ba;
+  background-color: var(--hs-accent);
 }
 
 .background-primary-light{
@@ -293,7 +628,7 @@ p.quiz-answer{
 }
 
 .background-secondary{
-  background-color: #767676;
+  background-color: var(--hs-secondary);
 }
 
 .background-success{
@@ -481,7 +816,7 @@ table tr.match-queue{
 
 .documentation-div h2{
   font-size: 1.9em;
-  color: #1779ba;
+  color: var(--hs-link);
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
@@ -550,7 +885,7 @@ table tr.match-queue{
 }
 
 .target-hours{
-  color: #1779ba;
+  color: var(--hs-link);
 }
 
 .unconfirmed-hours{
@@ -808,7 +1143,7 @@ legend h4 {
 }
 
 .blue-text {
-  color: #1779ba;
+  color: var(--hs-link);
 }
 
 .success-text {
