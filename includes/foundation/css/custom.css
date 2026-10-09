@@ -1890,12 +1890,25 @@ background-color:#EB5757;
   color: var(--hs-bar-text);
 }
 
-/* Login / Log Out: the spread shadow paints the button padding without changing the link's box */
+/* Tournament switcher: Foundation spaces the dropdown arrow for plain links (24px padding,
+   arrow 5px from the edge), which looks lopsided inside an outline. Balance it. Scoped like
+   Foundation's breakpoint rules for these links so it out-ranks them. */
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar {
+  padding-left: 12px;
+  padding-right: 32px;
+}
+
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar::after {
+  right: 12px;
+}
+
+/* Login / Log Out button */
 .top-bar-right a[href='adminLogIn.php'],
 .top-bar-right a[href^='javascript:document.logOutForm2'] {
+  display: inline-block;
+  padding: 6px 12px;
   background: var(--hs-accent);
-  border-radius: var(--hs-radius-sm);
-  box-shadow: 0 0 0 6px var(--hs-accent);
+  border-radius: var(--hs-radius);
   font-weight: 600;
 }
 
@@ -1906,10 +1919,12 @@ background-color:#EB5757;
 }
 
 /* Phone Login / Log Out: the same button as desktop. The link is a 44px touch target, so the
-   button is painted by a pseudo-element sized like the desktop one rather than a spread shadow. */
+   button is painted by a pseudo-element the size of the desktop one (36px tall, 12px either
+   side of the text); the extra right margin keeps it clear of the screen edge. */
 .title-bar .login-link {
   position: relative;
   z-index: 0;
+  margin-right: 1rem;
   font-weight: 600;
 }
 
@@ -1918,11 +1933,11 @@ background-color:#EB5757;
   position: absolute;
   top: 4px;
   bottom: 4px;
-  left: -6px;
-  right: -6px;
+  left: -12px;
+  right: -12px;
   z-index: -1;
   background: var(--hs-accent);
-  border-radius: 10px;
+  border-radius: var(--hs-radius);
 }
 
 .title-bar .login-link:hover {
