@@ -23,6 +23,18 @@
   --hs-footer-strong: #14273f;
   --hs-active-text: #095717;
   --hs-published-text: #0b4c92;
+  --hs-success: #21763c;
+  --hs-success-hover: #03642b;
+  --hs-success-tint: #e2f9e6;
+  --hs-success-text: #095717;
+  --hs-warning: #edb345;
+  --hs-warning-hover: #d9a02c;
+  --hs-warning-tint: #fff4d7;
+  --hs-warning-text: #975800;
+  --hs-alert: #b33832;
+  --hs-alert-hover: #9e2320;
+  --hs-alert-tint: #ffece9;
+  --hs-alert-text: #b02b27;
   --hs-radius: 8px;
   --hs-radius-sm: 4px;
   --hs-font: "Atkinson Hyperlegible Next", "Chivo", system-ui, sans-serif;
@@ -485,6 +497,299 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
   color: var(--hs-text);
 }
 
+/* Semantic colors. Foundation's success, warning and alert rules replayed in
+   their original order with theme colors (white text on the darker success and
+   alert fills; readable text shades on hollow and clear buttons). */
+
+.button.success {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button.success:hover,
+.button.success:focus {
+  background-color: var(--hs-success-hover);
+  color: var(--hs-on-accent);
+}
+.button.warning {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button.warning:hover,
+.button.warning:focus {
+  background-color: var(--hs-warning-hover);
+  color: var(--hs-text);
+}
+.button.alert {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button.alert:hover,
+.button.alert:focus {
+  background-color: var(--hs-alert-hover);
+  color: var(--hs-on-accent);
+}
+.button.disabled.success,
+.button.disabled.success:hover,
+.button.disabled.success:focus,
+.button[disabled].success,
+.button[disabled].success:hover,
+.button[disabled].success:focus {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button.disabled.warning,
+.button.disabled.warning:hover,
+.button.disabled.warning:focus,
+.button[disabled].warning,
+.button[disabled].warning:hover,
+.button[disabled].warning:focus {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button.disabled.alert,
+.button.disabled.alert:hover,
+.button.disabled.alert:focus,
+.button[disabled].alert,
+.button[disabled].alert:hover,
+.button[disabled].alert:focus {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button.hollow.success {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.hollow.success:hover,
+.button.hollow.success:focus {
+  border-color: var(--hs-success-text);
+  color: var(--hs-success-text);
+}
+.button.hollow.success:hover.disabled,
+.button.hollow.success:hover[disabled],
+.button.hollow.success:focus.disabled,
+.button.hollow.success:focus[disabled] {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.hollow.warning {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.hollow.warning:hover,
+.button.hollow.warning:focus {
+  border-color: var(--hs-warning-text);
+  color: var(--hs-warning-text);
+}
+.button.hollow.warning:hover.disabled,
+.button.hollow.warning:hover[disabled],
+.button.hollow.warning:focus.disabled,
+.button.hollow.warning:focus[disabled] {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.hollow.alert {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.hollow.alert:hover,
+.button.hollow.alert:focus {
+  border-color: var(--hs-alert-text);
+  color: var(--hs-alert-text);
+}
+.button.hollow.alert:hover.disabled,
+.button.hollow.alert:hover[disabled],
+.button.hollow.alert:focus.disabled,
+.button.hollow.alert:focus[disabled] {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.success {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.clear.success:hover,
+.button.clear.success:focus {
+  border-color: var(--hs-success-text);
+  color: var(--hs-success-text);
+}
+.button.clear.success:hover.disabled,
+.button.clear.success:hover[disabled],
+.button.clear.success:focus.disabled,
+.button.clear.success:focus[disabled] {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.clear.success,
+.button.clear.success.disabled,
+.button.clear.success[disabled],
+.button.clear.success:hover,
+.button.clear.success:hover.disabled,
+.button.clear.success:hover[disabled],
+.button.clear.success:focus,
+.button.clear.success:focus.disabled,
+.button.clear.success:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.warning {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning:hover,
+.button.clear.warning:focus {
+  border-color: var(--hs-warning-text);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning:hover.disabled,
+.button.clear.warning:hover[disabled],
+.button.clear.warning:focus.disabled,
+.button.clear.warning:focus[disabled] {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning,
+.button.clear.warning.disabled,
+.button.clear.warning[disabled],
+.button.clear.warning:hover,
+.button.clear.warning:hover.disabled,
+.button.clear.warning:hover[disabled],
+.button.clear.warning:focus,
+.button.clear.warning:focus.disabled,
+.button.clear.warning:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.alert {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert:hover,
+.button.clear.alert:focus {
+  border-color: var(--hs-alert-text);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert:hover.disabled,
+.button.clear.alert:hover[disabled],
+.button.clear.alert:focus.disabled,
+.button.clear.alert:focus[disabled] {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert,
+.button.clear.alert.disabled,
+.button.clear.alert[disabled],
+.button.clear.alert:hover,
+.button.clear.alert:hover.disabled,
+.button.clear.alert:hover[disabled],
+.button.clear.alert:focus,
+.button.clear.alert:focus.disabled,
+.button.clear.alert:focus[disabled] {
+  border-color: transparent;
+}
+.button.dropdown.hollow.success::after {
+  border-top-color: var(--hs-success);
+}
+.button.dropdown.hollow.warning::after {
+  border-top-color: var(--hs-warning);
+}
+.button.dropdown.hollow.alert::after {
+  border-top-color: var(--hs-alert);
+}
+.is-invalid-input:not(:focus) {
+  border-color: var(--hs-alert);
+  background-color: var(--hs-alert-tint);
+}
+.is-invalid-input:not(:focus)::placeholder {
+  color: var(--hs-alert-text);
+}
+.is-invalid-label {
+  color: var(--hs-alert-text);
+}
+.form-error {
+  color: var(--hs-alert-text);
+}
+.badge.success {
+  background: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.badge.warning {
+  background: var(--hs-warning);
+  color: var(--hs-text);
+}
+.badge.alert {
+  background: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button-group.success .button {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button-group.success .button:hover,
+.button-group.success .button:focus {
+  background-color: var(--hs-success-hover);
+  color: var(--hs-on-accent);
+}
+.button-group.warning .button {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button-group.warning .button:hover,
+.button-group.warning .button:focus {
+  background-color: var(--hs-warning-hover);
+  color: var(--hs-text);
+}
+.button-group.alert .button {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button-group.alert .button:hover,
+.button-group.alert .button:focus {
+  background-color: var(--hs-alert-hover);
+  color: var(--hs-on-accent);
+}
+.callout.success {
+  background-color: var(--hs-success-tint);
+  color: var(--hs-text);
+}
+.callout.warning {
+  background-color: var(--hs-warning-tint);
+  color: var(--hs-text);
+}
+.callout.alert {
+  background-color: var(--hs-alert-tint);
+  color: var(--hs-text);
+}
+.label.success {
+  background: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.label.warning {
+  background: var(--hs-warning);
+  color: var(--hs-text);
+}
+.label.alert {
+  background: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.progress.success .progress-meter {
+  background-color: var(--hs-success);
+}
+.progress.warning .progress-meter {
+  background-color: var(--hs-warning);
+}
+.progress.alert .progress-meter {
+  background-color: var(--hs-alert);
+}
+
+/* Foundation declares its hollow/clear transparency after the semantic fills;
+   restated here so it still wins over the semantic rules above. */
+.button.hollow, .button.hollow:hover, .button.hollow:focus,
+.button.hollow.disabled, .button.hollow.disabled:hover, .button.hollow.disabled:focus,
+.button.hollow[disabled], .button.hollow[disabled]:hover, .button.hollow[disabled]:focus,
+.button.clear, .button.clear:hover, .button.clear:focus,
+.button.clear.disabled, .button.clear.disabled:hover, .button.clear.disabled:focus,
+.button.clear[disabled], .button.clear[disabled]:hover, .button.clear[disabled]:focus {
+  background-color: transparent;
+}
+
 /* __ End theme baseline __ */
 
 /* Added By Sean **************************************************************/
@@ -708,15 +1013,15 @@ p.quiz-answer{
 }
 
 .background-success{
-  background-color: #3adb76;
+  background-color: var(--hs-success);
 }
 
 .background-warning{
-  background-color: #ffae00;
+  background-color: var(--hs-warning);
 }
 
 .background-alert{
-  background-color: #cc4b37;
+  background-color: var(--hs-alert);
 }
 
 
@@ -899,7 +1204,7 @@ table tr.match-queue{
 
 .documentation-div h3{
   font-size: 1.4em;
-  color: #F08A24;
+  color: var(--hs-warning-text);
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
@@ -957,7 +1262,7 @@ table tr.match-queue{
 }
 
 .confirmed-hours{
-  color: #3adb76;
+  color: var(--hs-success-text);
 }
 
 .target-hours{
@@ -965,11 +1270,11 @@ table tr.match-queue{
 }
 
 .unconfirmed-hours{
-  color: #cc4b37;
+  color: var(--hs-alert-text);
 }
 
 .unscheduled-hours{
-  color: #ffae00;
+  color: var(--hs-warning-text);
 }
 
 .bold{
@@ -1199,7 +1504,7 @@ legend h4 {
 }
 
 .red-text {
-  color: red;
+  color: var(--hs-alert-text);
 }
 
 .white-text {
@@ -1215,7 +1520,7 @@ legend h4 {
 }
 
 .alert-text {
-  color: #F04124;
+  color: var(--hs-alert-text);
 }
 
 .blue-text {
@@ -1223,11 +1528,11 @@ legend h4 {
 }
 
 .success-text {
-  color: #43AC6A;
+  color: var(--hs-success-text);
 }
 
 .warning-text {
-  color: #F08A24;
+  color: var(--hs-warning-text);
 }
 
 /* Jayson Stuff ***************************************************************/
