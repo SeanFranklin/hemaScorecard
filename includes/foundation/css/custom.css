@@ -502,6 +502,9 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
   background: var(--hs-surface);
   color: var(--hs-text);
 }
+.tabs-content.vertical {
+  border-color: var(--hs-border);
+}
 
 /* Semantic colors. Foundation's success, warning and alert rules replayed in
    their original order with theme colors (white text on the darker success and
