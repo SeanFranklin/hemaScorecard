@@ -1836,6 +1836,14 @@ background-color:#EB5757;
 
 /* Navigation */
 
+/* One text size across the bar, matching the tournament button (Foundation's button size) */
+.top-bar .dropdown.menu a,
+.top-bar .drop-down-separator,
+.top-bar-right a,
+.title-bar .login-link {
+  font-size: 0.9rem;
+}
+
 .top-bar .dropdown.menu > li > a {
   opacity: 0.85;
   border-radius: var(--hs-radius-sm);
