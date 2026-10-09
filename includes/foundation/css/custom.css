@@ -1551,6 +1551,13 @@ background-color:#EB5757;
   background: var(--hs-stripe);
 }
 
+/* The tournament button's colors come from app.css; keep its hover readable on the bar */
+.top-bar .button.hollow.title-bar:hover,
+.top-bar .button.hollow.title-bar:focus {
+  border-color: var(--hs-bar-text);
+  color: var(--hs-bar-text);
+}
+
 /* Login / Log Out: the spread shadow paints the button padding without changing the link's box */
 .top-bar-right a[href='adminLogIn.php'],
 .top-bar-right a[href^='javascript:document.logOutForm2'] {
