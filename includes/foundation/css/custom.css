@@ -865,8 +865,9 @@ table.hover:not(.unstriped) tr:nth-of-type(even):hover {
 
 
 .results-table{
-  border:2px solid black;
-  border-collapse: collapse;
+  border: 1px solid var(--hs-border);
+  border-collapse: separate;
+  border-spacing: 0;
 
   td.results-table-header{
     background-color: var(--hs-bar);
@@ -2097,6 +2098,47 @@ table.dataTable thead .sorting_asc {
 
 table.dataTable thead .sorting_desc {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M5 1l4 5H1z' fill='%23616a75' fill-opacity='.3'/%3E%3Cpath d='M5 13L1 8h8z' fill='%231e5ba1' fill-opacity='1'/%3E%3C/svg%3E");
+}
+
+/* Header rows written without <thead> (a row of only <th> cells) get the same band */
+table tr:not(:has(> td)) > th {
+  background-color: var(--hs-head);
+  color: var(--hs-muted);
+  font-weight: 600;
+}
+
+/* Stats tables: data columns centered under their headers */
+.stats-table td:not(:first-child) {
+  text-align: center;
+}
+
+/* Schedule show/hide row: the label and its buttons share one centered line */
+.schedule-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedule-toggles .button {
+  margin: 0;
+}
+
+/* Results cards: tournament name and the Show All toggle on one baseline */
+.results-table-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Pool standings: incomplete-match buttons wrap with space between rows */
+.incomplete-matches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Roster summary row: three equal, centered cells */

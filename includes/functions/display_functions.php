@@ -3723,6 +3723,7 @@ function displayIncompleteMatches($incompleteMatches){
 	<input type='hidden' name='formName' value='goToMatch'>
 
 	The following pool matches are incomplete:<BR>
+	<div class='incomplete-matches'>
 	<?php foreach($incompleteMatches as $matchID):
 		$matchInfo = getMatchInfo($matchID);
 		$name1 = getFighterName($matchInfo['fighter1ID'],null,null,$matchInfo['teamEntry']);
@@ -3736,6 +3737,7 @@ function displayIncompleteMatches($incompleteMatches){
 		</button>
 
 	<?php endforeach ?>
+	</div>
 
 	</form>
 

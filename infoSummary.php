@@ -425,18 +425,20 @@ function displayTournamentPlacings($tournamentID, $data){
 
 			<td class='results-table-header' colspan='100%'>
 
+				<div class='results-table-heading'>
 				<a style='font-size:1.5em' <?=$fieldsetLink?>>
 					<?=getTournamentName($tournamentID)?>
 
 				</a>
 
-				<span style='float: right;'>
+				<span>
 					<a class='extra-results-<?=$tournamentID?>'
 					onclick= "$('.extra-results-<?=$tournamentID?>').toggle()">
 					<?=$showAllText?>
 					</a>
 					<a onclick= "$('.extra-results-<?=$tournamentID?>').toggle()" class='extra-results-<?=$tournamentID?> hidden'>Hide ↑</a>
 				</span>
+				</div>
 
 			</td>
 		</tr>

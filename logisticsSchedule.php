@@ -135,7 +135,7 @@ function showHideScheduleBlocks(){
 ?>
 
 <!-- Code to show/hide certain parts of the schedule -->
-<div>
+<div class='schedule-toggles'>
 	Showing:
 
 	<?=displayFloorMapButton()?>
