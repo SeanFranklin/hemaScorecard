@@ -822,8 +822,8 @@ legend h4 {
 /* Jayson Stuff ***************************************************************/
 
 .top-bar, .top-bar ul {
-  background-color:black;
-  color:white;
+  background-color: var(--hs-bar);
+  color: var(--hs-bar-text);
 }
 
 .title-bar-title {
@@ -831,7 +831,7 @@ legend h4 {
 }
 
 .top-bar a {
-  color:#77DDFF;
+  color: var(--hs-bar-text);
 }
 
 .top-bar .white-text a {
@@ -839,21 +839,21 @@ legend h4 {
 }
 
 .top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a::after {
-  border-color: #77DDFF transparent transparent;
+  border-color: var(--hs-bar-text) transparent transparent;
 }
 
 .top-bar li.is-dropdown-submenu-parent.opens-right > a::after {
   content: "";
-  border-color: transparent transparent transparent #77DDFF;
+  border-color: transparent transparent transparent var(--hs-muted);
 }
 .top-bar li.is-dropdown-submenu-parent.opens-left > a::after {
   content: "";
-  border-color: transparent transparent transparent #77DDFF;
+  border-color: transparent transparent transparent var(--hs-muted);
 }
 
 .top-bar .dropdown.menu .is-active > a {
-  background: transparent;
-  color:#77DDFF;
+  background: var(--hs-bar-hover);
+  color: var(--hs-bar-text);
 }
 
 /* White text overrides for dropdown arrows */
@@ -862,18 +862,18 @@ legend h4 {
   border-color: white transparent transparent;
 }
 .top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent.is-active > a {
-  background: transparent;
+  background: var(--hs-bar-hover);
   color: white;
 }
 
 
 .top-bar .white-text li.is-dropdown-submenu-item > a::after {
   content: "";
-  border-color: transparent transparent transparent white;}
+  border-color: transparent transparent transparent var(--hs-muted);}
 
   .top-bar .white-text li.is-dropdown-submenu-item.is-active > a {
-    background: transparent;
-    color: white;
+    background: var(--hs-stripe);
+    color: var(--hs-text);
   }
 
 
@@ -1000,24 +1000,24 @@ h2 {
 }
 
 .tourney-menu-large {
-  border-bottom:1px solid #2D9CDB;
+  border-bottom:1px solid var(--hs-accent);
   margin-bottom:1rem;
   font-size:1rem;
 }
 
 .tourney-menu-large li {
-  border-bottom:4px solid white;
+  border-bottom:4px solid var(--hs-bg);
 }
 
 .tourney-menu-large li.is-active a {
-  Background-color:white;
-  color:black;
+  Background-color: var(--hs-surface);
+  color: var(--hs-text);
 }
 
 
 .tourney-menu-large li.is-active {
 
-  border-bottom-color:#2D9CDB;
+  border-bottom-color: var(--hs-accent);
 }
 
 .dropdown .is-current a {
@@ -1026,7 +1026,7 @@ h2 {
 }
 
 .tourney-menu-mobile {
-   border-bottom:1px solid #2D9CDB;
+   border-bottom:1px solid var(--hs-accent);
      margin-bottom:1.5rem;
   font-size:1rem;
 
@@ -1034,6 +1034,7 @@ h2 {
 
 .title-bar {
   display:block;
+  background: var(--hs-bar);
 }
 
 /* The whole Menu control (icon + label) is the toggle, sized as a 44px touch target */
@@ -1103,4 +1104,53 @@ background-color:#EB5757;
 
 .blue {
   background-color:#1C6CD8;
+}
+
+/* __ Theme additions (Delft) __________________________________________________*/
+/* New rules that must beat the site's existing rules above. */
+
+/* Navigation */
+
+.top-bar .dropdown.menu > li > a {
+  opacity: 0.85;
+  border-radius: var(--hs-radius-sm);
+}
+
+.top-bar .dropdown.menu > li > a:hover,
+.top-bar .dropdown.menu > li.is-active > a {
+  opacity: 1;
+  background: var(--hs-bar-hover);
+}
+
+.top-bar .is-dropdown-submenu {
+  background-color: var(--hs-surface);
+  border-color: var(--hs-border);
+  border-radius: var(--hs-radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.top-bar .dropdown.menu .is-dropdown-submenu li > a {
+  color: var(--hs-text);
+  background: transparent;
+}
+
+.top-bar .dropdown.menu .is-dropdown-submenu li > a:hover,
+.top-bar .dropdown.menu .is-dropdown-submenu li.is-active > a {
+  color: var(--hs-text);
+  background: var(--hs-stripe);
+}
+
+/* Login / Log Out: the spread shadow paints the button padding without changing the link's box */
+.top-bar-right a[href='adminLogIn.php'],
+.top-bar-right a[href^='javascript:document.logOutForm2'] {
+  background: var(--hs-accent);
+  border-radius: var(--hs-radius-sm);
+  box-shadow: 0 0 0 6px var(--hs-accent);
+  font-weight: 600;
+}
+
+.top-bar-right a[href='adminLogIn.php']:hover,
+.top-bar-right a[href^='javascript:document.logOutForm2']:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
 }
