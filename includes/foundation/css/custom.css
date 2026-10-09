@@ -1862,6 +1862,17 @@ background-color:#EB5757;
   background: var(--hs-stripe);
 }
 
+/* Round the first and last highlights to the panel's corners (8px radius inside a 1px border) */
+.top-bar .is-dropdown-submenu > li:first-child > a {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+.top-bar .is-dropdown-submenu > li:last-child > a {
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
 /* Hollow buttons in the bar (tournament switcher, Select Tournament) are white outlines.
    The switcher's old colors come from app.css, so this also keeps its hover readable. */
 .top-bar .button.hollow {
