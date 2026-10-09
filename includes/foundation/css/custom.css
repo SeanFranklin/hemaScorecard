@@ -299,6 +299,12 @@ a:hover, a:focus {
   background: var(--hs-accent);
   color: var(--hs-on-accent);
 }
+.dropdown.menu .is-active > a {
+  color: var(--hs-link);
+}
+.dropdown.menu > li.is-dropdown-submenu-parent > a::after {
+  border-color: var(--hs-accent) transparent transparent;
+}
 .drilldown .is-drilldown-submenu-parent > a::after,
 .drilldown.align-left .is-drilldown-submenu-parent > a::after {
   border-color: transparent transparent transparent var(--hs-accent);
@@ -409,6 +415,76 @@ select:focus {
   border-color: transparent var(--hs-bar) transparent transparent;
 }
 
+/* Tables. The CDN copy of Foundation uses `table`-prefixed selectors, so these match them. */
+
+table thead, table tbody, table tfoot {
+  border-color: var(--hs-row-line);
+  background-color: var(--hs-surface);
+}
+table thead {
+  background: var(--hs-surface);
+  color: var(--hs-muted);
+}
+table thead th, table thead td {
+  font-weight: 600;
+}
+table tfoot {
+  background: var(--hs-stripe);
+  color: var(--hs-text);
+}
+table tbody tr:nth-child(even) {
+  background-color: var(--hs-stripe);
+}
+table.unstriped tbody,
+table.unstriped tbody tr {
+  background-color: var(--hs-surface);
+}
+table.unstriped tbody tr {
+  border-bottom-color: var(--hs-row-line);
+}
+table.hover thead tr:hover,
+table.hover tfoot tr:hover {
+  background-color: var(--hs-stripe);
+}
+table.hover tbody tr:hover,
+table.hover:not(.unstriped) tr:nth-of-type(even):hover {
+  background-color: var(--hs-hover);
+}
+
+/* Tabs: transparent side borders keep Foundation's widths but show only the bottom rule */
+
+.tabs {
+  border-color: transparent transparent var(--hs-border);
+  background: transparent;
+}
+.tabs.vertical {
+  border-color: var(--hs-border);
+}
+.tabs.primary {
+  background: var(--hs-accent);
+}
+.tabs.primary > li > a:hover, .tabs.primary > li > a:focus {
+  background: var(--hs-accent-hover);
+}
+.tabs-title > a {
+  color: var(--hs-muted);
+  font-weight: 600;
+}
+.tabs-title > a:hover {
+  background: transparent;
+  color: var(--hs-text);
+}
+.tabs-title > a:focus, .tabs-title > a[aria-selected='true'] {
+  background: transparent;
+  color: var(--hs-text);
+  box-shadow: inset 0 -2px 0 var(--hs-accent);
+}
+.tabs-content {
+  border-color: var(--hs-border);
+  background: var(--hs-surface);
+  color: var(--hs-text);
+}
+
 /* __ End theme baseline __ */
 
 /* Added By Sean **************************************************************/
@@ -470,7 +546,7 @@ select:focus {
   }
 
   td.results-table-info{
-    background-color: #EEE;
+    background-color: var(--hs-stripe);
   }
 
 }
@@ -487,7 +563,7 @@ td.border-top{
    /* width: 150px; */
   position: relative;
   top: 11px;
-  background-color: #259EE8; /* tabs-color */
+  background-color: var(--hs-accent); /* tabs-color */
   left: 14px;
   display: inline-block;
   z-index: 2;
@@ -505,9 +581,9 @@ td.border-top{
   &.selected, &:hover{
     z-index: 3;
     color: #FFF;
-    background-color: #000; /* selected-color */
+    background-color: var(--hs-bar); /* selected-color */
     &:before,&:after{
-      background-color: #000; /* selected-color */
+      background-color: var(--hs-bar); /* selected-color */
     }
   }
 
@@ -516,7 +592,7 @@ td.border-top{
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
-    background-color: #259EE8;  /* tabs-color */
+    background-color: var(--hs-accent);  /* tabs-color */
     content: "";
     position: absolute;
     left: -7px;
@@ -529,7 +605,7 @@ td.border-top{
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
-    background-color: #259EE8;  /* tabs-color */
+    background-color: var(--hs-accent);  /* tabs-color */
     content: "";
     position: absolute;
     right: -7px;
@@ -624,7 +700,7 @@ p.quiz-answer{
 }
 
 .background-primary-light{
-  background-color: #D6E5FA;;
+  background-color: var(--hs-hover);
 }
 
 .background-secondary{
@@ -690,7 +766,7 @@ div.clickable:active:hover {
   border: solid 5px black !important;
 }
   .special-table tr:nth-child(even) {
-    background-color:#D6E5FA;
+    background-color: var(--hs-hover);
   }
   .special-table th{
     border-bottom: 1px solid black;
@@ -745,7 +821,7 @@ table tr.match-queue{
 }
 
 .data-table tr:nth-child(even) {
-    background-color: #EAF3FB;
+    background-color: var(--hs-stripe);
 }
 
 .options-table table{
@@ -784,7 +860,7 @@ table tr.match-queue{
 }
 
 .link-table:hover{
-  background:#64C6FF;
+  background: var(--hs-hover);
 }
 
 .link-table{
@@ -1038,7 +1114,7 @@ table tr.match-queue{
 }
 
 .old-exch-odd{
-	background-color: #E8E8E8;
+	background-color: var(--hs-row-line);
 }
 
 .old-exch-large-first{
@@ -1229,7 +1305,7 @@ legend h4 {
   display:block;
   border-style:solid;
   border-width:1px;
-  border-color:#DDDDDD;
+  border-color: var(--hs-border);
   margin-bottom:1rem;
 }
 
@@ -1249,7 +1325,7 @@ margin-bottom:.25rem;
 }
 
 .match-item a:hover {
-  background-color:#2D9CDB;
+  background-color: var(--hs-accent);
   color:white;
 }
 
@@ -1307,7 +1383,7 @@ li h5 {
 
 
 .hero-title {
-  background-color:#F2F2F2;
+  background-color: var(--hs-stripe);
   margin-bottom:1rem;
   margin-top:0rem;
   padding:0.5rem;
