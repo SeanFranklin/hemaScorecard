@@ -265,7 +265,9 @@ function helpDisplayOrganizer(){
 			<h4>Table of Contents:</h4>
 		</div>
 		<div class='large-12 medium-6 small-12'>
+			<ul>
 			<li><a href='#FAQ'>Frequently Asked Questions</a></li>
+			</ul>
 		</div>
 	</div>
 
@@ -275,16 +277,20 @@ function helpDisplayOrganizer(){
 <div class='grid-x'>
 
 	<div class='large-4 medium-4' style='margin-bottom: 15px;'>
+		<ul>
 		<li><a href='#gettingStarted'>Getting Started</a></li>
 		<li><a href='#setUpEvent'>Setting Up An Event</a></li>
 		<li><a href='#endUpEvent'>Concluding An Event</a></li>
 		<li><a href='#eventStatus'>Event Status</a></li>
+		</ul>
 	</div>
 	<div class='large-4 medium-4 cell' style='margin-bottom: 15px;'>
+		<ul>
 		<li><a href='#createTournaments'>Creating Tournaments</a></li>
 		<li><a href='#addParticipants'>Adding Event Participants</a></li>
 		<li><a href='#setupTournaments'>Setting Up Tournaments</a></li>
 		<li><a href='#withdrawingFighters'>Injuries / Disqualifications</a></li>
+		</ul>
 	</div>
 	<div class='large-4 medium-4 cell'>
 		<ul>
@@ -848,10 +854,12 @@ function helpDisplayLogistics(){
 			(under development)
 		</div>
 		<div class='large-12 medium-6 small-12'>
+			<ul>
 			<li><a href='#final-match'>Finals Matches</a></li>
 			<li><a href='#ranking-types'>Ranking Types</a></li>
 			<li><a href='#divisions'>Tournament Divisions</a></li>
 			<li><a href='#cut-deduct'>Cutting Deductions</a></li>
+			</ul>
 		</div>
 	</div>
 
