@@ -2006,6 +2006,13 @@ img[src$="logo_rect.jpg"] {
   color: var(--hs-active-text);
 }
 
+/* Results cards: the tournament name in the navy header is a link; keep it white */
+.results-table td.results-table-header a,
+.results-table td.results-table-header a:hover,
+.results-table td.results-table-header a:focus {
+  color: var(--hs-bar-text);
+}
+
 /* Footer and the event sponsor block above it */
 
 .site-sponsors {
