@@ -1862,9 +1862,16 @@ background-color:#EB5757;
   background: var(--hs-stripe);
 }
 
-/* The tournament button's colors come from app.css; keep its hover readable on the bar */
-.top-bar .button.hollow.title-bar:hover,
-.top-bar .button.hollow.title-bar:focus {
+/* Hollow buttons in the bar (tournament switcher, Select Tournament) are white outlines.
+   The switcher's old colors come from app.css, so this also keeps its hover readable. */
+.top-bar .button.hollow {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--hs-bar-text);
+}
+
+.top-bar .button.hollow:hover,
+.top-bar .button.hollow:focus {
+  background-color: var(--hs-bar-hover);
   border-color: var(--hs-bar-text);
   color: var(--hs-bar-text);
 }
