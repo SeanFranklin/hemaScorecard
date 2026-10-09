@@ -1743,7 +1743,7 @@ h2 {
 }
 
 .tourney-menu-large li.is-active a {
-  Background-color: var(--hs-surface);
+  Background-color: transparent;
   color: var(--hs-text);
 }
 
@@ -1856,6 +1856,13 @@ background-color:#EB5757;
    (column-gap only, so the stacked phone menu is unchanged) */
 .top-bar .dropdown.menu {
   column-gap: 0.5rem;
+}
+
+/* Divider between the event menus and the software menus: an empty item with a 1px line,
+   so the gaps on either side are equal */
+.top-bar .menu-divider {
+  align-self: stretch;
+  border-left: 1px solid var(--hs-bar-text);
 }
 
 .top-bar .dropdown.menu > li > a {

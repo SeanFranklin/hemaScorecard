@@ -112,14 +112,14 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 	<div class="top-bar" id="tourney-animated-menu" data-animate="hinge-in-from-top hinge-out-from-top" style='display:none'>
 		<div class="top-bar-left">
 			<ul class="dropdown menu vertical medium-horizontal" data-dropdown-menu style='z-index: 4;'>
-				<li><div class="drop-down-separator show-for-small-only">Tournament</div></li>
+				<li class="show-for-small-only"><div class="drop-down-separator">Tournament</div></li>
 				<?php tournamentListForHeader(); ?>
 				<?=menuEvent()?>
 				<?=menuTournament()?>
 				<?=menuEventOrg()?>
 				<?=activeLivestream()?>
-                <li><div class="drop-down-separator show-for-small-only">Software</div></li>
-				<li style='border-right: 1px solid white' class='hide-for-small-only'>&nbsp;</li>
+                <li class="show-for-small-only"><div class="drop-down-separator">Software</div></li>
+				<li class='menu-divider hide-for-small-only' aria-hidden='true'></li>
 				<?=menuAnalytics()?>
 				<!--<li><a style='margin-left:5px;' class='button warning hollow no-bottom' href='statsYear.php'>2024 in Review</a></li>-->
 				<li class="white-text"><a href='infoSelect.php'>Change Event</a></li>
@@ -250,6 +250,11 @@ if(    ALLOW['EVENT_MANAGEMENT'] == true
 		if($_SESSION['formatID'] == FORMAT_RESULTS && ALLOW['EVENT_MANAGEMENT'] == true){
 			$navBarString .= "<li><i>(This is a results-only tournament. Change the Tournament Type to 'Sparring Matches' for a standard fencing tournament.)</i></li>";
 		}
+
+		// Mark the tab for the page being viewed
+		$navCurrentPage = basename($_SERVER['PHP_SELF']);
+		$navBarString = str_replace("<li><a href='{$navCurrentPage}'>",
+			"<li class='is-active'><a href='{$navCurrentPage}' aria-current='page'>", $navBarString);
 
 		?>
 
