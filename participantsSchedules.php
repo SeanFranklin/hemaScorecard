@@ -155,7 +155,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 
 	<?php if(isset($schedule['unScheduled']) == true): ?>
 
-		<fieldset class='fieldset large-7 cell'>
+		<fieldset class='fieldset cell'>
 
 			<legend class='no-bottom'>
 				<h5 class='no-bottom'>
@@ -165,17 +165,19 @@ function displayIndividualSchedule($schedule, $eventDays){
 			</legend>
 
 
+			<ul class='no-bottom'>
 			<?php foreach($schedule['unScheduled'] as $tournamentID): ?>
 				<li>
 					<?=getTournamentName($tournamentID)?>
 				</li>
 			<?php endforeach ?>
+			</ul>
 
 
 		</fieldset>
 	<?php endif ?>
 
-	<table class='stack cell'>
+	<table class='stack cell schedule-table'>
 
 	<tr class='hide-for-small-only'>
 		<th>Type</th>
@@ -201,18 +203,15 @@ function displayIndividualSchedule($schedule, $eventDays){
 			$tID = (int)@$sItem['tournamentID'];
 			$roleID = (int)@$sItem['logisticsRoleID'];
 
+			// The header rule already opens the first day
 			if($prevDay != $sItem['dayNum']){
-				$border = "border-top: 3px solid #1779BA;";
+				$rowClass = ($prevDay == 0) ? '' : 'schedule-new-day';
 			} else if($prevTID == $tID && $tID != 0){
-				$border = "";
+				$rowClass = '';
 			} else if($prevRoleID == $roleID && $prevEndTime == $sItem['startTime']){
-				$border = "";
+				$rowClass = '';
 			} else {
-				$border = "border-top: 1px solid black;";
-			}
-
-			if($index == ($numScheduled-1)){
-				$border .= "border-bottom: 3px solid #1779BA";
+				$rowClass = 'schedule-new-item';
 			}
 
 			$prevTID =  $tID;
@@ -220,7 +219,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 			$prevRoleID = $roleID;
 			$prevEndTime = $sItem['endTime'];
 
-			displayScheduleItem($sItem, $eventDays, $border);
+			displayScheduleItem($sItem, $eventDays, $rowClass);
 		}
 	} ?>
 
@@ -232,7 +231,7 @@ function displayIndividualSchedule($schedule, $eventDays){
 
 /******************************************************************************/
 
-function displayScheduleItem($info, $eventDays, $border){
+function displayScheduleItem($info, $eventDays, $rowClass){
 
 
 	$name = logistics_getScheduleBlockName($info['blockID']);
@@ -257,7 +256,7 @@ function displayScheduleItem($info, $eventDays, $border){
 
 		} else {
 			$locationString = '';
-			$typeString = '<u>Staffing</u>';
+			$typeString = 'Staffing';
 			if($info['logisticsRoleID'] != null){
 				$roleString = ": <em>".logistics_getRoleName($info['logisticsRoleID']).'</em>';
 			} else {
@@ -265,7 +264,7 @@ function displayScheduleItem($info, $eventDays, $border){
 			}
 		}
 
-		$locationString = "<u>".logistics_getLocationName($info['locationID'])."</u>";
+		$locationString = logistics_getLocationName($info['locationID']);
 
 	} else {
 		$typeString = 'Tournament Entry';
@@ -273,10 +272,9 @@ function displayScheduleItem($info, $eventDays, $border){
 
 	?>
 
-	<tr style='background:white; <?=$border?>'>
+	<tr class='<?=$rowClass?>'>
 
-		<td><?=$typeString?>
-		<?=$roleString?></td>
+		<td><?=$typeString?><?=$roleString?></td>
 
 		<td>
 		<?php if($name != ''): ?>
@@ -327,7 +325,7 @@ function showStaffingHours($rosterID, $eventID){
 		<div class='small-7 text-right cell'>
 			<strong>Total </strong>
 		</div>
-		<div class='small-5 text-right cell'  style='border-top:1px solid black;'>
+		<div class='small-5 text-right cell schedule-total'>
 			<strong><?=($total)?> hours</strong>
 		</div>
 
@@ -354,13 +352,14 @@ function changeRosterID($eventRoster){
 
 ?>
 
-	<h4>Showing Schedule For: <b><?=$currentName?></b>
+	<div class='schedule-heading'>
+		<h4>Showing Schedule For: <b><?=$currentName?></b></h4>
 		<?php if($currentRosterID != null): ?>
 			<button class='button small hollow' onclick="popOutSchedule()">
 				Print View
 			</button>
 		<?php endif ?>
-	</h4>
+	</div>
 
 
 	<form method='POST' id='update-session-rosterID'>
@@ -376,7 +375,7 @@ function changeRosterID($eventRoster){
 		<div class='input-group grid-x no-bottom'>
 		<div class='large-8 medium-12 cell'>
 
-		<div class='input-group grid-x no-bottom'>
+		<div class='input-group grid-x no-bottom schedule-switch'>
 			<span class='input-group-label text-right'>
 				Switch Schedule:
 			</span>
@@ -392,7 +391,7 @@ function changeRosterID($eventRoster){
 
 			<a class='button secondary hollow input-group-button' id='submit-name-button'
 				onclick="submitNameForm('update-session-rosterID', 'changeRosterID')">
-				Change<BR>Participant
+				Change Participant
 			</a>
 
 		</div>

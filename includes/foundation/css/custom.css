@@ -2448,16 +2448,19 @@ fieldset {
 }
 
 /* Fieldset legends written as headings: text-sized, in the text color */
-legend > h4 {
+legend > h4,
+legend > h5 {
   margin: 0;
   font-size: 1.125rem;
 }
 
-legend > h4 a {
+legend > h4 a,
+legend > h5 a {
   color: var(--hs-text);
 }
 
-legend > h4 a:hover {
+legend > h4 a:hover,
+legend > h5 a:hover {
   color: var(--hs-link-hover);
 }
 
@@ -2514,5 +2517,59 @@ legend > h4 a:hover {
 
   .top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar {
     max-width: calc(100vw - 905px);
+  }
+}
+
+/* Personal schedule: heading and Print View on one line; a light rule between items and an
+   accent rule where a new day starts (replacing inline black and old-blue borders) */
+.schedule-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-heading h4,
+.schedule-heading .button {
+  margin: 0;
+}
+
+.schedule-table th {
+  text-align: left;
+}
+
+.schedule-table tbody tr,
+.schedule-table tbody tr:nth-child(even) {
+  background-color: var(--hs-surface);
+}
+
+.schedule-table tr.schedule-new-item {
+  border-top: 1px solid var(--hs-border);
+}
+
+.schedule-table tr.schedule-new-day {
+  border-top: 2px solid var(--hs-accent);
+}
+
+.schedule-total {
+  border-top: 1px solid var(--hs-line);
+}
+
+/* Phones: the label and name share a line, and the button goes full width below */
+@media screen and (max-width: 39.9375em) {
+  .input-group.schedule-switch > .input-group-label {
+    flex: 0 0 auto;
+  }
+
+  .input-group.schedule-switch > input:not([type]) {
+    flex: 1 1 0;
+  }
+
+  .input-group.schedule-switch > .button.input-group-button {
+    flex: 1 0 100%;
+    margin-top: 0.5rem;
+    padding: 0.75em 1rem;
+    border-radius: var(--hs-radius);
   }
 }
