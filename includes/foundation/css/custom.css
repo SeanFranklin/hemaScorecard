@@ -2058,16 +2058,16 @@ img[src$="logo_rect.jpg"] {
 }
 
 /* Sortable table headers (the roster's clickable headers and DataTables columns):
-   tint on hover; the sorted column is tinted with an accent underline */
-thead th[onclick],
+   tint on hover; the sorted column stays tinted */
+th[onclick],
 table.dataTable thead .sorting,
 table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc {
   cursor: pointer;
 }
 
-thead th[onclick]:hover,
-thead th.is-sorted,
+th[onclick]:hover,
+th.is-sorted,
 table.dataTable thead .sorting:hover,
 table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc {
@@ -2075,30 +2075,43 @@ table.dataTable thead .sorting_desc {
   color: var(--hs-text);
 }
 
-thead th.is-sorted,
-table.dataTable thead .sorting_asc,
-table.dataTable thead .sorting_desc {
-  box-shadow: inset 0 -2px 0 var(--hs-accent);
-}
-
-/* DataTables sort arrows as SVG, replacing its low-contrast PNG sprites */
+/* Sort arrows: one arrow everywhere, replacing DataTables' up/down PNG sprites and the
+   roster's text arrows. Up is ascending (sort-desc points it down). Only the sorted
+   column shows it; other sortable columns show a faint one on hover. */
+th[onclick],
 table.dataTable thead .sorting,
 table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc {
-  background-position: right 0.4rem center;
-  background-size: 10px 14px;
+  padding-right: 1.5rem;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 10px 12px;
 }
 
 table.dataTable thead .sorting {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M5 1l4 5H1z' fill='%23616a75' fill-opacity='.6'/%3E%3Cpath d='M5 13L1 8h8z' fill='%23616a75' fill-opacity='.6'/%3E%3C/svg%3E");
+  background-image: none;
 }
 
+th[onclick]:not(.is-sorted):hover,
+table.dataTable thead .sorting:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 11V1.5M1.5 5L5 1.5 8.5 5' fill='none' stroke='%23616a75' stroke-opacity='.5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+th.is-sorted,
 table.dataTable thead .sorting_asc {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M5 1l4 5H1z' fill='%231e5ba1' fill-opacity='1'/%3E%3Cpath d='M5 13L1 8h8z' fill='%23616a75' fill-opacity='.3'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 11V1.5M1.5 5L5 1.5 8.5 5' fill='none' stroke='%231e5ba1' stroke-opacity='1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
+th.is-sorted.sort-desc,
 table.dataTable thead .sorting_desc {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M5 1l4 5H1z' fill='%23616a75' fill-opacity='.3'/%3E%3Cpath d='M5 13L1 8h8z' fill='%231e5ba1' fill-opacity='1'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 1v9.5M1.5 7L5 10.5 8.5 7' fill='none' stroke='%231e5ba1' stroke-opacity='1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Every header row closes with an accent rule */
+table thead tr:last-child > th,
+table thead tr:last-child > td,
+table tbody tr:not(:has(> td)) > th {
+  box-shadow: inset 0 -2px 0 var(--hs-accent);
 }
 
 /* Header rows written without <thead> (a row of only <th> cells) get the same band */

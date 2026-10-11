@@ -735,11 +735,11 @@ function editParticipant($rosterID,$schoolList){
 function tableHeaders(){
 
 	if($_SESSION['rosterViewMode'] == 'school'){
-		$schoolArrow = "&#8595";
-		$nameArrow = '';
+		$schoolSort = " is-sorted";
+		$nameSort = '';
 	} else {
-		$schoolArrow = "";
-		$nameArrow = "&#8595";
+		$schoolSort = "";
+		$nameSort = " is-sorted";
 	}
 ?>
 
@@ -751,12 +751,12 @@ function tableHeaders(){
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
-		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center<?= $nameArrow != '' ? ' is-sorted' : '' ?>'>
-			<a>Name <?=$nameArrow?></a>
+		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center<?=$nameSort?>'>
+			<a>Name</a>
 		</th>
 
-		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center<?= $schoolArrow != '' ? ' is-sorted' : '' ?>'>
-			<a>School <?=$schoolArrow?></a>
+		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center<?=$schoolSort?>'>
+			<a>School</a>
 		</th>
 	</tr>
 	</thead>
