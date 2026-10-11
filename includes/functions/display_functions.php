@@ -795,7 +795,7 @@ function edit_tournamentRankingType($tournamentID = 0){
 				hx-target='#customRanking_div<?=$tournamentID?>'
 				hx-swap='outerHTML'
 				hx-vals='{"tournamentID": <?=(int)$tournamentID?>}'
-				hx-include='this, #reverseScore_select<?=$tournamentID?>, #customRanking_div<?=$tournamentID?> select'>
+				hx-include='this, #reverseScore_select<?=$tournamentID?>, #customRanking_div<?=$tournamentID?> select, #customRanking_div<?=$tournamentID?> input'>
 
 				<option disabled <?=$nullOptionSelected?>></option>
 
@@ -850,12 +850,15 @@ function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $is
 // Renders the custom ranking criteria selectors as a <tbody> fragment.
 // Emits an empty <tbody> when $eventRanking is null (custom not selected)
 // so the htmx swap target always exists in the options table.
+// Each tier is a picked field or a typed formula; a non-null customSource{N}
+// marks a formula tier, which gets a second row for formula and fallback.
 // $isReverse adds a warning about how criteria behave under
 // Golf/Injury (reverse) scoring.
 // Also echoed by adminTournaments/htmx/customRankingCriteria.php.
 
 	$criteriaFields = customRankingCriteria();
 	$rowLabels = [1 => 'Indicator', 2 => 'Tiebreaker 1', 3 => 'Tiebreaker 2', 4 => 'Tiebreaker 3'];
+	$anyFormula = false;
 
 	echo "<tbody id='customRanking_div{$tournamentID}'>";
 
@@ -877,10 +880,19 @@ function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $is
 
 		foreach($rowLabels as $num => $label):
 
-			$currentField = @$eventRanking["orderByField{$num}"];
+			$currentFormula = @$eventRanking["customSource{$num}"];
+			$isFormula = ($currentFormula !== null);
+			$anyFormula = ($anyFormula || $isFormula);
+
+			$currentField = $isFormula ? CUSTOM_CRITERIA_FORMULA : @$eventRanking["orderByField{$num}"];
 			$currentSort = @$eventRanking["orderBySort{$num}"];
 			if(isset($criteriaFields[$currentField]) == true && $currentSort == null){
-				$currentSort = $criteriaFields[$currentField][1];
+				$currentSort = $criteriaFields[$currentField]['sort'];
+			}
+
+			$currentFallback = (string)@$eventRanking["customFallback{$num}"];
+			if($currentFallback === ''){
+				$currentFallback = '0';
 			}
 	?>
 
@@ -888,17 +900,25 @@ function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $is
 		<td class='shrink-column'>
 			<?=$label?>
 			<?php if($num == 1){
-				tooltip("Fighters are ordered by the Indicator field.<BR>
-						Ties are broken by the tiebreaker fields in order.");
+				tooltip('Fighters are ordered by the Indicator field or formula.
+Ties are broken by the tiebreaker criteria in order.');
 			} ?>
 		</td>
 
 		<td>
 		<div class='grid-x grid-padding-x'>
 
+			<?php // Re-render on entering or leaving formula mode (data-formula = current mode) ?>
 			<select name='updateTournament[customCriteria][<?=$num?>][field]' class='shrink'
 				id='customCriteria<?=$num?>Field_select<?=$tournamentID?>'
-				onchange="enableTournamentButton('<?=$tournamentID?>')">
+				onchange="enableTournamentButton('<?=$tournamentID?>')"
+				data-formula='<?=($isFormula ? 1 : 0)?>'
+				hx-get='adminTournaments/htmx/customRankingCriteria.php'
+				hx-trigger="change[this.value == '<?=CUSTOM_CRITERIA_FORMULA?>' || this.dataset.formula == '1']"
+				hx-target='#customRanking_div<?=$tournamentID?>'
+				hx-swap='outerHTML'
+				hx-vals='{"tournamentID": <?=(int)$tournamentID?>}'
+				hx-include='#rankingID_select<?=$tournamentID?>, #reverseScore_select<?=$tournamentID?>, #customRanking_div<?=$tournamentID?> select, #customRanking_div<?=$tournamentID?> input'>
 
 				<?php if($num != 1): ?>
 					<option value='' <?=isSelected($currentField == null)?>>- none -</option>
@@ -906,9 +926,11 @@ function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $is
 
 				<?php foreach($criteriaFields as $field => $fieldInfo): ?>
 					<option <?=optionValue($field, $currentField)?> >
-						<?=$fieldInfo[0]?>
+						<?=$fieldInfo['label']?>
 					</option>
 				<?php endforeach ?>
+
+				<option <?=optionValue(CUSTOM_CRITERIA_FORMULA, $currentField)?> >&#9998; Custom formula&hellip;</option>
 			</select>
 
 			<select name='updateTournament[customCriteria][<?=$num?>][sort]' class='shrink'
@@ -923,8 +945,50 @@ function edit_customRankingCriteria($tournamentID = 0, $eventRanking = null, $is
 		</td>
 	</tr>
 
-	<?php
+	<?php if($isFormula): ?>
+	<tr>
+		<td></td>
+		<td>
+		<div class='grid-x grid-padding-x'>
+
+			<input type='text' class='cell auto' maxlength='<?=FORMULA_MAX_LENGTH?>'
+				name='updateTournament[customCriteria][<?=$num?>][formula]'
+				id='customCriteria<?=$num?>Formula_input<?=$tournamentID?>'
+				value='<?=htmlspecialchars($currentFormula, ENT_QUOTES)?>'
+				placeholder='(pointsFor - pointsAgainst) / matches'
+				onchange="enableTournamentButton('<?=$tournamentID?>')"
+				hx-get='adminTournaments/htmx/validateCustomFormula.php'
+				hx-trigger='change, keyup delay:500ms, change from:#customCriteria<?=$num?>Fallback_input<?=$tournamentID?>'
+				hx-target='#customCriteria<?=$num?>FormulaMsg<?=$tournamentID?>'
+				hx-include='this, #customCriteria<?=$num?>Fallback_input<?=$tournamentID?>'>
+
+			<label class='cell shrink'>If a division divides by zero, use
+				<input type='number' step='any' style='width:6rem; display:inline-block;'
+					name='updateTournament[customCriteria][<?=$num?>][fallback]'
+					id='customCriteria<?=$num?>Fallback_input<?=$tournamentID?>'
+					value='<?=htmlspecialchars($currentFallback, ENT_QUOTES)?>'
+					onchange="enableTournamentButton('<?=$tournamentID?>')">
+			</label>
+
+			<div class='cell' id='customCriteria<?=$num?>FormulaMsg<?=$tournamentID?>'></div>
+
+		</div>
+		</td>
+	</tr>
+	<?php endif;
+
 		endforeach;
+
+		if($anyFormula): ?>
+	<tr>
+		<td></td>
+		<td>
+			<small><i>Formulas may use numbers, + - * / and parentheses, and these fields:<BR>
+			<?=implode(', ', array_keys(customRankingFormulaFields()))?></i></small>
+		</td>
+	</tr>
+	<?php endif;
+
 	endif;
 
 	echo "</tbody>";
