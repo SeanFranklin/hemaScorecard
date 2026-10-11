@@ -1389,8 +1389,13 @@ table tr.match-queue{
 	font-style: normal;
 }
 
+/* Unplayed matches: muted text and a dashed outline (fading the whole card made it unreadable) */
 .match-incomplete{
-	opacity: 0.5;
+	color: var(--hs-muted);
+}
+
+.match-item.match-incomplete{
+	border-style: dashed;
 }
 
 .match-ignore{
@@ -2189,6 +2194,19 @@ input:not([type]) {
   justify-content: center;
   padding: 0 1rem;
   border-radius: 0 var(--hs-radius) var(--hs-radius) 0;
+}
+
+/* Input-group labels lay out as flex, which drops the space before a help icon */
+.input-group-label {
+  gap: 0.3em;
+}
+
+/* Table rows: a checkbox, and a button beside it, sit on the row's middle line
+   instead of riding up on Foundation's form margin */
+td > [type="checkbox"],
+td > [type="checkbox"] ~ .button {
+  margin-bottom: 0;
+  vertical-align: middle;
 }
 
 /* Fighter page: name and Clear on one line, details as labeled facts */
