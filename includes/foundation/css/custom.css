@@ -2201,9 +2201,12 @@ input:not([type]):not(.hidden):not([hidden]) {
   border-radius: 0 var(--hs-radius) var(--hs-radius) 0;
 }
 
-/* Input-group labels lay out as flex, which drops the space before a help icon */
+/* Input-group labels: the cool header band instead of Foundation's warm gray; they lay out
+   as flex, which drops the space before a help icon, so the gap puts it back */
 .input-group-label {
   gap: 0.3em;
+  background: var(--hs-head);
+  color: var(--hs-text);
 }
 
 /* Table rows: a checkbox, and a button beside it, sit on the row's middle line
@@ -2340,4 +2343,85 @@ td > [type="checkbox"] ~ .button {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
+}
+
+/* Accordion headers: section titles at a section size, with Foundation's +/- sized to match */
+.accordion-title {
+  padding: 0.875rem 1rem;
+}
+
+.accordion-title h3,
+.accordion-title h4 {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.accordion-title h3 {
+  font-size: 1.25rem;
+}
+
+.accordion-title h4 {
+  font-size: 1.125rem;
+}
+
+.accordion-title::before {
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-top: -0.625rem;
+}
+
+/* Tournament settings: one white panel (no zebra rows), labels in a steady column with the
+   controls beside them */
+.options-table tbody tr:nth-child(even) {
+  background-color: transparent;
+}
+
+@media screen and (min-width: 40em) {
+  .options-table td:first-child:not([colspan]) {
+    width: 18rem;
+  }
+}
+
+/* A switch inside an input group sits centered beside its label */
+.input-group > .switch {
+  align-self: center;
+  margin: 0 0 0 0.75rem;
+}
+
+/* Pool rosters: room between the pool's ring select and the first fighter */
+.pool-name-cell {
+  padding-right: 1rem;
+}
+
+/* Fieldset legends written as headings: text-sized, in the text color */
+legend > h4 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+legend > h4 a {
+  color: var(--hs-text);
+}
+
+legend > h4 a:hover {
+  color: var(--hs-link-hover);
+}
+
+/* Welcome intro: the same space under the logo row as above it */
+.welcome-intro {
+  padding-bottom: 1.5rem;
+}
+
+.welcome-intro img {
+  display: block;
+}
+
+.welcome-intro p {
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 39.9375em) {
+  .welcome-intro img {
+    margin-bottom: 1rem;
+  }
 }

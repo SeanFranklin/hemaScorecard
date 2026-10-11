@@ -1153,7 +1153,7 @@ function poolEntryField($poolInfo, $poolRoster, $tournamentRoster, $isTeams, $ri
 	<div class='grid-x '>
 
 <!-- Pool Name -->
-	<div class='large-1 small-12 medium-12 cell hide-toggle' >
+	<div class='large-1 small-12 medium-12 cell hide-toggle pool-name-cell' >
 
 	<?php if(ALLOW['EVENT_MANAGEMENT'] == true):
 		// checkbox to delete pool ?>

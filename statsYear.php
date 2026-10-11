@@ -82,7 +82,7 @@ include('includes/header.php');
 
 	<div class='grid-x grid-margin-x'>
 
-		<div class='cell callout text-center success'>
+		<div class='cell text-center'>
 			<h3><?=$year?> - Year In Review <?=$scopeText?></h3>
 		</div>
 

@@ -393,7 +393,7 @@ function confirmDeleteReveal($formID, $formName){
 function edit_tournamentOptionsRow($name, $toggle = null, $tooltip = null){
 
 	if($toggle != null){
-		$name = "<a onclick=\"$('.".$toggle."').toggle()\">".$name."↓ </a>";
+		$name = "<a onclick=\"$('.".$toggle."').toggle()\">".$name." ↓</a>";
 	}
 
 ?>
