@@ -2270,6 +2270,9 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	}
 
 
+	// Wide standings scroll inside this box on phones instead of widening the page
+	echo "<div class='hs-scroll-x'>";
+
 	if($displayByPool == false){
 		echo "<table>";
 		poolTableHeader($displayMeta, $maxNumFields);
@@ -2361,6 +2364,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 
 
 	echo"</table>";
+	echo "</div>";
 
 	pool_standingsExplanation($tournamentID, $stopAtSetText, $lastToElimSet);
 
