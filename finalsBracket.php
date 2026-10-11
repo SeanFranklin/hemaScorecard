@@ -638,6 +638,7 @@ function displayBracket($bracketInfo,
 	<?php endif; ?>
 
 <!-- Bracket display -->
+	<div class='bracket-scroll'>
 	<div id='tournament_box' class='tournament_box <?=$bracketClass?>'>
 
 	<?php
@@ -768,6 +769,7 @@ function displayBracket($bracketInfo,
 
 	<?php endfor ?>
 
+	</div>
 	</div>
 
 	</form>

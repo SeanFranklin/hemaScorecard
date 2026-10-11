@@ -7,6 +7,7 @@
   --hs-text-soft: #3c434d;
   --hs-muted: #616a75;
   --hs-border: #dadee3;
+  --hs-line: #7e8792;
   --hs-row-line: #e8ebef;
   --hs-stripe: #f1f4f7;
   --hs-hover: #e6effc;
@@ -2317,4 +2318,22 @@ td > [type="checkbox"] ~ .button {
 /* The icon file is white (made for the dark display windows); draw it dark */
 .site-footer-logo-icon {
   filter: brightness(0);
+}
+
+/* Finals bracket: scrolls inside its own box when wider than the page */
+.bracket-scroll {
+  overflow-x: auto;
+}
+
+#tournament_box .tier > h3 {
+  font-size: 1.25rem;
+}
+
+/* The Go button and its select checkbox stack in the narrow column beside each match */
+#tournament_box .grid-x > .small-2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
