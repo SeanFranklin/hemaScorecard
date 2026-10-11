@@ -34,8 +34,16 @@ if($eventID == null){
 
 	$sortString = NAME_MODE." ASC, ".NAME_MODE_2." ASC";
 
-	if($_SESSION['rosterViewMode'] == 'school'){
-		$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, ".$sortString;
+	switch($_SESSION['rosterViewMode']){
+		case 'name-desc':
+			$sortString = NAME_MODE." DESC, ".NAME_MODE_2." DESC";
+			break;
+		case 'school':
+			$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName ASC, ".$sortString;
+			break;
+		case 'school-desc':
+			$sortString = "(CASE WHEN schoolShortName='' then 1 ELSE 0 END), schoolShortName DESC, ".$sortString;
+			break;
 	}
 
 	$roster = getEventRoster($sortString);
@@ -734,12 +742,26 @@ function editParticipant($rosterID,$schoolList){
 
 function tableHeaders(){
 
-	if($_SESSION['rosterViewMode'] == 'school'){
-		$schoolSort = " is-sorted";
-		$nameSort = '';
-	} else {
-		$schoolSort = "";
-		$nameSort = " is-sorted";
+	$nameSort = '';
+	$schoolSort = '';
+	$nameMode = 'name';
+	$schoolMode = 'school';
+
+	switch($_SESSION['rosterViewMode']){
+		case 'name-desc':
+			$nameSort = ' is-sorted sort-desc';
+			break;
+		case 'school':
+			$schoolSort = ' is-sorted';
+			$schoolMode = 'school-desc';
+			break;
+		case 'school-desc':
+			$schoolSort = ' is-sorted sort-desc';
+			break;
+		default:
+			$nameSort = ' is-sorted';
+			$nameMode = 'name-desc';
+			break;
 	}
 ?>
 
@@ -751,11 +773,11 @@ function tableHeaders(){
 				<span class='show-for-small-only'>X</span>
 			</th>
 		<?php endif?>
-		<th onclick="changeParticipantOrdering('rosterViewMode','name')" class='text-center<?=$nameSort?>'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','<?=$nameMode?>')" class='text-center<?=$nameSort?>'>
 			<a>Name</a>
 		</th>
 
-		<th onclick="changeParticipantOrdering('rosterViewMode','school')"  class='text-center<?=$schoolSort?>'>
+		<th onclick="changeParticipantOrdering('rosterViewMode','<?=$schoolMode?>')"  class='text-center<?=$schoolSort?>'>
 			<a>School</a>
 		</th>
 	</tr>

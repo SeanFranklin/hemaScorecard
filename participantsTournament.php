@@ -28,7 +28,7 @@ if($tournamentID == null){
 
 	$eventRoster = getEventRoster();
 
-	if($_SESSION['rosterViewMode'] == 'school'){
+	if(in_array($_SESSION['rosterViewMode'], ['school', 'school-desc'], true)){
 		$sortString = 'school';
 	} else {
 		$sortString = 'name';
