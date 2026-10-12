@@ -951,7 +951,7 @@ Ties are broken by the tiebreaker criteria in order.');
 		<td>
 		<div class='grid-x grid-padding-x'>
 
-			<input type='text' class='cell auto' maxlength='<?=FORMULA_MAX_LENGTH?>'
+			<input type='text' class='cell' style='width:100%;' maxlength='<?=FORMULA_MAX_LENGTH?>'
 				name='updateTournament[customCriteria][<?=$num?>][formula]'
 				id='customCriteria<?=$num?>Formula_input<?=$tournamentID?>'
 				value='<?=htmlspecialchars($currentFormula, ENT_QUOTES)?>'
