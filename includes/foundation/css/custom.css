@@ -801,6 +801,68 @@ legend h4 {
   font-size: 0.875rem;
 }
 
+/* Tournament chips, grouped by weapon (rosterTournamentGroups) */
+.tournament-group-label {
+  font-weight: bold;
+  font-size: 0.875rem;
+  margin-right: 0.35rem;
+}
+
+.chip-weapon {
+  display: none;
+}
+
+/* Over eight tournaments only the row being worked on shows every chip, on a
+   full-width line of its own; other rows show just their picks, named in full. */
+.tournaments-collapse .new-participant-row.is-active .tournaments-cell {
+  flex-basis: 100%;
+  order: 1;
+}
+
+.tournaments-collapse .new-participant-row.is-active .tournament-group-label {
+  display: inline-block;
+  min-width: 10rem;
+}
+
+.tournaments-collapse .new-participant-row:not(.is-active) .tournament-group {
+  display: inline;
+}
+
+.tournaments-collapse .new-participant-row:not(.is-active) .tournament-group-label,
+.tournaments-collapse .new-participant-row:not(.is-active) .tournament-box:not(.is-selected) {
+  display: none;
+}
+
+.tournaments-collapse .new-participant-row:not(.is-active) .chip-weapon {
+  display: inline;
+}
+
+@media screen and (min-width: 40em) {
+  /* Hold the tournaments column open so the row's name and school keep the
+     same widths as the rows above and below. */
+  .tournaments-collapse .new-participant-row.is-active::after {
+    content: '';
+    flex: 2 1 240px;
+    order: 1;
+  }
+  .tournaments-collapse .new-participant-row.is-active .remove-cell {
+    order: 2;
+  }
+  .tournaments-collapse .new-participant-row.is-active .tournaments-cell {
+    order: 3;
+  }
+}
+
+@media screen and (max-width: 39.9375em) {
+  .tournaments-collapse .new-participant-row.is-active .tournament-group + .tournament-group {
+    margin-top: 0.4rem;
+  }
+  .tournaments-collapse .new-participant-row.is-active .tournament-group-label {
+    display: block;
+    min-width: 0;
+  }
+}
+
 .roster-counts td {
   padding-left: 0;
 }

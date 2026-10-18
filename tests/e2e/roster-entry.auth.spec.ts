@@ -97,6 +97,19 @@ test.describe('event roster entry', () => {
     await expect(card).toBeVisible();
   });
 
+  test('with few tournaments, rows not being worked on keep every chip', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    await rows.nth(0).locator('.first-name-input').click(); // spawns row 2
+    const chip = rows.nth(0).locator('.tournament-box').first();
+    if (await chip.locator('input').isChecked()) {
+      await chip.click(); // a lone tournament starts picked
+    }
+    await rows.nth(1).locator('.first-name-input').click();
+    await expect(chip).toBeVisible();
+    await expect(chip).not.toHaveClass(/is-selected/);
+  });
+
   test('school picker lists the placeholders first and hides schools named Unaffiliated', async ({ page }) => {
     const card = await openEntryCard(page);
     const row = card.locator('.new-participant-row').first();

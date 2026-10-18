@@ -248,6 +248,7 @@ var RosterEntry = (function(){
 
     var rowsContainer, template, form, errorBox, addButton, limitNote;
     var submitting = false;
+    var collapsible = false; // many tournaments: see setActive()
 
 /*----------------------------------------------------------------------------*/
 
@@ -267,8 +268,9 @@ var RosterEntry = (function(){
 
         if(!rowsContainer || !template || !form){ return; }
 
+        collapsible = form.closest('.tournaments-collapse') != null;
         limitNote.textContent = MAX_ROWS + ' rows at a time. Add these, then keep going.';
-        addRow();
+        setActive(addRow());
 
         addButton.addEventListener('click', function(e){
             e.preventDefault();
@@ -295,11 +297,20 @@ var RosterEntry = (function(){
     }
 
     function removeRow(row){
+        var neighbor = row.nextElementSibling || row.previousElementSibling;
+        var wasActive = row.classList.contains('is-active');
         row.parentNode.removeChild(row);
         if(rowsContainer.children.length == 0){
-            addRow();
+            neighbor = addRow();
         }
+        if(wasActive){ setActive(neighbor); }
         updateRowLimit();
+    }
+
+    // Marks the row being worked on. With many tournaments (.tournaments-collapse)
+    // only that row shows every chip; the others show just their picks.
+    function setActive(row){
+        allRows().forEach(function(r){ r.classList.toggle('is-active', r == row); });
     }
 
     function updateRowLimit(){
@@ -351,8 +362,17 @@ var RosterEntry = (function(){
 
         // Keep one fresh row below whatever the user is editing.
         row.addEventListener('focusin', function(){
+            setActive(row);
             if(row == rowsContainer.lastElementChild){ addRow(); }
         });
+
+        // Chips aren't focusable, so clicks mark the row too. A collapsed row
+        // shows only its picks: clicking one reopens the row rather than unpicking it.
+        row.addEventListener('click', function(e){
+            if(row.classList.contains('is-active')){ return; }
+            setActive(row);
+            if(collapsible && e.target.closest('.tournament-box')){ e.stopPropagation(); }
+        }, true);
     }
 
     function rowElements(row){
