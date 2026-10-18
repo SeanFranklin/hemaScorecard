@@ -562,13 +562,18 @@ var RosterTable = (function(){
         if(form){ form.addEventListener('submit', onSubmit); }
     }
 
-    // Guard the FK: never post schoolID 0 (a cleared box, or a school with no short name).
+    // Never post a blank name (both boxes empty, matching the entry form), or
+    // schoolID 0 (a cleared box, or a school with no short name) against the FK.
     function onSubmit(e){
-        var els = current && current.editor.querySelector('.edit-school-id');
-        if(els && els.value == '0'){
-            e.preventDefault();
-            current.editor.querySelector('.edit-school-input').classList.add('is-invalid-input');
-        }
+        if(!current){ return; }
+        var editor = current.editor;
+        var names = editor.querySelectorAll('.name-inputs input');
+        var blankName = Array.prototype.every.call(names, function(input){ return input.value.trim() == ''; });
+        var noSchool = editor.querySelector('.edit-school-id').value == '0';
+
+        names.forEach(function(input){ input.classList.toggle('is-invalid-input', blankName); });
+        if(noSchool){ editor.querySelector('.edit-school-input').classList.add('is-invalid-input'); }
+        if(blankName || noSchool){ e.preventDefault(); }
     }
 
     function onScheduleClick(){
@@ -598,6 +603,12 @@ var RosterTable = (function(){
         // Names come from data attributes: the name cell may include a participant ID.
         editor.querySelector('.edit-first-name').value = row.getAttribute('data-first-name');
         editor.querySelector('.edit-last-name').value = row.getAttribute('data-last-name');
+        var names = editor.querySelectorAll('.name-inputs input');
+        names.forEach(function(input){
+            input.addEventListener('input', function(){
+                names.forEach(function(n){ n.classList.remove('is-invalid-input'); });
+            });
+        });
 
         var els = {
             school: editor.querySelector('.edit-school-input'),

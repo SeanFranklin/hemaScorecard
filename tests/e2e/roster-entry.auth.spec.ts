@@ -271,6 +271,36 @@ test.describe('event roster inline edit', () => {
     await expect(editor.locator('.edit-school-input')).toHaveClass(/is-invalid-input/);
   });
 
+  test('save is refused while both name boxes are empty', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await roster.locator('tr.roster-row', { hasText: 'Gable' }).locator('.roster-name').click();
+    const editor = roster.locator('tr.roster-editor');
+    await editor.locator('.edit-last-name').fill(' ');
+    await editor.locator('.edit-first-name').fill('');
+    await editor.locator('.edit-first-name').press('Enter');
+    await expect(editor).toHaveCount(1);
+    await expect(editor.locator('.edit-first-name')).toHaveClass(/is-invalid-input/);
+    await expect(editor.locator('.edit-last-name')).toHaveClass(/is-invalid-input/);
+
+    await editor.locator('.edit-first-name').fill('Greta');
+    await expect(editor.locator('.edit-first-name')).not.toHaveClass(/is-invalid-input/);
+  });
+
+  test('the server refuses a blank name that skips the page check', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await roster.locator('tr.roster-row', { hasText: 'Gable' }).locator('.roster-name').click();
+    const editor = roster.locator('tr.roster-editor');
+    await editor.locator('.edit-first-name').fill('');
+    await editor.locator('.edit-last-name').fill('');
+    // form.submit() does not fire the submit event, so the client guard never runs.
+    await page.evaluate(() => (document.getElementById('rosterEditForm') as HTMLFormElement).submit());
+    await expect(page.getByText('Can not change a fighter to a blank name')).toBeVisible();
+    const gable = page.locator('#eventRosterForm tr.roster-row', { hasText: 'Gable' });
+    await expect(gable).toHaveAttribute('data-first-name', 'Greta');
+  });
+
   test('opening a second row closes the first editor', async ({ page }) => {
     await page.goto('/participantsEvent.php');
     const roster = page.locator('#eventRosterForm');

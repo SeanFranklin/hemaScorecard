@@ -153,8 +153,8 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 
 		<tr class='<?=$rowClass?>' id='divFor<?=$rosterID?>'
 			data-roster-id='<?=$rosterID?>'
-			data-first-name='<?=htmlspecialchars($person['firstName'], ENT_QUOTES)?>'
-			data-last-name='<?=htmlspecialchars($person['lastName'], ENT_QUOTES)?>'
+			data-first-name='<?=htmlspecialchars($person['firstName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
+			data-last-name='<?=htmlspecialchars($person['lastName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
 			data-school-id='<?=(int)$person['schoolID']?>'
 			data-tournament-ids='<?=implode(',', $entries)?>'>
 
