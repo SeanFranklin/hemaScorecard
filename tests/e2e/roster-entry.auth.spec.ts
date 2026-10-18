@@ -1,6 +1,6 @@
 import { test, expect } from './helpers/fixtures';
 import type { Locator, Page } from '@playwright/test';
-import { UNENTERED_FIGHTER, SCHOOLS } from './helpers/test-data';
+import { UNENTERED_FIGHTER, SAME_NAME_FIGHTERS, SCHOOLS } from './helpers/test-data';
 
 /**
  * Event roster entry (participantsEvent.php) — the "Add Event Participants"
@@ -90,6 +90,20 @@ test.describe('event roster entry', () => {
     await row.locator('.last-name-input').fill('Gables');
     await expect(row.locator('.system-roster-id')).toHaveValue('0');
     await expect(row.locator('.school-input')).not.toHaveAttribute('readonly', '');
+  });
+
+  test('fighter suggestions show each school so same-name fighters can be told apart', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const row = card.locator('.new-participant-row').first();
+    await row.locator('.last-name-input').fill(SAME_NAME_FIGHTERS[0].lastName);
+
+    const options = row.locator('.name-inputs [role=option]');
+    await expect(options).toHaveCount(2);
+    await expect(options.filter({ hasText: SCHOOLS[0].shortName })).toHaveCount(1);
+    await options.filter({ hasText: SCHOOLS[1].shortName }).click();
+
+    await expect(row.locator('.system-roster-id')).toHaveValue(String(SAME_NAME_FIGHTERS[1].systemRosterID));
+    await expect(row.locator('.school-input')).toHaveValue(SCHOOLS[1].shortName);
   });
 
   test('a known and a new fighter are added to the event with tournaments', async ({ page }) => {

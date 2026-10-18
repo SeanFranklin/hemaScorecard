@@ -20,6 +20,11 @@ export const FIGHTERS = [
 
 /** In systemRoster but not in the event roster (see seed.sql). */
 export const UNENTERED_FIGHTER = { systemRosterID: 7, firstName: 'Greta', lastName: 'Gable' };
+/** Two unentered fighters sharing a name, at SCHOOLS[0] and SCHOOLS[1]. */
+export const SAME_NAME_FIGHTERS = [
+  { systemRosterID: 8, firstName: 'Ivo', lastName: 'Ibsen' },
+  { systemRosterID: 9, firstName: 'Ivo', lastName: 'Ibsen' },
+];
 export const SCHOOLS = [
   { schoolID: 3, shortName: 'Test School' },
   { schoolID: 4, shortName: 'Other Club' },
