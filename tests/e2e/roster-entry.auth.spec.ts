@@ -61,6 +61,42 @@ test.describe('event roster entry', () => {
     await expect(rows).toHaveCount(3);
   });
 
+  test('rows stop at 15, with a note, until one is removed', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    const add = card.locator('#addParticipantRow');
+    const note = card.locator('#newParticipantLimit');
+    await expect(note).toBeHidden();
+
+    for (let i = 0; i < 16; i++) {
+      await add.click();
+    }
+    await expect(rows).toHaveCount(15);
+    await expect(note).toBeVisible();
+
+    // Focusing the last row normally spawns another below it.
+    await rows.last().locator('.first-name-input').click();
+    await expect(rows).toHaveCount(15);
+
+    await rows.last().locator('.remove-row').click();
+    await expect(rows).toHaveCount(14);
+    await expect(note).toBeHidden();
+    await add.click();
+    await expect(rows).toHaveCount(15);
+  });
+
+  test('leaving with unsaved names asks first', async ({ page }) => {
+    const card = await openEntryCard(page);
+    await card.locator('.new-participant-row').first().locator('.first-name-input').fill('Unsaved');
+
+    const dialog = page.waitForEvent('dialog');
+    await page.locator("button[name='newParticipantsMode'][value='off']").click({ noWaitAfter: true });
+    const prompt = await dialog;
+    expect(prompt.type()).toBe('beforeunload');
+    await prompt.dismiss();
+    await expect(card).toBeVisible();
+  });
+
   test('school picker lists the placeholders first and hides schools named Unaffiliated', async ({ page }) => {
     const card = await openEntryCard(page);
     const row = card.locator('.new-participant-row').first();

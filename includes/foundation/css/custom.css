@@ -796,6 +796,11 @@ legend h4 {
   display: none;
 }
 
+.new-participant-limit {
+  color: #6a6a6a;
+  font-size: 0.875rem;
+}
+
 .roster-counts td {
   padding-left: 0;
 }
