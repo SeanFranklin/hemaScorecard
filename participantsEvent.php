@@ -503,16 +503,20 @@ function addNewParticipantsCard($schoolList){
 
 function rosterSchoolOptions($schoolList){
 // Schools as {schoolID, label} for the school combobox. IDs 1 and 2 are the
-// Unknown/Unaffiliated placeholders, labelled here as the old form did.
+// Unknown/Unaffiliated placeholders, listed first as the old form did; real
+// schools named "Unaffiliated" (or with no short name) are left out.
 
-	$schools = [];
+	$schools = [
+		['schoolID' => 1, 'label' => '*Unknown'],
+		['schoolID' => 2, 'label' => '*Unaffiliated'],
+	];
 	foreach((array)$schoolList as $school){
 		$label = $school['schoolShortName'];
-		if($label == null){
-			if($school['schoolID'] == 1){ $label = '*Unknown'; }
-			elseif($school['schoolID'] == 2){ $label = '*Unaffiliated'; }
-			else { continue; }
-		} elseif($school['schoolBranch'] != ''){
+		if($school['schoolID'] == 1 || $school['schoolID'] == 2
+			|| $label == null || $label == 'Unaffiliated'){
+			continue;
+		}
+		if($school['schoolBranch'] != ''){
 			$label .= ", ".$school['schoolBranch'];
 		}
 		$schools[] = ['schoolID' => (int)$school['schoolID'], 'label' => $label];

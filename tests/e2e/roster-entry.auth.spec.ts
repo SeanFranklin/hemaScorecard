@@ -61,6 +61,18 @@ test.describe('event roster entry', () => {
     await expect(rows).toHaveCount(3);
   });
 
+  test('school picker lists the placeholders first and hides schools named Unaffiliated', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const row = card.locator('.new-participant-row').first();
+    await row.locator('.school-toggle').click();
+
+    const options = row.locator('.school-combobox [role=option]');
+    await expect(options).toHaveCount(4);
+    await expect(options.nth(0)).toHaveText('*Unknown');
+    await expect(options.nth(1)).toHaveText('*Unaffiliated');
+    await expect(options.filter({ hasText: /^Unaffiliated$/ })).toHaveCount(0);
+  });
+
   test('picking a known fighter fills the name, locks the school, and sets the ID', async ({ page }) => {
     const card = await openEntryCard(page);
     const row = card.locator('.new-participant-row').first();

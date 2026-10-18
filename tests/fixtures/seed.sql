@@ -36,32 +36,37 @@ INSERT INTO `eventTournaments`
 VALUES
 	(1, 1, 1, 1, 2, 2, 1, 2, 5, 3);
 
--- School for the roster
+-- Schools. IDs 1 and 2 are the Unknown/Unaffiliated placeholders, as in
+-- production (no short name). School 5 is a real row that happens to be
+-- named "Unaffiliated"; the roster school picker must hide it.
 INSERT INTO `systemSchools`
 	(`schoolID`, `schoolFullName`, `schoolShortName`, `schoolAbbreviation`, `countryIso2`)
 VALUES
-	(1, 'Test Fencing School', 'Test School', 'TFS', 'US'),
-	(2, 'Other Fencing Club', 'Other Club', 'OFC', 'US');
+	(1, 'Unknown', NULL, NULL, NULL),
+	(2, 'Unaffiliated', NULL, NULL, NULL),
+	(3, 'Test Fencing School', 'Test School', 'TFS', 'US'),
+	(4, 'Other Fencing Club', 'Other Club', 'OFC', 'US'),
+	(5, 'Unaffiliated', 'Unaffiliated', NULL, 'US');
 
 -- Six fighters with fixed IDs and predictable names, plus one (Greta) who
 -- exists in the system but is NOT entered in the event, so roster-entry
 -- tests can pick a known fighter from the autocomplete.
 INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
-	(1, 'Alice',  'Applegate', 1),
-	(2, 'Brett',  'Bowman',    1),
-	(3, 'Carol',  'Chandler',  1),
-	(4, 'Dmitri', 'Dukas',     1),
-	(5, 'Erin',   'Eastwood',  1),
-	(6, 'Frank',  'Fischer',   1),
-	(7, 'Greta',  'Gable',     1);
+	(1, 'Alice',  'Applegate', 3),
+	(2, 'Brett',  'Bowman',    3),
+	(3, 'Carol',  'Chandler',  3),
+	(4, 'Dmitri', 'Dukas',     3),
+	(5, 'Erin',   'Eastwood',  3),
+	(6, 'Frank',  'Fischer',   3),
+	(7, 'Greta',  'Gable',     3);
 
 INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
-	(1, 1, 1, 1, 0, 1, 1),
-	(2, 2, 1, 1, 0, 1, 1),
-	(3, 3, 1, 1, 0, 1, 1),
-	(4, 4, 1, 1, 0, 1, 1),
-	(5, 5, 1, 1, 0, 1, 1),
-	(6, 6, 1, 1, 0, 1, 1);
+	(1, 1, 1, 3, 0, 1, 1),
+	(2, 2, 1, 3, 0, 1, 1),
+	(3, 3, 1, 3, 0, 1, 1),
+	(4, 4, 1, 3, 0, 1, 1),
+	(5, 5, 1, 3, 0, 1, 1),
+	(6, 6, 1, 3, 0, 1, 1);
 
 -- No pools/groups/matches are seeded: E2E journey tests create those through
 -- the UI, keeping this fixture decoupled from eventGroups/eventMatches FKs.
