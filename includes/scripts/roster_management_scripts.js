@@ -244,8 +244,10 @@ var RosterEntry = (function(){
     var nextIndex = 1;
     var MAX_SUGGESTIONS = 8;
     var SEARCH_DELAY_MS = 150;
+    var MAX_ROWS = 15;      // per submit, so a lost page (timeout, misclick) costs little
 
-    var rowsContainer, template, form, errorBox;
+    var rowsContainer, template, form, errorBox, addButton, limitNote;
+    var submitting = false;
 
 /*----------------------------------------------------------------------------*/
 
@@ -260,28 +262,35 @@ var RosterEntry = (function(){
         template = document.getElementById('newParticipantRowTemplate');
         form = document.getElementById('addParticipantsForm');
         errorBox = document.getElementById('newParticipantError');
+        addButton = document.getElementById('addParticipantRow');
+        limitNote = document.getElementById('newParticipantLimit');
 
         if(!rowsContainer || !template || !form){ return; }
 
+        limitNote.textContent = MAX_ROWS + ' rows at a time. Add these, then keep going.';
         addRow();
 
-        document.getElementById('addParticipantRow').addEventListener('click', function(e){
+        addButton.addEventListener('click', function(e){
             e.preventDefault();
             addRow(); // not focused, or the focus rule below would add a second
         });
 
         form.addEventListener('submit', onSubmit);
+        window.addEventListener('beforeunload', onLeave);
     }
 
 /*----------------------------------------------------------------------------*/
 
+    // Returns null once MAX_ROWS rows exist.
     function addRow(){
+        if(allRows().length >= MAX_ROWS){ return null; }
         var html = template.innerHTML.replace(/__K__/g, String(nextIndex++));
         var holder = document.createElement('div');
         holder.innerHTML = html;
         var row = holder.querySelector('.new-participant-row');
         rowsContainer.appendChild(row);
         wireRow(row);
+        updateRowLimit();
         return row;
     }
 
@@ -290,6 +299,14 @@ var RosterEntry = (function(){
         if(rowsContainer.children.length == 0){
             addRow();
         }
+        updateRowLimit();
+    }
+
+    function updateRowLimit(){
+        var full = allRows().length >= MAX_ROWS;
+        addButton.classList.toggle('disabled', full);
+        addButton.setAttribute('aria-disabled', full ? 'true' : 'false');
+        limitNote.hidden = !full;
     }
 
     function allRows(){
@@ -360,7 +377,7 @@ var RosterEntry = (function(){
         if(e.key != 'Enter' || e._autocompleteHandled){ return; }
         e.preventDefault();
         var next = row.nextElementSibling || addRow();
-        next.querySelector('.name-inputs input').focus();
+        if(next){ next.querySelector('.name-inputs input').focus(); }
     }
 
 /*----------------------------------------------------------------------------*/
@@ -504,7 +521,16 @@ var RosterEntry = (function(){
         if(!valid){
             e.preventDefault();
             errorBox.textContent = 'Pick a school for each highlighted participant.';
+            return;
         }
+        submitting = true;
+    }
+
+    // Ask before a navigation throws away typed rows.
+    function onLeave(e){
+        if(submitting || !allRows().some(rowHasName)){ return; }
+        e.preventDefault();
+        e.returnValue = '';
     }
 
 /*----------------------------------------------------------------------------*/

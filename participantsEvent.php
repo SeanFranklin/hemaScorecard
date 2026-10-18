@@ -409,6 +409,7 @@ function addNewParticipantsCard($schoolList){
 
 		<div class='new-participant-footer'>
 			<a id='addParticipantRow' class='button hollow'>+ Add Row</a>
+			<span class='new-participant-limit' id='newParticipantLimit' hidden></span>
 			<span class='new-participant-error red-text' id='newParticipantError'></span>
 			<button class='button success' name='formName' value='addEventParticipants' id='submitNewParticipants'>
 				Add New Participants
