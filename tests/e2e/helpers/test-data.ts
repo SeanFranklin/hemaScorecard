@@ -6,6 +6,9 @@ export const TEST_EVENT_ID = 1;
 export const TEST_EVENT_NAME = 'Playwright Test Event';
 export const TEST_TOURNAMENT_ID = 1;
 
+/** Second event: ten tournaments with weapon/prefix/gender attributes. */
+export const GROUPED_EVENT_ID = 3;
+
 export const ORGANIZER_PASSWORD = 'organizer-test-pw';
 export const STAFF_PASSWORD = 'staff-test-pw';
 

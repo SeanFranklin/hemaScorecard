@@ -381,12 +381,17 @@ function addNewParticipantsCard($schoolList){
 	// If there is only one tournament make it selected by default
 	$autoCheck = (count($tournamentNames) == 1);
 
+	// Chips are grouped by weapon. With many tournaments, rows other than the
+	// one being worked on collapse to just their picks (RosterEntry.setActive).
+	$tournamentGroups = rosterTournamentGroups(array_keys($tournamentNames));
+	$collapseClass = count($tournamentNames) > 8 ? 'tournaments-collapse' : '';
+
 	$useStaff = logistics_isStaffAssignmentOnEventEntry($eventID);
 	$dStaffCompetency = logistics_getDefaultStaffCompetency($eventID);
 
 	?>
 
-	<div class='callout secondary add-participants-card' id='addParticipantsCard'>
+	<div class='callout secondary add-participants-card <?=$collapseClass?>' id='addParticipantsCard'>
 
 	<form method='POST' id='addParticipantsForm'>
 	<input type='hidden' name='formName' value='addEventParticipants'>
@@ -472,11 +477,18 @@ function addNewParticipantsCard($schoolList){
 
 		<!-- Tournaments -->
 			<div class='new-participant-cell tournaments-cell'>
-				<?php foreach($tournamentNames as $tournamentID => $tName):?>
-					<div class='tournament-box <?=$autoCheck ? 'is-selected' : ''?>'>
-						<input type='checkbox' name='newParticipants[__K__][tournamentIDs][]'
-							value='<?=$tournamentID?>' class='hidden' <?=$autoCheck ? 'checked' : ''?>>
-						<?=$tName?>
+				<?php foreach($tournamentGroups as $group):?>
+					<div class='tournament-group'>
+						<?php if($group['weapon'] != ''): ?>
+							<span class='tournament-group-label'><?=htmlspecialchars($group['weapon'])?></span>
+						<?php endif ?>
+						<?php foreach($group['tournaments'] as $t):?>
+							<div class='tournament-box <?=$autoCheck ? 'is-selected' : ''?>'>
+								<input type='checkbox' name='newParticipants[__K__][tournamentIDs][]'
+									value='<?=$t['tournamentID']?>' class='hidden' <?=$autoCheck ? 'checked' : ''?>>
+								<?php if($t['weapon'] != ''): ?><span class='chip-weapon'><?=htmlspecialchars($t['weapon'])?> - </span><?php endif ?><?=htmlspecialchars($t['label'])?>
+							</div>
+						<?php endforeach?>
 					</div>
 				<?php endforeach?>
 			</div>
@@ -523,6 +535,78 @@ function rosterSchoolOptions($schoolList){
 		$schools[] = ['schoolID' => (int)$school['schoolID'], 'label' => $label];
 	}
 	return $schools;
+}
+
+/******************************************************************************/
+
+function rosterTournamentGroups($tournamentIDs){
+// Tournaments grouped by weapon for the roster entry chips:
+//   [['weapon' => 'Longsword', 'tournaments' => [['tournamentID', 'label', 'weapon'], ...]], ...]
+// A chip's label is the rest of the name ("Tier A Open"); its 'weapon' is the
+// prefix shown when a collapsed row lists its picks outside their group.
+// Within a weapon: gender, then prefix, so the Open tiers sit together.
+// Tournaments that are only a weapon share one unlabeled group at the end.
+
+	$tournamentIDs = array_map('intval', (array)$tournamentIDs);
+	if(count($tournamentIDs) == 0){ return []; }
+
+	$sql = "SELECT eT.tournamentID, w.tournamentType AS weapon, p.tournamentType AS prefix,
+				g.tournamentType AS gender, m.tournamentType AS material, s.tournamentType AS suffix
+			FROM eventTournaments AS eT
+			LEFT JOIN systemTournaments AS w ON w.tournamentTypeID = eT.tournamentWeaponID
+			LEFT JOIN systemTournaments AS p ON p.tournamentTypeID = eT.tournamentPrefixID
+			LEFT JOIN systemTournaments AS g ON g.tournamentTypeID = eT.tournamentGenderID
+			LEFT JOIN systemTournaments AS m ON m.tournamentTypeID = eT.tournamentMaterialID
+			LEFT JOIN systemTournaments AS s ON s.tournamentTypeID = eT.tournamentSuffixID
+			WHERE eT.tournamentID IN (".implode(',', $tournamentIDs).")";
+
+	$byWeapon = [];
+	foreach((array)mysqlQuery($sql, ASSOC) as $t){
+		$parts = array_filter([$t['prefix'], $t['gender'], $t['material'], $t['suffix']],
+							function($v){ return $v !== null && $v !== ''; });
+		$label = implode(' ', $parts);
+		$byWeapon[(string)$t['weapon']][] = [
+			'tournamentID' => (int)$t['tournamentID'],
+			'label' => $label,
+			// The bare weapon first, then by gender (none last), prefix, and the rest.
+			'sort' => [$label == '' ? 0 : 1, $t['gender'] == '' ? 1 : 0,
+						(string)$t['gender'], (string)$t['prefix'], $label],
+		];
+	}
+	uksort($byWeapon, 'strnatcasecmp');
+
+	$groups = [];
+	$plain = [];
+	foreach($byWeapon as $weapon => $list){
+		$weapon = (string)$weapon;
+		if(max(array_map(function($t){ return $t['label'] != ''; }, $list)) == false){
+			foreach($list as $t){
+				$plain[] = ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => ''];
+			}
+			continue;
+		}
+
+		usort($list, function($a, $b){
+			foreach($a['sort'] as $i => $v){
+				$cmp = is_int($v) ? $v - $b['sort'][$i] : strnatcasecmp($v, $b['sort'][$i]);
+				if($cmp != 0){ return $cmp; }
+			}
+			return 0;
+		});
+
+		$tournaments = [];
+		foreach($list as $t){
+			$tournaments[] = ($t['label'] == '')
+				? ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => '']
+				: ['tournamentID' => $t['tournamentID'], 'label' => $t['label'], 'weapon' => $weapon];
+		}
+		$groups[] = ['weapon' => $weapon, 'tournaments' => $tournaments];
+	}
+
+	if(count($plain) > 0){
+		$groups[] = ['weapon' => '', 'tournaments' => $plain];
+	}
+	return $groups;
 }
 
 /******************************************************************************/
