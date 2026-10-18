@@ -9,15 +9,18 @@ import { GROUPED_EVENT_ID, ORGANIZER_PASSWORD } from './helpers/test-data';
  * every chip. Logs in to event 3 itself, since the auth fixture is event 1.
  */
 
-async function openGroupedEntryCard(page: Page) {
+async function logInToGroupedEvent(page: Page) {
   await page.goto('/adminLogIn.php');
   await page.locator('#logInType').selectOption('logInOrganizer');
   await page.locator('#logInEventID').selectOption(String(GROUPED_EVENT_ID));
   await page.locator("input[name='logInData[password]']").fill(ORGANIZER_PASSWORD);
   await page.locator('#logInSubmitButton').click();
   await expect(page.getByRole('link', { name: 'Log Out' }).first()).toBeVisible();
-
   await page.goto('/participantsEvent.php');
+}
+
+async function openGroupedEntryCard(page: Page) {
+  await logInToGroupedEvent(page);
   const card = page.locator('#addParticipantsCard');
   if (!(await card.isVisible())) {
     await page.locator("button[name='newParticipantsMode'][value='on']").click();
@@ -58,4 +61,19 @@ test('above eight tournaments, rows not being worked on show only their picks', 
   await pick.click();
   await expect(first.locator('.tournament-box:visible')).toHaveCount(10);
   await expect(pick).toHaveClass(/is-selected/);
+});
+
+test('the inline editor groups tournaments too, on a line of their own', async ({ page }) => {
+  await logInToGroupedEvent(page);
+  const roster = page.locator('#eventRosterForm');
+  await roster.locator('tr.roster-row', { hasText: 'Ibsen' }).locator('.roster-name').click();
+
+  const editor = roster.locator('tr.roster-editor');
+  await expect(editor.locator('.tournament-group-label')).toHaveText(['Longsword', 'Longsword Cutting', 'Saber']);
+  await expect(editor.locator('.tournament-group').first().locator('.tournament-box')).toHaveText(
+    ['Tier A Open', 'Tier B Open', 'Tier A URG', 'Tier B URG', 'U18'], { useInnerText: true });
+
+  const name = await editor.locator('.edit-first-name').boundingBox();
+  const chips = await editor.locator('.edit-tournaments').boundingBox();
+  expect(chips!.y).toBeGreaterThan(name!.y + name!.height);
 });

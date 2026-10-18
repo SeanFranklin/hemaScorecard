@@ -216,9 +216,9 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 	if(ALLOW_EDITING == true){
 		rosterInlineEditor();
 		$config['schools'] = rosterSchoolOptions($schoolList);
-		foreach($tournamentNames as $tournamentID => $name){
-			$config['tournaments'][] = ['tournamentID' => (int)$tournamentID, 'name' => $name];
-		}
+		$config['tournamentGroups'] = rosterTournamentGroups(array_keys((array)$tournamentNames));
+		// Same threshold as the entry card's collapsing rows.
+		$config['manyTournaments'] = count((array)$tournamentNames) > 8;
 	}
 	?>
 	<script>

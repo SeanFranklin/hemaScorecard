@@ -817,12 +817,14 @@ legend h4 {
 
 /* Over eight tournaments only the row being worked on shows every chip, on a
    full-width line of its own; other rows show just their picks, named in full. */
-.tournaments-collapse .new-participant-row.is-active .tournaments-cell {
+.tournaments-collapse .new-participant-row.is-active .tournaments-cell,
+.roster-editor.tournaments-wide .edit-tournaments {
   flex-basis: 100%;
   order: 1;
 }
 
-.tournaments-collapse .new-participant-row.is-active .tournament-group-label {
+.tournaments-collapse .new-participant-row.is-active .tournament-group-label,
+.roster-editor.tournaments-wide .tournament-group-label {
   display: inline-block;
   min-width: 10rem;
 }
@@ -857,10 +859,12 @@ legend h4 {
 }
 
 @media screen and (max-width: 39.9375em) {
-  .tournaments-collapse .new-participant-row.is-active .tournament-group + .tournament-group {
+  .tournaments-collapse .new-participant-row.is-active .tournament-group + .tournament-group,
+  .roster-editor.tournaments-wide .tournament-group + .tournament-group {
     margin-top: 0.4rem;
   }
-  .tournaments-collapse .new-participant-row.is-active .tournament-group-label {
+  .tournaments-collapse .new-participant-row.is-active .tournament-group-label,
+  .roster-editor.tournaments-wide .tournament-group-label {
     display: block;
     min-width: 0;
   }

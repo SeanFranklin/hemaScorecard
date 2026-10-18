@@ -540,14 +540,16 @@ var RosterEntry = (function(){
 
 var RosterTable = (function(){
 
-    var schools = [];       // {schoolID, label}
-    var tournaments = [];   // {tournamentID, name}
+    var schools = [];           // {schoolID, label}
+    var tournamentGroups = [];  // see rosterTournamentGroups() in participantsEvent.php
+    var manyTournaments = false;
     var template, form, rosterIDField;
     var current = null;     // {row, editor, fought:{tournamentID:true}} while an editor is open
 
     function init(config){
         schools = config.schools || [];
-        tournaments = config.tournaments || [];
+        tournamentGroups = config.tournamentGroups || [];
+        manyTournaments = !!config.manyTournaments;
         template = document.getElementById('rosterEditorTemplate');
         form = document.getElementById('rosterEditForm');
         rosterIDField = document.getElementById('editRosterID');
@@ -621,20 +623,33 @@ var RosterTable = (function(){
             if(s.schoolID == schoolID){ els.school.value = s.label; els.schoolID.value = schoolID; }
         });
 
+        // Chips grouped by weapon as on the entry card; many get a line of their own.
         var chipHolder = editor.querySelector('.edit-tournaments');
-        tournaments.forEach(function(t){
-            var chip = document.createElement('div');
-            chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
-            chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
-                + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
-                + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
-            chip.appendChild(document.createTextNode(t.name));
-            chip.addEventListener('click', function(){
-                RosterEntry.toggleChip(chip);
-                if(entered[t.tournamentID]){ checkFought(rosterID, t.tournamentID, chip.firstChild); }
+        tournamentGroups.forEach(function(group){
+            var line = document.createElement('div');
+            line.className = 'tournament-group';
+            if(group.weapon != ''){
+                var label = document.createElement('span');
+                label.className = 'tournament-group-label';
+                label.textContent = group.weapon;
+                line.appendChild(label);
+            }
+            group.tournaments.forEach(function(t){
+                var chip = document.createElement('div');
+                chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
+                chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
+                    + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
+                    + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
+                chip.appendChild(document.createTextNode(t.label));
+                chip.addEventListener('click', function(){
+                    RosterEntry.toggleChip(chip);
+                    if(entered[t.tournamentID]){ checkFought(rosterID, t.tournamentID, chip.firstChild); }
+                });
+                line.appendChild(chip);
             });
-            chipHolder.appendChild(chip);
+            chipHolder.appendChild(line);
         });
+        editor.classList.toggle('tournaments-wide', manyTournaments);
 
         var scheduleRow = document.getElementById('tList-' + rosterID);
         if(scheduleRow){

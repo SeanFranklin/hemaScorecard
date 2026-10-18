@@ -110,3 +110,7 @@ VALUES
 	(9,  3, 7,  NULL, 125,  1, 2, 2, 1, 2, 5, 3),
 	(10, 3, 8,  NULL, NULL, 1, 2, 2, 1, 2, 5, 3),
 	(11, 3, 56, NULL, NULL, 1, 2, 2, 1, 2, 5, 3);
+
+-- One fighter in event 3's roster, for the inline editor's grouped chips.
+INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
+	(7, 8, 3, 3, 0, 1, 1);
