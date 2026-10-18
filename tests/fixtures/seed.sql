@@ -48,9 +48,10 @@ VALUES
 	(4, 'Other Fencing Club', 'Other Club', 'OFC', 'US'),
 	(5, 'Unaffiliated', 'Unaffiliated', NULL, 'US');
 
--- Six fighters with fixed IDs and predictable names, plus one (Greta) who
--- exists in the system but is NOT entered in the event, so roster-entry
--- tests can pick a known fighter from the autocomplete.
+-- Six fighters with fixed IDs and predictable names, plus fighters who exist
+-- in the system but are NOT entered in the event, so roster-entry tests can
+-- pick known fighters from the autocomplete: Greta, and two Ivo Ibsens at
+-- different schools.
 INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
 	(1, 'Alice',  'Applegate', 3),
 	(2, 'Brett',  'Bowman',    3),
@@ -58,7 +59,9 @@ INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID
 	(4, 'Dmitri', 'Dukas',     3),
 	(5, 'Erin',   'Eastwood',  3),
 	(6, 'Frank',  'Fischer',   3),
-	(7, 'Greta',  'Gable',     3);
+	(7, 'Greta',  'Gable',     3),
+	(8, 'Ivo',    'Ibsen',     3),
+	(9, 'Ivo',    'Ibsen',     4);
 
 INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
 	(1, 1, 1, 3, 0, 1, 1),

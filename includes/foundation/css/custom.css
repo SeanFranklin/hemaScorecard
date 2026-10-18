@@ -859,12 +859,18 @@ legend h4 {
   background: #e6f2ff;
 }
 
-/* Name suggestions show "First Last", so let the list outgrow its input */
+.autocomplete-detail {
+  margin-left: 0.5rem;
+  color: #6a6a6a;
+  font-size: 0.875em;
+}
+
+/* Name suggestions show "First Last  School", so let the list outgrow its input */
 .name-inputs .autocomplete-list {
   right: auto;
   min-width: 100%;
   width: max-content;
-  max-width: 24rem;
+  max-width: 30rem;
 }
 
 @media screen and (max-width: 39.9375em) {

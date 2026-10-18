@@ -306,6 +306,7 @@ var RosterEntry = (function(){
             attachAutocomplete(input, {
                 items: function(){ return matchFighters(row, els); },
                 render: function(f){ return f.firstName + ' ' + f.lastName; },
+                detail: function(f){ return f.schoolName; },
                 onSelect: function(f){ selectFighter(row, els, f); }
             });
             input.addEventListener('input', function(){
@@ -510,6 +511,7 @@ var RosterEntry = (function(){
 // Minimal autocomplete: renders a listbox under the input, keyboard navigable.
 //   opts.items(showAll) -> array of items for the current input value, or a Promise of one
 //   opts.render(item)   -> label string
+//   opts.detail(item)   -> optional muted text after the label
 //   opts.onSelect(item)
 // Enter/Escape handled here set e._autocompleteHandled so outer handlers skip them.
 
@@ -551,6 +553,13 @@ var RosterEntry = (function(){
                 li.className = 'autocomplete-item';
                 li.setAttribute('role', 'option');
                 li.textContent = opts.render(item);
+                var detail = opts.detail && opts.detail(item);
+                if(detail){
+                    var span = document.createElement('span');
+                    span.className = 'autocomplete-detail';
+                    span.textContent = detail;
+                    li.appendChild(span);
+                }
                 li.addEventListener('mousedown', function(e){
                     e.preventDefault(); // keep focus in the input
                     choose(i);

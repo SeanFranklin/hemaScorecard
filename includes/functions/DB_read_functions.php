@@ -6638,9 +6638,13 @@ function searchSystemRosterNotInEvent($eventID, $firstName, $lastName, $limit = 
 		$params = ["{$lastName}%"];
 	}
 
-	$sql = "SELECT sR.systemRosterID, sR.firstName, sR.lastName, sR.schoolID
+	// The school name lets same-name fighters be told apart in the suggestions.
+	$sql = "SELECT sR.systemRosterID, sR.firstName, sR.lastName, sR.schoolID,
+				CONCAT_WS(', ', COALESCE(sS.schoolShortName, sS.schoolFullName),
+					NULLIF(sS.schoolBranch, '')) AS schoolName
 			FROM systemRoster AS sR
 			LEFT JOIN eventRoster AS eR ON sR.systemRosterID = eR.systemRosterID AND eR.eventID = {$eventID}
+			LEFT JOIN systemSchools AS sS ON sS.schoolID = sR.schoolID
 			WHERE eR.eventID IS NULL AND {$where}
 			ORDER BY sR.lastName ASC, sR.firstName ASC
 			LIMIT ".(int)$limit;
@@ -6648,12 +6652,13 @@ function searchSystemRosterNotInEvent($eventID, $firstName, $lastName, $limit = 
 	$stmt = mysqli_prepare($GLOBALS["___mysqli_ston"], $sql);
 	mysqli_stmt_bind_param($stmt, str_repeat('s', count($params)), ...$params);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $systemRosterID, $first, $last, $schoolID);
+	mysqli_stmt_bind_result($stmt, $systemRosterID, $first, $last, $schoolID, $schoolName);
 
 	$fighters = [];
 	while(mysqli_stmt_fetch($stmt)){
 		$fighters[] = ['systemRosterID' => (int)$systemRosterID, 'firstName' => $first,
-						'lastName' => $last, 'schoolID' => (int)$schoolID];
+						'lastName' => $last, 'schoolID' => (int)$schoolID,
+						'schoolName' => (string)$schoolName];
 	}
 	mysqli_stmt_close($stmt);
 
