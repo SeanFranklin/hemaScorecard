@@ -2573,3 +2573,16 @@ legend > h5 a:hover {
     border-radius: var(--hs-radius);
   }
 }
+
+/* Match exchange history: a score with a tooltip (the afterblow breakdown) gets a light chip
+   and a dotted underline. Inline, not Foundation's inline-block with a border, which would
+   make its cell taller than the others */
+.has-tip.exchange-tip {
+  display: inline;
+  padding: 0 0.3em;
+  border-bottom: none;
+  border-radius: var(--hs-radius-sm);
+  background-color: rgba(255, 255, 255, 0.45);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}

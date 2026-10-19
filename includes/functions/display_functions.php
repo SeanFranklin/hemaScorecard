@@ -3268,9 +3268,11 @@ function matchHistoryBar($matchInfo){
 			case "afterblow":
 				if($doubleTypes['afterblowType'] == 'deductive'){
 
+					// The breakdown is too wide for the column, so it goes in a tooltip.
 					$netPts = $exchange['scoreValue'] - $exchange['scoreDeduction'];
-					$exchanges[$i][$index1][1] = "<b>".$netPts."</b>";
-					$exchanges[$i][$index1][2] = "[".$exchange['scoreValue']."-".$exchange['scoreDeduction']."]";
+					$breakdown = $exchange['scoreValue']." hit &minus; ".$exchange['scoreDeduction']." afterblow";
+					$exchanges[$i][$index1][1] = "<b data-tooltip class='has-tip exchange-tip' tabindex='0'
+						data-position='top' data-allow-html='true' title='{$breakdown}'>".$netPts."</b>";
 
 				} else {
 
@@ -3389,7 +3391,7 @@ function matchHistoryBar($matchInfo){
 
 		?>
 
-		<div class='shrink text-center' style='width: 40px' title='<?=$exchange['detail']?>'>
+		<div class='shrink text-center match-history-column' style='width: 40px' title='<?=$exchange['detail']?>'>
 			<div class='cell <?=$class?>' style='font-size:0.8em;'>
 				#<?=$num?>
 			</div>
