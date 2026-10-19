@@ -3740,7 +3740,7 @@ function displayIncompleteMatches($incompleteMatches){
 /******************************************************************************/
 
 function show_poolGeneration($fighterID, $fighterRating, $poolPoints,$sizePoints,
-							$ratingPoints, $schoolPoints, $refightPoints){
+							$ratingPoints, $schoolPoints, $countryPoints, $refightPoints){
 // This function is used to calibrate the pool auto-generation feature
 // It shows the progress of every step in the pool generation, and what the
 // weighted values are for each attribute to consider.
@@ -3756,12 +3756,14 @@ function show_poolGeneration($fighterID, $fighterRating, $poolPoints,$sizePoints
 		<th>Pool Size Score</th>
 		<th>Rating Score</th>
 		<th>Same-School Score</th>
+		<th>Same-Country Score</th>
 		<th>Num Refights Score</th>
 		<th>TOTAL SCORE</th></tr>";
 	foreach($poolPoints as $poolNum => $numPoints){
 		$size = @round($sizePoints[$poolNum],2);
 		$rating = @round($ratingPoints[$poolNum],2);
 		$school = @round($schoolPoints[$poolNum],2);
+		$country = @round($countryPoints[$poolNum],2);
 		$refight = @round($refightPoints[$poolNum],2);
 		$total = round($numPoints,2);
 
@@ -3769,6 +3771,7 @@ function show_poolGeneration($fighterID, $fighterRating, $poolPoints,$sizePoints
 		echo "<td>{$size}</td>";
 		echo "<td>{$rating}</td>";
 		echo "<td>{$school}</td>";
+		echo "<td>{$country}</td>";
 		echo "<td>{$refight}</td>";
 		echo "<td>{$total}</td>";
 		echo "</tr>";
