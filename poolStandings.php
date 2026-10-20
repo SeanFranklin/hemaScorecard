@@ -69,7 +69,7 @@ if($tournamentID == null){
 		<p>All pool matches not yet concluded. (<?=$numIncompleteMatches?> remain)<BR>
 		Results may be extrapolated based on matches concluded so far.</p>
 		<?php if(ALLOW['EVENT_SCOREKEEP'] == true || ALLOW['VIEW_SETTINGS'] == true): ?>
-			<button class='button hollow' onclick="toggle('incompleteMatchesDiv')">
+			<button class='button hollow' onclick="toggle('incompleteMatchesDiv'); this.textContent = document.getElementById('incompleteMatchesDiv').offsetHeight ? 'Hide Matches' : 'Show Matches';">
 				Show Matches
 			</button>
 			<div id='incompleteMatchesDiv' class='callout hidden'>

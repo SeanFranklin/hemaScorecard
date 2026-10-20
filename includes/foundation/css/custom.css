@@ -1,3 +1,823 @@
+/* __ Theme tokens (Delft) ____________________________________________________*/
+
+:root {
+  --hs-bg: #f5f7f9;
+  --hs-surface: #ffffff;
+  --hs-text: #171d26;
+  --hs-text-soft: #3c434d;
+  --hs-muted: #616a75;
+  --hs-border: #dadee3;
+  --hs-line: #7e8792;
+  --hs-row-line: #e8ebef;
+  --hs-stripe: #f1f4f7;
+  --hs-hover: #e6effc;
+  --hs-head: #e8ebf1;
+  --hs-head-active: #d1e1f7;
+  --hs-bar: #0b223e;
+  --hs-bar-text: #ffffff;
+  --hs-bar-hover: rgba(255, 255, 255, 0.10);
+  --hs-accent: #1e5ba1;
+  --hs-accent-hover: #1a4d89;
+  --hs-on-accent: #ffffff;
+  --hs-link: #17559b;
+  --hs-link-hover: #144884;
+  --hs-secondary: #616a75;
+  --hs-secondary-hover: #525a63;
+  --hs-footer: #edf0f4;
+  --hs-footer-text: #5c646f;
+  --hs-footer-strong: #14273f;
+  --hs-active-text: #095717;
+  --hs-published-text: #0b4c92;
+  --hs-success: #21763c;
+  --hs-success-hover: #03642b;
+  --hs-success-tint: #e2f9e6;
+  --hs-success-text: #095717;
+  --hs-warning: #edb345;
+  --hs-warning-hover: #d9a02c;
+  --hs-warning-tint: #fff4d7;
+  --hs-warning-text: #975800;
+  --hs-alert: #b33832;
+  --hs-alert-hover: #9e2320;
+  --hs-alert-tint: #ffece9;
+  --hs-alert-text: #b02b27;
+  --hs-scoring-tint: #b4d5f8;
+  --hs-afterblow-tint: #edc291;
+  --hs-double-out: #7f211d;
+  --hs-card-yellow: #f9e03f;
+  --hs-card-red: #d33c30;
+  --hs-chart-blue: #5788c7;
+  --hs-chart-red: #c06a64;
+  --hs-chart-sky: #2a92bb;
+  --hs-chart-teal: #0f9b89;
+  --hs-chart-gray: #7e8792;
+  --hs-chart-orange: #bc6f4c;
+  --hs-chart-violet: #9674bb;
+  --hs-chart-ochre: #a4802b;
+  --hs-shadow: rgba(11, 34, 62, 0.6);
+  --hs-radius: 8px;
+  --hs-radius-sm: 4px;
+  --hs-font: "Atkinson Hyperlegible Next", "Chivo", system-ui, sans-serif;
+  --hs-font-mono: "Atkinson Hyperlegible Mono", monospace;
+}
+
+/* __ Theme baseline ___________________________________________________________*/
+/* Re-skins Foundation's defaults. It sits above the site's own rules so they
+   keep overriding Foundation exactly as before. */
+
+body {
+  background: var(--hs-bg);
+  color: var(--hs-text);
+  font-family: var(--hs-font);
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+  font-family: var(--hs-font);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 small, .h1 small, h2 small, .h2 small, h3 small, .h3 small,
+h4 small, .h4 small, h5 small, .h5 small, h6 small, .h6 small {
+  color: var(--hs-muted);
+}
+
+code, kbd, pre {
+  font-family: var(--hs-font-mono);
+}
+
+code {
+  background-color: var(--hs-stripe);
+  border-color: var(--hs-border);
+  color: var(--hs-text);
+}
+
+kbd {
+  background-color: var(--hs-stripe);
+  color: var(--hs-text);
+}
+
+a {
+  color: var(--hs-link);
+  text-underline-offset: 3px;
+}
+
+a:hover, a:focus {
+  color: var(--hs-link-hover);
+}
+
+/* Buttons. Foundation's primary and secondary button rules are replayed in
+   their original order with theme colors, so its later resets for hollow,
+   clear and disabled buttons still apply exactly as before. */
+
+.button {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+  border-radius: var(--hs-radius);
+}
+.button:hover, .button:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button.primary {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.primary:hover, .button.primary:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button.secondary {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button.secondary:hover, .button.secondary:focus {
+  background-color: var(--hs-secondary-hover);
+  color: var(--hs-on-accent);
+}
+.button.disabled, .button.disabled:hover, .button.disabled:focus,
+.button[disabled], .button[disabled]:hover, .button[disabled]:focus {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.disabled.primary, .button.disabled.primary:hover, .button.disabled.primary:focus,
+.button[disabled].primary, .button[disabled].primary:hover, .button[disabled].primary:focus {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button.disabled.secondary, .button.disabled.secondary:hover, .button.disabled.secondary:focus,
+.button[disabled].secondary, .button[disabled].secondary:hover, .button[disabled].secondary:focus {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button.hollow {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow, .button.hollow:hover, .button.hollow:focus {
+  background-color: transparent;
+}
+.button.hollow.disabled, .button.hollow.disabled:hover, .button.hollow.disabled:focus,
+.button.hollow[disabled], .button.hollow[disabled]:hover, .button.hollow[disabled]:focus {
+  background-color: transparent;
+}
+.button.hollow:hover, .button.hollow:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.hollow:hover.disabled, .button.hollow:hover[disabled],
+.button.hollow:focus.disabled, .button.hollow:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.primary {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.primary:hover, .button.hollow.primary:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.hollow.primary:hover.disabled, .button.hollow.primary:hover[disabled],
+.button.hollow.primary:focus.disabled, .button.hollow.primary:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.hollow.secondary {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.hollow.secondary:hover, .button.hollow.secondary:focus {
+  border-color: var(--hs-secondary-hover);
+  color: var(--hs-secondary-hover);
+}
+.button.hollow.secondary:hover.disabled, .button.hollow.secondary:hover[disabled],
+.button.hollow.secondary:focus.disabled, .button.hollow.secondary:focus[disabled] {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear, .button.clear:hover, .button.clear:focus {
+  background-color: transparent;
+}
+.button.clear.disabled, .button.clear.disabled:hover, .button.clear.disabled:focus,
+.button.clear[disabled], .button.clear[disabled]:hover, .button.clear[disabled]:focus {
+  background-color: transparent;
+}
+.button.clear:hover, .button.clear:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.clear:hover.disabled, .button.clear:hover[disabled],
+.button.clear:focus.disabled, .button.clear:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear, .button.clear.disabled, .button.clear[disabled],
+.button.clear:hover, .button.clear:hover.disabled, .button.clear:hover[disabled],
+.button.clear:focus, .button.clear:focus.disabled, .button.clear:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.primary {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear.primary:hover, .button.clear.primary:focus {
+  border-color: var(--hs-accent-hover);
+  color: var(--hs-accent-hover);
+}
+.button.clear.primary:hover.disabled, .button.clear.primary:hover[disabled],
+.button.clear.primary:focus.disabled, .button.clear.primary:focus[disabled] {
+  border: 1px solid var(--hs-accent);
+  color: var(--hs-accent);
+}
+.button.clear.primary, .button.clear.primary.disabled, .button.clear.primary[disabled],
+.button.clear.primary:hover, .button.clear.primary:hover.disabled, .button.clear.primary:hover[disabled],
+.button.clear.primary:focus, .button.clear.primary:focus.disabled, .button.clear.primary:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.secondary {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear.secondary:hover, .button.clear.secondary:focus {
+  border-color: var(--hs-secondary-hover);
+  color: var(--hs-secondary-hover);
+}
+.button.clear.secondary:hover.disabled, .button.clear.secondary:hover[disabled],
+.button.clear.secondary:focus.disabled, .button.clear.secondary:focus[disabled] {
+  border: 1px solid var(--hs-secondary);
+  color: var(--hs-secondary);
+}
+.button.clear.secondary, .button.clear.secondary.disabled, .button.clear.secondary[disabled],
+.button.clear.secondary:hover, .button.clear.secondary:hover.disabled, .button.clear.secondary:hover[disabled],
+.button.clear.secondary:focus, .button.clear.secondary:focus.disabled, .button.clear.secondary:focus[disabled] {
+  border-color: transparent;
+}
+.button.dropdown.hollow::after,
+.button.dropdown.hollow.primary::after {
+  border-top-color: var(--hs-accent);
+}
+.button.dropdown.hollow.secondary::after {
+  border-top-color: var(--hs-secondary);
+}
+.button-group.primary .button {
+  background-color: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.button-group.primary .button:hover, .button-group.primary .button:focus {
+  background-color: var(--hs-accent-hover);
+  color: var(--hs-on-accent);
+}
+.button-group.secondary .button {
+  background-color: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+.button-group.secondary .button:hover, .button-group.secondary .button:focus {
+  background-color: var(--hs-secondary-hover);
+  color: var(--hs-on-accent);
+}
+
+/* Buttons attached to inputs stay square so they still sit flush */
+.input-group-button .button {
+  border-radius: 0;
+}
+
+/* Labels and badges */
+
+.label, .label.primary, .badge, .badge.primary {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+
+.label.secondary, .badge.secondary {
+  background: var(--hs-secondary);
+  color: var(--hs-on-accent);
+}
+
+/* Callouts */
+
+.callout {
+  background-color: var(--hs-surface);
+  border-color: var(--hs-border);
+  color: var(--hs-text);
+  border-radius: var(--hs-radius);
+}
+
+.callout.primary {
+  background-color: var(--hs-hover);
+}
+
+.callout.secondary {
+  background-color: var(--hs-stripe);
+}
+
+/* Menus, accordions, breadcrumbs, and their arrows (Foundation's order) */
+
+.accordion-title {
+  color: var(--hs-link);
+}
+.accordion-menu .is-accordion-submenu-parent:not(.has-submenu-toggle) > a::after,
+.submenu-toggle::after {
+  border-color: var(--hs-accent) transparent transparent;
+}
+.breadcrumbs a {
+  color: var(--hs-link);
+}
+.menu .is-active > a, .menu .active > a {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.dropdown.menu .is-active > a {
+  color: var(--hs-link);
+}
+.dropdown.menu > li.is-dropdown-submenu-parent > a::after {
+  border-color: var(--hs-accent) transparent transparent;
+}
+.drilldown .is-drilldown-submenu-parent > a::after,
+.drilldown.align-left .is-drilldown-submenu-parent > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+.drilldown.align-right .is-drilldown-submenu-parent > a::after,
+.drilldown .js-drilldown-back > a::before {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.dropdown.menu.vertical > li.opens-left > a::after {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.dropdown.menu.vertical > li.opens-right > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+@media print, screen and (min-width: 40em) {
+  .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a::after {
+    border-color: var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.medium-vertical > li.opens-left > a::after {
+    border-color: transparent var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.medium-vertical > li.opens-right > a::after {
+    border-color: transparent transparent transparent var(--hs-accent);
+  }
+}
+@media print, screen and (min-width: 64em) {
+  .dropdown.menu.large-horizontal > li.is-dropdown-submenu-parent > a::after {
+    border-color: var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.large-vertical > li.opens-left > a::after {
+    border-color: transparent var(--hs-accent) transparent transparent;
+  }
+  .dropdown.menu.large-vertical > li.opens-right > a::after {
+    border-color: transparent transparent transparent var(--hs-accent);
+  }
+}
+.is-dropdown-submenu .is-dropdown-submenu-parent.opens-left > a::after {
+  border-color: transparent var(--hs-accent) transparent transparent;
+}
+.is-dropdown-submenu .is-dropdown-submenu-parent.opens-right > a::after {
+  border-color: transparent transparent transparent var(--hs-accent);
+}
+
+/* Pagination, progress, slider, switch */
+
+.pagination .current {
+  background: var(--hs-accent);
+  color: var(--hs-on-accent);
+}
+.progress.primary .progress-meter,
+.progress-meter {
+  background-color: var(--hs-accent);
+}
+.progress.secondary .progress-meter {
+  background-color: var(--hs-secondary);
+}
+.slider-handle {
+  background-color: var(--hs-accent);
+}
+.slider-handle:hover {
+  background-color: var(--hs-accent-hover);
+}
+input:checked ~ .switch-paddle {
+  background: var(--hs-accent);
+}
+
+/* Form focus: accent border and an outer ring (box-shadow, so no size change) */
+
+[type='text']:focus, [type='password']:focus, [type='date']:focus, [type='datetime']:focus,
+[type='datetime-local']:focus, [type='month']:focus, [type='week']:focus, [type='email']:focus,
+[type='number']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus,
+[type='url']:focus, [type='color']:focus, textarea:focus,
+input:not([type]):focus,
+select:focus {
+  border-color: var(--hs-accent);
+  box-shadow: 0 0 0 3px rgba(30, 91, 161, 0.18);
+}
+
+/* Modals and tooltips */
+
+.reveal {
+  border-color: var(--hs-border);
+  border-radius: var(--hs-radius);
+}
+@media screen and (max-width: 39.9375em) {
+  .reveal {
+    border-radius: 0;
+  }
+}
+.reveal-overlay {
+  background-color: rgba(11, 34, 62, 0.45);
+}
+.has-tip {
+  border-bottom-color: var(--hs-muted);
+}
+.tooltip {
+  background-color: var(--hs-bar);
+}
+.tooltip.bottom::before {
+  border-color: transparent transparent var(--hs-bar);
+}
+.tooltip.top::before {
+  border-color: var(--hs-bar) transparent transparent;
+}
+.tooltip.left::before {
+  border-color: transparent transparent transparent var(--hs-bar);
+}
+.tooltip.right::before {
+  border-color: transparent var(--hs-bar) transparent transparent;
+}
+
+/* Tables. The CDN copy of Foundation uses `table`-prefixed selectors, so these match them. */
+
+table thead, table tbody, table tfoot {
+  border-color: var(--hs-row-line);
+  background-color: var(--hs-surface);
+}
+table thead {
+  background: var(--hs-head);
+  color: var(--hs-muted);
+}
+table thead th, table thead td {
+  font-weight: 600;
+}
+table tfoot {
+  background: var(--hs-stripe);
+  color: var(--hs-text);
+}
+table tbody tr:nth-child(even) {
+  background-color: var(--hs-stripe);
+}
+table.unstriped tbody,
+table.unstriped tbody tr {
+  background-color: var(--hs-surface);
+}
+table.unstriped tbody tr {
+  border-bottom-color: var(--hs-row-line);
+}
+table.hover thead tr:hover {
+  background-color: var(--hs-head);
+}
+table.hover tfoot tr:hover {
+  background-color: var(--hs-stripe);
+}
+table.hover tbody tr:hover,
+table.hover:not(.unstriped) tr:nth-of-type(even):hover {
+  background-color: var(--hs-hover);
+}
+
+/* Tabs: transparent side borders keep Foundation's widths but show only the bottom rule */
+
+.tabs {
+  border-color: transparent transparent var(--hs-border);
+  background: transparent;
+}
+.tabs.vertical {
+  border-color: var(--hs-border);
+}
+.tabs.primary {
+  background: var(--hs-accent);
+}
+.tabs.primary > li > a:hover, .tabs.primary > li > a:focus {
+  background: var(--hs-accent-hover);
+}
+.tabs-title > a {
+  color: var(--hs-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.tabs-title > a:hover {
+  background: transparent;
+  color: var(--hs-text);
+}
+.tabs-title > a:focus, .tabs-title > a[aria-selected='true'] {
+  background: transparent;
+  color: var(--hs-text);
+  box-shadow: inset 0 -2px 0 var(--hs-accent);
+}
+.tabs-content {
+  border-color: var(--hs-border);
+  background: var(--hs-surface);
+  color: var(--hs-text);
+}
+.tabs-content.vertical {
+  border-color: var(--hs-border);
+}
+
+/* Semantic colors. Foundation's success, warning and alert rules replayed in
+   their original order with theme colors (white text on the darker success and
+   alert fills; readable text shades on hollow and clear buttons). */
+
+.button.success {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button.success:hover,
+.button.success:focus {
+  background-color: var(--hs-success-hover);
+  color: var(--hs-on-accent);
+}
+.button.warning {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button.warning:hover,
+.button.warning:focus {
+  background-color: var(--hs-warning-hover);
+  color: var(--hs-text);
+}
+.button.alert {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button.alert:hover,
+.button.alert:focus {
+  background-color: var(--hs-alert-hover);
+  color: var(--hs-on-accent);
+}
+.button.disabled.success,
+.button.disabled.success:hover,
+.button.disabled.success:focus,
+.button[disabled].success,
+.button[disabled].success:hover,
+.button[disabled].success:focus {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button.disabled.warning,
+.button.disabled.warning:hover,
+.button.disabled.warning:focus,
+.button[disabled].warning,
+.button[disabled].warning:hover,
+.button[disabled].warning:focus {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button.disabled.alert,
+.button.disabled.alert:hover,
+.button.disabled.alert:focus,
+.button[disabled].alert,
+.button[disabled].alert:hover,
+.button[disabled].alert:focus {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button.hollow.success {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.hollow.success:hover,
+.button.hollow.success:focus {
+  border-color: var(--hs-success-text);
+  color: var(--hs-success-text);
+}
+.button.hollow.success:hover.disabled,
+.button.hollow.success:hover[disabled],
+.button.hollow.success:focus.disabled,
+.button.hollow.success:focus[disabled] {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.hollow.warning {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.hollow.warning:hover,
+.button.hollow.warning:focus {
+  border-color: var(--hs-warning-text);
+  color: var(--hs-warning-text);
+}
+.button.hollow.warning:hover.disabled,
+.button.hollow.warning:hover[disabled],
+.button.hollow.warning:focus.disabled,
+.button.hollow.warning:focus[disabled] {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.hollow.alert {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.hollow.alert:hover,
+.button.hollow.alert:focus {
+  border-color: var(--hs-alert-text);
+  color: var(--hs-alert-text);
+}
+.button.hollow.alert:hover.disabled,
+.button.hollow.alert:hover[disabled],
+.button.hollow.alert:focus.disabled,
+.button.hollow.alert:focus[disabled] {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.success {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.clear.success:hover,
+.button.clear.success:focus {
+  border-color: var(--hs-success-text);
+  color: var(--hs-success-text);
+}
+.button.clear.success:hover.disabled,
+.button.clear.success:hover[disabled],
+.button.clear.success:focus.disabled,
+.button.clear.success:focus[disabled] {
+  border: 1px solid var(--hs-success);
+  color: var(--hs-success-text);
+}
+.button.clear.success,
+.button.clear.success.disabled,
+.button.clear.success[disabled],
+.button.clear.success:hover,
+.button.clear.success:hover.disabled,
+.button.clear.success:hover[disabled],
+.button.clear.success:focus,
+.button.clear.success:focus.disabled,
+.button.clear.success:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.warning {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning:hover,
+.button.clear.warning:focus {
+  border-color: var(--hs-warning-text);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning:hover.disabled,
+.button.clear.warning:hover[disabled],
+.button.clear.warning:focus.disabled,
+.button.clear.warning:focus[disabled] {
+  border: 1px solid var(--hs-warning);
+  color: var(--hs-warning-text);
+}
+.button.clear.warning,
+.button.clear.warning.disabled,
+.button.clear.warning[disabled],
+.button.clear.warning:hover,
+.button.clear.warning:hover.disabled,
+.button.clear.warning:hover[disabled],
+.button.clear.warning:focus,
+.button.clear.warning:focus.disabled,
+.button.clear.warning:focus[disabled] {
+  border-color: transparent;
+}
+.button.clear.alert {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert:hover,
+.button.clear.alert:focus {
+  border-color: var(--hs-alert-text);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert:hover.disabled,
+.button.clear.alert:hover[disabled],
+.button.clear.alert:focus.disabled,
+.button.clear.alert:focus[disabled] {
+  border: 1px solid var(--hs-alert);
+  color: var(--hs-alert-text);
+}
+.button.clear.alert,
+.button.clear.alert.disabled,
+.button.clear.alert[disabled],
+.button.clear.alert:hover,
+.button.clear.alert:hover.disabled,
+.button.clear.alert:hover[disabled],
+.button.clear.alert:focus,
+.button.clear.alert:focus.disabled,
+.button.clear.alert:focus[disabled] {
+  border-color: transparent;
+}
+.button.dropdown.hollow.success::after {
+  border-top-color: var(--hs-success);
+}
+.button.dropdown.hollow.warning::after {
+  border-top-color: var(--hs-warning);
+}
+.button.dropdown.hollow.alert::after {
+  border-top-color: var(--hs-alert);
+}
+.is-invalid-input:not(:focus) {
+  border-color: var(--hs-alert);
+  background-color: var(--hs-alert-tint);
+}
+.is-invalid-input:not(:focus)::placeholder {
+  color: var(--hs-alert-text);
+}
+.is-invalid-label {
+  color: var(--hs-alert-text);
+}
+.form-error {
+  color: var(--hs-alert-text);
+}
+.badge.success {
+  background: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.badge.warning {
+  background: var(--hs-warning);
+  color: var(--hs-text);
+}
+.badge.alert {
+  background: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button-group.success .button {
+  background-color: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.button-group.success .button:hover,
+.button-group.success .button:focus {
+  background-color: var(--hs-success-hover);
+  color: var(--hs-on-accent);
+}
+.button-group.warning .button {
+  background-color: var(--hs-warning);
+  color: var(--hs-text);
+}
+.button-group.warning .button:hover,
+.button-group.warning .button:focus {
+  background-color: var(--hs-warning-hover);
+  color: var(--hs-text);
+}
+.button-group.alert .button {
+  background-color: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.button-group.alert .button:hover,
+.button-group.alert .button:focus {
+  background-color: var(--hs-alert-hover);
+  color: var(--hs-on-accent);
+}
+.callout.success {
+  background-color: var(--hs-success-tint);
+  color: var(--hs-text);
+}
+.callout.warning {
+  background-color: var(--hs-warning-tint);
+  color: var(--hs-text);
+}
+.callout.alert {
+  background-color: var(--hs-alert-tint);
+  color: var(--hs-text);
+}
+.label.success {
+  background: var(--hs-success);
+  color: var(--hs-on-accent);
+}
+.label.warning {
+  background: var(--hs-warning);
+  color: var(--hs-text);
+}
+.label.alert {
+  background: var(--hs-alert);
+  color: var(--hs-on-accent);
+}
+.progress.success .progress-meter {
+  background-color: var(--hs-success);
+}
+.progress.warning .progress-meter {
+  background-color: var(--hs-warning);
+}
+.progress.alert .progress-meter {
+  background-color: var(--hs-alert);
+}
+
+/* Foundation declares its hollow/clear transparency after the semantic fills;
+   restated here so it still wins over the semantic rules above. */
+.button.hollow, .button.hollow:hover, .button.hollow:focus,
+.button.hollow.disabled, .button.hollow.disabled:hover, .button.hollow.disabled:focus,
+.button.hollow[disabled], .button.hollow[disabled]:hover, .button.hollow[disabled]:focus,
+.button.clear, .button.clear:hover, .button.clear:focus,
+.button.clear.disabled, .button.clear.disabled:hover, .button.clear.disabled:focus,
+.button.clear[disabled], .button.clear[disabled]:hover, .button.clear[disabled]:focus {
+  background-color: transparent;
+}
+
+/* __ End theme baseline __ */
+
 /* Added By Sean **************************************************************/
 
 /* For making <select> elements small, even in input-groups */
@@ -39,25 +859,26 @@
 /* __ Bracket Formatting ______________________________________________*/
 
 .secondary-bracket{
-  background-color:#FFF5E8;
-  box-shadow: 0 0 10px 20px rgba(255, 245, 232, 1);
+  background-color: var(--hs-warning-tint);
+  box-shadow: 0 0 10px 20px var(--hs-warning-tint);
 }
 
 /* __ Placings for infoSummary ______________________________________________*/
 
 
 .results-table{
-  border:2px solid black;
-  border-collapse: collapse;
+  border: 1px solid var(--hs-border);
+  border-collapse: separate;
+  border-spacing: 0;
 
   td.results-table-header{
-    background-color: #000;
+    background-color: var(--hs-bar);
     color:white;
     text-align: left;
   }
 
   td.results-table-info{
-    background-color: #EEE;
+    background-color: var(--hs-stripe);
   }
 
 }
@@ -74,7 +895,7 @@ td.border-top{
    /* width: 150px; */
   position: relative;
   top: 11px;
-  background-color: #259EE8; /* tabs-color */
+  background-color: var(--hs-accent); /* tabs-color */
   left: 14px;
   display: inline-block;
   z-index: 2;
@@ -92,9 +913,9 @@ td.border-top{
   &.selected, &:hover{
     z-index: 3;
     color: #FFF;
-    background-color: #000; /* selected-color */
+    background-color: var(--hs-bar); /* selected-color */
     &:before,&:after{
-      background-color: #000; /* selected-color */
+      background-color: var(--hs-bar); /* selected-color */
     }
   }
 
@@ -103,7 +924,7 @@ td.border-top{
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
-    background-color: #259EE8;  /* tabs-color */
+    background-color: var(--hs-accent);  /* tabs-color */
     content: "";
     position: absolute;
     left: -7px;
@@ -116,7 +937,7 @@ td.border-top{
     height: 30px; /* tabs-height */
     width: 20px;
     border-radius: 3px 3px 0px 0px;
-    background-color: #259EE8;  /* tabs-color */
+    background-color: var(--hs-accent);  /* tabs-color */
     content: "";
     position: absolute;
     right: -7px;
@@ -156,7 +977,7 @@ td.border-top{
 }
 
 .pending-exchange{
-  background-color: #88C6F0  !important;
+  background-color: var(--hs-scoring-tint)  !important;
 }
 
 
@@ -166,11 +987,11 @@ div.attack-box{
 }
 
 div.attack-box-on{
-  background-color: #96CDF2;
+  background-color: var(--hs-scoring-tint);
 }
 
 div.afterblow-box-on{
-  background-color: #E9B57D;
+  background-color: var(--hs-afterblow-tint);
 }
 
 div.afterblow-box-disabled{
@@ -180,7 +1001,7 @@ div.afterblow-box-disabled{
 
 div.quiz{
   border: black solid 1px;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-right: 8px;
   padding: 8px;
   margin-bottom: 20px;
@@ -207,27 +1028,27 @@ p.quiz-answer{
 }
 
 .background-primary{
-  background-color: #1779ba;
+  background-color: var(--hs-accent);
 }
 
 .background-primary-light{
-  background-color: #D6E5FA;;
+  background-color: var(--hs-hover);
 }
 
 .background-secondary{
-  background-color: #767676;
+  background-color: var(--hs-secondary);
 }
 
 .background-success{
-  background-color: #3adb76;
+  background-color: var(--hs-success);
 }
 
 .background-warning{
-  background-color: #ffae00;
+  background-color: var(--hs-warning);
 }
 
 .background-alert{
-  background-color: #cc4b37;
+  background-color: var(--hs-alert);
 }
 
 
@@ -256,7 +1077,7 @@ div.clickable{
   cursor: pointer;
 
   border: 1px solid black ;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-top: 4 px;
   margin-bottom: 12 px;
 }
@@ -269,7 +1090,7 @@ div.clickable:active:hover {
 
 .image-box{
   border: 1px solid black ;
-  box-shadow: 4px 4px 5px 1px #666;
+  box-shadow: 4px 4px 5px 1px var(--hs-shadow);
   margin-right: 8px;
 }
 
@@ -277,7 +1098,7 @@ div.clickable:active:hover {
   border: solid 5px black !important;
 }
   .special-table tr:nth-child(even) {
-    background-color:#D6E5FA;
+    background-color: var(--hs-hover);
   }
   .special-table th{
     border-bottom: 1px solid black;
@@ -332,7 +1153,7 @@ table tr.match-queue{
 }
 
 .data-table tr:nth-child(even) {
-    background-color: #EAF3FB;
+    background-color: var(--hs-stripe);
 }
 
 .options-table table{
@@ -371,7 +1192,7 @@ table tr.match-queue{
 }
 
 .link-table:hover{
-  background:#64C6FF;
+  background: var(--hs-hover);
 }
 
 .link-table{
@@ -379,7 +1200,7 @@ table tr.match-queue{
 }
 
 .link-table-active{
-   color:red;
+   color: var(--hs-text);
 }
 
 #sponsor-large img{
@@ -403,14 +1224,14 @@ table tr.match-queue{
 
 .documentation-div h2{
   font-size: 1.9em;
-  color: #1779ba;
+  color: var(--hs-link);
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
 
 .documentation-div h3{
   font-size: 1.4em;
-  color: #F08A24;
+  color: var(--hs-warning-text);
   margin-top: 1.0em;
   margin-bottom: 0.0em;
 }
@@ -443,11 +1264,11 @@ table tr.match-queue{
 }
 
 .penalty-card-yellow{
-  background-color: #FFFF55;
+  background-color: var(--hs-card-yellow);
 }
 
 .penalty-card-red{
-  background-color: #F04124;
+  background-color: var(--hs-card-red);
 }
 
 .penalty-card-black{
@@ -464,23 +1285,23 @@ table tr.match-queue{
 }
 
 .easter-egg{
-    color: white !important;
+    color: var(--hs-footer) !important;
 }
 
 .confirmed-hours{
-  color: #3adb76;
+  color: var(--hs-success-text);
 }
 
 .target-hours{
-  color: #1779ba;
+  color: var(--hs-link);
 }
 
 .unconfirmed-hours{
-  color: #cc4b37;
+  color: var(--hs-alert-text);
 }
 
 .unscheduled-hours{
-  color: #ffae00;
+  color: var(--hs-warning-text);
 }
 
 .bold{
@@ -569,8 +1390,13 @@ table tr.match-queue{
 	font-style: normal;
 }
 
+/* Unplayed matches: muted text and a dashed outline (fading the whole card made it unreadable) */
 .match-incomplete{
-	opacity: 0.5;
+	color: var(--hs-muted);
+}
+
+.match-item.match-incomplete{
+	border-style: dashed;
 }
 
 .match-ignore{
@@ -578,7 +1404,7 @@ table tr.match-queue{
 }
 
 .match-doubleOut{
-	color: #800000;
+	color: var(--hs-double-out);
 }
 
 .last-to-elims{
@@ -625,7 +1451,7 @@ table tr.match-queue{
 }
 
 .old-exch-odd{
-	background-color: #E8E8E8;
+	background-color: var(--hs-row-line);
 }
 
 .old-exch-large-first{
@@ -710,7 +1536,7 @@ legend h4 {
 }
 
 .red-text {
-  color: red;
+  color: var(--hs-alert-text);
 }
 
 .white-text {
@@ -726,26 +1552,26 @@ legend h4 {
 }
 
 .alert-text {
-  color: #F04124;
+  color: var(--hs-alert-text);
 }
 
 .blue-text {
-  color: #1779ba;
+  color: var(--hs-link);
 }
 
 .success-text {
-  color: #43AC6A;
+  color: var(--hs-success-text);
 }
 
 .warning-text {
-  color: #F08A24;
+  color: var(--hs-warning-text);
 }
 
 /* Jayson Stuff ***************************************************************/
 
 .top-bar, .top-bar ul {
-  background-color:black;
-  color:white;
+  background-color: var(--hs-bar);
+  color: var(--hs-bar-text);
 }
 
 .title-bar-title {
@@ -753,7 +1579,7 @@ legend h4 {
 }
 
 .top-bar a {
-  color:#77DDFF;
+  color: var(--hs-bar-text);
 }
 
 .top-bar .white-text a {
@@ -761,21 +1587,21 @@ legend h4 {
 }
 
 .top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a::after {
-  border-color: #77DDFF transparent transparent;
+  border-color: var(--hs-bar-text) transparent transparent;
 }
 
 .top-bar li.is-dropdown-submenu-parent.opens-right > a::after {
   content: "";
-  border-color: transparent transparent transparent #77DDFF;
+  border-color: transparent transparent transparent var(--hs-muted);
 }
 .top-bar li.is-dropdown-submenu-parent.opens-left > a::after {
   content: "";
-  border-color: transparent transparent transparent #77DDFF;
+  border-color: transparent transparent transparent var(--hs-muted);
 }
 
 .top-bar .dropdown.menu .is-active > a {
-  background: transparent;
-  color:#77DDFF;
+  background: var(--hs-bar-hover);
+  color: var(--hs-bar-text);
 }
 
 /* White text overrides for dropdown arrows */
@@ -784,18 +1610,18 @@ legend h4 {
   border-color: white transparent transparent;
 }
 .top-bar .dropdown.menu > li.white-text.is-dropdown-submenu-parent.is-active > a {
-  background: transparent;
+  background: var(--hs-bar-hover);
   color: white;
 }
 
 
 .top-bar .white-text li.is-dropdown-submenu-item > a::after {
   content: "";
-  border-color: transparent transparent transparent white;}
+  border-color: transparent transparent transparent var(--hs-muted);}
 
   .top-bar .white-text li.is-dropdown-submenu-item.is-active > a {
-    background: transparent;
-    color: white;
+    background: var(--hs-stripe);
+    color: var(--hs-text);
   }
 
 
@@ -816,7 +1642,7 @@ legend h4 {
   display:block;
   border-style:solid;
   border-width:1px;
-  border-color:#DDDDDD;
+  border-color: var(--hs-border);
   margin-bottom:1rem;
 }
 
@@ -836,17 +1662,17 @@ margin-bottom:.25rem;
 }
 
 .match-item a:hover {
-  background-color:#2D9CDB;
+  background-color: var(--hs-accent);
   color:white;
 }
 
 .current-match a, current-match a:visited {
-background-color:black;
+background-color: var(--hs-bar);
 color:white;
 }
 
 .current-match {
-border-color:black;
+border-color: var(--hs-bar);
 }
 
 .match-item ul {
@@ -894,7 +1720,7 @@ li h5 {
 
 
 .hero-title {
-  background-color:#F2F2F2;
+  background-color: var(--hs-row-line);
   margin-bottom:1rem;
   margin-top:0rem;
   padding:0.5rem;
@@ -906,6 +1732,11 @@ li h5 {
   font-weight:bold;
   padding-bottom:0rem;
   margin-bottom:0rem;
+}
+
+.hero-title h2 {
+  font-weight: 400;
+  color: var(--hs-text-soft);
 }
 
 .hero-title select{
@@ -922,24 +1753,24 @@ h2 {
 }
 
 .tourney-menu-large {
-  border-bottom:1px solid #2D9CDB;
+  border-bottom:1px solid var(--hs-accent);
   margin-bottom:1rem;
   font-size:1rem;
 }
 
 .tourney-menu-large li {
-  border-bottom:4px solid white;
+  border-bottom:4px solid var(--hs-bg);
 }
 
 .tourney-menu-large li.is-active a {
-  Background-color:white;
-  color:black;
+  Background-color: transparent;
+  color: var(--hs-text);
 }
 
 
 .tourney-menu-large li.is-active {
 
-  border-bottom-color:#2D9CDB;
+  border-bottom-color: var(--hs-accent);
 }
 
 .dropdown .is-current a {
@@ -948,7 +1779,7 @@ h2 {
 }
 
 .tourney-menu-mobile {
-   border-bottom:1px solid #2D9CDB;
+   border-bottom:1px solid var(--hs-accent);
      margin-bottom:1.5rem;
   font-size:1rem;
 
@@ -956,6 +1787,7 @@ h2 {
 
 .title-bar {
   display:block;
+  background: var(--hs-bar);
 }
 
 /* The whole Menu control (icon + label) is the toggle, sized as a 44px touch target */
@@ -1025,4 +1857,732 @@ background-color:#EB5757;
 
 .blue {
   background-color:#1C6CD8;
+}
+
+/* __ Theme additions (Delft) __________________________________________________*/
+/* New rules that must beat the site's existing rules above. */
+
+/* Navigation */
+
+/* One text size across the bar, matching the tournament button (Foundation's button size) */
+.top-bar .dropdown.menu a,
+.top-bar .drop-down-separator,
+.top-bar-right a,
+.title-bar .login-link {
+  font-size: 0.9rem;
+}
+
+/* Space between the top-level items so their hover backgrounds don't touch
+   (column-gap only, so the stacked phone menu is unchanged) */
+.top-bar .dropdown.menu {
+  column-gap: 0.5rem;
+}
+
+/* Divider between the event menus and the software menus: an empty item with a 1px line,
+   so the gaps on either side are equal */
+.top-bar .menu-divider {
+  align-self: stretch;
+  border-left: 1px solid var(--hs-bar-text);
+}
+
+.top-bar .dropdown.menu > li > a {
+  opacity: 0.85;
+  border-radius: var(--hs-radius-sm);
+}
+
+.top-bar .dropdown.menu > li > a:hover,
+.top-bar .dropdown.menu > li.is-active > a {
+  opacity: 1;
+  background: var(--hs-bar-hover);
+}
+
+.top-bar .is-dropdown-submenu {
+  background-color: var(--hs-surface);
+  border-color: var(--hs-border);
+  border-radius: var(--hs-radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.top-bar .dropdown.menu .is-dropdown-submenu li > a {
+  color: var(--hs-text);
+  background: transparent;
+}
+
+.top-bar .dropdown.menu .is-dropdown-submenu li > a:hover,
+.top-bar .dropdown.menu .is-dropdown-submenu li.is-active > a {
+  color: var(--hs-text);
+  background: var(--hs-stripe);
+}
+
+/* Round the first and last highlights to the panel's corners (8px radius inside a 1px border) */
+.top-bar .is-dropdown-submenu > li:first-child > a {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+.top-bar .is-dropdown-submenu > li:last-child > a {
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
+/* Hollow buttons in the bar (tournament switcher, Select Tournament) are white outlines.
+   The switcher's old colors come from app.css, so this also keeps its hover readable. */
+.top-bar .button.hollow {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--hs-bar-text);
+}
+
+.top-bar .button.hollow:hover,
+.top-bar .button.hollow:focus {
+  background-color: var(--hs-bar-hover);
+  border-color: var(--hs-bar-text);
+  color: var(--hs-bar-text);
+}
+
+/* Tournament switcher: Foundation spaces the dropdown arrow for plain links (24px padding,
+   arrow 5px from the edge), which looks lopsided inside an outline. Balance it. Scoped like
+   Foundation's breakpoint rules for these links so it out-ranks them. */
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar {
+  padding-left: 12px;
+  padding-right: 32px;
+}
+
+.top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar::after {
+  right: 12px;
+}
+
+/* Login / Log Out button */
+.top-bar-right a[href='adminLogIn.php'],
+.top-bar-right a[href^='javascript:document.logOutForm2'] {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--hs-accent);
+  border-radius: var(--hs-radius);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.top-bar-right a[href='adminLogIn.php']:hover,
+.top-bar-right a[href^='javascript:document.logOutForm2']:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
+/* Phone Login / Log Out: the same button as desktop. The link is a 44px touch target, so the
+   button is painted by a pseudo-element the size of the desktop one (36px tall, 12px either
+   side of the text); the extra right margin keeps it clear of the screen edge. */
+.title-bar .login-link {
+  position: relative;
+  z-index: 0;
+  margin-right: 1rem;
+  font-weight: 600;
+}
+
+.title-bar .login-link::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: -12px;
+  right: -12px;
+  z-index: -1;
+  background: var(--hs-accent);
+  border-radius: var(--hs-radius);
+}
+
+.title-bar .login-link:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
+/* Front page and event lists */
+
+/* The logo is a black-on-white JPG; multiply lets its white take the page color */
+img[src$="logo_rect.jpg"] {
+  mix-blend-mode: multiply;
+}
+
+[data-tabs-content="recent-events-tabs"] {
+  border-radius: 0 0 var(--hs-radius) var(--hs-radius);
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:first-child,
+#eventListAll tbody td:first-child {
+  font-family: var(--hs-font-mono);
+  color: var(--hs-muted);
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:nth-child(2),
+#eventListAll tbody td:nth-child(2) {
+  font-weight: 500;
+}
+
+[data-tabs-content="recent-events-tabs"] tbody td:last-child,
+#eventListAll tbody td:last-child {
+  color: var(--hs-muted);
+}
+
+/* ACTIVE and Published are the bold statuses */
+[data-tabs-content="recent-events-tabs"] tbody td:last-child b,
+#eventListAll tbody td:last-child b {
+  color: var(--hs-published-text);
+  font-weight: 600;
+}
+
+[data-tabs-content="recent-events-tabs"] .link-table-active td:last-child b,
+#eventListAll .link-table-active td:last-child b {
+  color: var(--hs-active-text);
+}
+
+/* Help icon used by tooltip(): a text "?" in a circle, so it stays crisp at any zoom */
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* the "?" at 60% of the text size, in a circle about 0.875 of the text size */
+  font-size: 0.6em;
+  width: 1.45em;
+  height: 1.45em;
+  border: 1px solid var(--hs-success);
+  border-radius: 50%;
+  color: var(--hs-success);
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+
+.has-tip.has-tip-icon {
+  border-bottom: none;
+  cursor: help;
+}
+
+.has-tip-icon:hover .help-icon,
+.has-tip-icon:focus .help-icon {
+  border-color: var(--hs-success-hover);
+  color: var(--hs-success-hover);
+}
+
+/* Sortable table headers (the roster's clickable headers and DataTables columns):
+   tint on hover; the sorted column stays tinted */
+th[onclick],
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc {
+  cursor: pointer;
+}
+
+th[onclick]:hover,
+th.is-sorted,
+table.dataTable thead .sorting:hover,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc {
+  background-color: var(--hs-head-active);
+  color: var(--hs-text);
+}
+
+/* Sort arrows: one arrow everywhere, replacing DataTables' up/down PNG sprites and the
+   roster's text arrows. Up is ascending (sort-desc points it down). Only the sorted
+   column shows it; other sortable columns show a faint one on hover. */
+th[onclick],
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc {
+  padding-right: 1.5rem;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 10px 12px;
+}
+
+table.dataTable thead .sorting {
+  background-image: none;
+}
+
+th[onclick]:not(.is-sorted):hover,
+table.dataTable thead .sorting:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 11V1.5M1.5 5L5 1.5 8.5 5' fill='none' stroke='%23616a75' stroke-opacity='.5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+th.is-sorted,
+table.dataTable thead .sorting_asc {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 11V1.5M1.5 5L5 1.5 8.5 5' fill='none' stroke='%231e5ba1' stroke-opacity='1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+th.is-sorted.sort-desc,
+table.dataTable thead .sorting_desc {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Cpath d='M5 1v9.5M1.5 7L5 10.5 8.5 7' fill='none' stroke='%231e5ba1' stroke-opacity='1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Every header row closes with an accent rule */
+table thead tr:last-child > th,
+table thead tr:last-child > td,
+table tbody tr:not(:has(> td)) > th {
+  box-shadow: inset 0 -2px 0 var(--hs-accent);
+}
+
+/* Header rows written without <thead> (a row of only <th> cells) get the same band */
+table tr:not(:has(> td)) > th {
+  background-color: var(--hs-head);
+  color: var(--hs-muted);
+  font-weight: 600;
+}
+
+/* Stats tables: data columns centered under their headers */
+.stats-table td:not(:first-child) {
+  text-align: center;
+}
+
+/* Schedule show/hide row: the label and its buttons share one centered line */
+.schedule-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedule-toggles .button {
+  margin: 0;
+}
+
+/* Results cards: tournament name and the Show All toggle on one baseline */
+.results-table-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Pool standings: incomplete-match buttons wrap with space between rows */
+.incomplete-matches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Inputs with no type attribute (datalist pickers) miss Foundation's [type='text'] styling;
+   give them the same look so they match the text inputs around them */
+input:not([type]) {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.4375rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem;
+  border: 1px solid #cacaca;
+  border-radius: 0;
+  background-color: #fefefe;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--hs-text);
+  appearance: none;
+}
+
+/* Block like the text inputs, but never over the site's .hidden (or [hidden]) */
+input:not([type]):not(.hidden):not([hidden]) {
+  display: block;
+}
+
+/* stays name-sized rather than filling the row, as before */
+.input-group > input:not([type]) {
+  flex: 0 1 16rem;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+}
+
+/* Buttons that are themselves the input-group button: center the label, square the attached side */
+.button.input-group-button {
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-radius: 0 var(--hs-radius) var(--hs-radius) 0;
+}
+
+/* Input-group labels: the cool header band instead of Foundation's warm gray; they lay out
+   as flex, which drops the space before a help icon, so the gap puts it back */
+.input-group-label {
+  gap: 0.3em;
+  background: var(--hs-head);
+  color: var(--hs-text);
+}
+
+/* Table rows: a checkbox, and a button beside it, sit on the row's middle line
+   instead of riding up on Foundation's form margin */
+td > [type="checkbox"],
+td > [type="checkbox"] ~ .button {
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+/* Fighter page: name and Clear on one line, details as labeled facts */
+.fighter-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fighter-header h3,
+.fighter-header .button {
+  margin: 0;
+}
+
+.fighter-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.fighter-facts dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hs-muted);
+}
+
+.fighter-facts dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--hs-text);
+}
+
+/* Roster summary row: three equal, centered cells */
+.roster-stats td {
+  width: 33.333%;
+  text-align: center;
+}
+
+/* Results cards: the tournament name in the navy header is a link; keep it white */
+.results-table td.results-table-header a,
+.results-table td.results-table-header a:hover,
+.results-table td.results-table-header a:focus {
+  color: var(--hs-bar-text);
+}
+
+/* Footer and the event sponsor block above it */
+
+.site-sponsors {
+  margin-top: 20px;
+  border-top: 1px solid var(--hs-border);
+}
+
+.site-footer {
+  margin-top: 20px;
+  border-top: 1px solid var(--hs-border);
+  background: var(--hs-footer);
+  color: var(--hs-footer-text);
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.site-footer-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
+/* A logo and its text wrap together as one unit */
+.site-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.site-footer a {
+  color: var(--hs-footer-strong);
+}
+
+.site-footer-name {
+  font-weight: 700;
+}
+
+/* Two lines of footer text tall (line-height 1.5), so the logos follow the text size.
+   The partner PNGs have opaque white backgrounds; multiply lets them take the band color. */
+.site-footer-logo {
+  display: block;
+  height: 3em;
+  width: auto;
+  opacity: 0.9;
+  mix-blend-mode: multiply;
+}
+
+/* The icon file is white (made for the dark display windows); draw it dark */
+.site-footer-logo-icon {
+  filter: brightness(0);
+}
+
+/* Finals bracket: scrolls inside its own box when wider than the page */
+.bracket-scroll {
+  overflow-x: auto;
+}
+
+#tournament_box .tier > h3 {
+  font-size: 1.25rem;
+}
+
+/* The Go button and its select checkbox stack in the narrow column beside each match */
+#tournament_box .grid-x > .small-2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+/* Accordion headers: section titles at a section size, with Foundation's +/- sized to match */
+.accordion-title {
+  padding: 0.875rem 1rem;
+}
+
+.accordion-title h3,
+.accordion-title h4 {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.accordion-title h3 {
+  font-size: 1.25rem;
+}
+
+.accordion-title h4 {
+  font-size: 1.125rem;
+}
+
+.accordion-title::before {
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-top: -0.625rem;
+}
+
+/* Wide tables scroll inside their own box instead of widening the page. Full width, so the
+   box drops below a floated button (as the bare table did) instead of squeezing in beside it. */
+.dataTables_wrapper,
+.hs-scroll-x {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Event list on phones: slightly smaller text and tighter cells so all four columns fit */
+@media screen and (max-width: 39.9375em) {
+  #eventListAll {
+    font-size: 0.875rem;
+  }
+
+  #eventListAll th,
+  #eventListAll td {
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+
+  #eventListAll thead .sorting,
+  #eventListAll thead .sorting_asc,
+  #eventListAll thead .sorting_desc {
+    padding-right: 1.25rem;
+    background-position: right 0.25rem center;
+  }
+}
+
+/* Tournament settings: one white panel (no zebra rows), labels in a steady column with the
+   controls beside them */
+.options-table tbody tr:nth-child(even) {
+  background-color: transparent;
+}
+
+@media screen and (min-width: 40em) {
+  .options-table td:first-child:not([colspan]) {
+    width: 18rem;
+  }
+}
+
+/* Fieldsets default to min-width: min-content, which lets a wide form push past the page */
+fieldset {
+  min-width: 0;
+}
+
+/* Phones: the stacked settings stay within the cell; selects size to the option list,
+   so cap them at the cell (the label sits above them here, so no left offset). A fixed
+   layout lets the table take its own width rather than its widest select's. */
+@media screen and (max-width: 39.9375em) {
+  .options-table {
+    table-layout: fixed;
+  }
+
+  .options-table td > .grid-x {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .options-table select,
+  .options-table input {
+    max-width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* A switch inside an input group sits centered beside its label */
+.input-group > .switch {
+  align-self: center;
+  margin: 0 0 0 0.75rem;
+}
+
+/* Pool rosters: room between the pool's ring select and the first fighter */
+.pool-name-cell {
+  padding-right: 1rem;
+}
+
+/* Fieldset legends written as headings: text-sized, in the text color */
+legend > h4,
+legend > h5 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+legend > h4 a,
+legend > h5 a {
+  color: var(--hs-text);
+}
+
+legend > h4 a:hover,
+legend > h5 a:hover {
+  color: var(--hs-link-hover);
+}
+
+/* Welcome intro: the same space under the logo row as above it */
+.welcome-intro {
+  padding-bottom: 1.5rem;
+}
+
+.welcome-intro img {
+  display: block;
+}
+
+.welcome-intro p {
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 39.9375em) {
+  .welcome-intro img {
+    margin-bottom: 1rem;
+  }
+}
+
+/* A long tournament name shortens with an ellipsis rather than wrapping the bar. The cap grows
+   with the window (about 120px at 1024 and 170px at 1200), leaving room for a desktop scrollbar. */
+@media screen and (min-width: 64em) {
+  .top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar {
+    max-width: calc(100vw - 1030px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Narrow desktops (1024-1199px): tighten the bar so the logged-in menu stays on one row */
+@media screen and (min-width: 64em) and (max-width: 74.9375em) {
+  .top-bar .dropdown.menu a,
+  .top-bar .drop-down-separator,
+  .top-bar-right a {
+    font-size: 0.85rem;
+  }
+
+  .top-bar .dropdown.menu {
+    column-gap: 0.25rem;
+  }
+
+  .top-bar .dropdown.menu > li > a {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+
+  .top-bar .dropdown.menu.medium-horizontal > li.is-dropdown-submenu-parent > a {
+    padding-right: 1.375rem;
+  }
+
+  .top-bar .dropdown.menu > li.is-dropdown-submenu-parent > a.button.title-bar {
+    max-width: calc(100vw - 905px);
+  }
+}
+
+/* Personal schedule: heading and Print View on one line; a light rule between items and an
+   accent rule where a new day starts (replacing inline black and old-blue borders) */
+.schedule-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-heading h4,
+.schedule-heading .button {
+  margin: 0;
+}
+
+.schedule-table th {
+  text-align: left;
+}
+
+.schedule-table tbody tr,
+.schedule-table tbody tr:nth-child(even) {
+  background-color: var(--hs-surface);
+}
+
+.schedule-table tr.schedule-new-item {
+  border-top: 1px solid var(--hs-border);
+}
+
+.schedule-table tr.schedule-new-day {
+  border-top: 2px solid var(--hs-accent);
+}
+
+.schedule-total {
+  border-top: 1px solid var(--hs-line);
+}
+
+/* Phones: the label and name share a line, and the button goes full width below */
+@media screen and (max-width: 39.9375em) {
+  .input-group.schedule-switch > .input-group-label {
+    flex: 0 0 auto;
+  }
+
+  .input-group.schedule-switch > input:not([type]) {
+    flex: 1 1 0;
+  }
+
+  .input-group.schedule-switch > .button.input-group-button {
+    flex: 1 0 100%;
+    margin-top: 0.5rem;
+    padding: 0.75em 1rem;
+    border-radius: var(--hs-radius);
+  }
+}
+
+/* Match exchange history: a score with a tooltip (the afterblow breakdown) gets a light chip
+   and a dotted underline. Inline, not Foundation's inline-block with a border, which would
+   make its cell taller than the others */
+.has-tip.exchange-tip {
+  display: inline;
+  padding: 0 0.3em;
+  border-bottom: none;
+  border-radius: var(--hs-radius-sm);
+  background-color: rgba(255, 255, 255, 0.45);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
 }

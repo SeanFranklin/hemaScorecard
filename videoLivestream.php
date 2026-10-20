@@ -29,7 +29,7 @@ if($_SESSION['eventID'] == null){
 
 	<form method="POST">
 
-		<table class='stack'>
+		<table class='stack unstriped'>
 			<?php foreach($ringList as $ring):?>
 
 				<?=streamLocationInfoDisplay($ring)?>
@@ -133,9 +133,9 @@ function streamLocationInfoDisplay($info){
 
 		<tr>
 			<td style="width:0.1%; white-space: nowrap;">
-				<a class='button hollow no-bottom'
+				<a class='button hollow large no-bottom'
 					onclick="openVideoWindow(<?=$info['locationID']?>,<?=VIDEO_STREAM_LOCATION?>)">
-					<h3 class='no-bottom'>Watch <b><?=$info['locationName']?></b></h3>
+					Watch <b><?=$info['locationName']?></b>
 				</a>
 			</td>
 
@@ -148,9 +148,9 @@ function streamLocationInfoDisplay($info){
 
 		<tr>
 			<td style="width:0.1%; white-space: nowrap;">
-				<a class='button hollow no-bottom secondary'
+				<a class='button hollow large no-bottom secondary'
 					onclick="openVideoWindow(<?=$info['locationID']?>,<?=VIDEO_STREAM_LOCATION?>)">
-					<h3 class='no-bottom'>Watch <b><?=$info['locationName']?></b></h3>
+					Watch <b><?=$info['locationName']?></b>
 				</a>
 			</td>
 

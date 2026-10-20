@@ -171,7 +171,7 @@ function tournamentExtendedExchangeInfo($stats){
 function tournamentTargetTable($stats){
 ?>
 
-	<table>
+	<table class='stats-table'>
 		<caption>Target Values By Tournament</caption>
 
 	<!-- Headers -->
@@ -244,7 +244,7 @@ function tournamentExchangesTable($stats){
 	?>
 
 
-	<table>
+	<table class='stats-table'>
 	<caption>Tournament Exchanges by Type</caption>
 
 	<!-- Headers -->

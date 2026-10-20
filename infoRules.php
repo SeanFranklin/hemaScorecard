@@ -190,8 +190,8 @@ function editRules($rulesInfo){
 
 		<div class='grid-x grid-margin-x'>
 		<div class='medium-8 large-6 cell input-group'>
-			<h4 class='input-group-label hide-for-small-only'>Name of Rules:</h4>
-			<h4 class='input-group-label show-for-small-only'>Name:</h4>
+			<span class='input-group-label hide-for-small-only'>Name of Rules:</span>
+			<span class='input-group-label show-for-small-only'>Name:</span>
 			<input class='input-group-field' type='text'
 				name='updateRules[rulesName]' value="<?=$rulesInfo['rulesName']?>"
 				placeholder='Add new ruleset' required>
