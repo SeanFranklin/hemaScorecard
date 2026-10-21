@@ -2372,7 +2372,7 @@ function createSideBar($matchInfo){
 
 					<?php if($matchInfo['restartTimer'] == true): ?>
 						startTimer();
-					<? endif ?>
+					<?php endif ?>
 
 				};
 			</script>

@@ -60,7 +60,7 @@ if($tournamentID == null){
 
 	<?php if(count($teamRostersSorted) == 0): ?>
 		<?=displayAlert("No Teams Created")?>
-	<? else: ?>
+	<?php else: ?>
 	<h3><?=$numTeams?> Teams</h3>
 
 	<form method='POST'>

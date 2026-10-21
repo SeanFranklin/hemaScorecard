@@ -57,7 +57,7 @@ if((int)$_SESSION['eventID'] == 0){
 	</div>
 	</div>
 
-<?
+<?php
 }
 include('includes/footer.php');
 
@@ -90,7 +90,7 @@ function displaySponsorList($sponsorList, $eventSponsors){
 			</tr>
 		<?php endforeach ?>
 	</table>
-<?
+<?php
 }
 
 

@@ -515,7 +515,7 @@ function shiftAssignmentsTable($shiftInfo, $assignableStaff, $roles, $staffTempl
 						(<em>It only takes a minute, so don&#39;t hesitate to ask.</em>)") ?>
 			</th>
 		</tr>
-		<?
+		<?php
 		foreach($shiftStaff as $shiftInfo){
 			shiftTableRow($shiftID, $shiftInfo, $assignableStaff, $roles, $emptyShift);
 		}
@@ -623,7 +623,7 @@ function changeScheduleBlock($blockInfo, $schedule){
 		<?php foreach($schedule as $dayNum => $daySchedule): ?>
 			<option disabled>
 				Day <?=$dayNum?>
-				<?foreach($daySchedule as $loopBlock):
+				<?php foreach($daySchedule as $loopBlock):
 					if($_SESSION['filterBlockType'] != 0 &&$loopBlock['blockTypeID'] != $_SESSION['filterBlockType']){ continue;}
 					?>
 					<option <?=optionValue($loopBlock['blockID'], $blockID)?> >

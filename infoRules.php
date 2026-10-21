@@ -90,7 +90,7 @@ if((int)$_SESSION['eventID'] == 0){
 	<?=displayRules($rulesInfo)?>
 
 
-<?
+<?php
 }
 include('includes/footer.php');
 
@@ -155,7 +155,7 @@ function displayRules($rulesInfo){
 		<?=$rulesInfo['rulesText']?>
 	</div>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -269,7 +269,7 @@ function editRules($rulesInfo){
 
 	</div>
 
-<?
+<?php
 }
 
 

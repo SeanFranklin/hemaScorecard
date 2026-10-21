@@ -182,7 +182,7 @@ function displayBlockDescriptionModal(){
 		</button>
 	</div>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -212,7 +212,7 @@ function displayBlockDescription(){
 
 	<div id='sbd-staffing'></div>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -241,7 +241,7 @@ function editScheduleBlockBox($schedule,$tournamentIDs,$eventDays, $eventLocatio
 				<?php foreach($schedule as $dayNum => $daySchedule): ?>
 					<option disabled>
 						Day <?=$dayNum?>
-						<?foreach($daySchedule as $block):
+						<?php foreach($daySchedule as $block):
 							$blockID = $block['blockID'];?>
 							<option <?=optionValue($blockID, null)?> >
 								<?=logistics_getScheduleBlockName($blockID,'before')?>

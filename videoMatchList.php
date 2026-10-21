@@ -120,7 +120,7 @@ if((int)$_SESSION['eventID'] == 0){
 	<?=changeParticipantFilterForm($_SESSION['eventID'])?>
 
 
-<?
+<?php
 }
 include('includes/footer.php');
 

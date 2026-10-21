@@ -4077,7 +4077,7 @@ function changeParticipantFilterForm($eventID){
 				<select name='filters[schoolID][<?=$i?>]' class='cell'>
 					<option <?=optionValue(0,0)?>>- not set -</option>
 					<?php foreach($schoolIDs as $schoolID): ?>
-						<option <?optionValue($schoolID, @$_SESSION['filters']['schoolID'][$i])?>>
+						<option <?php optionValue($schoolID, @$_SESSION['filters']['schoolID'][$i])?>>
 							<?=getSchoolName($schoolID)?>
 						</option>
 					<?php endforeach ?>

@@ -729,7 +729,7 @@ function displayEventAnnouncements(){
 
 
 		</div>
-<?
+<?php
 
 	}
 

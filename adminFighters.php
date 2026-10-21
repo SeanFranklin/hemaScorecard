@@ -160,7 +160,7 @@ function removeRosterTable($roster, $ignores, $entryType = 'fighter'){
 		$rosterID = $entry['rosterID'];?>
 		<tr>
 			<td>
-				<?
+				<?php
 					if($entryType == 'team'){
 
 						$name = getTeamName($rosterID);

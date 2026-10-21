@@ -89,7 +89,7 @@ $eventList = getEventListByPublication();
 </div>
 
 
-<?
+<?php
 include('includes/footer.php');
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////

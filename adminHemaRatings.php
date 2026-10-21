@@ -43,7 +43,7 @@ if($_SESSION['eventID'] == null){
 			team being nice and grabbing info directly from Scorecard.)</i>
 
 
-<?
+<?php
 }
 include('includes/footer.php');
 
@@ -245,7 +245,7 @@ function formEntry($item, $field, $hemaRatingInfo){
 	</tr>
 
 
-<?
+<?php
 }
 
 /**********************************************************************/
@@ -279,7 +279,7 @@ function confirmPaddles($field, $value){
 			<span class='grey-text'><?=$str?></span>
 		</div>
 
-	<?
+	<?php
 	}
 }
 
@@ -301,7 +301,7 @@ function schoolSelectDropDown($selectedID = null){
 		</option>
 	<?php endforeach?>
 
-<?
+<?php
 }
 
 /******************************************************************************/

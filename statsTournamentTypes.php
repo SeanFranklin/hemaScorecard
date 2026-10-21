@@ -151,7 +151,7 @@ function listTournamentTypes($data, $types, $title){
 			<th><?=$title?></th>
 			<th>#</th>
 		</tr>
-		<? foreach($data as $id => $num):?>
+		<?php foreach($data as $id => $num):?>
 			<tr>
 				<td><?=$types[$id]?></td>
 				<td style='text-align:right;font-family: monospace;font-size:1.2em'><?=$num?></td>

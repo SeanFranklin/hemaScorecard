@@ -222,7 +222,7 @@ function streamLocationInfoEntry($info){
 	</tr>
 
 
-<?
+<?php
 }
 
 
