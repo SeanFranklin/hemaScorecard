@@ -727,7 +727,7 @@ function _SwissScore_calculateScore($tournamentID, $groupSet = 1){
 		}
 
 		// Calculate the winner and loser scores
-		$winnerCalc = ($winnerScore - $loserScore) / $winnerScore;
+		$winnerCalc = ($winnerScore == 0) ? 0 : ($winnerScore - $loserScore) / $winnerScore; // a 0 to negative win would divide by zero
 		$loserCalc = 0;
 
 		// These values may not exist, in which case they should be evaluated as zero.
