@@ -468,6 +468,9 @@ function connectToDB(){
 // Connects to database
 // Relies on constants DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, PRIMARY_DATABASE
 
+	// PHP 8.1+ throws on SQL errors by default; keep returning false so checkMySQL() handles them
+	mysqli_report(MYSQLI_REPORT_OFF);
+
 	//establishes database connection
 	$connection = ($GLOBALS["___mysqli_ston"] = mysqli_connect(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, PRIMARY_DATABASE));
 	// Check connection
