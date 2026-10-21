@@ -1514,7 +1514,7 @@ function calculateEventRating($eventData){
 	}
 
 
-	$highestRatingToTest = (int)(max($ratingsList) * 1.3);
+	$highestRatingToTest = (int)(max($ratingsList ?: [0]) * 1.3); // max() throws on an empty list
 
 
 	if($numFighters >= 8){
