@@ -1936,7 +1936,7 @@ function autoConcludeMatch($matchInfo){
 
 	}
 
-	$limitOvershoot = (boolean)readOption('T',$matchInfo['tournamentID'],'SUPPRESS_MATCH_SCORE_OVERSHOOT');
+	$limitOvershoot = (bool)readOption('T',$matchInfo['tournamentID'],'SUPPRESS_MATCH_SCORE_OVERSHOOT');
 
 	if($limitOvershoot == true){
 		limitFighterScore(1, $matchInfo);

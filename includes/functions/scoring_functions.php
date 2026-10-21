@@ -2191,7 +2191,7 @@ function pool_DisplayResults($tournamentID, $groupSet = 1, $showTeams = false){
 	// Normalize display feature changes the table to show the average value per match
 	// instead of the total. This is only GUI, as numbers are auto-normalized in the
 	// standings calculation.
-	$normalizeDisplay = (boolean)readOption('T', $tournamentID, 'DISPLAY_STANDINGS_PER_MACH');
+	$normalizeDisplay = (bool)readOption('T', $tournamentID, 'DISPLAY_STANDINGS_PER_MACH');
 	if($normalizeDisplay != false){
 		$normalize = getNormalization($tournamentID, $groupSet) - 1;
 		$normalize = max($normalize, 0);

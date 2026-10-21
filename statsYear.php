@@ -29,7 +29,7 @@ include('includes/header.php');
 		$_SESSION['adminOptions']['forcePlainText'] = true;
 	}
 
-	$futureView = (boolean)(@$_SESSION['stats']['futureView']);
+	$futureView = (bool)(@$_SESSION['stats']['futureView']);
 
 
 	if($futureView == true){
