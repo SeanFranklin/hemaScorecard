@@ -5,6 +5,9 @@
 *******************************************************************************/
 
 
+// Preserve the existing mysqli false-return/error checks on PHP 8.1+.
+mysqli_report(MYSQLI_REPORT_OFF);
+
 /* Load from environment */
 	$deployment = getenv('DEPLOYMENT') ?: DEPLOYMENT_UNKNOWN;
 

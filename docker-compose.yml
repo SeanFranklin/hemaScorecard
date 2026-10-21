@@ -1,6 +1,6 @@
 services:
   web:
-    image: "php:7.4-cli"
+    image: "php:8.2.35-cli"
     ports:
       - "8000:8000"
     volumes:
@@ -8,7 +8,7 @@ services:
     command: >
       sh -c "docker-php-ext-install mysqli &&
              docker-php-ext-enable mysqli &&
-             pecl install xdebug-3.1.5 ||
+             pecl install xdebug &&
              docker-php-ext-enable xdebug &&
              php /hemaScorecard/migrations/run.php &&
              php -S 0.0.0.0:8000 -t /hemaScorecard"

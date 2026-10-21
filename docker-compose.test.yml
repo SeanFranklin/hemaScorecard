@@ -14,7 +14,7 @@
 # same time.
 services:
   web:
-    image: "php:7.4-cli"
+    image: "php:8.2.35-cli"
     ports:
       - "8000:8000"
     volumes:
@@ -26,7 +26,7 @@ services:
     # migration failure still blocks the server and fails the healthcheck.
     command: >
       sh -c "docker-php-ext-install mysqli &&
-             until php -r 'exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
+             until php -r 'mysqli_report(MYSQLI_REPORT_OFF); exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
                echo 'waiting for db...'; sleep 2;
              done &&
              php /hemaScorecard/migrations/run.php &&
