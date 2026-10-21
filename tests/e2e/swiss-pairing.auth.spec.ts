@@ -1,10 +1,11 @@
-import type { Page, Locator } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { test, expect } from './helpers/fixtures';
 import { FIGHTERS } from './helpers/test-data';
 import {
   Fighter,
   createTournament,
-  getCurrentTournamentID,
+  setMaxPoolSize,
+  submit,
   addFightersToTournamentRoster,
   scoreAllPoolMatches,
   readStandings,
@@ -35,27 +36,6 @@ function scriptFor(pairs: [string, string][]): MatchScript {
     script.set(pairKey(a, b), { exchanges: [{ scorer: winner, points: 3 }], winner });
   }
   return script;
-}
-
-/**
- * Click a submit button and wait for its POST-redirect-GET to land, so a
- * following page.goto() can't cancel the form submission mid-flight.
- */
-async function submit(page: Page, button: Locator) {
-  const posted = page.waitForResponse((r) => r.request().method() === 'POST');
-  await button.click();
-  await posted;
-  await page.waitForLoadState();
-}
-
-/** Set the tournament's maximum pool size on adminTournaments.php. */
-async function setMaxPoolSize(page: Page, size: string) {
-  await page.goto('/adminTournaments.php');
-  const tournamentID = await getCurrentTournamentID(page);
-  await page.locator(`#maxPoolSize_select${tournamentID}`).selectOption(size);
-  await submit(page, page.locator(`#editTournamentButton${tournamentID}`));
-  await page.reload();
-  await expect(page.locator(`#maxPoolSize_select${tournamentID}`)).toHaveValue(size);
 }
 
 /** Two pool sets, with the second one cumulative. */

@@ -322,6 +322,20 @@ function generate_SameSchoolPoints($poolSchools,$schoolID){
 
 /******************************************************************************/
 
+function generate_SameCountryPoints($poolCountries,$countryIso2){
+// Same as generate_SameSchoolPoints(), using the country of the fighter's school
+// Fighters with no country aren't countrymates of anyone
+
+	if($countryIso2 == null){
+		return array_fill_keys(array_keys($poolCountries), 0);
+	}
+
+	return generate_SameSchoolPoints($poolCountries,$countryIso2);
+
+}
+
+/******************************************************************************/
+
 function generate_PoolRatingPoints($poolRatings,$fighterRating){
 
 	$highestRating = max($poolRatings);

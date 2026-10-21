@@ -17,3 +17,13 @@ export const FIGHTERS = [
   { rosterID: 5, firstName: 'Erin', lastName: 'Eastwood' },
   { rosterID: 6, firstName: 'Frank', lastName: 'Fischer' },
 ];
+
+/** Event 1 fighters at schools in different countries (school country in comments). */
+export const COUNTRY_FIGHTERS = {
+  morgan: { rosterID: 11, firstName: 'Mira', lastName: 'Morgan' }, // US
+  nash: { rosterID: 12, firstName: 'Nolan', lastName: 'Nash' }, // US
+  ortiz: { rosterID: 13, firstName: 'Olive', lastName: 'Ortiz' }, // CA
+  paquet: { rosterID: 14, firstName: 'Pierre', lastName: 'Paquet' }, // CA
+  quill: { rosterID: 15, firstName: 'Quinn', lastName: 'Quill' }, // no country
+  reyes: { rosterID: 16, firstName: 'Rosa', lastName: 'Reyes' }, // no country
+};
