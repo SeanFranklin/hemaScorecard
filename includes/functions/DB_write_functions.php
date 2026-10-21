@@ -1174,7 +1174,7 @@ function logisticsUploadFloorplan(){
 
 	// Check if image file is a actual image or fake image
 
-	if(getimagesize($_FILES["floorplanImageFile"]["tmp_name"]) === false) {
+	if(empty($_FILES["floorplanImageFile"]["tmp_name"]) || getimagesize($_FILES["floorplanImageFile"]["tmp_name"]) === false) {
 		setAlert(USER_ERROR, "Invalid upload type.");
 		return;
 	} elseif ($_FILES["floorplanImageFile"]["size"] > $MAX_FILE_SIZE_BYTES) {
