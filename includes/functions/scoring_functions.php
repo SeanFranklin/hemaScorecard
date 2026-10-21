@@ -2957,9 +2957,30 @@ function pool_AddByeStandings($fighterStats, $tournamentID, $groupSet){
 			continue;
 		}
 		$fighterStats[$rosterID] = [
-			'groupID' => (int)$bye['groupID'],
-			'matches' => 1,
-			'wins' => 1,
+			'groupID' 			=> (int)$bye['groupID'],
+			'matches' 			=> 1,
+			'wins' 				=> 1,
+			'losses'			=> 0,
+			'score'				=> 0,
+			'ties'				=> 0,
+			'pointsFor' 		=> 0,
+			'pointsAgainst' 	=> 0,
+			'hitsFor'			=> 0,
+			'hitsAgainst' 		=> 0,
+			'afterblowsFor' 	=> 0,
+			'afterblowsAgainst' => 0,
+			'doubles' 			=> 0,
+			'noExchanges' 		=> 0,
+			'AbsPointsFor' 		=> 0,
+			'AbsPointsAgainst' 	=> 0,
+			'AbsPointsAwarded' 	=> 0,
+			'numPenalties' 		=> 0,
+			'numYellowCards' 	=> 0,
+			'numRedCards' 		=> 0,
+			'penaltiesAgainstOpponents' => 0,
+			'penaltiesAgainst'	=> 0,
+			'doubleOuts' 		=> 0,
+			'numCleanHits'      => 0,
 		];
 	}
 
