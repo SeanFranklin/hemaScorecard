@@ -1174,7 +1174,7 @@ function logisticsUploadFloorplan(){
 
 	// Check if image file is a actual image or fake image
 
-	if(getimagesize($_FILES["floorplanImageFile"]["tmp_name"]) === false) {
+	if(empty($_FILES["floorplanImageFile"]["tmp_name"]) || getimagesize($_FILES["floorplanImageFile"]["tmp_name"]) === false) {
 		setAlert(USER_ERROR, "Invalid upload type.");
 		return;
 	} elseif ($_FILES["floorplanImageFile"]["size"] > $MAX_FILE_SIZE_BYTES) {
@@ -1665,7 +1665,7 @@ function logisticsAutoAssignRings($post){
 
 	$locationIDs = [];
 	foreach($post['locationIDs'] as $locationID => $isOn){
-		if((boolean)$isOn == true){
+		if((bool)$isOn == true){
 			$locationIDs[] = $locationID;
 		}
 	}
@@ -2604,7 +2604,7 @@ function addNewEvent($eventInfo){
 	$password = "temp_{$num}";
 	$passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-	$isMetaEvent = (int)((BOOLEAN)$eventInfo['isMetaEvent']);
+	$isMetaEvent = (int)((bool)$eventInfo['isMetaEvent']);
 
 	$eventInfo['eventName'] = trim($eventInfo['eventName']);
 	$eventInfo['eventProvince'] = trim($eventInfo['eventProvince']);

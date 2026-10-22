@@ -2471,7 +2471,7 @@ function isConflictSuppressed($rosterID, $tournamentID1, $tournamentID2){
 				AND tournamentID2 = {$tournamentID2}";
 	$scheduleConflictID = (int)mysqlQuery($sql, SINGLE, 'scheduleConflictID');
 
-	return ((boolean)$scheduleConflictID);
+	return ((bool)$scheduleConflictID);
 
 }
 
@@ -2970,7 +2970,7 @@ function getEntryNameSmart($rosterID, $splitName = null, $nameMode = null){
 	$sql = "SELECT *
 			FROM eventRoster
 			WHERE rosterID = {$rosterID}";
-	$is_team = (boolean)mysqlQuery($sql, SINGLE, 'isTeam');
+	$is_team = (bool)mysqlQuery($sql, SINGLE, 'isTeam');
 
 	if($is_team == true){
 		$name = getTeamName($rosterID, $splitName);
@@ -8886,7 +8886,7 @@ function isPools($tournamentID){
 			AND groupType = 'pool'";
 	$numPools = mysqlQuery($sql, SINGLE, 'numPools');
 
-	return (boolean)mysqlQuery($sql, SINGLE, 'numPools');
+	return (bool)mysqlQuery($sql, SINGLE, 'numPools');
 
 }
 
@@ -9788,7 +9788,7 @@ function areAnyTournamentsFinalized($eventID){
 			FROM eventTournaments
 			WHERE eventID = {$eventID}
 			AND isFinalized = 1";
-	return (boolean)mysqlQuery($sql, SINGLE, 'numFinalized');
+	return (bool)mysqlQuery($sql, SINGLE, 'numFinalized');
 
 }
 
@@ -10206,7 +10206,7 @@ function isUserAdmin($userName){
 	$stmt->bind_result($isAdmin);
 	$stmt->fetch();
 
-	return((boolean)$isAdmin);
+	return((bool)$isAdmin);
 
 }
 
@@ -10241,14 +10241,14 @@ function doesUserHavePermission($systemUserID, $eventID, $permission){
 		$sql = "SELECT {$permission}
 				FROM systemUsers
 				WHERE userID = {$systemUserID}";
-		$isAdmin = (boolean)((int)mysqlQuery($sql, SINGLE, $permission));
+		$isAdmin = (bool)((int)mysqlQuery($sql, SINGLE, $permission));
 
 		if($isAdmin == false){
 			$sql = "SELECT count(*) AS num
 					FROM systemUserEvents
 					WHERE userID = {$systemUserID}
 					AND eventID = {$eventID}";
-			$isAdmin = (boolean)((int)mysqlQuery($sql, SINGLE, 'num'));
+			$isAdmin = (bool)((int)mysqlQuery($sql, SINGLE, 'num'));
 		}
 	}
 

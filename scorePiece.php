@@ -329,7 +329,7 @@ function displayPieceExchangeRow($exchange, $numDeductions){
 		</td>
 
 	</tr>
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -405,7 +405,7 @@ function displayPieceExchangeRowForm($exchange, $deductionList){
 		</td>
 
 	</tr>
-<?
+<?php
 }
 
 

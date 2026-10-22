@@ -992,7 +992,7 @@ function processToS($ToS){
 
 	if(ALLOW['EVENT_MANAGEMENT'] == false){ return;}
 
-	if(count($ToS['checkboxes']) < $ToS['numCheckboxes']){
+	if(count($ToS['checkboxes'] ?? []) < $ToS['numCheckboxes']){
 		$_SESSION['alertMessages']['userErrors'][] = "Please completely fill in the Terms of Service agreement";
 		return;
 	}

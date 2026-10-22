@@ -950,7 +950,7 @@ case 'penaltyEscalation': {
 case 'getDataForYear': {
 
 	$year = (int)$_REQUEST['year'];
-	$futureView = (boolean)(@$_SESSION['stats']['futureView']);
+	$futureView = (bool)(@$_SESSION['stats']['futureView']);
 
 	switch($_REQUEST['dataType']){
 		case 'events-by-country':	{$retVal = getAnnualEventsByCountry($year, $futureView); break;}
@@ -1291,7 +1291,7 @@ case 'judgeEval': {
 		$roleClause = "AND logisticsRoleID IN ({$roleIDs})";
 	}
 
-	$hideWhiteCards = (boolean)readOption('E', $eventID, 'HIDE_WHITE_CARD_PENALTIES');
+	$hideWhiteCards = (bool)readOption('E', $eventID, 'HIDE_WHITE_CARD_PENALTIES');
 
 
 	/* __ Parse Exchanges _______________________________________________________________ */

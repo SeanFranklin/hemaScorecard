@@ -9,6 +9,8 @@
 define("DEPLOYMENT_UNKNOWN", 0);
 require_once __DIR__ . '/../includes/database.php';
 
+// PHP 8.1+ throws mysqli errors by default; keep the error checks below reachable
+mysqli_report(MYSQLI_REPORT_OFF);
 $conn = new mysqli(DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, PRIMARY_DATABASE);
 if ($conn->connect_error) {
     echo "[migrations] ERROR: Database connection failed: {$conn->connect_error}\n";

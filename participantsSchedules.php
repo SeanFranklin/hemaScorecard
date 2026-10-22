@@ -130,7 +130,7 @@ function displayFullScheduleDump(){
 		</tr>
 	<?php endforeach?>
 	</table>
-<?
+<?php
 }
 
 /******************************************************************************/

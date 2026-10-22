@@ -128,7 +128,7 @@ function editAnnouncementForm($announcement){
 
 	</div>
 	</div>
-<?
+<?php
 }
 
 /******************************************************************************/

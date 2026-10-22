@@ -219,7 +219,7 @@ function tournamentSettingsForm($tournamentID, $formLock, $tournamentName){
 
 	</div>
 
-	<? if(isFinalsSubMatches($tournamentID) && getNumSubMatches($tournamentID) == 0): ?>
+	<?php if(isFinalsSubMatches($tournamentID) && getNumSubMatches($tournamentID) == 0): ?>
 		<div class='callout warning'>
 			<h4 class='red-text'>WARNING</h4>
 			You have a finals match with sub matches created in it. If you update these settings you will
@@ -445,7 +445,7 @@ function exchangeTypeDeductions($formLock){
 	</form>
 	</fieldset>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -542,7 +542,7 @@ function exchangeTypeAttacks($formLock){
 		</form>
 	</fieldset>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -616,7 +616,7 @@ function exchangeTypeModifiers($formLock){
 	</form>
 	</fieldset>
 
-<?
+<?php
 }
 
 /******************************************************************************/
@@ -697,7 +697,7 @@ function exchangeTypeDataEntryMode($formLock){
 
 
 
-<?
+<?php
 }
 
 /******************************************************************************/

@@ -242,7 +242,7 @@ function sideBar($matchID){
 			Last Cut
 		</div>
 
-		<?showExchange(@$exchanges[$lastExchange], true)?>
+		<?php showExchange(@$exchanges[$lastExchange], true)?>
 
 
 		<div class='cell large-12 cut-list-heading'>
@@ -251,7 +251,7 @@ function sideBar($matchID){
 
 
 		<?php for($i = $lastExchange; $i >= 0; $i--): ?>
-			<?showExchange($exchanges[$i])?>
+			<?php showExchange($exchanges[$i])?>
 		<?php endfor ?>
 
 	</div>

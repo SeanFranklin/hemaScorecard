@@ -1,6 +1,6 @@
 services:
   web:
-    image: "php:7.4-cli"
+    image: "php:8.5.12-cli"
     ports:
       - "8000:8000"
     volumes:
@@ -8,10 +8,10 @@ services:
     command: >
       sh -c "docker-php-ext-install mysqli &&
              docker-php-ext-enable mysqli &&
-             pecl install xdebug-3.1.5 ||
+             pecl install xdebug-3.5.3 ||
              docker-php-ext-enable xdebug &&
              php /hemaScorecard/migrations/run.php &&
-             php -S 0.0.0.0:8000 -t /hemaScorecard"
+             php -d display_errors=0 -d log_errors=1 -S 0.0.0.0:8000 -t /hemaScorecard"
     environment:
       XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9000 remote_enable=1
       DEPLOYMENT: ${DEPLOYMENT:-0}

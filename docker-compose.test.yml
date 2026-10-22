@@ -14,7 +14,7 @@
 # same time.
 services:
   web:
-    image: "php:7.4-cli"
+    image: "php:8.5.12-cli"
     ports:
       - "8000:8000"
     volumes:
@@ -24,13 +24,15 @@ services:
     # The connect-retry loop waits for MySQL init to finish (tmpfs DB
     # re-initializes on every up); run.php itself runs once, so a genuine
     # migration failure still blocks the server and fails the healthcheck.
+    # PHP 8 shows notices/deprecations by default; log them to the
+    # container output instead of printing them into the page HTML.
     command: >
       sh -c "docker-php-ext-install mysqli &&
-             until php -r 'exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
+             until php -r 'mysqli_report(MYSQLI_REPORT_OFF); exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
                echo 'waiting for db...'; sleep 2;
              done &&
              php /hemaScorecard/migrations/run.php &&
-             php -S 0.0.0.0:8000 -t /hemaScorecard"
+             php -d display_errors=0 -d log_errors=1 -S 0.0.0.0:8000 -t /hemaScorecard"
     environment:
       DEPLOYMENT: 2 # DEPLOYMENT_TEST — shows the "Test Server" banner
       PRIMARY_DATABASE: ScorecardV5

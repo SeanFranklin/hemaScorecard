@@ -1406,8 +1406,8 @@ function scoreSelectGrid($matchInfo, $num, $rosterID, $otherID){
 	$attacks = getTournamentAttacks($_SESSION['tournamentID']);
 	$parameters = getTournamentAttackParameters($_SESSION['tournamentID']);
 
-	$pValue = (int)min($parameters['attackPoints']);
-	$pMax = (int)max($parameters['attackPoints']);
+	$pValue = (int)min($parameters['attackPoints'] ?: [0]); // min()/max() throw on an empty list
+	$pMax = (int)max($parameters['attackPoints'] ?: [0]);
 	$pointValues = [];
 	while($pValue <= $pMax){
 		$pointValues[] = (int)$pValue;
@@ -2372,7 +2372,7 @@ function createSideBar($matchInfo){
 
 					<?php if($matchInfo['restartTimer'] == true): ?>
 						startTimer();
-					<? endif ?>
+					<?php endif ?>
 
 				};
 			</script>
