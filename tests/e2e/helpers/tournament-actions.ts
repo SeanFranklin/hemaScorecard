@@ -11,8 +11,13 @@ import { MatchScript, pairKey } from './standings-calc';
 
 export type Fighter = { rosterID: number; firstName: string; lastName: string };
 
-/** One custom ranking criterion; sorts map to Highest/Lowest First in the UI. */
-export type CustomCriterion = { field: string; sort: 'DESC' | 'ASC' };
+/** One custom ranking criterion: a `field` OR a `formula` (optional `fallback`). */
+export type CustomCriterion = {
+  field?: string;
+  formula?: string;
+  fallback?: string;
+  sort: 'DESC' | 'ASC';
+};
 
 export type CreateTournamentOptions = {
   weapon: string;
@@ -88,21 +93,43 @@ export async function readCustomCriteria(
  * Fill the custom ranking criteria selects (htmx fragment) for the given
  * tournament's settings form. Assumes 'Custom' is already the selected
  * Ranking Type, which makes the selects appear.
+ * A formula criterion picks '__formula__' and fills the row htmx adds.
  */
 export async function fillCustomCriteria(
   page: Page,
   tournamentID: string,
   criteria: CustomCriterion[],
 ) {
-  // The criteria selects arrive via an htmx swap after picking 'Custom'.
+  // The criteria rows arrive via an htmx swap after picking 'Custom'.
   await expect(page.locator(`#customCriteria1Field_select${tournamentID}`)).toBeAttached();
   for (let i = 0; i < criteria.length; i++) {
+    const criterion = criteria[i];
+    const n = i + 1;
+    if (criterion.formula) {
+      await page
+        .locator(`#customCriteria${n}Field_select${tournamentID}`)
+        .selectOption('__formula__');
+
+      // The formula row only exists once the htmx swap has landed.
+      const formulaInput = page.locator(`#customCriteria${n}Formula_input${tournamentID}`);
+      await expect(formulaInput).toBeAttached();
+      await formulaInput.fill(criterion.formula);
+      // fill() fires only 'input'; htmx validates on change/keyup
+      await formulaInput.dispatchEvent('change');
+
+      if (criterion.fallback) {
+        await page
+          .locator(`#customCriteria${n}Fallback_input${tournamentID}`)
+          .fill(criterion.fallback);
+      }
+    } else {
+      await page
+        .locator(`#customCriteria${n}Field_select${tournamentID}`)
+        .selectOption(criterion.field!);
+    }
     await page
-      .locator(`#customCriteria${i + 1}Field_select${tournamentID}`)
-      .selectOption(criteria[i].field);
-    await page
-      .locator(`#customCriteria${i + 1}Sort_select${tournamentID}`)
-      .selectOption(criteria[i].sort);
+      .locator(`#customCriteria${n}Sort_select${tournamentID}`)
+      .selectOption(criterion.sort);
   }
 }
 

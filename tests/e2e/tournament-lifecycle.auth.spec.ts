@@ -62,10 +62,10 @@ const MATCH_SCRIPT: MatchScript = new Map([
 
 // Hand-computed from MATCH_SCRIPT — keeps the calculator honest.
 const HAND_COMPUTED = [
-  { lastName: 'Dukas',     wins: 3, pointsFor: 15, pointsAgainst: 3,  doubles: 1, hitsAgainst: 1, penalties: 0, score: 26 },
-  { lastName: 'Chandler',  wins: 2, pointsFor: 10, pointsAgainst: 7,  doubles: 1, hitsAgainst: 2, penalties: 0, score: 12 },
-  { lastName: 'Bowman',    wins: 1, pointsFor: 5,  pointsAgainst: 9,  doubles: 0, hitsAgainst: 4, penalties: 0, score: 1 },
-  { lastName: 'Applegate', wins: 0, pointsFor: 1,  pointsAgainst: 12, doubles: 0, hitsAgainst: 4, penalties: 0, score: -11 },
+  { lastName: 'Dukas',     matches: 3, wins: 3, pointsFor: 15, pointsAgainst: 3,  doubles: 1, hitsAgainst: 1, penalties: 0, score: 26 },
+  { lastName: 'Chandler',  matches: 3, wins: 2, pointsFor: 10, pointsAgainst: 7,  doubles: 1, hitsAgainst: 2, penalties: 0, score: 12 },
+  { lastName: 'Bowman',    matches: 3, wins: 1, pointsFor: 5,  pointsAgainst: 9,  doubles: 0, hitsAgainst: 4, penalties: 0, score: 1 },
+  { lastName: 'Applegate', matches: 3, wins: 0, pointsFor: 1,  pointsAgainst: 12, doubles: 0, hitsAgainst: 4, penalties: 0, score: -11 },
 ];
 
 test('full tournament lifecycle: create, roster, pool, score, standings', async ({ page }) => {

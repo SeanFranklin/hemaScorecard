@@ -8523,7 +8523,11 @@ function getEventRankingForTournament($tournamentID){
 			orderByField1, orderBySort1,
 			orderByField2, orderBySort2,
 			orderByField3, orderBySort3,
-			orderByField4, orderBySort4
+			orderByField4, orderBySort4,
+			customSource1, customFallback1,
+			customSource2, customFallback2,
+			customSource3, customFallback3,
+			customSource4, customFallback4
 			FROM eventRankings
 			WHERE tournamentID = {$tournamentID}";
 	return mysqlQuery($sql, SINGLE);
