@@ -62,7 +62,7 @@ test.describe('participant CSV import', () => {
     await expect(applegate.locator('.tournament-box')).toHaveText(['Longsword']);
 
     const jarvis = rows.filter({ hasText: 'Jarvis' });
-    await expect(jarvis).toContainText('School not found');
+    await expect(jarvis).toContainText('School not found: "Nowhere Academy"');
     await expect(jarvis).toContainText('Ignored: Longswordd');
 
     await expect(importButton(page)).toHaveText(/Import 0 participants/);
@@ -218,5 +218,59 @@ test.describe('participant CSV import', () => {
     const ashby = page.locator('#eventRosterForm tr.roster-row', { hasText: 'Ashby' });
     await expect(ashby).toHaveCount(1);
     await expect(ashby.locator('.roster-tournaments .tournament-box', { hasText: /^\s*Longsword\s*$/ })).toHaveCount(1);
+  });
+
+  test('clean rows and rows that need a look are listed apart', async ({ page }) => {
+    await upload(page, FIXTURE);
+    await expect(page.locator('#importReady h5')).toHaveText('Ready to import (3)');
+    await expect(page.locator('#importReview h5')).toHaveText('Needs a look (1)');
+    await expect(page.locator('#importReview tr.import-row')).toContainText(['Jarvis']);
+  });
+
+  test('a section with no rows is left out', async ({ page }) => {
+    await upload(page, csv('clean.csv', 'First Name,Last Name,School', 'Abe,Abernathy,Test School'));
+    await expect(page.locator('#importReview')).toHaveCount(0);
+    await expect(page.locator('#importReady tr.import-row')).toHaveCount(1);
+  });
+
+  test('a new fighter named in capitals or lowercase is flagged, a known one is not', async ({ page }) => {
+    await upload(page, csv('casing.csv', 'First Name,Last Name,School',
+      'XAVIER,YATES,Test School', 'yolanda,zimmer,Test School', 'rowan,fairweather,Other Club'));
+    await expect(rowFor(page, 'YATES')).toContainText('Name is in all capitals');
+    await expect(rowFor(page, 'zimmer')).toContainText('Name is in all lowercase');
+    await expect(page.locator('#importReady tr.import-row', { hasText: 'fairweather' })).toHaveCount(1);
+    await expect(rowFor(page, 'fairweather')).not.toContainText('Name is in all');
+  });
+
+  test('the same person twice in the file is flagged on each line', async ({ page }) => {
+    await upload(page, csv('twice.csv', 'First Name,Last Name,School',
+      'Nell,Norgaard,Test School', 'Otto,Ostrander,Test School', 'nell,NORGAARD,Test School'));
+    const flagged = page.locator('#importReview tr.import-row');
+    await expect(flagged.nth(0)).toContainText('Also on line 4 of the file');
+    await expect(flagged.nth(1)).toContainText('Also on line 2 of the file');
+    await expect(page.locator('#importReady tr.import-row', { hasText: 'Ostrander' })).toHaveCount(1);
+  });
+
+  test('an existing fighter whose school is not recognised keeps their Scorecard school', async ({ page }) => {
+    await upload(page, csv('vance.csv', 'First Name,Last Name,School', 'Tobias,Vance,Iron Gat'));
+    const row = page.locator('#importReview tr.import-row', { hasText: 'Vance' });
+    await expect(row.locator('td.import-school')).toContainText('Test School');
+    await expect(row).toContainText('School not found: "Iron Gat"');
+    await expect(row.locator('td.import-status')).toHaveText('In Scorecard');
+    await tick(page, 'Vance');
+    await confirmAndImport(page);
+    await expect(page.getByText('1 participants imported.')).toBeVisible();
+    await expect(page.getByText('school choice')).toHaveCount(0);
+    await expect(page.locator('#eventRosterForm tr.roster-row', { hasText: 'Vance' })).toContainText('Test School');
+  });
+
+  test('an existing fighter listed at another school is asked about after importing', async ({ page }) => {
+    await upload(page, csv('quintero.csv', 'First Name,Last Name,School', 'Ursula,Quintero,Other Club'));
+    await expect(page.locator('#importReview tr.import-row', { hasText: 'Quintero' }))
+      .toContainText("Scorecard has them at Test School; you'll be asked which to use after importing");
+    await tick(page, 'Quintero');
+    await confirmAndImport(page);
+    await expect(page.getByText('1 need a school choice before they are added.')).toBeVisible();
+    await expect(page.getByText('already exists in the system')).toBeVisible();
   });
 });

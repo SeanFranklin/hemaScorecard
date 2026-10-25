@@ -26,6 +26,8 @@ function importParticipantsParseCsv($eventID, $file){
 	}
 
 	$handle = fopen($file['tmp_name'], 'r');
+	$contents = (string)stream_get_contents($handle); // to number the lines
+	rewind($handle);
 	$lines = [];
 	$spans = []; // byte range of each kept record in the file
 	$start = ftell($handle);
@@ -101,11 +103,12 @@ function importParticipantsParseCsv($eventID, $file){
 	fclose($handle);
 
 	$rows = [];
-	foreach($lines as $line){
+	foreach($lines as $k => $line){
 		$cell = function($field) use ($line, $columns){
 			return isset($columns[$field], $line[$columns[$field]]) ? $line[$columns[$field]] : '';
 		};
 		$row = [
+			'line' => substr_count($contents, "\n", 0, $spans[$k][0]) + 1, // the header is line 1
 			'firstName' => $cell('firstName'),
 			'lastName' => $cell('lastName'),
 			'schoolText' => $cell('school'),
@@ -116,6 +119,8 @@ function importParticipantsParseCsv($eventID, $file){
 			'ignoredTournaments' => [],
 			'matchType' => 'none',
 			'matches' => [],
+			'duplicateLines' => [],
+			'needsLook' => false,
 			'checked' => false,
 			'choice' => null,
 		];
@@ -147,6 +152,11 @@ function importParticipantsParseCsv($eventID, $file){
 		$rows[] = $row;
 	}
 	importParticipantsMatchFighters($eventID, $rows);
+	importParticipantsFlagDuplicates($rows);
+	foreach($rows as &$row){
+		$row['needsLook'] = importRowWarnings($row) != [];
+	}
+	unset($row);
 
 	$_SESSION['participantsImport'] = [
 		'fileName' => basename($file['name']),
@@ -179,6 +189,60 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 	}
 
 	importParticipantsRefreshMatches($eventID, $rows);
+
+}
+
+/******************************************************************************/
+
+function importParticipantsFlagDuplicates(&$rows){
+// Lists on each row the lines of the other rows with the same name, ignoring
+// case and surrounding spaces.
+
+	$linesByName = [];
+	foreach($rows as $row){
+		$key = strtolower(trim($row['firstName'])).'|'.strtolower(trim($row['lastName']));
+		$linesByName[$key][] = $row['line'];
+	}
+	foreach($rows as &$row){
+		$key = strtolower(trim($row['firstName'])).'|'.strtolower(trim($row['lastName']));
+		$row['duplicateLines'] = array_values(array_diff($linesByName[$key], [$row['line']]));
+	}
+	unset($row);
+
+}
+
+/******************************************************************************/
+
+function importRowWarnings($row){
+// The reasons a row needs a look, as keys: similar, sameName, schoolNotFound,
+// schoolDiffers, ignoredTournaments, capitals, lowercase, duplicate.
+
+	$warnings = [];
+
+	if($row['schoolFound'] == false && $row['schoolText'] != ''){
+		$warnings[] = 'schoolNotFound';
+	}
+	if(importRowOutcome($row, $row['choice'])['kind'] == 'schoolPrompt'){
+		$warnings[] = 'schoolDiffers';
+	}
+	if($row['ignoredTournaments'] != []){
+		$warnings[] = 'ignoredTournaments';
+	}
+	if($row['matchType'] == 'none' || $row['matchType'] == 'near'){
+		$letters = preg_replace('/[^A-Za-z]/', '', $row['firstName'].$row['lastName']);
+		if(strlen($letters) >= 2){
+			if(ctype_upper($letters)){
+				$warnings[] = 'capitals';
+			} else if(ctype_lower($letters)){
+				$warnings[] = 'lowercase';
+			}
+		}
+	}
+	if($row['duplicateLines'] != []){
+		$warnings[] = 'duplicate';
+	}
+
+	return $warnings;
 
 }
 
