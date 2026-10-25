@@ -435,4 +435,111 @@ test.describe('participant CSV import', () => {
     await expect(page.locator('#importReview')).toHaveCount(0);
     await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 1 of 1 rows");
   });
+
+  const editor = (page: Page) => page.locator('tr.roster-editor');
+
+  test('clicking a row opens the editor with its values', async ({ page }) => {
+    await upload(page, csv('open.csv', 'First Name,Last Name,School,Tournaments', "Siobhan,O'Rourk,Test School,Longsword"));
+    await rowFor(page, "O'Rourk").locator('.import-name-text').click();
+    await expect(editor(page).locator('.edit-first-name')).toHaveValue('Siobhan');
+    await expect(editor(page).locator('.edit-last-name')).toHaveValue("O'Rourk");
+    await expect(editor(page).locator('.edit-school-input')).toHaveValue('Test School');
+    await expect(editor(page).locator('.edit-tournaments .tournament-box.is-selected')).toHaveText(['Longsword']);
+  });
+
+  test('saving a fixed name re-checks the row in place and ticks it', async ({ page }) => {
+    await upload(page, csv('fix.csv', 'First Name,Last Name,School,Tournaments', "Siobhan,O'Rourk,Test School,Longsword"));
+    await rowFor(page, "O'Rourk").locator('.import-name-text').click();
+    await editor(page).locator('.edit-last-name').fill("O'Rourke");
+    await editor(page).locator('.roster-save').click();
+    const row = page.locator('#importReview tr#importRow0');
+    await expect(row).not.toContainText('Similar fighter');
+    await expect(row.locator('td.import-status')).toHaveText('In Scorecard');
+    await expect(row.locator('.import-fixed')).toHaveText("Fixed: was Siobhan O'Rourk");
+    await expect(row.locator('input.import-check')).toBeChecked();
+  });
+
+  test('a row that still needs a choice stays unticked after saving', async ({ page }) => {
+    await upload(page, csv('still.csv', 'First Name,Last Name,School', 'Rowan,Fairwether,Other Club'));
+    await rowFor(page, 'Fairwether').locator('.import-school-text').click();
+    await editor(page).locator('.edit-school-input').fill('Test School');
+    await editor(page).locator('.roster-save').click();
+    const row = rowFor(page, 'Fairwether');
+    await expect(row.locator('.import-fixed')).toHaveText('Fixed: school was Other Club');
+    await expect(row.locator('input.import-check')).toBeDisabled();
+    await expect(row.locator('input.import-check')).not.toBeChecked();
+  });
+
+  test('picking a school fixes an unrecognised one', async ({ page }) => {
+    await upload(page, csv('school.csv', 'First Name,Last Name,School', 'Yara,Yeoman,Nowhere Academy'));
+    await rowFor(page, 'Yeoman').locator('.import-school-text').click();
+    await editor(page).locator('.edit-school-input').fill('Other Club');
+    await editor(page).locator('.roster-save').click();
+    const row = rowFor(page, 'Yeoman');
+    await expect(row.locator('td.import-school')).toContainText('Other Club');
+    await expect(row).not.toContainText('School not found');
+    await expect(row.locator('.import-fixed')).toHaveText('Fixed: school was *Unknown');
+    await expect(row.locator('input.import-check')).toBeChecked();
+  });
+
+  test('other rows keep their ticks across a save, but the final confirmation must be ticked again', async ({ page }) => {
+    await upload(page, csv('keep.csv', 'First Name,Last Name,School', 'Cleo,Castellan,Test School', 'Yara,Yeoman,Nowhere Academy'));
+    await tick(page, 'Castellan');
+    await page.locator('#importConfirmed').check();
+    await rowFor(page, 'Yeoman').locator('.import-school-text').click();
+    await editor(page).locator('.edit-school-input').fill('Other Club');
+    await editor(page).locator('.roster-save').click();
+    await expect(rowFor(page, 'Castellan').locator('input.import-check')).toBeChecked();
+    await expect(page.locator('#importConfirmed')).not.toBeChecked();
+  });
+
+  test('Import is unavailable while a row is being edited', async ({ page }) => {
+    await upload(page, csv('busy.csv', 'First Name,Last Name,School', 'Cleo,Castellan,Test School'));
+    await tick(page, 'Castellan');
+    await page.locator('#importConfirmed').check();
+    await expect(importButton(page)).toBeEnabled();
+    await rowFor(page, 'Castellan').locator('.import-name-text').click();
+    await expect(importButton(page)).toBeDisabled();
+    await editor(page).locator('.roster-cancel').click();
+    await expect(editor(page)).toHaveCount(0);
+    await expect(importButton(page)).toBeEnabled();
+  });
+
+  test('Enter in the editor saves the row and never imports', async ({ page }) => {
+    await upload(page, csv('enter.csv', 'First Name,Last Name,School', 'Yara,Yeoman,Nowhere Academy'));
+    await rowFor(page, 'Yeoman').locator('.import-name-text').click();
+    await editor(page).locator('.edit-last-name').press('Enter');
+    await expect(page).toHaveURL(/participantsImport\.php/);
+    await expect(rowFor(page, 'Yeoman').locator('input.import-check')).toBeChecked();
+  });
+
+  test('edits survive a reload and Cancel discards the import', async ({ page }) => {
+    await upload(page, csv('reload.csv', 'First Name,Last Name,School', 'Yara,Yeoman,Nowhere Academy'));
+    await rowFor(page, 'Yeoman').locator('.import-school-text').click();
+    await editor(page).locator('.edit-school-input').fill('Other Club');
+    await editor(page).locator('.roster-save').click();
+    await page.reload();
+    await expect(rowFor(page, 'Yeoman').locator('.import-fixed')).toHaveText('Fixed: school was *Unknown');
+    await page.locator("button[name='formName'][value='cancelParticipantsImport']").click();
+    await expect(page.locator("input[name='participantsCsv']")).toBeVisible();
+  });
+
+  test('the server refuses invalid edits and keeps the row', async ({ page }) => {
+    await upload(page, csv('refuse.csv', 'First Name,Last Name,School', 'Cleo,Castellan,Test School'));
+    // maxRedirects 0: following the redirect would render, and so use up, the alert
+    const save = (edit: Record<string, string>) => page.request.post('/participantsImport.php',
+      { maxRedirects: 0, form: { formName: 'saveImportRow', 'importEdit[index]': '0', 'importEdit[firstName]': 'Cleo',
+                'importEdit[lastName]': 'Castellan', 'importEdit[schoolID]': '3', ...edit } });
+    for (const [edit, message] of [
+      [{ 'importEdit[firstName]': ' ', 'importEdit[lastName]': '' }, 'A participant needs a first or last name.'],
+      [{ 'importEdit[schoolID]': '999999' }, "That school isn't in Scorecard."],
+      [{ 'importEdit[tournamentIDs][999999]': '999999' }, "That tournament isn't in this event."],
+    ] as const) {
+      await save(edit);
+      await page.goto('/participantsImport.php');
+      await expect(page.getByText(message)).toBeVisible();
+      await expect(rowFor(page, 'Castellan').locator('.import-fixed')).toHaveCount(0);
+      await expect(rowFor(page, 'Castellan').locator('td.import-school')).toContainText('Test School');
+    }
+  });
 });

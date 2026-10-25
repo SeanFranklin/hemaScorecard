@@ -113,6 +113,12 @@ function processPostData(){
 					refreshPage('participantsEvent.php');
 				}
 				break; // Refused, so the default refresh returns to the import page
+			case 'saveImportRow':
+				importParticipantsRememberState(@$_POST['importRows']);
+				$importEdit = (array)@$_POST['importEdit'];
+				importParticipantsEditRow($_SESSION['eventID'], $importEdit);
+				refreshPage('participantsImport.php', null, 'importRow'.(int)@$importEdit['index']);
+				break;
 			case 'addEventParticipants':
 				if(empty($_POST['newParticipants']) == false){
 					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);

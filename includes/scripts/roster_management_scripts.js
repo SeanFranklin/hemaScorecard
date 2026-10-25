@@ -669,7 +669,20 @@ var RosterEditor = (function(){
         return editor;
     }
 
-    return { build: build };
+    // Never post a blank name (both boxes empty, matching the entry form), or
+    // schoolID 0 (a cleared box, or a school with no short name) against the FK.
+    // Marks the inputs at fault; returns whether the editor can be saved.
+    function validate(editor){
+        var names = editor.querySelectorAll('.name-inputs input');
+        var blankName = Array.prototype.every.call(names, function(input){ return input.value.trim() == ''; });
+        var noSchool = editor.querySelector('.edit-school-id').value == '0';
+
+        names.forEach(function(input){ input.classList.toggle('is-invalid-input', blankName); });
+        if(noSchool){ editor.querySelector('.edit-school-input').classList.add('is-invalid-input'); }
+        return !blankName && !noSchool;
+    }
+
+    return { build: build, validate: validate };
 
 })();
 
@@ -712,18 +725,9 @@ var RosterTable = (function(){
         this.click();
     }
 
-    // Never post a blank name (both boxes empty, matching the entry form), or
-    // schoolID 0 (a cleared box, or a school with no short name) against the FK.
     function onSubmit(e){
         if(!current){ return; }
-        var editor = current.editor;
-        var names = editor.querySelectorAll('.name-inputs input');
-        var blankName = Array.prototype.every.call(names, function(input){ return input.value.trim() == ''; });
-        var noSchool = editor.querySelector('.edit-school-id').value == '0';
-
-        names.forEach(function(input){ input.classList.toggle('is-invalid-input', blankName); });
-        if(noSchool){ editor.querySelector('.edit-school-input').classList.add('is-invalid-input'); }
-        if(blankName || noSchool){ e.preventDefault(); }
+        if(!RosterEditor.validate(current.editor)){ e.preventDefault(); }
     }
 
     function onScheduleClick(){
@@ -821,25 +825,95 @@ var RosterTable = (function(){
 // Participant import review (participantsImport.php). Each row is ticked by
 // hand; Import counts the ticked rows and waits for the final confirmation.
 // A row that could be more than one fighter can't be ticked until one is
-// chosen. Kept above the charts code below, which stops this file if Google's
-// loader is blocked.
+// chosen. Clicking a row's name or school opens the roster editor under it;
+// Save posts the page and the server checks the row again. Kept above the
+// charts code below, which stops this file if Google's loader is blocked.
 /******************************************************************************/
 
 var ImportReview = (function(){
 
-    var form, confirmed, importButton;
+    var form, confirmed, importButton, template;
+    var schools = [];           // {schoolID, label}
+    var tournamentGroups = [];  // see rosterTournamentGroups() in display_functions.php
+    var manyTournaments = false;
+    var current = null;         // {row, editor} while a row is being edited
 
-    function init(){
+    function init(config){
+        config = config || {};
+        schools = config.schools || [];
+        tournamentGroups = config.tournamentGroups || [];
+        manyTournaments = !!config.manyTournaments;
         form = document.getElementById('importForm');
         confirmed = document.getElementById('importConfirmed');
         importButton = form.querySelector("button[name='formName'][value='confirmParticipantsImport']");
+        template = document.getElementById('importEditorTemplate');
 
         form.addEventListener('change', function(e){
             if(e.target.classList.contains('import-choice')){ choose(e.target); }
             refresh();
         });
+        form.addEventListener('submit', onSubmit);
+
+        var cells = form.querySelectorAll('tr.import-row > td.import-name, tr.import-row > td.import-school');
+        for(var i = 0; i < cells.length; i++){
+            cells[i].addEventListener('click', onEditClick);
+        }
+        document.addEventListener('keydown', function(e){
+            if(e.key == 'Escape' && !e._autocompleteHandled){ closeEditor(); }
+        });
         refresh();
     }
+
+/*----------------------------------------------------------------------------*/
+
+    function onEditClick(e){
+        if(e.target.closest('input, label')){ return; } // choosing a fighter isn't editing
+        var row = this.closest('tr.import-row');
+        if(!current || current.row != row){ openEditor(row); }
+    }
+
+    // The editor opens on the row's own values from the file, not the stored
+    // fighter's: edits change only the import row.
+    function openEditor(row){
+        closeEditor();
+
+        var editor = RosterEditor.build({
+            template: template,
+            formID: 'importForm',
+            fieldName: 'importEdit',
+            firstName: row.getAttribute('data-first-name'),
+            lastName: row.getAttribute('data-last-name'),
+            schoolID: row.getAttribute('data-school-id'),
+            tournamentIDs: row.getAttribute('data-tournament-ids').split(',').filter(function(id){ return id != ''; }),
+            schools: schools,
+            tournamentGroups: tournamentGroups,
+            manyTournaments: manyTournaments,
+            onEnter: function(){ form.requestSubmit(editor.querySelector('.roster-save')); },
+            onCancel: closeEditor
+        });
+        editor.querySelector('.edit-index').value = row.getAttribute('data-index');
+
+        row.parentNode.insertBefore(editor, row.nextSibling);
+        current = { row: row, editor: editor };
+        refresh(); // Import waits until the edit is saved or cancelled
+        editor.querySelector('.name-inputs input').focus();
+    }
+
+    function closeEditor(){
+        if(!current){ return; }
+        current.editor.parentNode.removeChild(current.editor);
+        current = null;
+        refresh();
+    }
+
+    // Save never posts a blank name or schoolID 0. The page's other buttons
+    // (only Cancel while editing) post without checking the editor.
+    function onSubmit(e){
+        if(!current || e.submitter != current.editor.querySelector('.roster-save')){ return; }
+        if(!RosterEditor.validate(current.editor)){ e.preventDefault(); }
+    }
+
+/*----------------------------------------------------------------------------*/
 
     // Shows what the chosen fighter means for the row. Choosing someone already
     // in the event with nothing to add leaves nothing to tick.
@@ -903,7 +977,7 @@ var ImportReview = (function(){
         refreshSummary();
         var numTicked = form.querySelectorAll('input.import-check:checked:enabled').length;
         importButton.textContent = 'Import ' + numTicked + ' participants';
-        importButton.disabled = !confirmed.checked || numTicked == 0;
+        importButton.disabled = !confirmed.checked || numTicked == 0 || current != null;
     }
 
     return { init: init };

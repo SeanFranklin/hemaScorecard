@@ -123,6 +123,7 @@ function importParticipantsParseCsv($eventID, $file){
 			'needsLook' => false,
 			'checked' => false,
 			'choice' => null,
+			'original' => null, // set by the first edit, importParticipantsEditRow()
 		];
 		if($row['firstName'] == '' && $row['lastName'] == ''){ continue; }
 
@@ -592,6 +593,94 @@ function importParticipantsRememberState($postedRows){
 		}
 	}
 	unset($row);
+
+}
+
+/******************************************************************************/
+
+function importParticipantsEditRow($eventID, $edit){
+// Replaces a row's names, school and tournaments with the organizer's edit:
+// ['index', 'firstName', 'lastName', 'schoolID', 'tournamentIDs' => [id => id]].
+// Only the import row changes, never a fighter in Scorecard. The row is then
+// checked again as the upload checks it, and ticked unless it still waits on a
+// fighter choice or has nothing to import. It keeps its section. The first
+// edit records what the row was, for the page's Fixed notes. An edit that
+// isn't valid is refused with an alert, the row unchanged, and this returns false.
+
+	$eventID = (int)$eventID;
+	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false || !isset($_SESSION['participantsImport'])){ return false; }
+
+	$rows = &$_SESSION['participantsImport']['rows'];
+	$index = is_scalar(@$edit['index']) ? (string)$edit['index'] : '';
+	if(ctype_digit($index) == false || isset($rows[(int)$index]) == false){
+		return false; // Not a row of this import
+	}
+	$index = (int)$index;
+
+	$text = function($value){
+		return is_scalar($value) ? trim((string)$value) : '';
+	};
+	$firstName = $text(@$edit['firstName']);
+	$lastName = $text(@$edit['lastName']);
+	if($firstName == '' && $lastName == ''){
+		setAlert(USER_ERROR, "A participant needs a first or last name.");
+		return false;
+	}
+
+	$schoolID = (int)@$edit['schoolID'];
+	$sql = "SELECT schoolShortName, schoolFullName
+			FROM systemSchools
+			WHERE schoolID = {$schoolID}";
+	$school = mysqlQuery($sql, SINGLE);
+	if($school == null){
+		setAlert(USER_ERROR, "That school isn't in Scorecard.");
+		return false;
+	}
+
+	$eventTournamentIDs = array_map('intval', (array)getEventTournaments($eventID));
+	$tournamentIDs = [];
+	foreach((array)@$edit['tournamentIDs'] as $tournamentID){
+		if(is_scalar($tournamentID) == false || in_array((int)$tournamentID, $eventTournamentIDs, true) == false){
+			setAlert(USER_ERROR, "That tournament isn't in this event.");
+			return false;
+		}
+		$tournamentIDs[] = (int)$tournamentID;
+	}
+
+	$row = $rows[$index];
+	if(isset($row['original']) == false){
+		$row['original'] = [
+			'name' => $row['firstName'].' '.$row['lastName'],
+			'schoolLabel' => $row['schoolLabel'],
+			'tournamentNames' => array_values(array_map('strval', getEventTournamentNames($row['tournamentIDs']))),
+		];
+	}
+
+	if($schoolID != $row['schoolID']){
+		$row['schoolText'] = ''; // The file's school no longer describes the row
+	}
+	$row['firstName'] = $firstName;
+	$row['lastName'] = $lastName;
+	$row['schoolID'] = $schoolID;
+	if($schoolID == SCHOOL_ID_UNKNOWN){
+		$row['schoolLabel'] = '*Unknown';
+		$row['schoolFound'] = false;
+	} else {
+		// Labelled as the upload labels a school it recognises
+		$row['schoolLabel'] = (string)($school['schoolShortName'] ?: $school['schoolFullName']);
+		$row['schoolFound'] = true;
+	}
+	$row['tournamentIDs'] = array_values(array_unique($tournamentIDs));
+	$row['ignoredTournaments'] = [];
+	$rows[$index] = $row;
+
+	importParticipantsMatchFighters($eventID, $rows, [$index]);
+	$rows[$index]['choice'] = null;
+	$kind = importRowOutcome($rows[$index], null)['kind'];
+	$rows[$index]['checked'] = $kind != 'choose' && $kind != 'nothing';
+	importParticipantsFlagDuplicates($rows);
+
+	return true;
 
 }
 

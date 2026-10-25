@@ -110,11 +110,41 @@ function importConfirmation($import){
 
 	</form>
 
+	<?php importEditorTemplate();
+
+	// The row editor's schools and tournament chips, as on the roster page
+	$config = [
+		'schools' => rosterSchoolOptions(getSchoolList()),
+		'tournamentGroups' => rosterTournamentGroups(array_keys($tournamentNames)),
+		// Same threshold as the roster page
+		'manyTournaments' => count($tournamentNames) > 8,
+	];
+	?>
 	<script>
 		window.addEventListener('DOMContentLoaded', function(){
-			ImportReview.init();
+			var config = <?=json_encode($config, JSON_FLAGS_INLINE)?>;
+			ImportReview.init(config);
 		});
 	</script>
+
+<?php }
+
+/******************************************************************************/
+
+function importEditorTemplate(){
+// The row editor, opened under a row by ImportReview. Its Save posts the whole
+// form, so the other rows' ticks and choices are kept, and edits only the
+// import row (importParticipantsEditRow()).
+	?>
+
+	<template id='importEditorTemplate'>
+		<tr class='roster-editor'>
+			<td colspan='100%'>
+				<input type='hidden' class='edit-index' form='importForm' name='importEdit[index]' value=''>
+				<?php rosterEditorFields('importForm', 'importEdit', 'saveImportRow') ?>
+			</td>
+		</tr>
+	</template>
 
 <?php }
 
@@ -169,6 +199,12 @@ function importWarning($text){
 
 /******************************************************************************/
 
+function importFixed($text){
+	echo "<div class='import-fixed success-text'>".htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE)."</div>";
+}
+
+/******************************************************************************/
+
 function importAlsoOnLines($lines){
 // "Also on line 4 of the file", "lines 2 and 4", "lines 2, 4 and 7"
 
@@ -207,6 +243,29 @@ function importRow($index, $row, $tournamentNames){
 			}
 		}
 	}
+
+	// What editing changed, against the row as it was before its first edit
+	$fixed = [];
+	if(isset($row['original'])){
+		$original = $row['original'];
+		if($original['name'] !== $name){
+			$fixed['name'] = "Fixed: was {$original['name']}";
+		}
+		if($original['schoolLabel'] !== $row['schoolLabel']){
+			$fixed['school'] = "Fixed: school was {$original['schoolLabel']}";
+		}
+		$now = [];
+		foreach($row['tournamentIDs'] as $tournamentID){
+			$now[] = (string)@$tournamentNames[$tournamentID];
+		}
+		$was = $original['tournamentNames'];
+		sort($now, SORT_STRING);
+		sort($was, SORT_STRING);
+		if($now !== $was){
+			$fixed['tournaments'] = "Fixed: tournaments were "
+				.($was == [] ? 'none' : implode(', ', $original['tournamentNames']));
+		}
+	}
 	?>
 
 	<tr class='import-row <?=$unchosen['kind'] == 'nothing' ? 'grey-text' : ''?>' id='importRow<?=$index?>'
@@ -226,6 +285,7 @@ function importRow($index, $row, $tournamentNames){
 		</td>
 		<td class='import-name'>
 			<span class='import-name-text'><?=htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE)?></span>
+			<?php if(isset($fixed['name'])){ importFixed($fixed['name']); } ?>
 			<?php foreach($warnings as $warning){
 				if($warning == 'similar'){ importWarning('Similar fighter already in Scorecard'); }
 				if($warning == 'sameName'){ importWarning('More than one fighter in Scorecard has this name'); }
@@ -237,6 +297,7 @@ function importRow($index, $row, $tournamentNames){
 		</td>
 		<td class='import-school'>
 			<span class='import-school-text'><?=htmlspecialchars($schoolLabel, ENT_QUOTES | ENT_SUBSTITUTE)?></span>
+			<?php if(isset($fixed['school'])){ importFixed($fixed['school']); } ?>
 			<?php foreach($warnings as $warning){
 				if($warning == 'schoolNotFound'){ importWarning('School not found: "'.$row['schoolText'].'"'); }
 				if($warning == 'schoolDiffers'){
@@ -248,6 +309,7 @@ function importRow($index, $row, $tournamentNames){
 			<?php foreach($row['tournamentIDs'] as $tournamentID): ?>
 				<div class='tournament-box is-static'><?=htmlspecialchars((string)@$tournamentNames[$tournamentID], ENT_QUOTES | ENT_SUBSTITUTE)?></div>
 			<?php endforeach ?>
+			<?php if(isset($fixed['tournaments'])){ importFixed($fixed['tournaments']); } ?>
 			<?php if(in_array('ignoredTournaments', $warnings)){
 				importWarning('Ignored: '.implode(', ', $row['ignoredTournaments']));
 			} ?>

@@ -904,7 +904,8 @@ legend h4 {
   outline-offset: -2px;
 }
 
-.roster-table tr.roster-editor > td {
+.roster-table tr.roster-editor > td,
+#importPreview tr.roster-editor > td {
   background: #f4f8fb;
   border-left: 3px solid #1779ba;
   padding: 0.75rem;
