@@ -79,7 +79,11 @@ function importConfirmation($import){
 
 	<h4>Confirm import from <i><?=htmlspecialchars($import['fileName'])?></i></h4>
 
-	<table class='hover' id='importPreview'>
+	<div id='importPreview'>
+
+	<?php importReadAs($import); ?>
+
+	<table class='hover'>
 	<thead><tr><th>Name</th><th>School</th><th>Tournaments</th><th>Status</th></tr></thead>
 
 	<?php foreach($import['rows'] as $row): ?>
@@ -110,6 +114,8 @@ function importConfirmation($import){
 
 	</table>
 
+	</div>
+
 	<form method='POST'>
 		<button class='button success' name='formName' value='confirmParticipantsImport'
 			<?=$numToImport == 0 ? 'disabled' : ''?>>
@@ -117,6 +123,31 @@ function importConfirmation($import){
 		</button>
 		<button class='button secondary hollow' name='formName' value='cancelParticipantsImport'>Cancel</button>
 	</form>
+
+<?php }
+
+/******************************************************************************/
+
+function importReadAs($import){
+// Says which file column filled each field, so a misread header is noticed.
+
+	$fields = ['firstName' => 'First Name', 'lastName' => 'Last Name', 'school' => 'School', 'tournaments' => 'Tournaments'];
+	?>
+
+	<div class='callout secondary' id='importReadAs'>
+		<?php if($import['headers'] === null): ?>
+			<p>No header row, so columns were read in order: <?=implode(', ', $fields)?></p>
+		<?php else: ?>
+			<p>How your file was read:
+			<?php $pairs = [];
+			foreach($fields as $field => $label){
+				$header = $import['headers'][$field];
+				$pairs[] = $label.' &larr; '.($header === null ? 'not in file' : htmlspecialchars($header));
+			}
+			echo implode(', ', $pairs); ?></p>
+		<?php endif ?>
+		<p>First line of data: <code id='importFirstLine'><?=htmlspecialchars($import['firstLine'])?></code></p>
+	</div>
 
 <?php }
 

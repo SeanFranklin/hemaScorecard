@@ -1,6 +1,7 @@
 import { test, expect } from './helpers/fixtures';
 import { createTournament } from './helpers/tournament-actions';
 import path from 'path';
+import fs from 'fs';
 import type { Page } from '@playwright/test';
 
 /**
@@ -94,10 +95,28 @@ test.describe('participant CSV import', () => {
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('Kimura');
     await expect(rows.first()).toContainText('Other Club');
+    await expect(page.locator('#importReadAs')).toContainText(
+      'No header row, so columns were read in order: First Name, Last Name, School, Tournaments');
+    await expect(page.locator('#importFirstLine')).toHaveText(fs.readFileSync(NO_HEADER, 'utf8').split(/\r?\n/)[0]);
 
     await page.locator("button[name='formName'][value='cancelParticipantsImport']").click();
     await expect(page.locator("input[name='participantsCsv']")).toBeVisible();
     await expect(page.locator('#importPreview')).toHaveCount(0);
+  });
+
+  test('a header row is shown mapped to the fields it filled', async ({ page }) => {
+    await upload(page, csv('mapped.csv', 'Surname,First,Club,Events', 'Quill,Petra,Test School,'));
+    const readAs = page.locator('#importReadAs');
+    for (const pair of ['First Name ← First', 'Last Name ← Surname', 'School ← Club', 'Tournaments ← Events']) {
+      await expect(readAs).toContainText(pair);
+    }
+    await expect(page.locator('#importFirstLine')).toHaveText('Quill,Petra,Test School,');
+  });
+
+  test('a field with no column in the file says so', async ({ page }) => {
+    await upload(page, csv('names-only.csv', 'First Name,Last Name', 'Rhea,Rasmussen'));
+    await expect(page.locator('#importReadAs')).toContainText('School ← not in file');
+    await expect(page.locator('#importReadAs')).toContainText('Tournaments ← not in file');
   });
 
   test('import adds the fighters to the roster', async ({ page }) => {

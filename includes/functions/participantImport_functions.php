@@ -27,12 +27,17 @@ function importParticipantsParseCsv($eventID, $file){
 
 	$handle = fopen($file['tmp_name'], 'r');
 	$lines = [];
+	$spans = []; // byte range of each kept record in the file
+	$start = ftell($handle);
 	while(($data = fgetcsv($handle, 1000, ',')) !== false){
+		$end = ftell($handle);
 		$data = array_map('trim', $data);
-		if(implode('', $data) == ''){ continue; } // blank line
-		$lines[] = $data;
+		if(implode('', $data) != ''){ // else blank line
+			$lines[] = $data;
+			$spans[] = [$start, $end];
+		}
+		$start = $end;
 	}
-	fclose($handle);
 
 	if($lines == []){
 		setAlert(USER_ERROR, "The file has no rows.");
@@ -45,7 +50,7 @@ function importParticipantsParseCsv($eventID, $file){
 		'firstName' => ['first name','firstname','first','given name'],
 		'lastName' => ['last name','lastname','last','surname','family name'],
 		'school' => ['school','club'],
-		'tournaments' => ['tournaments','tournament'],
+		'tournaments' => ['tournaments','tournament','events','event'],
 	];
 	$columns = [];
 	foreach($lines[0] as $i => $header){
@@ -54,8 +59,14 @@ function importParticipantsParseCsv($eventID, $file){
 		}
 	}
 	if($columns != []){
+		$headers = ['firstName' => null, 'lastName' => null, 'school' => null, 'tournaments' => null];
+		foreach($columns as $field => $i){
+			$headers[$field] = $lines[0][$i];
+		}
 		array_shift($lines);
+		array_shift($spans);
 	} else {
+		$headers = null;
 		$columns = ['firstName' => 0, 'lastName' => 1, 'school' => 2, 'tournaments' => 3];
 	}
 
@@ -80,6 +91,16 @@ function importParticipantsParseCsv($eventID, $file){
 		}
 	}
 	$entriesByFighter = (array)getEntriesByFighter($tournamentList);
+
+	// The first data record exactly as it appears in the file
+	$firstLine = '';
+	if($spans != []){
+		fseek($handle, $spans[0][0]);
+		$firstLine = (string)fread($handle, $spans[0][1] - $spans[0][0]);
+		$firstLine = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
+		$firstLine = rtrim($firstLine, "\r\n");
+	}
+	fclose($handle);
 
 	$rows = [];
 	foreach($lines as $line){
@@ -142,7 +163,12 @@ function importParticipantsParseCsv($eventID, $file){
 		$rows[] = $row;
 	}
 
-	$_SESSION['participantsImport'] = ['fileName' => basename($file['name']), 'rows' => $rows];
+	$_SESSION['participantsImport'] = [
+		'fileName' => basename($file['name']),
+		'headers' => $headers,
+		'firstLine' => $firstLine,
+		'rows' => $rows,
+	];
 
 }
 
