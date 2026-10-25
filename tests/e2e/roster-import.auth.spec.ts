@@ -493,6 +493,24 @@ test.describe('participant CSV import', () => {
     await expect(page.locator('#importConfirmed')).not.toBeChecked();
   });
 
+  test('ignored tournaments stay flagged until an edit changes the tournaments', async ({ page }) => {
+    await upload(page, csv('ignored.csv', 'First Name,Last Name,School,Tournaments', 'Kip,Kowalczyk,Test School,Longswordd'));
+    const row = rowFor(page, 'Kowalczyk');
+    await row.locator('.import-name-text').click();
+    await editor(page).locator('.edit-first-name').fill('Kit');
+    await editor(page).locator('.roster-save').click();
+    await expect(row.locator('.import-fixed')).toHaveText('Fixed: was Kip Kowalczyk');
+    await expect(row).toContainText('Ignored: Longswordd');
+
+    await page.waitForLoadState('domcontentloaded'); // ImportReview.init has run
+    await row.locator('.import-name-text').click();
+    await editor(page).locator('.edit-tournaments .tournament-box', { hasText: /^\s*Longsword\s*$/ }).click();
+    await editor(page).locator('.roster-save').click();
+    await expect(row.locator('.import-fixed', { hasText: 'tournaments' })).toHaveText('Fixed: tournaments were none');
+    await expect(row).not.toContainText('Ignored:');
+    await expect(row.locator('.tournament-box')).toHaveText(['Longsword']);
+  });
+
   test('Import is unavailable while a row is being edited', async ({ page }) => {
     await upload(page, csv('busy.csv', 'First Name,Last Name,School', 'Cleo,Castellan,Test School'));
     await tick(page, 'Castellan');

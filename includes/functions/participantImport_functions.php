@@ -670,8 +670,16 @@ function importParticipantsEditRow($eventID, $edit){
 		$row['schoolLabel'] = (string)($school['schoolShortName'] ?: $school['schoolFullName']);
 		$row['schoolFound'] = true;
 	}
-	$row['tournamentIDs'] = array_values(array_unique($tournamentIDs));
-	$row['ignoredTournaments'] = [];
+	$tournamentIDs = array_values(array_unique($tournamentIDs));
+	$now = $tournamentIDs;
+	$was = array_map('intval', $row['tournamentIDs']);
+	sort($now);
+	sort($was);
+	if($now !== $was){
+		// The picks replace the file's list, names it didn't match included
+		$row['ignoredTournaments'] = [];
+	}
+	$row['tournamentIDs'] = $tournamentIDs;
 	$rows[$index] = $row;
 
 	importParticipantsMatchFighters($eventID, $rows, [$index]);
