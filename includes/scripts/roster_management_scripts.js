@@ -782,6 +782,36 @@ var RosterTable = (function(){
 })();
 
 /******************************************************************************/
+// Participant import review (participantsImport.php). Each row is ticked by
+// hand; Import counts the ticked rows and waits for the final confirmation.
+// Kept above the charts code below, which stops this file if Google's loader
+// is blocked.
+/******************************************************************************/
+
+var ImportReview = (function(){
+
+    var form, confirmed, importButton;
+
+    function init(){
+        form = document.getElementById('importForm');
+        confirmed = document.getElementById('importConfirmed');
+        importButton = form.querySelector("button[name='formName'][value='confirmParticipantsImport']");
+
+        form.addEventListener('change', refresh);
+        refresh();
+    }
+
+    function refresh(){
+        var numTicked = form.querySelectorAll('input.import-check:checked:enabled').length;
+        importButton.textContent = 'Import ' + numTicked + ' participants';
+        importButton.disabled = !confirmed.checked || numTicked == 0;
+    }
+
+    return { init: init };
+
+})();
+
+/******************************************************************************/
 
 var SeedingData = {};
 

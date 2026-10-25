@@ -38,6 +38,8 @@ export const SAME_NAME_FIGHTERS = [
   { systemRosterID: 8, firstName: 'Ivo', lastName: 'Ibsen' },
   { systemRosterID: 9, firstName: 'Ivo', lastName: 'Ibsen' },
 ];
+/** Unentered fighter (Wendell Ashby) the import spec enters mid-import, at SCHOOLS[0]. */
+export const IMPORT_LATE_ENTRY = { systemRosterID: 27, schoolID: 3 };
 export const SCHOOLS = [
   { schoolID: 3, shortName: 'Test School' },
   { schoolID: 4, shortName: 'Other Club' },

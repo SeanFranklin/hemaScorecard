@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 $pageName = 'Import Participants';
+$jsIncludes[] = 'roster_management_scripts.js';
 include('includes/header.php');
 
 if($_SESSION['eventID'] == null){
@@ -65,64 +66,110 @@ function importUploadForm(){
 /******************************************************************************/
 
 function importConfirmation($import){
-// Parsed rows parked in the session by importParticipantsParseCsv().
+// Parsed rows parked in the session by importParticipantsParseCsv(). Each row
+// to import is ticked by hand, and Import waits for the final confirmation.
 
-	$statusText = ['new' => 'New fighter', 'known' => 'Known fighter', 'entered' => 'Already in this event'];
-	$numToImport = 0;
-	foreach($import['rows'] as &$row){
-		// Fighters already in the event are only skipped when they have no new tournaments
-		$row['skipped'] = $row['status'] == 'entered' && $row['tournamentIDs'] == [];
-		if($row['skipped'] == false){ $numToImport++; }
+	$tournamentNames = getEventTournamentNames((array)getEventTournaments($_SESSION['eventID']));
+	$numChecked = 0;
+	foreach($import['rows'] as $row){
+		$kind = importRowOutcome($row, $row['choice'])['kind'];
+		if($row['checked'] && $kind != 'nothing' && $kind != 'choose'){ $numChecked++; }
 	}
-	unset($row);
 	?>
 
 	<h4>Confirm import from <i><?=htmlspecialchars($import['fileName'])?></i></h4>
+
+	<form method='POST' id='importForm'>
 
 	<div id='importPreview'>
 
 	<?php importReadAs($import); ?>
 
 	<table class='hover'>
-	<thead><tr><th>Name</th><th>School</th><th>Tournaments</th><th>Status</th></tr></thead>
+	<thead><tr><th></th><th>Name</th><th>School</th><th>Tournaments</th><th>Status</th></tr></thead>
 
-	<?php foreach($import['rows'] as $row): ?>
-		<tr class='import-row <?=$row['skipped'] ? 'grey-text' : ''?>'>
-			<td><?=htmlspecialchars($row['firstName'].' '.$row['lastName'])?></td>
-			<td>
-				<?=htmlspecialchars($row['schoolLabel'])?>
-				<?php if($row['schoolFound'] == false && $row['schoolText'] != ''): ?>
-					<div class='red-text'>School not found: <?=htmlspecialchars($row['schoolText'])?></div>
-				<?php endif ?>
-			</td>
-			<td>
-				<?php foreach($row['tournamentNames'] as $name): ?>
-					<div class='tournament-box is-static'><?=$name?></div>
-				<?php endforeach ?>
-				<?php if($row['ignoredTournaments'] != []): ?>
-					<div class='red-text'>Ignored: <?=htmlspecialchars(implode(', ', $row['ignoredTournaments']))?></div>
-				<?php endif ?>
-			</td>
-			<td>
-				<?=$statusText[$row['status']]?>
-				<?php if($row['status'] == 'entered' && $row['skipped'] == false): ?>
-					<div>Adds tournaments</div>
-				<?php endif ?>
-			</td>
-		</tr>
-	<?php endforeach ?>
+	<?php foreach($import['rows'] as $index => $row){
+		importRow($index, $row, $tournamentNames);
+	} ?>
 
 	</table>
 
 	</div>
 
-	<form method='POST'>
-		<button class='button success' name='formName' value='confirmParticipantsImport'
-			<?=$numToImport == 0 ? 'disabled' : ''?>>
-			Import <?=$numToImport?> participants
-		</button>
-		<button class='button secondary hollow' name='formName' value='cancelParticipantsImport'>Cancel</button>
+	<label>
+		<input type='checkbox' id='importConfirmed' name='importConfirmed' value='1'>
+		I've checked these names, schools and tournaments against my registrations
+	</label>
+
+	<button class='button success' name='formName' value='confirmParticipantsImport' disabled>
+		Import <?=$numChecked?> participants
+	</button>
+	<button class='button secondary hollow' name='formName' value='cancelParticipantsImport'>Cancel</button>
+
 	</form>
+
+	<script>
+		window.addEventListener('DOMContentLoaded', function(){
+			ImportReview.init();
+		});
+	</script>
+
+<?php }
+
+/******************************************************************************/
+
+function importRow($index, $row, $tournamentNames){
+// One row of the confirmation table, with its tick box unless there is
+// nothing to import. data-outcome is the outcome before any fighter choice.
+
+	$outcome = importRowOutcome($row, $row['choice']);
+	$unchosen = importRowOutcome($row, null);
+	$name = $row['firstName'].' '.$row['lastName'];
+	$statusText = [
+		'choose' => 'Choose a fighter',
+		'new' => 'New to Scorecard',
+		'known' => 'In Scorecard',
+		'schoolPrompt' => 'In Scorecard',
+		'entered' => 'Already in this event, adds tournaments',
+		'nothing' => 'Already in this event, nothing to add',
+	];
+	$status = $statusText[$outcome['kind']];
+	?>
+
+	<tr class='import-row <?=$outcome['kind'] == 'nothing' ? 'grey-text' : ''?>' id='importRow<?=$index?>'
+		data-index='<?=$index?>'
+		data-first-name='<?=htmlspecialchars($row['firstName'], ENT_QUOTES)?>'
+		data-last-name='<?=htmlspecialchars($row['lastName'], ENT_QUOTES)?>'
+		data-name='<?=htmlspecialchars($name, ENT_QUOTES)?>'
+		data-school-id='<?=(int)$row['schoolID']?>'
+		data-tournament-ids='<?=implode(',', $row['tournamentIDs'])?>'
+		data-outcome='<?=$unchosen['kind']?>'
+		data-no-school='<?=$unchosen['noSchool'] ? 1 : 0?>'>
+		<td class='import-tick'>
+			<?php if($outcome['kind'] != 'nothing'): ?>
+				<input type='checkbox' class='import-check' name='importRows[<?=$index?>][checked]' value='1'
+					<?=$row['checked'] ? 'checked' : ''?> <?=$outcome['kind'] == 'choose' ? 'disabled' : ''?>>
+			<?php endif ?>
+		</td>
+		<td class='import-name'>
+			<span class='import-name-text'><?=htmlspecialchars($name)?></span>
+		</td>
+		<td class='import-school'>
+			<span class='import-school-text'><?=htmlspecialchars($row['schoolLabel'])?></span>
+			<?php if($row['schoolFound'] == false && $row['schoolText'] != ''): ?>
+				<div class='red-text'>School not found: <?=htmlspecialchars($row['schoolText'])?></div>
+			<?php endif ?>
+		</td>
+		<td class='import-tournaments'>
+			<?php foreach($row['tournamentIDs'] as $tournamentID): ?>
+				<div class='tournament-box is-static'><?=htmlspecialchars((string)@$tournamentNames[$tournamentID])?></div>
+			<?php endforeach ?>
+			<?php if($row['ignoredTournaments'] != []): ?>
+				<div class='red-text'>Ignored: <?=htmlspecialchars(implode(', ', $row['ignoredTournaments']))?></div>
+			<?php endif ?>
+		</td>
+		<td class='import-status'><?=$outcome['kind'] == 'new' ? "<b>{$status}</b>" : $status?></td>
+	</tr>
 
 <?php }
 

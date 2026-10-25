@@ -9,9 +9,9 @@
 /******************************************************************************/
 
 function importParticipantsParseCsv($eventID, $file){
-// Reads an uploaded CSV of participants, matches schools and tournaments by
-// name, and parks the rows in the session for participantsImport.php to
-// confirm. Nothing is written until importParticipantsCommit().
+// Reads an uploaded CSV of participants, matches schools, tournaments and
+// fighters by name, and parks the rows in the session for participantsImport.php
+// to confirm. Nothing is written until importParticipantsCommit().
 
 	$eventID = (int)$eventID;
 	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false){ return; }
@@ -82,7 +82,6 @@ function importParticipantsParseCsv($eventID, $file){
 	// Tournaments match by name in either display format, since the file may not
 	// use the organizer's. A name shared by more than one tournament is ambiguous.
 	$tournamentList = (array)getEventTournaments($eventID);
-	$tournamentNames = getEventTournamentNames($tournamentList);
 	$tournamentsByName = [];
 	foreach($tournamentList as $tournamentID){
 		$names = [getTournamentName($tournamentID, 'prefix'), getTournamentName($tournamentID, 'weapon')];
@@ -90,7 +89,6 @@ function importParticipantsParseCsv($eventID, $file){
 			$tournamentsByName[$name][] = (int)$tournamentID;
 		}
 	}
-	$entriesByFighter = (array)getEntriesByFighter($tournamentList);
 
 	// The first data record exactly as it appears in the file
 	$firstLine = '';
@@ -115,9 +113,11 @@ function importParticipantsParseCsv($eventID, $file){
 			'schoolLabel' => '*Unknown',
 			'schoolFound' => false,
 			'tournamentIDs' => [],
-			'tournamentNames' => [],
 			'ignoredTournaments' => [],
-			'status' => 'new',
+			'matchType' => 'none',
+			'matches' => [],
+			'checked' => false,
+			'choice' => null,
 		];
 		if($row['firstName'] == '' && $row['lastName'] == ''){ continue; }
 
@@ -142,26 +142,11 @@ function importParticipantsParseCsv($eventID, $file){
 			}
 		}
 
-		$match = getSystemRosterIDbyName($row['firstName'], $row['lastName']);
-		if($match['systemRosterID'] != 0){
-			$row['systemRosterID'] = (int)$match['systemRosterID'];
-			$rosterID = getRosterIDbySystemID($eventID, $match['systemRosterID']);
-			if($rosterID != 0){
-				// Already entered, so the import only adds the tournaments they aren't in yet
-				$row['status'] = 'entered';
-				$tournamentIDs = array_diff($tournamentIDs, (array)@$entriesByFighter[$rosterID]);
-			} else {
-				$row['status'] = 'known';
-			}
-		}
-
 		$row['tournamentIDs'] = array_values(array_unique($tournamentIDs));
-		foreach($row['tournamentIDs'] as $tournamentID){
-			$row['tournamentNames'][] = $tournamentNames[$tournamentID];
-		}
 
 		$rows[] = $row;
 	}
+	importParticipantsMatchFighters($eventID, $rows);
 
 	$_SESSION['participantsImport'] = [
 		'fileName' => basename($file['name']),
@@ -174,38 +159,264 @@ function importParticipantsParseCsv($eventID, $file){
 
 /******************************************************************************/
 
-function importParticipantsCommit($eventID){
-// Adds the rows parked by importParticipantsParseCsv() through
-// addEventParticipants(), so known fighters, duplicates and school conflicts
-// are handled exactly as they are for the roster entry form. Fighters already
-// in the event only get their new tournaments.
+function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
+// Finds the Scorecard fighters each row could be, for the rows in $indexes or
+// for every row. Exact names only, which MySQL compares case-insensitively.
+
+	if($indexes === null){
+		$indexes = array_keys($rows);
+	}
+
+	foreach($indexes as $i){
+		$match = getSystemRosterIDbyName($rows[$i]['firstName'], $rows[$i]['lastName']);
+		if($match['systemRosterID'] != 0){
+			$rows[$i]['matchType'] = 'exact';
+			$rows[$i]['matches'] = [['systemRosterID' => $match['systemRosterID']]];
+		} else {
+			$rows[$i]['matchType'] = 'none';
+			$rows[$i]['matches'] = [];
+		}
+	}
+
+	importParticipantsRefreshMatches($eventID, $rows);
+
+}
+
+/******************************************************************************/
+
+function importParticipantsRefreshMatches($eventID, &$rows){
+// Reads each row's candidate fighters from Scorecard again: name, stored
+// school, whether they are in this event, and the event tournaments they are
+// entered in. The commit calls this too, in case someone entered them since.
 
 	$eventID = (int)$eventID;
-	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false || !isset($_SESSION['participantsImport'])){ return; }
 
-	$fighterList = [];
-	$numTournamentsAdded = 0;
-	foreach($_SESSION['participantsImport']['rows'] as $row){
-		if($row['status'] == 'entered'){
-			$rosterID = getRosterIDbySystemID($eventID, $row['systemRosterID']);
-			if($rosterID != 0 && $row['tournamentIDs'] != []){
-				addFighterToTournaments($rosterID, $row['tournamentIDs']);
-				$numTournamentsAdded++;
-			}
-			continue;
+	$systemRosterIDs = [];
+	foreach($rows as $row){
+		foreach($row['matches'] as $match){
+			$systemRosterIDs[] = $match['systemRosterID'];
 		}
-		$fighterList[] = [
-			'firstName' => $row['firstName'],
-			'lastName' => $row['lastName'],
-			'schoolID' => $row['schoolID'],
-			'tournamentIDs' => $row['tournamentIDs'],
-		];
 	}
+	if($systemRosterIDs == []){
+		return;
+	}
+
+	$idList = implode2int($systemRosterIDs);
+	$sql = "SELECT sR.systemRosterID, sR.firstName, sR.lastName, sR.schoolID,
+				COALESCE(sS.schoolShortName, sS.schoolFullName) AS schoolName, eR.rosterID
+			FROM systemRoster AS sR
+			LEFT JOIN systemSchools AS sS USING(schoolID)
+			LEFT JOIN eventRoster AS eR
+				ON eR.systemRosterID = sR.systemRosterID
+				AND eR.eventID = {$eventID}
+			WHERE sR.systemRosterID IN ({$idList})";
+	$fighters = [];
+	foreach((array)mysqlQuery($sql, ASSOC) as $fighter){
+		$fighters[$fighter['systemRosterID']] = $fighter;
+	}
+	$entriesByFighter = (array)getEntriesByFighter(getEventTournaments($eventID));
+
+	foreach($rows as &$row){
+		$matches = [];
+		foreach($row['matches'] as $match){
+			if(isset($fighters[$match['systemRosterID']]) == false){
+				continue; // No longer in Scorecard
+			}
+			$fighter = $fighters[$match['systemRosterID']];
+			$schoolID = (int)$fighter['schoolID'];
+			if($schoolID == 0){
+				$schoolID = SCHOOL_ID_UNKNOWN; // Stored without a school
+			}
+			$rosterID = (int)$fighter['rosterID'];
+			$matches[] = [
+				'systemRosterID' => (int)$fighter['systemRosterID'],
+				'firstName' => $fighter['firstName'],
+				'lastName' => $fighter['lastName'],
+				'schoolID' => $schoolID,
+				'schoolLabel' => $schoolID == SCHOOL_ID_UNKNOWN ? '*Unknown' : (string)$fighter['schoolName'],
+				'rosterID' => $rosterID,
+				'tournamentIDs' => array_map('intval', (array)@$entriesByFighter[$rosterID]),
+			];
+		}
+		$row['matches'] = $matches;
+	}
+	unset($row);
+
+}
+
+/******************************************************************************/
+
+function importRowOutcome($row, $choice){
+// What importing a row would do, given the organizer's fighter choice: null,
+// 'new', or a systemRosterID. The kinds:
+//   choose        an ambiguous or near row with no valid choice
+//   new           a fighter added to Scorecard
+//   known         an existing fighter, entered at their stored school
+//   schoolPrompt  an existing fighter the file lists at another known school;
+//                 the roster page asks which to use after importing
+//   entered       already in the event, so only the tournaments they aren't in
+//   nothing       already in the event, with nothing new
+// 'tournamentIDs' are the ones to add. Nothing here changes a stored school.
+
+	$outcome = [
+		'kind' => 'choose',
+		'systemRosterID' => 0,
+		'rosterID' => 0,
+		'schoolID' => (int)$row['schoolID'],
+		'storedSchoolID' => 0,
+		'tournamentIDs' => [],
+		'noSchool' => false,
+	];
+
+	if($row['matchType'] == 'none' || ($row['matchType'] == 'near' && $choice === 'new')){
+		$outcome['kind'] = 'new';
+		$outcome['tournamentIDs'] = $row['tournamentIDs'];
+		$outcome['noSchool'] = $row['schoolID'] == SCHOOL_ID_UNKNOWN;
+		return $outcome;
+	}
+
+	// The fighter the row is: its exact match, or the candidate chosen
+	$fighter = null;
+	foreach($row['matches'] as $match){
+		if($row['matchType'] == 'exact' || (is_int($choice) && $match['systemRosterID'] == $choice)){
+			$fighter = $match;
+			break;
+		}
+	}
+	if($fighter === null){
+		return $outcome;
+	}
+
+	$outcome['systemRosterID'] = $fighter['systemRosterID'];
+	$outcome['rosterID'] = $fighter['rosterID'];
+	$outcome['schoolID'] = $fighter['schoolID'];
+	$outcome['storedSchoolID'] = $fighter['schoolID'];
+
+	if($fighter['rosterID'] != 0){
+		$outcome['tournamentIDs'] = array_values(array_diff($row['tournamentIDs'], $fighter['tournamentIDs']));
+		$outcome['kind'] = $outcome['tournamentIDs'] == [] ? 'nothing' : 'entered';
+		return $outcome;
+	}
+
+	$outcome['tournamentIDs'] = $row['tournamentIDs'];
+	// A blank or unrecognised file school keeps the stored one, unprompted
+	if($row['schoolFound'] && $row['schoolID'] != SCHOOL_ID_UNKNOWN && $row['schoolID'] != $fighter['schoolID']){
+		$outcome['kind'] = 'schoolPrompt';
+		$outcome['schoolID'] = (int)$row['schoolID'];
+	} else {
+		$outcome['kind'] = 'known';
+		$outcome['noSchool'] = $fighter['schoolID'] == SCHOOL_ID_UNKNOWN;
+	}
+
+	return $outcome;
+
+}
+
+/******************************************************************************/
+
+function importParticipantsRememberState($postedRows){
+// Keeps each row's tick and fighter choice from the posted page, so they show
+// again when the page comes back. A choice is kept only if the row offered it:
+// 'new' on a near match, or one of the row's candidates.
+
+	if(isset($_SESSION['participantsImport']) == false){
+		return;
+	}
+
+	foreach($_SESSION['participantsImport']['rows'] as $i => &$row){
+		$posted = (array)@$postedRows[$i];
+		$choice = @$posted['choice'];
+
+		$row['checked'] = !empty($posted['checked']);
+		$row['choice'] = null;
+		if($choice === 'new' && $row['matchType'] == 'near'){
+			$row['choice'] = 'new';
+		} else if(is_scalar($choice)){
+			foreach($row['matches'] as $match){
+				if((string)$match['systemRosterID'] === (string)$choice){
+					$row['choice'] = $match['systemRosterID'];
+				}
+			}
+		}
+	}
+	unset($row);
+
+}
+
+/******************************************************************************/
+
+function importParticipantsCommit($eventID, $postedRows, $confirmed){
+// Writes the rows posted as ticked, each as importRowOutcome() says, after
+// reading the fighters again. New fighters go through addEventParticipants()
+// by name, which still catches anyone added to Scorecard since the upload;
+// existing ones by ID at their stored school. A different school waits on the
+// roster page's conflict callout. Without the final confirmation nothing is
+// written and this returns false.
+
+	$eventID = (int)$eventID;
+	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false || !isset($_SESSION['participantsImport'])){ return false; }
+
+	if($confirmed == false){
+		importParticipantsRememberState($postedRows);
+		setAlert(USER_ERROR, "Tick \"I've checked these names, schools and tournaments\" before importing.");
+		return false;
+	}
+
+	$rows = $_SESSION['participantsImport']['rows'];
+	importParticipantsRefreshMatches($eventID, $rows);
 	unset($_SESSION['participantsImport']);
 
 	// Count what actually happened; school conflicts wait on the roster page's callout
 	$numBefore = getNumEventRegistrations($eventID);
 	$numConflictsBefore = count((array)@$_SESSION['rosterEntryConflicts']['alreadyExists']);
+
+	$fighterList = [];
+	$numTournamentsAdded = 0;
+	foreach($rows as $i => $row){
+		if(empty($postedRows[$i]['checked'])){
+			continue;
+		}
+		$outcome = importRowOutcome($row, $row['choice']);
+
+		// 'choose' and 'nothing' rows are left out
+		switch($outcome['kind']){
+			case 'new':
+				$fighterList[] = [
+					'firstName' => $row['firstName'],
+					'lastName' => $row['lastName'],
+					'schoolID' => $outcome['schoolID'],
+					'tournamentIDs' => $outcome['tournamentIDs'],
+				];
+				break;
+			case 'known':
+				$fighterList[] = [
+					'systemRosterID' => $outcome['systemRosterID'],
+					'schoolID' => $outcome['schoolID'],
+					'tournamentIDs' => $outcome['tournamentIDs'],
+				];
+				break;
+			case 'schoolPrompt':
+				// By ID, so two fighters sharing a name can't be confused
+				$_SESSION['rosterEntryConflicts']['alreadyExists'][] = [
+					'postData' => [
+						'systemRosterID' => $outcome['systemRosterID'],
+						'schoolID' => $outcome['schoolID'],
+						'staffCompetency' => 0,
+						'tournamentIDs' => $outcome['tournamentIDs'],
+					],
+					'queryData' => [
+						'schoolID' => $outcome['storedSchoolID'],
+						'systemRosterID' => $outcome['systemRosterID'],
+					],
+				];
+				break;
+			case 'entered':
+				addFighterToTournaments($outcome['rosterID'], $outcome['tournamentIDs']);
+				$numTournamentsAdded++;
+				break;
+		}
+	}
+
 	addEventParticipants($eventID, $fighterList);
 	$numImported = getNumEventRegistrations($eventID) - $numBefore;
 	$numConflicts = count((array)@$_SESSION['rosterEntryConflicts']['alreadyExists']) - $numConflictsBefore;
@@ -218,6 +429,8 @@ function importParticipantsCommit($eventID){
 		$message .= " {$numConflicts} need a school choice before they are added.";
 	}
 	setAlert(USER_ALERT, $message);
+
+	return true;
 
 }
 

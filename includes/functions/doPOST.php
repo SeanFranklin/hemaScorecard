@@ -108,9 +108,11 @@ function processPostData(){
 				unset($_SESSION['participantsImport']);
 				break;
 			case 'confirmParticipantsImport':
-				importParticipantsCommit($_SESSION['eventID']);
-				refreshPage('participantsEvent.php');
-				break;
+				importParticipantsRememberState(@$_POST['importRows']);
+				if(importParticipantsCommit($_SESSION['eventID'], (array)@$_POST['importRows'], isset($_POST['importConfirmed']))){
+					refreshPage('participantsEvent.php');
+				}
+				break; // Refused, so the default refresh returns to the import page
 			case 'addEventParticipants':
 				if(empty($_POST['newParticipants']) == false){
 					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);

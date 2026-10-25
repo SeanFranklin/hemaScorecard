@@ -50,8 +50,16 @@ VALUES
 
 -- Six fighters with fixed IDs and predictable names, plus fighters who exist
 -- in the system but are NOT entered in the event: roster-entry tests pick
--- Greta, and two Ivo Ibsens at different schools, from the autocomplete; the
--- CSV import test imports Hugo.
+-- Greta, and two Ivo Ibsens at different schools, from the autocomplete. The
+-- CSV import tests (roster-import.auth.spec.ts) use the rest:
+--   Hugo     imported as a known fighter
+--   Rowan    similar-fighter matches (typos, swapped names), and casing
+--   Siobhan  similar match without the apostrophe; the summary; the row editor
+--   Zoë      similar match without the accent
+--   Tobias   keeps his school when the file's isn't recognised
+--   Ursula   listed at another school, asked about after importing
+--   Vivian   the summary's count of school choices
+--   Wendell  entered by someone else after the upload
 INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
 	(1, 'Alice',  'Applegate', 3),
 	(2, 'Brett',  'Bowman',    3),
@@ -62,7 +70,14 @@ INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID
 	(7, 'Greta',  'Gable',     3),
 	(8, 'Ivo',    'Ibsen',     3),
 	(9, 'Ivo',    'Ibsen',     4),
-	(10, 'Hugo',  'Haldane',   3);
+	(10, 'Hugo',  'Haldane',   3),
+	(21, 'Rowan',   'Fairweather', 4),
+	(22, 'Siobhan', 'O''Rourke',   3),
+	(23, 'Zoë',     'Marchetti',   3),
+	(24, 'Tobias',  'Vance',       3),
+	(25, 'Ursula',  'Quintero',    3),
+	(26, 'Vivian',  'Voss',        3),
+	(27, 'Wendell', 'Ashby',       3);
 
 INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
 	(1, 1, 1, 3, 0, 1, 1),
