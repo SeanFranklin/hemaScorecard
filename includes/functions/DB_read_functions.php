@@ -221,7 +221,7 @@ function hemaRatings_createEventInfoCsv($eventID, $dir = "exports/"){
 
 function hemaRatings_createEventRosterCsv($eventID = null, $dir = "exports/"){
 // Creates a .csv file with the eventRoster
-// Format: | Name | Club | Nationality | Gender | HEMA Ratings ID |
+// Format: | Name1 | Name2 | Result1 | Result2 | Stage of Tournament |
 
 
 // Get roster/event information
@@ -232,21 +232,23 @@ function hemaRatings_createEventRosterCsv($eventID = null, $dir = "exports/"){
 	}
 
 	$eventRoster = hemaRatings_GetEventRosterForExport($eventID);
+	$eventName = getEventName($eventID);
 	$fileName = "{$dir}fighters.csv";
 
 // Create the CSV file
 	$fp = fopen($fileName, 'w');
 
-	fputcsv($fp, ['Name', 'Club', 'Nationality', 'Gender', 'HEMA Ratings ID']);
-
 	foreach ($eventRoster as $fields) {
-		fputcsv($fp, [
-			getFighterNameSystem($fields['systemRosterID'], 'first'),
-			$fields['schoolFullName'],
-			$fields['countryIso2'],
-			'',
-			$fields['HemaRatingsID'],
-		]);
+
+		fputs($fp, getFighterNameSystem($fields['systemRosterID'], 'first').",");
+		fputs($fp, $fields['schoolFullName'].",");
+		fputs($fp, $fields['countryIso2'].",");
+		fputs($fp, ",");
+		fputs($fp, $fields['HemaRatingsID']);
+
+		fputs($fp, '');
+
+		fputs($fp, PHP_EOL);
 	}
 	fclose($fp);
 
@@ -619,8 +621,6 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 // Create the CSV file
 	$fp = fopen($fileName, 'w');
 
-	fputcsv($fp, ['Fighter 1', 'Fighter 2', 'Fighter 1 result', 'Fighter 2 result', 'Round']);
-
 	foreach($finishedMatches as $match){
 
 		$winnerID = (int)$match['winnerID'];
@@ -660,7 +660,15 @@ function hemaRatings_createTournamentResultsCsv($tournamentID, $dir = "exports/"
 
 		$fields = [$fighter1, $fighter2, $f1Result, $f2Result, $stageName];
 
-		fputcsv($fp, $fields);
+		$comma = ',';
+
+		foreach($fields as $index => $field){
+			if ($index == sizeof($fields)-1){
+				$comma = null;
+			}
+			fputs($fp, $field.$comma);
+		}
+		fputs($fp, PHP_EOL);
 
 	}
 	fclose($fp);

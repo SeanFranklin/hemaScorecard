@@ -66,26 +66,22 @@ test('Export All zips clubs, fighters and a results file per tournament', async 
     `${tournamentName} (2).csv`,
   ]));
 
-  await test.step('clubs.csv and fighters.csv have their headers and the event roster', async () => {
+  await test.step('clubs.csv has its header and fighters.csv lists the event roster', async () => {
     expect(files.get('clubs.csv')?.split('\n')[0])
       .toBe('"Club Name",Country,State,City,"Website URL","Facebook URL","Parent club"');
 
-    const fighters = files.get('fighters.csv') ?? '';
-    expect(fighters.split('\n')[0]).toBe('Name,Club,Nationality,Gender,"HEMA Ratings ID"');
-    for (const fighter of FIGHTERS) {
-      expect(fighters).toContain(`"${fighter.firstName} ${fighter.lastName}","Test Fencing School",US,,`);
-    }
+    // Name, Club, Nationality, Gender, HEMA Ratings ID; no header row. The
+    // roster query has no ORDER BY, so compare sorted.
+    expect(files.get('fighters.csv')?.trim().split('\n').sort()).toEqual(
+      FIGHTERS.map((f) => `${f.firstName} ${f.lastName},Test Fencing School,US,,`).sort(),
+    );
   });
 
   await test.step('each same-named tournament has its own results file', async () => {
     const results = [files.get(`${tournamentName}.csv`), files.get(`${tournamentName} (2).csv`)];
-    for (const csv of results) {
-      expect(csv?.split('\n')[0])
-        .toBe('"Fighter 1","Fighter 2","Fighter 1 result","Fighter 2 result",Round');
-    }
 
-    // Only the second tournament played a match.
-    const withMatch = results.filter((csv) => csv?.includes('"Brett Bowman","Alice Applegate",Win,Loss,'));
-    expect(withMatch).toHaveLength(1);
+    // Only the second tournament played a match; the first's file is empty.
+    expect(results.filter((csv) => csv?.startsWith('Brett Bowman,Alice Applegate,Win,Loss,'))).toHaveLength(1);
+    expect(results.filter((csv) => csv === '')).toHaveLength(1);
   });
 });
