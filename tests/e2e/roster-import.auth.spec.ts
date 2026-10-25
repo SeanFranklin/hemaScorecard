@@ -314,6 +314,11 @@ test.describe('participant CSV import', () => {
     await expect(option(page, 'Bowam', 'Use Rowan Fairweather')).toHaveCount(1);
   });
 
+  test('the same holds with first and last names swapped', async ({ page }) => {
+    await upload(page, csv('bowam-swapped.csv', 'First Name,Last Name,School', 'Fairweather,Bowam,Other Club'));
+    await expect(option(page, 'Bowam', 'Use Rowan Fairweather')).toHaveCount(1);
+  });
+
   test('a typo in a two-letter name still matches', async ({ page }) => {
     await upload(page, csv('wu.csv', 'First Name,Last Name,School', 'Ottoline,Wu,Test School'));
     await tick(page, 'Ottoline');

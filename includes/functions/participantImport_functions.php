@@ -184,7 +184,7 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 
 	$exact = [];     // lowercased 'first|last' => row indexes
 	$pairs = [];     // 'k1|k2' from importNameKeys() of each name => row indexes
-	$surnames = [];  // normalized last name => row indexes
+	$surnames = [];  // normalized last name, or first name if swapped => row indexes
 	$names = [];     // row index => [first, last], normalized
 	$limits = [];    // row index => the largest distance that counts as near
 	$exactIDs = [];  // row index => systemRosterIDs
@@ -202,7 +202,12 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 		}
 		$names[$i] = [$first, $last];
 		$limits[$i] = strlen($first) + strlen($last) < 8 ? 1 : 2;
-		$surnames[$last][$i] = $i; // Any first name close enough, when the surname is the same
+		// Any first name close enough, when the surname is the same
+		foreach([$last, $first] as $surname){ // Swapped, the first name holds it
+			if($surname != ''){
+				$surnames[$surname][$i] = $i;
+			}
+		}
 		foreach([[$first, $last], [$last, $first]] as $order){ // swapped names too
 			foreach(importNameKeys($order[0]) as $k1){
 				foreach(importNameKeys($order[1]) as $k2){
@@ -237,9 +242,6 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 		$reached = [];
 		if(isset($surnames[$last])){
 			$reached += $surnames[$last];
-		}
-		if(isset($surnames[$first])){
-			$reached += $surnames[$first]; // Swapped: their first name is the row's surname
 		}
 		foreach(importNameKeys($first) as $k1){
 			foreach(importNameKeys($last) as $k2){
