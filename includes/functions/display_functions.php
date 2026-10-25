@@ -393,7 +393,7 @@ function confirmDeleteReveal($formID, $formName){
 function edit_tournamentOptionsRow($name, $toggle = null, $tooltip = null){
 
 	if($toggle != null){
-		$name = "<a onclick=\"$('.".$toggle."').toggle()\">".$name."↓ </a>";
+		$name = "<a onclick=\"$('.".$toggle."').toggle()\">".$name." ↓</a>";
 	}
 
 ?>
@@ -3040,17 +3040,22 @@ function edit_tournamentPointSpreadStartVal($tournamentID = 0){
 
 /*********************************************************(********************/
 
-function tooltip($text, $tip = "<img src='includes/images/help.png'>", $dir='bottom'){
+function tooltip($text, $tip = false, $dir='bottom'){
 // Creates a tooltip that displays as $tip containing $text
 // Defaults to displaying a help icon
+	$helpIcon = "<span class='help-icon' aria-hidden='true'>?</span>";
+	if($tip === false){
+		$tip = $helpIcon;
+	}
+	$tipClass = ($tip == $helpIcon) ? 'has-tip has-tip-icon' : 'has-tip';
 	?>
 
 	<?php if($tip == null): ?>
-		<img src='includes/images/help.png'>
+		<?=$helpIcon?>
 	<?php endif ?>
 
 
-	<span data-tooltip aria-haspopup='true' class='has-tip'
+	<span data-tooltip aria-haspopup='true' class='<?=$tipClass?>'
 		data-disable-hover='false' tabindex='2' title="<?=$text?>"
 		data-position='<?=$dir?>' data-allow-html='true' >
 
@@ -3263,9 +3268,11 @@ function matchHistoryBar($matchInfo){
 			case "afterblow":
 				if($doubleTypes['afterblowType'] == 'deductive'){
 
+					// The breakdown is too wide for the column, so it goes in a tooltip.
 					$netPts = $exchange['scoreValue'] - $exchange['scoreDeduction'];
-					$exchanges[$i][$index1][1] = "<b>".$netPts."</b>";
-					$exchanges[$i][$index1][2] = "[".$exchange['scoreValue']."-".$exchange['scoreDeduction']."]";
+					$breakdown = $exchange['scoreValue']." hit &minus; ".$exchange['scoreDeduction']." afterblow";
+					$exchanges[$i][$index1][1] = "<b data-tooltip class='has-tip exchange-tip' tabindex='0'
+						data-position='top' data-allow-html='true' title='{$breakdown}'>".$netPts."</b>";
 
 				} else {
 
@@ -3384,7 +3391,7 @@ function matchHistoryBar($matchInfo){
 
 		?>
 
-		<div class='shrink text-center' style='width: 40px' title='<?=$exchange['detail']?>'>
+		<div class='shrink text-center match-history-column' style='width: 40px' title='<?=$exchange['detail']?>'>
 			<div class='cell <?=$class?>' style='font-size:0.8em;'>
 				#<?=$num?>
 			</div>
@@ -3718,6 +3725,7 @@ function displayIncompleteMatches($incompleteMatches){
 	<input type='hidden' name='formName' value='goToMatch'>
 
 	The following pool matches are incomplete:<BR>
+	<div class='incomplete-matches'>
 	<?php foreach($incompleteMatches as $matchID):
 		$matchInfo = getMatchInfo($matchID);
 		$name1 = getFighterName($matchInfo['fighter1ID'],null,null,$matchInfo['teamEntry']);
@@ -3731,6 +3739,7 @@ function displayIncompleteMatches($incompleteMatches){
 		</button>
 
 	<?php endforeach ?>
+	</div>
 
 	</form>
 
@@ -4585,13 +4594,11 @@ function showFunEventStats($eventID){
 				<?=$daysText?>
 			<BR>
 				<b><?=$numCountries?></b> countries* represented.
-				<a onclick="$('.country-txt').toggle()">(?)</a>
-				<span class='country-txt hidden'>
-					<i>*based on club locations. Scorecard doesn't actually know where anyone lives.</i>
-					<BR>(<?php foreach($countryList AS $country):?>
-						<?=$country?>,
-					<?php endforeach?>)
-				</span>
+				<?php
+					$countryNames = array_map(function($c){ return htmlspecialchars($c, ENT_QUOTES); }, (array)$countryList);
+					$countryTip = "<i>*Based on club locations. Scorecard doesn't actually know where anyone lives.</i><BR>(".implode(', ', $countryNames).")";
+				?>
+				<?=tooltip($countryTip)?>
 			<BR>
 				<?php foreach ($winsByColor as $id => $w): ?>
 					<?=$w['name']?> has <b><?=$w['num']?></b> wins,

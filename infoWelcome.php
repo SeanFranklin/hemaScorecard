@@ -90,7 +90,7 @@ include('includes/header.php');
 ////////////////////////////////////////////////////////////////////////////////
 ?>
 
-<div class='cell ' style='border-bottom:2px solid black'>
+<div class='cell welcome-intro' style='border-bottom:2px solid black'>
 	<div class='grid-x grid-margin-x'>
 
 	<div class='large-4 medium-5 cell align-self-middle'>

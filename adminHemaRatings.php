@@ -42,6 +42,7 @@ if($_SESSION['eventID'] == null){
 		<i>(There was never an automatic integration, it was just HEMA Ratings
 			team being nice and grabbing info directly from Scorecard.)</i>
 
+	</div>
 
 <?php
 }

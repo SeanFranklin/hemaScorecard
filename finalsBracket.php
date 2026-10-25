@@ -390,7 +390,7 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 	<fieldset class='fieldset'>
 	<legend>Bracket Management</legend>
 
-	<div class='grid-x grid-padding-x'>
+	<div class='grid-x grid-padding-x align-middle'>
 
 	<!-- Create Bracket -->
 		<?php if($doesBracketExist == false): ?>
@@ -413,7 +413,8 @@ function bracketManagement($tournamentID, $doesBracketExist, $finalists){
 		<?php endif ?>
 
 		<div class='large-9 medium-8 cell text-right'>
-			<a class='no-bottom' onclick="$('.seed-text').toggle()"><i>Show Seed Positions</i></a>
+			<input type='checkbox' class='no-bottom' id='toggleSeedPositions' onchange="$('.seed-text').toggle(this.checked)">
+			<label for='toggleSeedPositions' class='no-bottom'>Show Seed Positions</label>
 		</div>
 
 	</div>
@@ -637,6 +638,7 @@ function displayBracket($bracketInfo,
 	<?php endif; ?>
 
 <!-- Bracket display -->
+	<div class='bracket-scroll'>
 	<div id='tournament_box' class='tournament_box <?=$bracketClass?>'>
 
 	<?php
@@ -767,6 +769,7 @@ function displayBracket($bracketInfo,
 
 	<?php endfor ?>
 
+	</div>
 	</div>
 
 	</form>

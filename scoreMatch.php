@@ -900,9 +900,9 @@ function backToListButton($matchInfo){
 
 	<!--------------------------------------------------------------------->
 
-	<div class='align-middle cell ' style='display:flex; align-items: flex-start;'>
+	<div class='align-middle cell ' style='display:flex; align-items: center; margin-bottom: 10px;'>
 
-	<div style='margin-bottom: 10px; white-space: nowrap'>
+	<div style='white-space: nowrap'>
 	<?php if($_SESSION['bracketHelper'] == 'try'): ?>
 		<a class='button no-bottom <?=$hideForSmall?>' href='finalsBracket.php'>
 			Back To Bracket
@@ -942,7 +942,7 @@ function backToListButton($matchInfo){
 	</div>
 
 	<!-- Tournament name -->
-	<div class='text-center align-middle ' style='margin-left: 10px;'>
+	<div class='text-center align-middle match-heading-name' style='margin-left: 10px;'>
 		<?=$name?>
 	</div>
 

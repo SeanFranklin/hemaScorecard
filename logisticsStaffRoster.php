@@ -37,27 +37,27 @@ if($_SESSION['eventID'] == null){
 		$_SESSION['staffViewMode'] = 'name-asc';
 	}
 
-	$nameArrow = '';
-	$compArrow = '';
+	$nameSort = '';
+	$compSort = '';
 	switch($_SESSION['staffViewMode']){
 		case 'name-desc':
-			$nameArrow = "&#8593";
+			$nameSort = 'is-sorted sort-desc';
 			$nameMode = 'name-asc';
 			$compMode = 'comp-desc';
 			break;
 		case 'comp-asc':
-			$compArrow = "&#8595";
+			$compSort = 'is-sorted';
 			$nameMode = 'name-asc';
 			$compMode = 'comp-desc';
 			break;
 		case 'comp-desc':
-			$compArrow = "&#8593";
+			$compSort = 'is-sorted sort-desc';
 			$nameMode = 'name-asc';
 			$compMode = 'comp-asc';
 			break;
 		case 'name-asc':
 		default:
-			$nameArrow = "&#8595";
+			$nameSort = 'is-sorted';
 			$nameMode = 'name-desc';
 			$compMode = 'comp-desc';
 			break;
@@ -103,11 +103,11 @@ if($_SESSION['eventID'] == null){
 				<input type='hidden' name='editStaffList[eventID]' value='<?=$_SESSION['eventID']?>'>
 				<table class='stack'>
 					<tr>
-						<th onclick="changeParticipantOrdering('staffViewMode','<?=$nameMode?>')">
-							<a>Staff Member <?=$nameArrow?></a>
+						<th onclick="changeParticipantOrdering('staffViewMode','<?=$nameMode?>')" class='<?=$nameSort?>'>
+							<a>Staff Member</a>
 						</th>
-						<th  onclick="changeParticipantOrdering('staffViewMode','<?=$compMode?>')">
-							<a>Competency <?=$compArrow?></a>
+						<th  onclick="changeParticipantOrdering('staffViewMode','<?=$compMode?>')" class='<?=$compSort?>'>
+							<a>Competency</a>
 							<?=tooltip("You can assign numbers to staff members to help sort them by skill sets. Higher numbers are sorted to the top.
 							<BR><u>Example:</u>
 							<ol>

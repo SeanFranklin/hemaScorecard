@@ -1,6 +1,6 @@
 <style>
 <?php
-$boxWidth = 300;  //293 will match [5 levels = page width] but the lines don't line up as nicely
+$boxWidth = 288;  // 4 levels fit the page width; 288 keeps the 2/10 column split on whole pixels
 
 if($bracketType == BRACKET_PRIMARY){$maxMatches = pow(2,$bracketLevels-1);}
 else {$maxMatches = getNumEntriesAtLevel_consolation($bracketLevels,'matches');}
@@ -44,7 +44,7 @@ for($i=1;$i<=$bracketLevels;$i++){
 	$name = ".depth{$i}_rightBottom";
 	echo "
 	#tournament_box {$name}{
-	border-right: 2px solid;
+	border-right: 2px solid var(--hs-line);
 	height: 50%;
 	}";
 
@@ -53,7 +53,7 @@ for($i=1;$i<=$bracketLevels;$i++){
 
 	echo "
 	#tournament_box {$name}{
-	border-right: 2px solid;
+	border-right: 2px solid var(--hs-line);
 	height: 50%;
 	position: relative;
 	top: {$top}px;
@@ -70,7 +70,7 @@ for($i=1;$i<=$bracketLevels;$i++){
 }
 
 .bracket-top-slot{
-	border-bottom: 2px solid black;
+	border-bottom: 2px solid var(--hs-line);
 }
 
 #tournament_box {

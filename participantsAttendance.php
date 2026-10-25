@@ -28,16 +28,18 @@ $eventID = (int)$_SESSION['eventID'];
 ?>
 
 	<?php if($_SESSION['filterForSystemRosterID'] != 0): ?>
-		<form method='POST'>
-		<h3>Showing: <b><?=getFighterNameSystem($_SESSION['filterForSystemRosterID'])?></b>
-			<?=tooltip("???")?>
-			<button class='button' name='formName' value='filterForSystemRosterID'>Clear</button>
+		<form method='POST' class='fighter-header'>
+			<h3>Showing: <b><?=getFighterNameSystem($_SESSION['filterForSystemRosterID'])?></b>
+				<?=tooltip("???")?>
+			</h3>
+			<button class='button hollow' name='formName' value='filterForSystemRosterID'>Clear</button>
 			<input type='hidden' name='systemRosterID' value='0'>
-		</h3>
 		</form>
-		[School: <b><?=getFighterSchoolNameSystem($_SESSION['filterForSystemRosterID'])?></b>]
-		[ScorecardID: <?=$_SESSION['filterForSystemRosterID']?>]
-		[HEMA Ratings ID: <?=$HemaRatingsID?>]
+		<dl class='fighter-facts'>
+			<div><dt>School</dt><dd><?=getFighterSchoolNameSystem($_SESSION['filterForSystemRosterID'])?></dd></div>
+			<div><dt>Scorecard ID</dt><dd><?=$_SESSION['filterForSystemRosterID']?></dd></div>
+			<div><dt>HEMA Ratings ID</dt><dd><?=$HemaRatingsID?></dd></div>
+		</dl>
 	<?php endif ?>
 
 	<?=changeRosterFilterDropdown()?>
