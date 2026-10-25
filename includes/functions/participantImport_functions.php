@@ -171,24 +171,181 @@ function importParticipantsParseCsv($eventID, $file){
 
 function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 // Finds the Scorecard fighters each row could be, for the rows in $indexes or
-// for every row. Exact names only, which MySQL compares case-insensitively.
+// for every row, in one pass over systemRoster. The same name, ignoring case,
+// is the fighter, or one of several to choose from. Failing that, up to three
+// fighters with a near name (importNameDistance()) are offered.
 
 	if($indexes === null){
 		$indexes = array_keys($rows);
 	}
+	if($indexes == []){
+		return;
+	}
+
+	$exact = [];     // lowercased 'first|last' => row indexes
+	$pairs = [];     // 'k1|k2' from importNameKeys() of each name => row indexes
+	$names = [];     // row index => [first, last], normalized
+	$limits = [];    // row index => the largest distance that counts as near
+	$exactIDs = [];  // row index => systemRosterIDs
+	$near = [];      // row index => [[distance, lastName, firstName, systemRosterID], ...]
+	foreach($indexes as $i){
+		$key = strtolower(trim($rows[$i]['firstName'])).'|'.strtolower(trim($rows[$i]['lastName']));
+		$exact[$key][] = $i;
+		$exactIDs[$i] = [];
+		$near[$i] = [];
+
+		$first = importNormalizeName($rows[$i]['firstName']);
+		$last = importNormalizeName($rows[$i]['lastName']);
+		if($first == '' && $last == ''){
+			continue; // No letters to compare, so nothing is near
+		}
+		$names[$i] = [$first, $last];
+		$limits[$i] = strlen($first) + strlen($last) < 8 ? 1 : 2;
+		foreach([[$first, $last], [$last, $first]] as $order){ // swapped names too
+			foreach(importNameKeys($order[0]) as $k1){
+				foreach(importNameKeys($order[1]) as $k2){
+					$pairs[$k1.'|'.$k2][$i] = $i;
+				}
+			}
+		}
+	}
+
+	// Streamed rather than buffered. Nothing else may query the connection
+	// until the result is freed.
+	$sql = "SELECT systemRosterID, firstName, lastName, schoolID FROM systemRoster";
+	$result = mysqli_query($GLOBALS["___mysqli_ston"], $sql, MYSQLI_USE_RESULT);
+	checkMySQL(); // As mysqlQuery() does, rather than call every row new
+	while(($fighter = mysqli_fetch_row($result)) !== null){
+		$systemRosterID = (int)$fighter[0];
+		$firstName = (string)$fighter[1];
+		$lastName = (string)$fighter[2];
+
+		$key = strtolower(trim($firstName)).'|'.strtolower(trim($lastName));
+		if(isset($exact[$key])){
+			foreach($exact[$key] as $i){
+				$exactIDs[$i][] = $systemRosterID;
+			}
+		}
+
+		$first = importNormalizeName($firstName);
+		$last = importNormalizeName($lastName);
+		if($first == '' && $last == ''){
+			continue;
+		}
+		$reached = [];
+		foreach(importNameKeys($first) as $k1){
+			foreach(importNameKeys($last) as $k2){
+				if(isset($pairs[$k1.'|'.$k2])){
+					$reached += $pairs[$k1.'|'.$k2];
+				}
+			}
+		}
+		foreach($reached as $i){
+			$distance = importNameDistance($names[$i][0], $names[$i][1], $first, $last);
+			if($distance <= $limits[$i]){
+				$near[$i][] = [$distance, $lastName, $firstName, $systemRosterID];
+			}
+		}
+	}
+	mysqli_free_result($result);
 
 	foreach($indexes as $i){
-		$match = getSystemRosterIDbyName($rows[$i]['firstName'], $rows[$i]['lastName']);
-		if($match['systemRosterID'] != 0){
+		$matchIDs = $exactIDs[$i];
+		if(count($matchIDs) == 1){
 			$rows[$i]['matchType'] = 'exact';
-			$rows[$i]['matches'] = [['systemRosterID' => $match['systemRosterID']]];
+		} else if(count($matchIDs) > 1){
+			$rows[$i]['matchType'] = 'ambiguous';
+		} else if($near[$i] != []){
+			$rows[$i]['matchType'] = 'near';
+			usort($near[$i], function($a, $b){ // closest first
+				if($a[0] != $b[0]){ return $a[0] - $b[0]; }
+				return strcasecmp($a[1], $b[1]) ?: strcasecmp($a[2], $b[2]) ?: $a[3] - $b[3];
+			});
+			foreach(array_slice($near[$i], 0, 3) as $candidate){
+				$matchIDs[] = $candidate[3];
+			}
 		} else {
 			$rows[$i]['matchType'] = 'none';
-			$rows[$i]['matches'] = [];
+		}
+		$rows[$i]['matches'] = [];
+		foreach($matchIDs as $systemRosterID){
+			$rows[$i]['matches'][] = ['systemRosterID' => $systemRosterID];
 		}
 	}
 
 	importParticipantsRefreshMatches($eventID, $rows);
+
+	foreach($indexes as $i){
+		if($rows[$i]['matchType'] == 'ambiguous'){
+			usort($rows[$i]['matches'], function($a, $b){ // told apart by school
+				return strcasecmp($a['schoolLabel'], $b['schoolLabel']) ?: $a['systemRosterID'] - $b['systemRosterID'];
+			});
+		}
+	}
+
+}
+
+/******************************************************************************/
+
+function importNormalizeName($name){
+// A name as just the letters a-z, for near matches: lowercased, accents
+// dropped, and spaces, hyphens and apostrophes removed. "O'Rourke" and
+// "ORourke", or "Zoë" and "ZOE", come out the same.
+
+	$name = (string)$name;
+	if(ctype_alpha($name)){
+		return strtolower($name); // Most names, quickly
+	}
+
+	static $letters = [
+		'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ă' => 'a', 'ą' => 'a',
+		'æ' => 'ae',
+		'ç' => 'c', 'ć' => 'c', 'č' => 'c', 'ĉ' => 'c', 'ċ' => 'c',
+		'ď' => 'd', 'đ' => 'd', 'ð' => 'd',
+		'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ē' => 'e', 'ĕ' => 'e', 'ė' => 'e', 'ę' => 'e', 'ě' => 'e',
+		'ĝ' => 'g', 'ğ' => 'g', 'ġ' => 'g', 'ģ' => 'g',
+		'ĥ' => 'h', 'ħ' => 'h',
+		'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ĩ' => 'i', 'ī' => 'i', 'ĭ' => 'i', 'į' => 'i', 'ı' => 'i',
+		'ĵ' => 'j', 'ķ' => 'k',
+		'ĺ' => 'l', 'ļ' => 'l', 'ľ' => 'l', 'ŀ' => 'l', 'ł' => 'l',
+		'ñ' => 'n', 'ń' => 'n', 'ņ' => 'n', 'ň' => 'n',
+		'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ō' => 'o', 'ŏ' => 'o', 'ő' => 'o',
+		'œ' => 'oe',
+		'ŕ' => 'r', 'ŗ' => 'r', 'ř' => 'r',
+		'ś' => 's', 'ŝ' => 's', 'ş' => 's', 'š' => 's', 'ș' => 's', 'ß' => 'ss',
+		'ţ' => 't', 'ť' => 't', 'ŧ' => 't', 'ț' => 't', 'þ' => 'th',
+		'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ũ' => 'u', 'ū' => 'u', 'ŭ' => 'u', 'ů' => 'u', 'ű' => 'u', 'ų' => 'u',
+		'ŵ' => 'w', 'ý' => 'y', 'ÿ' => 'y', 'ŷ' => 'y',
+		'ź' => 'z', 'ż' => 'z', 'ž' => 'z',
+	];
+	$name = strtr(mb_strtolower($name, 'UTF-8'), $letters);
+	return preg_replace('/[^a-z]/', '', $name);
+
+}
+
+/******************************************************************************/
+
+function importNameKeys($name){
+// The first two and last two letters of a normalized name. Two names within a
+// typo or two of each other nearly always share one of them.
+
+	if($name == ''){
+		return [''];
+	}
+	return array_unique([substr($name, 0, 2), substr($name, -2)]);
+
+}
+
+/******************************************************************************/
+
+function importNameDistance($first, $last, $otherFirst, $otherLast){
+// How many letters differ between two normalized names, the smaller of the
+// names as given and with one pair swapped.
+
+	return min(
+		levenshtein($first, $otherFirst) + levenshtein($last, $otherLast),
+		levenshtein($first, $otherLast) + levenshtein($last, $otherFirst)
+	);
 
 }
 
@@ -219,6 +376,12 @@ function importRowWarnings($row){
 
 	$warnings = [];
 
+	if($row['matchType'] == 'near'){
+		$warnings[] = 'similar';
+	}
+	if($row['matchType'] == 'ambiguous'){
+		$warnings[] = 'sameName';
+	}
 	if($row['schoolFound'] == false && $row['schoolText'] != ''){
 		$warnings[] = 'schoolNotFound';
 	}
@@ -267,7 +430,7 @@ function importParticipantsRefreshMatches($eventID, &$rows){
 
 	$idList = implode2int($systemRosterIDs);
 	$sql = "SELECT sR.systemRosterID, sR.firstName, sR.lastName, sR.schoolID,
-				COALESCE(sS.schoolShortName, sS.schoolFullName) AS schoolName, eR.rosterID
+				COALESCE(sS.schoolShortName, sS.schoolFullName) AS schoolName, sS.schoolBranch, eR.rosterID
 			FROM systemRoster AS sR
 			LEFT JOIN systemSchools AS sS USING(schoolID)
 			LEFT JOIN eventRoster AS eR
@@ -291,13 +454,17 @@ function importParticipantsRefreshMatches($eventID, &$rows){
 			if($schoolID == 0){
 				$schoolID = SCHOOL_ID_UNKNOWN; // Stored without a school
 			}
+			$schoolLabel = (string)$fighter['schoolName'];
+			if($fighter['schoolBranch'] != ''){
+				$schoolLabel .= ", ".$fighter['schoolBranch']; // As the school pickers show it
+			}
 			$rosterID = (int)$fighter['rosterID'];
 			$matches[] = [
 				'systemRosterID' => (int)$fighter['systemRosterID'],
 				'firstName' => $fighter['firstName'],
 				'lastName' => $fighter['lastName'],
 				'schoolID' => $schoolID,
-				'schoolLabel' => $schoolID == SCHOOL_ID_UNKNOWN ? '*Unknown' : (string)$fighter['schoolName'],
+				'schoolLabel' => $schoolID == SCHOOL_ID_UNKNOWN ? '*Unknown' : $schoolLabel,
 				'rosterID' => $rosterID,
 				'tournamentIDs' => array_map('intval', (array)@$entriesByFighter[$rosterID]),
 			];
@@ -381,7 +548,8 @@ function importRowOutcome($row, $choice){
 function importParticipantsRememberState($postedRows){
 // Keeps each row's tick and fighter choice from the posted page, so they show
 // again when the page comes back. A choice is kept only if the row offered it:
-// 'new' on a near match, or one of the row's candidates.
+// 'new' on a near match, or one of the row's candidates. A row still waiting
+// on a choice can't be ticked.
 
 	if(isset($_SESSION['participantsImport']) == false){
 		return;
@@ -401,6 +569,9 @@ function importParticipantsRememberState($postedRows){
 					$row['choice'] = $match['systemRosterID'];
 				}
 			}
+		}
+		if(importRowOutcome($row, $row['choice'])['kind'] == 'choose'){
+			$row['checked'] = false;
 		}
 	}
 	unset($row);

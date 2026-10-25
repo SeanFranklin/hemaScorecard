@@ -784,8 +784,9 @@ var RosterTable = (function(){
 /******************************************************************************/
 // Participant import review (participantsImport.php). Each row is ticked by
 // hand; Import counts the ticked rows and waits for the final confirmation.
-// Kept above the charts code below, which stops this file if Google's loader
-// is blocked.
+// A row that could be more than one fighter can't be ticked until one is
+// chosen. Kept above the charts code below, which stops this file if Google's
+// loader is blocked.
 /******************************************************************************/
 
 var ImportReview = (function(){
@@ -797,8 +798,32 @@ var ImportReview = (function(){
         confirmed = document.getElementById('importConfirmed');
         importButton = form.querySelector("button[name='formName'][value='confirmParticipantsImport']");
 
-        form.addEventListener('change', refresh);
+        form.addEventListener('change', function(e){
+            if(e.target.classList.contains('import-choice')){ choose(e.target); }
+            refresh();
+        });
         refresh();
+    }
+
+    // Shows what the chosen fighter means for the row. Choosing someone already
+    // in the event with nothing to add leaves nothing to tick.
+    function choose(radio){
+        var row = radio.closest('tr.import-row');
+        var outcome = radio.getAttribute('data-outcome');
+        var box = row.querySelector('input.import-check');
+        if(box){
+            box.disabled = outcome == 'nothing';
+            if(box.disabled){ box.checked = false; }
+        }
+
+        var status = row.querySelector('td.import-status');
+        var text = document.createTextNode(radio.getAttribute('data-status'));
+        status.textContent = '';
+        if(outcome == 'new'){
+            status.appendChild(document.createElement('b')).appendChild(text);
+        } else {
+            status.appendChild(text);
+        }
     }
 
     function refresh(){

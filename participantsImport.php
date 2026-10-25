@@ -163,19 +163,14 @@ function importAlsoOnLines($lines){
 function importRow($index, $row, $tournamentNames){
 // One row of the confirmation table, with its tick box unless there is
 // nothing to import. data-outcome is the outcome before any fighter choice.
+// A row offering fighter choices keeps its box, disabled until the choice
+// leaves something to import.
 
 	$outcome = importRowOutcome($row, $row['choice']);
 	$unchosen = importRowOutcome($row, null);
+	$tickable = $outcome['kind'] != 'choose' && $outcome['kind'] != 'nothing';
 	$name = $row['firstName'].' '.$row['lastName'];
-	$statusText = [
-		'choose' => 'Choose a fighter',
-		'new' => 'New to Scorecard',
-		'known' => 'In Scorecard',
-		'schoolPrompt' => 'In Scorecard',
-		'entered' => 'Already in this event, adds tournaments',
-		'nothing' => 'Already in this event, nothing to add',
-	];
-	$status = $statusText[$outcome['kind']];
+	$status = importStatusText($outcome['kind']);
 	$warnings = importRowWarnings($row);
 
 	// The school the row will be entered with: an existing fighter keeps theirs
@@ -191,7 +186,7 @@ function importRow($index, $row, $tournamentNames){
 	}
 	?>
 
-	<tr class='import-row <?=$outcome['kind'] == 'nothing' ? 'grey-text' : ''?>' id='importRow<?=$index?>'
+	<tr class='import-row <?=$unchosen['kind'] == 'nothing' ? 'grey-text' : ''?>' id='importRow<?=$index?>'
 		data-index='<?=$index?>'
 		data-first-name='<?=htmlspecialchars($row['firstName'], ENT_QUOTES)?>'
 		data-last-name='<?=htmlspecialchars($row['lastName'], ENT_QUOTES)?>'
@@ -201,18 +196,21 @@ function importRow($index, $row, $tournamentNames){
 		data-outcome='<?=$unchosen['kind']?>'
 		data-no-school='<?=$unchosen['noSchool'] ? 1 : 0?>'>
 		<td class='import-tick'>
-			<?php if($outcome['kind'] != 'nothing'): ?>
+			<?php if($unchosen['kind'] != 'nothing'): ?>
 				<input type='checkbox' class='import-check' name='importRows[<?=$index?>][checked]' value='1'
-					<?=$row['checked'] ? 'checked' : ''?> <?=$outcome['kind'] == 'choose' ? 'disabled' : ''?>>
+					<?=$row['checked'] && $tickable ? 'checked' : ''?> <?=$tickable ? '' : 'disabled'?>>
 			<?php endif ?>
 		</td>
 		<td class='import-name'>
 			<span class='import-name-text'><?=htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE)?></span>
 			<?php foreach($warnings as $warning){
+				if($warning == 'similar'){ importWarning('Similar fighter already in Scorecard'); }
+				if($warning == 'sameName'){ importWarning('More than one fighter in Scorecard has this name'); }
 				if($warning == 'capitals'){ importWarning('Name is in all capitals'); }
 				if($warning == 'lowercase'){ importWarning('Name is in all lowercase'); }
 				if($warning == 'duplicate'){ importWarning(importAlsoOnLines($row['duplicateLines'])); }
 			} ?>
+			<?php importChoices($index, $row); ?>
 		</td>
 		<td class='import-school'>
 			<span class='import-school-text'><?=htmlspecialchars($schoolLabel, ENT_QUOTES | ENT_SUBSTITUTE)?></span>
@@ -233,6 +231,63 @@ function importRow($index, $row, $tournamentNames){
 		</td>
 		<td class='import-status'><?=$outcome['kind'] == 'new' ? "<b>{$status}</b>" : $status?></td>
 	</tr>
+
+<?php }
+
+/******************************************************************************/
+
+function importStatusText($kind){
+// The status column's text for an importRowOutcome() kind.
+
+	$statusText = [
+		'choose' => 'Choose a fighter',
+		'new' => 'New to Scorecard',
+		'known' => 'In Scorecard',
+		'schoolPrompt' => 'In Scorecard',
+		'entered' => 'Already in this event, adds tournaments',
+		'nothing' => 'Already in this event, nothing to add',
+	];
+	return $statusText[$kind];
+
+}
+
+/******************************************************************************/
+
+function importChoices($index, $row){
+// The fighters an ambiguous or near row could be, as radios. A near row can
+// also be a new fighter; an ambiguous one can't. Each radio carries what
+// choosing it does, for the page to show.
+
+	if($row['matchType'] != 'ambiguous' && $row['matchType'] != 'near'){ return; }
+
+	$choices = [];
+	foreach($row['matches'] as $match){
+		$label = "Use <b>".htmlspecialchars($match['firstName'].' '.$match['lastName'], ENT_QUOTES | ENT_SUBSTITUTE)."</b>"
+			." (".htmlspecialchars($match['schoolLabel'], ENT_QUOTES | ENT_SUBSTITUTE).")";
+		if($match['rosterID'] != 0){
+			$label .= " (already in this event)";
+		}
+		$choices[] = [$match['systemRosterID'], $label];
+	}
+	if($row['matchType'] == 'near'){
+		$choices[] = ['new', 'Add as a new fighter'];
+	}
+	?>
+
+	<div class='import-choices'>
+		<?php foreach($choices as $choice):
+			list($value, $label) = $choice;
+			$outcome = importRowOutcome($row, $value); ?>
+			<label>
+				<input type='radio' class='import-choice' name='importRows[<?=$index?>][choice]' value='<?=$value?>'
+					data-outcome='<?=$outcome['kind']?>'
+					data-no-school='<?=$outcome['noSchool'] ? 1 : 0?>'
+					data-status='<?=htmlspecialchars(importStatusText($outcome['kind']), ENT_QUOTES | ENT_SUBSTITUTE)?>'
+					<?=$row['choice'] === $value ? 'checked' : ''?>>
+				<?=$label?>
+			</label>
+		<?php endforeach ?>
+	</div>
 
 <?php }
 

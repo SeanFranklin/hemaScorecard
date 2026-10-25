@@ -36,6 +36,8 @@ async function confirmAndImport(page: Page) {
   await page.locator('#importConfirmed').check();
   await importButton(page).click();
 }
+const option = (page: Page, row: string, label: string) =>
+  rowFor(page, row).locator('label', { hasText: label }).locator('input.import-choice');
 
 test.describe('participant CSV import', () => {
   test('roster page links to the import page', async ({ page }) => {
@@ -272,5 +274,92 @@ test.describe('participant CSV import', () => {
     await confirmAndImport(page);
     await expect(page.getByText('1 need a school choice before they are added.')).toBeVisible();
     await expect(page.getByText('already exists in the system')).toBeVisible();
+  });
+
+  test('a near-identical name offers the existing fighter', async ({ page }) => {
+    await upload(page, csv('typo.csv', 'First Name,Last Name,School', 'Rowan,Fairwether,Other Club'));
+    const row = rowFor(page, 'Fairwether');
+    await expect(row).toContainText('Similar fighter already in Scorecard');
+    await expect(option(page, 'Fairwether', 'Add as a new fighter')).toHaveCount(1);
+    await expect(row.locator('input.import-check')).toBeDisabled();
+    await option(page, 'Fairwether', 'Use Rowan Fairweather (Other Club)').check();
+    await expect(row.locator('input.import-check')).toBeEnabled();
+    await expect(row.locator('td.import-status')).toHaveText('In Scorecard');
+  });
+
+  test('swapped names, punctuation, case and accents still match', async ({ page }) => {
+    await upload(page, csv('variants.csv', 'First Name,Last Name,School',
+      'Fairweather,Rowan,Other Club', 'Siobhan,ORourke,Test School', 'ZOE,marchetti,Test School'));
+    await expect(option(page, 'Fairweather', 'Use Rowan Fairweather')).toHaveCount(1);
+    await expect(option(page, 'ORourke', "Use Siobhan O'Rourke")).toHaveCount(1);
+    await expect(option(page, 'marchetti', 'Use Zoë Marchetti')).toHaveCount(1);
+  });
+
+  test('two typos still match but a different surname does not', async ({ page }) => {
+    await upload(page, csv('distance.csv', 'First Name,Last Name,School', 'Rowen,Fairwether,Other Club', 'Rowan,Fairfax,Other Club'));
+    await expect(option(page, 'Rowen', 'Use Rowan Fairweather')).toHaveCount(1);
+    const fairfax = rowFor(page, 'Fairfax');
+    await expect(fairfax).not.toContainText('Similar fighter');
+    await expect(fairfax.locator('td.import-status')).toHaveText('New to Scorecard');
+  });
+
+  test('a name two fighters share asks which one, with no new-fighter option', async ({ page }) => {
+    await upload(page, csv('ivo.csv', 'First Name,Last Name,School', 'Ivo,Ibsen,'));
+    const row = rowFor(page, 'Ibsen');
+    await expect(row).toContainText('More than one fighter in Scorecard has this name');
+    await expect(option(page, 'Ibsen', 'Use Ivo Ibsen (Test School)')).toHaveCount(1);
+    await expect(option(page, 'Ibsen', 'Use Ivo Ibsen (Other Club)')).toHaveCount(1);
+    await expect(option(page, 'Ibsen', 'Add as a new fighter')).toHaveCount(0);
+    await expect(row.locator('input.import-check')).toBeDisabled();
+  });
+
+  // Before the next test enters Rowan Fairweather, after which his radio leaves nothing to tick
+  test('a choice that is not one of the offered fighters is ignored', async ({ page }) => {
+    await upload(page, csv('forged.csv', 'First Name,Last Name,School', 'Rowan,Fairwethr,Other Club'));
+    const forged = option(page, 'Fairwethr', 'Use Rowan Fairweather');
+    await forged.evaluate((radio: HTMLInputElement) => { radio.value = '1'; }); // Alice Applegate's systemRosterID
+    await forged.check();
+    await tick(page, 'Fairwethr');
+    await confirmAndImport(page);
+    await expect(page.getByText('0 participants imported.')).toBeVisible();
+  });
+
+  test('choosing a similar fighter imports them instead of a new one', async ({ page }) => {
+    await upload(page, csv('choose.csv', 'First Name,Last Name,School', 'Rowan,Fairwether,Other Club'));
+    await option(page, 'Fairwether', 'Use Rowan Fairweather').check();
+    await tick(page, 'Fairwether');
+    await confirmAndImport(page);
+    await expect(page.getByText('1 participants imported.')).toBeVisible();
+    const roster = page.locator('#eventRosterForm');
+    await expect(roster.locator('tr.roster-row', { hasText: 'Fairweather' })).toContainText('Other Club');
+    await expect(roster.locator('tr.roster-row', { hasText: 'Fairwether' })).toHaveCount(0);
+  });
+
+  test('a similar fighter already in the event only gets the new tournaments', async ({ page }) => {
+    await createTournament(page, { weapon: 'Dagger' }); // distinct from other specs' weapons
+    await upload(page, csv('applegait.csv', 'First Name,Last Name,School,Tournaments', 'Alice,Applegait,Test School,Dagger'));
+    await option(page, 'Applegait', 'Use Alice Applegate (Test School) (already in this event)').check();
+    await expect(rowFor(page, 'Applegait').locator('td.import-status')).toHaveText('Already in this event, adds tournaments');
+    await tick(page, 'Applegait');
+    await confirmAndImport(page);
+    await expect(page.getByText('Added tournaments for 1 already in the event.')).toBeVisible();
+    const roster = page.locator('#eventRosterForm');
+    await expect(roster.locator('tr.roster-row', { hasText: 'Applegate' }).locator('.tournament-box', { hasText: 'Dagger' })).toHaveCount(1);
+    await expect(roster.locator('tr.roster-row', { hasText: 'Applegait' })).toHaveCount(0);
+  });
+
+  // Rowan Fairweather is in the event by now, with no tournaments
+  test('a remembered choice with nothing to add can still be changed', async ({ page }) => {
+    await upload(page, csv('rechoose.csv', 'First Name,Last Name,School', 'Rowan,Fairwaether,Other Club'));
+    await option(page, 'Fairwaether', 'Use Rowan Fairweather').check();
+    const box = rowFor(page, 'Fairwaether').locator('input.import-check');
+    await expect(box).toBeDisabled();
+    await importButton(page).evaluate((b: HTMLButtonElement) => { b.disabled = false; });
+    await importButton(page).click(); // refused without the confirmation, so the page comes back
+    await expect(page.getByText('before importing')).toBeVisible();
+    await expect(option(page, 'Fairwaether', 'Use Rowan Fairweather')).toBeChecked();
+    await expect(box).toBeDisabled();
+    await option(page, 'Fairwaether', 'Add as a new fighter').check();
+    await expect(box).toBeEnabled();
   });
 });
