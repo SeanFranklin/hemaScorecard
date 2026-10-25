@@ -12,8 +12,6 @@
 
 $pageName = 'Event Roster';
 $jsIncludes[] = 'roster_management_scripts.js';
-// Safe inside <script>; substitutes rather than failing on non-UTF-8 names (tables are latin1).
-define('JSON_FLAGS_INLINE', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE);
 include('includes/header.php');
 
 $eventID = $_SESSION['eventID'];
@@ -290,41 +288,7 @@ function rosterInlineEditor(){
 	<template id='rosterEditorTemplate'>
 		<tr class='roster-editor'>
 			<td colspan='100%'>
-				<div class='roster-editor-fields'>
-
-					<div class='new-participant-cell name-cell'>
-						<div class='name-inputs'>
-							<?php if(NAME_MODE == 'firstName'): ?>
-								<input type='text' class='edit-first-name' form='rosterEditForm'
-									name='editParticipantData[firstName]' placeholder='First Name'>
-								<input type='text' class='edit-last-name' form='rosterEditForm'
-									name='editParticipantData[lastName]' placeholder='Last Name'>
-							<?php else: ?>
-								<input type='text' class='edit-last-name' form='rosterEditForm'
-									name='editParticipantData[lastName]' placeholder='Last Name'>
-								<input type='text' class='edit-first-name' form='rosterEditForm'
-									name='editParticipantData[firstName]' placeholder='First Name'>
-							<?php endif ?>
-						</div>
-					</div>
-
-					<div class='new-participant-cell school-cell'>
-						<div class='autocomplete-wrap school-combobox'>
-							<input type='text' class='school-input edit-school-input' placeholder='School' autocomplete='off'>
-							<input type='hidden' class='school-id edit-school-id' form='rosterEditForm'
-								name='editParticipantData[schoolID]' value='0'>
-							<span class='school-toggle' tabindex='-1' aria-label='Show all schools'>&#9662;</span>
-						</div>
-					</div>
-
-					<div class='new-participant-cell tournaments-cell edit-tournaments'></div>
-
-					<div class='roster-editor-actions'>
-						<button class='button success roster-save' form='rosterEditForm'>Save</button>
-						<button type='button' class='button secondary hollow roster-cancel'>Cancel</button>
-					</div>
-
-				</div>
+				<?php rosterEditorFields('rosterEditForm', 'editParticipantData') ?>
 
 				<div class='roster-editor-warning hidden'>
 					<p><span class='red-text'><u>Warning:</u> You are trying to remove a fighter from a tournament
@@ -344,103 +308,6 @@ function rosterInlineEditor(){
 	</template>
 
 <?php }
-
-/******************************************************************************/
-
-function rosterSchoolOptions($schoolList){
-// Schools as {schoolID, label} for the school comboboxes. IDs 1 and 2 are the
-// Unknown/Unaffiliated placeholders, listed first as the old form did; real
-// schools named "Unaffiliated" (or with no short name) are left out.
-
-	$schools = [
-		['schoolID' => SCHOOL_ID_UNKNOWN, 'label' => '*Unknown'],
-		['schoolID' => 2, 'label' => '*Unaffiliated'],
-	];
-	foreach((array)$schoolList as $school){
-		$label = $school['schoolShortName'];
-		if($school['schoolID'] == SCHOOL_ID_UNKNOWN || $school['schoolID'] == 2
-			|| $label == null || $label == 'Unaffiliated'){
-			continue;
-		}
-		if($school['schoolBranch'] != ''){
-			$label .= ", ".$school['schoolBranch'];
-		}
-		$schools[] = ['schoolID' => (int)$school['schoolID'], 'label' => $label];
-	}
-	return $schools;
-}
-
-/******************************************************************************/
-
-function rosterTournamentGroups($tournamentIDs){
-// Tournaments grouped by weapon for the roster entry chips:
-//   [['weapon' => 'Longsword', 'tournaments' => [['tournamentID', 'label', 'weapon'], ...]], ...]
-// A chip's label is the rest of the name ("Tier A Open"); its 'weapon' is the
-// prefix shown when a collapsed row lists its picks outside their group.
-// Within a weapon: gender, then prefix, so the Open tiers sit together.
-// Tournaments that are only a weapon share one unlabeled group at the end.
-
-	$tournamentIDs = array_map('intval', (array)$tournamentIDs);
-	if(count($tournamentIDs) == 0){ return []; }
-
-	$sql = "SELECT eT.tournamentID, w.tournamentType AS weapon, p.tournamentType AS prefix,
-				g.tournamentType AS gender, m.tournamentType AS material, s.tournamentType AS suffix
-			FROM eventTournaments AS eT
-			LEFT JOIN systemTournaments AS w ON w.tournamentTypeID = eT.tournamentWeaponID
-			LEFT JOIN systemTournaments AS p ON p.tournamentTypeID = eT.tournamentPrefixID
-			LEFT JOIN systemTournaments AS g ON g.tournamentTypeID = eT.tournamentGenderID
-			LEFT JOIN systemTournaments AS m ON m.tournamentTypeID = eT.tournamentMaterialID
-			LEFT JOIN systemTournaments AS s ON s.tournamentTypeID = eT.tournamentSuffixID
-			WHERE eT.tournamentID IN (".implode(',', $tournamentIDs).")";
-
-	$byWeapon = [];
-	foreach((array)mysqlQuery($sql, ASSOC) as $t){
-		$parts = array_filter([$t['prefix'], $t['gender'], $t['material'], $t['suffix']],
-							function($v){ return $v !== null && $v !== ''; });
-		$label = implode(' ', $parts);
-		$byWeapon[(string)$t['weapon']][] = [
-			'tournamentID' => (int)$t['tournamentID'],
-			'label' => $label,
-			// The bare weapon first, then by gender (none last), prefix, and the rest.
-			'sort' => [$label == '' ? 0 : 1, $t['gender'] == '' ? 1 : 0,
-						(string)$t['gender'], (string)$t['prefix'], $label],
-		];
-	}
-	uksort($byWeapon, 'strnatcasecmp');
-
-	$groups = [];
-	$plain = [];
-	foreach($byWeapon as $weapon => $list){
-		$weapon = (string)$weapon;
-		if(max(array_map(function($t){ return $t['label'] != ''; }, $list)) == false){
-			foreach($list as $t){
-				$plain[] = ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => ''];
-			}
-			continue;
-		}
-
-		usort($list, function($a, $b){
-			foreach($a['sort'] as $i => $v){
-				$cmp = is_int($v) ? $v - $b['sort'][$i] : strnatcasecmp($v, $b['sort'][$i]);
-				if($cmp != 0){ return $cmp; }
-			}
-			return 0;
-		});
-
-		$tournaments = [];
-		foreach($list as $t){
-			$tournaments[] = ($t['label'] == '')
-				? ['tournamentID' => $t['tournamentID'], 'label' => $weapon, 'weapon' => '']
-				: ['tournamentID' => $t['tournamentID'], 'label' => $t['label'], 'weapon' => $weapon];
-		}
-		$groups[] = ['weapon' => $weapon, 'tournaments' => $tournaments];
-	}
-
-	if(count($plain) > 0){
-		$groups[] = ['weapon' => '', 'tournaments' => $plain];
-	}
-	return $groups;
-}
 
 /******************************************************************************/
 

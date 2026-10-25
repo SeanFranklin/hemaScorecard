@@ -589,6 +589,91 @@ var RosterEntry = (function(){
 })();
 
 /******************************************************************************/
+// Inline editor row shared by the roster table and the import review: names,
+// school combobox and weapon-grouped tournament chips, built from a <template>
+// whose fields come from rosterEditorFields() in display_functions.php.
+/******************************************************************************/
+
+var RosterEditor = (function(){
+
+    // opts: template, formID, fieldName, firstName, lastName, schoolID,
+    // tournamentIDs[], schools, tournamentGroups, manyTournaments,
+    // onChip(tournamentID, chip) (optional), onEnter(), onCancel().
+    // Returns the editor <tr>, not yet inserted.
+    function build(opts){
+        var holder = document.createElement('tbody');
+        holder.innerHTML = opts.template.innerHTML;
+        var editor = holder.firstElementChild;
+        var entered = {};
+        (opts.tournamentIDs || []).forEach(function(id){ entered[id] = true; });
+
+        editor.querySelector('.edit-first-name').value = opts.firstName;
+        editor.querySelector('.edit-last-name').value = opts.lastName;
+        var names = editor.querySelectorAll('.name-inputs input');
+        names.forEach(function(input){
+            input.addEventListener('input', function(){
+                names.forEach(function(n){ n.classList.remove('is-invalid-input'); });
+            });
+        });
+
+        var els = {
+            school: editor.querySelector('.edit-school-input'),
+            schoolID: editor.querySelector('.edit-school-id'),
+            schoolToggle: editor.querySelector('.school-toggle')
+        };
+        RosterEntry.attachSchoolCombobox(els, opts.schools);
+        opts.schools.forEach(function(s){
+            if(s.schoolID == opts.schoolID){ els.school.value = s.label; els.schoolID.value = opts.schoolID; }
+        });
+
+        // Chips grouped by weapon as on the entry card; many get a line of their own.
+        var chipHolder = editor.querySelector('.edit-tournaments');
+        opts.tournamentGroups.forEach(function(group){
+            var line = document.createElement('div');
+            line.className = 'tournament-group';
+            if(group.weapon != ''){
+                var label = document.createElement('span');
+                label.className = 'tournament-group-label';
+                label.textContent = group.weapon;
+                line.appendChild(label);
+            }
+            group.tournaments.forEach(function(t){
+                var chip = document.createElement('div');
+                chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
+                chip.tabIndex = 0;
+                chip.setAttribute('role', 'checkbox');
+                chip.setAttribute('aria-checked', entered[t.tournamentID] ? 'true' : 'false');
+                chip.innerHTML = "<input type='checkbox' class='hidden' form='" + opts.formID + "'"
+                    + " name='" + opts.fieldName + "[tournamentIDs][" + t.tournamentID + "]'"
+                    + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
+                chip.appendChild(document.createTextNode(t.label));
+                chip.addEventListener('click', function(){
+                    RosterEntry.toggleChip(chip);
+                    if(opts.onChip){ opts.onChip(t.tournamentID, chip); }
+                });
+                line.appendChild(chip);
+            });
+            chipHolder.appendChild(line);
+        });
+        editor.classList.toggle('tournaments-wide', !!opts.manyTournaments);
+
+        editor.querySelector('.roster-cancel').addEventListener('click', opts.onCancel);
+        // Space toggles a chip; Enter in a text box or on a chip saves.
+        editor.addEventListener('keydown', function(e){
+            RosterEntry.onChipKey(e);
+            if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+            if(e.target.type != 'text' && !e.target.classList.contains('tournament-box')){ return; }
+            e.preventDefault();
+            if(!editor.querySelector('.roster-save').disabled){ opts.onEnter(); }
+        });
+        return editor;
+    }
+
+    return { build: build };
+
+})();
+
+/******************************************************************************/
 // Event roster table (participantsEvent.php). Organizers click a row to edit
 // it in place; public viewers click a row to reveal its schedule block.
 /******************************************************************************/
@@ -596,7 +681,7 @@ var RosterEntry = (function(){
 var RosterTable = (function(){
 
     var schools = [];           // {schoolID, label}
-    var tournamentGroups = [];  // see rosterTournamentGroups() in participantsEvent.php
+    var tournamentGroups = [];  // see rosterTournamentGroups() in display_functions.php
     var manyTournaments = false;
     var template, form, rosterIDField;
     var current = null;     // {row, editor, fought:{tournamentID:true}} while an editor is open
@@ -656,81 +741,32 @@ var RosterTable = (function(){
     function openEditor(row){
         closeEditor();
 
-        var holder = document.createElement('tbody');
-        holder.innerHTML = template.innerHTML;
-        var editor = holder.firstElementChild;
         var rosterID = row.getAttribute('data-roster-id');
-        var entered = {};
-        row.getAttribute('data-tournament-ids').split(',').forEach(function(id){
-            if(id != ''){ entered[id] = true; }
-        });
+        var entered = row.getAttribute('data-tournament-ids').split(',').filter(function(id){ return id != ''; });
 
         // Names come from data attributes: the name cell may include a participant ID.
-        editor.querySelector('.edit-first-name').value = row.getAttribute('data-first-name');
-        editor.querySelector('.edit-last-name').value = row.getAttribute('data-last-name');
-        var names = editor.querySelectorAll('.name-inputs input');
-        names.forEach(function(input){
-            input.addEventListener('input', function(){
-                names.forEach(function(n){ n.classList.remove('is-invalid-input'); });
-            });
+        var editor = RosterEditor.build({
+            template: template,
+            formID: 'rosterEditForm',
+            fieldName: 'editParticipantData',
+            firstName: row.getAttribute('data-first-name'),
+            lastName: row.getAttribute('data-last-name'),
+            schoolID: row.getAttribute('data-school-id'),
+            tournamentIDs: entered,
+            schools: schools,
+            tournamentGroups: tournamentGroups,
+            manyTournaments: manyTournaments,
+            onChip: function(tournamentID, chip){
+                if(entered.indexOf(String(tournamentID)) != -1){ checkFought(rosterID, tournamentID, chip.firstChild); }
+            },
+            onEnter: function(){ form.requestSubmit(); },
+            onCancel: closeEditor
         });
-
-        var els = {
-            school: editor.querySelector('.edit-school-input'),
-            schoolID: editor.querySelector('.edit-school-id'),
-            schoolToggle: editor.querySelector('.school-toggle')
-        };
-        RosterEntry.attachSchoolCombobox(els, schools);
-        var schoolID = row.getAttribute('data-school-id');
-        schools.forEach(function(s){
-            if(s.schoolID == schoolID){ els.school.value = s.label; els.schoolID.value = schoolID; }
-        });
-
-        // Chips grouped by weapon as on the entry card; many get a line of their own.
-        var chipHolder = editor.querySelector('.edit-tournaments');
-        tournamentGroups.forEach(function(group){
-            var line = document.createElement('div');
-            line.className = 'tournament-group';
-            if(group.weapon != ''){
-                var label = document.createElement('span');
-                label.className = 'tournament-group-label';
-                label.textContent = group.weapon;
-                line.appendChild(label);
-            }
-            group.tournaments.forEach(function(t){
-                var chip = document.createElement('div');
-                chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
-                chip.tabIndex = 0;
-                chip.setAttribute('role', 'checkbox');
-                chip.setAttribute('aria-checked', entered[t.tournamentID] ? 'true' : 'false');
-                chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
-                    + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
-                    + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
-                chip.appendChild(document.createTextNode(t.label));
-                chip.addEventListener('click', function(){
-                    RosterEntry.toggleChip(chip);
-                    if(entered[t.tournamentID]){ checkFought(rosterID, t.tournamentID, chip.firstChild); }
-                });
-                line.appendChild(chip);
-            });
-            chipHolder.appendChild(line);
-        });
-        editor.classList.toggle('tournaments-wide', manyTournaments);
 
         var scheduleRow = document.getElementById('tList-' + rosterID);
         if(scheduleRow){
             editor.querySelector('.roster-editor-schedule').innerHTML = scheduleRow.firstElementChild.innerHTML;
         }
-
-        editor.querySelector('.roster-cancel').addEventListener('click', closeEditor);
-        // Space toggles a chip; Enter in a text box or on a chip saves.
-        editor.addEventListener('keydown', function(e){
-            RosterEntry.onChipKey(e);
-            if(e.key != 'Enter' || e._autocompleteHandled){ return; }
-            if(e.target.type != 'text' && !e.target.classList.contains('tournament-box')){ return; }
-            e.preventDefault();
-            if(!editor.querySelector('.roster-save').disabled){ form.requestSubmit(); }
-        });
 
         rosterIDField.value = rosterID;
         row.parentNode.insertBefore(editor, row.nextSibling);
