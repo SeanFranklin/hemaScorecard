@@ -10,9 +10,12 @@ import { UNENTERED_FIGHTER, SAME_NAME_FIGHTERS, SCHOOLS } from './helpers/test-d
  * with newParticipants[k][...] exactly as the legacy form did.
  */
 
+/** Other specs add tournaments to event 1, so chips are picked by a seeded name, never by position. */
+const LONGSWORD = { hasText: /^\s*Longsword\s*$/ };
+
 /** Chips pre-select when the event has one tournament, so toggle only if needed. */
 async function ensureChipSelected(row: Locator) {
-  const chip = row.locator('.tournament-box').first();
+  const chip = row.locator('.tournament-box', LONGSWORD);
   const checkbox = chip.locator("input[type='checkbox']");
   if (!(await checkbox.isChecked())) {
     await chip.click();
@@ -108,7 +111,7 @@ test.describe('event roster entry', () => {
       'event 1 has more than eight tournaments in this run');
     const rows = card.locator('.new-participant-row');
     await rows.nth(0).locator('.first-name-input').fill('Quinn'); // spawns row 2
-    const chip = rows.nth(0).locator('.tournament-box').first();
+    const chip = rows.nth(0).locator('.tournament-box', LONGSWORD);
     if (await chip.locator('input').isChecked()) {
       await chip.click(); // a lone tournament starts picked
     }
@@ -399,7 +402,7 @@ test.describe('event roster inline edit', () => {
     await page.goto('/participantsEvent.php');
     const roster = page.locator('#eventRosterForm');
     const hart = roster.locator('tr.roster-row', { hasText: 'Hart' });
-    const chipName = (await hart.locator('.roster-tournaments .tournament-box').first().innerText()).trim();
+    const chipName = (await hart.locator('.roster-tournaments .tournament-box', LONGSWORD).innerText()).trim();
     await hart.locator('.roster-school').click();
 
     const editor = roster.locator('tr.roster-editor');
@@ -407,7 +410,7 @@ test.describe('event roster inline edit', () => {
     await page.getByRole('option', { name: SCHOOLS[0].shortName }).click();
     await expect(editor.locator('.edit-school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
 
-    const chip = editor.locator('.tournament-box', { hasText: chipName });
+    const chip = editor.locator('.tournament-box', { hasText: new RegExp(`^\\s*${chipName}\\s*$`) });
     await expect(chip.locator("input[type='checkbox']")).toBeChecked();
     await chip.click();
     await expect(chip.locator("input[type='checkbox']")).not.toBeChecked();
