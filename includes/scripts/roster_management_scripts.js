@@ -826,7 +826,45 @@ var ImportReview = (function(){
         }
     }
 
+    // What a row would do right now: the chosen fighter's outcome if one is
+    // picked, otherwise the row's own.
+    function currentOutcome(row){
+        var picked = row.querySelector('input.import-choice:checked');
+        var source = picked || row;
+        return { kind: source.getAttribute('data-outcome'), noSchool: source.getAttribute('data-no-school') == '1' };
+    }
+
+    function refreshSummary(){
+        var rows = form.querySelectorAll('tr.import-row');
+        var counts = { known: 0, new: 0, entered: 0, noSchool: 0, schoolPrompt: 0 };
+        var newNames = [];
+        var numTicked = 0;
+
+        for(var i = 0; i < rows.length; i++){
+            var box = rows[i].querySelector('input.import-check');
+            if(!box || !box.checked || box.disabled){ continue; }
+            numTicked++;
+            var outcome = currentOutcome(rows[i]);
+            if(counts.hasOwnProperty(outcome.kind)){ counts[outcome.kind]++; }
+            if(outcome.kind == 'new'){
+                newNames.push(rows[i].getAttribute('data-name'));
+                if(outcome.noSchool){ counts.noSchool++; }
+            }
+        }
+        counts.leftOut = rows.length - numTicked;
+
+        for(var key in counts){
+            document.querySelector("#importSummary [data-count='" + key + "'] .count").textContent = counts[key];
+        }
+        document.getElementById('importSummaryHeading').textContent =
+            "You're importing " + numTicked + " of " + rows.length + " rows";
+        var names = document.getElementById('importNewNames');
+        names.textContent = newNames.join(', ');
+        names.hidden = newNames.length == 0;
+    }
+
     function refresh(){
+        refreshSummary();
         var numTicked = form.querySelectorAll('input.import-check:checked:enabled').length;
         importButton.textContent = 'Import ' + numTicked + ' participants';
         importButton.disabled = !confirmed.checked || numTicked == 0;

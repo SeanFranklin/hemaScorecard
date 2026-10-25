@@ -77,7 +77,7 @@ function importConfirmation($import){
 	}
 	?>
 
-	<h4>Confirm import from <i><?=htmlspecialchars($import['fileName'])?></i></h4>
+	<h4>Confirm import from <i><?=htmlspecialchars($import['fileName'], ENT_QUOTES | ENT_SUBSTITUTE)?></i></h4>
 
 	<form method='POST' id='importForm'>
 
@@ -96,6 +96,8 @@ function importConfirmation($import){
 
 	</div>
 
+	<?php importSummary(count($import['rows'])); ?>
+
 	<label>
 		<input type='checkbox' id='importConfirmed' name='importConfirmed' value='1'>
 		I've checked these names, schools and tournaments against my registrations
@@ -113,6 +115,27 @@ function importConfirmation($import){
 			ImportReview.init();
 		});
 	</script>
+
+<?php }
+
+/******************************************************************************/
+
+function importSummary($numRows){
+// What the import will write, counted by the page as rows are ticked.
+
+	?>
+
+	<div class='callout secondary' id='importSummary' data-total='<?=(int)$numRows?>'>
+		<h5 id='importSummaryHeading'>You're importing 0 of <?=(int)$numRows?> rows</h5>
+		<ul>
+			<li data-count='known'><span class='count'>0</span> already in Scorecard</li>
+			<li data-count='new'><span class='count'>0</span> brand-new fighters added to the shared Scorecard database<div id='importNewNames' hidden></div></li>
+			<li data-count='entered'><span class='count'>0</span> already in this event, getting new tournaments</li>
+			<li data-count='noSchool'><span class='count'>0</span> entered with no school (*Unknown)</li>
+			<li data-count='schoolPrompt'><span class='count'>0</span> will ask which school to use after importing</li>
+			<li data-count='leftOut'><span class='count'><?=(int)$numRows?></span> rows left out</li>
+		</ul>
+	</div>
 
 <?php }
 
@@ -188,9 +211,9 @@ function importRow($index, $row, $tournamentNames){
 
 	<tr class='import-row <?=$unchosen['kind'] == 'nothing' ? 'grey-text' : ''?>' id='importRow<?=$index?>'
 		data-index='<?=$index?>'
-		data-first-name='<?=htmlspecialchars($row['firstName'], ENT_QUOTES)?>'
-		data-last-name='<?=htmlspecialchars($row['lastName'], ENT_QUOTES)?>'
-		data-name='<?=htmlspecialchars($name, ENT_QUOTES)?>'
+		data-first-name='<?=htmlspecialchars($row['firstName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
+		data-last-name='<?=htmlspecialchars($row['lastName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
+		data-name='<?=htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE)?>'
 		data-school-id='<?=(int)$row['schoolID']?>'
 		data-tournament-ids='<?=implode(',', $row['tournamentIDs'])?>'
 		data-outcome='<?=$unchosen['kind']?>'
@@ -223,7 +246,7 @@ function importRow($index, $row, $tournamentNames){
 		</td>
 		<td class='import-tournaments'>
 			<?php foreach($row['tournamentIDs'] as $tournamentID): ?>
-				<div class='tournament-box is-static'><?=htmlspecialchars((string)@$tournamentNames[$tournamentID])?></div>
+				<div class='tournament-box is-static'><?=htmlspecialchars((string)@$tournamentNames[$tournamentID], ENT_QUOTES | ENT_SUBSTITUTE)?></div>
 			<?php endforeach ?>
 			<?php if(in_array('ignoredTournaments', $warnings)){
 				importWarning('Ignored: '.implode(', ', $row['ignoredTournaments']));
@@ -307,11 +330,11 @@ function importReadAs($import){
 			<?php $pairs = [];
 			foreach($fields as $field => $label){
 				$header = $import['headers'][$field];
-				$pairs[] = $label.' &larr; '.($header === null ? 'not in file' : htmlspecialchars($header));
+				$pairs[] = $label.' &larr; '.($header === null ? 'not in file' : htmlspecialchars($header, ENT_QUOTES | ENT_SUBSTITUTE));
 			}
 			echo implode(', ', $pairs); ?></p>
 		<?php endif ?>
-		<p>First line of data: <code id='importFirstLine'><?=htmlspecialchars($import['firstLine'])?></code></p>
+		<p>First line of data: <code id='importFirstLine'><?=htmlspecialchars($import['firstLine'], ENT_QUOTES | ENT_SUBSTITUTE)?></code></p>
 	</div>
 
 <?php }

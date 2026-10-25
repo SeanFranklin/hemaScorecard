@@ -390,4 +390,49 @@ test.describe('participant CSV import', () => {
     await option(page, 'Fairwaether', 'Add as a new fighter').check();
     await expect(box).toBeEnabled();
   });
+
+  const count = (page: Page, key: string) => page.locator(`#importSummary [data-count='${key}'] .count`);
+
+  test('the summary counts what will be written as rows are ticked', async ({ page }) => {
+    await createTournament(page, { weapon: 'Grappling' }); // distinct from other specs' weapons
+    await upload(page, csv('summary.csv', 'First Name,Last Name,School,Tournaments',
+      "Siobhan,O'Rourke,Test School,", 'Pia,Pemberton,Test School,', 'Quinn,Quarles,,',
+      'Alice,Applegate,Test School,Grappling', 'Vivian,Voss,Other Club,'));
+    await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 0 of 5 rows");
+    await expect(count(page, 'leftOut')).toHaveText('5');
+    for (const name of ["O'Rourke", 'Pemberton', 'Quarles', 'Applegate', 'Voss']) await tick(page, name);
+    await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 5 of 5 rows");
+    for (const [key, n] of [['known', '1'], ['new', '2'], ['entered', '1'], ['noSchool', '1'], ['schoolPrompt', '1'], ['leftOut', '0']]) {
+      await expect(count(page, key)).toHaveText(n);
+    }
+    await expect(page.locator('#importNewNames')).toHaveText('Pia Pemberton, Quinn Quarles');
+    await rowFor(page, 'Pemberton').locator('input.import-check').uncheck();
+    await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 4 of 5 rows");
+    await expect(count(page, 'new')).toHaveText('1');
+    await expect(page.locator('#importNewNames')).toHaveText('Quinn Quarles');
+  });
+
+  test('switching between a similar fighter and a new one moves the row in the summary', async ({ page }) => {
+    await upload(page, csv('switch.csv', 'First Name,Last Name,School', 'Siobhan,ORourke,Test School'));
+    await option(page, 'ORourke', "Use Siobhan O'Rourke").check();
+    await tick(page, 'ORourke');
+    await expect(count(page, 'known')).toHaveText('1');
+    await expect(count(page, 'new')).toHaveText('0');
+    await option(page, 'ORourke', 'Add as a new fighter').check();
+    await expect(count(page, 'known')).toHaveText('0');
+    await expect(count(page, 'new')).toHaveText('1');
+    await expect(page.locator('#importNewNames')).toHaveText('Siobhan ORourke');
+    await expect(rowFor(page, 'ORourke').locator('td.import-status')).toHaveText('New to Scorecard');
+  });
+
+  test('names are shown exactly as written, never as markup', async ({ page }) => {
+    await upload(page, csv('markup.csv', 'First Name,Last Name,School', 'Dara,"O\'Neil <b>Bold</b>",Test School'));
+    await expect(rowFor(page, 'Dara')).toContainText("O'Neil <b>Bold</b>");
+    await expect(page.locator('#importPreview b', { hasText: 'Bold' })).toHaveCount(0);
+    await tick(page, 'Dara');
+    await expect(page.locator('#importNewNames')).toHaveText("Dara O'Neil <b>Bold</b>");
+    // A file with only clean rows: no Needs a look section, and the summary still counts
+    await expect(page.locator('#importReview')).toHaveCount(0);
+    await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 1 of 1 rows");
+  });
 });
