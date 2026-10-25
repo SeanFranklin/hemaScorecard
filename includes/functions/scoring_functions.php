@@ -2478,6 +2478,12 @@ function pool_GeneratePools($specifications){
 		$useSchools = false;
 	}
 
+	if($specifications['avoidCountryFights'] == true){
+		$useCountries = true;
+	} else {
+		$useCountries = false;
+	}
+
 	if($specifications['useSubGroups'] == true){
 		$useSubGroups = true;
 		$subGroupOrder = "subGroupNum DESC,";
@@ -2490,10 +2496,11 @@ function pool_GeneratePools($specifications){
 
 	switch($specifications['seedMethod']){
 		case 'seedList':
-			$sql = "SELECT rosterID, rating, schoolID, subGroupNum
+			$sql = "SELECT rosterID, rating, schoolID, countryIso2, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
 					LEFT JOIN eventRatings USING(tournamentRosterID)
+					LEFT JOIN systemSchools USING(schoolID)
 					WHERE tournamentID = {$tournamentID}
 					AND (	SELECT COUNT(*)
 							FROM eventIgnores eI
@@ -2546,10 +2553,11 @@ function pool_GeneratePools($specifications){
 			break;
 
 		case 'poolStanding':
-			$sql = "SELECT rosterID, `rank`, schoolID, 0 AS subGroupNum
+			$sql = "SELECT rosterID, `rank`, schoolID, countryIso2, 0 AS subGroupNum
 					FROM eventStandings AS eS
 					INNER JOIN eventRoster USING(rosterID)
 					INNER JOIN eventTournamentRoster AS eTR USING(rosterID)
+					LEFT JOIN systemSchools USING(schoolID)
 					WHERE eS.tournamentID = {$tournamentID}
 					AND eTR.tournamentID = {$tournamentID}
 					AND groupSet = {$lastGroupSet}
@@ -2584,10 +2592,11 @@ function pool_GeneratePools($specifications){
 			break;
 		case 'random':
 		default:
-			$sql = "SELECT rosterID, 0 AS rating, schoolID, subGroupNum
+			$sql = "SELECT rosterID, 0 AS rating, schoolID, countryIso2, subGroupNum
 					FROM eventTournamentRoster as eTR
 					INNER JOIN eventRoster USING(rosterID)
 					LEFT JOIN eventRatings USING(tournamentRosterID)
+					LEFT JOIN systemSchools USING(schoolID)
 					WHERE tournamentID = {$tournamentID}
 					AND (	SELECT COUNT(*)
 							FROM eventIgnores eI
@@ -2694,11 +2703,13 @@ $a = false;
 		unset($numInPools);
 		unset($poolRatings);
 		unset($poolSchools);
+		unset($poolCountries);
 		unset($poolPoints);
 		for($i = $startPoolNum;$i <= $endPoolNum; $i++){
 			$numInPools[$i] = 0;
 			$poolRatings[$i] = 0;
 			$poolSchools[$i] = [];
+			$poolCountries[$i] = [];
 			$poolRefights[$i] = 0;
 		}
 
@@ -2724,6 +2735,9 @@ $a = false;
 			}
 			if($useSchools == true){
 				$schoolPoints = generate_SameSchoolPoints($poolSchools,$fighter['schoolID']);
+			}
+			if($useCountries == true){
+				$countryPoints = generate_SameCountryPoints($poolCountries,$fighter['countryIso2']);
 			}
 			if($useRefights == true){
 				$refightPoints = generate_RefightPoints($poolRefights,
@@ -2756,6 +2770,9 @@ $a = false;
 				if($useSchools == true){
 					$poolPoints[$i] += $schoolPoints[$i];
 				}
+				if($useCountries == true){
+					$poolPoints[$i] += $countryPoints[$i];
+				}
 				if($useRefights == true){
 					$poolPoints[$i] += $refightPoints[$i];
 				}
@@ -2783,6 +2800,7 @@ $a = false;
 									$sizePoints,
 									@$ratingPoints,
 									@$schoolPoints,
+									@$countryPoints,
 									@$refightPoints);
 			}
 
@@ -2793,6 +2811,12 @@ $a = false;
 				$poolSchools[$poolToAddTo][$fighter['schoolID']]++;
 			} else {
 				$poolSchools[$poolToAddTo][$fighter['schoolID']] = 1;
+			}
+
+			if(isset($poolCountries[$poolToAddTo][$fighter['countryIso2']])){
+				$poolCountries[$poolToAddTo][$fighter['countryIso2']]++;
+			} else {
+				$poolCountries[$poolToAddTo][$fighter['countryIso2']] = 1;
 			}
 
 			$numSpotsLeft--;

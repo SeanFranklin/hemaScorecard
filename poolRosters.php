@@ -912,6 +912,25 @@ function autoPopluateButton($numPools, $enabled){
 			</div>
 		</div>
 
+	<!-- Separate Countries -->
+		<div class='input-group'>
+			<span class='input-group-label polar-disables'>
+				Separate Countries? &nbsp;
+				<?php tooltip("The software will attempt to create pools that
+						avoids people from the same country fighting each other,
+						while also seeding based on rank.<BR>
+						A fighter's country is their school's country."); ?>
+			</span>
+			<div class='switch no-bottom input-group-field'>
+				<input class='switch-input' type='hidden'
+					name='generatePools[avoidCountryFights]' value=0>
+				<input class='switch-input polar-disables' type='checkbox' id='avoidCountryFights'
+					name='generatePools[avoidCountryFights]' value=1>
+				<label class='switch-paddle' for='avoidCountryFights'>
+				</label>
+			</div>
+		</div>
+
 	<!-- Avoid Re-fights -->
 		<div class='input-group'>
 			<span class='input-group-label polar-disables'>

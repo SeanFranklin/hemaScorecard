@@ -61,3 +61,31 @@ INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, 
 
 -- No pools/groups/matches are seeded: E2E journey tests create those through
 -- the UI, keeping this fixture decoupled from eventGroups/eventMatches FKs.
+
+-- Fighters at schools in different countries, for pool generation's
+-- "Separate Countries" option. Schools 13 and 14 are both Canadian, and
+-- school 15 has no country set.
+INSERT INTO `systemSchools`
+	(`schoolID`, `schoolFullName`, `schoolShortName`, `schoolAbbreviation`, `countryIso2`)
+VALUES
+	(11, 'Lakeside Longsword', 'Lakeside', 'LLS', 'US'),
+	(12, 'Harbor Fencing Guild', 'Harbor', 'HFG', 'US'),
+	(13, 'Maple Sword Club', 'Maple', 'MSC', 'CA'),
+	(14, 'Prairie Blades', 'Prairie', 'PB', 'CA'),
+	(15, 'Nowhere Fencing', 'Nowhere', 'NF', NULL);
+
+INSERT INTO `systemRoster` (`systemRosterID`, `firstName`, `lastName`, `schoolID`) VALUES
+	(11, 'Mira',   'Morgan',  11),
+	(12, 'Nolan',  'Nash',    12),
+	(13, 'Olive',  'Ortiz',   13),
+	(14, 'Pierre', 'Paquet',  14),
+	(15, 'Quinn',  'Quill',   15),
+	(16, 'Rosa',   'Reyes',   15);
+
+INSERT INTO `eventRoster` (`rosterID`, `systemRosterID`, `eventID`, `schoolID`, `isTeam`, `eventCheckIn`, `eventWaiver`) VALUES
+	(11, 11, 1, 11, 0, 1, 1),
+	(12, 12, 1, 12, 0, 1, 1),
+	(13, 13, 1, 13, 0, 1, 1),
+	(14, 14, 1, 14, 0, 1, 1),
+	(15, 15, 1, 15, 0, 1, 1),
+	(16, 16, 1, 15, 0, 1, 1);
