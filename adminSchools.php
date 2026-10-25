@@ -29,7 +29,7 @@ if(ALLOW['EVENT_MANAGEMENT'] == false
 ?>
 
 	<form method='POST' action='participantsEvent.php'>
-	<input type='hidden' name='on' value='1'>
+	<input type='hidden' name='newParticipantsMode' value='on'>
 	<button class='button' value='addEventParticipantsMode' name='formName'>
 		- Return To Add Participants -
 	</button>
