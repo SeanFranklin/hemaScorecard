@@ -27,6 +27,9 @@ async function upload(page: Page, file: string | CsvPayload) {
   await page.locator("input[name='participantsCsv']").setInputFiles(file);
   await page.locator("button[name='formName'][value='uploadParticipantsCsv']").click();
   await expect(page.locator('#importPreview')).toBeVisible();
+  // The table shows while the footer's scripts still load; ImportReview.init
+  // attaches the page's handlers on DOMContentLoaded
+  await page.waitForLoadState('domcontentloaded');
 }
 
 const rowFor = (page: Page, text: string) => page.locator('#importPreview tr.import-row', { hasText: text });
