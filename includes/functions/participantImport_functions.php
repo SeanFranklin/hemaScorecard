@@ -184,6 +184,7 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 
 	$exact = [];     // lowercased 'first|last' => row indexes
 	$pairs = [];     // 'k1|k2' from importNameKeys() of each name => row indexes
+	$surnames = [];  // normalized last name => row indexes
 	$names = [];     // row index => [first, last], normalized
 	$limits = [];    // row index => the largest distance that counts as near
 	$exactIDs = [];  // row index => systemRosterIDs
@@ -201,6 +202,7 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 		}
 		$names[$i] = [$first, $last];
 		$limits[$i] = strlen($first) + strlen($last) < 8 ? 1 : 2;
+		$surnames[$last][$i] = $i; // Any first name close enough, when the surname is the same
 		foreach([[$first, $last], [$last, $first]] as $order){ // swapped names too
 			foreach(importNameKeys($order[0]) as $k1){
 				foreach(importNameKeys($order[1]) as $k2){
@@ -233,6 +235,12 @@ function importParticipantsMatchFighters($eventID, &$rows, $indexes = null){
 			continue;
 		}
 		$reached = [];
+		if(isset($surnames[$last])){
+			$reached += $surnames[$last];
+		}
+		if(isset($surnames[$first])){
+			$reached += $surnames[$first]; // Swapped: their first name is the row's surname
+		}
 		foreach(importNameKeys($first) as $k1){
 			foreach(importNameKeys($last) as $k2){
 				if(isset($pairs[$k1.'|'.$k2])){
@@ -326,13 +334,20 @@ function importNormalizeName($name){
 /******************************************************************************/
 
 function importNameKeys($name){
-// The first two and last two letters of a normalized name. Two names within a
-// typo or two of each other nearly always share one of them.
+// The first two letters, the last two, and the first and last letter of a
+// normalized name. Two names within a typo or two of each other nearly always
+// share one of them. A name of two letters, where one typo can change all
+// three, also has each letter as a key.
 
-	if($name == ''){
-		return [''];
+	if(strlen($name) <= 1){
+		return [$name];
 	}
-	return array_unique([substr($name, 0, 2), substr($name, -2)]);
+	$keys = [substr($name, 0, 2), substr($name, -2), $name[0].substr($name, -1)];
+	if(strlen($name) == 2){
+		$keys[] = $name[0];
+		$keys[] = $name[1];
+	}
+	return array_unique($keys);
 
 }
 

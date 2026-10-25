@@ -303,6 +303,26 @@ test.describe('participant CSV import', () => {
     await expect(fairfax.locator('td.import-status')).toHaveText('New to Scorecard');
   });
 
+  test('a typo in a short name still matches', async ({ page }) => {
+    await upload(page, csv('ixo.csv', 'First Name,Last Name,School', 'Ixo,Ibsem,'));
+    await expect(option(page, 'Ibsem', 'Use Ivo Ibsen (Test School)')).toHaveCount(1);
+    await expect(option(page, 'Ibsem', 'Use Ivo Ibsen (Other Club)')).toHaveCount(1);
+  });
+
+  test('any first name close enough matches when the surname is the same', async ({ page }) => {
+    await upload(page, csv('bowam.csv', 'First Name,Last Name,School', 'Bowam,Fairweather,Other Club'));
+    await expect(option(page, 'Bowam', 'Use Rowan Fairweather')).toHaveCount(1);
+  });
+
+  test('a typo in a two-letter name still matches', async ({ page }) => {
+    await upload(page, csv('wu.csv', 'First Name,Last Name,School', 'Ottoline,Wu,Test School'));
+    await tick(page, 'Ottoline');
+    await confirmAndImport(page);
+    await expect(page.getByText('1 participants imported.')).toBeVisible();
+    await upload(page, csv('xu.csv', 'First Name,Last Name,School', 'Ottoline,Xu,Test School'));
+    await expect(option(page, 'Ottoline', 'Use Ottoline Wu')).toHaveCount(1);
+  });
+
   test('a name two fighters share asks which one, with no new-fighter option', async ({ page }) => {
     await upload(page, csv('ivo.csv', 'First Name,Last Name,School', 'Ivo,Ibsen,'));
     const row = rowFor(page, 'Ibsen');
@@ -315,13 +335,16 @@ test.describe('participant CSV import', () => {
 
   // Before the next test enters Rowan Fairweather, after which his radio leaves nothing to tick
   test('a choice that is not one of the offered fighters is ignored', async ({ page }) => {
-    await upload(page, csv('forged.csv', 'First Name,Last Name,School', 'Rowan,Fairwethr,Other Club'));
+    // No school, so a forged choice that got through would import her outright
+    await upload(page, csv('forged.csv', 'First Name,Last Name,School', 'Rowan,Fairwethr,'));
     const forged = option(page, 'Fairwethr', 'Use Rowan Fairweather');
-    await forged.evaluate((radio: HTMLInputElement) => { radio.value = '1'; }); // Alice Applegate's systemRosterID
+    // Zoë Marchetti's systemRosterID: not in the event, and no test enters her
+    await forged.evaluate((radio: HTMLInputElement) => { radio.value = '13'; });
     await forged.check();
     await tick(page, 'Fairwethr');
     await confirmAndImport(page);
     await expect(page.getByText('0 participants imported.')).toBeVisible();
+    await expect(page.locator('#eventRosterForm tr.roster-row', { hasText: 'Marchetti' })).toHaveCount(0);
   });
 
   test('choosing a similar fighter imports them instead of a new one', async ({ page }) => {
