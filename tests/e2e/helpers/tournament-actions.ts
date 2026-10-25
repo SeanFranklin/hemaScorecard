@@ -149,12 +149,17 @@ export async function createTournament(page: Page, options: CreateTournamentOpti
 
   await page.locator('#weaponID_div0').selectOption({ label: weapon });
 
+  // Counted rather than expected once, so a second tournament with the same
+  // name is still detected.
+  const listed = page.getByRole('listitem').filter({ hasText: weapon });
+  const alreadyListed = await listed.count();
+
   const addButton = page.locator('#editTournamentButton0');
   await expect(addButton).toBeEnabled();
   await addButton.click();
 
   // POST-redirect-GET lands back on the page listing current tournaments.
-  await expect(page.getByRole('listitem').filter({ hasText: weapon })).toBeVisible();
+  await expect(listed).toHaveCount(alreadyListed + 1);
 }
 
 /** Add event-roster fighters to the current tournament's roster. */

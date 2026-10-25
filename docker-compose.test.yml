@@ -24,10 +24,13 @@ services:
     # The connect-retry loop waits for MySQL init to finish (tmpfs DB
     # re-initializes on every up); run.php itself runs once, so a genuine
     # migration failure still blocks the server and fails the healthcheck.
+    # libzip-dev lets the zip extension build, for the HEMA Ratings
+    # Export All download.
     # PHP 8 shows notices/deprecations by default; log them to the
     # container output instead of printing them into the page HTML.
     command: >
-      sh -c "docker-php-ext-install mysqli &&
+      sh -c "apt-get update && apt-get install -y libzip-dev &&
+             docker-php-ext-install mysqli zip &&
              until php -r 'mysqli_report(MYSQLI_REPORT_OFF); exit(@mysqli_connect(getenv(\"DATABASE_HOST\"), getenv(\"DATABASE_USER\"), getenv(\"DATABASE_PASSWORD\"), getenv(\"PRIMARY_DATABASE\")) ? 0 : 1);'; do
                echo 'waiting for db...'; sleep 2;
              done &&
