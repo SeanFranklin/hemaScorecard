@@ -1,9 +1,9 @@
 import { test, expect } from './helpers/fixtures';
 import { createTournament } from './helpers/tournament-actions';
-import { IMPORT_LATE_ENTRY } from './helpers/test-data';
+import { IMPORT_LATE_ENTRY, ORGANIZER_PASSWORD } from './helpers/test-data';
 import path from 'path';
 import fs from 'fs';
-import type { Page } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
 
 /**
  * CSV import of event participants (participantsImport.php). Upload parks the
@@ -41,6 +41,19 @@ async function confirmAndImport(page: Page) {
 }
 const option = (page: Page, row: string, label: string) =>
   rowFor(page, row).locator('label', { hasText: label }).locator('input.import-choice');
+
+const STALE = 'This import changed since the page was loaded. Review it again before importing.';
+// Another upload in the same session, as from a second tab
+const uploadElsewhere = (page: Page, file: CsvPayload) =>
+  page.request.post('/participantsImport.php', { multipart: { formName: 'uploadParticipantsCsv', participantsCsv: file } });
+// A browser of its own, for tests that log in or out or switch events. Inside a
+// test, browser.newContext() would otherwise share the worker's login.
+const newSession = (browser: Browser, baseURL?: string) =>
+  browser.newContext({ baseURL, storageState: { cookies: [], origins: [] } });
+async function logIn(page: Page, data: Record<string, string>) {
+  await page.goto('/infoWelcome.php');
+  await page.request.post('/infoWelcome.php', { form: { formName: 'logUserIn', ...data } });
+}
 
 test.describe('participant CSV import', () => {
   test('roster page links to the import page', async ({ page }) => {
@@ -547,9 +560,10 @@ test.describe('participant CSV import', () => {
 
   test('the server refuses invalid edits and keeps the row', async ({ page }) => {
     await upload(page, csv('refuse.csv', 'First Name,Last Name,School', 'Cleo,Castellan,Test School'));
+    const importID = await page.locator("#importForm input[name='importID']").inputValue();
     // maxRedirects 0: following the redirect would render, and so use up, the alert
     const save = (edit: Record<string, string>) => page.request.post('/participantsImport.php',
-      { maxRedirects: 0, form: { formName: 'saveImportRow', 'importEdit[index]': '0', 'importEdit[firstName]': 'Cleo',
+      { maxRedirects: 0, form: { formName: 'saveImportRow', importID, 'importEdit[index]': '0', 'importEdit[firstName]': 'Cleo',
                 'importEdit[lastName]': 'Castellan', 'importEdit[schoolID]': '3', ...edit } });
     for (const [edit, message] of [
       [{ 'importEdit[firstName]': ' ', 'importEdit[lastName]': '' }, 'A participant needs a first or last name.'],
@@ -562,5 +576,67 @@ test.describe('participant CSV import', () => {
       await expect(rowFor(page, 'Castellan').locator('.import-fixed')).toHaveCount(0);
       await expect(rowFor(page, 'Castellan').locator('td.import-school')).toContainText('Test School');
     }
+  });
+
+  test('a page left open across another upload is refused on Import', async ({ page }) => {
+    await upload(page, csv('stale-a.csv', 'First Name,Last Name,School', 'Ada,Achterberg,Test School'));
+    await tick(page, 'Achterberg');
+    await uploadElsewhere(page, csv('stale-b.csv', 'First Name,Last Name,School', 'Bram,Brandvold,Test School'));
+    await confirmAndImport(page);
+    await expect(page.getByText(STALE)).toBeVisible();
+    await expect(rowFor(page, 'Brandvold').locator('input.import-check')).not.toBeChecked();
+    await page.goto('/participantsEvent.php');
+    for (const name of ['Achterberg', 'Brandvold']) {
+      await expect(page.locator('#eventRosterForm tr.roster-row', { hasText: name })).toHaveCount(0);
+    }
+  });
+
+  test('a page left open across another upload is refused on Save', async ({ page }) => {
+    await upload(page, csv('stale-c.csv', 'First Name,Last Name,School', 'Cato,Castiglione,Test School'));
+    await uploadElsewhere(page, csv('stale-d.csv', 'First Name,Last Name,School', 'Dov,Dragomir,Test School'));
+    await rowFor(page, 'Castiglione').locator('.import-name-text').click();
+    await editor(page).locator('.edit-last-name').fill('Castiglioni');
+    await editor(page).locator('.roster-save').click();
+    await expect(page.getByText(STALE)).toBeVisible();
+    await expect(rowFor(page, 'Dov Dragomir').locator('.import-fixed')).toHaveCount(0);
+    await expect(rowFor(page, 'Castiglioni')).toHaveCount(0);
+  });
+
+  test('an import belongs to the event it was uploaded in', async ({ browser, baseURL }) => {
+    // The admin user switches events without being logged out, which an organizer can't
+    const context = await newSession(browser, baseURL);
+    const page = await context.newPage();
+    await logIn(page, { 'logInData[type]': 'logInUser', 'logInData[userName]': 'admin', 'logInData[password]': 'any' });
+    await page.goto('/participantsImport.php?e=1');
+    await upload(page, csv('event.csv', 'First Name,Last Name,School,Tournaments', 'Edda,Eikeland,Test School,Longsword'));
+    await tick(page, 'Eikeland');
+    // Another tab switches the session to event 3, then this page imports
+    const other = await context.newPage();
+    await other.goto('/infoSummary.php?e=3');
+    await confirmAndImport(page);
+    await expect(page.getByText(STALE)).toBeVisible();
+    // The import page drops an import from another event
+    await expect(page.locator("input[name='participantsCsv']")).toBeVisible();
+    await page.goto('/participantsImport.php?e=1');
+    await expect(page.locator("input[name='participantsCsv']")).toBeVisible();
+    for (const eventID of [1, 3]) {
+      await page.goto(`/participantsEvent.php?e=${eventID}`);
+      await expect(page.locator('#eventRosterForm tr.roster-row', { hasText: 'Eikeland' })).toHaveCount(0);
+    }
+    await context.close();
+  });
+
+  test('logging out discards a pending import', async ({ browser, baseURL }) => {
+    const context = await newSession(browser, baseURL);
+    const page = await context.newPage();
+    const organizer = { 'logInData[type]': 'logInOrganizer', 'logInData[eventID]': '1', 'logInData[password]': ORGANIZER_PASSWORD };
+    await logIn(page, organizer);
+    await upload(page, csv('logout.csv', 'First Name,Last Name,School', 'Fenna,Falkenrath,Test School'));
+    await page.request.post('/infoWelcome.php', { form: { formName: 'logUserOut' } });
+    await logIn(page, organizer);
+    await page.goto('/participantsImport.php');
+    await expect(page.locator("input[name='participantsCsv']")).toBeVisible();
+    await expect(page.locator('#importPreview')).toHaveCount(0);
+    await context.close();
   });
 });

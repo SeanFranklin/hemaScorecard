@@ -159,7 +159,11 @@ function importParticipantsParseCsv($eventID, $file){
 	}
 	unset($row);
 
-	$_SESSION['participantsImport'] = [
+	// Logging out or in drops it (clearOnLogOut). The event and a new ID tie a
+	// posted page to this upload; see importParticipantsIsCurrent().
+	$_SESSION['clearOnLogOut']['participantsImport'] = [
+		'eventID' => $eventID,
+		'importID' => bin2hex(random_bytes(8)),
 		'fileName' => basename($file['name']),
 		'headers' => $headers,
 		'firstLine' => $firstLine,
@@ -563,17 +567,37 @@ function importRowOutcome($row, $choice){
 
 /******************************************************************************/
 
-function importParticipantsRememberState($postedRows){
+function importParticipantsIsCurrent($eventID, $importID){
+// Whether a posted page shows the pending import: the same upload, in the event
+// it was uploaded to. Rows are posted by position, so a stale tab, or Back after
+// another upload, would otherwise tick and edit another file's rows. If not,
+// says so and returns false, and the caller changes nothing.
+
+	$import = @$_SESSION['clearOnLogOut']['participantsImport'];
+	if(is_array($import) && is_string($importID) && $importID === $import['importID']
+		&& (int)$import['eventID'] == (int)$eventID){
+		return true;
+	}
+
+	setAlert(USER_ERROR, "This import changed since the page was loaded. Review it again before importing.");
+	return false;
+
+}
+
+/******************************************************************************/
+
+function importParticipantsRememberState($eventID, $importID, $postedRows){
 // Keeps each row's tick and fighter choice from the posted page, so they show
 // again when the page comes back. A choice is kept only if the row offered it:
 // 'new' on a near match, or one of the row's candidates. A row still waiting
-// on a choice can't be ticked.
+// on a choice can't be ticked. Returns false, changing nothing, if the page
+// isn't the pending import's.
 
-	if(isset($_SESSION['participantsImport']) == false){
-		return;
+	if(importParticipantsIsCurrent($eventID, $importID) == false){
+		return false;
 	}
 
-	foreach($_SESSION['participantsImport']['rows'] as $i => &$row){
+	foreach($_SESSION['clearOnLogOut']['participantsImport']['rows'] as $i => &$row){
 		$posted = (array)@$postedRows[$i];
 		$choice = @$posted['choice'];
 
@@ -594,23 +618,27 @@ function importParticipantsRememberState($postedRows){
 	}
 	unset($row);
 
+	return true;
+
 }
 
 /******************************************************************************/
 
-function importParticipantsEditRow($eventID, $edit){
+function importParticipantsEditRow($eventID, $importID, $edit){
 // Replaces a row's names, school and tournaments with the organizer's edit:
 // ['index', 'firstName', 'lastName', 'schoolID', 'tournamentIDs' => [id => id]].
 // Only the import row changes, never a fighter in Scorecard. The row is then
 // checked again as the upload checks it, and ticked unless it still waits on a
 // fighter choice or has nothing to import. It keeps its section. The first
 // edit records what the row was, for the page's Fixed notes. An edit that
-// isn't valid is refused with an alert, the row unchanged, and this returns false.
+// isn't valid, or comes from a page that isn't the pending import's, is
+// refused with an alert, the row unchanged, and this returns false.
 
 	$eventID = (int)$eventID;
-	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false || !isset($_SESSION['participantsImport'])){ return false; }
+	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false){ return false; }
+	if(importParticipantsIsCurrent($eventID, $importID) == false){ return false; }
 
-	$rows = &$_SESSION['participantsImport']['rows'];
+	$rows = &$_SESSION['clearOnLogOut']['participantsImport']['rows'];
 	$index = is_scalar(@$edit['index']) ? (string)$edit['index'] : '';
 	if(ctype_digit($index) == false || isset($rows[(int)$index]) == false){
 		return false; // Not a row of this import
@@ -694,26 +722,34 @@ function importParticipantsEditRow($eventID, $edit){
 
 /******************************************************************************/
 
-function importParticipantsCommit($eventID, $postedRows, $confirmed){
+function importParticipantsCommit($eventID, $importID, $postedRows, $confirmed){
 // Writes the rows posted as ticked, each as importRowOutcome() says, after
 // reading the fighters again. New fighters go through addEventParticipants()
 // by name, which still catches anyone added to Scorecard since the upload;
 // existing ones by ID at their stored school. A different school waits on the
-// roster page's conflict callout. Without the final confirmation nothing is
-// written and this returns false.
+// roster page's conflict callout. Without the final confirmation, or from a
+// page that isn't the pending import's, nothing is written and this returns false.
 
 	$eventID = (int)$eventID;
-	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false || !isset($_SESSION['participantsImport'])){ return false; }
+	if($eventID == 0 || ALLOW['EVENT_MANAGEMENT'] == false){ return false; }
+	if(importParticipantsIsCurrent($eventID, $importID) == false){ return false; }
 
 	if($confirmed == false){
-		importParticipantsRememberState($postedRows);
+		importParticipantsRememberState($eventID, $importID, $postedRows);
 		setAlert(USER_ERROR, "Tick \"I've checked these names, schools and tournaments\" before importing.");
 		return false;
 	}
 
-	$rows = $_SESSION['participantsImport']['rows'];
+	$rows = $_SESSION['clearOnLogOut']['participantsImport']['rows'];
 	importParticipantsRefreshMatches($eventID, $rows);
-	unset($_SESSION['participantsImport']);
+	unset($_SESSION['clearOnLogOut']['participantsImport']);
+
+	// Only this event's tournaments, whatever the session held
+	$eventTournamentIDs = array_map('intval', (array)getEventTournaments($eventID));
+	foreach($rows as &$row){
+		$row['tournamentIDs'] = array_values(array_intersect(array_map('intval', $row['tournamentIDs']), $eventTournamentIDs));
+	}
+	unset($row);
 
 	// Count what actually happened; school conflicts wait on the roster page's callout
 	$numBefore = getNumEventRegistrations($eventID);

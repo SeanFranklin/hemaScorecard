@@ -105,18 +105,19 @@ function processPostData(){
 				importParticipantsParseCsv($_SESSION['eventID'], @$_FILES['participantsCsv']);
 				break;
 			case 'cancelParticipantsImport':
-				unset($_SESSION['participantsImport']);
+				unset($_SESSION['clearOnLogOut']['participantsImport']);
 				break;
 			case 'confirmParticipantsImport':
-				importParticipantsRememberState(@$_POST['importRows']);
-				if(importParticipantsCommit($_SESSION['eventID'], (array)@$_POST['importRows'], isset($_POST['importConfirmed']))){
+				if(importParticipantsRememberState($_SESSION['eventID'], @$_POST['importID'], @$_POST['importRows'])
+					&& importParticipantsCommit($_SESSION['eventID'], @$_POST['importID'], (array)@$_POST['importRows'], isset($_POST['importConfirmed']))){
 					refreshPage('participantsEvent.php');
 				}
 				break; // Refused, so the default refresh returns to the import page
 			case 'saveImportRow':
-				importParticipantsRememberState(@$_POST['importRows']);
 				$importEdit = (array)@$_POST['importEdit'];
-				importParticipantsEditRow($_SESSION['eventID'], $importEdit);
+				if(importParticipantsRememberState($_SESSION['eventID'], @$_POST['importID'], @$_POST['importRows'])){
+					importParticipantsEditRow($_SESSION['eventID'], @$_POST['importID'], $importEdit);
+				}
 				refreshPage('participantsImport.php', null, 'importRow'.(int)@$importEdit['index']);
 				break;
 			case 'addEventParticipants':

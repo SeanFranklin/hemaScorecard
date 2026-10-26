@@ -14,14 +14,20 @@ $pageName = 'Import Participants';
 $jsIncludes[] = 'roster_management_scripts.js';
 include('includes/header.php');
 
+// An import belongs to the event it was uploaded in
+if(isset($_SESSION['clearOnLogOut']['participantsImport'])
+	&& (int)$_SESSION['clearOnLogOut']['participantsImport']['eventID'] != (int)$_SESSION['eventID']){
+	unset($_SESSION['clearOnLogOut']['participantsImport']);
+}
+
 if($_SESSION['eventID'] == null){
 	pageError('event');
 } elseif(ALLOW['EVENT_MANAGEMENT'] == false || $_SESSION['isMetaEvent'] == true){
 	pageError('user');
 } else {
 
-	if(isset($_SESSION['participantsImport'])){
-		importConfirmation($_SESSION['participantsImport']);
+	if(isset($_SESSION['clearOnLogOut']['participantsImport'])){
+		importConfirmation($_SESSION['clearOnLogOut']['participantsImport']);
 	} else {
 		importUploadForm();
 	}
@@ -80,6 +86,7 @@ function importConfirmation($import){
 	<h4>Confirm import from <i><?=htmlspecialchars($import['fileName'], ENT_QUOTES | ENT_SUBSTITUTE)?></i></h4>
 
 	<form method='POST' id='importForm'>
+	<input type='hidden' name='importID' value='<?=htmlspecialchars($import['importID'], ENT_QUOTES | ENT_SUBSTITUTE)?>'>
 
 	<div id='importPreview'>
 
