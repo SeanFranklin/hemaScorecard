@@ -639,4 +639,23 @@ test.describe('participant CSV import', () => {
     await expect(page.locator('#importPreview')).toHaveCount(0);
     await context.close();
   });
+
+  test('a fighter chosen before the page script runs is applied when it does', async ({ page }) => {
+    await page.goto('/participantsImport.php');
+    const cancel = page.locator("button[name='formName'][value='cancelParticipantsImport']");
+    if (await cancel.count()) await cancel.click();
+    // Holds back the footer's CDN jquery-ui, so ImportReview.init runs well after the choice
+    await page.route('**/jquery-ui.js', async (route) => {
+      await new Promise((r) => setTimeout(r, 2000));
+      await route.continue();
+    });
+    await page.locator("input[name='participantsCsv']").setInputFiles(
+      csv('early.csv', 'First Name,Last Name,School', 'Zoe,Marchetti,Test School'));
+    await page.locator("button[name='formName'][value='uploadParticipantsCsv']").click();
+    await option(page, 'Marchetti', 'Use Zoë Marchetti').check();
+    await page.waitForLoadState('domcontentloaded');
+    const row = rowFor(page, 'Marchetti');
+    await expect(row.locator('input.import-check')).toBeEnabled();
+    await expect(row.locator('td.import-status')).toHaveText('In Scorecard');
+  });
 });

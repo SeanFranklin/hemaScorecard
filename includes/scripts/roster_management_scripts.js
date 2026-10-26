@@ -861,6 +861,13 @@ var ImportReview = (function(){
         document.addEventListener('keydown', function(e){
             if(e.key == 'Escape' && !e._autocompleteHandled){ closeEditor(); }
         });
+
+        // A choice made while the footer's scripts loaded, or restored by the
+        // browser on reload, fired no change event here
+        var chosen = form.querySelectorAll('input.import-choice:checked');
+        for(var j = 0; j < chosen.length; j++){
+            choose(chosen[j]);
+        }
         refresh();
     }
 
