@@ -975,7 +975,10 @@ var ImportReview = (function(){
             if(counts.hasOwnProperty(outcome.kind)){ counts[outcome.kind]++; }
             if(outcome.kind == 'new'){
                 newNames.push(rows[i].getAttribute('data-name'));
-                if(outcome.noSchool){ counts.noSchool++; }
+            }
+            // A new fighter, or a known one Scorecard has at *Unknown
+            if((outcome.kind == 'new' || outcome.kind == 'known') && outcome.noSchool){
+                counts.noSchool++;
             }
         }
         counts.leftOut = rows.length - numTicked;

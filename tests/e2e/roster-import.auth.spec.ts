@@ -688,4 +688,29 @@ test.describe('participant CSV import', () => {
       expect(review).not.toBe(await background('#importReady', n));
     }
   });
+
+  test('a known fighter with no school counts as entered with no school', async ({ page, browser, baseURL }) => {
+    // Imported through event 3, Pell Pargeter is in Scorecard at *Unknown but not in this event
+    const context = await newSession(browser, baseURL);
+    const other = await context.newPage();
+    await logIn(other, { 'logInData[type]': 'logInOrganizer', 'logInData[eventID]': '3', 'logInData[password]': ORGANIZER_PASSWORD });
+    await upload(other, csv('pargeter.csv', 'First Name,Last Name,School', 'Pell,Pargeter,'));
+    await tick(other, 'Pargeter');
+    await confirmAndImport(other);
+    await expect(other.getByText('1 participants imported.')).toBeVisible();
+    await context.close();
+
+    await upload(page, csv('pargeter-again.csv', 'First Name,Last Name,School', 'Pell,Pargeter,'));
+    await expect(rowFor(page, 'Pargeter').locator('td.import-status')).toHaveText('In Scorecard');
+    await tick(page, 'Pargeter');
+    await expect(count(page, 'known')).toHaveText('1');
+    await expect(count(page, 'noSchool')).toHaveText('1');
+
+    // The same, chosen as a similar fighter
+    await upload(page, csv('pargeterr.csv', 'First Name,Last Name,School', 'Pell,Pargeterr,'));
+    await option(page, 'Pargeterr', 'Use Pell Pargeter (*Unknown)').check();
+    await tick(page, 'Pargeterr');
+    await expect(count(page, 'known')).toHaveText('1');
+    await expect(count(page, 'noSchool')).toHaveText('1');
+  });
 });
