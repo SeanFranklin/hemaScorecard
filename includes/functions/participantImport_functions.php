@@ -567,6 +567,20 @@ function importRowOutcome($row, $choice){
 
 /******************************************************************************/
 
+function importRowIdentity($row, $outcome){
+// Who a row is, given its importRowOutcome(): the fighter in Scorecard, or for
+// a new one the name, ignoring case and surrounding spaces. Ticked rows for
+// the same person import as one.
+
+	if($outcome['systemRosterID'] != 0){
+		return 'id:'.$outcome['systemRosterID'];
+	}
+	return 'name:'.strtolower(trim($row['firstName'])).'|'.strtolower(trim($row['lastName']));
+
+}
+
+/******************************************************************************/
+
 function importParticipantsIsCurrent($eventID, $importID){
 // Whether a posted page shows the pending import: the same upload, in the event
 // it was uploaded to. Rows are posted by position, so a stale tab, or Back after
@@ -755,15 +769,30 @@ function importParticipantsCommit($eventID, $importID, $postedRows, $confirmed){
 	$numBefore = getNumEventRegistrations($eventID);
 	$numConflictsBefore = count((array)@$_SESSION['rosterEntryConflicts']['alreadyExists']);
 
-	$fighterList = [];
-	$numTournamentsAdded = 0;
+	// Ticked rows for the same person, as in a file with a line per tournament
+	// entry, import as one: the first in the file, with all their tournaments.
+	// 'choose' and 'nothing' rows are left out.
+	$people = []; // importRowIdentity() => row indexes in file order
 	foreach($rows as $i => $row){
 		if(empty($postedRows[$i]['checked'])){
 			continue;
 		}
 		$outcome = importRowOutcome($row, $row['choice']);
+		if($outcome['kind'] != 'choose' && $outcome['kind'] != 'nothing'){
+			$people[importRowIdentity($row, $outcome)][] = $i;
+		}
+	}
 
-		// 'choose' and 'nothing' rows are left out
+	$fighterList = [];
+	$numTournamentsAdded = 0;
+	foreach($people as $indexes){
+		$row = $rows[$indexes[0]];
+		foreach($indexes as $i){
+			$row['tournamentIDs'] = array_merge($row['tournamentIDs'], $rows[$i]['tournamentIDs']);
+		}
+		$row['tournamentIDs'] = array_values(array_unique($row['tournamentIDs']));
+		$outcome = importRowOutcome($row, $row['choice']);
+
 		switch($outcome['kind']){
 			case 'new':
 				$fighterList[] = [

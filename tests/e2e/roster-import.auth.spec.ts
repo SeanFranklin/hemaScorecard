@@ -658,4 +658,21 @@ test.describe('participant CSV import', () => {
     await expect(row.locator('input.import-check')).toBeEnabled();
     await expect(row.locator('td.import-status')).toHaveText('In Scorecard');
   });
+
+  test('rows for the same person import as one fighter with all their tournaments', async ({ page }) => {
+    await createTournament(page, { weapon: 'Staff' }); // distinct from other specs' weapons
+    await upload(page, csv('entries.csv', 'First Name,Last Name,School,Tournaments',
+      'Orla,Oyelaran,Test School,Longsword', 'Orla,Oyelaran,Test School,Staff'));
+    for (const box of await rowFor(page, 'Oyelaran').locator('input.import-check').all()) await box.check();
+    await expect(page.locator('#importSummaryHeading')).toHaveText("You're importing 2 of 2 rows");
+    await expect(count(page, 'new')).toHaveText('1');
+    await expect(page.locator('#importNewNames')).toHaveText('Orla Oyelaran');
+    await confirmAndImport(page);
+    await expect(page.getByText('1 participants imported.')).toBeVisible();
+    const orla = page.locator('#eventRosterForm tr.roster-row', { hasText: 'Oyelaran' });
+    await expect(orla).toHaveCount(1);
+    for (const name of [/^\s*Longsword\s*$/, /^\s*Staff\s*$/]) {
+      await expect(orla.locator('.roster-tournaments .tournament-box', { hasText: name })).toHaveCount(1);
+    }
+  });
 });

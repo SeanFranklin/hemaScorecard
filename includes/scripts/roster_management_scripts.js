@@ -944,17 +944,25 @@ var ImportReview = (function(){
     }
 
     // What a row would do right now: the chosen fighter's outcome if one is
-    // picked, otherwise the row's own.
+    // picked, otherwise the row's own. identity is who the row is.
     function currentOutcome(row){
         var picked = row.querySelector('input.import-choice:checked');
         var source = picked || row;
-        return { kind: source.getAttribute('data-outcome'), noSchool: source.getAttribute('data-no-school') == '1' };
+        return {
+            kind: source.getAttribute('data-outcome'),
+            noSchool: source.getAttribute('data-no-school') == '1',
+            identity: source.getAttribute('data-identity')
+        };
     }
 
+    // The counts are of people. Ticked rows for the same person import as one,
+    // the first of them in the file, so only that one is counted.
     function refreshSummary(){
-        var rows = form.querySelectorAll('tr.import-row');
+        var rows = Array.prototype.slice.call(form.querySelectorAll('tr.import-row'));
+        rows.sort(function(a, b){ return a.getAttribute('data-index') - b.getAttribute('data-index'); });
         var counts = { known: 0, new: 0, entered: 0, noSchool: 0, schoolPrompt: 0 };
         var newNames = [];
+        var counted = {}; // identities
         var numTicked = 0;
 
         for(var i = 0; i < rows.length; i++){
@@ -962,6 +970,8 @@ var ImportReview = (function(){
             if(!box || !box.checked || box.disabled){ continue; }
             numTicked++;
             var outcome = currentOutcome(rows[i]);
+            if(counted.hasOwnProperty(outcome.identity)){ continue; }
+            counted[outcome.identity] = true;
             if(counts.hasOwnProperty(outcome.kind)){ counts[outcome.kind]++; }
             if(outcome.kind == 'new'){
                 newNames.push(rows[i].getAttribute('data-name'));

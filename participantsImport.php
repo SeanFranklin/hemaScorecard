@@ -283,7 +283,8 @@ function importRow($index, $row, $tournamentNames){
 		data-school-id='<?=(int)$row['schoolID']?>'
 		data-tournament-ids='<?=implode(',', $row['tournamentIDs'])?>'
 		data-outcome='<?=$unchosen['kind']?>'
-		data-no-school='<?=$unchosen['noSchool'] ? 1 : 0?>'>
+		data-no-school='<?=$unchosen['noSchool'] ? 1 : 0?>'
+		data-identity='<?=htmlspecialchars(importRowIdentity($row, $unchosen), ENT_QUOTES | ENT_SUBSTITUTE)?>'>
 		<td class='import-tick'>
 			<?php if($unchosen['kind'] != 'nothing'): ?>
 				<input type='checkbox' class='import-check' name='importRows[<?=$index?>][checked]' value='1'
@@ -374,6 +375,7 @@ function importChoices($index, $row){
 				<input type='radio' class='import-choice' name='importRows[<?=$index?>][choice]' value='<?=$value?>'
 					data-outcome='<?=$outcome['kind']?>'
 					data-no-school='<?=$outcome['noSchool'] ? 1 : 0?>'
+					data-identity='<?=htmlspecialchars(importRowIdentity($row, $outcome), ENT_QUOTES | ENT_SUBSTITUTE)?>'
 					data-status='<?=htmlspecialchars(importStatusText($outcome['kind']), ENT_QUOTES | ENT_SUBSTITUTE)?>'
 					<?=$row['choice'] === $value ? 'checked' : ''?>>
 				<?=$label?>
