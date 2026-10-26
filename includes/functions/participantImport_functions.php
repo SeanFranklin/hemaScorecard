@@ -25,8 +25,15 @@ function importParticipantsParseCsv($eventID, $file){
 		return;
 	}
 
-	$handle = fopen($file['tmp_name'], 'r');
-	$contents = (string)stream_get_contents($handle); // to number the lines
+	$contents = (string)file_get_contents($file['tmp_name']); // to number the lines
+	// Excel on Windows saves "CSV" as Windows-1252, which isn't valid UTF-8.
+	// Converted first, so lines and offsets are counted in what is read.
+	$readAsWindows1252 = mb_check_encoding($contents, 'UTF-8') == false;
+	if($readAsWindows1252){
+		$contents = mb_convert_encoding($contents, 'UTF-8', 'Windows-1252');
+	}
+	$handle = fopen('php://temp', 'r+');
+	fwrite($handle, $contents);
 	rewind($handle);
 	$lines = [];
 	$spans = []; // byte range of each kept record in the file
@@ -165,6 +172,7 @@ function importParticipantsParseCsv($eventID, $file){
 		'eventID' => $eventID,
 		'importID' => bin2hex(random_bytes(8)),
 		'fileName' => basename($file['name']),
+		'readAsWindows1252' => $readAsWindows1252,
 		'headers' => $headers,
 		'firstLine' => $firstLine,
 		'rows' => $rows,

@@ -713,4 +713,15 @@ test.describe('participant CSV import', () => {
     await expect(count(page, 'known')).toHaveText('1');
     await expect(count(page, 'noSchool')).toHaveText('1');
   });
+
+  test('a file not saved as UTF-8 is read as Windows-1252', async ({ page }) => {
+    // As Excel on Windows saves "CSV": é is the single byte E9
+    await upload(page, { name: 'excel.csv', mimeType: 'text/csv', buffer: Buffer.from(
+      'First Name,Last Name,School\r\nJos\xE9,Quevedo,Test School\r\nJos\xE9,Quevedo,Test School\r\n', 'latin1') });
+    const rows = rowFor(page, 'Quevedo');
+    await expect(rows.locator('.import-name-text')).toHaveText(['José Quevedo', 'José Quevedo']);
+    await expect(rows.first()).toContainText('Also on line 3 of the file');
+    await expect(page.locator('#importFirstLine')).toHaveText('José,Quevedo,Test School');
+    await expect(page.locator('#importReadAs')).toContainText("Your file isn't saved as UTF-8, so it was read as Windows-1252.");
+  });
 });

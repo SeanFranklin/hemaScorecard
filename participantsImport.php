@@ -405,6 +405,9 @@ function importReadAs($import){
 			}
 			echo implode(', ', $pairs); ?></p>
 		<?php endif ?>
+		<?php if(!empty($import['readAsWindows1252'])): ?>
+			<p>Your file isn't saved as UTF-8, so it was read as Windows-1252.</p>
+		<?php endif ?>
 		<p>First line of data: <code id='importFirstLine'><?=htmlspecialchars($import['firstLine'], ENT_QUOTES | ENT_SUBSTITUTE)?></code></p>
 	</div>
 
