@@ -911,6 +911,18 @@ legend h4 {
   padding: 0.75rem;
 }
 
+/* Import rows that need a look. In the CDN Foundation's selector forms, which
+   outrank custom.css for tables. No display here: it would unhide .hidden */
+#importReview table tbody tr.import-row,
+#importReview table tbody tr.import-row:nth-child(even) {
+  background-color: #fdf6e3;
+}
+
+#importReview table.hover tbody tr.import-row:hover,
+#importReview table.hover tbody tr.import-row:nth-child(even):hover {
+  background-color: #f7ebc6;
+}
+
 .roster-editor-actions {
   display: flex;
   gap: 0.5rem;

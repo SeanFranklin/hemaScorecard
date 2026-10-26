@@ -675,4 +675,17 @@ test.describe('participant CSV import', () => {
       await expect(orla.locator('.roster-tournaments .tournament-box', { hasText: name })).toHaveCount(1);
     }
   });
+
+  test('the rows that need a look are highlighted', async ({ page }) => {
+    await upload(page, csv('tint.csv', 'First Name,Last Name,School',
+      'Gil,Gormley,Test School', 'Hal,Hargreave,Test School', 'Ines,Inchbald,Nowhere Academy', 'Jem,Jessop,Nowhere Academy'));
+    await page.mouse.move(0, 0); // no row hovered
+    const background = (section: string, n: number) => page.locator(`${section} tr.import-row`).nth(n)
+      .evaluate((row) => getComputedStyle(row).backgroundColor);
+    for (const n of [0, 1]) { // the second is an even row, which Foundation stripes
+      const review = await background('#importReview', n);
+      expect(review).toBe('rgb(253, 246, 227)');
+      expect(review).not.toBe(await background('#importReady', n));
+    }
+  });
 });
