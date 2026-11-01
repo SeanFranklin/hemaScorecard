@@ -45,7 +45,7 @@ test('above eight tournaments, rows not being worked on show only their picks', 
   const first = rows.nth(0);
   const pick = first.locator('.tournament-box', { hasText: 'Tier B URG' });
 
-  await first.locator('.first-name-input').fill('Ana'); // focusing the last row spawns row 2
+  await first.locator('.first-name-input').fill('Ana'); // typing in the last row spawns row 2
   await pick.click();
   await expect(first.locator('.tournament-box:visible')).toHaveCount(10);
 
@@ -58,4 +58,20 @@ test('above eight tournaments, rows not being worked on show only their picks', 
   await pick.click();
   await expect(first.locator('.tournament-box:visible')).toHaveCount(10);
   await expect(pick).toHaveClass(/is-selected/);
+});
+
+test('Shift+Tab back into a collapsed row opens it, every chip included', async ({ page }) => {
+  const card = await openGroupedEntryCard(page);
+  const rows = card.locator('.new-participant-row');
+  const first = rows.nth(0);
+
+  await first.locator('.first-name-input').fill('Bo');
+  await first.locator('.tournament-box', { hasText: 'Tier B URG' }).click();
+  await rows.nth(1).locator('.name-inputs input').first().focus();
+  await expect(first.locator('.tournament-box:visible')).toHaveCount(1);
+
+  await page.keyboard.press('Shift+Tab'); // row 1's remove button
+  await expect(first.locator('.tournament-box:visible')).toHaveCount(10);
+  await page.keyboard.press('Shift+Tab');
+  await expect(first.locator('.tournament-box').last()).toBeFocused();
 });

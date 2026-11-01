@@ -274,7 +274,8 @@ var RosterEntry = (function(){
 
         addButton.addEventListener('click', function(e){
             e.preventDefault();
-            addRow(); // not focused, or the focus rule below would add a second
+            var row = addRow();
+            if(row){ row.querySelector('.name-inputs input').focus(); }
         });
 
         form.addEventListener('submit', onSubmit);
@@ -299,11 +300,14 @@ var RosterEntry = (function(){
     function removeRow(row){
         var neighbor = row.nextElementSibling || row.previousElementSibling;
         var wasActive = row.classList.contains('is-active');
+        var hadFocus = row.contains(document.activeElement);
         row.parentNode.removeChild(row);
         if(rowsContainer.children.length == 0){
             neighbor = addRow();
         }
         if(wasActive){ setActive(neighbor); }
+        // Removed from the keyboard: stay in the rows rather than drop to the page.
+        if(hadFocus){ neighbor.querySelector('.remove-row').focus(); }
         updateRowLimit();
     }
 
@@ -344,35 +348,50 @@ var RosterEntry = (function(){
                     unlockSchool(els);
                 }
             });
-            input.addEventListener('keydown', function(e){ onEnter(e, row); });
         });
 
         // School combobox
         attachSchoolCombobox(els, schools);
-        els.school.addEventListener('keydown', function(e){ onEnter(e, row); });
 
         // Tournament chips
         var chips = row.querySelectorAll('.tournament-box');
         for(var i = 0; i < chips.length; i++){
-            chips[i].addEventListener('click', function(){ toggleChip(this); });
+            chips[i].addEventListener('click', function(){
+                toggleChip(this);
+                keepBlankRowBelow(row);
+            });
         }
+        row.addEventListener('keydown', onChipKey);
 
         // Remove
         row.querySelector('.remove-row').addEventListener('click', function(){ removeRow(row); });
 
-        // Keep one fresh row below whatever the user is editing.
-        row.addEventListener('focusin', function(){
-            setActive(row);
-            if(row == rowsContainer.lastElementChild){ addRow(); }
-        });
+        row.addEventListener('keydown', function(e){ onEnter(e, row); });
+        row.addEventListener('input', function(){ keepBlankRowBelow(row); });
+        row.addEventListener('focusin', function(){ setActive(row); });
 
-        // Chips aren't focusable, so clicks mark the row too. A collapsed row
-        // shows only its picks: clicking one reopens the row rather than unpicking it.
-        row.addEventListener('click', function(e){
-            if(row.classList.contains('is-active')){ return; }
-            setActive(row);
-            if(collapsible && e.target.closest('.tournament-box')){ e.stopPropagation(); }
+        // Clicks off the inputs and chips mark the row too. A collapsed row shows
+        // only its picks: clicking one reopens the row rather than unpicking it.
+        // The chip takes focus (marking the row) before the click lands, so
+        // whether the row was collapsed is read on mousedown.
+        var reopening = false;
+        row.addEventListener('mousedown', function(e){
+            reopening = collapsible && !row.classList.contains('is-active')
+                && e.target.closest('.tournament-box') != null;
         }, true);
+        row.addEventListener('click', function(e){
+            setActive(row);
+            if(reopening){
+                reopening = false;
+                e.stopPropagation();
+            }
+        }, true);
+    }
+
+    // Keep one blank row below the last row with anything in it. Focus alone
+    // doesn't add one, so Tab can move on past a blank last row.
+    function keepBlankRowBelow(row){
+        if(row == rowsContainer.lastElementChild){ addRow(); }
     }
 
     function rowElements(row){
@@ -390,11 +409,25 @@ var RosterEntry = (function(){
         var checkbox = chip.querySelector('input[type=checkbox]');
         checkbox.checked = !checkbox.checked;
         chip.classList.toggle('is-selected', checkbox.checked);
+        chip.setAttribute('aria-checked', checkbox.checked ? 'true' : 'false');
     }
 
-    // Enter moves to the next row (adding one if needed) instead of submitting.
+    function isChip(el){
+        return el.classList.contains('tournament-box');
+    }
+
+    // Chips are focusable checkboxes: Space toggles one as a click does.
+    function onChipKey(e){
+        if(e.key != ' ' || !isChip(e.target)){ return; }
+        e.preventDefault();
+        if(!e.repeat){ e.target.click(); }
+    }
+
+    // Enter in a text box or on a chip moves to the next row (adding one if
+    // needed) instead of submitting.
     function onEnter(e, row){
         if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+        if(e.target.type != 'text' && !isChip(e.target)){ return; }
         e.preventDefault();
         var next = row.nextElementSibling || addRow();
         if(next){ next.querySelector('.name-inputs input').focus(); }
@@ -466,7 +499,8 @@ var RosterEntry = (function(){
         attachAutocomplete(els.school, {
             items: function(showAll){ return matchSchools(schoolList, showAll ? '' : els.school.value); },
             render: function(s){ return s.label; },
-            onSelect: function(s){ setSchool(els, s); }
+            onSelect: function(s){ setSchool(els, s); },
+            highlightFirst: true // the school must come from the list
         });
         els.school.addEventListener('input', function(){
             var exact = findSchoolByLabel(schoolList, els.school.value);
@@ -481,15 +515,24 @@ var RosterEntry = (function(){
         });
     }
 
+    // Tab takes the first match, so an exact match leads (tabbing through a
+    // picked school keeps it), then schools starting with the text.
     function matchSchools(schoolList, text){
         text = text.trim().toLowerCase();
-        var out = [];
+        var exact = [], starts = [], contains = [];
         for(var i = 0; i < schoolList.length; i++){
-            if(text == '' || schoolList[i].label.toLowerCase().indexOf(text) >= 0){
-                out.push(schoolList[i]);
+            var label = schoolList[i].label.toLowerCase();
+            var at = label.indexOf(text);
+            if(at < 0){ continue; }
+            if(label == text){
+                exact.push(schoolList[i]);
+            } else if(at == 0){
+                starts.push(schoolList[i]);
+            } else {
+                contains.push(schoolList[i]);
             }
         }
-        return out;
+        return exact.concat(starts, contains);
     }
 
     function findSchoolByLabel(schoolList, label){
@@ -559,6 +602,8 @@ var RosterEntry = (function(){
 //   opts.render(item)   -> label string
 //   opts.detail(item)   -> optional muted text after the label
 //   opts.onSelect(item)
+//   opts.highlightFirst -> highlight the first item as the list opens
+// Down opens the list; Enter or Tab takes the highlighted item.
 // Enter/Escape handled here set e._autocompleteHandled so outer handlers skip them.
 
     function attachAutocomplete(input, opts){
@@ -576,6 +621,7 @@ var RosterEntry = (function(){
         function isOpen(){ return !list.hidden; }
 
         function close(){
+            requestID++; // a search landing after focus moves on stays closed
             list.hidden = true;
             list.innerHTML = '';
             items = [];
@@ -612,8 +658,8 @@ var RosterEntry = (function(){
                 });
                 list.appendChild(li);
             });
-            active = -1;
             list.hidden = false;
+            highlight(opts.highlightFirst ? 0 : -1);
         }
 
         function choose(i){
@@ -628,14 +674,23 @@ var RosterEntry = (function(){
                 lis[j].classList.toggle('is-active', j == i);
             }
             active = i;
+            if(i >= 0){ lis[i].scrollIntoView({ block: 'nearest' }); }
         }
 
         input.addEventListener('input', function(){ open(false); });
         input.addEventListener('focus', function(){ if(input.value.trim() != ''){ open(false); } });
         input.addEventListener('blur', close);
         input.addEventListener('keydown', function(e){
-            if(!isOpen()){ return; }
-            if(e.key == 'ArrowDown'){
+            if(!isOpen()){
+                if(e.key == 'ArrowDown'){
+                    e.preventDefault();
+                    open(input.value.trim() == '');
+                }
+                return;
+            }
+            if(e.key == 'Tab'){
+                if(active >= 0){ choose(active); } // and let focus move on
+            } else if(e.key == 'ArrowDown'){
                 e.preventDefault();
                 highlight((active + 1) % items.length);
             } else if(e.key == 'ArrowUp'){

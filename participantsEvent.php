@@ -361,7 +361,7 @@ function addNewParticipantsCard($schoolList){
 // Interface to add participants to the event.
 // Rows are built client side from the <template> below (see RosterEntry in
 // roster_management_scripts.js): the card opens with one row and a fresh one
-// appears whenever the last row is focused. Each row posts the same newParticipants[k][...] fields the legacy
+// appears whenever something goes into the last row. Each row posts the same newParticipants[k][...] fields the legacy
 // per-school form did, so addEventParticipants() and the conflict callout
 // are unchanged.
 
@@ -413,7 +413,7 @@ function addNewParticipantsCard($schoolList){
 		<div id='newParticipantRows'></div>
 
 		<div class='new-participant-footer'>
-			<a id='addParticipantRow' class='button hollow'>+ Add Row</a>
+			<button type='button' id='addParticipantRow' class='button hollow'>+ Add Row</button>
 			<span class='new-participant-limit' id='newParticipantLimit' hidden></span>
 			<span class='new-participant-error red-text' id='newParticipantError'></span>
 			<button class='button success' name='formName' value='addEventParticipants' id='submitNewParticipants'>
@@ -483,7 +483,8 @@ function addNewParticipantsCard($schoolList){
 							<span class='tournament-group-label'><?=htmlspecialchars($group['weapon'])?></span>
 						<?php endif ?>
 						<?php foreach($group['tournaments'] as $t):?>
-							<div class='tournament-box <?=$autoCheck ? 'is-selected' : ''?>'>
+							<div class='tournament-box <?=$autoCheck ? 'is-selected' : ''?>'
+								tabindex='0' role='checkbox' aria-checked='<?=$autoCheck ? 'true' : 'false'?>'>
 								<input type='checkbox' name='newParticipants[__K__][tournamentIDs][]'
 									value='<?=$t['tournamentID']?>' class='hidden' <?=$autoCheck ? 'checked' : ''?>>
 								<?php if($t['weapon'] != ''): ?><span class='chip-weapon'><?=htmlspecialchars($t['weapon'])?> - </span><?php endif ?><?=htmlspecialchars($t['label'])?>
@@ -495,7 +496,7 @@ function addNewParticipantsCard($schoolList){
 
 		<!-- Remove -->
 			<div class='new-participant-cell remove-cell'>
-				<span class='remove-row' title='Remove row' aria-label='Remove row'>&times;</span>
+				<button type='button' class='remove-row' title='Remove row' aria-label='Remove row'>&times;</button>
 			</div>
 
 		</div>

@@ -45,19 +45,22 @@ test.describe('event roster entry', () => {
     await expect(rows).toHaveCount(1);
   });
 
-  test('clicking into the last row spawns a fresh one below it', async ({ page }) => {
+  test('typing into the last row spawns a fresh one below it', async ({ page }) => {
     const card = await openEntryCard(page);
     const rows = card.locator('.new-participant-row');
     await expect(rows).toHaveCount(1);
 
+    // Focus alone doesn't, so Tab can move on past a blank last row.
     await rows.nth(0).locator('.first-name-input').click();
+    await expect(rows).toHaveCount(1);
+    await page.keyboard.type('A');
     await expect(rows).toHaveCount(2);
 
-    // Only the last row spawns; revisiting an earlier row does nothing.
-    await rows.nth(0).locator('.last-name-input').click();
+    // Only the last row spawns; typing in an earlier row does nothing.
+    await rows.nth(0).locator('.last-name-input').fill('B');
     await expect(rows).toHaveCount(2);
 
-    await rows.nth(1).locator('.school-input').click();
+    await rows.nth(1).locator('.school-input').fill('Test');
     await expect(rows).toHaveCount(3);
   });
 
@@ -68,14 +71,15 @@ test.describe('event roster entry', () => {
     const note = card.locator('#newParticipantLimit');
     await expect(note).toBeHidden();
 
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 14; i++) {
       await add.click();
     }
     await expect(rows).toHaveCount(15);
     await expect(note).toBeVisible();
+    await expect(add).toHaveAttribute('aria-disabled', 'true');
 
-    // Focusing the last row normally spawns another below it.
-    await rows.last().locator('.first-name-input').click();
+    // Typing in the last row normally spawns another below it.
+    await rows.last().locator('.first-name-input').fill('Pat');
     await expect(rows).toHaveCount(15);
 
     await rows.last().locator('.remove-row').click();
@@ -100,7 +104,7 @@ test.describe('event roster entry', () => {
   test('with few tournaments, rows not being worked on keep every chip', async ({ page }) => {
     const card = await openEntryCard(page);
     const rows = card.locator('.new-participant-row');
-    await rows.nth(0).locator('.first-name-input').click(); // spawns row 2
+    await rows.nth(0).locator('.first-name-input').fill('Quinn'); // spawns row 2
     const chip = rows.nth(0).locator('.tournament-box').first();
     if (await chip.locator('input').isChecked()) {
       await chip.click(); // a lone tournament starts picked
@@ -201,3 +205,149 @@ test.describe('event roster entry', () => {
   });
 });
 
+test.describe('event roster entry from the keyboard', () => {
+  test('Tab runs through names, school, chips and remove, then into the next row', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    const row = rows.nth(0);
+    const names = row.locator('.name-inputs input');
+    const chips = row.locator('.tournament-box');
+
+    await names.nth(0).focus();
+    await page.keyboard.type('Kay');
+    await page.keyboard.press('Tab');
+    await expect(names.nth(1)).toBeFocused();
+    await page.keyboard.type('Keys');
+    await page.keyboard.press('Tab');
+    await expect(row.locator('.school-input')).toBeFocused();
+
+    await page.keyboard.press('Tab');
+    await expect(chips.first()).toBeFocused();
+    const box = chips.first().locator('input');
+    const wasChecked = await box.isChecked();
+    await page.keyboard.press('Space');
+    expect(await box.isChecked()).toBe(!wasChecked);
+    await expect(chips.first()).toHaveAttribute('aria-checked', String(!wasChecked));
+
+    const count = await chips.count();
+    for (let i = 1; i < count; i++) {
+      await page.keyboard.press('Tab');
+      await expect(chips.nth(i)).toBeFocused();
+    }
+    await page.keyboard.press('Tab');
+    await expect(row.locator('.remove-row')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(rows.nth(1).locator('.name-inputs input').first()).toBeFocused();
+  });
+
+  test('Tab past a blank last row reaches the buttons below the rows', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    await rows.nth(0).locator('.name-inputs input').first().fill('Lee');
+    await expect(rows).toHaveCount(2);
+
+    await rows.nth(1).locator('.name-inputs input').first().focus();
+    for (let i = 0; i < 40 && await rows.nth(1).evaluate((r) => r.contains(document.activeElement)); i++) {
+      await page.keyboard.press('Tab');
+    }
+    await expect(card.locator('#addParticipantRow')).toBeFocused();
+    await expect(rows).toHaveCount(2);
+
+    // Add Row puts the cursor in the row it adds.
+    await page.keyboard.press('Enter');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(2).locator('.name-inputs input').first()).toBeFocused();
+  });
+
+  test('Enter on a chip moves to the next row', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    await rows.nth(0).locator('.name-inputs input').first().fill('Mo');
+    const chip = rows.nth(0).locator('.tournament-box').first();
+    await chip.focus();
+    await expect(chip).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(rows.nth(1).locator('.name-inputs input').first()).toBeFocused();
+  });
+
+  test('typing part of a school and pressing Tab picks the highlighted match', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const row = card.locator('.new-participant-row').first();
+    const school = row.locator('.school-input');
+
+    // "te" is also inside "*Unaffiliated", but a school starting with it leads.
+    await school.focus();
+    await page.keyboard.type('te');
+    await expect(row.locator('.school-combobox .autocomplete-item.is-active')).toHaveText(SCHOOLS[0].shortName);
+    await page.keyboard.press('Tab');
+    await expect(school).toHaveValue(SCHOOLS[0].shortName);
+    await expect(row.locator('.school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
+
+    // Tabbing back through a picked school keeps it.
+    await school.focus();
+    await page.keyboard.press('Tab');
+    await expect(row.locator('.school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
+  });
+
+  test('Down in an empty school box lists every school', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const row = card.locator('.new-participant-row').first();
+    await row.locator('.school-input').focus();
+
+    await page.keyboard.press('ArrowDown');
+    const options = row.locator('.school-combobox [role=option]');
+    await expect(options).toHaveCount(4);
+    await expect(options.nth(0)).toHaveClass(/is-active/);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(row.locator('.school-input')).toHaveValue('*Unaffiliated');
+    await expect(row.locator('.school-id')).toHaveValue('2');
+  });
+
+  test('Tab takes an arrowed-to fighter but never guesses one', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    const ivo = SAME_NAME_FIGHTERS[0]; // never entered, unlike Greta in the add test
+
+    await rows.nth(0).locator('.first-name-input').fill(ivo.firstName);
+    await expect(rows.nth(0).locator('.name-inputs [role=option]').first()).toBeVisible();
+    await page.keyboard.press('Tab');
+    await expect(rows.nth(0).locator('.system-roster-id')).toHaveValue('0');
+    await expect(rows.nth(0).locator('.last-name-input')).toHaveValue('');
+
+    await rows.nth(1).locator('.first-name-input').fill(ivo.firstName);
+    await expect(rows.nth(1).locator('.name-inputs [role=option]').first()).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Tab');
+    await expect(rows.nth(1).locator('.system-roster-id')).not.toHaveValue('0');
+    await expect(rows.nth(1).locator('.last-name-input')).toHaveValue(ivo.lastName);
+  });
+
+  test('a fighter search that lands after Tab leaves no list behind', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const row = card.locator('.new-participant-row').first();
+    await row.locator('.first-name-input').focus();
+
+    const search = page.waitForResponse(/mode=fighterSearch/);
+    await page.keyboard.type('Gre');
+    await page.keyboard.press('Tab');
+    await search;
+    // Give the page's handler a moment to run after the response arrives.
+    await page.waitForTimeout(300);
+    await expect(card.locator('.autocomplete-list:visible')).toHaveCount(0);
+  });
+
+  test('removing a row from the keyboard keeps focus in the rows', async ({ page }) => {
+    const card = await openEntryCard(page);
+    const rows = card.locator('.new-participant-row');
+    await rows.nth(0).locator('.first-name-input').fill('Ned');
+    await rows.nth(1).locator('.first-name-input').fill('Ola');
+    await expect(rows).toHaveCount(3);
+
+    await rows.nth(0).locator('.remove-row').focus();
+    await page.keyboard.press('Enter');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0).locator('.first-name-input')).toHaveValue('Ola');
+    await expect(rows.nth(0).locator('.remove-row')).toBeFocused();
+  });
+});

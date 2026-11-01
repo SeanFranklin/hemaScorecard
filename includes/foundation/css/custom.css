@@ -780,6 +780,12 @@ legend h4 {
   color: #cc4b37;
 }
 
+.tournament-box:focus-visible,
+.remove-row:focus-visible {
+  outline: 2px solid #1779ba;
+  outline-offset: 1px;
+}
+
 .new-participant-footer {
   display: flex;
   flex-wrap: wrap;
