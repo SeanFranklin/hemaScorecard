@@ -469,4 +469,75 @@ test.describe('event roster inline edit', () => {
     await expect(editor).toHaveCount(1);
     await expect(editor.locator('.edit-last-name')).toHaveValue('Hart');
   });
+  test('a roster row opens from the keyboard, and Escape hands focus back to it', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    const gable = roster.locator('tr.roster-row', { hasText: 'Gable' });
+    const editor = roster.locator('tr.roster-editor');
+
+    await gable.focus();
+    await page.keyboard.press('Enter');
+    await expect(editor.locator('.name-inputs input').first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(editor).toHaveCount(0);
+    await expect(gable).toBeFocused();
+
+    await page.keyboard.press('Space');
+    await expect(editor).toHaveCount(1);
+  });
+
+  test('Tab runs through the editor: names, school, chips, Save, Cancel', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    const gable = roster.locator('tr.roster-row', { hasText: 'Gable' });
+    await gable.focus();
+    await page.keyboard.press('Enter');
+
+    const editor = roster.locator('tr.roster-editor');
+    const names = editor.locator('.name-inputs input');
+    const chips = editor.locator('.tournament-box');
+    await expect(names.nth(0)).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(names.nth(1)).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(editor.locator('.edit-school-input')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(editor.locator('.edit-school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
+
+    await expect(chips.first()).toBeFocused();
+    const box = chips.first().locator('input');
+    const wasChecked = await box.isChecked();
+    await page.keyboard.press('Space');
+    expect(await box.isChecked()).toBe(!wasChecked);
+    await expect(chips.first()).toHaveAttribute('aria-checked', String(!wasChecked));
+
+    const count = await chips.count();
+    for (let i = 1; i < count; i++) {
+      await page.keyboard.press('Tab');
+      await expect(chips.nth(i)).toBeFocused();
+    }
+    await page.keyboard.press('Tab');
+    await expect(editor.locator('.roster-save')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(editor.locator('.roster-cancel')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(editor).toHaveCount(0);
+    await expect(gable).toBeFocused();
+  });
+
+  test('saving from the keyboard puts focus back on the saved row', async ({ page }) => {
+    await page.goto('/participantsEvent.php');
+    const roster = page.locator('#eventRosterForm');
+    await roster.locator('tr.roster-row', { hasText: 'Gable' }).focus();
+    await page.keyboard.press('Enter');
+
+    // Enter on a chip saves, as it does in the text boxes.
+    const chip = roster.locator('tr.roster-editor .tournament-box').first();
+    await chip.focus();
+    await expect(chip).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    await expect(page.locator('tr.roster-editor')).toHaveCount(0);
+    await expect(page.locator('#eventRosterForm tr.roster-row', { hasText: 'Gable' })).toBeFocused();
+  });
 });

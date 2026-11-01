@@ -146,12 +146,14 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 		$scheduleHtml = rosterScheduleHtml($rosterID, $fullName, $isTournamentScheduleUsed,
 											$staffingBlocks, $scheduleBlockNames);
 		$rowClass = 'roster-row';
+		$rowTabIndex = '';
 		if(ALLOW_EDITING == true || $scheduleHtml != ''){
 			$rowClass .= ' pointer';
+			$rowTabIndex = "tabindex='0'"; // Enter or Space opens it (RosterTable)
 		}
 		?>
 
-		<tr class='<?=$rowClass?>' id='divFor<?=$rosterID?>'
+		<tr class='<?=$rowClass?>' <?=$rowTabIndex?> id='divFor<?=$rosterID?>'
 			data-roster-id='<?=$rosterID?>'
 			data-first-name='<?=htmlspecialchars($person['firstName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
 			data-last-name='<?=htmlspecialchars($person['lastName'], ENT_QUOTES | ENT_SUBSTITUTE)?>'
@@ -161,7 +163,6 @@ function displayEventRoster($roster, $isTournamentScheduleUsed,
 		<!-- Deletion checkboxes -->
 			<?php if(ALLOW_EDITING == true): ?>
 				<td class='roster-remove'>
-					<a name="anchor<?=$rosterID?>"></a>
 					<input type='checkbox' name='deleteFromEvent[<?=$rosterID?>]'
 						id='<?=$rosterID?>' onchange="checkIfFought(this)">
 				</td>
@@ -320,7 +321,7 @@ function rosterInlineEditor(){
 
 					<div class='roster-editor-actions'>
 						<button class='button success roster-save' form='rosterEditForm'>Save</button>
-						<a class='button secondary hollow roster-cancel'>Cancel</a>
+						<button type='button' class='button secondary hollow roster-cancel'>Cancel</button>
 					</div>
 
 				</div>

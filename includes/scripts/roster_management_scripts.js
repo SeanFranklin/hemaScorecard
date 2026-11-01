@@ -584,7 +584,7 @@ var RosterEntry = (function(){
         input._autocomplete = { open: open, close: close, isOpen: isOpen };
     }
 
-    return { init: init, attachSchoolCombobox: attachSchoolCombobox, toggleChip: toggleChip };
+    return { init: init, attachSchoolCombobox: attachSchoolCombobox, toggleChip: toggleChip, onChipKey: onChipKey };
 
 })();
 
@@ -612,11 +612,19 @@ var RosterTable = (function(){
         var rows = document.querySelectorAll('tr.roster-row');
         for(var r = 0; r < rows.length; r++){
             rows[r].addEventListener('click', template ? onEditClick : onScheduleClick);
+            rows[r].addEventListener('keydown', onRowKey);
         }
         document.addEventListener('keydown', function(e){
             if(e.key == 'Escape' && !e._autocompleteHandled){ closeEditor(); }
         });
         if(form){ form.addEventListener('submit', onSubmit); }
+    }
+
+    // Clickable rows are focusable: Enter or Space opens one as a click does.
+    function onRowKey(e){
+        if(e.target != this || (e.key != 'Enter' && e.key != ' ')){ return; }
+        e.preventDefault();
+        this.click();
     }
 
     // Never post a blank name (both boxes empty, matching the entry form), or
@@ -692,6 +700,9 @@ var RosterTable = (function(){
             group.tournaments.forEach(function(t){
                 var chip = document.createElement('div');
                 chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
+                chip.tabIndex = 0;
+                chip.setAttribute('role', 'checkbox');
+                chip.setAttribute('aria-checked', entered[t.tournamentID] ? 'true' : 'false');
                 chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
                     + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
                     + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
@@ -712,13 +723,13 @@ var RosterTable = (function(){
         }
 
         editor.querySelector('.roster-cancel').addEventListener('click', closeEditor);
-        editor.querySelectorAll('input[type=text]').forEach(function(input){
-            input.addEventListener('keydown', function(e){
-                if(e.key == 'Enter' && !e._autocompleteHandled){
-                    e.preventDefault();
-                    if(!editor.querySelector('.roster-save').disabled){ form.requestSubmit(); }
-                }
-            });
+        // Space toggles a chip; Enter in a text box or on a chip saves.
+        editor.addEventListener('keydown', function(e){
+            RosterEntry.onChipKey(e);
+            if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+            if(e.target.type != 'text' && !e.target.classList.contains('tournament-box')){ return; }
+            e.preventDefault();
+            if(!editor.querySelector('.roster-save').disabled){ form.requestSubmit(); }
         });
 
         rosterIDField.value = rosterID;
@@ -730,8 +741,11 @@ var RosterTable = (function(){
 
     function closeEditor(){
         if(!current){ return; }
+        var hadFocus = current.editor.contains(document.activeElement);
         current.editor.parentNode.removeChild(current.editor);
         current.row.classList.remove('is-editing');
+        // Closed from the keyboard: back to the row, not the top of the page.
+        if(hadFocus){ current.row.focus(); }
         rosterIDField.value = '0';
         current = null;
     }

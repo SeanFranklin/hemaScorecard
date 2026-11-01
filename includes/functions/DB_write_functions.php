@@ -4366,7 +4366,7 @@ function editEventParticipant(){
 
 	}
 
-	$_SESSION['jumpTo'] = "anchor{$rosterID}";
+	$_SESSION['jumpTo'] = "divFor{$rosterID}"; // the row, which takes focus
 	updateTournamentFighterCounts(null, $eventID);
 }
 

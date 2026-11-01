@@ -899,6 +899,11 @@ legend h4 {
   display: none;
 }
 
+.roster-table tr.roster-row:focus-visible {
+  outline: 2px solid #1779ba;
+  outline-offset: -2px;
+}
+
 .roster-table tr.roster-editor > td {
   background: #f4f8fb;
   border-left: 3px solid #1779ba;
