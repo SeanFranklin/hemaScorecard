@@ -213,34 +213,16 @@ case 'newExchange': {
 
 /******************************************************************************/
 
-case 'fighterInfo': {
+case 'fighterSearch': {
+// Autocomplete for the event roster entry form (RosterEntry in
+// roster_management_scripts.js). Searched server side because the full
+// system roster is far too large to embed in the page.
 
-	$rosterID = (int)$_REQUEST['rosterID'];
-	$eventID = (int)$_REQUEST['eventID'];
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ break; }
 
-	$sql = "SELECT firstName, lastName, eventRoster.schoolID
-			FROM eventRoster
-			INNER JOIN systemRoster USING(systemRosterID)
-			WHERE rosterID = {$rosterID}";
-	$res = mysqlQuery($sql, SINGLE);
-
-	$sql = "SELECT tournamentID
-			FROM eventTournamentRoster
-			INNER JOIN eventTournaments USING(tournamentID)
-			WHERE rosterID = {$rosterID}
-			AND eventID = {$eventID}";
-
-	$result = mysqlQuery($sql, ASSOC);
-
-	$temp = [];
-	foreach((array)$result as $item){
-		$tournamentID = $item['tournamentID'];
-		$temp[$tournamentID] = true;
-	}
-
-	$res['tournamentIDs'] = $temp;
-
-	echo json_encode($res);
+	$fighters = searchSystemRosterNotInEvent($_SESSION['eventID'],
+					(string)@$_REQUEST['firstName'], (string)@$_REQUEST['lastName']);
+	echo json_encode($fighters, JSON_INVALID_UTF8_SUBSTITUTE);
 } break;
 
 /******************************************************************************/

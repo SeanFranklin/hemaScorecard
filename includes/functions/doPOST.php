@@ -101,6 +101,25 @@ function processPostData(){
 				break;
 
 	// Roster Management Cases
+			case 'uploadParticipantsCsv':
+				importParticipantsParseCsv($_SESSION['eventID'], @$_FILES['participantsCsv']);
+				break;
+			case 'cancelParticipantsImport':
+				unset($_SESSION['clearOnLogOut']['participantsImport']);
+				break;
+			case 'confirmParticipantsImport':
+				if(importParticipantsRememberState($_SESSION['eventID'], @$_POST['importID'], @$_POST['importRows'])
+					&& importParticipantsCommit($_SESSION['eventID'], @$_POST['importID'], (array)@$_POST['importRows'], isset($_POST['importConfirmed']))){
+					refreshPage('participantsEvent.php');
+				}
+				break; // Refused, so the default refresh returns to the import page
+			case 'saveImportRow':
+				$importEdit = (array)@$_POST['importEdit'];
+				if(importParticipantsRememberState($_SESSION['eventID'], @$_POST['importID'], @$_POST['importRows'])){
+					importParticipantsEditRow($_SESSION['eventID'], @$_POST['importID'], $importEdit);
+				}
+				refreshPage('participantsImport.php', null, 'importRow'.(int)@$importEdit['index']);
+				break;
 			case 'addEventParticipants':
 				if(empty($_POST['newParticipants']) == false){
 					addEventParticipants($_SESSION['eventID'], $_POST['newParticipants']);
@@ -118,9 +137,6 @@ function processPostData(){
 				break;
 			case 'deleteFromEvent':
 				deleteFromEvent();
-				break;
-			case 'changeSchool':
-				$_SESSION['newParticipantsSchoolID'] = $_POST['schoolID'];
 				break;
 			case 'addEventParticipantsMode':
 				if(isset($_POST['newParticipantsMode'])){

@@ -13,13 +13,7 @@ function checkIfFought(checkbox){
 	var elementName = checkbox.name;
 	var elementType = elementName.substring(0, elementName.indexOf('['));
 
-	var deleteOptionSelected = checkbox.checked;
-	if(elementType == 'editParticipantData'){
-		// When editing an event, removing a checkbox indicates removing from a tournament
-		deleteOptionSelected = !deleteOptionSelected;
-	}
-
-	if(deleteOptionSelected){
+	if(checkbox.checked){
 
 		var extractedData = elementName.match(/[^[\]]+(?=])/g);
 		var query = "mode=hasFought";
@@ -40,10 +34,6 @@ function checkIfFought(checkbox){
 				query = query + "&rosterID=" + extractedData[0].toString();
 				query = query + "&eventID=" + document.getElementById('eventID').value;
 				break;
-			case 'editParticipantData':
-				query = query + "&rosterID=" + document.getElementById('editRosterID').value;
-				query = query + "&tournamentID=" + extractedData[1].toString();
-
 		}
 
 		var xhr = new XMLHttpRequest();
@@ -88,13 +78,6 @@ function hasAlreadyFoughtWarning(show, textElement){
 		}
 		textElement.style.color = alertTextColor;
 
-		var block = document.getElementById('confirmEditSubmit');
-		if(block != null){
-			block.style.display = 'block';
-			document.getElementById('normalEditSubmit').disabled = true;
-		}
-
-
 	} else {
 		if(container != null){
 			container.innerHTML = "<button class='button alert hollow' name='formName' \
@@ -107,12 +90,6 @@ function hasAlreadyFoughtWarning(show, textElement){
 		if(deleteButton != null){
 			deleteButton.value = document.getElementById('deleteFormName').value;
 
-		}
-
-		var block = document.getElementById('confirmEditSubmit');
-		if(block != null){
-			block.style.display = null;
-			document.getElementById('normalEditSubmit').disabled = false;
 		}
 	}
 
