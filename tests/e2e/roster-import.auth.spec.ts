@@ -120,16 +120,16 @@ test.describe('participant CSV import', () => {
   });
 
   test('a name shared by two tournaments is ignored as ambiguous', async ({ page }) => {
-    await createTournament(page, { weapon: 'Rotella' }); // distinct from other specs' weapons
-    await createTournament(page, { weapon: 'Rotella' });
+    await createTournament(page, { weapon: 'Dane Axe' }); // distinct from other specs' weapons
+    await createTournament(page, { weapon: 'Dane Axe' });
     await upload(page, csv('ambiguous.csv',
       'First Name,Last Name,Tournaments',
-      'Nora,Nakamura,Rotella',
+      'Nora,Nakamura,Dane Axe',
     ));
 
     const row = page.locator('#importPreview tr.import-row', { hasText: 'Nakamura' });
     await expect(row.locator('.tournament-box')).toHaveCount(0);
-    await expect(row).toContainText('Ignored: Rotella (matches 2 tournaments)');
+    await expect(row).toContainText('Ignored: Dane Axe (matches 2 tournaments)');
   });
 
   test('a file without a header row is read in fixed column order', async ({ page }) => {
