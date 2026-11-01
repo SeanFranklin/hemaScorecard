@@ -1,43 +1,4 @@
 
-/************************************************************************************/
-
-function toggleTableRow(divName, divName2 = null) {
-    var x = document.getElementById(divName);
-
-    if (x.style.display == '') {
-        x.style.display = 'table-row';
-    } else {
-        x.style.display = '';
-    }
-
-    if(divName2 == null){return;}
-
-    var x = document.getElementById(divName2);
-    if (x.style.display == '') {
-        x.style.display = 'table-row';
-    } else {
-        x.style.display = '';
-    }
-
-}
-
-/************************************************************************************/
-
-function toggleCheckbox(checkboxID, divID, dontCheck){
-    checkbox = document.getElementById(checkboxID);
-
-    if(checkbox.checked){
-        checkbox.checked = false;
-        divID.style.background = 'none';
-    } else {
-        checkbox.checked = true;
-        divID.style.background = '#3adb76';
-    }
-    if(typeof dontCheck === 'undefined'){
-        checkIfFought(checkbox);
-    }
-}
-
 /******************************************************************************/
 
 function changeParticipantOrdering(sortWhat,sortHow){
@@ -103,92 +64,6 @@ function goToPersonalSchedule(rosterID){
 
 /**********************************************************************/
 
-function editParticipant(rosterID){
-    var div = document.getElementById('editParticipantModal');
-    checkIfFought.numConflictsChecked = 0;
-    hasAlreadyFoughtWarning(false, div);
-
-    if(rosterID == 0){
-        $("#editParticipantModal").foundation("close");
-        return;
-    }
-
-    $("#editParticipantModal").foundation("open");
-
-    var eventID = document.getElementById('eventID').value;
-
-    var query = "mode=fighterInfo&rosterID="+rosterID.toString();
-    query = query + "&eventID=" + eventID.toString();
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
-
-    xhr.onreadystatechange = function (){
-        if(this.readyState == 4 && this.status == 200){
-            if(this.responseText.length > 1){ // If the fighter has already fought
-                var data = JSON.parse(this.responseText);
-                fillInFields(data);
-            }
-        }
-    };
-
-// Populate fields of the form with data
-    function fillInFields(data){
-        var elementList = document.getElementById('editParticipantForm');
-        for(var i =0; i < elementList.length; i++){
-            elementList[i].checked = false;
-        }
-        psudoButtons = document.getElementById('editTournamentListDiv').getElementsByTagName('div');
-        for(var i=0; i < psudoButtons.length; i++){
-            psudoButtons[i].style.background = 'none';
-        }
-
-        document.getElementById('editRosterID').value = rosterID;
-        document.getElementById('editFirstName').value = data.firstName;
-        document.getElementById('editLastName').value = data.lastName;
-        document.getElementById('editSchoolID').value = data.schoolID;
-        document.getElementById('editFullName').innerHTML = data.firstName+" "+data.lastName;
-        document.getElementById('rosterIDforDelete').name = "deleteFromEvent["+rosterID+"]";
-
-        for(var tournamentID in data.tournamentIDs){
-            document.getElementById('editTournamentID'+tournamentID).checked = true;
-            document.getElementById('divForeditTournamentID'+tournamentID).style.background = '#3adb76';
-        }
-
-        divList = document.getElementsByClassName('tournamentSelectBox');
-
-        for(var i=0; i < divList.length; i++){
-            divList[i].style.color = null;
-        }
-
-    }
-
-// Check if the fighter has already fought
-    var query = "mode=hasFought";
-    query = query + "&rosterID=" + rosterID.toString();
-    query = query + "&eventID=" + document.getElementById('eventID').value;
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", AJAX_LOCATION+"?"+query, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
-
-    xhr.onreadystatechange = function (){
-        if(this.readyState == 4 && this.status == 200){
-            text = document.getElementById('warnIfFought');
-            if(this.responseText.length > 1){ // If the fighter has already fought
-                text.innerHTML = "<div class='callout alert'><u>Note:</u> This participant has already started competing</div>";
-            } else {
-                text.innerHTML = null;
-            }
-        }
-    };
-
-}
-
-/**********************************************************************/
-
 function editSystemParticipant(systemRosterID){
 
     var div = document.getElementById('editSystemParticipantModal');
@@ -226,6 +101,685 @@ function editSystemParticipant(systemRosterID){
     };
 
 }
+
+/******************************************************************************/
+// Event roster entry form (participantsEvent.php)
+//
+// Builds "new participant" rows from a <template>, and attaches a small
+// vanilla-JS autocomplete to the name and school inputs. No jQuery.
+/******************************************************************************/
+
+var RosterEntry = (function(){
+
+    // Schools are embedded in the page (a short list); fighters are searched
+    // server side (AJAX 'fighterSearch') since the system roster runs to
+    // tens of thousands of names.
+    var schools = [];    // {schoolID, label}
+    var schoolsByID = {};
+    var nextIndex = 1;
+    var MAX_SUGGESTIONS = 8;
+    var SEARCH_DELAY_MS = 150;
+    var MAX_ROWS = 15;      // per submit, so a lost page (timeout, misclick) costs little
+
+    var rowsContainer, template, form, errorBox, addButton, limitNote;
+    var submitting = false;
+    var collapsible = false; // many tournaments: see setActive()
+
+/*----------------------------------------------------------------------------*/
+
+    function init(config){
+        schools = config.schools || [];
+        schoolsByID = {};
+        for(var i = 0; i < schools.length; i++){
+            schoolsByID[schools[i].schoolID] = schools[i];
+        }
+
+        rowsContainer = document.getElementById('newParticipantRows');
+        template = document.getElementById('newParticipantRowTemplate');
+        form = document.getElementById('addParticipantsForm');
+        errorBox = document.getElementById('newParticipantError');
+        addButton = document.getElementById('addParticipantRow');
+        limitNote = document.getElementById('newParticipantLimit');
+
+        if(!rowsContainer || !template || !form){ return; }
+
+        collapsible = form.closest('.tournaments-collapse') != null;
+        limitNote.textContent = MAX_ROWS + ' rows at a time. Add these, then keep going.';
+        setActive(addRow());
+
+        addButton.addEventListener('click', function(e){
+            e.preventDefault();
+            var row = addRow();
+            if(row){ row.querySelector('.name-inputs input').focus(); }
+        });
+
+        form.addEventListener('submit', onSubmit);
+        window.addEventListener('beforeunload', onLeave);
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    // Returns null once MAX_ROWS rows exist.
+    function addRow(){
+        if(allRows().length >= MAX_ROWS){ return null; }
+        var html = template.innerHTML.replace(/__K__/g, String(nextIndex++));
+        var holder = document.createElement('div');
+        holder.innerHTML = html;
+        var row = holder.querySelector('.new-participant-row');
+        rowsContainer.appendChild(row);
+        wireRow(row);
+        updateRowLimit();
+        return row;
+    }
+
+    function removeRow(row){
+        var neighbor = row.nextElementSibling || row.previousElementSibling;
+        var wasActive = row.classList.contains('is-active');
+        var hadFocus = row.contains(document.activeElement);
+        row.parentNode.removeChild(row);
+        if(rowsContainer.children.length == 0){
+            neighbor = addRow();
+        }
+        if(wasActive){ setActive(neighbor); }
+        // Removed from the keyboard: stay in the rows rather than drop to the page.
+        if(hadFocus){ neighbor.querySelector('.remove-row').focus(); }
+        updateRowLimit();
+    }
+
+    // Marks the row being worked on. With many tournaments (.tournaments-collapse)
+    // only that row shows every chip; the others show just their picks.
+    function setActive(row){
+        allRows().forEach(function(r){ r.classList.toggle('is-active', r == row); });
+    }
+
+    function updateRowLimit(){
+        var full = allRows().length >= MAX_ROWS;
+        addButton.classList.toggle('disabled', full);
+        addButton.setAttribute('aria-disabled', full ? 'true' : 'false');
+        limitNote.hidden = !full;
+    }
+
+    function allRows(){
+        return Array.prototype.slice.call(rowsContainer.querySelectorAll('.new-participant-row'));
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function wireRow(row){
+        var els = rowElements(row);
+
+        // Name autocomplete on both name inputs
+        [els.first, els.last].forEach(function(input){
+            attachAutocomplete(input, {
+                items: function(){ return matchFighters(row, els); },
+                render: function(f){ return f.firstName + ' ' + f.lastName; },
+                detail: function(f){ return f.schoolName; },
+                onSelect: function(f){ selectFighter(row, els, f); }
+            });
+            input.addEventListener('input', function(){
+                // Editing a picked fighter's name turns the row back into a new entry.
+                if(els.systemRosterID.value != '0'){
+                    els.systemRosterID.value = '0';
+                    unlockSchool(els);
+                }
+            });
+        });
+
+        // School combobox
+        attachSchoolCombobox(els, schools);
+
+        // Tournament chips
+        var chips = row.querySelectorAll('.tournament-box');
+        for(var i = 0; i < chips.length; i++){
+            chips[i].addEventListener('click', function(){
+                toggleChip(this);
+                keepBlankRowBelow(row);
+            });
+        }
+        row.addEventListener('keydown', onChipKey);
+
+        // Remove
+        row.querySelector('.remove-row').addEventListener('click', function(){ removeRow(row); });
+
+        row.addEventListener('keydown', function(e){ onEnter(e, row); });
+        row.addEventListener('input', function(){ keepBlankRowBelow(row); });
+        row.addEventListener('focusin', function(){ setActive(row); });
+
+        // Clicks off the inputs and chips mark the row too. A collapsed row shows
+        // only its picks: clicking one reopens the row rather than unpicking it.
+        // The chip takes focus (marking the row) before the click lands, so
+        // whether the row was collapsed is read on mousedown.
+        var reopening = false;
+        row.addEventListener('mousedown', function(e){
+            reopening = collapsible && !row.classList.contains('is-active')
+                && e.target.closest('.tournament-box') != null;
+        }, true);
+        row.addEventListener('click', function(e){
+            setActive(row);
+            if(reopening){
+                reopening = false;
+                e.stopPropagation();
+            }
+        }, true);
+    }
+
+    // Keep one blank row below the last row with anything in it. Focus alone
+    // doesn't add one, so Tab can move on past a blank last row.
+    function keepBlankRowBelow(row){
+        if(row == rowsContainer.lastElementChild){ addRow(); }
+    }
+
+    function rowElements(row){
+        return {
+            first: row.querySelector('.first-name-input'),
+            last: row.querySelector('.last-name-input'),
+            systemRosterID: row.querySelector('.system-roster-id'),
+            school: row.querySelector('.school-input'),
+            schoolID: row.querySelector('.school-id'),
+            schoolToggle: row.querySelector('.school-toggle')
+        };
+    }
+
+    function toggleChip(chip){
+        var checkbox = chip.querySelector('input[type=checkbox]');
+        checkbox.checked = !checkbox.checked;
+        chip.classList.toggle('is-selected', checkbox.checked);
+        chip.setAttribute('aria-checked', checkbox.checked ? 'true' : 'false');
+    }
+
+    function isChip(el){
+        return el.classList.contains('tournament-box');
+    }
+
+    // Chips are focusable checkboxes: Space toggles one as a click does.
+    function onChipKey(e){
+        if(e.key != ' ' || !isChip(e.target)){ return; }
+        e.preventDefault();
+        if(!e.repeat){ e.target.click(); }
+    }
+
+    // Enter in a text box or on a chip moves to the next row (adding one if
+    // needed) instead of submitting.
+    function onEnter(e, row){
+        if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+        if(e.target.type != 'text' && !isChip(e.target)){ return; }
+        e.preventDefault();
+        var next = row.nextElementSibling || addRow();
+        if(next){ next.querySelector('.name-inputs input').focus(); }
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function selectedSystemIDs(exceptRow){
+        var ids = {};
+        allRows().forEach(function(r){
+            if(r == exceptRow){ return; }
+            var id = r.querySelector('.system-roster-id').value;
+            if(id != '0'){ ids[id] = true; }
+        });
+        return ids;
+    }
+
+    // Resolves to fighters matching the row's typed names, minus any already
+    // picked in another row. Debounced; the autocomplete discards stale results.
+    function matchFighters(row, els){
+        var first = els.first.value.trim();
+        var last = els.last.value.trim();
+        if(first == '' && last == ''){ return []; }
+
+        return new Promise(function(resolve){
+            clearTimeout(row._searchTimer);
+            row._searchTimer = setTimeout(function(){
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', AJAX_LOCATION + '?mode=fighterSearch&firstName=' + encodeURIComponent(first)
+                    + '&lastName=' + encodeURIComponent(last), true);
+                xhr.onload = function(){
+                    var taken = selectedSystemIDs(row);
+                    resolve(JSON.parse(this.responseText).filter(function(f){
+                        return !taken[f.systemRosterID];
+                    }).slice(0, MAX_SUGGESTIONS));
+                };
+                xhr.send();
+            }, SEARCH_DELAY_MS);
+        });
+    }
+
+    function selectFighter(row, els, f){
+        els.first.value = f.firstName;
+        els.last.value = f.lastName;
+        els.systemRosterID.value = String(f.systemRosterID);
+        var school = schoolsByID[f.schoolID];
+        if(school){
+            // Known fighters keep their school; the field unlocks if the name is edited.
+            setSchool(els, school);
+            els.school.readOnly = true;
+            els.school.parentNode.classList.add('is-locked');
+        } else {
+            // systemRoster.schoolID can be null: leave the school for the user to pick.
+            els.school.value = '';
+            els.schoolID.value = '0';
+            unlockSchool(els);
+        }
+    }
+
+    function unlockSchool(els){
+        els.school.readOnly = false;
+        els.school.parentNode.classList.remove('is-locked');
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    // School combobox: els = {school (text input), schoolID (hidden), schoolToggle (caret)}
+    function attachSchoolCombobox(els, schoolList){
+        attachAutocomplete(els.school, {
+            items: function(showAll){ return matchSchools(schoolList, showAll ? '' : els.school.value); },
+            render: function(s){ return s.label; },
+            onSelect: function(s){ setSchool(els, s); },
+            highlightFirst: true // the school must come from the list
+        });
+        els.school.addEventListener('input', function(){
+            var exact = findSchoolByLabel(schoolList, els.school.value);
+            els.schoolID.value = exact ? exact.schoolID : '0';
+            els.school.classList.remove('is-invalid-input');
+        });
+        els.schoolToggle.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            if(els.school.readOnly){ return; }
+            els.school.focus();
+            els.school._autocomplete.open(true);
+        });
+    }
+
+    // Tab takes the first match, so an exact match leads (tabbing through a
+    // picked school keeps it), then schools starting with the text.
+    function matchSchools(schoolList, text){
+        text = text.trim().toLowerCase();
+        var exact = [], starts = [], contains = [];
+        for(var i = 0; i < schoolList.length; i++){
+            var label = schoolList[i].label.toLowerCase();
+            var at = label.indexOf(text);
+            if(at < 0){ continue; }
+            if(label == text){
+                exact.push(schoolList[i]);
+            } else if(at == 0){
+                starts.push(schoolList[i]);
+            } else {
+                contains.push(schoolList[i]);
+            }
+        }
+        return exact.concat(starts, contains);
+    }
+
+    function findSchoolByLabel(schoolList, label){
+        label = label.trim().toLowerCase();
+        for(var i = 0; i < schoolList.length; i++){
+            if(schoolList[i].label.toLowerCase() == label){ return schoolList[i]; }
+        }
+        return null;
+    }
+
+    function setSchool(els, school){
+        els.school.value = school.label;
+        els.schoolID.value = String(school.schoolID);
+        els.school.classList.remove('is-invalid-input');
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function rowHasName(row){
+        return row.querySelector('.first-name-input').value.trim() != ''
+            || row.querySelector('.last-name-input').value.trim() != '';
+    }
+
+    function onSubmit(e){
+        errorBox.textContent = '';
+        var valid = true;
+        var anyToAdd = false;
+
+        allRows().forEach(function(row){
+            if(!rowHasName(row)){
+                // Blank rows are dropped so they never post.
+                row.parentNode.removeChild(row);
+                return;
+            }
+            anyToAdd = true;
+            var els = rowElements(row);
+            if(els.schoolID.value == '0'){
+                els.school.classList.add('is-invalid-input');
+                valid = false;
+            }
+        });
+
+        if(!anyToAdd){
+            e.preventDefault();
+            errorBox.textContent = 'Enter at least one participant.';
+            addRow();
+            return;
+        }
+        if(!valid){
+            e.preventDefault();
+            errorBox.textContent = 'Pick a school for each highlighted participant.';
+            return;
+        }
+        submitting = true;
+    }
+
+    // Ask before a navigation throws away typed rows.
+    function onLeave(e){
+        if(submitting || !allRows().some(rowHasName)){ return; }
+        e.preventDefault();
+        e.returnValue = '';
+    }
+
+/*----------------------------------------------------------------------------*/
+// Minimal autocomplete: renders a listbox under the input, keyboard navigable.
+//   opts.items(showAll) -> array of items for the current input value, or a Promise of one
+//   opts.render(item)   -> label string
+//   opts.detail(item)   -> optional muted text after the label
+//   opts.onSelect(item)
+//   opts.highlightFirst -> highlight the first item as the list opens
+// Down opens the list; Enter or Tab takes the highlighted item.
+// Enter/Escape handled here set e._autocompleteHandled so outer handlers skip them.
+
+    function attachAutocomplete(input, opts){
+        var wrap = input.parentNode;
+        var list = document.createElement('ul');
+        list.className = 'autocomplete-list';
+        list.setAttribute('role', 'listbox');
+        list.hidden = true;
+        wrap.appendChild(list);
+
+        var items = [];
+        var active = -1;
+        var requestID = 0;
+
+        function isOpen(){ return !list.hidden; }
+
+        function close(){
+            requestID++; // a search landing after focus moves on stays closed
+            list.hidden = true;
+            list.innerHTML = '';
+            items = [];
+            active = -1;
+        }
+
+        function open(showAll){
+            if(input.readOnly){ return; }
+            var token = ++requestID;
+            Promise.resolve(opts.items(showAll)).then(function(result){
+                if(token == requestID){ show(result); }
+            });
+        }
+
+        function show(result){
+            items = result;
+            list.innerHTML = '';
+            if(items.length == 0){ close(); return; }
+            items.forEach(function(item, i){
+                var li = document.createElement('li');
+                li.className = 'autocomplete-item';
+                li.setAttribute('role', 'option');
+                li.textContent = opts.render(item);
+                var detail = opts.detail && opts.detail(item);
+                if(detail){
+                    var span = document.createElement('span');
+                    span.className = 'autocomplete-detail';
+                    span.textContent = detail;
+                    li.appendChild(span);
+                }
+                li.addEventListener('mousedown', function(e){
+                    e.preventDefault(); // keep focus in the input
+                    choose(i);
+                });
+                list.appendChild(li);
+            });
+            list.hidden = false;
+            highlight(opts.highlightFirst ? 0 : -1);
+        }
+
+        function choose(i){
+            var item = items[i];
+            close();
+            if(item){ opts.onSelect(item); }
+        }
+
+        function highlight(i){
+            var lis = list.children;
+            for(var j = 0; j < lis.length; j++){
+                lis[j].classList.toggle('is-active', j == i);
+            }
+            active = i;
+            if(i >= 0){ lis[i].scrollIntoView({ block: 'nearest' }); }
+        }
+
+        input.addEventListener('input', function(){ open(false); });
+        input.addEventListener('focus', function(){ if(input.value.trim() != ''){ open(false); } });
+        input.addEventListener('blur', close);
+        input.addEventListener('keydown', function(e){
+            if(!isOpen()){
+                if(e.key == 'ArrowDown'){
+                    e.preventDefault();
+                    open(input.value.trim() == '');
+                }
+                return;
+            }
+            if(e.key == 'Tab'){
+                if(active >= 0){ choose(active); } // and let focus move on
+            } else if(e.key == 'ArrowDown'){
+                e.preventDefault();
+                highlight((active + 1) % items.length);
+            } else if(e.key == 'ArrowUp'){
+                e.preventDefault();
+                highlight((active - 1 + items.length) % items.length);
+            } else if(e.key == 'Enter'){
+                e.preventDefault();
+                e._autocompleteHandled = true;
+                if(active >= 0){ choose(active); } else { close(); }
+            } else if(e.key == 'Escape'){
+                e._autocompleteHandled = true;
+                close();
+            }
+        });
+
+        input._autocomplete = { open: open, close: close, isOpen: isOpen };
+    }
+
+    return { init: init, attachSchoolCombobox: attachSchoolCombobox, toggleChip: toggleChip, onChipKey: onChipKey };
+
+})();
+
+/******************************************************************************/
+// Event roster table (participantsEvent.php). Organizers click a row to edit
+// it in place; public viewers click a row to reveal its schedule block.
+/******************************************************************************/
+
+var RosterTable = (function(){
+
+    var schools = [];           // {schoolID, label}
+    var tournamentGroups = [];  // see rosterTournamentGroups() in participantsEvent.php
+    var manyTournaments = false;
+    var template, form, rosterIDField;
+    var current = null;     // {row, editor, fought:{tournamentID:true}} while an editor is open
+
+    function init(config){
+        schools = config.schools || [];
+        tournamentGroups = config.tournamentGroups || [];
+        manyTournaments = !!config.manyTournaments;
+        template = document.getElementById('rosterEditorTemplate');
+        form = document.getElementById('rosterEditForm');
+        rosterIDField = document.getElementById('editRosterID');
+
+        var rows = document.querySelectorAll('tr.roster-row');
+        for(var r = 0; r < rows.length; r++){
+            rows[r].addEventListener('click', template ? onEditClick : onScheduleClick);
+            rows[r].addEventListener('keydown', onRowKey);
+        }
+        document.addEventListener('keydown', function(e){
+            if(e.key == 'Escape' && !e._autocompleteHandled){ closeEditor(); }
+        });
+        if(form){ form.addEventListener('submit', onSubmit); }
+    }
+
+    // Clickable rows are focusable: Enter or Space opens one as a click does.
+    function onRowKey(e){
+        if(e.target != this || (e.key != 'Enter' && e.key != ' ')){ return; }
+        e.preventDefault();
+        this.click();
+    }
+
+    // Never post a blank name (both boxes empty, matching the entry form), or
+    // schoolID 0 (a cleared box, or a school with no short name) against the FK.
+    function onSubmit(e){
+        if(!current){ return; }
+        var editor = current.editor;
+        var names = editor.querySelectorAll('.name-inputs input');
+        var blankName = Array.prototype.every.call(names, function(input){ return input.value.trim() == ''; });
+        var noSchool = editor.querySelector('.edit-school-id').value == '0';
+
+        names.forEach(function(input){ input.classList.toggle('is-invalid-input', blankName); });
+        if(noSchool){ editor.querySelector('.edit-school-input').classList.add('is-invalid-input'); }
+        if(blankName || noSchool){ e.preventDefault(); }
+    }
+
+    function onScheduleClick(){
+        var schedule = document.getElementById('tList-' + this.getAttribute('data-roster-id'));
+        if(schedule){ schedule.classList.toggle('hidden'); }
+    }
+
+    function onEditClick(e){
+        if(e.target.closest('.roster-remove')){ return; } // the delete checkbox
+        if(!current || current.row != this){ openEditor(this); }
+    }
+
+/*----------------------------------------------------------------------------*/
+
+    function openEditor(row){
+        closeEditor();
+
+        var holder = document.createElement('tbody');
+        holder.innerHTML = template.innerHTML;
+        var editor = holder.firstElementChild;
+        var rosterID = row.getAttribute('data-roster-id');
+        var entered = {};
+        row.getAttribute('data-tournament-ids').split(',').forEach(function(id){
+            if(id != ''){ entered[id] = true; }
+        });
+
+        // Names come from data attributes: the name cell may include a participant ID.
+        editor.querySelector('.edit-first-name').value = row.getAttribute('data-first-name');
+        editor.querySelector('.edit-last-name').value = row.getAttribute('data-last-name');
+        var names = editor.querySelectorAll('.name-inputs input');
+        names.forEach(function(input){
+            input.addEventListener('input', function(){
+                names.forEach(function(n){ n.classList.remove('is-invalid-input'); });
+            });
+        });
+
+        var els = {
+            school: editor.querySelector('.edit-school-input'),
+            schoolID: editor.querySelector('.edit-school-id'),
+            schoolToggle: editor.querySelector('.school-toggle')
+        };
+        RosterEntry.attachSchoolCombobox(els, schools);
+        var schoolID = row.getAttribute('data-school-id');
+        schools.forEach(function(s){
+            if(s.schoolID == schoolID){ els.school.value = s.label; els.schoolID.value = schoolID; }
+        });
+
+        // Chips grouped by weapon as on the entry card; many get a line of their own.
+        var chipHolder = editor.querySelector('.edit-tournaments');
+        tournamentGroups.forEach(function(group){
+            var line = document.createElement('div');
+            line.className = 'tournament-group';
+            if(group.weapon != ''){
+                var label = document.createElement('span');
+                label.className = 'tournament-group-label';
+                label.textContent = group.weapon;
+                line.appendChild(label);
+            }
+            group.tournaments.forEach(function(t){
+                var chip = document.createElement('div');
+                chip.className = 'tournament-box' + (entered[t.tournamentID] ? ' is-selected' : '');
+                chip.tabIndex = 0;
+                chip.setAttribute('role', 'checkbox');
+                chip.setAttribute('aria-checked', entered[t.tournamentID] ? 'true' : 'false');
+                chip.innerHTML = "<input type='checkbox' class='hidden' form='rosterEditForm'"
+                    + " name='editParticipantData[tournamentIDs][" + t.tournamentID + "]'"
+                    + " value='" + t.tournamentID + "'" + (entered[t.tournamentID] ? ' checked' : '') + ">";
+                chip.appendChild(document.createTextNode(t.label));
+                chip.addEventListener('click', function(){
+                    RosterEntry.toggleChip(chip);
+                    if(entered[t.tournamentID]){ checkFought(rosterID, t.tournamentID, chip.firstChild); }
+                });
+                line.appendChild(chip);
+            });
+            chipHolder.appendChild(line);
+        });
+        editor.classList.toggle('tournaments-wide', manyTournaments);
+
+        var scheduleRow = document.getElementById('tList-' + rosterID);
+        if(scheduleRow){
+            editor.querySelector('.roster-editor-schedule').innerHTML = scheduleRow.firstElementChild.innerHTML;
+        }
+
+        editor.querySelector('.roster-cancel').addEventListener('click', closeEditor);
+        // Space toggles a chip; Enter in a text box or on a chip saves.
+        editor.addEventListener('keydown', function(e){
+            RosterEntry.onChipKey(e);
+            if(e.key != 'Enter' || e._autocompleteHandled){ return; }
+            if(e.target.type != 'text' && !e.target.classList.contains('tournament-box')){ return; }
+            e.preventDefault();
+            if(!editor.querySelector('.roster-save').disabled){ form.requestSubmit(); }
+        });
+
+        rosterIDField.value = rosterID;
+        row.parentNode.insertBefore(editor, row.nextSibling);
+        row.classList.add('is-editing');
+        current = { row: row, editor: editor, fought: {} };
+        editor.querySelector('.name-inputs input').focus();
+    }
+
+    function closeEditor(){
+        if(!current){ return; }
+        var hadFocus = current.editor.contains(document.activeElement);
+        current.editor.parentNode.removeChild(current.editor);
+        current.row.classList.remove('is-editing');
+        // Closed from the keyboard: back to the row, not the top of the page.
+        if(hadFocus){ current.row.focus(); }
+        rosterIDField.value = '0';
+        current = null;
+    }
+
+    // Removing a fighter from a tournament they have already fought in shows a
+    // warning and disables Save until the explicit confirm button is used.
+    function checkFought(rosterID, tournamentID, box){
+        var ctx = current;
+        if(box.checked){
+            delete ctx.fought[tournamentID];
+            updateWarning(ctx);
+            return;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', AJAX_LOCATION + '?mode=hasFought&rosterID=' + rosterID + '&tournamentID=' + tournamentID, true);
+        xhr.onload = function(){
+            // Ignore if the editor changed or the chip was re-checked while in flight.
+            if(current == ctx && !box.checked && this.responseText.slice(-10) == 'HAS FOUGHT'){
+                ctx.fought[tournamentID] = true;
+                updateWarning(ctx);
+            }
+        };
+        xhr.send();
+    }
+
+    function updateWarning(ctx){
+        var show = Object.keys(ctx.fought).length > 0;
+        ctx.editor.querySelector('.roster-editor-warning').classList.toggle('hidden', !show);
+        ctx.editor.querySelector('.roster-save').disabled = show;
+    }
+
+    return { init: init };
+
+})();
 
 /******************************************************************************/
 

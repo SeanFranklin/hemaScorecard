@@ -6,6 +6,9 @@ export const TEST_EVENT_ID = 1;
 export const TEST_EVENT_NAME = 'Playwright Test Event';
 export const TEST_TOURNAMENT_ID = 1;
 
+/** Second event: ten tournaments with weapon/prefix/gender attributes. */
+export const GROUPED_EVENT_ID = 3;
+
 export const ORGANIZER_PASSWORD = 'organizer-test-pw';
 export const STAFF_PASSWORD = 'staff-test-pw';
 
@@ -27,3 +30,15 @@ export const COUNTRY_FIGHTERS = {
   quill: { rosterID: 15, firstName: 'Quinn', lastName: 'Quill' }, // no country
   reyes: { rosterID: 16, firstName: 'Rosa', lastName: 'Reyes' }, // no country
 };
+
+/** In systemRoster but not in the event roster (see seed.sql). */
+export const UNENTERED_FIGHTER = { systemRosterID: 7, firstName: 'Greta', lastName: 'Gable' };
+/** Two unentered fighters sharing a name, at SCHOOLS[0] and SCHOOLS[1]. */
+export const SAME_NAME_FIGHTERS = [
+  { systemRosterID: 8, firstName: 'Ivo', lastName: 'Ibsen' },
+  { systemRosterID: 9, firstName: 'Ivo', lastName: 'Ibsen' },
+];
+export const SCHOOLS = [
+  { schoolID: 3, shortName: 'Test School' },
+  { schoolID: 4, shortName: 'Other Club' },
+];

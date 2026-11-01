@@ -4258,6 +4258,11 @@ function editEventParticipant(){
 	$firstName = rtrim($_POST['editParticipantData']['firstName']);
 	$lastName = rtrim($_POST['editParticipantData']['lastName']);
 
+	if($firstName == '' && $lastName == ''){
+		setAlert(USER_ERROR, "Can not change a fighter to a blank name. No changes made.");
+		return;
+	}
+
 	$sql = "SELECT COUNT(*) AS numEvents
 			FROM eventRoster
 			WHERE systemRosterID = {$systemRosterID}
@@ -4361,7 +4366,7 @@ function editEventParticipant(){
 
 	}
 
-	$_SESSION['jumpTo'] = "anchor{$rosterID}";
+	$_SESSION['jumpTo'] = "divFor{$rosterID}"; // the row, which takes focus
 	updateTournamentFighterCounts(null, $eventID);
 }
 
