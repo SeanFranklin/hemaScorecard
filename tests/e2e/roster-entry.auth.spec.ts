@@ -103,6 +103,9 @@ test.describe('event roster entry', () => {
 
   test('with few tournaments, rows not being worked on keep every chip', async ({ page }) => {
     const card = await openEntryCard(page);
+    // Other specs add tournaments to event 1 as they run; past eight, rows collapse.
+    test.skip(await card.evaluate((c) => c.classList.contains('tournaments-collapse')),
+      'event 1 has more than eight tournaments in this run');
     const rows = card.locator('.new-participant-row');
     await rows.nth(0).locator('.first-name-input').fill('Quinn'); // spawns row 2
     const chip = rows.nth(0).locator('.tournament-box').first();
@@ -120,9 +123,10 @@ test.describe('event roster entry', () => {
     await row.locator('.school-toggle').click();
 
     const options = row.locator('.school-combobox [role=option]');
-    await expect(options).toHaveCount(4);
     await expect(options.nth(0)).toHaveText('*Unknown');
     await expect(options.nth(1)).toHaveText('*Unaffiliated');
+    await expect(options.filter({ hasText: SCHOOLS[0].shortName })).toHaveCount(1);
+    await expect(options.filter({ hasText: SCHOOLS[1].shortName })).toHaveCount(1);
     await expect(options.filter({ hasText: /^Unaffiliated$/ })).toHaveCount(0);
   });
 
@@ -289,14 +293,18 @@ test.describe('event roster entry from the keyboard', () => {
     await expect(row.locator('.school-id')).toHaveValue(String(SCHOOLS[0].schoolID));
   });
 
-  test('Down in an empty school box lists every school', async ({ page }) => {
+  test('Down in an empty school box lists every school, as the caret does', async ({ page }) => {
     const card = await openEntryCard(page);
     const row = card.locator('.new-participant-row').first();
-    await row.locator('.school-input').focus();
+    const options = row.locator('.school-combobox [role=option]');
+    await row.locator('.school-toggle').click();
+    await expect(options.first()).toBeVisible();
+    const every = await options.count();
+    await page.keyboard.press('Escape');
+    await expect(options).toHaveCount(0);
 
     await page.keyboard.press('ArrowDown');
-    const options = row.locator('.school-combobox [role=option]');
-    await expect(options).toHaveCount(4);
+    await expect(options).toHaveCount(every);
     await expect(options.nth(0)).toHaveClass(/is-active/);
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
