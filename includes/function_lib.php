@@ -12,6 +12,7 @@
 	require_once(BASE_URL.'includes/functions/data_handling_functions.php');
 	require_once(BASE_URL.'includes/functions/mysql_lib.php');
 	require_once(BASE_URL.'includes/functions/general_functions.php');
+	require_once(BASE_URL.'includes/functions/formula_functions.php');
 	require_once(BASE_URL.'includes/functions/doPOST.php');
 	require_once(BASE_URL.'includes/functions/scoring_functions.php');
 	require_once(BASE_URL.'includes/functions/cuttingQualification_functions.php');

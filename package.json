@@ -8,7 +8,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:stack:up": "docker compose -f docker-compose.test.yml -p hemascorecard-test up -d",
     "test:stack:down": "docker compose -f docker-compose.test.yml -p hemascorecard-test down",
-    "test:db:reset": "bash tests/reset-db.sh"
+    "test:db:reset": "bash tests/reset-db.sh",
+    "test:php": "docker compose exec -T web php /hemaScorecard/tests/php/formula_functions.test.php"
   },
   "repository": {
     "type": "git",
