@@ -213,6 +213,20 @@ case 'newExchange': {
 
 /******************************************************************************/
 
+case 'fighterSearch': {
+// Autocomplete for the event roster entry form (RosterEntry in
+// roster_management_scripts.js). Searched server side because the full
+// system roster is far too large to embed in the page.
+
+	if(ALLOW['EVENT_MANAGEMENT'] == false){ break; }
+
+	$fighters = searchSystemRosterNotInEvent($_SESSION['eventID'],
+					(string)@$_REQUEST['firstName'], (string)@$_REQUEST['lastName']);
+	echo json_encode($fighters, JSON_INVALID_UTF8_SUBSTITUTE);
+} break;
+
+/******************************************************************************/
+
 case 'fighterInfo': {
 
 	$rosterID = (int)$_REQUEST['rosterID'];

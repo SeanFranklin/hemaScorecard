@@ -119,9 +119,6 @@ function processPostData(){
 			case 'deleteFromEvent':
 				deleteFromEvent();
 				break;
-			case 'changeSchool':
-				$_SESSION['newParticipantsSchoolID'] = $_POST['schoolID'];
-				break;
 			case 'addEventParticipantsMode':
 				if(isset($_POST['newParticipantsMode'])){
 					$_SESSION['addEventParticipantsMode'] = $_POST['newParticipantsMode'];
